@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,15 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
     [Shared]
     internal sealed partial class MisplacedUsingsCodeFixProvider : CodeFixProvider
     {
-        private const string SystemUsingDirectiveIdentifier = nameof(System);
-
-        // This format is used when checking whether a using directive is importing from the System namespace. 
-        // Omitting the global namespace and not using special types ensures we are able to check whether the
-        // display name root is 'System' or not.
-        private static readonly SymbolDisplayFormat s_fullNamespaceDisplayFormat = SymbolDisplayFormat.FullyQualifiedFormat
-            .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted)
-            .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-        private static readonly List<UsingDirectiveSyntax> s_emptyUsingsList = new List<UsingDirectiveSyntax>();
         private static readonly SyntaxAnnotation s_usingPlacementCodeFixAnnotation = new SyntaxAnnotation(nameof(s_usingPlacementCodeFixAnnotation));
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.MoveMisplacedUsingsDiagnosticId);
@@ -54,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
             var options = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
 
-            // do not offer a code fix for IDE0056 when there are multiple namespaces in the source file
+            // Do not offer a code fix when there are multiple namespaces in the source file.
             if (CountNamespaces(compilationUnit.Members) > 1)
             {
                 return;
@@ -71,6 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
         private static async Task<Document> GetTransformedDocumentAsync(Document document, CompilationUnitSyntax compilationUnit, OptionSet options, CancellationToken cancellationToken)
         {
             var usingDirectivesPlacement = DeterminePlacement(compilationUnit, options);
+
+            // There should only be a diagnostic when there are usings directives that need moving.
+            Debug.Assert(usingDirectivesPlacement != AddImportPlacement.Preserve);
 
             var newCompilationUnit = await ExpandUsingDirectivesAsync(document, compilationUnit, cancellationToken).ConfigureAwait(false);
             ImmutableArray<SyntaxTrivia> fileHeader;
@@ -126,15 +121,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
         private static CompilationUnitSyntax MoveUsingsInsideNamespace(CompilationUnitSyntax compilationUnit)
         {
             // Get the compilation unit usings and set them up to format when moved.
-            var usingsToAdd = FixUpUsingDirectives(compilationUnit.Usings);
+            var usingsToAdd = compilationUnit.Usings.Select(
+                directive => directive.WithAdditionalAnnotations(Formatter.Annotation));
 
             // Remove usings and fix leading trivia for compilation unit.
             var newCompilationUnit = compilationUnit.WithUsings(new SyntaxList<UsingDirectiveSyntax>());
-            newCompilationUnit = RemoveLeadingEndOfLinesFromCompilationUnit(newCompilationUnit);
+            newCompilationUnit = RemoveLeadingBlankLinesFromFirstMember(newCompilationUnit);
 
             // Fix the leading trivia for the namespace declaration.
             var namespaceDeclaration = newCompilationUnit.Members.OfType<NamespaceDeclarationSyntax>().First();
-            var newNamespaceDeclaration = EnsureLeadingEndOfLineForNamespace(namespaceDeclaration);
+            var newNamespaceDeclaration = EnsureLeadingBlankLineBeforeFirstMember(namespaceDeclaration);
 
             // Update the namespace declaration with the usings from the compilation unit.
             var newUsings = newNamespaceDeclaration.Usings.InsertRange(0, usingsToAdd);
@@ -149,11 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             var namespaceDeclaration = compilationUnit.Members.OfType<NamespaceDeclarationSyntax>().First();
 
             // Get the namespace declaration usings and set them up to format when moved.
-            var usingsToAdd = FixUpUsingDirectives(namespaceDeclaration.Usings);
+            var usingsToAdd = namespaceDeclaration.Usings.Select(
+                directive => directive.WithAdditionalAnnotations(Formatter.Annotation));
 
             // Remove usings and fix leading trivia for namespace declaration.
             var newNamespaceDeclaration = namespaceDeclaration.WithUsings(new SyntaxList<UsingDirectiveSyntax>());
-            newNamespaceDeclaration = RemoveLeadingEndOfLinesFromNamespaceDeclaration(newNamespaceDeclaration);
+            newNamespaceDeclaration = RemoveLeadingBlankLinesFromFirstMember(newNamespaceDeclaration);
             var newCompilationUnit = compilationUnit.ReplaceNode(namespaceDeclaration, newNamespaceDeclaration);
 
             // Update the compilation unit with the usings from the namespace declaration.
@@ -161,130 +158,78 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             newCompilationUnit = newCompilationUnit.WithUsings(newUsings);
 
             // Fix the leading trivia for the compilation unit. 
-            return EnsureLeadingEndOfLineForCompilationUnit(newCompilationUnit);
+            return EnsureLeadingBlankLineBeforeFirstMember(newCompilationUnit);
         }
 
-        private static CompilationUnitSyntax RemoveLeadingEndOfLinesFromCompilationUnit(CompilationUnitSyntax compilationUnit)
+        private static SyntaxList<MemberDeclarationSyntax> GetMembers(SyntaxNode node) => node switch
         {
-            if (compilationUnit.Members.Count == 0)
+            CompilationUnitSyntax compilationUnit => compilationUnit.Members,
+            NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Members,
+            _ => throw new NotSupportedException()
+        };
+
+        private static TSyntaxNode RemoveLeadingBlankLinesFromFirstMember<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
+        {
+            var members = GetMembers(node);
+            if (members.Count == 0)
             {
-                return compilationUnit;
+                return node;
             }
 
-            var firstMember = compilationUnit.Members.First();
+            var firstMember = members.First();
             var firstMemberTrivia = firstMember.GetLeadingTrivia();
 
-            // If the first member already contains a leading new line then, this will already break up the usings from these members.
+            // If there is no leading trivia, then return the node as it is.
             if (firstMemberTrivia.Count == 0)
             {
-                return compilationUnit;
+                return node;
             }
 
-            var newTrivia = SplitIntoLines(firstMemberTrivia)
+            var newTrivia = splitIntoLines(firstMemberTrivia)
                 .SkipWhile(trivia => trivia.All(t => t.IsWhitespaceOrEndOfLine()) && trivia.Last().IsKind(SyntaxKind.EndOfLineTrivia))
                 .SelectMany(t => t);
 
             var newFirstMember = firstMember.WithLeadingTrivia(newTrivia);
-            return compilationUnit.ReplaceNode(firstMember, newFirstMember);
-        }
+            return node.ReplaceNode(firstMember, newFirstMember);
 
-        private static CompilationUnitSyntax EnsureLeadingEndOfLineForCompilationUnit(CompilationUnitSyntax compilationUnit)
-        {
-            // If we already have usings then, assume the code is formatted how the user intended.
-            // If the namespace contains no members there is no need to break up the usings from the other members.
-            if (compilationUnit.Members.Count == 0)
+            IEnumerable<IEnumerable<SyntaxTrivia>> splitIntoLines(SyntaxTriviaList triviaList)
             {
-                return compilationUnit;
-            }
-
-            var firstMember = compilationUnit.Members.First();
-            var firstMemberTrivia = firstMember.GetLeadingTrivia();
-
-            // If the first member already contains a leading new line then, this will already break up the usings from these members.
-            if (firstMemberTrivia.Count > 0 && firstMemberTrivia.First().IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return compilationUnit;
-            }
-
-            var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed));
-            return compilationUnit.ReplaceNode(firstMember, newFirstMember);
-        }
-
-        private static NamespaceDeclarationSyntax EnsureLeadingEndOfLineForNamespace(NamespaceDeclarationSyntax namespaceDeclaration)
-        {
-            // If we already have usings then, assume the code is formatted how the user intended.
-            // If the namespace contains no members there is no need to break up the usings from the other members.
-            if (namespaceDeclaration.Usings.Count > 0 || namespaceDeclaration.Members.Count == 0)
-            {
-                return namespaceDeclaration;
-            }
-
-            var firstMember = namespaceDeclaration.Members.First();
-            var firstMemberTrivia = firstMember.GetLeadingTrivia();
-
-            // If the first member already contains a leading new line then, this will already break up the usings from these members.
-            if (firstMemberTrivia.Count > 0 && firstMemberTrivia.First().IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return namespaceDeclaration;
-            }
-
-            var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed));
-            return namespaceDeclaration.ReplaceNode(firstMember, newFirstMember);
-        }
-
-        private static NamespaceDeclarationSyntax RemoveLeadingEndOfLinesFromNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
-        {
-            if (namespaceDeclaration.Members.Count == 0)
-            {
-                return namespaceDeclaration;
-            }
-
-            var firstMember = namespaceDeclaration.Members.First();
-            var firstMemberTrivia = firstMember.GetLeadingTrivia();
-
-            // If the first member already contains a leading new line then, this will already break up the usings from these members.
-            if (firstMemberTrivia.Count == 0)
-            {
-                return namespaceDeclaration;
-            }
-
-            var newTrivia = SplitIntoLines(firstMemberTrivia)
-                .SkipWhile(trivia => trivia.All(t => t.IsWhitespaceOrEndOfLine()) && trivia.Last().IsKind(SyntaxKind.EndOfLineTrivia))
-                .SelectMany(t => t);
-
-            var newFirstMember = firstMember.WithLeadingTrivia(newTrivia);
-            return namespaceDeclaration.ReplaceNode(firstMember, newFirstMember);
-        }
-
-        private static SyntaxList<UsingDirectiveSyntax> FixUpUsingDirectives(IEnumerable<UsingDirectiveSyntax> usingDirectives)
-        {
-            var newUsingDirectives = usingDirectives.Select(FixUpUsingDirective);
-            return new SyntaxList<UsingDirectiveSyntax>(newUsingDirectives);
-        }
-
-        private static UsingDirectiveSyntax FixUpUsingDirective(UsingDirectiveSyntax usingDirective)
-        {
-            var newUsingDirective = usingDirective.WithAdditionalAnnotations(Formatter.Annotation);
-            var newName = newUsingDirective.Name.WithAdditionalAnnotations(Simplifier.Annotation);
-            return newUsingDirective.WithName(newName);
-        }
-
-        private static IEnumerable<IEnumerable<SyntaxTrivia>> SplitIntoLines(SyntaxTriviaList triviaList)
-        {
-            var index = 0;
-            for (var i = 0; i < triviaList.Count; i++)
-            {
-                if (triviaList[i].IsEndOfLine())
+                var index = 0;
+                for (var i = 0; i < triviaList.Count; i++)
                 {
-                    yield return triviaList.TakeRange(index, i);
-                    index = i + 1;
+                    if (triviaList[i].IsEndOfLine())
+                    {
+                        yield return triviaList.TakeRange(index, i);
+                        index = i + 1;
+                    }
+                }
+
+                if (index < triviaList.Count)
+                {
+                    yield return triviaList.TakeRange(index, triviaList.Count - 1);
                 }
             }
+        }
 
-            if (index < triviaList.Count)
+        private static TSyntaxNode EnsureLeadingBlankLineBeforeFirstMember<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
+        {
+            var members = GetMembers(node);
+            if (members.Count == 0)
             {
-                yield return triviaList.TakeRange(index, triviaList.Count - 1);
+                return node;
             }
+
+            var firstMember = members.First();
+            var firstMemberTrivia = firstMember.GetLeadingTrivia();
+
+            // If the first member already contains a leading new line then, this will already break up the usings from these members.
+            if (firstMemberTrivia.Count > 0 && firstMemberTrivia.First().IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                return node;
+            }
+
+            var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed));
+            return node.ReplaceNode(firstMember, newFirstMember);
         }
 
         private static AddImportPlacement DeterminePlacement(CompilationUnitSyntax compilationUnit, OptionSet options)

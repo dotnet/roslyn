@@ -554,7 +554,7 @@ namespace TestNamespace
         [InlineData(InterfaceDefinition)]
         [InlineData(EnumDefinition)]
         [InlineData(DelegateDefinition)]
-        public Task WhenOutsidePreferred_UsingsInCompilationUnit_ValidUsingStatements(string typeDefinition)
+        public Task WhenOutsidePreferred_UsingsInCompilationUnitWithMember_ValidUsingStatements(string typeDefinition)
         {
             var testCode = $@"using System;
 
