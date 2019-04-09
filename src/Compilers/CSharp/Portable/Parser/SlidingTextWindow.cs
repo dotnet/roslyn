@@ -333,6 +333,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
+        public bool NextAre(string chars, int offset = 0)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(chars));
+            var n = chars.Length;
+            if (!CanGet(offset + n - 1)) return false;
+            for (var i = 0; i < n; i++)
+            {
+                if (chars[i] != PeekChar(offset + i)) return false;
+            }
+            return true;
+        }
+
+        public bool NextIs(char c, int offset = 0) => TryGet(out var ch, offset) && (ch == c);
+
+        public bool CanGet(int num = 0)
+        {
+            Debug.Assert(_offset + num >= 0);
+            //  Debug.Assert(num >= -MaxCharsLookBehind);
+            return _offset + num < _characterWindowCount;
+        }
+
+        public bool TryGet(out char ch, int num = 0)
+        {
+            var ok = CanGet(num);
+            ch = ok ? PeekChar(num) : default;
+            return ok;
+        }
+
         public bool IsUnicodeEscape()
         {
             if (this.PeekChar() == '\\')

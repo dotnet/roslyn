@@ -288,15 +288,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                     If CanGet(2) Then
                                         Select Case (Peek(2))
                                             Case "-"c
-                                                If NextIs(3, "-"c) Then
+                                                If NextIs("-"c, 3) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "["c
-                                                If NextAre(3, "CDATA[") Then
+                                                If NextAre("CDATA[", 3) Then
                                                     Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If NextAre(3, "OCTYPE") Then
+                                                If NextAre("OCTYPE", 3) Then
                                                     Return XmlMakeBeginDTDToken(precedingTrivia)
                                                 End If
                                         End Select
@@ -311,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return XmlMakeLessToken(precedingTrivia)
 
                     Case "]"c
-                        If NextAre(Here + 1, "]>") Then
+                        If NextAre("]>", Here + 1) Then
 
                             ' // If valid characters found then return them.
                             If Here <> 0 Then
@@ -395,7 +395,7 @@ ScanChars:
                         GoTo CleanUp
 
                     Case "?"c
-                        If NextIs(Here + 1, ">"c) Then
+                        If NextIs(">"c, Here + 1) Then
 
                             '// If valid characters found then return them.
                             If Here <> 0 Then
@@ -487,7 +487,7 @@ CleanUp:
                         End If
 
                     Case "/"c
-                        If NextIs(1, ">"c) Then
+                        If NextIs(">"c, 1) Then
                             Return XmlMakeEndEmptyElementToken(precedingTrivia)
                         End If
                         Return XmlMakeDivToken(precedingTrivia)
@@ -512,15 +512,15 @@ CleanUp:
                                     If CanGet(2) Then
                                         Select Case (Peek(2))
                                             Case "-"c
-                                                If NextIs(3, "-"c) Then
+                                                If NextIs("-"c, 3) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "["c
-                                                If NextAre(3, "CDATA[") Then
+                                                If NextAre("CDATA[", 3) Then
                                                     Return XmlMakeBeginCDataToken(precedingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If NextAre(3, "OCTYPE") Then
+                                                If NextAre("OCTYPE", 3) Then
                                                     Return XmlMakeBeginDTDToken(precedingTrivia)
                                                 End If
                                         End Select
@@ -536,7 +536,7 @@ CleanUp:
                         Return XmlMakeLessToken(precedingTrivia)
 
                     Case "?"c
-                        If NextIs(1, ">"c) Then
+                        If NextIs(">"c, 1) Then
                             ' // Create token for the '?>' termination sequence
                             Return XmlMakeEndProcessingInstructionToken(precedingTrivia)
                         End If

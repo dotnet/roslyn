@@ -403,11 +403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 #Region "Buffer helpers"
 
-        Private Function NextAre(chars As String) As Boolean
-            Return NextAre(0, chars)
-        End Function
-
-        Private Function NextAre(offset As Integer, chars As String) As Boolean
+        Private Function NextAre(chars As String, Optional offset As Integer = 0) As Boolean
             Debug.Assert(Not String.IsNullOrEmpty(chars))
             Dim n = chars.Length
             If Not CanGet(offset + n - 1) Then Return False
@@ -417,15 +413,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Private Function NextIs(offset As Integer, c As Char) As Boolean
+        Private Function NextIs(c As Char, Optional offset As Integer = 0) As Boolean
             Return CanGet(offset) AndAlso (Peek(offset) = c)
         End Function
 
-        Private Function CanGet() As Boolean
-            Return _lineBufferOffset < _bufferLen
-        End Function
-
-        Private Function CanGet(num As Integer) As Boolean
+        Private Function CanGet(Optional num As Integer = 0) As Boolean
             Debug.Assert(_lineBufferOffset + num >= 0)
             Debug.Assert(num >= -MaxCharsLookBehind)
 
@@ -495,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Debug.Assert(StartCharacter = Peek(here))
 
-            If StartCharacter = CARRIAGE_RETURN AndAlso NextIs(here + 1, LINE_FEED) Then
+            If StartCharacter = CARRIAGE_RETURN AndAlso NextIs(LINE_FEED, here + 1) Then
                 Return 2
             End If
             Return 1
@@ -535,17 +527,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return MakeEndOfLineTrivia(GetNextChar)
         End Function
 
-        Private Function TryGet(num As Integer, ByRef ch As Char) As Boolean
-            If CanGet(num) Then
-                ch = Peek(num)
-                Return True
-            End If
-            Return False
+        Private Function TryGet(ByRef ch As Char, Optional num As Integer = 0) As Boolean
+            Dim ok = CanGet(num)
+            ch = If(ok, Peek(num), Nothing)
+            Return ok
         End Function
 
         Private Function ScanLineContinuation(tList As SyntaxListBuilder) As Boolean
             Dim ch As Char = ChrW(0)
-            If Not TryGet(0, ch) Then
+            If Not TryGet(ch, 0) Then
                 Return False
             End If
 
@@ -558,7 +548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Dim Here = GetWhitespaceLength(1)
-            TryGet(Here, ch)
+            TryGet(ch, Here)
 
             Dim foundComment = IsSingleQuote(ch)
             Dim atNewLine As Boolean = IsNewLine(ch)
@@ -711,35 +701,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared ReadOnly s_conflictMarkerLength As Integer = "<<<<<<<".Length
 
         Private Function IsConflictMarkerTrivia() As Boolean
-            If CanGet() Then
-                Dim ch = Peek()
-
-                If ch = "<"c OrElse ch = ">"c OrElse ch = "="c Then
-                    Dim position = _lineBufferOffset
-                    Dim text = _buffer
-
-                    If position = 0 OrElse SyntaxFacts.IsNewLine(text(position - 1)) Then
-                        Dim firstCh = _buffer(position)
-
-                        If (position + s_conflictMarkerLength) <= text.Length Then
-                            For i = 0 To s_conflictMarkerLength - 1
-                                If text(position + i) <> firstCh Then
-                                    Return False
-                                End If
-                            Next
-
-                            If firstCh = "="c Then
-                                Return True
-                            End If
-
-                            Return (position + s_conflictMarkerLength) < text.Length AndAlso
-                                   text(position + s_conflictMarkerLength) = " "c
-                        End If
-                    End If
-                End If
+            ' Is directly after a newline?
+            If Not IsAtNewLine Then
+                Return False
             End If
-
-            Return False
+            ' Is branch seperator?
+            If NextAre("=======") Then
+                Return True
+            End If
+            ' Is branch conflict marker, and followed by a space.
+            Return NextIs(" "c, s_conflictMarkerLength) AndAlso (NextAre("<<<<<<<") OrElse NextAre(">>>>>>>"))
         End Function
 
         Private Sub ScanConflictMarker(tList As SyntaxListBuilder)
@@ -1251,7 +1222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanStringLiteral(precedingTrivia)
 
                 Case "A"c
-                    If NextAre(1, "s ") Then
+                    If NextAre("s ", 1) Then
                         ' TODO: do we allow widechars in keywords?
                         AdvanceChar(2)
                         Return MakeKeyword(SyntaxKind.AsKeyword, "As", precedingTrivia)
@@ -1260,7 +1231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "E"c
-                    If NextAre(1, "nd ") Then
+                    If NextAre("nd ", 1) Then
                         ' TODO: do we allow widechars in keywords?
                         AdvanceChar(3)
                         Return MakeKeyword(SyntaxKind.EndKeyword, "End", precedingTrivia)
@@ -1269,7 +1240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "I"c
-                    If NextAre(1, "f ") Then
+                    If NextAre("f ", 1) Then
                         ' TODO: do we allow widechars in keywords?
                         AdvanceChar(2)
                         Return MakeKeyword(SyntaxKind.IfKeyword, "If", precedingTrivia)
@@ -1306,7 +1277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return MakeQuestionToken(precedingTrivia, fullWidth)
 
                 Case "%"c
-                    If NextIs(1, ">"c) Then
+                    If NextIs(">"c, 1) Then
                         Return XmlMakeEndEmbeddedToken(precedingTrivia, _scanSingleLineTriviaFunc)
                     End If
 
@@ -1415,7 +1386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                     End If
                                 Case "["c
 
-                                    If NextAre(length + 2, "CDATA[") Then
+                                    If NextAre("CDATA[", length + 2) Then
 
                                         Return XmlMakeBeginCDataToken(precedingTrivia, scanTrailingTrivia)
                                     End If

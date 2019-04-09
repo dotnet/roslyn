@@ -2344,7 +2344,7 @@ LoopExit:
                     case '<':
                         if (!isTrailing)
                         {
-                            if (IsConflictMarkerTrivia())
+                            if (this.IsConflictMarkerTrivia())
                             {
                                 this.LexConflictMarkerTrivia(ref triviaList);
                                 break;
@@ -2365,35 +2365,21 @@ LoopExit:
 
         private bool IsConflictMarkerTrivia()
         {
-            var position = TextWindow.Position;
-            var text = TextWindow.Text;
-            if (position == 0 || SyntaxFacts.IsNewLine(text[position - 1]))
+            // Is directly after a newline?
+            if (!IsAtNewLine())
             {
-                var firstCh = text[position];
-                Debug.Assert(firstCh == '<' || firstCh == '=' || firstCh == '>');
-
-                if ((position + s_conflictMarkerLength) <= text.Length)
-                {
-                    for (int i = 0, n = s_conflictMarkerLength; i < n; i++)
-                    {
-                        if (text[position + i] != firstCh)
-                        {
-                            return false;
-                        }
-                    }
-
-                    if (firstCh == '=')
-                    {
-                        return true;
-                    }
-
-                    return (position + s_conflictMarkerLength) < text.Length &&
-                        text[position + s_conflictMarkerLength] == ' ';
-                }
+                return false;
             }
-
-            return false;
+            // Is the branch seperator marker?
+            if (TextWindow.NextAre("======="))
+            {
+                return true;
+            }
+            // Is branch conflict marker, and followed by a space.
+            return TextWindow.NextIs(' ', s_conflictMarkerLength) && (TextWindow.NextAre("<<<<<<<") || TextWindow.NextAre(">>>>>>>"));
         }
+
+        private bool IsAtNewLine() => (TextWindow.Offset == 0) || SyntaxFacts.IsNewLine(TextWindow.PeekChar(-1));
 
         private void LexConflictMarkerTrivia(ref SyntaxListBuilder triviaList)
         {
