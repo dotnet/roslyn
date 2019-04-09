@@ -8647,7 +8647,7 @@ interface IInterface<T>
 
 class Class : IInterface<string>
 {{
-    public string MethodAllowNull(string? value)
+    public string? MethodAllowNull(string? value)
     {{
         throw new System.NotImplementedException();
     }}
@@ -8703,8 +8703,7 @@ class Class : IInterface<string?>
         throw new System.NotImplementedException();
     }}
 
-    [return: NotNull]
-    public string? MethodDisallowNull([DisallowNull] string? value)
+    public string MethodDisallowNull([DisallowNull] string? value)
     {{
         throw new System.NotImplementedException();
     }}
@@ -8750,7 +8749,7 @@ interface IInterface<T>
 
 class Class : IInterface<string>
 {{
-    public ref string MethodMaybeNull(ref string? value)
+    public ref string? MethodMaybeNull(ref string? value)
     {{
         throw new System.NotImplementedException();
     }}
@@ -8806,8 +8805,7 @@ class Class : IInterface<string?>
         throw new System.NotImplementedException();
     }}
 
-    [return: NotNull]
-    public ref string? MethodNotNull([NotNull] ref string? value)
+    public ref string MethodNotNull([NotNull] ref string? value)
     {{
         throw new System.NotImplementedException();
     }}
@@ -8859,7 +8857,6 @@ class Class<T> : IInterface<T?> where T : class
         throw new System.NotImplementedException();
     }}
 
-    [return: NotNull]
     public T MethodDisallowNull([DisallowNull] T value)
     {{
         throw new System.NotImplementedException();

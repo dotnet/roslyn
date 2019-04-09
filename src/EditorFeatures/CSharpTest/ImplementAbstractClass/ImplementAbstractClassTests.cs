@@ -1935,7 +1935,7 @@ abstract class Base<T>
 
 class Class : Base<string>
 {
-    protected override string MethodAllowNull(string? value)
+    protected override string? MethodAllowNull(string? value)
     {
         throw new System.NotImplementedException();
     }
@@ -1983,8 +1983,7 @@ class Class : Base<string?>
         throw new System.NotImplementedException();
     }
 
-    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
-    protected override string? MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] string? value)
+    protected override string MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] string? value)
     {
         throw new System.NotImplementedException();
     }
