@@ -289,7 +289,7 @@ End Module";
                 var nextToken = member.GetLastToken().GetNextToken().GetNextToken();
 
                 root = root.ReplaceToken(previousToken, CSharp.SyntaxFactory.Identifier(previousToken.LeadingTrivia, previousToken.ValueText, previousToken.TrailingTrivia));
-                root = root.ReplaceToken(nextToken, CSharp.SyntaxFactory.Token(nextToken.LeadingTrivia, CSharp.CSharpExtensions.Kind(nextToken), nextToken.TrailingTrivia));
+                root = root.ReplaceToken(nextToken, CSharp.SyntaxFactory.Token(nextToken.LeadingTrivia, CSharp.CSharpExtensions.Kind(in nextToken), nextToken.TrailingTrivia));
 
                 expectedResult = SpecializedCollections.EmptyEnumerable<TextSpan>();
 

@@ -16,20 +16,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return token.ToString() == SyntaxFacts.GetText(kind);
         }
 
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2)
+        public static bool IsKind(this in SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2)
         {
             return token.Kind() == kind1
                 || token.Kind() == kind2;
         }
 
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
+        public static bool IsKind(this in SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
         {
             return token.Kind() == kind1
                 || token.Kind() == kind2
                 || token.Kind() == kind3;
         }
 
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4)
+        public static bool IsKind(this in SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4)
         {
             return token.Kind() == kind1
                 || token.Kind() == kind2
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 || token.Kind() == kind4;
         }
 
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5)
+        public static bool IsKind(this in SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5)
         {
             return token.Kind() == kind1
                 || token.Kind() == kind2
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 || token.Kind() == kind5;
         }
 
-        public static bool IsKind(this SyntaxToken token, params SyntaxKind[] kinds)
+        public static bool IsKind(this in SyntaxToken token, params SyntaxKind[] kinds)
         {
             return kinds.Contains(token.Kind());
         }

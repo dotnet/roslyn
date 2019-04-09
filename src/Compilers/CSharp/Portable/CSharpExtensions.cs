@@ -14,12 +14,20 @@ namespace Microsoft.CodeAnalysis
 {
     public static class CSharpExtensions
     {
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind)
+        [Obsolete("Pass by reference instead.")]
+        public static bool IsKind(SyntaxToken token, SyntaxKind kind)
+            => token.IsKind(kind);
+
+        public static bool IsKind(this in SyntaxToken token, SyntaxKind kind)
         {
             return token.RawKind == (int)kind;
         }
 
-        public static bool IsKind(this SyntaxTrivia trivia, SyntaxKind kind)
+        [Obsolete("Pass by reference instead.")]
+        public static bool IsKind(SyntaxTrivia trivia, SyntaxKind kind)
+            => trivia.IsKind(kind);
+
+        public static bool IsKind(this in SyntaxTrivia trivia, SyntaxKind kind)
         {
             return trivia.RawKind == (int)kind;
         }
@@ -143,13 +151,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return unchecked((uint)(rawKind - FirstVisualBasicKind)) > (FirstCSharpKind - 1 - FirstVisualBasicKind);
         }
 
-        public static SyntaxKind Kind(this SyntaxToken token)
+        [Obsolete("Pass by reference instead.")]
+        public static SyntaxKind Kind(SyntaxToken token)
+            => token.Kind();
+
+        public static SyntaxKind Kind(this in SyntaxToken token)
         {
             var rawKind = token.RawKind;
             return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;
         }
 
-        public static SyntaxKind Kind(this SyntaxTrivia trivia)
+        [Obsolete("Pass by reference instead.")]
+        public static SyntaxKind Kind(SyntaxTrivia trivia)
+            => trivia.Kind();
+
+        public static SyntaxKind Kind(this in SyntaxTrivia trivia)
         {
             var rawKind = trivia.RawKind;
             return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;

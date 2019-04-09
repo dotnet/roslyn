@@ -1521,13 +1521,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.OutKeyword) &&
+            if (CodeAnalysis.CSharpExtensions.IsKind(in token, SyntaxKind.OutKeyword) &&
                 token.Parent.IsKind(SyntaxKind.Argument))
             {
                 return true;
             }
 
-            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.EqualsToken) &&
+            if (CodeAnalysis.CSharpExtensions.IsKind(in token, SyntaxKind.EqualsToken) &&
                 token.Parent.IsKind(SyntaxKind.EqualsValueClause) &&
                 token.Parent.IsParentKind(SyntaxKind.VariableDeclarator))
             {
@@ -1603,7 +1603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // join |
-            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.JoinKeyword) &&
+            if (CodeAnalysis.CSharpExtensions.IsKind(in token, SyntaxKind.JoinKeyword) &&
                 syntaxTree.IsValidContextForJoinClause(token.SpanStart, tokenOnLeftOfStart, cancellationToken))
             {
                 return true;
@@ -1829,7 +1829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
-            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.OpenParenToken) &&
+            if (CodeAnalysis.CSharpExtensions.IsKind(in token, SyntaxKind.OpenParenToken) &&
                 syntaxTree.IsExpressionContext(token.SpanStart, syntaxTree.FindTokenOnLeftOfPosition(token.SpanStart, cancellationToken), false, cancellationToken))
             {
                 return true;
@@ -2640,7 +2640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
 
                 // Not on the left hand side of an object initializer
-                if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.IdentifierToken) &&
+                if (CodeAnalysis.CSharpExtensions.IsKind(in token, SyntaxKind.IdentifierToken) &&
                     token.Parent.IsKind(SyntaxKind.IdentifierName) &&
                     (token.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) || token.Parent.IsParentKind(SyntaxKind.CollectionInitializerExpression)))
                 {
@@ -2648,13 +2648,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
 
                 // Not after an 'out' declaration expression. For example: M(out var |
-                if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.IdentifierToken) &&
+                if (CodeAnalysis.CSharpExtensions.IsKind(in token, SyntaxKind.IdentifierToken) &&
                     token.Parent.IsKind(SyntaxKind.IdentifierName))
                 {
-                    if (token.Parent.IsParentKind(SyntaxKind.Argument) &&
-                        CodeAnalysis.CSharpExtensions.IsKind(((ArgumentSyntax)token.Parent.Parent).RefOrOutKeyword, SyntaxKind.OutKeyword))
+                    if (token.Parent.IsParentKind(SyntaxKind.Argument))
                     {
-                        return false;
+                        var refOrOutKeyword = ((ArgumentSyntax)token.Parent.Parent).RefOrOutKeyword;
+                        if (CodeAnalysis.CSharpExtensions.IsKind(in refOrOutKeyword, SyntaxKind.OutKeyword))
+                        {
+                            return false;
+                        }
                     }
                 }
 
@@ -2752,12 +2755,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.CatchKeyword))
+            if (CodeAnalysis.CSharpExtensions.IsKind(in token, SyntaxKind.CatchKeyword))
             {
                 return true;
             }
 
-            if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.CloseParenToken) &&
+            if (CodeAnalysis.CSharpExtensions.IsKind(in token, SyntaxKind.CloseParenToken) &&
                 token.Parent.IsKind(SyntaxKind.CatchDeclaration))
             {
                 return true;

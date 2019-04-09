@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(2, csharpTriviaList.Count);
 
             var csharpTrivia = csharpTriviaList.ElementAt(1);
-            Assert.Equal(CSharp.SyntaxKind.MultiLineCommentTrivia, CSharp.CSharpExtensions.Kind(csharpTrivia));
+            Assert.Equal(CSharp.SyntaxKind.MultiLineCommentTrivia, CSharp.CSharpExtensions.Kind(in csharpTrivia));
 
             var correctSpan = csharpTrivia.Span;
             Assert.Equal(8, correctSpan.Start);
@@ -193,11 +193,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void VisualBasicSyntax_CSharpKind()
         {
             var node = VisualBasic.SyntaxFactory.Identifier("a");
-            Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(node));
+            Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(in node));
             var token = VisualBasic.SyntaxFactory.Token(VisualBasic.SyntaxKind.IfKeyword);
-            Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(token));
+            Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(in token));
             var trivia = VisualBasic.SyntaxFactory.CommentTrivia("c");
-            Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(trivia));
+            Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(in trivia));
         }
 
         [Fact]
