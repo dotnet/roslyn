@@ -321,7 +321,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new CSDiagnosticInfo(ErrorCode.ERR_BadMemberProtection);
             }
 
-            if (!isExplicitInterfaceImplementation && (symbol.Kind != SymbolKind.Method || (modifiers & DeclarationModifiers.Partial) == 0))
+            if (!isExplicitInterfaceImplementation &&
+                (symbol.Kind != SymbolKind.Method || (modifiers & DeclarationModifiers.Partial) == 0) &&
+                (modifiers & DeclarationModifiers.Static) == 0)
             {
                 switch (modifiers & DeclarationModifiers.AccessibilityMask)
                 {
