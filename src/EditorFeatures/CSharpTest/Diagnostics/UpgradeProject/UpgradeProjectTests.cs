@@ -776,5 +776,44 @@ public interface I1
                 expected: LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
+
+        [Fact]
+        public async Task UpgradeProjectWithOpenTypeMatchingConstantPattern_01()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Test
+{
+    bool M<T>(T t) => t is [|null|];
+}",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithOpenTypeMatchingConstantPattern_02()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Test
+{
+    bool M<T>(T t) => t is [|100|];
+}",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithOpenTypeMatchingConstantPattern_03()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Test
+{
+    bool M<T>(T t) => t is [|""frog""|];
+}",
+                LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
     }
 }

@@ -1836,6 +1836,27 @@ class Program
         }
 
         [Fact]
+        [WorkItem(34246, "https://github.com/dotnet/roslyn/issues/34246")]
+        public void LearnFromConstantPattern_01()
+        {
+            var source = @"
+class Program
+{
+    static void M(string? s)
+    {
+        switch (s?.Length)
+        {
+            case 0:
+                s.ToString();
+                break;
+        }
+    }
+}";
+            var comp = CreateNullableCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         [WorkItem(34233, "https://github.com/dotnet/roslyn/issues/34233")]
         public void SwitchExpressionResultType_01()
         {

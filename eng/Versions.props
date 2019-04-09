@@ -9,7 +9,7 @@
   -->
   <PropertyGroup>
     <VersionPrefix>3.1.0</VersionPrefix>
-    <PreReleaseVersionLabel>beta2</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
     <SemanticVersioningV1>true</SemanticVersioningV1>
     <!-- 
       By default the assembly version in official builds is "$(VersionPrefix).0".
@@ -30,6 +30,7 @@
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
     <BenchmarkDotNetVersion>0.11.1</BenchmarkDotNetVersion>
     <CommandLineParserVersion>2.0.273-beta</CommandLineParserVersion>
+    <DiffPlexVersion>1.4.4</DiffPlexVersion>
     <DropAppVersion>17.144.28413-buildid7983345</DropAppVersion>
     <EnvDTEVersion>8.0.2</EnvDTEVersion>
     <EnvDTE80Version>8.0.0</EnvDTE80Version>

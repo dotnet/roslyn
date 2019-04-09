@@ -5798,6 +5798,74 @@ using (null)
         }
 
         [Fact]
+        [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoIndentForNestedUsingWithoutBraces2()
+        {
+            var code = @"class C
+{
+    void M()
+    {
+        using (null)
+            using (null)
+            using (null)
+            {
+            }
+    }
+}
+";
+
+            var expected = @"class C
+{
+    void M()
+    {
+        using (null)
+        using (null)
+        using (null)
+        {
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoIndentForNestedUsingWithoutBraces3()
+        {
+            var code = @"class C
+{
+    void M()
+    {
+        using (null)
+            using (null)
+            using (null)
+        {
+        }
+    }
+}
+";
+
+            var expected = @"class C
+{
+    void M()
+    {
+        using (null)
+        using (null)
+        using (null)
+        {
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
         [WorkItem(546678, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546678")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task UnicodeWhitespace()
