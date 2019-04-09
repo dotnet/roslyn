@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
                     solutionAfterFirstMerge,
                     documentIds,
-                    ImmutableArray.CreateRange(CreateAllContainingNamespaces(declaredNamespace).Concat(targetNamespace)),
+                    GetAllNamespaceImportsForDeclaringDocument(declaredNamespace, targetNamespace),
                     cancellationToken).ConfigureAwait(false);
 
                 solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
@@ -324,14 +324,16 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return @namespace?.Split(s_dotSeparator).ToImmutableArray() ?? default;
         }
 
-        private static ImmutableArray<string> CreateAllContainingNamespaces(string @namespace)
+        private static ImmutableArray<string> GetAllNamespaceImportsForDeclaringDocument(string oldNamespace, string newNamespace)
         {
-            var parts = GetNamespaceParts(@namespace);
+            var parts = GetNamespaceParts(oldNamespace);
             var builder = ArrayBuilder<string>.GetInstance();
             for (var i = 1; i <= parts.Length; ++i)
             {
                 builder.Add(string.Join(".", parts.Take(i)));
             }
+
+            builder.Add(newNamespace);
 
             return builder.ToImmutableAndFree();
         }
@@ -552,8 +554,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             Debug.Assert(containersToAddImports.Length > 0);
 
             // Need to import all containing namespaces of old namespace and add them to the document (if it's not global namespace)
-            var namesToImport = ImmutableArray.CreateRange(CreateAllContainingNamespaces(oldNamespace)
-                                                            .Concat(newNamespace));
+            var namesToImport = GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace);
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
