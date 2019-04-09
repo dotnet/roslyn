@@ -72,6 +72,11 @@
         <target state="translated">L'élément n'est pas valide.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_use_nullable_reference_types">
+        <source>Enable use nullable reference types</source>
+        <target state="new">Enable use nullable reference types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Terminer</target>

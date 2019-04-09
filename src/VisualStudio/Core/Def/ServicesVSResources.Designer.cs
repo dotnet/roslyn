@@ -906,6 +906,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable use nullable reference types.
+        /// </summary>
+        internal static string Enable_use_nullable_reference_types {
+            get {
+                return ResourceManager.GetString("Enable_use_nullable_reference_types", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to --- End of inner exception stack trace ---.
         /// </summary>
         internal static string End_of_inner_exception_stack {

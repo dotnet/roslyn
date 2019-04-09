@@ -87,6 +87,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(UseEnhancedColors), defaultValue: 1,
             storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
 
+        public static readonly Option<int> UseNullableReferenceTypes = new Option<int>(
+            nameof(FeatureOnOffOptions), nameof(UseNullableReferenceTypes), defaultValue: 0,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.{nameof(UseNullableReferenceTypes)}"));
+
         // Note: no storage location since this is intentionally a session variable
         public static readonly Option<bool> AcceptedDecompilerDisclaimer = new Option<bool>(
             nameof(FeatureOnOffOptions), nameof(AcceptedDecompilerDisclaimer), defaultValue: false);

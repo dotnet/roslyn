@@ -72,6 +72,11 @@
         <target state="translated">요소가 잘못되었습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_use_nullable_reference_types">
+        <source>Enable use nullable reference types</source>
+        <target state="new">Enable use nullable reference types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">마침</target>
