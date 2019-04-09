@@ -119,7 +119,7 @@ int y;
         [WpfFact]
         [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatUsingStatementOnReturn()
+        public void DoNotFormatUsingStatementOnReturn()
         {
             var code = @"class Program
 {
@@ -136,12 +136,40 @@ int y;
     static void Main(string[] args)
     {
         using (null)
-        using (null)$$
+                using (null)$$
     }
 }
 ";
 
             AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
+        }
+
+        [WpfFact]
+        [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatUsingStatementWhenTypingCloseParen()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        using (null)
+                using (null)$$
+    }
+}
+";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        using (null)
+        using (null)
+    }
+}
+";
+
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact]

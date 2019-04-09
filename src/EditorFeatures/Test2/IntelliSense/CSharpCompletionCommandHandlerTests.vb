@@ -636,7 +636,12 @@ class Variable
                 state.SendTypeChars("a")
                 Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
                 state.SendReturn()
-                Assert.Contains("(var a, var a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+
+                Dim caretLine = state.GetLineFromCurrentCaretPosition()
+                Assert.Contains("            )", caretLine.GetText(), StringComparison.Ordinal)
+
+                Dim previousLine = caretLine.Snapshot.Lines(caretLine.LineNumber - 1)
+                Assert.Contains("(var a, var a", previousLine.GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -698,7 +703,12 @@ class Variable
 
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("(var as, var a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+
+                Dim caretLine = state.GetLineFromCurrentCaretPosition()
+                Assert.Contains("            )", caretLine.GetText(), StringComparison.Ordinal)
+
+                Dim previousLine = caretLine.Snapshot.Lines(caretLine.LineNumber - 1)
+                Assert.Contains("(var as, var a", previousLine.GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -4881,6 +4891,27 @@ namespace ThenIncludeIntellisenseBug
                 Await state.AssertCompletionSession()
                 state.AssertCompletionItemsContainAll({"FirstOrDefault"})
                 state.AssertCompletionItemsDoNotContainAny({"Task"})
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitIfUniqueFiltersIfNotUnique(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        Me$$
+    }
+}
+                              </Document>)
+
+                state.SendCommitUniqueCompletionListItem()
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll(displayText:={"MemberwiseClone", "Method"})
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"int", "ToString()", "Microsoft", "Math"})
             End Using
         End Function
 
