@@ -24,4 +24,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests" />
+  </ItemGroup>
+
 </Project>

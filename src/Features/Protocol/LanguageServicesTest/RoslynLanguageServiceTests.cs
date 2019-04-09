@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Protocol.LanguageServices.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using VSSymbolKind = Microsoft.VisualStudio.LanguageServer.Protocol.SymbolKind;
-using Xunit;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit;
+using VSSymbolKind = Microsoft.VisualStudio.LanguageServer.Protocol.SymbolKind;
+using VSLocation = Microsoft.VisualStudio.LanguageServer.Protocol.Location;
 
 namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
 {
@@ -21,42 +23,42 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
         public async Task TestGetDocumentSymbolsAsync__WithHierarchicalSupport()
         {
             var markup =
-@"[|class A
+@"{|class:class A
 {
-    [|void M()
+    {|method:void M()
     {
-    }|]
-}|]";
-            var results = await TestGetDocumentSymbolsAsync(markup, true).ConfigureAwait(false);
-
+    }|}
+}|}";
+            var (solution, ranges) = CreateTestSolution(markup);
             var expectedDocumentSymbols = new DocumentSymbol[]
             {
-                CreateDocumentSymbol(VSSymbolKind.Class, "A"),
+                CreateDocumentSymbol(VSSymbolKind.Class, "A", ranges["class"].First())
             };
-            CreateDocumentSymbol(VSSymbolKind.Method, "M", expectedDocumentSymbols.First());
+            CreateDocumentSymbol(VSSymbolKind.Method, "M", ranges["method"].First(), expectedDocumentSymbols.First());
 
-            AssertGetDocumentSymbolsAsync(results, expectedDocumentSymbols, AssertDocumentSymbolEquals);
+            var results = await TestGetDocumentSymbolsAsync(solution, true);
+            AssertCollection(results, expectedDocumentSymbols, AssertDocumentSymbolEquals);
         }
 
         [Fact]
         public async Task TestGetDocumentSymbolsAsync__WithoutHierarchicalSupport()
         {
             var markup =
-@"class A
+@"class {|class:A|}
 {
-    void M()
+    void {|method:M|}()
     {
     }
 }";
-            var results = await TestGetDocumentSymbolsAsync(markup, false).ConfigureAwait(false);
-
+            var (solution, ranges) = CreateTestSolution(markup);
             var expectedDocumentSymbols = new SymbolInformation[]
             {
-                CreateSymbolInformation(VSSymbolKind.Class, "A"),
-                CreateSymbolInformation(VSSymbolKind.Method, "M()")
+                CreateSymbolInformation(VSSymbolKind.Class, "A", ranges["class"].First()),
+                CreateSymbolInformation(VSSymbolKind.Method, "M()", ranges["method"].First())
             };
 
-            AssertGetDocumentSymbolsAsync(results, expectedDocumentSymbols, AssertSymbolInformationEquals);
+            var results = await TestGetDocumentSymbolsAsync(solution, false);
+            AssertCollection(results, expectedDocumentSymbols, AssertSymbolInformationEquals);
         }
 
         [Fact(Skip = "GetDocumentSymbolsAsync does not yet support locals.")]
@@ -71,12 +73,101 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
         int i = 1;
     }
 }";
-            var results = await TestGetDocumentSymbolsAsync(markup, false).ConfigureAwait(false);
-
+            var (solution, _) = CreateTestSolution(markup);
+            var results = await TestGetDocumentSymbolsAsync(solution, false).ConfigureAwait(false);
             Assert.Equal(results.Length, 3);
         }
 
-        private void AssertGetDocumentSymbolsAsync<T>(object[] actual, T[] expected, Action<T, T> assertionFunction)
+        [Fact]
+        public async Task TestGetWorkspaceSymbolsAsync_Class()
+        {
+            var markup =
+@"class {|class:A|}
+{
+    void M()
+    {
+    }
+}";
+            var (solution, ranges) = CreateTestSolution(markup);
+            var expectedDocumentSymbols = new SymbolInformation[]
+            {
+                CreateSymbolInformation(VSSymbolKind.Class, "A", ranges["class"].First())
+            };
+
+            var results = await TestGetWorkspaceSymbolsAsync(solution, "A").ConfigureAwait(false);
+            AssertCollection(results, expectedDocumentSymbols, AssertSymbolInformationEquals);
+        }
+
+        [Fact]
+        public async Task TestGetWorkspaceSymbolsAsync_Method()
+        {
+            var markup =
+@"class A
+{
+    void {|method:M|}()
+    {
+    }
+}";
+            var (solution, ranges) = CreateTestSolution(markup);
+            var expectedDocumentSymbols = new SymbolInformation[]
+            {
+                CreateSymbolInformation(VSSymbolKind.Method, "M", ranges["method"].First())
+            };
+
+            var results = await TestGetWorkspaceSymbolsAsync(solution, "M").ConfigureAwait(false);
+            AssertCollection(results, expectedDocumentSymbols, AssertSymbolInformationEquals);
+        }
+
+        [Fact(Skip = "GetWorkspaceSymbolsAsync does not yet support locals.")]
+        // TODO - Remove skip & modify once GetWorkspaceSymbolsAsync is updated to support all symbols.
+        public async Task TestGetWorkspaceSymbolsAsync_Local()
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        int {|local:i|} = 1;
+    }
+}";
+            var (solution, ranges) = CreateTestSolution(markup);
+            var expectedDocumentSymbols = new SymbolInformation[]
+            {
+                CreateSymbolInformation(VSSymbolKind.Variable, "i", ranges["local"].First())
+            };
+
+            var results = await TestGetWorkspaceSymbolsAsync(solution, "i").ConfigureAwait(false);
+            AssertCollection(results, expectedDocumentSymbols, AssertSymbolInformationEquals);
+        }
+
+        [Fact]
+        public async Task TestGetWorkspaceSymbolsAsync_MultipleKinds()
+        {
+            var markup =
+@"class A
+{
+    int {|field:F|};
+    void M()
+    {
+    }
+    class {|class:F|}
+    {
+        int {|field:F|};
+    }
+}";
+            var (solution, ranges) = CreateTestSolution(markup);
+            var expectedDocumentSymbols = new SymbolInformation[]
+            {
+                CreateSymbolInformation(VSSymbolKind.Field, "F", ranges["field"][0]),
+                CreateSymbolInformation(VSSymbolKind.Class, "F", ranges["class"].First()),
+                CreateSymbolInformation(VSSymbolKind.Field, "F", ranges["field"][1])
+            };
+
+            var results = await TestGetWorkspaceSymbolsAsync(solution, "F").ConfigureAwait(false);
+            AssertCollection(results, expectedDocumentSymbols, AssertSymbolInformationEquals);
+        }
+
+        private static void AssertCollection<T>(object[] actual, T[] expected, Action<T, T> assertionFunction)
         {
             Assert.Equal(expected.Length, actual.Length);
             var actualDocumentSymbols = actual.Select(a => (T)a).ToArray();
@@ -87,10 +178,11 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
             }
         }
 
-        private void AssertDocumentSymbolEquals(DocumentSymbol expected, DocumentSymbol actual)
+        private static void AssertDocumentSymbolEquals(DocumentSymbol expected, DocumentSymbol actual)
         {
             Assert.Equal(expected.Kind, actual.Kind);
             Assert.Equal(expected.Name, actual.Name);
+            Assert.Equal(expected.Range, actual.Range);
             Assert.Equal(expected.Children.Count, actual.Children.Count);
 
             for (var i = 0; i < actual.Children.Count; i++)
@@ -99,27 +191,33 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
             }
         }
 
-        private void AssertSymbolInformationEquals(SymbolInformation expected, SymbolInformation actual)
+        private static void AssertSymbolInformationEquals(SymbolInformation expected, SymbolInformation actual)
         {
             Assert.Equal(expected.Kind, actual.Kind);
             Assert.Equal(expected.Name, actual.Name);
+            Assert.Equal(expected.Location.Range, actual.Location.Range);
         }
 
-        private SymbolInformation CreateSymbolInformation(VSSymbolKind kind, string name)
+        private static SymbolInformation CreateSymbolInformation(VSSymbolKind kind, string name, Range range)
         {
             return new SymbolInformation()
             {
                 Kind = kind,
                 Name = name,
+                Location = new VSLocation()
+                {
+                    Range = range
+                }
             };
         }
 
-        private DocumentSymbol CreateDocumentSymbol(VSSymbolKind kind, string name, DocumentSymbol parent = null)
+        private static DocumentSymbol CreateDocumentSymbol(VSSymbolKind kind, string name, Range range, DocumentSymbol parent = null)
         {
             var documentSymbol = new DocumentSymbol()
             {
                 Kind = kind,
                 Name = name,
+                Range = range,
                 Children = new List<DocumentSymbol>()
             };
 
@@ -131,27 +229,51 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
             return documentSymbol;
         }
 
-        private async Task<object[]> TestGetDocumentSymbolsAsync(string markup, bool hierarchalSupport)
+        private static (Solution solution, Dictionary<string, ImmutableArray<Range>> ranges) CreateTestSolution(string markup)
         {
             using (var workspace = TestWorkspace.CreateCSharp(markup))
             {
                 var originalDocument = workspace.Documents.First();
-                workspace.ChangeSolution(ChangeDocumentFilePathToValidURI(workspace.CurrentSolution, originalDocument, markup));
-                var document = workspace.CurrentSolution.Projects.First().Documents.First();
+                var text = originalDocument.TextBuffer.AsTextContainer().CurrentText;
+                var ranges = originalDocument.AnnotatedSpans.ToDictionary(
+                    annotatedSpan => annotatedSpan.Key,
+                    annotatedSpan => annotatedSpan.Value.Select(s => s.ToRange(text)).ToImmutableArray());
 
-                var clientCapabilities = new ClientCapabilities();
-                var roslynLanguageService = new RoslynLanguageService(clientCapabilities, hierarchalSupport);
-
-                var request = new DocumentSymbolParams
-                {
-                    TextDocument = new TextDocumentIdentifier()
-                    {
-                        Uri = new Uri(document.FilePath)
-                    }
-                };
-
-                return await roslynLanguageService.GetDocumentSymbolsAsync(workspace.CurrentSolution, request, CancellationToken.None);
+                // Pass in the text without markup.
+                workspace.ChangeSolution(ChangeDocumentFilePathToValidURI(workspace.CurrentSolution, originalDocument, text));
+                return (workspace.CurrentSolution, ranges);
             }
+        }
+
+        private static async Task<object[]> TestGetDocumentSymbolsAsync(Solution solution, bool hierarchalSupport)
+        {
+            var document = solution.Projects.First().Documents.First();
+
+            var clientCapabilities = new ClientCapabilities();
+            var roslynLanguageService = new RoslynLanguageService(clientCapabilities, hierarchalSupport);
+
+            var request = new DocumentSymbolParams
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = new Uri(document.FilePath)
+                }
+            };
+
+            return await roslynLanguageService.GetDocumentSymbolsAsync(solution, request, CancellationToken.None);
+        }
+
+        private static async Task<SymbolInformation[]> TestGetWorkspaceSymbolsAsync(Solution solution, string query)
+        {
+            var clientCapabilities = new ClientCapabilities();
+            var roslynLanguageService = new RoslynLanguageService(clientCapabilities, true);
+
+            var request = new WorkspaceSymbolParams
+            {
+                Query = query
+            };
+
+            return await roslynLanguageService.GetWorkspaceSymbolsAsync(solution, request, CancellationToken.None);
         }
 
         /// <summary>
@@ -159,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
         /// Adds/Removes the document instead of updating file path due to
         /// https://github.com/dotnet/roslyn/issues/34837
         /// </summary>
-        private Solution ChangeDocumentFilePathToValidURI(Solution originalSolution, TestHostDocument originalDocument, string markup)
+        private static Solution ChangeDocumentFilePathToValidURI(Solution originalSolution, TestHostDocument originalDocument, SourceText text)
         {
             var documentName = originalDocument.Name;
             var documentPath = "C:\\" + documentName;
@@ -167,26 +289,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
             var solution = originalSolution.RemoveDocument(originalDocument.Id);
 
             var newDocumentId = DocumentId.CreateNewId(originalDocument.Project.Id);
-            return solution.AddDocument(newDocumentId, documentName, markup, filePath: documentPath);
+            return solution.AddDocument(newDocumentId, documentName, text, filePath: documentPath);
         }
-
-        /*
-        private static void SetupSelection(IWpfTextView textView, IEnumerable<Span> spans)
-        {
-            var snapshot = textView.TextSnapshot;
-            if (spans.Count() == 1)
-            {
-                textView.Selection.Select(new SnapshotSpan(snapshot, spans.Single()), isReversed: false);
-                textView.Caret.MoveTo(new SnapshotPoint(snapshot, spans.Single().End));
-            }
-            else
-            {
-                textView.Selection.Mode = TextSelectionMode.Box;
-                textView.Selection.Select(new VirtualSnapshotPoint(snapshot, spans.First().Start),
-                                          new VirtualSnapshotPoint(snapshot, spans.Last().End));
-                textView.Caret.MoveTo(new SnapshotPoint(snapshot, spans.Last().End));
-            }
-        }*/
-
     }
 }
