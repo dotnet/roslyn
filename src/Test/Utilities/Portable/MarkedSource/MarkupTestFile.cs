@@ -228,7 +228,7 @@ namespace Roslyn.Test.Utilities
         public static void GetPositionAndSpans(string input, out string output, out int cursorPosition, out ImmutableArray<TextSpan> spans)
         {
             GetPositionAndSpans(input, out output, out int? pos, out spans);
-            cursorPosition = pos ?? default;
+            cursorPosition = pos.Value;
         }
 
         public static void GetPosition(string input, out string output, out int? cursorPosition)
