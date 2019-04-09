@@ -1866,6 +1866,7 @@ class Test
     void Test1(int i, object? x, object y)
     {
         _ = i switch { 1 => x, _ => y }/*T:object?*/;
+        _ = i switch { 1 when x != null => x, _ => y }/*T:object!*/;
         _ = i switch { 1 => y, _ => x }/*T:object?*/;
         _ = i switch { 1 => x!, _ => y }/*T:object!*/;
         _ = i switch { 1 => y, _ => x! }/*T:object!*/;
@@ -1920,24 +1921,24 @@ public interface IOut<out T> { }
 ");
             c.VerifyTypes();
             c.VerifyDiagnostics(
-                // (32,13): error CS8506: No best type was found for the switch expression.
-                //         _ = i switch { 1 => x, _ => y }/*T:!*/; // 1
-                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "i switch { 1 => x, _ => y }").WithLocation(32, 13),
                 // (33,13): error CS8506: No best type was found for the switch expression.
+                //         _ = i switch { 1 => x, _ => y }/*T:!*/; // 1
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "i switch { 1 => x, _ => y }").WithLocation(33, 13),
+                // (34,13): error CS8506: No best type was found for the switch expression.
                 //         _ = i switch { 1 => y, _ => x }/*T:!*/; // 2
-                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "i switch { 1 => y, _ => x }").WithLocation(33, 13),
-                // (38,37): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "i switch { 1 => y, _ => x }").WithLocation(34, 13),
+                // (39,37): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
                 //         _ = i switch { 1 => x, _ => y }/*T:I<string!>!*/; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(38, 37),
-                // (39,29): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(39, 37),
+                // (40,29): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
                 //         _ = i switch { 1 => y, _ => x }/*T:I<string!>!*/; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(39, 29),
-                // (44,37): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(40, 29),
+                // (45,37): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         _ = i switch { 1 => x, _ => default }/*T:T*/; // 5
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(44, 37),
-                // (45,29): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(45, 37),
+                // (46,29): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         _ = i switch { 1 => default, _ => x }/*T:T*/; // 6
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(45, 29));
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(46, 29));
         }
     }
 }

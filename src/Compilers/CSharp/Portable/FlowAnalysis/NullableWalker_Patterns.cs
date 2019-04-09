@@ -432,11 +432,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // collect expressions, conversions and result types
-            int n = node.SwitchArms.Length;
-            var conversions = ArrayBuilder<Conversion>.GetInstance(n);
-            var resultTypes = ArrayBuilder<TypeWithState>.GetInstance(n);
-            var expressions = ArrayBuilder<BoundExpression>.GetInstance(n);
-            var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
+            int numSwitchArms = node.SwitchArms.Length;
+            var conversions = ArrayBuilder<Conversion>.GetInstance(numSwitchArms);
+            var resultTypes = ArrayBuilder<TypeWithState>.GetInstance(numSwitchArms);
+            var expressions = ArrayBuilder<BoundExpression>.GetInstance(numSwitchArms);
+            var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(numSwitchArms);
 
             foreach (var arm in node.SwitchArms)
             {
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
 
             // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i < numSwitchArms; i++)
             {
                 var placeholder = placeholders[i];
                 resultTypes[i] = ApplyConversion(placeholder, placeholder, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultType = TypeWithState.Create(inferredType, inferredState);
             inferredTypeWithAnnotations = resultType.ToTypeWithAnnotations();
 
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i < numSwitchArms; i++)
             {
                 var nodeForSyntax = expressions[i];
                 // Report top-level warnings
