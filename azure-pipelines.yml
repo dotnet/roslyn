@@ -229,7 +229,7 @@ jobs:
         _args: --testMono
         _name: Mono
         _configuration: Debug
-  timeoutInMinutes: 90
+  # timeoutInMinutes: 90
   steps:
     - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)
       displayName: Build and Test
