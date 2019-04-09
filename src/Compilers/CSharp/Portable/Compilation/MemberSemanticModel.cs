@@ -1825,9 +1825,10 @@ done:
 #endif
             }
 
+            var bindableRoot = GetBindableSyntaxNode(Root);
             using var upgradeableLock = _nodeMapLock.DisposableUpgradeableRead();
 
-            if (_guardedNodeMap.ContainsKey(Root)
+            if (_guardedNodeMap.ContainsKey(bindableRoot)
 #if DEBUG
                 // In DEBUG mode, we don't want to increase test run times, so if
                 // nullable analysis isn't enabled and some node has already been bound
@@ -1848,11 +1849,11 @@ done:
             // then take that state and run analysis on the statement or expression being speculated on.
             // Currently, it will return incorrect info because it's just running analysis on the speculated
             // part.
-            var binder = GetEnclosingBinder(GetAdjustedNodePosition(GetBindableSyntaxNode(Root)));
-            var boundRoot = Bind(binder, Root, diagnostics);
+            var binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot);
+            var boundRoot = Bind(binder, bindableRoot, diagnostics);
             boundRoot = RewriteNullableBoundNodes(boundRoot, binder.Conversions, diagnostics);
 
-            if (EnableNullableAnalysis)
+            if (EnableNullableAnalysis && !IsSpeculativeSemanticModel)
             {
                 GuardedAddBoundTreeForStandaloneSyntax(Root, boundRoot);
             }
