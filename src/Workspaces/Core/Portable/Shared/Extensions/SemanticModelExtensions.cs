@@ -73,26 +73,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return typeInfo.Type ?? symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
         }
 
-        public static TokenSemanticInfo GetSemanticInfo(
-            this SemanticModel semanticModel,
-            SyntaxToken token,
-            Workspace workspace,
-            CancellationToken cancellationToken)
-        {
-            var languageServices = workspace.Services.GetLanguageServices(token.Language);
-            var syntaxFacts = languageServices.GetService<ISyntaxFactsService>();
-            if (!syntaxFacts.IsBindableToken(token))
-            {
-                return TokenSemanticInfo.Empty;
-            }
-
-            var semanticFacts = languageServices.GetService<ISemanticFactsService>();
-
-            return GetSemanticInfo(
-                semanticModel, semanticFacts, syntaxFacts,
-                token, cancellationToken);
-        }
-
         private static ISymbol MapSymbol(ISymbol symbol, ITypeSymbol type)
         {
             if (symbol.IsConstructor() && symbol.ContainingType.IsAnonymousType)
@@ -141,13 +121,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol;
         }
 
-        private static TokenSemanticInfo GetSemanticInfo(
-            SemanticModel semanticModel,
-            ISemanticFactsService semanticFacts,
-            ISyntaxFactsService syntaxFacts,
+        public static TokenSemanticInfo GetSemanticInfo(
+            this SemanticModel semanticModel,
             SyntaxToken token,
+            Workspace workspace,
             CancellationToken cancellationToken)
         {
+            var languageServices = workspace.Services.GetLanguageServices(token.Language);
+            var syntaxFacts = languageServices.GetService<ISyntaxFactsService>();
+            if (!syntaxFacts.IsBindableToken(token))
+            {
+                return TokenSemanticInfo.Empty;
+            }
+
+            var semanticFacts = languageServices.GetService<ISemanticFactsService>();
+
             IAliasSymbol aliasSymbol;
             ITypeSymbol type;
             ITypeSymbol convertedType;
