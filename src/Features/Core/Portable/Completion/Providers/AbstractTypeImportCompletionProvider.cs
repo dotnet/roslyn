@@ -78,10 +78,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // which will be used to filter so the provider only returns out-of-scope types.
                 var namespacesInScope = GetNamespacesInScope(node, context.SemanticModel, cancellationToken);
 
-                var declarationsInCurrentProject = await _typeImportCompletionService
-                    .GetAccessibleTopLevelTypesFromProjectAsync(project, namespacesInScope, cancellationToken).ConfigureAwait(false);
-                completionContext.AddItems(declarationsInCurrentProject);
+#if DEBUG
+                DebugObject.IsCurrentCompilation = true;
+#endif
+                var declarationsInCurrentProject =
+                    await _typeImportCompletionService.GetAccessibleTopLevelTypesFromProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                var count = AddItems(completionContext, declarationsInCurrentProject, namespacesInScope); 
+#if DEBUG
+                DebugObject.debug_total_compilation_decl += count;
 
+                DebugObject.IsCurrentCompilation = false;
+#endif
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var reference in compilation.References)
                 {
@@ -94,7 +101,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             project.Solution,
                             compilation,
                             compilationReference,
-                            namespacesInScope,
                             cancellationToken).ConfigureAwait(false);
                     }
                     else if (reference is PortableExecutableReference peReference)
@@ -103,12 +109,36 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             project.Solution,
                             compilation,
                             peReference,
-                            namespacesInScope,
                             cancellationToken);
                     }
 
-                    completionContext.AddItems(declarationsInReference);
+                    var refrenceCount = AddItems(completionContext, declarationsInReference, namespacesInScope);
+#if DEBUG
+                    if (reference is CompilationReference)
+                    {
+                        DebugObject.debug_total_compilationRef_decl += refrenceCount;
+                    }
+                    else if (reference is PortableExecutableReference)
+                    {
+                        DebugObject.debug_total_pe_decl += refrenceCount;
+                    }
+#endif
                 }
+            }
+
+            static int AddItems(CompletionContext completionContext, ImmutableArray<CompletionItem> items, ImmutableHashSet<string> namespacesInScope)
+            {
+                var count = 0;
+                foreach (var item in items)
+                {
+                    var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(item);
+                    if (!namespacesInScope.Contains(containingNamespace))
+                    {
+                        completionContext.AddItem(item);
+                        count++;
+                    }
+                }
+                return count;
             }
         }
 
@@ -189,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
 #if DEBUG
-            return CompletionDescription.FromText(DebugObject.DebugText);
+            return Task.FromResult(CompletionDescription.FromText(DebugObject.DebugText));
 #else
             return TypeImportCompletionItem.GetCompletionDescriptionAsync(document, item, cancellationToken);
 #endif
