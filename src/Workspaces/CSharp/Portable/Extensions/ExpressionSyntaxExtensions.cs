@@ -2274,12 +2274,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 IsAmbiguousCast(name, reducedName) ||
                 IsNullableTypeInPointerExpression(name, reducedName) ||
                 name.IsNotNullableReplaceable(reducedName) ||
-                IsQualifiedNameInUsingDirective(semanticModel, name, reducedName))
+                (IsQualifiedNameInUsingDirective(semanticModel, name, reducedName) && !IsGlobalAliasQualifiedName(name)))
             {
                 return false;
             }
 
             return true;
+        }
+
+        private static bool IsGlobalAliasQualifiedName(NameSyntax name)
+        {
+            return name is AliasQualifiedNameSyntax aliasName
+                ? aliasName.Alias.Identifier.IsKind(SyntaxKind.GlobalKeyword)
+                : false;
         }
 
         private static bool IsQualifiedNameInUsingDirective(SemanticModel model, NameSyntax name, TypeSyntax reducedName)

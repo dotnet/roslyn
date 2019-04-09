@@ -192,8 +192,8 @@ namespace Foo
     /// <summary>
     /// See <see cref=""Class1""/>
     /// See <see cref=""Class1""/>
-    /// See <see cref=""Class1""/>
-    /// See <see cref=""M1""/>
+    /// See <see cref=""global::A.B.C.Class1""/>
+    /// See <see cref=""global::A.B.C.Class1.M1""/>
     /// </summary>
     public class Class1
     {
@@ -209,8 +209,8 @@ namespace Foo
     /// <summary>
     /// See <see cref=""Class1""/>
     /// See <see cref=""A.B.C.Class1""/>
-    /// See <see cref=""A.B.C.Class1""/>
-    /// See <see cref=""Class1.M1""/>
+    /// See <see cref=""global::A.B.C.Class1""/>
+    /// See <see cref=""global::A.B.C.Class1.M1""/>
     /// </summary>
     class RefClass
     {
@@ -750,7 +750,7 @@ interface Class1
 
 class Class2 : Class1
 {
-    D1 d;
+    global::D1 d;
 
     void Class1.M1() { }
 }

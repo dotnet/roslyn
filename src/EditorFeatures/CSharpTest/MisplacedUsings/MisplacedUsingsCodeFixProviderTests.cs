@@ -208,10 +208,10 @@ namespace TestNamespace
         }
 
         /// <summary>
-        /// Verifies that the code fix will properly reorder using statements when placing System first.
+        /// Verifies that the code fix will move the using directives and not place System directives first.
         /// </summary>
         [Fact]
-        public Task WhenInsidePreferred_UsingsInCompilationUnit_UsingsMovedWithSystemPlacedFirst()
+        public Task WhenInsidePreferred_UsingsInCompilationUnit_UsingsMovedAndSystemPlacedFirstIgnored()
         {
             var testCode = @"using Microsoft.CodeAnalysis;
 using SystemAction = System.Action;
@@ -267,10 +267,10 @@ namespace Foo
         }
 
         /// <summary>
-        /// Verifies that the code fix will properly reorder using statements when not placing System first.
+        /// Verifies that the code fix will move the using directives and not sort them alphabetically.
         /// </summary>
         [Fact]
-        public Task WhenInsidePreferred_UsingsInCompilationUnit_UsingsMovedWithAlphaSort()
+        public Task WhenInsidePreferred_UsingsInCompilationUnit_UsingsAndWithAlphaSortIgnored()
         {
             var testCode = @"using Microsoft.CodeAnalysis;
 using SystemAction = System.Action;
@@ -326,13 +326,13 @@ namespace NamespaceName
         }
 
         /// <summary>
-        /// Verifies that the code fix will properly reorder using statements, but will not move a file header comment separated by an new line.
+        /// Verifies that the code fix will move the using directives, but will not move a file header comment separated by an new line.
         /// </summary>
         [Fact]
         public Task WhenInsidePreferred_UsingsInCompilationUnitWithFileHeader_UsingsMovedNotHeader()
         {
             var testCode = @"// This is a file header.
-using System.Threading;
+using Microsoft.CodeAnalysis;
 using System;
 
 namespace TestNamespace
@@ -343,7 +343,7 @@ namespace TestNamespace
             var fixedTestCode = @"// This is a file header.
 namespace TestNamespace
 {
-    using System.Threading;
+    using Microsoft.CodeAnalysis;
     using System;
 }
 ";
@@ -358,90 +358,6 @@ namespace TestNamespace
         }
 
         /// <summary>
-        /// Verifies that the code fix will properly reorder using statements and place System first, but will not move a file header comment separated by an empty line.
-        /// </summary>
-        [Fact]
-        public Task WhenInsidePreferred_UsingsInCompilationUnitWithFileHeader_UsingsMovedWithSystemPlacedFirstNotHeader()
-        {
-            var testCode = @"// This is a file header.
-
-using Microsoft.CodeAnalysis;
-using System;
-
-namespace Foo
-{
-    public class Bar
-    {
-    }
-}
-";
-
-            var fixedTestCode = @"// This is a file header.
-
-namespace Foo
-{
-    using Microsoft.CodeAnalysis;
-    using System;
-
-    public class Bar
-    {
-    }
-}
-";
-
-            var expected = new DiagnosticResult[]
-            {
-                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(3, 1),
-                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(4, 1),
-            };
-
-            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true);
-        }
-
-        /// <summary>
-        /// Verifies that the code fix will properly reorder using statements and not place System first, but will not move a file header comment separated by an empty line.
-        /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
-        [Fact]
-        public Task WhenInsidePreferred_UsingsInCompilationUnitWithFileHeader_UsingsMovedWithAlphaSortNotHeader()
-        {
-            var testCode = @"// This is a file header.
-
-using System;
-using Microsoft.CodeAnalysis;
-
-namespace Foo
-{
-    public class Bar
-    {
-    }
-}
-";
-
-            var fixedTestCode = @"// This is a file header.
-
-namespace Foo
-{
-    using System;
-    using Microsoft.CodeAnalysis;
-
-    public class Bar
-    {
-    }
-}
-";
-
-            var expected = new DiagnosticResult[]
-            {
-                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(3, 1),
-                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(4, 1),
-            };
-
-            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false);
-        }
-
-
-        /// <summary>
         /// Verifies that the code fix will properly move separated trivia, but will not move a file header comment.
         /// </summary>
         [Fact]
@@ -451,8 +367,8 @@ namespace Foo
 
 // Leading Comment
 
+using Microsoft.CodeAnalysis;
 using System;
-using System.Threading;
 
 namespace TestNamespace
 {
@@ -465,8 +381,8 @@ namespace TestNamespace
 {
     // Leading Comment
 
+    using Microsoft.CodeAnalysis;
     using System;
-    using System.Threading;
 }
 ";
 
@@ -474,39 +390,6 @@ namespace TestNamespace
             {
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(5, 1),
                 Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(6, 1),
-            };
-
-            return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true);
-        }
-
-        /// <summary>
-        /// Verifies that a code fix will be offered for MisplacedUsing diagnostics when a single namespace is present.
-        /// </summary>
-        [Fact]
-        public Task WhenInsidePreferred_UsingsInCompilationUnitWithSingleNamespace_UsingsMoved()
-        {
-            var testCode = @"using System;
-
-namespace TestNamespace1
-{
-    public class TestClass1
-    {
-    }
-}
-";
-            var fixedTestCode = @"namespace TestNamespace1
-{
-    using System;
-
-    public class TestClass1
-    {
-    }
-}
-";
-
-            var expected = new DiagnosticResult[]
-            {
-                Diagnostic(MisplacedUsingsDiagnosticAnalyzer._insideDescriptor).WithLocation(1, 1)
             };
 
             return VerifyCodeFixAsync(testCode, s_insideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true);
@@ -645,10 +528,10 @@ namespace TestNamespace
 
 
         /// <summary>
-        /// Verifies that valid using statements in a namespace does not produce any diagnostics.
+        /// Verifies that valid using statements in the compilation unit does not produce any diagnostics.
         /// </summary>
         [Fact]
-        public Task WhenOutsidePreferred_UsingsInNamespace_ValidUsingStatements()
+        public Task WhenOutsidePreferred_UsingsInCompilationUnit_ValidUsingStatements()
         {
             var testCode = @"using System;
 using System.Threading;
@@ -890,7 +773,7 @@ namespace TestNamespace
         }
 
         [Fact]
-        public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedWithSystemPlacedFirst()
+        public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedAndSystemPlacedFirstIgnored()
         {
             var testCode = @"namespace Foo
 {
@@ -946,7 +829,7 @@ namespace Foo
         }
 
         [Fact]
-        public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedWithAlphaSort()
+        public Task WhenOutsidePreferred_UsingsInNamespace_UsingsMovedAndAlphaSortIgnored()
         {
             var testCode = @"namespace Foo
 {
