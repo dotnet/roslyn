@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -144,8 +146,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
-                triggerDocument, completionService, session.TextView, subjectBuffer, roslynItem,
-                completionListSpan, commitChar, triggerSnapshot, serviceRules, filterText, cancellationToken);
+                triggerDocument, completionService, session.TextView, subjectBuffer,
+                item, roslynItem, commitChar, triggerSnapshot, serviceRules, filterText, 
+                cancellationToken);
 
             _recentItemsManager.MakeMostRecentItem(roslynItem.DisplayText);
             return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
@@ -156,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionService completionService,
             ITextView view,
             ITextBuffer subjectBuffer,
+            VSCompletionItem item,
             RoslynCompletionItem roslynItem,
             TextSpan completionListSpan,
             char? commitCharacter,
@@ -185,6 +189,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var textChange = change.TextChange;
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+
+            // Capture the % of committed completion items that 
+            var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
+            if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter))
+            {
+                Logger.Log(FunctionId.Intellisense_AsyncCompletion_CommitWithTargetTypeCompletionExperimentEnabled);
+                if (item.Filters.Any(f => f.DisplayText == FeaturesResources.Matching_type))
+                {
+                    Logger.Log(FunctionId.Intellisense_AsyncCompletion_CommitItemWithTargetTypeFilter);
+                }
+            }
 
             using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
             {
