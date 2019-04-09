@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
                     solutionAfterFirstMerge,
                     documentIds,
-                    CreateAllContainingNamespaces(declaredNamespace),
+                    ImmutableArray.CreateRange(CreateAllContainingNamespaces(declaredNamespace).Concat(targetNamespace)),
                     cancellationToken).ConfigureAwait(false);
 
                 solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
@@ -552,7 +552,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             Debug.Assert(containersToAddImports.Length > 0);
 
             // Need to import all containing namespaces of old namespace and add them to the document (if it's not global namespace)
-            var namesToImport = CreateAllContainingNamespaces(oldNamespace);
+            var namesToImport = ImmutableArray.CreateRange(CreateAllContainingNamespaces(oldNamespace)
+                                                            .Concat(newNamespace));
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
