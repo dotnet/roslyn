@@ -34551,6 +34551,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("B", "IOut<object>").WithLocation(19, 13));
         }
 
+        [WorkItem(29898, "https://github.com/dotnet/roslyn/issues/29898")]
         [Fact]
         public void ImplicitConversions_07()
         {
@@ -34576,7 +34577,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29898: Report warning for `G(z)`?
+            // https://github.com/dotnet/roslyn/issues/29605: Report warning for `G(z)`?
             comp.VerifyDiagnostics();
         }
 
