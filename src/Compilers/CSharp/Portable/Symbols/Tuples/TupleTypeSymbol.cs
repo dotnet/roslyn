@@ -1442,9 +1442,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
+        internal override TypeSymbol SetObliviousNullabilityForReferenceTypes()
         {
-            var underlyingType = (NamedTypeSymbol)_underlyingType.SetNullabilityForReferenceTypes(transform);
+            var underlyingType = (NamedTypeSymbol)_underlyingType.SetObliviousNullabilityForReferenceTypes();
             if ((object)underlyingType == _underlyingType)
             {
                 return this;

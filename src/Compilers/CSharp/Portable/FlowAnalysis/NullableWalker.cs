@@ -1613,7 +1613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 TypeWithAnnotations inferredType = (bestType is null)
-                    ? elementType.SetUnknownNullabilityForReferenceTypes()
+                    ? elementType.SetObliviousNullabilityForReferenceTypes()
                     : TypeWithAnnotations.Create(bestType);
 
                 if ((object)bestType != null)
@@ -2264,7 +2264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, node.Alternative);
                 Join(ref this.State, ref consequenceState);
 
-                TypeSymbol refResultType = node.Type.SetUnknownNullabilityForReferenceTypes();
+                TypeSymbol refResultType = node.Type.SetObliviousNullabilityForReferenceTypes();
                 if (IsNullabilityMismatch(consequenceLValue, alternativeLValue))
                 {
                     // l-value types must match
@@ -2341,7 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableFlowState resultState;
             if (resultType is null)
             {
-                resultType = node.Type.SetUnknownNullabilityForReferenceTypes();
+                resultType = node.Type.SetObliviousNullabilityForReferenceTypes();
                 resultState = NullableFlowState.NotNull;
             }
             else

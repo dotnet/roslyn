@@ -672,15 +672,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result);
 
-        internal abstract TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform);
-
-        internal TypeSymbol SetUnknownNullabilityForReferenceTypes()
-        {
-            return SetNullabilityForReferenceTypes(s_setUnknownNullability);
-        }
+        internal abstract TypeSymbol SetObliviousNullabilityForReferenceTypes();
 
         private readonly static Func<TypeWithAnnotations, TypeWithAnnotations> s_setUnknownNullability =
-            (type) => type.SetUnknownNullabilityForReferenceTypes();
+            (type) => type.SetObliviousNullabilityForReferenceTypes();
 
         /// <summary>
         /// Merges nested nullability from an otherwise identical type.

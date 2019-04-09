@@ -2453,7 +2453,7 @@ OuterBreak:
             {
                 // https://github.com/dotnet/roslyn/issues/30534: Should preserve
                 // distinct "not computed" state from initial binding.
-                return merged.SetUnknownNullabilityForReferenceTypes();
+                return merged.SetObliviousNullabilityForReferenceTypes();
             }
 
             return merged.MergeNullability(second, variance);
@@ -2785,7 +2785,7 @@ OuterBreak:
                 {
                     // https://github.com/dotnet/roslyn/issues/30534: Should preserve
                     // distinct "not computed" state from initial binding.
-                    type = type.SetUnknownNullabilityForReferenceTypes();
+                    type = type.SetObliviousNullabilityForReferenceTypes();
                 }
 
                 AddOrMergeCandidate(candidates, type, variance, conversions);
@@ -2799,7 +2799,7 @@ OuterBreak:
             ConversionsBase conversions)
         {
             Debug.Assert(conversions.IncludeNullability ||
-                newCandidate.SetUnknownNullabilityForReferenceTypes().Equals(newCandidate, TypeCompareKind.ConsiderEverything));
+                newCandidate.SetObliviousNullabilityForReferenceTypes().Equals(newCandidate, TypeCompareKind.ConsiderEverything));
 
             if (candidates.TryGetValue(newCandidate, out TypeWithAnnotations oldCandidate))
             {

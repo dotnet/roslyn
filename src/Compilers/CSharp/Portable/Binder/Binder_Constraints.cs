@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (constraintTypes.Contains(c => type.Equals(c, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)))
             {
                 // "Duplicate constraint '{0}' for type parameter '{1}'"
-                Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type.Type.SetUnknownNullabilityForReferenceTypes(), typeParameterName);
+                Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type.Type.SetObliviousNullabilityForReferenceTypes(), typeParameterName);
                 return false;
             }
 

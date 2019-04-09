@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expression = node.ExpressionOpt;
                 var type = (expression is null) ?
                     NoReturnExpression :
-                    expression.Type?.SetUnknownNullabilityForReferenceTypes();
+                    expression.Type?.SetObliviousNullabilityForReferenceTypes();
                 _builder.Add((node, TypeWithAnnotations.Create(type)));
                 return null;
             }

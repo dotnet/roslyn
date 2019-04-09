@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CreateNonLazyType(typeSymbol, NullableAnnotation.NotAnnotated, CustomModifiers);
         }
 
-        public TypeWithAnnotations SetUnknownNullabilityForReferenceTypes()
+        public TypeWithAnnotations SetObliviousNullabilityForReferenceTypes()
         {
             var typeSymbol = Type;
 
@@ -642,13 +642,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!typeSymbol.IsValueType)
                 {
-                    typeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
+                    typeSymbol = typeSymbol.SetObliviousNullabilityForReferenceTypes();
 
                     return CreateNonLazyType(typeSymbol, NullableAnnotation.Oblivious, CustomModifiers);
                 }
             }
 
-            var newTypeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
+            var newTypeSymbol = typeSymbol.SetObliviousNullabilityForReferenceTypes();
 
             if ((object)newTypeSymbol != typeSymbol)
             {
