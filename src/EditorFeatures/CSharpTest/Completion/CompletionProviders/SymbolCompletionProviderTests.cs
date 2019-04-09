@@ -10137,7 +10137,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestDavid()
+        public async Task TestMatchingTypeFilterWithExperimentEnabled()
         {
             var markup =
 @"public class C
@@ -10148,7 +10148,28 @@ class Program
         M($$);
     }
 }";
-            await VerifyItemExistsAsync(markup, "intField", matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter, CompletionItemFilter.MatchingTypeFilter });
+            await VerifyItemExistsAsync(
+                markup, "intField",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter, CompletionItemFilter.MatchingTypeFilter },
+                matchingFilterExperimentEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNoMatchingTypeFilterWithExperimentDisabled()
+        {
+            var markup =
+@"public class C
+{
+    int intField;
+    void M(int x)
+    {
+        M($$);
+    }
+}";
+            await VerifyItemExistsAsync(
+                markup, "intField",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter },
+                matchingFilterExperimentEnabled: false);
         }
     }
 }

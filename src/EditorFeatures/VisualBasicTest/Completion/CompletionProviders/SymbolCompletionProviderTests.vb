@@ -1347,7 +1347,7 @@ Class C
                 expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
                 sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
                 glyph:=Nothing, matchPriority:=Nothing, hasSuggestionItem:=Nothing,
-                displayTextSuffix:=Nothing)
+                displayTextSuffix:=Nothing, matchingFilters:=Nothing, matchingFilterExperimentEnabled:=False)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
@@ -7805,7 +7805,8 @@ End Namespace
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
                                         glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing)
                 Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
+                                        matchingFilters:=Nothing)
             End Using
 
         End Function
