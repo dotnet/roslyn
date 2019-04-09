@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
@@ -77,17 +78,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public async Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
             {
-                await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
-
-                var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
-                if (status == null)
+                using (Logger.LogBlock(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.NoProperty, cancellationToken))
                 {
-                    return;
-                }
+                    await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
 
-                // TODO: WaitForCompletionAsync should accept cancellation directly.
-                //       for now, use WithCancellation to indirectly add cancellation
-                await status.WaitForCompletionAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
+                    var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
+                    if (status == null)
+                    {
+                        return;
+                    }
+
+                    var completionTask = status.WaitForCompletionAsync();
+                    Logger.Log(FunctionId.PartialLoad_FullyLoaded, KeyValueLogMessage.Create(LogType.Trace, m => m["AlreadyFullyLoaded"] = completionTask.IsCompleted));
+
+                    // TODO: WaitForCompletionAsync should accept cancellation directly.
+                    //       for now, use WithCancellation to indirectly add cancellation
+                    await completionTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+                }
             }
 
             public async Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)

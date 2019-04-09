@@ -452,5 +452,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         GraphQuery_IsCalledBy,
         GraphQuery_IsUsedBy,
         GraphQuery_Overrides,
+        PartialLoad_FullyLoaded,
     }
 }
