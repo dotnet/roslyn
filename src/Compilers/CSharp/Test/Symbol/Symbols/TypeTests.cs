@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var arr = x.Type;
 
             arr.GetHashCode();
-            // https://github.com/dotnet/roslyn/issues/30023: StackOverflowException in SetUnknownNullabilityForReferenceTypes.
-            //arr.SetUnknownNullabilityForReferenceTypes();
+            arr.SetObliviousNullabilityForReferenceTypes();
         }
 
         [Fact]
