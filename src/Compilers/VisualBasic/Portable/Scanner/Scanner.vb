@@ -878,9 +878,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Return
                         End If
 
-                        For i = 0 To triviaList.Count - 1
-                            tList.Add(triviaList(i))
-                        Next
+                        tlist.AddRange(MakeTriviaArray(triviaList))
+
                         _triviaListPool.Free(triviaList)
 
                 End Select
