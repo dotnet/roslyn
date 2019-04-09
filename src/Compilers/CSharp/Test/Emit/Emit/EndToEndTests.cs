@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
         // the compiler can handle. 
         [WorkItem(16669, "https://github.com/dotnet/roslyn/issues/16669")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly)), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
         public void OverflowOnFluentCall()
         {
             int numberFluentCalls = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
@@ -104,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
+                _ when ExecutionConditionUtil.IsMacOS => 500,
                 _ when ExecutionConditionUtil.IsCoreClrUnix => 1200,
                 _ when ExecutionConditionUtil.IsMonoDesktop => 730,
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 270,
