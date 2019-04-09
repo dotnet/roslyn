@@ -314,24 +314,22 @@ next:;
             DiagnosticBag diagnostics)
         {
             var typeParameters = TypeParameters;
+            int arity = typeParameters.Length;
 
-            if (constraintClauses.Length > 0)
+            Debug.Assert(constraintClauses.IsEarly());
+            Debug.Assert(constraintClauses.Length == arity);
+
+            for (int i = 0; i < arity; i++)
             {
-                Debug.Assert(constraintClauses.Length == typeParameters.Length);
-
-                int arity = typeParameters.Length;
-                for (int i = 0; i < arity; i++)
+                var constraint = constraintClauses[i];
+                // Constraints defined on multiple partial declarations.
+                // Report any mismatched constraints.
+                foreach (var other in constraint.OtherPartialDeclarations)
                 {
-                    var constraint = constraintClauses[i];
-                    // Constraints defined on multiple partial declarations.
-                    // Report any mismatched constraints.
-                    foreach (var other in constraint.OtherPartialDeclarations)
+                    if (!HaveSameConstraints(constraint, other))
                     {
-                        if (!HaveSameConstraints(constraint, other))
-                        {
-                            // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
-                            diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
-                        }
+                        // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
+                        diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
                     }
                 }
             }
