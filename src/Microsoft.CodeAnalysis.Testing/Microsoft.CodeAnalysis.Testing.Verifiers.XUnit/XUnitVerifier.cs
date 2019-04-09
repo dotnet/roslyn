@@ -11,19 +11,19 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
     public class XUnitVerifier : IVerifier
     {
-        private readonly ImmutableStack<string> _context;
-
         public XUnitVerifier()
             : this(ImmutableStack<string>.Empty)
         {
         }
 
-        private XUnitVerifier(ImmutableStack<string> context)
+        protected XUnitVerifier(ImmutableStack<string> context)
         {
-            _context = context;
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public void Empty<T>(string collectionName, IEnumerable<T> collection)
+        protected ImmutableStack<string> Context { get; }
+
+        public virtual void Empty<T>(string collectionName, IEnumerable<T> collection)
         {
             using (var enumerator = collection.GetEnumerator())
             {
@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void Equal<T>(T expected, T actual, string message = null)
+        public virtual void Equal<T>(T expected, T actual, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.Equal(expected, actual);
             }
@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void True(bool assert, string message = null)
+        public virtual void True(bool assert, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.True(assert);
             }
@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void False(bool assert, string message = null)
+        public virtual void False(bool assert, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.False(assert);
             }
@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void Fail(string message = null)
+        public virtual void Fail(string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.True(false);
             }
@@ -85,12 +85,12 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void LanguageIsSupported(string language)
+        public virtual void LanguageIsSupported(string language)
         {
             Assert.False(language != LanguageNames.CSharp && language != LanguageNames.VisualBasic, CreateMessage($"Unsupported Language: '{language}'"));
         }
 
-        public void NotEmpty<T>(string collectionName, IEnumerable<T> collection)
+        public virtual void NotEmpty<T>(string collectionName, IEnumerable<T> collection)
         {
             using (var enumerator = collection.GetEnumerator())
             {
@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> equalityComparer = null, string message = null)
+        public virtual void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> equalityComparer = null, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 if (equalityComparer is null)
                 {
@@ -125,14 +125,15 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public IVerifier PushContext(string context)
+        public virtual IVerifier PushContext(string context)
         {
-            return new XUnitVerifier(_context.Push(context));
+            Assert.IsType<XUnitVerifier>(this);
+            return new XUnitVerifier(Context.Push(context));
         }
 
-        private string CreateMessage(string message)
+        protected virtual string CreateMessage(string message)
         {
-            foreach (var frame in _context)
+            foreach (var frame in Context)
             {
                 message = "Context: " + frame + Environment.NewLine + message;
             }
