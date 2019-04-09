@@ -68,12 +68,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolGroup.ToList(), context,
                             invalidProjectMap: null, totalProjects: null, preselect: preselect);
 
-                    if (IsTargetTypeCompletionFilterExperimentEnabled(context.Workspace))
+                    if (symbolGroup.Any(s => ShouldIncludeInTargetTypedCompletionList(s, inferredTypes, context.SemanticModel, context.Position)))
                     {
-                        if (symbolGroup.Any(s => ShouldIncludeInTargetTypedCompletionList(s, inferredTypes, context.SemanticModel, context.Position)))
-                        {
-                            item = item.AddTag(WellKnownTags.MatchingType);
-                        }
+                        item = item.AddTag(WellKnownTags.MatchingType);
                     }
 
                     itemListBuilder.Add(item);
