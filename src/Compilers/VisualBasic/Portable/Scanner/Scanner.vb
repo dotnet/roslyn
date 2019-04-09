@@ -922,10 +922,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Exit While
                     End If
 
-                    Dim n = more.Count
-                    For i = 0 To n - 1
-                        tList.Add(more(i))
-                    Next
+                    tlist.AddRange(MakeTriviaArray(more))
+
                     more.Clear()
                 End While
 
