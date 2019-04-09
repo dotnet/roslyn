@@ -70,8 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             {
-                var root = await context.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var node = root.FindNode(context.LeftToken.Span);
+                var node = context.LeftToken.Parent;
                 var project = document.Project;
 
                 // Find all namespaces in scope at current cursor location, 
