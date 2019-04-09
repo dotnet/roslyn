@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Testing
     /// Specifies non-standard analyzer behaviors which impact testing.
     /// </summary>
     [Flags]
-    public enum AnalysisQuirks
+    public enum TestBehaviors
     {
         /// <summary>
         /// No special behaviors apply.

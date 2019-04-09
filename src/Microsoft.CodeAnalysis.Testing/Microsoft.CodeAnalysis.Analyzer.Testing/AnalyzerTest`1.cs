@@ -98,9 +98,10 @@ namespace Microsoft.CodeAnalysis.Testing
         public Dictionary<string, string> XmlReferences { get; } = new Dictionary<string, string>();
 
         /// <summary>
-        /// Gets or sets the quirks applying to this analyzer. The default value is <see cref="AnalysisQuirks.None"/>.
+        /// Gets or sets the test behaviors applying to this analyzer. The default value is
+        /// <see cref="TestBehaviors.None"/>.
         /// </summary>
-        public AnalysisQuirks Quirks { get; set; }
+        public TestBehaviors TestBehaviors { get; set; }
 
         /// <summary>
         /// Gets a collection of diagnostics to explicitly disable in the <see cref="CompilationOptions"/> for projects.
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private async Task VerifyGeneratedCodeDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
-            if (Quirks.HasFlag(AnalysisQuirks.SkipGeneratedCodeCheck))
+            if (TestBehaviors.HasFlag(TestBehaviors.SkipGeneratedCodeCheck))
             {
                 return;
             }
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private async Task VerifySuppressionDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
-            if (Quirks.HasFlag(AnalysisQuirks.SkipSuppressionCheck))
+            if (TestBehaviors.HasFlag(TestBehaviors.SkipSuppressionCheck))
             {
                 return;
             }
