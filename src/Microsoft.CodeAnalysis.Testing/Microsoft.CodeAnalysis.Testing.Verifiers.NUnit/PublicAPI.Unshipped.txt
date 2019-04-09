@@ -1,11 +1,14 @@
 Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier
-Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.Empty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.Equal<T>(T expected, T actual, string message = null) -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.Fail(string message = null) -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.False(bool assert, string message = null) -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.LanguageIsSupported(string language) -> void
+Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.Context.get -> System.Collections.Immutable.ImmutableStack<string>
 Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.NUnitVerifier() -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.NotEmpty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.PushContext(string context) -> Microsoft.CodeAnalysis.Testing.IVerifier
-Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.SequenceEqual<T>(System.Collections.Generic.IEnumerable<T> expected, System.Collections.Generic.IEnumerable<T> actual, System.Collections.Generic.IEqualityComparer<T> equalityComparer = null, string message = null) -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.True(bool assert, string message = null) -> void
+Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.NUnitVerifier(System.Collections.Immutable.ImmutableStack<string> context) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.CreateMessage(string message) -> string
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.Empty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.Equal<T>(T expected, T actual, string message = null) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.Fail(string message = null) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.False(bool assert, string message = null) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.LanguageIsSupported(string language) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.NotEmpty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.PushContext(string context) -> Microsoft.CodeAnalysis.Testing.IVerifier
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.SequenceEqual<T>(System.Collections.Generic.IEnumerable<T> expected, System.Collections.Generic.IEnumerable<T> actual, System.Collections.Generic.IEqualityComparer<T> equalityComparer = null, string message = null) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.True(bool assert, string message = null) -> void

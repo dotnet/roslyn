@@ -9,19 +9,19 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class DefaultVerifier : IVerifier
     {
-        private readonly ImmutableStack<string> _context;
-
         public DefaultVerifier()
             : this(ImmutableStack<string>.Empty)
         {
         }
 
-        private DefaultVerifier(ImmutableStack<string> context)
+        protected DefaultVerifier(ImmutableStack<string> context)
         {
-            _context = context;
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public void Empty<T>(string collectionName, IEnumerable<T> collection)
+        protected ImmutableStack<string> Context { get; }
+
+        public virtual void Empty<T>(string collectionName, IEnumerable<T> collection)
         {
             if (collection?.Any() == true)
             {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public void NotEmpty<T>(string collectionName, IEnumerable<T> collection)
+        public virtual void NotEmpty<T>(string collectionName, IEnumerable<T> collection)
         {
             if (collection?.Any() == false)
             {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public void LanguageIsSupported(string language)
+        public virtual void LanguageIsSupported(string language)
         {
             if (language != LanguageNames.CSharp && language != LanguageNames.VisualBasic)
             {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public void Equal<T>(T expected, T actual, string message = null)
+        public virtual void Equal<T>(T expected, T actual, string message = null)
         {
             if (!EqualityComparer<T>.Default.Equals(expected, actual))
             {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public void True(bool assert, string message = null)
+        public virtual void True(bool assert, string message = null)
         {
             if (!assert)
             {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public void False(bool assert, string message = null)
+        public virtual void False(bool assert, string message = null)
         {
             if (assert)
             {
@@ -69,12 +69,12 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public void Fail(string message = null)
+        public virtual void Fail(string message = null)
         {
             throw new InvalidOperationException(CreateMessage(message ?? "Verification failed for an unspecified reason."));
         }
 
-        public void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> equalityComparer = null, string message = null)
+        public virtual void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> equalityComparer = null, string message = null)
         {
             var comparer = new SequenceEqualEnumerableEqualityComparer<T>(equalityComparer);
             var areEqual = comparer.Equals(expected, actual);
@@ -84,14 +84,19 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public IVerifier PushContext(string context)
+        public virtual IVerifier PushContext(string context)
         {
-            return new DefaultVerifier(_context.Push(context));
+            if (GetType() != typeof(DefaultVerifier))
+            {
+                throw new InvalidOperationException($"Custom verifier types must override {nameof(PushContext)}");
+            }
+
+            return new DefaultVerifier(Context.Push(context));
         }
 
-        private string CreateMessage(string message)
+        protected virtual string CreateMessage(string message)
         {
-            foreach (var frame in _context)
+            foreach (var frame in Context)
             {
                 message = "Context: " + frame + Environment.NewLine + message;
             }
