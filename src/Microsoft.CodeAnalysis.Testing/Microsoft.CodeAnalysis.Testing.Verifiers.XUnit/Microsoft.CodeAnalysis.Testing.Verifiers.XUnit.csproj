@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit.assert" Version="2.0.0" />
+    <PackageReference Include="xunit.assert" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup>
