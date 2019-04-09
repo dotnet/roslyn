@@ -2218,27 +2218,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDefaultExpression : BoundExpression
     {
-        public BoundDefaultExpression(SyntaxNode syntax, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.DefaultExpression, syntax, type, hasErrors)
+        public BoundDefaultExpression(SyntaxNode syntax, BoundTypeExpression targetType, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DefaultExpression, syntax, type, hasErrors || targetType.HasErrors())
         {
+            this.TargetType = targetType;
             this.ConstantValueOpt = constantValueOpt;
         }
 
-        public BoundDefaultExpression(SyntaxNode syntax, ConstantValue constantValueOpt, TypeSymbol type)
-            : base(BoundKind.DefaultExpression, syntax, type)
-        {
-            this.ConstantValueOpt = constantValueOpt;
-        }
 
+        public BoundTypeExpression TargetType { get; }
 
         public ConstantValue ConstantValueOpt { get; }
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDefaultExpression(this);
 
-        public BoundDefaultExpression Update(ConstantValue constantValueOpt, TypeSymbol type)
+        public BoundDefaultExpression Update(BoundTypeExpression targetType, ConstantValue constantValueOpt, TypeSymbol type)
         {
-            if (constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (targetType != this.TargetType || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDefaultExpression(this.Syntax, constantValueOpt, type, this.HasErrors);
+                var result = new BoundDefaultExpression(this.Syntax, targetType, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2247,7 +2244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundDefaultExpression(this.Syntax, this.ConstantValueOpt, this.Type, this.HasErrors);
+            var result = new BoundDefaultExpression(this.Syntax, this.TargetType, this.ConstantValueOpt, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -9385,8 +9382,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
+            BoundTypeExpression targetType = node.TargetType;
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.ConstantValueOpt, type);
+            return node.Update(targetType, node.ConstantValueOpt, type);
         }
         public override BoundNode VisitIsOperator(BoundIsOperator node)
         {
@@ -10553,6 +10551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitDefaultExpression(BoundDefaultExpression node, object arg) => new TreeDumperNode("defaultExpression", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("targetType", null, new TreeDumperNode[] { Visit(node.TargetType, null) }),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null)

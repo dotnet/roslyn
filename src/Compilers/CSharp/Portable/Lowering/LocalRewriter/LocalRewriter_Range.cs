@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, rangeExpr);
 
             // default
-            BoundExpression alternative = new BoundDefaultExpression(node.Syntax, constantValueOpt: null, node.Type);
+            BoundExpression alternative = new BoundDefaultExpression(node.Syntax, node.Type);
 
             // left.HasValue && right.HasValue
             //     ? new Nullable(makeRange(left.GetValueOrDefault(), right.GetValueOrDefault()))
