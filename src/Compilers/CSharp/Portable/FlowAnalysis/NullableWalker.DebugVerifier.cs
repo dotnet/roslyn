@@ -70,18 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitNewT(BoundNewT node)
-            {
-                // https://github.com/dotnet/roslyn/issues/33387 We're not currently
-                // examining child nodes correctly
-                if (node.InitializerExpressionOpt != null)
-                {
-                    VerifyExpression(node.InitializerExpressionOpt, overrideSkippedExpression: true);
-                }
-
-                return null;
-            }
-
             public override BoundNode VisitBadExpression(BoundBadExpression node)
             {
                 // Regardless of what the BadExpression is, we need to add all of its direct children to the visited map. They

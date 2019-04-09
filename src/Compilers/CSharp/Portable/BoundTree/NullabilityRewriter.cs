@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 stack.Push(currentBinary);
                 currentBinary = currentBinary.Left as BoundBinaryOperatorBase;
-            } while (currentBinary != null);
+            }
+            while (currentBinary != null);
 
             Debug.Assert(stack.Count > 0);
             var leftChild = (BoundExpression)Visit(stack.Peek().Left);
@@ -49,12 +50,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var right = (BoundExpression)Visit(currentBinary.Right);
                 var type = foundInfo ? infoAndType.Type : currentBinary.Type;
 
+#pragma warning disable IDE0055 // Fix formatting
+                // PROTOTYPE(nullable-api): We'll need to update the symbols for the internal methods/operators used in the binary operators
                 currentBinary = currentBinary switch
-                {
-                    BoundBinaryOperator binary => (BoundBinaryOperatorBase)binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, leftChild, right, type),
-                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ResultKind, leftChild, right, type),
-                    _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
-                };
+                    {
+                        BoundBinaryOperator binary => (BoundBinaryOperatorBase)binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, leftChild, right, type),
+                        BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ResultKind, leftChild, right, type),
+                        _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
+                    };
+#pragma warning restore IDE0055 // Fix formatting
 
                 if (foundInfo)
                 {
@@ -62,7 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 leftChild = currentBinary;
-            } while (stack.Count > 0);
+            }
+            while (stack.Count > 0);
 
             Debug.Assert(currentBinary != null);
             return currentBinary;

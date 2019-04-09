@@ -1590,11 +1590,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (_nodeMapLock.DisposableWrite())
             {
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
-                nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
 
-                // If we're here, nullable analysis must be off, or we're in an error scenario and didn't find any
-                // nodes from this binding.
-                Debug.Assert(!EnableNullableAnalysis || nodes.IsDefaultOrEmpty);
+                // PROTOTYPE(nullable-api): Rewrite the above node and add a test that hits this path with nullable
+                // enabled
+
+                nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
             }
 
             if (!nodes.IsDefaultOrEmpty)
@@ -1623,17 +1623,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, lambdaOrQuery, _ignoredDiagnostics);
 
-                if (EnableNullableAnalysis)
-                {
-                    boundOuterExpression = RewriteNullableBoundNodes(boundOuterExpression, incrementalBinder.Conversions, _ignoredDiagnostics);
-                }
+                // PROTOTYPE(nullable-api): We need to do a rewrite here, and create a test that can hit this.
 #if DEBUG
-                else
-                {
-                    var diagnostics = new DiagnosticBag();
-                    _ = RewriteNullableBoundNodes(boundOuterExpression, incrementalBinder.Conversions, diagnostics);
-                    diagnostics.Free();
-                }
+                var diagnostics = new DiagnosticBag();
+                _ = RewriteNullableBoundNodes(boundOuterExpression, incrementalBinder.Conversions, diagnostics);
 #endif
 
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
@@ -1822,7 +1815,8 @@ done:
             DiagnosticBag diagnostics = _ignoredDiagnostics;
 
             // If we're in DEBUG mode, always enable the analysis, but throw away the results
-            if (!EnableNullableAnalysis)
+            // PROTOTYPE(nullable-api): Disable speculative semantic models for now.
+            if (!EnableNullableAnalysis || IsSpeculativeSemanticModel)
             {
 #if DEBUG
                 diagnostics = new DiagnosticBag();
@@ -1835,17 +1829,13 @@ done:
 
             if (_guardedNodeMap.ContainsKey(Root)
 #if DEBUG
-                // In DEBUG mode, we don't want to increase test run times by an insane length of
-                // time, so if nullable analysis isn't enabled and some node has already been bound
+                // In DEBUG mode, we don't want to increase test run times, so if
+                // nullable analysis isn't enabled and some node has already been bound
                 // we assume we've already done this test binding and just return
                 || (!EnableNullableAnalysis && _guardedNodeMap.Count > 0)
 #endif
                 )
             {
-#if DEBUG
-                if (!EnableNullableAnalysis) diagnostics.Free();
-#endif
-
                 return;
             }
 
@@ -1858,7 +1848,7 @@ done:
             // then take that state and run analysis on the statement or expression being speculated on.
             // Currently, it will return incorrect info because it's just running analysis on the speculated
             // part.
-            var binder = GetEnclosingBinder(GetAdjustedNodePosition(Root));
+            var binder = GetEnclosingBinder(GetAdjustedNodePosition(GetBindableSyntaxNode(Root)));
             var boundRoot = Bind(binder, Root, diagnostics);
             boundRoot = RewriteNullableBoundNodes(boundRoot, binder.Conversions, diagnostics);
 
@@ -1866,12 +1856,6 @@ done:
             {
                 GuardedAddBoundTreeForStandaloneSyntax(Root, boundRoot);
             }
-#if DEBUG
-            else
-            {
-                diagnostics.Free();
-            }
-#endif
         }
 
         protected abstract BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Conversions conversions, DiagnosticBag diagnostics);

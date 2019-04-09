@@ -627,5 +627,39 @@ public class C
                 AssertEx.Equal(expectedNullabilities, members.Select(nullabilityFunc));
             }
         }
+
+        [Fact]
+        public void LambdaBody_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M(Action a)
+    {
+        M(() =>
+            {
+                object? o = null;
+                if (o == null) return;
+                o.ToString();
+            });
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+            var typeInfo = model.GetTypeInfo(((MemberAccessExpressionSyntax)invocation.Expression).Expression);
+            Assert.Equal(PublicNullableFlowState.NotNull, typeInfo.Nullability.FlowState);
+            // PROTOTYPE(nullable-api): This is incorrect. o should be Annotated, as you can assign
+            // null without a warning.
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, typeInfo.Nullability.Annotation);
+        }
     }
 }

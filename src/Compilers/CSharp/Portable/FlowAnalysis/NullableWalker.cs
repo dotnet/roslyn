@@ -1557,16 +1557,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryGetReturnType(out TypeWithAnnotations type)
         {
             var method = _symbol as MethodSymbol;
-            var nullableReturnType = (_methodSignatureOpt ?? method)?.ReturnTypeWithAnnotations;
-            Debug.Assert(!nullableReturnType.HasValue || (object)nullableReturnType.Value != LambdaSymbol.ReturnTypeIsBeingInferred);
-
-            if (!nullableReturnType.HasValue)
+            if (method is null)
             {
                 type = default;
                 return false;
             }
 
-            var returnType = nullableReturnType.Value;
+            var returnType = (_methodSignatureOpt ?? method).ReturnTypeWithAnnotations;
+            Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
 
             if (returnType.SpecialType == SpecialType.System_Void)
             {
@@ -5187,9 +5185,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitRvalue(initializer);
-            if (initializer.Kind == BoundKind.AddressOfOperator)
+            if (node.Expression.Kind == BoundKind.AddressOfOperator)
             {
-                SetResultType(initializer, new TypeWithState(initializer.Type, ResultType.State));
+                SetResultType(node.Expression, new TypeWithState(node.Expression.Type, ResultType.State));
             }
             SetNotNullResult(node);
             return null;
