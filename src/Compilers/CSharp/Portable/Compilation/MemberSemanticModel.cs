@@ -1855,7 +1855,7 @@ done:
 
             if (EnableNullableAnalysis && !IsSpeculativeSemanticModel)
             {
-                GuardedAddBoundTreeForStandaloneSyntax(Root, boundRoot);
+                GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot);
             }
         }
 
