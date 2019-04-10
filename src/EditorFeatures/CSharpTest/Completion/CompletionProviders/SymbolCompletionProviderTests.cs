@@ -10136,7 +10136,7 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "Target");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilterWithExperimentEnabled()
         {
             var markup =
@@ -10154,7 +10154,7 @@ class Program
                 matchingFilterExperimentEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestNoTargetTypeFilterWithExperimentDisabled()
         {
             var markup =
@@ -10173,7 +10173,7 @@ class Program
         }
 
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotOnObjectMembers()
         {
             var markup =
@@ -10190,7 +10190,7 @@ class Program
                 matchingFilterExperimentEnabled: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotNamedTypes()
         {
             var markup =
