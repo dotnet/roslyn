@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
     [DebuggerTypeProxy(typeof(ArrayBuilder<>.DebuggerProxy))]
-    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>
+    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>, IDisposable
     {
         #region DebuggerProxy
 
@@ -535,6 +535,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
             set.Free();
             return result.ToImmutableAndFree();
+        }
+
+        public void Dispose()
+        {
+            Free();
         }
     }
 }
