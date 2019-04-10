@@ -84,18 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledDictionary<Symbol, TypeWithAnnotations> _variableTypes = PooledDictionary<Symbol, TypeWithAnnotations>.GetInstance();
 
-        private readonly Binder _binder;
-
         /// <summary>
         /// Conversions with nullability and unknown matching any.
         /// </summary>
         private readonly Conversions _conversions;
-
-        /// <summary>
-        /// Use the return type and nullability from _methodSignatureOpt to calculate return
-        /// expression conversions. If false, the signature of _member is used instead.
-        /// </summary>
-        private readonly bool _useMethodSignatureReturnType;
 
         /// <summary>
         /// Use the the parameter types and nullability from _methodSignatureOpt for initial
@@ -135,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static readonly ImmutableArray<BoundKind> s_skippedExpressions = ImmutableArray.Create(BoundKind.ArrayInitialization,
             BoundKind.ObjectInitializerExpression,
-            BoundKind.CollectionElementInitializer,
+            BoundKind.CollectionInitializerExpression,
             BoundKind.DynamicCollectionElementInitializer);
 #endif
 
@@ -281,20 +273,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NullableWalker(
             CSharpCompilation compilation,
-            MethodSymbol method,
-            bool useMethodSignatureReturnType,
+            Symbol symbol,
             bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
             BoundNode node,
+            // PROTOTYPE(nullable-api): Can we make callers of analyze stricter about the type of `Conversions` that they take in? Most of them take in
+            // a `ConversionsBase` currently, but `NullableWalker` needs a `Conversions` specifically. Perhaps tie it to `ConversionsBase.IncludeNullability`?
+            Conversions conversions,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
             VariableState initialState,
             Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt)
-            : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: true)
+            : base(compilation, symbol, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: true)
         {
-            _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
-            Debug.Assert(!_binder.Conversions.IncludeNullability);
-            _conversions = (Conversions)_binder.Conversions.WithNullability(true);
-            _useMethodSignatureReturnType = (object)methodSignatureOpt != null && useMethodSignatureReturnType;
+            _conversions = (Conversions)conversions.WithNullability(true);
             _useMethodSignatureParameterTypes = (object)methodSignatureOpt != null && useMethodSignatureParameterTypes;
             _methodSignatureOpt = methodSignatureOpt;
             _returnTypesOpt = returnTypesOpt;
@@ -367,13 +358,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
+            var conversions = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax).Conversions;
             Analyze(compilation,
                 method,
                 node,
+                conversions,
                 diagnostics,
-                useMethodSignatureReturnType: false,
                 useMethodSignatureParameterTypes: false,
-                methodSignatureOpt: null,
+                methodSignatureOpt: method,
                 returnTypes: null,
                 initialState: null,
                 analyzedNullabilityMapOpt: null);
@@ -381,19 +373,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static BoundNode AnalyzeAndRewrite(
             CSharpCompilation compilation,
-            MethodSymbol method,
+            Symbol symbol,
             BoundNode node,
+            Conversions conversions,
             DiagnosticBag diagnostics)
         {
             var analyzedNullabilities = PooledDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.GetInstance();
+            var methodSymbol = symbol as MethodSymbol;
             Analyze(
                 compilation,
-                method,
+                symbol,
                 node,
+                conversions,
                 diagnostics,
-                useMethodSignatureReturnType: false,
-                useMethodSignatureParameterTypes: false,
-                methodSignatureOpt: null,
+                useMethodSignatureParameterTypes: !(methodSymbol is null),
+                methodSignatureOpt: methodSymbol,
                 returnTypes: null,
                 initialState: null,
                 analyzedNullabilityMapOpt: analyzedNullabilities);
@@ -409,6 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void AnalyzeIfNeeded(
             CSharpCompilation compilation,
             BoundAttribute attribute,
+            Conversions conversions,
             DiagnosticBag diagnostics)
         {
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
@@ -416,12 +411,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            Analyze(compilation, null, attribute, diagnostics, useMethodSignatureReturnType: false, useMethodSignatureParameterTypes: false, methodSignatureOpt: null, returnTypes: null, initialState: null, analyzedNullabilityMapOpt: null);
+            Analyze(compilation, null, attribute, conversions, diagnostics, useMethodSignatureParameterTypes: false, methodSignatureOpt: null, returnTypes: null, initialState: null, analyzedNullabilityMapOpt: null);
         }
 
         internal static void Analyze(
             CSharpCompilation compilation,
             BoundLambda lambda,
+            Conversions conversions,
             DiagnosticBag diagnostics,
             MethodSymbol delegateInvokeMethod,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
@@ -432,8 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 lambda.Symbol,
                 lambda.Body,
+                conversions,
                 diagnostics,
-                useMethodSignatureReturnType: true,
                 useMethodSignatureParameterTypes: !lambda.UnboundLambda.HasExplicitlyTypedParameterList,
                 methodSignatureOpt: delegateInvokeMethod,
                 returnTypes,
@@ -443,10 +439,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void Analyze(
             CSharpCompilation compilation,
-            MethodSymbol method,
+            Symbol symbol,
             BoundNode node,
+            Conversions conversions,
             DiagnosticBag diagnostics,
-            bool useMethodSignatureReturnType,
             bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
@@ -456,11 +452,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(diagnostics != null);
             var walker = new NullableWalker(
                 compilation,
-                method,
-                useMethodSignatureReturnType,
+                symbol,
                 useMethodSignatureParameterTypes,
                 methodSignatureOpt,
                 node,
+                conversions,
                 returnTypes,
                 initialState,
                 analyzedNullabilityMapOpt);
@@ -1560,8 +1556,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryGetReturnType(out TypeWithAnnotations type)
         {
-            var method = (MethodSymbol)_symbol;
-            var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt : method).ReturnTypeWithAnnotations;
+            var method = _symbol as MethodSymbol;
+            if (method is null)
+            {
+                type = default;
+                return false;
+            }
+
+            var returnType = (_methodSignatureOpt ?? method).ReturnTypeWithAnnotations;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
 
             if (returnType.SpecialType == SpecialType.System_Void)
@@ -2086,14 +2088,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static TypeWithAnnotations BestTypeForLambdaReturns(
             ArrayBuilder<(BoundExpression, TypeWithAnnotations)> returns,
             CSharpCompilation compilation,
-            BoundNode node)
+            BoundNode node,
+            Conversions conversions)
         {
             var walker = new NullableWalker(compilation,
-                                            method: null,
-                                            useMethodSignatureReturnType: false,
+                                            symbol: null,
                                             useMethodSignatureParameterTypes: false,
                                             methodSignatureOpt: null,
                                             node,
+                                            conversions: conversions,
                                             returnTypesOpt: null,
                                             initialState: null,
                                             analyzedNullabilityMapOpt: null);
@@ -3502,7 +3505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private UnboundLambda GetUnboundLambda(BoundLambda expr, VariableState variableState)
         {
-            return expr.UnboundLambda.WithNullableState(_binder, variableState);
+            return expr.UnboundLambda.WithNullableState(expr.UnboundLambda.Data.Binder, variableState);
         }
 
         private static (ParameterSymbol Parameter, TypeWithAnnotations Type) GetCorrespondingParameter(
@@ -3577,6 +3580,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKinds.AddRange(node.ArgumentRefKindsOpt);
             }
 
+            Debug.Assert(node.BinderOpt != null);
+
             // https://github.com/dotnet/roslyn/issues/27961 Do we really need OverloadResolution.GetEffectiveParameterTypes?
             // Aren't we doing roughly the same calculations in GetCorrespondingParameter?
             OverloadResolution.GetEffectiveParameterTypes(
@@ -3589,7 +3594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // false for constructors and several other cases (see Binder use). Should we
                 // capture the original value in the BoundCall?
                 allowRefOmittedArguments: true,
-                binder: _binder,
+                binder: node.BinderOpt,
                 expanded: node.Expanded,
                 parameterTypes: out ImmutableArray<TypeWithAnnotations> parameterTypes,
                 parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
@@ -3597,7 +3602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             refKinds.Free();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var result = MethodTypeInferrer.Infer(
-                _binder,
+                node.BinderOpt,
                 _conversions,
                 definition.TypeParameters,
                 definition.ContainingType,
@@ -3723,9 +3728,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Ungrouped conversion should not be followed by another ungrouped
                     // conversion. Otherwise, the conversions should have been grouped.
-                    Debug.Assert(expr.Kind != BoundKind.Conversion ||
-                        ((BoundConversion)expr).ConversionGroupOpt != null ||
-                        ((BoundConversion)expr).ConversionKind == ConversionKind.NoConversion);
+                    // https://github.com/dotnet/roslyn/issues/34919 This assertion does not always hold true for
+                    // enum initializers
+                    //Debug.Assert(expr.Kind != BoundKind.Conversion ||
+                    //    ((BoundConversion)expr).ConversionGroupOpt != null ||
+                    //    ((BoundConversion)expr).ConversionKind == ConversionKind.NoConversion);
                     return (expr, conversion.Conversion);
                 }
             }
@@ -4299,6 +4306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var variableState = GetVariableState();
                         Analyze(compilation,
                                 lambda,
+                                _conversions,
                                 Diagnostics,
                                 delegateInvokeMethod: delegateType?.DelegateInvokeMethod,
                                 returnTypes: null,
@@ -4506,7 +4514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    Debug.Assert(targetType.IsValueType);
+                    Debug.Assert(targetType.IsValueType || targetType.IsErrorType());
                     break;
             }
 
@@ -4662,7 +4670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_disableNullabilityAnalysis)
             {
                 var bag = new DiagnosticBag();
-                Analyze(compilation, node, bag, node.Type.GetDelegateType()?.DelegateInvokeMethod, returnTypes: null, initialState: GetVariableState(), _analyzedNullabilityMapOpt);
+                Analyze(compilation, node, _conversions, bag, node.Type.GetDelegateType()?.DelegateInvokeMethod, returnTypes: null, initialState: GetVariableState(), _analyzedNullabilityMapOpt);
                 bag.Free();
             }
             SetNotNullResult(node);
@@ -4676,6 +4684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambda = node.BindForErrorRecovery();
             Analyze(compilation,
                     lambda,
+                    _conversions,
                     Diagnostics,
                     delegateInvokeMethod: null,
                     returnTypes: null,
@@ -4693,8 +4702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Analyze(compilation,
                         node.Symbol,
                         body,
+                        _conversions,
                         Diagnostics,
-                        useMethodSignatureReturnType: false,
                         useMethodSignatureParameterTypes: false,
                         methodSignatureOpt: null,
                         returnTypes: null,
@@ -5178,9 +5187,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitRvalue(initializer);
-            if (initializer.Kind == BoundKind.AddressOfOperator)
+            if (node.Expression.Kind == BoundKind.AddressOfOperator)
             {
-                SetResultType(initializer, new TypeWithState(initializer.Type, ResultType.State));
+                SetResultType(node.Expression, new TypeWithState(node.Expression.Type, ResultType.State));
             }
             SetNotNullResult(node);
             return null;
@@ -6114,7 +6123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-            var method = (MethodSymbol)_symbol;
+            var method = _methodSignatureOpt ?? (MethodSymbol)_symbol;
             TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None,
                 method.ReturnType, errorLocationNode: null, diagnostics: null).elementType;
 

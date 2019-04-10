@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        CodeAnalysis.NullableAnnotation IMethodSymbol.ReturnNullableAnnotation => default;
+        CodeAnalysis.NullableAnnotation IMethodSymbol.ReturnNullableAnnotation => ReturnTypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
 
         ImmutableArray<ITypeSymbol> IMethodSymbol.TypeArguments
         {
@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<CodeAnalysis.NullableAnnotation> IMethodSymbol.TypeArgumentsNullableAnnotations => TypeArgumentsWithAnnotations.SelectAsArray(_ => default(CodeAnalysis.NullableAnnotation));
+        ImmutableArray<CodeAnalysis.NullableAnnotation> IMethodSymbol.TypeArgumentsNullableAnnotations => TypeArgumentsWithAnnotations.SelectAsArray(arg => arg.NullableAnnotation.ToPublicAnnotation());
 
         ImmutableArray<ITypeParameterSymbol> IMethodSymbol.TypeParameters
         {
@@ -1074,6 +1074,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // PROTOTYPE(nullable-api): Implement
         CodeAnalysis.NullableAnnotation IMethodSymbol.ReceiverNullableAnnotation => default;
 
         IMethodSymbol IMethodSymbol.ReducedFrom

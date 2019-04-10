@@ -304,15 +304,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (format != null)
             {
                 if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                    !IsNullableType() && !Type.IsValueType &&
+                    (!HasType || (!IsNullableType() && !Type.IsValueType)) &&
                     NullableAnnotation.IsAnnotated())
                 {
                     return str + "?";
                 }
                 else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
-                    !Type.IsValueType &&
-                    NullableAnnotation.IsNotAnnotated() &&
-                    !Type.IsTypeParameterDisallowingAnnotation())
+                    (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotation())) &&
+                    NullableAnnotation.IsNotAnnotated())
                 {
                     return str + "!";
                 }

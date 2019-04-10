@@ -7054,7 +7054,7 @@ unsafe class C
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void FixedSemanticModelSymbolInfo()
         {
             var text = @"
@@ -7129,7 +7129,7 @@ unsafe class C
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void FixedSemanticModelSymbolInfoConversions()
         {
             var text = @"

@@ -170,6 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Top level nullability for the node. This should not be used by flow analysis.
         /// </summary>
+        [DebuggerHidden]
         protected NullabilityInfo TopLevelNullability
         {
             get
@@ -177,22 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                 _attributes |= BoundNodeAttributes.WasTopLevelNullabilityChecked;
 #endif
-                if ((_attributes & BoundNodeAttributes.TopLevelAnnotationMask) == 0)
-                {
-                    return default;
-                }
 
-                var annotation = (_attributes & BoundNodeAttributes.TopLevelAnnotationMask) switch
-                {
-                    BoundNodeAttributes.TopLevelAnnotated => CodeAnalysis.NullableAnnotation.Annotated,
-                    BoundNodeAttributes.TopLevelNotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
-                    BoundNodeAttributes.TopLevelDisabled => CodeAnalysis.NullableAnnotation.Disabled,
-                    var mask => throw ExceptionUtilities.UnexpectedValue(mask)
-                };
-
-                var flowState = (_attributes & BoundNodeAttributes.TopLevelFlowStateMaybeNull) == 0 ? CodeAnalysis.NullableFlowState.NotNull : CodeAnalysis.NullableFlowState.MaybeNull;
-
-                return new NullabilityInfo(annotation, flowState);
+                // This is broken out into a separate property so the debugger can display the
+                // top level nullability without setting the _attributes flag and interferring
+                // with the normal operation of tests.
+                return TopLevelNullabilityCore;
             }
             set
             {
@@ -223,6 +213,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         throw ExceptionUtilities.UnexpectedValue(value.FlowState);
                 }
+            }
+        }
+
+        /// <summary>
+        /// This is for debugger display use only: <see cref="TopLevelNullability"/> will set the BoundNodeAttributes.WasTopLevelNullabilityChecked
+        /// bit in the boundnode properties, which will break debugging. This allows the debugger to display the current value without setting the bit.
+        /// </summary>
+        private NullabilityInfo TopLevelNullabilityCore
+        {
+            get
+            {
+                if ((_attributes & BoundNodeAttributes.TopLevelAnnotationMask) == 0)
+                {
+                    return default;
+                }
+
+                var annotation = (_attributes & BoundNodeAttributes.TopLevelAnnotationMask) switch
+                {
+                    BoundNodeAttributes.TopLevelAnnotated => CodeAnalysis.NullableAnnotation.Annotated,
+                    BoundNodeAttributes.TopLevelNotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
+                    BoundNodeAttributes.TopLevelDisabled => CodeAnalysis.NullableAnnotation.Disabled,
+                    var mask => throw ExceptionUtilities.UnexpectedValue(mask)
+                };
+
+                var flowState = (_attributes & BoundNodeAttributes.TopLevelFlowStateMaybeNull) == 0 ? CodeAnalysis.NullableFlowState.NotNull : CodeAnalysis.NullableFlowState.MaybeNull;
+
+                return new NullabilityInfo(annotation, flowState);
             }
         }
 

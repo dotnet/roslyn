@@ -647,7 +647,7 @@ class C
                                 "System.String <anonymous type: System.Int32 a, System.String b>.b { get; }");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void TestGetDeclaredSymbolFromAnonymousTypePropertyInitializer_WithErrors()
         {
             var compilation = CreateCompilation(@"
