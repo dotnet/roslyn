@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableArray<ISymbol> symbols,
             SyntaxContext context,
             bool preselect,
-            ImmutableArray<ITypeSymbol> inferredTypes = default)
+            ImmutableArray<ITypeSymbol> inferredTypes)
         {
             if (IsTargetTypeCompletionFilterExperimentEnabled(context.Workspace))
             {
@@ -144,17 +144,50 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Dictionary<ISymbol, SyntaxContext> originatingContextMap,
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
-            bool preselect)
+            bool preselect,
+            ImmutableArray<ITypeSymbol> inferredTypes)
         {
-            var symbols = originatingContextMap.Keys;
-            var q = from symbol in symbols
-                    let texts = GetDisplayAndSuffixAndInsertionText(symbol, originatingContextMap[symbol])
-                    group symbol by texts into g
-                    select this.CreateItem(
-                        g.Key.displayText, g.Key.suffix, g.Key.insertionText, g.ToList(),
-                        originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
+            if (IsTargetTypeCompletionFilterExperimentEnabled(originatingContextMap.First().Value.Workspace))
+            {
+                var symbols = originatingContextMap.Keys;
+                var symbolGroups = from symbol in symbols
+                                   let texts = GetDisplayAndSuffixAndInsertionText(symbol, originatingContextMap[symbol])
+                                   group symbol by texts into g
+                                   select g;
 
-            return q.ToImmutableArray();
+                var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
+
+                foreach (var symbolGroup in symbolGroups)
+                {
+                    var item = this.CreateItem(
+                            symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolGroup.ToList(),
+                            originatingContextMap[symbolGroup.First()], invalidProjectMap, totalProjects, preselect);
+
+                    if (symbolGroup.Any(
+                        s => ShouldIncludeInTargetTypedCompletionList(
+                            s, inferredTypes, originatingContextMap.First().Value.SemanticModel,
+                            originatingContextMap.First().Value.Position)))
+                    {
+                        item = item.AddTag(WellKnownTags.MatchingType);
+                    }
+
+                    itemListBuilder.Add(item);
+                }
+
+                return itemListBuilder.ToImmutable();
+            }
+            else
+            {
+                var symbols = originatingContextMap.Keys;
+                var q = from symbol in symbols
+                        let texts = GetDisplayAndSuffixAndInsertionText(symbol, originatingContextMap[symbol])
+                        group symbol by texts into g
+                        select this.CreateItem(
+                            g.Key.displayText, g.Key.suffix, g.Key.insertionText, g.ToList(),
+                            originatingContextMap[g.First()], invalidProjectMap, totalProjects, preselect);
+
+                return q.ToImmutableArray();
+            }
         }
 
         /// <summary>
@@ -276,13 +309,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var context = await GetOrCreateContext(document, position, cancellationToken).ConfigureAwait(false);
             options = GetUpdatedRecommendationOptions(options, document.Project.Language);
 
+            var inferenceService = document.GetLanguageService<ITypeInferenceService>();
+            var inferredTypes = inferenceService.InferTypes(context.SemanticModel, position, cancellationToken);
+
             if (relatedDocumentIds.IsEmpty)
             {
                 var itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
-
-                var inferenceService = document.GetLanguageService<ITypeInferenceService>();
-                var inferredTypes = inferenceService.InferTypes(context.SemanticModel, position, cancellationToken);
-
                 return CreateItems(itemsForCurrentDocument, context, preselect, inferredTypes);
             }
 
@@ -291,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
-            return CreateItems(symbolToContextMap, missingSymbolsMap, totalProjects, preselect);
+            return CreateItems(symbolToContextMap, missingSymbolsMap, totalProjects, preselect, inferredTypes);
         }
 
         private static ImmutableArray<DocumentId> GetRelatedDocumentIds(Document document, int position)
