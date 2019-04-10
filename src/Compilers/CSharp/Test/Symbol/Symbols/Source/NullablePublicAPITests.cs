@@ -661,5 +661,27 @@ class C
             // null without a warning.
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, typeInfo.Nullability.Annotation);
         }
+
+        [Fact, WorkItem(34919, "https://github.com/dotnet/roslyn/issues/34919")]
+        public void EnumInitializer()
+        {
+            var source = @"
+enum E1 : byte
+{
+    A1
+}
+enum E2
+{
+    A2 = E1.A1
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            _ = model.GetTypeInfo(root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value);
+        }
     }
 }

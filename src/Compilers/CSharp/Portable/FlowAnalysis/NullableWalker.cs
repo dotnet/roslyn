@@ -3728,9 +3728,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Ungrouped conversion should not be followed by another ungrouped
                     // conversion. Otherwise, the conversions should have been grouped.
-                    Debug.Assert(expr.Kind != BoundKind.Conversion ||
-                        ((BoundConversion)expr).ConversionGroupOpt != null ||
-                        ((BoundConversion)expr).ConversionKind == ConversionKind.NoConversion);
+                    // https://github.com/dotnet/roslyn/issues/34919 This assertion does not always hold true for
+                    // enum initializers
+                    //Debug.Assert(expr.Kind != BoundKind.Conversion ||
+                    //    ((BoundConversion)expr).ConversionGroupOpt != null ||
+                    //    ((BoundConversion)expr).ConversionKind == ConversionKind.NoConversion);
                     return (expr, conversion.Conversion);
                 }
             }
