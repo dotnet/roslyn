@@ -31,12 +31,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
                 hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
                 matchingFilters As List(Of CompletionItemFilter),
-                matchingFilterExperimentEnabled As Boolean) As Task
+                targetTypedExperimentEnabled As Boolean) As Task
             Return MyBase.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters, matchingFilterExperimentEnabled)
+                matchingFilters, targetTypedExperimentEnabled)
         End Function
 
         Private Protected Overrides Async Function VerifyWorkerAsync(
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
                 hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
                 matchingFilters As List(Of CompletionItemFilter),
-                matchingFilterExperimentEnabled As Boolean) As Task
+                targetTypedExperimentEnabled As Boolean) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> Microsoft.CodeAnalysis.SourceCodeKind.Regular Then
@@ -56,12 +56,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await VerifyAtPositionAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                matchingFilters, matchingFilterExperimentEnabled)
+                matchingFilters, targetTypedExperimentEnabled)
 
             Await VerifyAtEndOfFileAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                matchingFilters, matchingFilterExperimentEnabled)
+                matchingFilters, targetTypedExperimentEnabled)
 
             ' Items cannot be partially written if we're checking for their absence,
             ' or if we're verifying that the list will show up (without specifying an actual item)
@@ -69,12 +69,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Await VerifyAtPosition_ItemPartiallyWrittenAsync(
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                     sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                    matchingFilters, matchingFilterExperimentEnabled)
+                    matchingFilters, targetTypedExperimentEnabled)
 
                 Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                     sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                    matchingFilters, matchingFilterExperimentEnabled)
+                    matchingFilters, targetTypedExperimentEnabled)
             End If
         End Function
 

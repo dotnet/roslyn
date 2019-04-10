@@ -30,13 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
             string inlineDescription, List<CompletionItemFilter> matchingFilters,
-            bool matchingFilterExperimentEnabled)
+            bool targetTypedExperimentEnabled)
+            List<CompletionItemFilter> matchingFilters, bool targetTypedExperimentEnabled)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix, 
-                inlineDescription, matchingFilters, matchingFilterExperimentEnabled);
+                inlineDescription, matchingFilters, targetTypedExperimentEnabled);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

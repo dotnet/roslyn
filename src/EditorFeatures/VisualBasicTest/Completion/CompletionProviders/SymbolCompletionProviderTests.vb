@@ -1347,7 +1347,7 @@ Class C
                 expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
                 sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
                 glyph:=Nothing, matchPriority:=Nothing, hasSuggestionItem:=Nothing,
-                displayTextSuffix:=Nothing, matchingFilters:=Nothing, matchingFilterExperimentEnabled:=False)
+                displayTextSuffix:=Nothing, matchingFilters:=Nothing, targetTypedExperimentEnabled:=False)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
