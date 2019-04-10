@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly ImmutableArray<CompletionItemFilter> LocalAndParameterFilters = ImmutableArray.Create(LocalAndParameterFilter);
         public static readonly ImmutableArray<CompletionItemFilter> KeywordFilters = ImmutableArray.Create(KeywordFilter);
         public static readonly ImmutableArray<CompletionItemFilter> SnippetFilters = ImmutableArray.Create(SnippetFilter);
-        public static readonly ImmutableArray<CompletionItemFilter> MatchingTypeFilters = ImmutableArray.Create(TargetTypedFilter);
+        public static readonly ImmutableArray<CompletionItemFilter> TargetTypedFilters = ImmutableArray.Create(TargetTypedFilter);
 
         public static ImmutableArray<CompletionItemFilter> AllFilters { get; } =
             ImmutableArray.Create(
