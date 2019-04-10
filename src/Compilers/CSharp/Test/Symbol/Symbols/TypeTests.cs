@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var x = c.GetMembers("x").Single() as FieldSymbol;
             var type = x.Type;
             type.GetHashCode();
-            foreachArray(x => Assert.Equal(NullableAnnotation.NotAnnotated, x.ElementTypeWithAnnotations.NullableAnnotation));
+            foreachElement(annotation => Assert.Equal(NullableAnnotation.NotAnnotated, annotation));
             type = type.SetObliviousNullabilityForReferenceTypes();
-            foreachArray(x => Assert.Equal(NullableAnnotation.Oblivious, x.ElementTypeWithAnnotations.NullableAnnotation));
+            foreachElement(annotation => Assert.Equal(NullableAnnotation.Oblivious, annotation));
 
-            void foreachArray(Action<ArrayTypeSymbol> action)
+            void foreachElement(Action<NullableAnnotation> action)
             {
                 var arrayType = (ArrayTypeSymbol)type;
                 do
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                     var next = arrayType.ElementType as ArrayTypeSymbol;
                     if (next is object)
                     {
-                        action(arrayType);
+                        action(arrayType.ElementTypeWithAnnotations.NullableAnnotation);
                     }
                     arrayType = next;
                 }
