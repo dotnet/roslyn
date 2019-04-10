@@ -82,12 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Add empty values for type parameters without constraint clauses.
+            // Add default values for type parameters without constraint clauses.
             for (int i = 0; i < n; i++)
             {
                 if (results[i] == null)
                 {
-                    results[i] = TypeParameterConstraintClause.Empty;
+                    results[i] = GetDefaultTypeParameterConstraintClause(typeParameterList.Parameters[i]);
                 }
             }
 
@@ -228,10 +228,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (TypeParameterSyntax typeParameterSyntax in typeParameterList.Parameters)
             {
-                builder.Add(IsNullableEnabled(typeParameterSyntax.Identifier) ? TypeParameterConstraintClause.Empty : TypeParameterConstraintClause.ObliviousNullabilityIfReferenceType);
+                builder.Add(GetDefaultTypeParameterConstraintClause(typeParameterSyntax));
             }
 
             return builder.ToImmutableAndFree();
+        }
+
+        private TypeParameterConstraintClause GetDefaultTypeParameterConstraintClause(TypeParameterSyntax typeParameterSyntax)
+        {
+            return IsNullableEnabled(typeParameterSyntax.Identifier) ? TypeParameterConstraintClause.Empty : TypeParameterConstraintClause.ObliviousNullabilityIfReferenceType;
         }
 
         /// <summary>

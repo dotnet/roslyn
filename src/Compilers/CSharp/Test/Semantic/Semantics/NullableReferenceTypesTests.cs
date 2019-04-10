@@ -59537,8 +59537,8 @@ public interface I1
 
             comp1.VerifyDiagnostics();
 
-            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            void symbolValidator(ModuleSymbol m)
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator1, symbolValidator: symbolValidator1);
+            void symbolValidator1(ModuleSymbol m)
             {
                 var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
                 Assert.Equal("void I1.F1<TF1>()", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -59546,6 +59546,31 @@ public interface I1
                 TypeParameterSymbol tf1 = f1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
                 Assert.Empty(tf1.GetAttributes());
+            }
+
+            var source2 =
+@"
+#nullable disable
+public interface I1
+{
+    void F1<TF1, TF2>() where TF2 : class;
+}
+";
+            var comp2 = CreateCompilation(source2);
+
+            comp2.VerifyDiagnostics();
+
+            CompileAndVerify(comp2, sourceSymbolValidator: symbolValidator2, symbolValidator: symbolValidator2);
+            void symbolValidator2(ModuleSymbol m)
+            {
+                var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
+                Assert.Equal("void I1.F1<TF1, TF2>() where TF2 : class", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                foreach (TypeParameterSymbol tf1 in f1.TypeParameters)
+                {
+                    Assert.Null(tf1.IsNotNullableIfReferenceType);
+                    Assert.Empty(tf1.GetAttributes());
+                }
             }
         }
 
@@ -60040,8 +60065,8 @@ public interface I1<TF1>
 
             comp1.VerifyDiagnostics();
 
-            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            void symbolValidator(ModuleSymbol m)
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator1, symbolValidator: symbolValidator1);
+            void symbolValidator1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -60049,6 +60074,30 @@ public interface I1<TF1>
                 TypeParameterSymbol tf1 = i1.TypeParameters[0];
                 Assert.Null(tf1.IsNotNullableIfReferenceType);
                 Assert.Empty(tf1.GetAttributes());
+            }
+
+            var source2 =
+@"
+#nullable disable
+public interface I1<TF1, TF2> where TF2 : class
+{
+}
+";
+            var comp2 = CreateCompilation(source2);
+
+            comp2.VerifyDiagnostics();
+
+            CompileAndVerify(comp2, sourceSymbolValidator: symbolValidator2, symbolValidator: symbolValidator2);
+            void symbolValidator2(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                Assert.Equal("I1<TF1, TF2> where TF2 : class", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                foreach (TypeParameterSymbol tf1 in i1.TypeParameters)
+                {
+                    Assert.Null(tf1.IsNotNullableIfReferenceType);
+                    Assert.Empty(tf1.GetAttributes());
+                }
             }
         }
 
@@ -63667,17 +63716,7 @@ class B<TB1, TB2> where TB2 : object {
 ";
             var comp1 = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29678: Constraint violations are not reported for type references outside of method bodies.
-            comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify(
-                // (18,12): warning CS8631: The type 'TB1' cannot be used as type parameter 'TA' in the generic type or method 'IA<TA>'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
-                //         IA<TB1> x1; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "TB1").WithArguments("IA<TA>", "object", "TA", "TB1").WithLocation(18, 12),
-                // (27,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1, TB2>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
-                //         M1(a2); // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1, TB2>.M1<TM1>(TM1)", "object", "TM1", "TB1").WithLocation(27, 9),
-                // (29,9): warning CS8631: The type 'TB1' cannot be used as type parameter 'TM1' in the generic type or method 'B<TB1, TB2>.M1<TM1>(TM1)'. Nullability of type argument 'TB1' doesn't match constraint type 'object'.
-                //         M1<TB1>(a2); // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1>").WithArguments("B<TB1, TB2>.M1<TM1>(TM1)", "object", "TM1", "TB1").WithLocation(29, 9)
-            );
+            comp1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.WRN_MissingNonNullTypesContextForAnnotation).Verify();
         }
 
         [Fact]
@@ -63773,6 +63812,57 @@ public class AA
 #nullable enable
         M4<T2>(x);
     }
+}
+";
+            var comp1 = CreateCompilation(source);
+
+            comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34844, "https://github.com/dotnet/roslyn/issues/34844")]
+        public void ConstraintsChecks_32()
+        {
+            var source =
+@"
+#pragma warning disable CS0649
+#nullable disable
+class A<T1, T2, T3> where T2 : class where T3 : object
+{
+    T1 F1;
+    T2 F2;
+    T3 F3;
+    B F4;
+
+#nullable enable
+    void M3()
+    {
+        C.Test<T1>();
+        C.Test<T2>();
+        C.Test<T3>();
+    }
+
+    void M4()
+    {
+        D.Test(F1);
+        D.Test(F2);
+        D.Test(F3);
+        D.Test(F4);
+    }
+}
+
+class B {}
+
+class C
+{
+    public static void Test<T>() where T : object
+    {}
+}
+
+class D
+{
+    public static void Test<T>(T x) where T : object
+    {}
 }
 ";
             var comp1 = CreateCompilation(source);
@@ -69275,13 +69365,7 @@ class D
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T2").WithLocation(30, 17),
                 // (31,17): warning CS8652: A default expression introduces a null value when 'T3' is a non-nullable reference type.
                 //         T3 z2 = default;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T3").WithLocation(31, 17),
-                // (37,9): warning CS8631: The type 'T1' cannot be used as type parameter 'T' in the generic type or method 'C.Test<T>()'. Nullability of type argument 'T1' doesn't match constraint type 'object'.
-                //         C.Test<T1>();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "C.Test<T1>").WithArguments("C.Test<T>()", "object", "T", "T1").WithLocation(37, 9),
-                // (45,9): warning CS8631: The type 'T1' cannot be used as type parameter 'T' in the generic type or method 'D.Test<T>(T)'. Nullability of type argument 'T1' doesn't match constraint type 'object'.
-                //         D.Test(F1);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "D.Test").WithArguments("D.Test<T>(T)", "object", "T", "T1").WithLocation(45, 9)
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T3").WithLocation(31, 17)
                 );
         }
 

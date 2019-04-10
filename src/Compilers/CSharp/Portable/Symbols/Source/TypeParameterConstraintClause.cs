@@ -56,10 +56,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeConstraintSyntax> typeConstraintsSyntax = default)
         {
             Debug.Assert(!constraintTypes.IsDefault);
-            if (constraints == TypeParameterConstraintKind.None && constraintTypes.IsEmpty)
+            if (constraintTypes.IsEmpty)
             {
-                Debug.Assert(typeConstraintsSyntax.IsDefault);
-                return Empty;
+                switch (constraints)
+                {
+                    case TypeParameterConstraintKind.None:
+                        Debug.Assert(typeConstraintsSyntax.IsDefault);
+                        return Empty;
+
+                    case TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType:
+                        Debug.Assert(typeConstraintsSyntax.IsDefault);
+                        return ObliviousNullabilityIfReferenceType;
+                }
             }
             return new TypeParameterConstraintClause(constraints, constraintTypes, typeConstraintsSyntax, otherPartialDeclarations: ImmutableArray<TypeParameterConstraintClause>.Empty);
         }
