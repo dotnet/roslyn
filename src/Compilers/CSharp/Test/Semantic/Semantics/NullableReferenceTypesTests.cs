@@ -43175,7 +43175,8 @@ class Program
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(4, 37),
                 // (4,37): warning CS8603: Possible null reference return.
                 //     static IEnumerator<T> M<T>() => default(T);
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(T)").WithLocation(4, 37));
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(T)").WithLocation(4, 37)
+                );
         }
 
         [Fact]
@@ -61355,7 +61356,8 @@ class A
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T4)NullableObject()").WithLocation(39, 17),
                 // (29,16): warning CS8601: Possible null reference assignment.
                 //         T3 t = (T3)NullableObject(); // warn: T3 may be non-null
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T3)NullableObject()").WithLocation(29, 16));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T3)NullableObject()").WithLocation(29, 16)
+                );
         }
 
         [Fact]
@@ -61617,7 +61619,8 @@ class A
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(U)(object)t").WithLocation(23, 32),
                 // (23,35): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //     static U F21<T, U>(T t) => (U)(object)t;            // W on cast, W on cast
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)t").WithLocation(23, 35));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)t").WithLocation(23, 35)
+                );
         }
 
         [Fact]
@@ -61676,7 +61679,8 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)(object)u").WithLocation(9, 47),
                 // (9,50): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //     static void F6<T, U>(U u, out T t) => t = (T)(object)u; // 4
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)u").WithLocation(9, 50));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)u").WithLocation(9, 50)
+                );
         }
 
         [Fact]
@@ -61782,7 +61786,8 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)t").WithLocation(6, 51),
                 // (6,48): warning CS8605: Unboxing a possibly null value.
                 //     static U F3<T, U>(T t) where U : struct => (U)(object)t; // 6
-                Diagnostic(ErrorCode.WRN_UnboxPossibleNull, "(U)(object)t").WithLocation(6, 48));
+                Diagnostic(ErrorCode.WRN_UnboxPossibleNull, "(U)(object)t").WithLocation(6, 48)
+                );
         }
 
         [Fact]
@@ -81851,7 +81856,8 @@ class B2 : A<int?>
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T?)y1").WithLocation(6, 14),
                 // (13,13): warning CS8629: Nullable value type may be null.
                 //         _ = w2.Value; // 2
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "w2").WithLocation(13, 13));
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "w2").WithLocation(13, 13)
+                );
         }
 
         [Fact]
