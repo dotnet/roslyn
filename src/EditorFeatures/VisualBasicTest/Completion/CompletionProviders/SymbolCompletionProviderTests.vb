@@ -8159,5 +8159,50 @@ End Module
             Await VerifyItemIsAbsentAsync(source, "Method")
             Await VerifyItemIsAbsentAsync(source, "Target")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
+        Public Async Function TestTargetTypeFilterWithExperimentEnabled() As Task
+            Dim markup =
+"Class C
+    Dim intField As Integer
+    Sub M(x as Integer)
+        M($$)
+    End Sub
+End Class"
+            Await VerifyItemExistsAsync(
+                markup, "intField",
+                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter},
+                targetTypedFilterExperimentEnabled:=True)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
+        Public Async Function TestNoTargetTypeFilterWithExperimentDisabled() As Task
+            Dim markup =
+"Class C
+    Dim intField As Integer
+    Sub M(x as Integer)
+        M($$)
+    End Sub
+End Class"
+            Await VerifyItemExistsAsync(
+                markup, "intField",
+                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.FieldFilter},
+                targetTypedFilterExperimentEnabled:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
+        Public Async Function TestTargetTypeFilter_NotOnObjectMembers() As Task
+            Dim markup =
+"Class C
+    Dim intField As Integer
+    Sub M(x as Integer)
+        M($$)
+    End Sub
+End Class"
+            Await VerifyItemExistsAsync(
+                markup, "GetHashCode",
+                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.MethodFilter},
+                targetTypedFilterExperimentEnabled:=True)
+        End Function
     End Class
 End Namespace
