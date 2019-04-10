@@ -37,6 +37,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
+            VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
 
             InvokeFix();
             VerifyPropertyOutsideConfiguration(GetProjectFileElement(project), "LangVersion", "latest");
