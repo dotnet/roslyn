@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var previousArray = builder.Pop();
                 elementType = TypeWithAnnotations.Create(array, NullableAnnotation.Oblivious, previousArray.ElementTypeWithAnnotations.CustomModifiers);
-                array = (ArrayTypeSymbol)(previousArray.WithElementType(elementType));
+                array = previousArray.WithElementType(elementType);
             }
 
             builder.Free();
