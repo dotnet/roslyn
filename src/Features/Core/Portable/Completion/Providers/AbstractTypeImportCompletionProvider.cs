@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
@@ -20,16 +22,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
 
-        protected abstract void GetImportedNamespaces(
+        protected abstract ImmutableArray<string> GetImportedNamespaces(
             SyntaxNode location,
             SemanticModel semanticModel,
-            ImmutableHashSet<string>.Builder builder,
             CancellationToken cancellationToken);
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
-            var document = completionContext.Document;
             var cancellationToken = completionContext.CancellationToken;
+            var document = completionContext.Document;
             var workspace = document.Project.Solution.Workspace;
             var experimentationService = workspace.Services.GetService<IExperimentationService>();
 
@@ -50,77 +51,108 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             {
-                var project = document.Project;
-                var typeImportCompletionService = workspace.Services.GetService<ITypeImportCompletionService>();
+                await AddCompletionItemsAsync(completionContext, syntaxContext, cancellationToken).ConfigureAwait(false);
+            }
+        }
 
-                // Find all namespaces in scope at current cursor location, 
-                // which will be used to filter so the provider only returns out-of-scope types.
-                var namespacesInScope = GetNamespacesInScope(document, syntaxContext, cancellationToken);
-                Action<CompletionItem> handleAccessibleItem = item => AddItems(item, completionContext, namespacesInScope);
+        private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, CancellationToken cancellation)
+        {
+            var document = completionContext.Document;
+            var cancellationToken = completionContext.CancellationToken;
+            var workspace = document.Project.Solution.Workspace;
+            var project = document.Project;
+            var typeImportCompletionService = workspace.Services.GetService<ITypeImportCompletionService>();
 
-                // Get completion items from current project.
-                await typeImportCompletionService.GetAccessibleTopLevelTypesFromProjectAsync(project, handleAccessibleItem, cancellationToken)
-                    .ConfigureAwait(false);
+            // Find all namespaces in scope at current cursor location, 
+            // which will be used to filter so the provider only returns out-of-scope types.
+            var namespacesInScope = GetNamespacesInScope(document, syntaxContext, cancellationToken);
 
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                foreach (var reference in compilation.References)
+            // Get completion items from current project. 
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            await typeImportCompletionService.GetTopLevelTypesFromProjectAsync(project, HandlePublicAndInternalItem, cancellationToken)
+                .ConfigureAwait(false); 
+
+            // Get completion items from source references.
+            foreach (var projectReference in project.ProjectReferences)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var referencedProject = project.Solution.GetProject(projectReference.ProjectId);
+                var referencedCompilation = await referencedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                await typeImportCompletionService.GetTopLevelTypesFromProjectAsync(
+                    referencedProject,
+                    GetHandler(compilation.Assembly, referencedCompilation.Assembly),
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            // Get completion items from PE references.
+            var peReferences = project.MetadataReferences
+                .Where(reference => reference is PortableExecutableReference)
+                .Cast<PortableExecutableReference>();
+
+            foreach (var peReference in peReferences)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol referencedAssembly)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var declarationsInReference = ImmutableArray<CompletionItem>.Empty;
-                    if (reference is CompilationReference compilationReference)
-                    {
-                        // Get completion items from source references.
-                        await typeImportCompletionService.GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
-                            project.Solution,
-                            compilation,
-                            compilationReference,
-                            handleAccessibleItem,
-                            cancellationToken).ConfigureAwait(false);
-                    }
-                    else if (reference is PortableExecutableReference peReference)
-                    {
-                        // Get completion items from metadata references.
-                        typeImportCompletionService.GetAccessibleTopLevelTypesFromPEReference(
-                            project.Solution,
-                            compilation,
-                            peReference,
-                            handleAccessibleItem,
-                            cancellationToken);
-                    }
+                    typeImportCompletionService.GetTopLevelTypesFromPEReference(
+                        project.Solution,
+                        compilation,
+                        peReference,
+                        GetHandler(compilation.Assembly, referencedAssembly),
+                        cancellationToken);
                 }
             }
 
             return;
 
-            static void AddItems(CompletionItem item, CompletionContext completionContext, ImmutableHashSet<string> namespacesInScope)
+            // Decide which item handler to use based on IVT
+            Action<TypeImportCompletionItemInfo> GetHandler(IAssemblySymbol assembly, IAssemblySymbol referencedAssembly)
+                => assembly.IsSameAssemblyOrHasFriendAccessTo(referencedAssembly)
+                        ? (Action<TypeImportCompletionItemInfo>)HandlePublicAndInternalItem
+                        : HandlePublicItem;
+
+            // Add only public types to completion list
+            void HandlePublicItem(TypeImportCompletionItemInfo itemInfo)
+                => AddItems(itemInfo, isInternalsVisible: false, completionContext, namespacesInScope);
+
+            // Add both public and internal types to completion list
+            void HandlePublicAndInternalItem(TypeImportCompletionItemInfo itemInfo)
+                => AddItems(itemInfo, isInternalsVisible: true, completionContext, namespacesInScope);
+
+            static void AddItems(TypeImportCompletionItemInfo itemInfo, bool isInternalsVisible, CompletionContext completionContext, HashSet<string> namespacesInScope)
             {
-                var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(item);
-                if (!namespacesInScope.Contains(containingNamespace))
+                if (itemInfo.IsPublic || isInternalsVisible)
                 {
-                    completionContext.AddItem(item);
+                    var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(itemInfo.Item);
+                    if (!namespacesInScope.Contains(containingNamespace))
+                    {
+                        completionContext.AddItem(itemInfo.Item);
+                    }
                 }
             }
         }
 
-        private ImmutableHashSet<string> GetNamespacesInScope(Document document, SyntaxContext syntaxContext, CancellationToken cancellationToken)
+        private HashSet<string> GetNamespacesInScope(Document document, SyntaxContext syntaxContext, CancellationToken cancellationToken)
         {
-            // This hashset will be used to match namespace names, so it must have the same case-sensitivity as the source language. 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var builder = ImmutableHashSet.CreateBuilder(syntaxFacts.StringComparer);
-
             var semanticModel = syntaxContext.SemanticModel;
-            GetImportedNamespaces(syntaxContext.LeftToken.Parent, semanticModel, builder, cancellationToken);
+            var importedNamespaces = GetImportedNamespaces(syntaxContext.LeftToken.Parent, semanticModel, cancellationToken);
+
+            // This hashset will be used to match namespace names, so it must have the same case-sensitivity as the source language.
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var namespacesInScope = new HashSet<string>(importedNamespaces, syntaxFacts.StringComparer);
 
             // Get containing namespaces.
             var namespaceSymbol = semanticModel.GetEnclosingNamespace(syntaxContext.Position, cancellationToken);
             while (namespaceSymbol != null)
             {
-                builder.Add(namespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat));
+                namespacesInScope.Add(namespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat));
                 namespaceSymbol = namespaceSymbol.ContainingNamespace;
             }
 
-            return builder.ToImmutable();
+            return namespacesInScope;
         }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default, CancellationToken cancellationToken = default)

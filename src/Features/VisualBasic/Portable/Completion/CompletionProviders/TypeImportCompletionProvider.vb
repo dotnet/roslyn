@@ -1,13 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -25,7 +25,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Sub GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel, builder As ImmutableHashSet(Of String).Builder, cancellationToken As CancellationToken)
+        Protected Overrides Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ImmutableArray(Of String)
+            Dim builder = ArrayBuilder(Of String).GetInstance()
+
             ' Get namespaces from import directives
             Dim importsInScope = semanticModel.GetImportNamespacesInScope(location)
             For Each import As INamespaceSymbol In importsInScope
@@ -37,6 +39,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             For Each globalImport As GlobalImport In vbOptions.GlobalImports
                 builder.Add(globalImport.Name)
             Next
-        End Sub
+
+            Return builder.ToImmutableAndFree()
+        End Function
     End Class
 End Namespace

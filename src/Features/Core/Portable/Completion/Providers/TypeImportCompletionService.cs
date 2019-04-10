@@ -11,35 +11,40 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal interface ITypeImportCompletionService : IWorkspaceService
     {
-        void GetAccessibleTopLevelTypesFromPEReference(
-            Solution solution,
-            Compilation compilation,
-            PortableExecutableReference peReference,
-            Action<CompletionItem> handleAccessibleItem,
-            CancellationToken cancellationToken);
-
-        Task GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
-            Solution solution,
-            Compilation compilation,
-            CompilationReference compilationReference,
-            Action<CompletionItem> handleAccessibleItem,
-            CancellationToken cancellationToken);
-
         /// <summary>
         /// Get all the top level types from given project. This method is intended to be used for 
         /// getting types from source only, so the project must support compilation. 
-        /// For getting types from PE, use <see cref="GetAccessibleTopLevelTypesFromPEReference"/>.
+        /// For getting types from PE, use <see cref="GetTopLevelTypesFromPEReference"/>.
         /// </summary>
-        Task GetAccessibleTopLevelTypesFromProjectAsync(
+        Task GetTopLevelTypesFromProjectAsync(
             Project project,
-            Action<CompletionItem> handleAccessibleItem,
+            Action<TypeImportCompletionItemInfo> handleAccessibleItem,
             CancellationToken cancellationToken);
+
+        void GetTopLevelTypesFromPEReference(
+            Solution solution,
+            Compilation compilation,
+            PortableExecutableReference peReference,
+            Action<TypeImportCompletionItemInfo> handleAccessibleItem,
+            CancellationToken cancellationToken);
+    }
+
+    internal readonly struct TypeImportCompletionItemInfo
+    {
+        public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic)
+        {
+            Item = item;
+            IsPublic = isPublic;
+        }
+
+        public CompletionItem Item { get; }
+
+        public bool IsPublic { get; }
     }
 
     [ExportWorkspaceServiceFactory(typeof(ITypeImportCompletionService), ServiceLayer.Editor), Shared]
@@ -70,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private class Service : ITypeImportCompletionService
         {
-            // PE references are jeyed on assembly path.
+            // PE references are keyed on assembly path.
             private readonly ConcurrentDictionary<string, ReferenceCacheEntry> _peItemsCache;
             private readonly ConcurrentDictionary<ProjectId, ReferenceCacheEntry> _projectItemsCache;
 
@@ -80,9 +85,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _projectItemsCache = projectReferenceCache;
             }
 
-            public async Task GetAccessibleTopLevelTypesFromProjectAsync(
+            public async Task GetTopLevelTypesFromProjectAsync(
                 Project project,
-                Action<CompletionItem> handleAccessibleItem,
+                Action<TypeImportCompletionItemInfo> handleItem,
                 CancellationToken cancellationToken)
             {
                 if (!project.SupportsCompilation)
@@ -97,55 +102,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     project.Id,
                     compilation.Assembly.GlobalNamespace,
                     checksum,
-                    isInternalsVisible: true,
-                    handleAccessibleItem,
+                    handleItem,
                     _projectItemsCache,
                     cancellationToken);
             }
 
-            public async Task GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
-                Solution solution,
-                Compilation compilation,
-                CompilationReference compilationReference,
-                Action<CompletionItem> handleAccessibleItem,
-                CancellationToken cancellationToken)
-            {
-                if (!(compilation.GetAssemblyOrModuleSymbol(compilationReference) is IAssemblySymbol assemblySymbol))
-                {
-                    return;
-                }
-
-                var assemblyProject = solution.GetProject(assemblySymbol, cancellationToken);
-                if (assemblyProject == null)
-                {
-                    return;
-                }
-
-                var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(assemblyProject, cancellationToken).ConfigureAwait(false);
-                var isInternalsVisible = compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assemblySymbol);
-
-                GetAccessibleTopLevelTypesWorker(
-                    assemblyProject.Id,
-                    assemblySymbol.GlobalNamespace,
-                    checksum,
-                    isInternalsVisible,
-                    handleAccessibleItem,
-                    _projectItemsCache,
-                    cancellationToken);
-            }
-
-            public void GetAccessibleTopLevelTypesFromPEReference(
+            public void GetTopLevelTypesFromPEReference(
                 Solution solution,
                 Compilation compilation,
                 PortableExecutableReference peReference,
-                Action<CompletionItem> handleAccessibleItem,
+                Action<TypeImportCompletionItemInfo> handleItem,
                 CancellationToken cancellationToken)
             {
-                if (!(compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
-                {
-                    return;
-                }
-
                 var key = GetReferenceKey(peReference);
                 if (key == null)
                 {
@@ -156,16 +124,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return;
                 }
 
-                var isInternalsVisible = compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assemblySymbol);
-                var rootNamespaceSymbol = assemblySymbol.GlobalNamespace;
+                if (!(compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
+                {
+                    return;
+                }
 
                 var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken);
                 GetAccessibleTopLevelTypesWorker(
                     key,
-                    rootNamespaceSymbol,
+                    assemblySymbol.GlobalNamespace,
                     checksum,
-                    isInternalsVisible,
-                    handleAccessibleItem,
+                    handleItem,
                     _peItemsCache,
                     cancellationToken);
 
@@ -175,29 +144,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     => reference.FilePath ?? reference.Display;
             }
 
-            /// <summary>
-            /// Filter out inaccessible items and pass the rest to the callback
-            /// </summary>
-            private static void HandleAccessibleItems(
-                ImmutableArray<CompletionItemEntry> items,
-                bool isInternalsVisible,
-                Action<CompletionItem> handleAccessibleItem)
-            {
-                foreach (var item in items)
-                {
-                    if (item.IsPublic || isInternalsVisible)
-                    {
-                        handleAccessibleItem(item.Item);
-                    }
-                }
-            }
-
             private static void GetAccessibleTopLevelTypesWorker<TKey>(
                 TKey key,
                 INamespaceSymbol rootNamespace,
                 Checksum checksum,
-                bool isInternalsVisible,
-                Action<CompletionItem> handleAccessibleItem,
+                Action<TypeImportCompletionItemInfo> handleItem,
                 ConcurrentDictionary<TKey, ReferenceCacheEntry> cache,
                 CancellationToken cancellationToken)
             {
@@ -210,21 +161,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     cache[key] = cacheEntry;
                 }
 
-                HandleAccessibleItems(cacheEntry.CachedItems, isInternalsVisible, handleAccessibleItem);
+                foreach (var item in cacheEntry.CachedItems)
+                {
+                    handleItem(item);
+                }
             }
 
-            private static ImmutableArray<CompletionItemEntry> GetCompletionItemsForTopLevelTypeDeclarations(
+            private static ImmutableArray<TypeImportCompletionItemInfo> GetCompletionItemsForTopLevelTypeDeclarations(
                 INamespaceSymbol rootNamespaceSymbol,
                 CancellationToken cancellationToken)
             {
-                var builder = ArrayBuilder<CompletionItemEntry>.GetInstance();
+                var builder = ArrayBuilder<TypeImportCompletionItemInfo>.GetInstance();
                 VisitNamespace(rootNamespaceSymbol, containingNamespace: null, builder, cancellationToken);
                 return builder.ToImmutableAndFree();
 
                 static void VisitNamespace(
                     INamespaceSymbol symbol,
                     string containingNamespace,
-                    ArrayBuilder<CompletionItemEntry> builder,
+                    ArrayBuilder<TypeImportCompletionItemInfo> builder,
                     CancellationToken cancellationToken)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -258,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         {
                             var item = TypeImportCompletionItem.Create(overloadInfo.NonGenericOverload, containingNamespace);
                             var isPublic = overloadInfo.NonGenericOverload.DeclaredAccessibility == Accessibility.Public;
-                            builder.Add(new CompletionItemEntry(item, isPublic));
+                            builder.Add(new TypeImportCompletionItemInfo(item, isPublic));
                         }
 
                         // Create one CompletionItem for all generic type overloads, if there's any.
@@ -269,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             // If any of the generic overloads is public, then the completion item is considered public.
                             var item = TypeImportCompletionItem.Create(overloadInfo.BestGenericOverload, containingNamespace);
                             var isPublic = overloadInfo.ContainsPublicGenericOverload;
-                            builder.Add(new CompletionItemEntry(item, isPublic));
+                            builder.Add(new TypeImportCompletionItemInfo(item, isPublic));
                         }
                     }
 
@@ -328,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             public ReferenceCacheEntry(
                 Checksum checksum,
-                ImmutableArray<CompletionItemEntry> cachedItems)
+                ImmutableArray<TypeImportCompletionItemInfo> cachedItems)
             {
                 Checksum = checksum;
                 CachedItems = cachedItems;
@@ -336,20 +290,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             public Checksum Checksum { get; }
 
-            public ImmutableArray<CompletionItemEntry> CachedItems { get; }
-        }
-
-        private readonly struct CompletionItemEntry
-        {
-            public CompletionItemEntry(CompletionItem item, bool isPublic)
-            {
-                Item = item;
-                IsPublic = isPublic;
-            }
-
-            public CompletionItem Item { get; }
-
-            public bool IsPublic { get; }
+            public ImmutableArray<TypeImportCompletionItemInfo> CachedItems { get; }
         }
     }
 }

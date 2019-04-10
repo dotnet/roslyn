@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -12,6 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -20,17 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        protected override void GetImportedNamespaces(
+        protected override ImmutableArray<string> GetImportedNamespaces(
             SyntaxNode location,
             SemanticModel semanticModel,
-            ImmutableHashSet<string>.Builder builder,
             CancellationToken cancellationToken)
         {
             // Get namespaces from usings
-            foreach (var usingInScope in semanticModel.GetUsingNamespacesInScope(location))
-            {
-                builder.Add(usingInScope.ToDisplayString(SymbolDisplayFormats.NameFormat));
-            }
+            return semanticModel.GetUsingNamespacesInScope(location)
+                .SelectAsArray(namespaceSymbol => namespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat));
         }
 
         protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
