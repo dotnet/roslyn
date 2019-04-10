@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     if (symbolGroup.Any(s => ShouldIncludeInTargetTypedCompletionList(s, inferredTypes, context.SemanticModel, context.Position)))
                     {
-                        item = item.AddTag(WellKnownTags.MatchingType);
+                        item = item.AddTag(WellKnownTags.TargetTypeMatch);
                     }
 
                     itemListBuilder.Add(item);
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             s, inferredTypes, originatingContextMap.First().Value.SemanticModel,
                             originatingContextMap.First().Value.Position)))
                     {
-                        item = item.AddTag(WellKnownTags.MatchingType);
+                        item = item.AddTag(WellKnownTags.TargetTypeMatch);
                     }
 
                     itemListBuilder.Add(item);

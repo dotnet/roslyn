@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly CompletionItemFilter LocalAndParameterFilter = new CompletionItemFilter(FeaturesResources.Locals_and_parameters, ImmutableArray.Create(WellKnownTags.Local, WellKnownTags.Parameter), 'l');
         public static readonly CompletionItemFilter KeywordFilter = new CompletionItemFilter(FeaturesResources.Keywords, ImmutableArray.Create(WellKnownTags.Keyword), 'k');
         public static readonly CompletionItemFilter SnippetFilter = new CompletionItemFilter(FeaturesResources.Snippets, ImmutableArray.Create(WellKnownTags.Snippet), 't');
-        public static readonly CompletionItemFilter TargetTypedFilter = new CompletionItemFilter(FeaturesResources.Target_type_matches, ImmutableArray.Create(WellKnownTags.MatchingType), 'j');
+        public static readonly CompletionItemFilter TargetTypedFilter = new CompletionItemFilter(FeaturesResources.Target_type_matches, ImmutableArray.Create(WellKnownTags.TargetTypeMatch), 'j');
 
         public static readonly ImmutableArray<CompletionItemFilter> NamespaceFilters = ImmutableArray.Create(NamespaceFilter);
         public static readonly ImmutableArray<CompletionItemFilter> ClassFilters = ImmutableArray.Create(ClassFilter);

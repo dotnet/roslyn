@@ -110,6 +110,6 @@ namespace Microsoft.CodeAnalysis
 
         AddReference,
         NuGet,
-        MatchingType
+        TargetTypeMatch
     }
 }
