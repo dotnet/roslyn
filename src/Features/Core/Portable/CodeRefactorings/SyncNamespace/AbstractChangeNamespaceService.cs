@@ -554,7 +554,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             Debug.Assert(containersToAddImports.Length > 0);
 
             // Need to import all containing namespaces of old namespace and add them to the document (if it's not global namespace)
-            // as well as the new namespace in case it's needed
+            // Include the new namespace in case there are multiple namespace declarations in
+            // the declaring document. They may need a using statement added to correctly keep
+            // references to the type inside it's new namespace
             var namesToImport = GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace);
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
