@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using VSSymbolKind = Microsoft.VisualStudio.LanguageServer.Protocol.SymbolKind;
+using VSLocation = Microsoft.VisualStudio.LanguageServer.Protocol.Location;
 
 namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.Extensions
 {
@@ -62,6 +63,15 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.Extensions
                 default:
                     return DocumentHighlightKind.Text;
             }
+        }
+
+        public static VSLocation ToLocation(this Range range, string uriString)
+        {
+            return new VSLocation()
+            {
+                Range = range,
+                Uri = new Uri(uriString)
+            };
         }
 
         public static VSSymbolKind GetKind(this string kind)

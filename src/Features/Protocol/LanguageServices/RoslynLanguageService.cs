@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         private readonly IMetadataAsSourceFileService _metadataAsSourceService = null;
 
         // TODO - Move hierarchicalDocumentSymbolSupport to client capabilities.
+        // https://github.com/dotnet/roslyn/projects/45#card-20033973
         private readonly bool _hierarchicalDocumentSymbolSupport;
         private readonly ClientCapabilities _clientCapabilities;
 
@@ -59,9 +61,13 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         }
 
         /// <summary>
-        /// Provides a list of symbols found in a given document
+        /// Answers a document symbols request by returning a list of symbols in the document.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_documentSymbol
         /// </summary>
-        /// <returns>A list of the symbols found in the current document</returns>
+        /// <param name="solution">the solution containing the document.</param>
+        /// <param name="request">the document to get symbols from.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>a list of symbols in the document.</returns>
         public async Task<object[]> GetDocumentSymbolsAsync(Solution solution, DocumentSymbolParams request, CancellationToken cancellationToken)
         {
             var document = solution.GetDocument(request.TextDocument.Uri);
@@ -76,13 +82,15 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
             var navBarItems = await navBarService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             if (navBarItems.Count == 0)
             {
-                return symbols.ToArray();
+                return symbols.ToArrayAndFree();
             }
 
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
+            // TODO - Return more than 2 levels of symbols.
+            // https://github.com/dotnet/roslyn/projects/45#card-20033869
             return await CreateDocumentSymbolOrSymbolInformations().ConfigureAwait(false);
 
             // local functions
@@ -109,7 +117,9 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
                     }
                 }
 
-                return symbols.Where(s => s != null).ToArray();
+                var result = symbols.Where(s => s != null).ToArray();
+                symbols.Free();
+                return result;
             }
 
             SymbolInformation GetSymbolLocation(NavigationBarItem item, string containerName)
@@ -230,16 +240,20 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         }
 
         /// <summary>
-        /// Provides a list of symbols found in a given workspace
+        /// Answers a workspace symbols request by providing a list of symbols found in a given workspace.
+        /// https://microsoft.github.io/language-server-protocol/specification#workspace_symbol
         /// </summary>
-        /// <returns>A list of the symbols found in the current document</returns>
+        /// <param name="solution">the current solution.</param>
+        /// <param name="request">the workspace request with the query to invoke.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>a list of symbols in the workspace.</returns>
         public async Task<SymbolInformation[]> GetWorkspaceSymbolsAsync(Solution solution, WorkspaceSymbolParams request, CancellationToken cancellationToken)
         {
             var symbols = ArrayBuilder<SymbolInformation>.GetInstance();
 
             if (solution == null)
             {
-                return symbols.ToArray();
+                return symbols.ToArrayAndFree();
             }
 
             var searchTasks = solution.Projects.Select(
@@ -247,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
 
             await Task.WhenAll(searchTasks).ConfigureAwait(false);
 
-            return symbols.ToArray();
+            return symbols.ToArrayAndFree();
 
             // local functions
             async Task SearchProjectAsync(Project project)
@@ -255,6 +269,8 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
                 var searchService = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
                 if (searchService != null)
                 {
+                    // TODO - Update Kinds Provided to return all necessary symbols.
+                    // https://github.com/dotnet/roslyn/projects/45#card-20033822
                     var items = await searchService.SearchProjectAsync(
                         project,
                         ImmutableArray<Document>.Empty,
@@ -280,6 +296,14 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
             }
         }
 
+        /// <summary>
+        /// Answers a Hover request by returning the quick info at the requested location.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_hover
+        /// </summary>
+        /// <param name="solution">the solution containing any documents in the request.</param>
+        /// <param name="request">the hover requesst.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the Hover using MarkupContent.</returns>
         public async Task<Hover> GetHoverAsync(Solution solution, TextDocumentPositionParams request, CancellationToken cancellationToken)
         {
             var document = solution.GetDocument(request.TextDocument.Uri);
@@ -297,78 +321,73 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
                 return null;
             }
 
-            // not sure what I should return for hover. for now, return simple form.
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new Hover
             {
                 Range = info.Span.ToRange(text),
-                Contents = new object[]
+                Contents = new MarkupContent
                 {
-                    new MarkedString
-                    {
-                        Language = document.GetMarkdownLanguageName(),
-                        Value = info.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.Description)?.Text ?? string.Empty,
-                    },
-                    info.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.DocumentationComments)?.Text ?? string.Empty,
-                },
+                    Kind = MarkupKind.Markdown,
+                    Value = GetMarkdownString(info)
+                }
             };
-        }
 
-        public async Task<VSLocation[]> GetDocumentIdentifiersAsync(Solution solution, VSLocation location, CancellationToken cancellationToken)
-        {
-            var document = solution.GetDocument(location.Uri);
-            if (document == null)
+            // local functions
+            // TODO - This should return correctly formatted markdown from quick info.
+            // https://github.com/dotnet/roslyn/projects/45#card-20033878
+            static string GetMarkdownString(QuickInfoItem info)
             {
-                return Array.Empty<VSLocation>();
-            }
+                var stringBuilder = new StringBuilder();
+                var description = info.Sections.FirstOrDefault(s => QuickInfoSectionKinds.Description.Equals(s.Kind))?.Text ?? string.Empty;
+                var documentation = info.Sections.FirstOrDefault(s => QuickInfoSectionKinds.DocumentationComments.Equals(s.Kind))?.Text ?? string.Empty;
 
-            var identifiers = ArrayBuilder<VSLocation>.GetInstance(); ;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = location.Range.ToTextSpan(text);
-
-            foreach (var token in root.DescendantTokens(span, descendIntoTrivia: true))
-            {
-                if (token.RawKind != (int)CSharp.SyntaxKind.IdentifierToken &&
-                    token.RawKind != (int)VisualBasic.SyntaxKind.IdentifierToken)
+                if (!string.IsNullOrEmpty(description))
                 {
-                    continue;
+                    stringBuilder.Append(description);
+                    if (!string.IsNullOrEmpty(documentation))
+                    {
+                        stringBuilder.Append("\r\n> ").Append(documentation);
+                    }
                 }
 
-                identifiers.Add(new VSLocation()
-                {
-                    Uri = location.Uri,
-                    Range = token.Span.ToRange(text),
-                });
+                return stringBuilder.ToString();
             }
-
-            return identifiers.ToArray();
         }
 
         /// <summary>
-        /// Returns the location of the definition for a given symbol
+        /// Answers a goto definition request by returning the location for a given symbol definition.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_definition
         /// </summary>
-        /// <returns>The location of the definition of the given symbol</returns>
+        /// <param name="solution">the solution containing the request.</param>
+        /// <param name="request">the document position of the symbol to go to.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the location of a given symbol.</returns>
         public Task<VSLocation[]> GoToDefinitionAsync(Solution solution, TextDocumentPositionParams request, CancellationToken cancellationToken)
         {
             return GetDefinitionAsync(solution, request, typeOnly: false, cancellationToken);
         }
 
         /// <summary>
-        /// Returns the location of the definition for a given symbol
+        /// Answers a goto type definition request by returning the location of a given type definition.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_typeDefinition
         /// </summary>
-        /// <returns>The location of the definition of the given symbol</returns>
+        /// <param name="solution">the solution containing the request.</param>
+        /// <param name="request">the document position of the type to go to.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the location of a type definition.</returns>
         public Task<VSLocation[]> GoToTypeDefinitionAsync(Solution solution, TextDocumentPositionParams request, CancellationToken cancellationToken)
         {
             return GetDefinitionAsync(solution, request, typeOnly: true, cancellationToken);
         }
 
         /// <summary>
-        /// Finds all references for a given symbol
+        /// Answers a find references request by returning the location of references to the given symbol.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_references
         /// </summary>
-        /// <returns>Returns a list of locations of references to the given symbol</returns>
+        /// <param name="solution">the solution containing the symbol.</param>
+        /// <param name="request">the request symbol document location.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>a list of locations of references to the given symbol.</returns>
         public async Task<VSLocation[]> FindAllReferencesAsync(Solution solution, ReferenceParams request, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<VSLocation>.GetInstance();
@@ -376,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
             var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
             {
-                return locations.ToArray();
+                return locations.ToArrayAndFree();
             }
 
             var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
@@ -402,21 +421,25 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
                 locations.Add(await reference.SourceSpan.ToLocationAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            return locations.ToArray();
+            return locations.ToArrayAndFree();
         }
 
         /// <summary>
-        /// Finds all implementation for a given symbol
+        /// Answers a goto implementation request by returning the implementation location(s) of a given symbol.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_implementation
         /// </summary>
-        /// <returns>Returns a list of locations of references to the given symbol</returns>
-        public async Task<VSLocation[]> FindAllImplementationsAsync(Solution solution, TextDocumentPositionParams request, CancellationToken cancellationToken)
+        /// <param name="solution">the solution containing the request document.</param>
+        /// <param name="request">the request document symbol location.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the location(s) of the implementations of the symbol.</returns>
+        public async Task<VSLocation[]> GotoImplementationAsync(Solution solution, TextDocumentPositionParams request, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<VSLocation>.GetInstance();
 
             var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
             {
-                return locations.ToArray();
+                return locations.ToArrayAndFree();
             }
 
             var findUsagesService = document.Project.LanguageServices.GetService<IFindUsagesService>();
@@ -431,21 +454,25 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
                 locations.Add(await sourceSpan.ToLocationAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            return locations.ToArray();
+            return locations.ToArrayAndFree();
         }
 
         /// <summary>
-        /// Get highlight references for a given symbol
+        /// Answers a document highlights request by returning the highlights for a given document location.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_documentHighlight
         /// </summary>
-        /// <returns>Returns a list of locations of references to the given symbol</returns>
-        public async Task<DocumentHighlight[]> GetHighlightReferencesAsync(Solution solution, TextDocumentPositionParams request, CancellationToken cancellationToken)
+        /// <param name="solution">the solution containing the request document.</param>
+        /// <param name="request">the request document location.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the highlights in the document for the given document location.</returns>
+        public async Task<DocumentHighlight[]> GetDocumentHighlightAsync(Solution solution, TextDocumentPositionParams request, CancellationToken cancellationToken)
         {
             var docHighlights = ArrayBuilder<DocumentHighlight>.GetInstance();
 
             var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
             {
-                return docHighlights.ToArray();
+                return docHighlights.ToArrayAndFree();
             }
 
             var documentHighlightService = document.Project.LanguageServices.GetService<IDocumentHighlightsService>();
@@ -473,13 +500,17 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
                 }));
             }
 
-            return docHighlights.ToArray();
+            return docHighlights.ToArrayAndFree();
         }
 
         /// <summary>
-        /// Get highlight references for a given symbol
+        /// Answers a folding range request by returning all folding ranges in a given document.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_foldingRange
         /// </summary>
-        /// <returns>Returns a list of locations of references to the given symbol</returns>
+        /// <param name="solution">the solution containing the document.</param>
+        /// <param name="request">the request document.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>a list of folding ranges in the document.</returns>
         public async Task<FoldingRange[]> GetFoldingRangeAsync(Solution solution, FoldingRangeParams request, CancellationToken cancellationToken)
         {
             var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
@@ -487,19 +518,19 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
             var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
             {
-                return foldingRanges.ToArray();
+                return foldingRanges.ToArrayAndFree();
             }
 
             var blockStructureService = document.Project.LanguageServices.GetService<BlockStructureService>();
             if (blockStructureService == null)
             {
-                return foldingRanges.ToArray();
+                return foldingRanges.ToArrayAndFree();
             }
 
             var blockStructure = await blockStructureService.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
             if (blockStructure == null)
             {
-                return foldingRanges.ToArray();
+                return foldingRanges.ToArrayAndFree();
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -522,9 +553,11 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
                 });
             }
 
-            return foldingRanges.ToArray();
+            return foldingRanges.ToArrayAndFree();
 
             // local functions
+            // TODO - Figure out which blocks should be returned as a folding range (and what kind).
+            // https://github.com/dotnet/roslyn/projects/45#card-20049168
             static string ConvertToWellKnownBlockType(string kind)
             {
                 switch (kind)
@@ -544,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
             var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
             {
-                return locations.ToArray();
+                return locations.ToArrayAndFree();
             }
 
             var position = await document.GetPositionAsync(request.Position.ToLinePosition(), cancellationToken).ConfigureAwait(false);
@@ -590,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
                 }
             }
 
-            return locations.ToArray();
+            return locations.ToArrayAndFree();
 
             // local functions
             bool ShouldInclude(INavigableItem item)
