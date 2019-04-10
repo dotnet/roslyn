@@ -18,15 +18,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractTypeImportCompletionProvider : CommonCompletionProvider
     {
-        private readonly ITypeImportCompletionService _typeImportCompletionService;
-        private readonly IExperimentationService _experimentationService;
-
-        public AbstractTypeImportCompletionProvider(Workspace workspace)
-        {
-            _typeImportCompletionService = workspace.Services.GetService<ITypeImportCompletionService>();
-            _experimentationService = workspace.Services.GetService<IExperimentationService>();
-        }
-
         protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
 
         protected abstract void GetImportedNamespaces(
@@ -39,12 +30,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var document = completionContext.Document;
             var cancellationToken = completionContext.CancellationToken;
+            var workspace = document.Project.Solution.Workspace;
+            var experimentationService = workspace.Services.GetService<IExperimentationService>();
 
             var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowImportCompletionItems, document.Project.Language);
 
             // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
             if (importCompletionOptionValue == false ||
-                (importCompletionOptionValue == null && _experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion) != true))
+                (importCompletionOptionValue == null && experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion) != true))
             {
                 return;
             }
@@ -57,14 +50,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             {
+                var project = document.Project;
+                var typeImportCompletionService = workspace.Services.GetService<ITypeImportCompletionService>();
+
                 // Find all namespaces in scope at current cursor location, 
                 // which will be used to filter so the provider only returns out-of-scope types.
                 var namespacesInScope = GetNamespacesInScope(document, syntaxContext, cancellationToken);
                 Action<CompletionItem> handleAccessibleItem = item => AddItems(item, completionContext, namespacesInScope);
 
                 // Get completion items from current project.
-                var project = document.Project;
-                await _typeImportCompletionService.GetAccessibleTopLevelTypesFromProjectAsync(project, handleAccessibleItem, cancellationToken)
+                await typeImportCompletionService.GetAccessibleTopLevelTypesFromProjectAsync(project, handleAccessibleItem, cancellationToken)
                     .ConfigureAwait(false);
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -76,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     if (reference is CompilationReference compilationReference)
                     {
                         // Get completion items from source references.
-                        await _typeImportCompletionService.GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
+                        await typeImportCompletionService.GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
                             project.Solution,
                             compilation,
                             compilationReference,
@@ -86,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     else if (reference is PortableExecutableReference peReference)
                     {
                         // Get completion items from metadata references.
-                        _typeImportCompletionService.GetAccessibleTopLevelTypesFromPEReference(
+                        typeImportCompletionService.GetAccessibleTopLevelTypesFromPEReference(
                             project.Solution,
                             compilation,
                             peReference,

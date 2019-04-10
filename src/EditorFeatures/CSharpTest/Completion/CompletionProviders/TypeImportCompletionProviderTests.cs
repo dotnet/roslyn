@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         internal override CompletionProvider CreateCompletionProvider()
         {
-            return new TypeImportCompletionProvider(WorkspaceFixture.GetWorkspace());
+            return new TypeImportCompletionProvider();
         }
 
         private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;

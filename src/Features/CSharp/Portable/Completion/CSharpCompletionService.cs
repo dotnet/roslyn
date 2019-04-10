@@ -25,16 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 
     internal class CSharpCompletionService : CommonCompletionService
     {
-        private readonly ImmutableArray<CompletionProvider> _defaultCompletionProviders;
-
-        private readonly Workspace _workspace;
-
-        public CSharpCompletionService(
-            Workspace workspace, ImmutableArray<CompletionProvider>? exclusiveProviders = null)
-            : base(workspace, exclusiveProviders)
-        {
-            _workspace = workspace;
-            _defaultCompletionProviders = ImmutableArray.Create<CompletionProvider>(
+        private readonly ImmutableArray<CompletionProvider> _defaultCompletionProviders =
+            ImmutableArray.Create<CompletionProvider>(
                 new AttributeNamedParameterCompletionProvider(),
                 new NamedParameterCompletionProvider(),
                 new KeywordCompletionProvider(),
@@ -58,7 +50,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new InternalsVisibleToCompletionProvider(),
                 new PropertySubpatternCompletionProvider(),
                 new EmbeddedLanguageCompletionProvider(CSharpEmbeddedLanguageFeaturesProvider.Instance),
-                new TypeImportCompletionProvider(_workspace));
+                new TypeImportCompletionProvider());
+
+        private readonly Workspace _workspace;
+
+        public CSharpCompletionService(
+            Workspace workspace, ImmutableArray<CompletionProvider>? exclusiveProviders = null)
+            : base(workspace, exclusiveProviders)
+        {
+            _workspace = workspace;
         }
 
         public override string Language => LanguageNames.CSharp;

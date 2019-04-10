@@ -14,10 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend NotInheritable Class TypeImportCompletionProvider
         Inherits AbstractTypeImportCompletionProvider
 
-        Public Sub New(workspace As Workspace)
-            MyBase.New(workspace)
-        End Sub
-
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
