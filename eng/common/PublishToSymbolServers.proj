@@ -24,6 +24,14 @@
     <ItemGroup>
       <FilesToPublishToSymbolServer Include="$(PDBArtifactsDirectory)\*.pdb"/>
       <PackagesToPublishToSymbolServer Include="$(BlobBasePath)\*.symbols.nupkg"/>
+
+      <!--
+        These packages from Arcade-Services include some native libraries that
+        our current symbol uploader can't handle. Below is a workaround until
+        we get issue: https://github.com/dotnet/arcade/issues/2457 sorted.
+      -->
+      <PackagesToPublishToSymbolServer Remove="$(BlobBasePath)\Microsoft.DotNet.Darc.*" />
+      <PackagesToPublishToSymbolServer Remove="$(BlobBasePath)\Microsoft.DotNet.Maestro.Tasks.*" />
     </ItemGroup>
 
     <PropertyGroup>
