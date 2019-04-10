@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            if (data.InitialList.Any(i => i.Filters.Any(f => f.DisplayText == FeaturesResources.Matching_type)))
+            if (data.InitialList.Any(i => i.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches)))
             {
                 Logger.Log(FunctionId.Intellisense_AsyncCompletion_SessionContainsTargetTypeFilter);
             }
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var selectedFilters = data.SelectedFilters.Where(f => f.IsSelected).Select(f => f.Filter).ToImmutableArray();
             var needToFilter = selectedFilters.Length > 0 && selectedFilters.Length < data.SelectedFilters.Length;
 
-            if (needToFilter && session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) && selectedFilters.Any(f => f.DisplayText == FeaturesResources.Matching_type))
+            if (needToFilter && session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) && selectedFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
             {
                 Logger.Log(FunctionId.Intellisense_AsyncCompletion_TargetTypeFilterChosenInSession);
                 session.Properties.AddProperty(_targetTypeCompletionFilterChosenMarker, _targetTypeCompletionFilterChosenMarker);

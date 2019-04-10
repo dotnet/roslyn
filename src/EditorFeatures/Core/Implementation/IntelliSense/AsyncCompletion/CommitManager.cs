@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter))
             {
                 Logger.Log(FunctionId.Intellisense_AsyncCompletion_CommitWithTargetTypeCompletionExperimentEnabled);
-                if (item.Filters.Any(f => f.DisplayText == FeaturesResources.Matching_type))
+                if (item.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
                 {
                     Logger.Log(FunctionId.Intellisense_AsyncCompletion_CommitItemWithTargetTypeFilter);
                 }
