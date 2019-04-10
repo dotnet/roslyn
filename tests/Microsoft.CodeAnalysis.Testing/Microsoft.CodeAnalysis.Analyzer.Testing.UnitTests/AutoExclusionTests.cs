@@ -106,7 +106,7 @@ End Class
             await new CSharpReplaceThisWithBaseTest(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics)
             {
                 TestCode = ReplaceThisWithBaseTestCode,
-                Exclusions = AnalysisExclusions.Suppression,
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             }.RunAsync();
         }
 
@@ -116,7 +116,7 @@ End Class
             await new CSharpAnalyzerTest<FirstLineDiagnosticAnalyzer>
             {
                 TestCode = CSharpFirstLineDiagnosticTestCode,
-                Exclusions = AnalysisExclusions.GeneratedCode,
+                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
             }.RunAsync();
         }
 
@@ -184,7 +184,7 @@ End Class
             await new VisualBasicReplaceThisWithBaseTest(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics)
             {
                 TestCode = ReplaceMyClassWithMyBaseTestCode,
-                Exclusions = AnalysisExclusions.Suppression,
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             }.RunAsync();
         }
 
@@ -194,7 +194,7 @@ End Class
             await new VisualBasicAnalyzerTest<FirstLineDiagnosticAnalyzer>
             {
                 TestCode = VisualBasicFirstLineDiagnosticTestCode,
-                Exclusions = AnalysisExclusions.GeneratedCode,
+                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
             }.RunAsync();
         }
 
