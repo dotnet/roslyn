@@ -60,6 +60,19 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
+        /// Reads MVID of the output assembly. Overridable for test mocking.
+        /// </summary>
+        internal virtual Guid ReadAssemblyModuleVersionId()
+        {
+            using (var metadataProvider = OpenAssemblyMetadata(prefetch: false))
+            {
+                var metadataReader = metadataProvider.GetMetadataReader();
+                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+                return metadataReader.GetGuid(mvidHandle);
+            }
+        }
+
+        /// <summary>
         /// Opens PDB produced by the compiler.
         /// The caller must dispose the returned <see cref="DebugInformationReaderProvider"/>.
         /// </summary>
@@ -75,15 +88,17 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </remarks>
         public virtual DebugInformationReaderProvider OpenPdb()
         {
-            var stream = OpenPdbStreamChecked();
-            if (stream != null)
+            var pdbStream = OpenPdbStreamChecked();
+            if (pdbStream != null)
             {
-                return DebugInformationReaderProvider.CreateFromStream(stream);
+                return DebugInformationReaderProvider.CreateFromStream(pdbStream);
             }
 
             // check for embedded PDB
-            using (var peReader = new PEReader(OpenAssemblyStreamChecked()))
+            var peStream = OpenAssemblyStreamChecked();
+            if (peStream != null)
             {
+                using var peReader = new PEReader(peStream);
                 var embeddedPdbEntry = peReader.ReadDebugDirectory().FirstOrDefault(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
                 if (embeddedPdbEntry.DataSize != 0)
                 {

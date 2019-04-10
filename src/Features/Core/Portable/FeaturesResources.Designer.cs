@@ -733,6 +733,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t apply changes -- unexpected error: &apos;{0}&apos;.
+        /// </summary>
+        internal static string CantApplyChangesUnexpectedError {
+            get {
+                return ResourceManager.GetString("CantApplyChangesUnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Capturing variable &apos;{0}&apos; that hasn&apos;t been captured before will prevent the debug session from continuing..
         /// </summary>
         internal static string Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing {
@@ -803,6 +812,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime {
             get {
                 return ResourceManager.GetString("Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes are not allowed while stopped at exception.
+        /// </summary>
+        internal static string ChangesDisallowedWhileStoppedAtException {
+            get {
+                return ResourceManager.GetString("ChangesDisallowedWhileStoppedAtException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changes made in project &apos;{0}&apos; will not be applied while the application is running.
+        /// </summary>
+        internal static string ChangesNotAppliedWhileRunning {
+            get {
+                return ResourceManager.GetString("ChangesNotAppliedWhileRunning", resourceCulture);
             }
         }
         
@@ -1192,29 +1219,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit And Continue.
+        ///   Looks up a localized string similar to Edit and Continue.
         /// </summary>
-        internal static string Edit_And_Continue {
+        internal static string EditAndContinue {
             get {
-                return ResourceManager.GetString("Edit_And_Continue", resourceCulture);
+                return ResourceManager.GetString("EditAndContinue", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit and Continue.
+        ///   Looks up a localized string similar to Edit and Continue disallowed by module.
         /// </summary>
-        internal static string Edit_and_Continue1 {
+        internal static string EditAndContinueDisallowedByModule {
             get {
-                return ResourceManager.GetString("Edit_and_Continue1", resourceCulture);
+                return ResourceManager.GetString("EditAndContinueDisallowedByModule", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit and Continue.
+        ///   Looks up a localized string similar to Changes made in project &apos;{0}&apos; will prevent the debug session from continuing: {1}.
         /// </summary>
-        internal static string Edit_and_Continue2 {
+        internal static string EditAndContinueDisallowedByProject {
             get {
-                return ResourceManager.GetString("Edit_and_Continue2", resourceCulture);
+                return ResourceManager.GetString("EditAndContinueDisallowedByProject", resourceCulture);
             }
         }
         
@@ -1278,6 +1305,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Enums {
             get {
                 return ResourceManager.GetString("Enums", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error while reading file &apos;{0}&apos;: {1}.
+        /// </summary>
+        internal static string ErrorReadingFile {
+            get {
+                return ResourceManager.GetString("ErrorReadingFile", resourceCulture);
             }
         }
         
@@ -3407,6 +3443,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Roslyn_HostError {
             get {
                 return ResourceManager.GetString("Roslyn_HostError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rude edit.
+        /// </summary>
+        internal static string RudeEdit {
+            get {
+                return ResourceManager.GetString("RudeEdit", resourceCulture);
             }
         }
         

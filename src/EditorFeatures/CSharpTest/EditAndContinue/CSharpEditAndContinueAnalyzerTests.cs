@@ -424,7 +424,7 @@ class C
                 Assert.False(result.HasChanges);
                 Assert.False(result.HasChangesAndErrors);
                 Assert.False(result.HasChangesAndCompilationErrors);
-                Assert.True(result.RudeEditErrors.IsDefaultOrEmpty);
+                Assert.True(result.RudeEditErrors.IsEmpty);
             }
         }
 

@@ -4,7 +4,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal interface IDummyLanguageService : ILanguageService { }
 
@@ -19,5 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         }
 
         // do nothing
+
     }
 }
