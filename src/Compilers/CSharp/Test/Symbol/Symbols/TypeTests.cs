@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -30,13 +31,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
             string code = "class C {  int " + brackets + @" x; }";
 
-            var compilation = CreateCompilation(code);
+            var compilation = CreateCompilation(code, options: WithNonNullTypesTrue());
             var c = compilation.GlobalNamespace.GetTypeMembers("C")[0];
             var x = c.GetMembers("x").Single() as FieldSymbol;
-            var arr = x.Type;
+            var type = x.Type;
+            type.GetHashCode();
+            foreachArray(x => Assert.Equal(NullableAnnotation.NotAnnotated, x.ElementTypeWithAnnotations.NullableAnnotation));
+            type = type.SetObliviousNullabilityForReferenceTypes();
+            foreachArray(x => Assert.Equal(NullableAnnotation.Oblivious, x.ElementTypeWithAnnotations.NullableAnnotation));
 
-            arr.GetHashCode();
-            arr.SetObliviousNullabilityForReferenceTypes();
+            void foreachArray(Action<ArrayTypeSymbol> action)
+            {
+                var arrayType = (ArrayTypeSymbol)type;
+                do
+                {
+                    var next = arrayType.ElementType as ArrayTypeSymbol;
+                    if (next is object)
+                    {
+                        action(arrayType);
+                    }
+                    arrayType = next;
+                }
+                while (arrayType is object);
+            }
         }
 
         [Fact]

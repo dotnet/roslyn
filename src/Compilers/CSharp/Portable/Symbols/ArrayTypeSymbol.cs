@@ -406,42 +406,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbol SetObliviousNullabilityForReferenceTypes()
         {
-            if (ElementType.TypeKind == TypeKind.Array)
+            // The language supports deeply nested arrays, up to 10,000+ instances. This means we can't implemented a head
+            // recursive solution here. Need to take an iterative approach to building up the annotations here.
+            var builder = ArrayBuilder<ArrayTypeSymbol>.GetInstance();
+
+            // Dig through the element types to get the set of ArrayTypeSymbol instances that need to be marked
+            // as oblivious
+            var array = this;
+            TypeWithAnnotations elementType;
+            do
             {
-                // The language supports deeply nested arrays, up to 10,000+ instances. This means we can't implemented a head
-                // recursive solution here. Need to take an iterative approach to building up the annotations here.
-                var builder = ArrayBuilder<ArrayTypeSymbol>.GetInstance();
-
-                // Dig through the element types to get the set of ArrayTypeSymbol instances that need to be marked
-                // as oblivious
-                var array = this;
-                TypeWithAnnotations elementType;
-                do
-                {
-                    builder.Add(array);
-                    elementType = array.ElementTypeWithAnnotations;
-                    array = elementType.TypeKind == TypeKind.Array
-                        ? (ArrayTypeSymbol)elementType.Type
-                        : null;
-                }
-                while (!(array is null));
-
-                // Fixup the element type on the most nested array
-                elementType = elementType.SetObliviousNullabilityForReferenceTypes();
-                array = (builder[builder.Count - 1]).WithElementType(elementType);
-
-                // All but the most nested array instance is just an oblivious array with the same custom modifiers
-                for (var i = builder.Count - 2; i >= 0; i--)
-                {
-                    var previousArray = builder[i];
-                    elementType = TypeWithAnnotations.Create(array, NullableAnnotation.Oblivious, previousArray.ElementTypeWithAnnotations.CustomModifiers);
-                    array = (ArrayTypeSymbol)(previousArray.WithElementType(elementType));
-                }
-
-                builder.Free();
-                return array;
+                builder.Push(array);
+                elementType = array.ElementTypeWithAnnotations;
+                array = elementType.Type as ArrayTypeSymbol;
             }
-            return WithElementType(ElementTypeWithAnnotations.SetObliviousNullabilityForReferenceTypes());
+            while (!(array is null));
+
+            // Fixup the element type on the most nested array
+            elementType = elementType.SetObliviousNullabilityForReferenceTypes();
+            array = builder.Pop().WithElementType(elementType);
+
+            // All but the most nested array instance is just an oblivious array with the same custom modifiers
+            while (builder.Count > 0)
+            {
+                var previousArray = builder.Pop();
+                elementType = TypeWithAnnotations.Create(array, NullableAnnotation.Oblivious, previousArray.ElementTypeWithAnnotations.CustomModifiers);
+                array = (ArrayTypeSymbol)(previousArray.WithElementType(elementType));
+            }
+
+            builder.Free();
+            return array;
         }
 
         internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
