@@ -1843,30 +1843,6 @@ Informações adicionais: {1}</target>
         <target state="translated">Esmaecimento</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
-        <source>Changes are not allowed if the assembly has not been loaded.</source>
-        <target state="translated">As alterações não serão permitidas se o assembly não tiver sido carregado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
-        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
-        <target state="translated">Não serão permitidas alterações se o projeto não for criado quando a depuração iniciar.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
-        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
-        <target state="translated">Não serão permitidas alterações se o projeto não for carregado e compilado quando a depuração iniciar.
-
-O 'Carregamento da solução leve' está habilitado para a solução atual. Desabilite-o para garantir que todos os projetos estejam carregados quando a depuração iniciar.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
-        <source>Changes are not allowed while code is running.</source>
-        <target state="translated">As alterações não são permitidas enquanto o código está em execução.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
         <target state="translated">Preferir usar função anônima em vez de local</target>
@@ -1902,19 +1878,9 @@ O 'Carregamento da solução leve' está habilitado para a solução atual. Desa
         <target state="translated">preferir propriedades automáticas</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingFile">
-        <source>Error while reading file '{0}': {1}</source>
-        <target state="translated">Erro ao ler o arquivo '{0}': {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
         <source>Module has been unloaded.</source>
         <target state="translated">O módulo foi descarregado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
-        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
-        <target state="translated">Não é possível aplicar alterações -- o módulo '{0}' foi descarregado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1956,11 +1922,6 @@ Eu concordo com todo o conteúdo supracitado:</target>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">Sincronizar Modo de Exibição de Classe</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="translated">Não é possível aplicar as alterações – erro inesperado: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">

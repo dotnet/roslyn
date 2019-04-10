@@ -8,7 +8,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal readonly struct LineChange : IEquatable<LineChange>
     {
+        /// <summary>
+        /// Zero-based line number.
+        /// </summary>
         public readonly int OldLine;
+
+        /// <summary>
+        /// Zero-based line number.
+        /// </summary>
         public readonly int NewLine;
 
         internal LineChange(int oldLine, int newLine)
@@ -17,29 +24,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(newLine >= 0);
             Debug.Assert(oldLine != newLine);
 
-            this.OldLine = oldLine;
-            this.NewLine = newLine;
+            OldLine = oldLine;
+            NewLine = newLine;
         }
 
         public override bool Equals(object obj)
-        {
-            return obj is LineChange && Equals((LineChange)obj);
-        }
+            => obj is LineChange && Equals((LineChange)obj);
 
         public bool Equals(LineChange other)
-        {
-            return this.OldLine == other.OldLine
-                && this.NewLine == other.NewLine;
-        }
+            => OldLine == other.OldLine && NewLine == other.NewLine;
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(OldLine, NewLine);
-        }
+            => Hash.Combine(OldLine, NewLine);
 
         public override string ToString()
-        {
-            return OldLine.ToString() + " -> " + NewLine.ToString();
-        }
+            => $"{OldLine} -> {NewLine}";
     }
 }

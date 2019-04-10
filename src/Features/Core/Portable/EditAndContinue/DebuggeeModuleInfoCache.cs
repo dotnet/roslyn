@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         /// <summary>
-        /// Removes metadata of specified module and process.
+        /// Removes metadata of specified module.
         /// </summary>
         public bool Remove(Guid mvid)
         {
