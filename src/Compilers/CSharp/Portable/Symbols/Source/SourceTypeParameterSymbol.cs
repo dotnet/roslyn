@@ -370,9 +370,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ref attributes,
                     moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                                                               ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive,
-                                                                                                      (byte)(this.ReferenceTypeConstraintIsNullable == true ?
-                                                                                                                 NullableAnnotation.Annotated :
-                                                                                                                 NullableAnnotation.NotAnnotated)))));
+                                                                                                      (this.ReferenceTypeConstraintIsNullable == true ?
+                                                                                                                 NullableAnnotationExtensions.AnnotatedAttributeValue :
+                                                                                                                 NullableAnnotationExtensions.NotAnnotatedAttributeValue)))));
             }
         }
 
