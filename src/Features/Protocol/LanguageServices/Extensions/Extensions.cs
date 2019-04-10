@@ -92,10 +92,4 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.Extensions
             }
         }
     }
-
-#pragma warning disable SA1124, SA1201, SA1602, SA1516, CA1815
-    #region Remove this once we have new sign bit
-
-    #endregion
-#pragma warning restore SA1124, SA1201, SA1602, SA1516,CA1815
 }
