@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return false;
             }
 
-            // Avoid offering object.ToString() when a string is expected, for example.
+            // Avoid offering members of object since they too commonly show up and are infrequently desired.
             if (symbol.ContainingType?.SpecialType == SpecialType.System_Object)
             {
                 return false;
