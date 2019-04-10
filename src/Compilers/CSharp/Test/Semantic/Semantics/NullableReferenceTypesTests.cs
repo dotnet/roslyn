@@ -90122,7 +90122,11 @@ partial class C
     static partial void F<T>() where T : IEquatable<T> { }
 }";
             var comp = CreateCompilation(new[] { source1, source2 });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (4,25): error CS0761: Partial method declarations of 'C.F<T>()' have inconsistent type parameter constraints
+                //     static partial void F<T>() where T : IEquatable<T> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "F").WithArguments("C.F<T>()").WithLocation(4, 25)
+                );
         }
 
         [Fact]
@@ -90142,7 +90146,11 @@ partial class C
     static partial void F<T>() where T : class, IEquatable<T> { }
 }";
             var comp = CreateCompilation(new[] { source1, source2 });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (4,25): error CS0761: Partial method declarations of 'C.F<T>()' have inconsistent type parameter constraints
+                //     static partial void F<T>() where T : class, IEquatable<T> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "F").WithArguments("C.F<T>()").WithLocation(4, 25)
+                );
         }
     }
 }

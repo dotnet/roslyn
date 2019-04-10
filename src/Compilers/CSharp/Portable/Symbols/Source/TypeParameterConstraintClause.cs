@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty && OtherPartialDeclarations.ContainsOnlyEmptyConstraintClauses();
 
-        internal bool IsEarly => !TypeConstraintsSyntax.IsDefault || OtherPartialDeclarations.IsEarly();
+        internal bool IsEarly => !TypeConstraintsSyntax.IsDefault || !OtherPartialDeclarations.IsEmpty;
 
         internal TypeParameterConstraintClause AddPartialDeclaration(TypeParameterConstraintClause other)
         {

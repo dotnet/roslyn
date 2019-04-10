@@ -364,7 +364,14 @@ next:;
                 }
             }
 
-            return ConstraintsHelper.MakeTypeParameterConstraintsLate(typeParameters, constraintClauses, diagnostics);
+            ImmutableArray<TypeParameterConstraintClause> results = ConstraintsHelper.MakeTypeParameterConstraintsLate(typeParameters, constraintClauses, diagnostics);
+
+            if (results.ContainsOnlyEmptyConstraintClauses())
+            {
+                results = ImmutableArray<TypeParameterConstraintClause>.Empty;
+            }
+
+            return results;
         }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> GetConstraintClauses(CSharpSyntaxNode node, out TypeParameterListSyntax typeParameterList)
