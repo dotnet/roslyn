@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
                 triggerDocument, completionService, session.TextView, subjectBuffer,
-                item, roslynItem, commitChar, triggerSnapshot, serviceRules, filterText, 
+                item, roslynItem, commitChar, triggerSnapshot, serviceRules, filterText,
                 cancellationToken);
 
             _recentItemsManager.MakeMostRecentItem(roslynItem.DisplayText);
