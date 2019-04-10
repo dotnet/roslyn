@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     {
         [Fact]
         [WorkItem(30023, "https://github.com/dotnet/roslyn/issues/30023")]
+        [WorkItem(531552, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531552")]
         public void Bug18280()
         {
             string brackets = "[][][][][][][][][][][][][][][][][][][][]";
@@ -36,11 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var x = c.GetMembers("x").Single() as FieldSymbol;
             var type = x.Type;
             type.GetHashCode();
-            verifyElementAnnotation(NullableAnnotation.NotAnnotated);
-            type = type.SetObliviousNullabilityForReferenceTypes();
-            verifyElementAnnotation(NullableAnnotation.Oblivious);
+            verifyElementAnnotation(x.Type, NullableAnnotation.NotAnnotated);
+            verifyElementAnnotation(x.Type.SetObliviousNullabilityForReferenceTypes(), NullableAnnotation.Oblivious);
+            Assert.Equal(getNestingCount(x.Type), getNestingCount(x.Type.SetObliviousNullabilityForReferenceTypes()));
+            Assert.Equal(x.Type.SetObliviousNullabilityForReferenceTypes(), x.Type.SetObliviousNullabilityForReferenceTypes());
 
-            void verifyElementAnnotation(NullableAnnotation annotation)
+            verifyElementAnnotation(x.Type.MergeNullability(x.Type.SetObliviousNullabilityForReferenceTypes(), VarianceKind.None), NullableAnnotation.NotAnnotated);
+
+            static void verifyElementAnnotation(TypeSymbol type, NullableAnnotation annotation)
             {
                 var arrayType = (ArrayTypeSymbol)type;
                 do
@@ -53,6 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                     arrayType = next;
                 }
                 while (arrayType is object);
+            }
+
+            static int getNestingCount(TypeSymbol type)
+            {
+                var count = 0;
+                var array = type as ArrayTypeSymbol;
+                while (array is object)
+                {
+                    count++;
+                    array = array.ElementType as ArrayTypeSymbol;
+                }
+                return count;
             }
         }
 

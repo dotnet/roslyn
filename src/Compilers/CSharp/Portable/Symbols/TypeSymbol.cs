@@ -674,9 +674,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract TypeSymbol SetObliviousNullabilityForReferenceTypes();
 
-        private readonly static Func<TypeWithAnnotations, TypeWithAnnotations> s_setUnknownNullability =
-            (type) => type.SetObliviousNullabilityForReferenceTypes();
-
         /// <summary>
         /// Merges nested nullability from an otherwise identical type.
         /// </summary>
