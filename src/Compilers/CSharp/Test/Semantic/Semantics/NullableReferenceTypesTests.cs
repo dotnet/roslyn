@@ -85,6 +85,11 @@ namespace System
     }
 }";
 
+        private CSharpCompilation CreateNullableCompilation(string source)
+        {
+            return CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+        }
+
         [Fact, WorkItem(33982, "https://github.com/dotnet/roslyn/issues/33982")]
         public void AssigningNullToRefLocalIsSafetyWarning()
         {
@@ -3666,51 +3671,51 @@ class C
     interface Interface { }
 }";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (6,24): error CS8597: Possible null value.
+                // (6,24): error CS8597: Thrown value may be null.
                 //         _ = c ?? throw e; // 1
-                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(6, 24),
-                // (7,24): error CS8597: Possible null value.
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(6, 24),
+                // (7,24): error CS8597: Thrown value may be null.
                 //         _ = c ?? throw null; // 2
-                Diagnostic(ErrorCode.WRN_PossibleNull, "null").WithLocation(7, 24),
-                // (8,15): error CS8597: Possible null value.
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "null").WithLocation(7, 24),
+                // (8,15): error CS8597: Thrown value may be null.
                 //         throw null; // 3
-                Diagnostic(ErrorCode.WRN_PossibleNull, "null").WithLocation(8, 15),
-                // (13,19): error CS8597: Possible null value.
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "null").WithLocation(8, 15),
+                // (13,19): error CS8597: Thrown value may be null.
                 //             throw e; // 4
-                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(13, 19),
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(13, 19),
                 // (19,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 //         throw this; // 5
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "this").WithLocation(19, 15),
-                // (24,15): error CS8597: Possible null value.
+                // (24,15): error CS8597: Thrown value may be null.
                 //         throw e; // 6
-                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(24, 15),
-                // (28,15): error CS8597: Possible null value.
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(24, 15),
+                // (28,15): error CS8597: Thrown value may be null.
                 //         throw e; // 7
-                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(28, 15),
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(28, 15),
                 // (30,25): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     void M6<TException>(TException? e) where TException : Interface
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "TException?").WithLocation(30, 25),
                 // (32,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 //         throw e; // 8
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(32, 15),
-                // (32,15): error CS8597: Possible null value.
+                // (32,15): error CS8597: Thrown value may be null.
                 //         throw e; // 8
-                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(32, 15),
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(32, 15),
                 // (36,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 //         throw e; // 9
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(36, 15),
-                // (36,15): error CS8597: Possible null value.
+                // (36,15): error CS8597: Thrown value may be null.
                 //         throw e; // 9
-                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(36, 15),
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(36, 15),
                 // (40,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 //         throw e; // 10
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(40, 15),
                 // (44,15): error CS0155: The type caught or thrown must be derived from System.Exception
                 //         throw e; // 11
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "e").WithLocation(44, 15),
-                // (44,15): error CS8597: Possible null value.
+                // (44,15): error CS8597: Thrown value may be null.
                 //         throw e; // 11
-                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(44, 15)
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(44, 15)
                 );
         }
 
@@ -3762,15 +3767,15 @@ class C
                 // (12,34): warning CS0168: The variable 'e' is declared but never used
                 //         catch (System.Exception? e) { throw; }
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(12, 34),
-                // (20,19): error CS8597: Possible null value.
+                // (20,19): error CS8597: Thrown value may be null.
                 //             throw e; // 1
-                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(20, 19),
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(20, 19),
                 // (28,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //             e = null; // 2
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(28, 17),
-                // (29,19): error CS8597: Possible null value.
+                // (29,19): error CS8597: Thrown value may be null.
                 //             throw e; // 3
-                Diagnostic(ErrorCode.WRN_PossibleNull, "e").WithLocation(29, 19),
+                Diagnostic(ErrorCode.WRN_ThrowPossibleNull, "e").WithLocation(29, 19),
                 // (35,33): warning CS0168: The variable 'e' is declared but never used
                 //         catch (System.Exception e)
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(35, 33),
@@ -43150,7 +43155,7 @@ class Client
         }
 
         [Fact]
-        public void UnboxingConversion()
+        public void UnboxingConversion_01()
         {
             var source =
 @"using System.Collections.Generic;
@@ -43165,13 +43170,40 @@ class Program
                 // (4,37): error CS0266: Cannot implicitly convert type 'T' to 'System.Collections.Generic.IEnumerator<T>'. An explicit conversion exists (are you missing a cast?)
                 //     static IEnumerator<T> M<T>() => default(T);
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "default(T)").WithArguments("T", "System.Collections.Generic.IEnumerator<T>").WithLocation(4, 37),
-                // (4,37): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (4,37): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //     static IEnumerator<T> M<T>() => default(T);
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(4, 37),
                 // (4,37): warning CS8603: Possible null reference return.
                 //     static IEnumerator<T> M<T>() => default(T);
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(T)").WithLocation(4, 37)
                 );
+        }
+
+        [Fact]
+        [WorkItem(33359, "https://github.com/dotnet/roslyn/issues/33359")]
+        public void UnboxingConversion_02()
+        {
+            var source =
+@"class C
+{
+    interface I { }
+    struct S : I { }
+
+    static void Main()
+    {
+        M<S, I?>(null);
+    }
+
+    static void M<T, V>(V v) where T : struct, V
+    {
+        var t = ((T) v); // 1
+    }
+}";
+            var comp = CreateNullableCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,18): warning CS8605: Unboxing a possibly null value.
+                //         var t = ((T) v); // 1
+                Diagnostic(ErrorCode.WRN_UnboxPossibleNull, "(T) v").WithLocation(13, 18));
         }
 
         [Fact]
@@ -50372,8 +50404,7 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(IEnumerable<object>)t2").WithLocation(34, 27),
                 // (34,27): warning CS8602: Dereference of a possibly null reference.
                 //         foreach (var z in (IEnumerable<object>)t2) // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable<object>)t2").WithLocation(34, 27)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable<object>)t2").WithLocation(34, 27));
         }
 
         [Fact]
@@ -61248,51 +61279,51 @@ class A
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/29981: missing warnings
             comp.VerifyDiagnostics(
+                // (4,23): warning CS8653: A default expression introduces a null value when 'T1' is a non-nullable reference type.
+                //     static T1 F1() => default; // warn: return type T1 may be non-null
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T1").WithLocation(4, 23),
                 // (14,23): warning CS8603: Possible null reference return.
                 //     static T2 F1() => default; // warn: return type T2 may be non-null
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(14, 23),
-                // (4,23): warning CS8652: A default expression introduces a null value when 'T1' is a non-nullable reference type.
-                //     static T1 F1() => default; // warn: return type T1 may be non-null
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T1").WithLocation(4, 23),
-                // (24,23): warning CS8652: A default expression introduces a null value when 'T3' is a non-nullable reference type.
-                //     static T3 F1() => default; // warn: return type T3 may be non-null
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T3").WithLocation(24, 23),
-                // (35,23): warning CS8652: A default expression introduces a null value when 'T4' is a non-nullable reference type.
-                //     static T4 F1() => default; // warn: return type T4 may be non-null
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T4").WithLocation(35, 23),
                 // (45,23): warning CS8603: Possible null reference return.
                 //     static T5 F1() => default; // warn: return type T5 may be non-null
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(45, 23),
-                // (25,23): warning CS8652: A default expression introduces a null value when 'T3' is a non-nullable reference type.
-                //     static T3 F2() => default(T3); // warn: return type T3 may be non-null
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T3)").WithArguments("T3").WithLocation(25, 23),
-                // (46,23): warning CS8603: Possible null reference return.
-                //     static T5 F2() => default(T5); // warn: return type T5 may be non-null
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(T5)").WithLocation(46, 23),
+                // (35,23): warning CS8653: A default expression introduces a null value when 'T4' is a non-nullable reference type.
+                //     static T4 F1() => default; // warn: return type T4 may be non-null
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T4").WithLocation(35, 23),
+                // (24,23): warning CS8653: A default expression introduces a null value when 'T3' is a non-nullable reference type.
+                //     static T3 F1() => default; // warn: return type T3 may be non-null
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T3").WithLocation(24, 23),
+                // (5,23): warning CS8653: A default expression introduces a null value when 'T1' is a non-nullable reference type.
+                //     static T1 F2() => default(T1); // warn: return type T1 may be non-null
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T1)").WithArguments("T1").WithLocation(5, 23),
                 // (15,23): warning CS8603: Possible null reference return.
                 //     static T2 F2() => default(T2); // warn: return type T2 may be non-null
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(T2)").WithLocation(15, 23),
-                // (36,23): warning CS8652: A default expression introduces a null value when 'T4' is a non-nullable reference type.
+                // (46,23): warning CS8603: Possible null reference return.
+                //     static T5 F2() => default(T5); // warn: return type T5 may be non-null
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(T5)").WithLocation(46, 23),
+                // (36,23): warning CS8653: A default expression introduces a null value when 'T4' is a non-nullable reference type.
                 //     static T4 F2() => default(T4); // warn: return type T4 may be non-null
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T4)").WithArguments("T4").WithLocation(36, 23),
-                // (5,23): warning CS8652: A default expression introduces a null value when 'T1' is a non-nullable reference type.
-                //     static T1 F2() => default(T1); // warn: return type T1 may be non-null
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T1)").WithArguments("T1").WithLocation(5, 23),
+                // (25,23): warning CS8653: A default expression introduces a null value when 'T3' is a non-nullable reference type.
+                //     static T3 F2() => default(T3); // warn: return type T3 may be non-null
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T3)").WithArguments("T3").WithLocation(25, 23),
                 // (8,17): warning CS8601: Possible null reference assignment.
                 //         T1 t1 = (T1)NullableObject(); // warn: T1 may be non-null
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T1)NullableObject()").WithLocation(8, 17),
+                // (18,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T2 t2 = (T2)NullableObject(); // warn: T2 may be non-null
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T2)NullableObject()").WithLocation(18, 17),
+                // (49,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T5 t5 = (T5)NullableObject(); // warn: T5 may be non-null
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T5)NullableObject()").WithLocation(49, 17),
                 // (39,17): warning CS8601: Possible null reference assignment.
                 //         T4 t4 = (T4)NullableObject(); // warn: T4 may be non-null
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T4)NullableObject()").WithLocation(39, 17),
                 // (29,16): warning CS8601: Possible null reference assignment.
                 //         T3 t = (T3)NullableObject(); // warn: T3 may be non-null
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T3)NullableObject()").WithLocation(29, 16),
-                // (49,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         T5 t5 = (T5)NullableObject(); // warn: T5 may be non-null
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T5)NullableObject()").WithLocation(49, 17),
-                // (18,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         T2 t2 = (T2)NullableObject(); // warn: T2 may be non-null
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T2)NullableObject()").WithLocation(18, 17)
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T3)NullableObject()").WithLocation(29, 16)
                 );
         }
 
@@ -61544,6 +61575,9 @@ class A
                 // (20,51): warning CS8603: Possible null reference return.
                 //     static U F18<T, U>(T t) where U : class, T => (U)t; // W on cast, W on return
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(U)t").WithLocation(20, 51),
+                // (21,52): warning CS8605: Unboxing a possibly null value.
+                //     static U F19<T, U>(T t) where U : struct, T => (U)t;
+                Diagnostic(ErrorCode.WRN_UnboxPossibleNull, "(U)t").WithLocation(21, 52),
                 // (22,51): warning CS8601: Possible null reference assignment.
                 //     static U F20<T, U>(T t) where U : T, new() => (U)t; // W on cast
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(U)t").WithLocation(22, 51),
@@ -61598,10 +61632,10 @@ class C
 
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (4,39): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (4,39): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //     static void F1<T>(out T t) => t = default; // 1
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(4, 39),
-                // (5,39): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (5,39): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //     static void F2<T>(out T t) => t = default(T); // 2
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(5, 39),
                 // (8,59): warning CS8601: Possible null reference assignment.
@@ -61715,9 +61749,12 @@ class C
                 //     static U F2<T, U>(T t) where U : class => (U)(object)t; // 3, 4 and 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(U)(object)t").WithLocation(5, 47),
                 // (6,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //     static U F3<T, U>(T t) where U : struct => (U)(object)t; // 5
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)t").WithLocation(6, 51)
-            );
+                //     static U F3<T, U>(T t) where U : struct => (U)(object)t; // 6
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)t").WithLocation(6, 51),
+                // (6,48): warning CS8605: Unboxing a possibly null value.
+                //     static U F3<T, U>(T t) where U : struct => (U)(object)t; // 6
+                Diagnostic(ErrorCode.WRN_UnboxPossibleNull, "(U)(object)t").WithLocation(6, 48)
+                );
         }
 
         [Fact]
@@ -68550,8 +68587,7 @@ class Outer
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(9, 13),
                 // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         z.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9));
         }
 
         [Fact]
@@ -68623,8 +68659,7 @@ interface I1{}
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(9, 13),
                 // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         z.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9));
         }
 
         [Fact]
@@ -68697,8 +68732,7 @@ interface I1{}
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(9, 13),
                 // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         z.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(10, 9));
         }
 
         [Fact]
@@ -68763,8 +68797,7 @@ class Outer
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(U)x").WithLocation(8, 13),
                 // (9,9): warning CS8602: Dereference of a possibly null reference.
                 //         y.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9));
         }
 
         [Fact]
@@ -68797,8 +68830,7 @@ interface I1 {}
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(U)x").WithLocation(8, 13),
                 // (9,9): warning CS8602: Dereference of a possibly null reference.
                 //         y.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9));
         }
 
         [Fact]
@@ -68831,8 +68863,7 @@ interface I1 {}
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(U)x").WithLocation(8, 13),
                 // (9,9): warning CS8602: Dereference of a possibly null reference.
                 //         y.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9));
         }
 
         [Fact]
@@ -72714,8 +72745,7 @@ class Outer<T, U> where T : class? where U : T
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(9, 9),
                 // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         z0.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(11, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(11, 9));
         }
 
         [Fact]
@@ -81815,6 +81845,9 @@ class B2 : A<int?>
                 // (9,17): error CS0029: Cannot implicitly convert type 'U' to 'int'
                 //         int y = (U)x;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(U)x").WithArguments("U", "int").WithLocation(9, 17),
+                // (9,17): warning CS8605: Unboxing a possibly null value.
+                //         int y = (U)x;
+                Diagnostic(ErrorCode.WRN_UnboxPossibleNull, "(U)x").WithLocation(9, 17),
                 // (16,20): error CS1061: 'U' does not contain a definition for 'Value' and no accessible extension method 'Value' accepting a first argument of type 'U' could be found (are you missing a using directive or an assembly reference?)
                 //         _ = ((U)x).Value;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Value").WithArguments("U", "Value").WithLocation(16, 20),
@@ -81823,8 +81856,7 @@ class B2 : A<int?>
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(int?)(object)(U)x").WithLocation(17, 14),
                 // (17,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         _ = ((int?)(object)(U)x).Value; // 1
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)(U)x").WithLocation(17, 20)
-                );
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)(U)x").WithLocation(17, 20));
         }
 
         [Fact]

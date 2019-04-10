@@ -1653,16 +1653,6 @@
         <target state="translated">Boş değer atanabilir değer türü null olabilir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PossibleNull">
-        <source>Possible null value.</source>
-        <target state="new">Possible null value.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PossibleNull_Title">
-        <source>Possible null value.</source>
-        <target state="new">Possible null value.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="translated">Switch ifadesi tüm olası girişleri işlemiyor (tam kapsamlı değil).</target>
@@ -1683,6 +1673,16 @@
         <target state="translated">Switch ifadesi tüm olası girişleri işlemiyor (tam kapsamlı değil).</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull">
+        <source>Thrown value may be null.</source>
+        <target state="new">Thrown value may be null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull_Title">
+        <source>Thrown value may be null.</source>
+        <target state="new">Thrown value may be null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
         <source>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
         <target state="translated">Demetin == veya != işlecinin diğer tarafında farklı bir ad belirtildiğinden ya da bir ad belirtilmediğinden '{0}' demet öğesi adı yok sayıldı.</target>
@@ -1701,6 +1701,16 @@
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
         <target state="translated">Tür parametresi dış metottaki tür parametresi ile aynı türe sahip</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull">
+        <source>Unboxing a possibly null value.</source>
+        <target state="new">Unboxing a possibly null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull_Title">
+        <source>Unboxing a possibly null value.</source>
+        <target state="new">Unboxing a possibly null value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
