@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly CompletionItemFilter LocalAndParameterFilter = new CompletionItemFilter(FeaturesResources.Locals_and_parameters, ImmutableArray.Create(WellKnownTags.Local, WellKnownTags.Parameter), 'l');
         public static readonly CompletionItemFilter KeywordFilter = new CompletionItemFilter(FeaturesResources.Keywords, ImmutableArray.Create(WellKnownTags.Keyword), 'k');
         public static readonly CompletionItemFilter SnippetFilter = new CompletionItemFilter(FeaturesResources.Snippets, ImmutableArray.Create(WellKnownTags.Snippet), 't');
-        public static readonly CompletionItemFilter MatchingTypeFilter = new CompletionItemFilter(FeaturesResources.Matching_type, ImmutableArray.Create(WellKnownTags.MatchingType), 'j');
+        public static readonly CompletionItemFilter TargetTypedFilter = new CompletionItemFilter(FeaturesResources.Matching_type, ImmutableArray.Create(WellKnownTags.MatchingType), 'j');
 
         public static readonly ImmutableArray<CompletionItemFilter> NamespaceFilters = ImmutableArray.Create(NamespaceFilter);
         public static readonly ImmutableArray<CompletionItemFilter> ClassFilters = ImmutableArray.Create(ClassFilter);
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly ImmutableArray<CompletionItemFilter> LocalAndParameterFilters = ImmutableArray.Create(LocalAndParameterFilter);
         public static readonly ImmutableArray<CompletionItemFilter> KeywordFilters = ImmutableArray.Create(KeywordFilter);
         public static readonly ImmutableArray<CompletionItemFilter> SnippetFilters = ImmutableArray.Create(SnippetFilter);
-        public static readonly ImmutableArray<CompletionItemFilter> MatchingTypeFilters = ImmutableArray.Create(MatchingTypeFilter);
+        public static readonly ImmutableArray<CompletionItemFilter> MatchingTypeFilters = ImmutableArray.Create(TargetTypedFilter);
 
         public static ImmutableArray<CompletionItemFilter> AllFilters { get; } =
             ImmutableArray.Create(
@@ -116,6 +116,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 NamespaceFilter,
                 KeywordFilter,
                 SnippetFilter,
-                MatchingTypeFilter);
+                TargetTypedFilter);
     }
 }

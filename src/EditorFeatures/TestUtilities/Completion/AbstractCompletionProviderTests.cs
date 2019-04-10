@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             SourceCodeKind? sourceCodeKind = null, bool usePreviousCharAsTrigger = false,
             int? glyph = null, int? matchPriority = null, bool? hasSuggestionModeItem = null,
             string displayTextSuffix = null, string inlineDescription = null,
-            List<CompletionItemFilter> matchingFilters = null, bool matchingFilterExperimentEnabled = false)
+            List<CompletionItemFilter> matchingFilters = null, bool targetTypedFilterExperimentEnabled = false)
         {
             if (sourceCodeKind.HasValue)
             {
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     glyph: glyph, matchPriority: matchPriority,
                     hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix,
                     inlineDescription: inlineDescription, matchingFilters: matchingFilters,
-                    matchingFilterExperimentEnabled: matchingFilterExperimentEnabled);
+                    targetTypedFilterExperimentEnabled: targetTypedFilterExperimentEnabled);
             }
             else
             {
@@ -248,14 +248,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     checkForAbsence: false, glyph: glyph, matchPriority: matchPriority,
                     hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix,
                     inlineDescription: inlineDescription, matchingFilters: matchingFilters, 
-                    matchingFilterExperimentEnabled: matchingFilterExperimentEnabled);
+                    targetTypedFilterExperimentEnabled: targetTypedFilterExperimentEnabled);
                 
                 await VerifyAsync(
                     markup, expectedItem, expectedDescriptionOrNull, SourceCodeKind.Script, usePreviousCharAsTrigger,
                     checkForAbsence: false, glyph: glyph, matchPriority: matchPriority,
                     hasSuggestionModeItem: hasSuggestionModeItem, displayTextSuffix: displayTextSuffix,
                     inlineDescription: inlineDescription, matchingFilters: matchingFilters,
-                    matchingFilterExperimentEnabled: matchingFilterExperimentEnabled);
+                    targetTypedFilterExperimentEnabled: targetTypedFilterExperimentEnabled);
             }
         }
 

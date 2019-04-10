@@ -10150,8 +10150,8 @@ class Program
 }";
             await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter, CompletionItemFilter.MatchingTypeFilter },
-                matchingFilterExperimentEnabled: true);
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter },
+                targetTypedFilterExperimentEnabled: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
@@ -10169,7 +10169,7 @@ class Program
             await VerifyItemExistsAsync(
                 markup, "intField",
                 matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter },
-                matchingFilterExperimentEnabled: false);
+                targetTypedFilterExperimentEnabled: false);
         }
 
 
@@ -10187,7 +10187,7 @@ class Program
             await VerifyItemExistsAsync(
                 markup, "GetHashCode",
                 matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.MethodFilter },
-                matchingFilterExperimentEnabled: true);
+                targetTypedFilterExperimentEnabled: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
@@ -10203,13 +10203,13 @@ class Program
 }";
             await VerifyItemExistsAsync(
                 markup, "c",
-                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.LocalAndParameterFilter, CompletionItemFilter.MatchingTypeFilter },
-                matchingFilterExperimentEnabled: true);
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.LocalAndParameterFilter, CompletionItemFilter.TargetTypedFilter },
+                targetTypedFilterExperimentEnabled: true);
 
             await VerifyItemExistsAsync(
                 markup, "C",
                 matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.ClassFilter },
-                matchingFilterExperimentEnabled: true);
+                targetTypedFilterExperimentEnabled: true);
         }
     }
 }
