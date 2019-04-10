@@ -12,11 +12,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal static class TypeImportCompletionItem
     {
         private const string GenericTypeNameManglingString = "`";
-        private static readonly string[] s_IntegerOneToNine = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
         private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
         private const string ContainingNamespaceName = nameof(ContainingNamespaceName);
-        private const string TypeArityName = nameof(TypeArityName);
+        private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
 
         public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace)
         {
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (typeSymbol.Arity > 0)
             {
-                builder.Add(TypeArityName, GetInteger(typeSymbol.Arity));
+                builder.Add(TypeAritySuffixName, GetAritySuffix(typeSymbol.Arity));
             }
 
             // TODO: Suffix should be language specific, i.e. `(Of ...)` if triggered from VB.
@@ -77,14 +76,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return null;
         }
 
-        private static string GetInteger(int integer)
-        {
-            Debug.Assert(integer > 0);
-            return (integer <= s_IntegerOneToNine.Length)
-                ? s_IntegerOneToNine[integer - 1]
-                : integer.ToString(CultureInfo.InvariantCulture);
-        }
-
         private static string GetAritySuffix(int arity)
         {
             Debug.Assert(arity > 0);
@@ -96,15 +87,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static string GetFullyQualifiedName(string namespaceName, string typeName)
             => namespaceName.Length == 0 ? typeName : namespaceName + "." + typeName;
 
-        private static string ComposeAritySuffixedMetadataName(string name, int arity)
-            => arity == 0 ? name : name + GetAritySuffix(arity);
-
         private static string GetMetadataName(CompletionItem item)
         {
             if (item.Properties.TryGetValue(ContainingNamespaceName, out var containingNamespace))
             {
-                var arity = item.Properties.TryGetValue(TypeArityName, out var arityString) ? int.Parse(arityString) : 0;
-                return ComposeAritySuffixedMetadataName(GetFullyQualifiedName(containingNamespace, item.DisplayText), arity);
+                var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, item.DisplayText);
+                if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
+                {
+                    return fullyQualifiedName + aritySuffix;
+                }
+
+                return fullyQualifiedName;
             }
 
             return null;

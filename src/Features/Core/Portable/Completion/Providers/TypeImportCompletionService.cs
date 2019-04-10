@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private class Service : ITypeImportCompletionService
         {
+            // PE references are jeyed on assembly path.
             private readonly ConcurrentDictionary<string, ReferenceCacheEntry> _peItemsCache;
             private readonly ConcurrentDictionary<ProjectId, ReferenceCacheEntry> _projectItemsCache;
 
@@ -114,9 +115,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return;
                 }
 
-                var isInternalsVisible = compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assemblySymbol);
                 var assemblyProject = solution.GetProject(assemblySymbol, cancellationToken);
+                if (assemblyProject == null)
+                {
+                    return;
+                }
+
                 var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(assemblyProject, cancellationToken).ConfigureAwait(false);
+                var isInternalsVisible = compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assemblySymbol);
 
                 GetAccessibleTopLevelTypesWorker(
                     assemblyProject.Id,
@@ -141,15 +147,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 var key = GetReferenceKey(peReference);
-                var isInternalsVisible = compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assemblySymbol);
-                var rootNamespaceSymbol = assemblySymbol.GlobalNamespace;
-
                 if (key == null)
                 {
-                    // Can't cache items for reference with null key, so just create them and return. 
-                    var items = GetCompletionItemsForTopLevelTypeDeclarations(rootNamespaceSymbol, cancellationToken);
-                    HandleAccessibleItems(items, isInternalsVisible, handleAccessibleItem);
+                    // Can't cache items for reference with null key. We don't want risk potential perf regression by 
+                    // making those items repeatedly, so simply not returning anything from this assembly, until 
+                    // we have a better understanding on this sceanrio.
+                    // TODO: Add telemetry
+                    return;
                 }
+
+                var isInternalsVisible = compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assemblySymbol);
+                var rootNamespaceSymbol = assemblySymbol.GlobalNamespace;
 
                 var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken);
                 GetAccessibleTopLevelTypesWorker(
@@ -160,6 +168,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     handleAccessibleItem,
                     _peItemsCache,
                     cancellationToken);
+
+                return;
 
                 static string GetReferenceKey(PortableExecutableReference reference)
                     => reference.FilePath ?? reference.Display;
@@ -173,9 +183,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 bool isInternalsVisible,
                 Action<CompletionItem> handleAccessibleItem)
             {
-                for (var i = 0; i < items.Length; ++i)
+                foreach (var item in items)
                 {
-                    var item = items[i];
                     if (item.IsPublic || isInternalsVisible)
                     {
                         handleAccessibleItem(item.Item);
@@ -232,7 +241,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // Iterate over all top level internal and public types, keep track of "type overloads".
                     foreach (var memberType in memberTypes)
                     {
-                        if (IsAccessible(memberType.DeclaredAccessibility) && memberType.CanBeReferencedByName)
+                        // No need to check accessibility here, since top level types can only be internal or public.
+                        if (memberType.CanBeReferencedByName)
                         {
                             overloads.TryGetValue(memberType.Name, out var overloadInfo);
                             overloads[memberType.Name] = overloadInfo.Aggregate(memberType);
@@ -265,10 +275,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     overloads.Free();
                 }
-
-                // For top level types, default accessibility is `internal`
-                static bool IsAccessible(Accessibility declaredAccessibility) =>
-                    declaredAccessibility >= Accessibility.Internal || declaredAccessibility == Accessibility.NotApplicable;
             }
         }
 
