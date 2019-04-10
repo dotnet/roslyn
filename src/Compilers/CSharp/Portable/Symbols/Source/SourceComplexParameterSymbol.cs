@@ -131,13 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                FlowAnalysisAnnotations? annotations = TryGetExtraAttributeAnnotations();
-                if (annotations.HasValue)
-                {
-                    // https://github.com/dotnet/roslyn/issues/30078: Make sure this is covered by test
-                    return annotations.Value;
-                }
-
                 ParameterWellKnownAttributeData attributeData = GetDecodedWellKnownAttributeData();
                 bool hasEnsuresNotNull = attributeData?.HasEnsuresNotNullAttribute == true;
 
