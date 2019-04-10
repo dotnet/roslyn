@@ -98,10 +98,10 @@ namespace Microsoft.CodeAnalysis.Testing
         public Dictionary<string, string> XmlReferences { get; } = new Dictionary<string, string>();
 
         /// <summary>
-        /// Gets or sets a value the analysis exclusions to verify. The default value is a combination of
-        /// <see cref="AnalysisExclusions.GeneratedCode"/> and <see cref="AnalysisExclusions.Suppression"/>.
+        /// Gets or sets the test behaviors applying to this analyzer. The default value is
+        /// <see cref="TestBehaviors.None"/>.
         /// </summary>
-        public AnalysisExclusions Exclusions { get; set; } = AnalysisExclusions.GeneratedCode | AnalysisExclusions.Suppression;
+        public TestBehaviors TestBehaviors { get; set; }
 
         /// <summary>
         /// Gets a collection of diagnostics to explicitly disable in the <see cref="CompilationOptions"/> for projects.
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private async Task VerifyGeneratedCodeDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
-            if (!Exclusions.HasFlag(AnalysisExclusions.GeneratedCode))
+            if (TestBehaviors.HasFlag(TestBehaviors.SkipGeneratedCodeCheck))
             {
                 return;
             }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private async Task VerifySuppressionDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
-            if (!Exclusions.HasFlag(AnalysisExclusions.Suppression))
+            if (TestBehaviors.HasFlag(TestBehaviors.SkipSuppressionCheck))
             {
                 return;
             }

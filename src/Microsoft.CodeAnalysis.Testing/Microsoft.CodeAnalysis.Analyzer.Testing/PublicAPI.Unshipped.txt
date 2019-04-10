@@ -1,18 +1,14 @@
-Microsoft.CodeAnalysis.Testing.AnalysisExclusions
-Microsoft.CodeAnalysis.Testing.AnalysisExclusions.GeneratedCode = 1 -> Microsoft.CodeAnalysis.Testing.AnalysisExclusions
-Microsoft.CodeAnalysis.Testing.AnalysisExclusions.None = 0 -> Microsoft.CodeAnalysis.Testing.AnalysisExclusions
-Microsoft.CodeAnalysis.Testing.AnalysisExclusions.Suppression = 2 -> Microsoft.CodeAnalysis.Testing.AnalysisExclusions
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.AnalyzerTest() -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CompilerDiagnostics.get -> Microsoft.CodeAnalysis.Testing.CompilerDiagnostics
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CompilerDiagnostics.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProject((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, (string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] additionalFiles, Microsoft.CodeAnalysis.MetadataReference[] additionalMetadataReferences, string language) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DisabledDiagnostics.get -> System.Collections.Generic.List<string>
-Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.Exclusions.get -> Microsoft.CodeAnalysis.Testing.AnalysisExclusions
-Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.Exclusions.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ExpectedDiagnostics.get -> System.Collections.Generic.List<Microsoft.CodeAnalysis.Testing.DiagnosticResult>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.OptionsTransforms.get -> System.Collections.Generic.List<System.Func<Microsoft.CodeAnalysis.Options.OptionSet, Microsoft.CodeAnalysis.Options.OptionSet>>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.SolutionTransforms.get -> System.Collections.Generic.List<System.Func<Microsoft.CodeAnalysis.Solution, Microsoft.CodeAnalysis.ProjectId, Microsoft.CodeAnalysis.Solution>>
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestBehaviors.get -> Microsoft.CodeAnalysis.Testing.TestBehaviors
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestBehaviors.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestCode.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestState.get -> Microsoft.CodeAnalysis.Testing.SolutionState
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.VerifyDiagnosticsAsync((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, (string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] additionalFiles, Microsoft.CodeAnalysis.MetadataReference[] additionalMetadataReferences, Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected, Microsoft.CodeAnalysis.Testing.IVerifier verifier, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
@@ -105,6 +101,10 @@ Microsoft.CodeAnalysis.Testing.StateInheritanceMode
 Microsoft.CodeAnalysis.Testing.StateInheritanceMode.AutoInherit = 0 -> Microsoft.CodeAnalysis.Testing.StateInheritanceMode
 Microsoft.CodeAnalysis.Testing.StateInheritanceMode.AutoInheritAll = 2 -> Microsoft.CodeAnalysis.Testing.StateInheritanceMode
 Microsoft.CodeAnalysis.Testing.StateInheritanceMode.Explicit = 1 -> Microsoft.CodeAnalysis.Testing.StateInheritanceMode
+Microsoft.CodeAnalysis.Testing.TestBehaviors
+Microsoft.CodeAnalysis.Testing.TestBehaviors.None = 0 -> Microsoft.CodeAnalysis.Testing.TestBehaviors
+Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipGeneratedCodeCheck = 1 -> Microsoft.CodeAnalysis.Testing.TestBehaviors
+Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipSuppressionCheck = 2 -> Microsoft.CodeAnalysis.Testing.TestBehaviors
 Microsoft.CodeAnalysis.Testing.TestFileMarkupParser
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFileExt.get -> string
