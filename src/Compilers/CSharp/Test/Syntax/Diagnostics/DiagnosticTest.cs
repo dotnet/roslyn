@@ -297,6 +297,7 @@ class X
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
                         case ErrorCode.ERR_FeatureInPreview:
                         case ErrorCode.WRN_ThrowPossibleNull:
+                        case ErrorCode.WRN_UnboxPossibleNull:
                         case ErrorCode.WRN_ConditionalAccessMayReturnNull:
                         case ErrorCode.WRN_AsOperatorMayReturnNull:
                         case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:

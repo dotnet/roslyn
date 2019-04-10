@@ -3959,11 +3959,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.Unboxing:
-                    if (operandType.MayBeNull && !targetType.IsNullableType() && reportRemainingWarnings)
+                    if (operandType.MayBeNull && targetType.IsNonNullableValueType() && reportRemainingWarnings)
                     {
                         ReportSafetyDiagnostic(ErrorCode.WRN_UnboxPossibleNull, node.Syntax);
                     }
-                    resultState = operandType.State;
+                    else
+                    {
+                        resultState = operandType.State;
+                    }
                     break;
 
                 case ConversionKind.ImplicitThrow:
