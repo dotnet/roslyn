@@ -5,13 +5,13 @@
     <StartupObject />
     <TargetFramework>net472</TargetFramework>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.LanguageServer.UnitTests</RootNamespace>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
 
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
-    <ProjectReference Include="..\LanguageServices\Microsoft.CodeAnalysis.Protocol.LanguageServices.csproj" />
+    <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

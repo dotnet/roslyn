@@ -8,22 +8,20 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Protocol.LanguageServices.Extensions;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using Xunit;
-using VSSymbolKind = Microsoft.VisualStudio.LanguageServer.Protocol.SymbolKind;
-using VSLocation = Microsoft.VisualStudio.LanguageServer.Protocol.Location;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
     [UseExportProvider]
     public class RoslynLanguageServiceTests
     {
         [Fact]
-        public async Task TestGetDocumentSymbolsAsync__WithHierarchicalSupport()
+        public async Task TestGetDocumentSymbolsAsync()
         {
             var markup =
 @"{|class:class A
@@ -33,11 +31,11 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
     }|}
 }|}";
             var (solution, locations) = CreateTestSolution(markup);
-            var expected = new DocumentSymbol[]
+            var expected = new LSP.DocumentSymbol[]
             {
-                CreateDocumentSymbol(VSSymbolKind.Class, "A", locations["class"].First())
+                CreateDocumentSymbol(LSP.SymbolKind.Class, "A", locations["class"].First())
             };
-            CreateDocumentSymbol(VSSymbolKind.Method, "M", locations["method"].First(), expected.First());
+            CreateDocumentSymbol(LSP.SymbolKind.Method, "M", locations["method"].First(), expected.First());
 
             var results = await RunGetDocumentSymbolsAsync(solution, true);
             AssertCollection(expected, results, AssertDocumentSymbolEquals);
@@ -54,10 +52,10 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
     }
 }";
             var (solution, locations) = CreateTestSolution(markup);
-            var expected = new SymbolInformation[]
+            var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(VSSymbolKind.Class, "A", locations["class"].First()),
-                CreateSymbolInformation(VSSymbolKind.Method, "M()", locations["method"].First())
+                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].First()),
+                CreateSymbolInformation(LSP.SymbolKind.Method, "M()", locations["method"].First())
             };
 
             var results = await RunGetDocumentSymbolsAsync(solution, false);
@@ -102,9 +100,9 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
     }
 }";
             var (solution, locations) = CreateTestSolution(markup);
-            var expected = new SymbolInformation[]
+            var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(VSSymbolKind.Class, "A", locations["class"].First())
+                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].First())
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(solution, "A").ConfigureAwait(false);
@@ -122,9 +120,9 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
     }
 }";
             var (solution, locations) = CreateTestSolution(markup);
-            var expected = new SymbolInformation[]
+            var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(VSSymbolKind.Method, "M", locations["method"].First())
+                CreateSymbolInformation(LSP.SymbolKind.Method, "M", locations["method"].First())
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(solution, "M").ConfigureAwait(false);
@@ -145,9 +143,9 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
     }
 }";
             var (solution, locations) = CreateTestSolution(markup);
-            var expected = new SymbolInformation[]
+            var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(VSSymbolKind.Variable, "i", locations["local"].First())
+                CreateSymbolInformation(LSP.SymbolKind.Variable, "i", locations["local"].First())
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(solution, "i").ConfigureAwait(false);
@@ -170,11 +168,11 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
     }
 }";
             var (solution, locations) = CreateTestSolution(markup);
-            var expected = new SymbolInformation[]
+            var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(VSSymbolKind.Field, "F", locations["field"][0]),
-                CreateSymbolInformation(VSSymbolKind.Class, "F", locations["class"].First()),
-                CreateSymbolInformation(VSSymbolKind.Field, "F", locations["field"][1])
+                CreateSymbolInformation(LSP.SymbolKind.Field, "F", locations["field"][0]),
+                CreateSymbolInformation(LSP.SymbolKind.Class, "F", locations["class"].First()),
+                CreateSymbolInformation(LSP.SymbolKind.Field, "F", locations["field"][1])
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(solution, "F").ConfigureAwait(false);
@@ -201,10 +199,10 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
             };
 
             var (solution, locations) = CreateTestSolution(markups);
-            var expected = new SymbolInformation[]
+            var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(VSSymbolKind.Method, "M", locations["method"][0]),
-                CreateSymbolInformation(VSSymbolKind.Method, "M", locations["method"][1])
+                CreateSymbolInformation(LSP.SymbolKind.Method, "M", locations["method"][0]),
+                CreateSymbolInformation(LSP.SymbolKind.Method, "M", locations["method"][1])
             };
 
             var results = await RunGetWorkspaceSymbolsAsync(solution, "M").ConfigureAwait(false);
@@ -246,9 +244,9 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests
             var expected = "string A.Method(int i)\r\n> A great method";
 
             var results = await RunGetHoverAsync(solution, locations["caret"].First()).ConfigureAwait(false);
-            var markupContent = results.Contents as MarkupContent;
+            var markupContent = results.Contents as LSP.MarkupContent;
             Assert.NotNull(markupContent);
-            Assert.Equal(MarkupKind.Markdown, markupContent.Kind);
+            Assert.Equal(LSP.MarkupKind.Markdown, markupContent.Kind);
             Assert.Equal(expected, markupContent.Value);
         }
 
@@ -570,11 +568,11 @@ class A
     }
 }";
             var (solution, locations) = CreateTestSolution(markup);
-            var expected = new DocumentHighlight[]
+            var expected = new LSP.DocumentHighlight[]
             {
-                CreateDocumentHighlight(DocumentHighlightKind.Text, locations["text"].First()),
-                CreateDocumentHighlight(DocumentHighlightKind.Write, locations["write"].First()),
-                CreateDocumentHighlight(DocumentHighlightKind.Read, locations["read"].First())
+                CreateDocumentHighlight(LSP.DocumentHighlightKind.Text, locations["text"].First()),
+                CreateDocumentHighlight(LSP.DocumentHighlightKind.Write, locations["write"].First()),
+                CreateDocumentHighlight(LSP.DocumentHighlightKind.Read, locations["read"].First())
             };
 
             var results = await RunGetDocumentHighlightAsync(solution, locations["caret"].First());
@@ -606,7 +604,7 @@ class A
 using System.Linq;|}";
             var (solution, locations) = CreateTestSolution(markup);
             var expected = locations["foldingRange"]
-                .Select(location => CreateFoldingRange(FoldingRangeKind.Imports, location.Range))
+                .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Imports, location.Range))
                 .ToImmutableArray();
 
             var results = await RunGetFoldingRangeAsync(solution);
@@ -623,7 +621,7 @@ comment */|}";
             var (solution, locations) = CreateTestSolution(markup);
             var importLocation = locations["foldingRange"].First();
             var expected = locations["foldingRange"]
-                .Select(location => CreateFoldingRange(FoldingRangeKind.Comment, location.Range))
+                .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Comment, location.Range))
                 .ToImmutableArray();
 
             var results = await RunGetFoldingRangeAsync(solution);
@@ -640,7 +638,7 @@ comment */|}";
             var (solution, locations) = CreateTestSolution(markup);
             var importLocation = locations["foldingRange"].First();
             var expected = locations["foldingRange"]
-                .Select(location => CreateFoldingRange(FoldingRangeKind.Region, location.Range))
+                .Select(location => CreateFoldingRange(LSP.FoldingRangeKind.Region, location.Range))
                 .ToImmutableArray();
 
             var results = await RunGetFoldingRangeAsync(solution);
@@ -651,12 +649,12 @@ comment */|}";
         /// Assert that two highligh lists are equivalent.
         /// Highlights are not returned in a consistent order, so they must be sorted.
         /// </summary>
-        private static void AssertDocumentHighlights(IEnumerable<DocumentHighlight> expectedHighlights, IEnumerable<DocumentHighlight> actualHighlights)
+        private static void AssertDocumentHighlights(IEnumerable<LSP.DocumentHighlight> expectedHighlights, IEnumerable<LSP.DocumentHighlight> actualHighlights)
         {
             AssertCollection(expectedHighlights, actualHighlights.Select(highlight => (object)highlight), AssertDocumentHighlightEquals, CompareHighlights);
 
             // local functions
-            static int CompareHighlights(DocumentHighlight h1, DocumentHighlight h2)
+            static int CompareHighlights(LSP.DocumentHighlight h1, LSP.DocumentHighlight h2)
             {
                 var compareKind = h1.Kind.CompareTo(h2.Kind);
                 var compareRange = CompareRange(h1.Range, h2.Range);
@@ -668,12 +666,12 @@ comment */|}";
         /// Assert that two location lists are equivalent.
         /// Locations are not returned in a consistent order, so they must be sorted.
         /// </summary>
-        private static void AssertLocations(IEnumerable<VSLocation> expectedLocations, IEnumerable<VSLocation> actualLocations)
+        private static void AssertLocations(IEnumerable<LSP.Location> expectedLocations, IEnumerable<LSP.Location> actualLocations)
         {
             AssertCollection(expectedLocations, actualLocations.Select(loc => (object)loc), Assert.Equal, CompareLocations);
 
             // local functions
-            static int CompareLocations(VSLocation l1, VSLocation l2)
+            static int CompareLocations(LSP.Location l1, LSP.Location l2)
             {
                 var compareDocument = l1.Uri.OriginalString.CompareTo(l2.Uri.OriginalString);
                 var compareRange = CompareRange(l1.Range, l2.Range);
@@ -694,32 +692,32 @@ comment */|}";
             }
         }
 
-        private static void AssertDocumentSymbolEquals(DocumentSymbol expected, DocumentSymbol actual)
+        private static void AssertDocumentSymbolEquals(LSP.DocumentSymbol expected, LSP.DocumentSymbol actual)
         {
             Assert.Equal(expected.Kind, actual.Kind);
             Assert.Equal(expected.Name, actual.Name);
             Assert.Equal(expected.Range, actual.Range);
-            Assert.Equal(expected.Children.Count, actual.Children.Count);
-            for (var i = 0; i < actual.Children.Count; i++)
+            Assert.Equal(expected.Children.Length, actual.Children.Length);
+            for (var i = 0; i < actual.Children.Length; i++)
             {
                 AssertDocumentSymbolEquals(expected.Children[i], actual.Children[i]);
             }
         }
 
-        private static void AssertSymbolInformationEquals(SymbolInformation expected, SymbolInformation actual)
+        private static void AssertSymbolInformationEquals(LSP.SymbolInformation expected, LSP.SymbolInformation actual)
         {
             Assert.Equal(expected.Kind, actual.Kind);
             Assert.Equal(expected.Name, actual.Name);
             Assert.Equal(expected.Location, actual.Location);
         }
 
-        private static void AssertDocumentHighlightEquals(DocumentHighlight expected, DocumentHighlight actual)
+        private static void AssertDocumentHighlightEquals(LSP.DocumentHighlight expected, LSP.DocumentHighlight actual)
         {
             Assert.Equal(expected.Kind, actual.Kind);
             Assert.Equal(expected.Range, actual.Range);
         }
 
-        private static void AssertFoldingRangeEquals(FoldingRange expected, FoldingRange actual)
+        private static void AssertFoldingRangeEquals(LSP.FoldingRange expected, LSP.FoldingRange actual)
         {
             Assert.Equal(expected.Kind, actual.Kind);
             Assert.Equal(expected.StartCharacter, actual.StartCharacter);
@@ -728,7 +726,7 @@ comment */|}";
             Assert.Equal(expected.EndLine, actual.EndLine);
         }
 
-        private static int CompareRange(Range r1, Range r2)
+        private static int CompareRange(LSP.Range r1, LSP.Range r2)
         {
             var compareLine = r1.Start.Line.CompareTo(r2.Start.Line);
             var compareChar = r1.Start.Character.CompareTo(r2.Start.Character);
@@ -736,41 +734,43 @@ comment */|}";
         }
 
 
-        private static SymbolInformation CreateSymbolInformation(VSSymbolKind kind, string name, VSLocation location)
-            => new SymbolInformation()
+        private static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location)
+            => new LSP.SymbolInformation()
             {
                 Kind = kind,
                 Name = name,
                 Location = location
             };
 
-        private static DocumentSymbol CreateDocumentSymbol(VSSymbolKind kind, string name, VSLocation location, DocumentSymbol parent = null)
+        private static LSP.DocumentSymbol CreateDocumentSymbol(LSP.SymbolKind kind, string name, LSP.Location location, LSP.DocumentSymbol parent = null)
         {
-            var documentSymbol = new DocumentSymbol()
+            var documentSymbol = new LSP.DocumentSymbol()
             {
                 Kind = kind,
                 Name = name,
                 Range = location.Range,
-                Children = new List<DocumentSymbol>()
+                Children = new LSP.DocumentSymbol[0]
             };
 
             if (parent != null)
             {
-                parent.Children.Add(documentSymbol);
+                var children = parent.Children.ToList();
+                children.Add(documentSymbol);
+                parent.Children = children.ToArray();
             }
 
             return documentSymbol;
         }
 
-        private DocumentHighlight CreateDocumentHighlight(DocumentHighlightKind kind, VSLocation location)
-            => new DocumentHighlight()
+        private LSP.DocumentHighlight CreateDocumentHighlight(LSP.DocumentHighlightKind kind, LSP.Location location)
+            => new LSP.DocumentHighlight()
             {
                 Kind = kind,
                 Range = location.Range
             };
 
-        private static FoldingRange CreateFoldingRange(string kind, Range range)
-            => new FoldingRange()
+        private static LSP.FoldingRange CreateFoldingRange(string kind, LSP.Range range)
+            => new LSP.FoldingRange()
             {
                 Kind = kind,
                 StartCharacter = range.Start.Character,
@@ -784,7 +784,7 @@ comment */|}";
         /// </summary>
         /// <param name="markup">the document text.</param>
         /// <returns>the solution and the annotated ranges in the document.</returns>
-        private static (Solution solution, Dictionary<string, IList<VSLocation>> locations) CreateTestSolution(string markup)
+        private static (Solution solution, Dictionary<string, IList<LSP.Location>> locations) CreateTestSolution(string markup)
             => CreateTestSolution(new string[] { markup });
 
         /// <summary>
@@ -794,11 +794,11 @@ comment */|}";
         /// <returns>
         /// the solution with the documents plus a list for each document of all annotated ranges in the document.
         /// </returns>
-        private static (Solution solution, Dictionary<string, IList<VSLocation>> locations) CreateTestSolution(string[] markups)
+        private static (Solution solution, Dictionary<string, IList<LSP.Location>> locations) CreateTestSolution(string[] markups)
         {
             using var workspace = TestWorkspace.CreateCSharp(markups);
             var solution = workspace.CurrentSolution;
-            var locations = new Dictionary<string, IList<VSLocation>>();
+            var locations = new Dictionary<string, IList<LSP.Location>>();
 
             foreach (var document in workspace.Documents)
             {
@@ -806,7 +806,7 @@ comment */|}";
                 foreach (var kvp in document.AnnotatedSpans)
                 {
                     locations.GetOrAdd(kvp.Key, CreateLocation)
-                        .AddRange(kvp.Value.Select(s => s.ToRange(text).ToLocation(GetDocumentFilePathFromName(document.Name))));
+                        .AddRange(kvp.Value.Select(s => ProtocolConversions.TextSpanToLocation(s, text, new Uri(GetDocumentFilePathFromName(document.Name)))));
                 }
 
                 // Pass in the text without markup.
@@ -817,13 +817,13 @@ comment */|}";
             return (workspace.CurrentSolution, locations);
 
             // local functions
-            static List<VSLocation> CreateLocation(string s) => new List<VSLocation>();
+            static List<LSP.Location> CreateLocation(string s) => new List<LSP.Location>();
         }
 
         private static async Task<object[]> RunGetDocumentSymbolsAsync(Solution solution, bool hierarchalSupport)
         {
             var document = solution.Projects.First().Documents.First();
-            var request = new DocumentSymbolParams
+            var request = new LSP.DocumentSymbolParams
             {
                 TextDocument = CreateTextDocumentIdentifier(new Uri(document.FilePath))
             };
@@ -831,9 +831,9 @@ comment */|}";
             return await CreateRoslynLanguageService(hierarchalSupport).GetDocumentSymbolsAsync(solution, request, CancellationToken.None);
         }
 
-        private static async Task<SymbolInformation[]> RunGetWorkspaceSymbolsAsync(Solution solution, string query)
+        private static async Task<LSP.SymbolInformation[]> RunGetWorkspaceSymbolsAsync(Solution solution, string query)
         {
-            var request = new WorkspaceSymbolParams
+            var request = new LSP.WorkspaceSymbolParams
             {
                 Query = query
             };
@@ -841,22 +841,22 @@ comment */|}";
             return await CreateRoslynLanguageService().GetWorkspaceSymbolsAsync(solution, request, CancellationToken.None);
         }
 
-        private static async Task<Hover> RunGetHoverAsync(Solution solution, VSLocation caret)
+        private static async Task<LSP.Hover> RunGetHoverAsync(Solution solution, LSP.Location caret)
             => await CreateRoslynLanguageService().GetHoverAsync(solution, CreateTextDocumentPositionParams(caret), CancellationToken.None);
 
-        private static async Task<VSLocation[]> RunGotoDefinitionAsync(Solution solution, VSLocation caret)
+        private static async Task<LSP.Location[]> RunGotoDefinitionAsync(Solution solution, LSP.Location caret)
             => await CreateRoslynLanguageService().GoToDefinitionAsync(solution, CreateTextDocumentPositionParams(caret), CancellationToken.None);
 
-        private static async Task<VSLocation[]> RunGotoTypeDefinitionAsync(Solution solution, VSLocation caret)
+        private static async Task<LSP.Location[]> RunGotoTypeDefinitionAsync(Solution solution, LSP.Location caret)
             => await CreateRoslynLanguageService().GoToTypeDefinitionAsync(solution, CreateTextDocumentPositionParams(caret), CancellationToken.None);
 
-        private static async Task<VSLocation[]> RunFindAllReferencesAsync(Solution solution, VSLocation caret, bool includeDeclaration)
+        private static async Task<LSP.Location[]> RunFindAllReferencesAsync(Solution solution, LSP.Location caret, bool includeDeclaration)
         {
-            var request = new ReferenceParams()
+            var request = new LSP.ReferenceParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
-                Context = new ReferenceContext()
+                Context = new LSP.ReferenceContext()
                 {
                     IncludeDeclaration = includeDeclaration
                 }
@@ -865,16 +865,16 @@ comment */|}";
             return await CreateRoslynLanguageService().FindAllReferencesAsync(solution, request, CancellationToken.None);
         }
 
-        private static async Task<VSLocation[]> RunGotoImplementationAsync(Solution solution, VSLocation caret)
+        private static async Task<LSP.Location[]> RunGotoImplementationAsync(Solution solution, LSP.Location caret)
             => await CreateRoslynLanguageService().GotoImplementationAsync(solution, CreateTextDocumentPositionParams(caret), CancellationToken.None);
 
-        private static async Task<DocumentHighlight[]> RunGetDocumentHighlightAsync(Solution solution, VSLocation caret)
+        private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(Solution solution, LSP.Location caret)
             => await CreateRoslynLanguageService().GetDocumentHighlightAsync(solution, CreateTextDocumentPositionParams(caret), CancellationToken.None);
 
-        private static async Task<FoldingRange[]> RunGetFoldingRangeAsync(Solution solution)
+        private static async Task<LSP.FoldingRange[]> RunGetFoldingRangeAsync(Solution solution)
         {
             var document = solution.Projects.First().Documents.First();
-            var request = new FoldingRangeParams()
+            var request = new LSP.FoldingRangeParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(new Uri(document.FilePath))
             };
@@ -882,9 +882,9 @@ comment */|}";
             return await CreateRoslynLanguageService().GetFoldingRangeAsync(solution, request, CancellationToken.None);
         }
 
-        private static TextDocumentPositionParams CreateTextDocumentPositionParams(VSLocation caret)
+        private static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret)
         {
-            var request = new TextDocumentPositionParams
+            var request = new LSP.TextDocumentPositionParams
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start
@@ -893,14 +893,14 @@ comment */|}";
             return request;
         }
 
-        private static TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri)
-            => new TextDocumentIdentifier()
+        private static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri)
+            => new LSP.TextDocumentIdentifier()
             {
                 Uri = uri
             };
 
-        private static RoslynLanguageService CreateRoslynLanguageService(bool hierarchalSupport = true)
-            => new RoslynLanguageService(new ClientCapabilities(), hierarchalSupport);
+        private static LanguageServerProtocol CreateRoslynLanguageService(bool hierarchalSupport = true)
+            => new LanguageServerProtocol(new LSP.ClientCapabilities(), hierarchalSupport);
 
         private static String GetDocumentFilePathFromName(string documentName)
             => "C:\\" + documentName;

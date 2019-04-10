@@ -57,6 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServer.Protocol
         /// Gets or sets the children of this symbol, e.g. properties of a class.
         /// </summary>
         [DataMember(Name = "children")]
-        public List<DocumentSymbol> Children { get; set; }
+        public DocumentSymbol[] Children { get; set; }
     }
 }

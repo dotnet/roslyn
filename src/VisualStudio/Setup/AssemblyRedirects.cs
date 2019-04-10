@@ -12,7 +12,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.EditorFeatures.Text.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Features.dll")]
-[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Protocol.LanguageServices.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.VisualBasic.Features.dll")]
