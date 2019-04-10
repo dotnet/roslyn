@@ -309,8 +309,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var context = await GetOrCreateContext(document, position, cancellationToken).ConfigureAwait(false);
             options = GetUpdatedRecommendationOptions(options, document.Project.Language);
 
-            var inferenceService = document.GetLanguageService<ITypeInferenceService>();
-            var inferredTypes = inferenceService.InferTypes(context.SemanticModel, position, cancellationToken);
+            var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
+            var inferredTypes = typeInferenceService.InferTypes(context.SemanticModel, position, cancellationToken);
 
             if (relatedDocumentIds.IsEmpty)
             {
