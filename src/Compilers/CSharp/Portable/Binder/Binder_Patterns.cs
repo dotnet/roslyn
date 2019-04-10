@@ -210,8 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var requiredVersion = MessageID.IDS_FeatureRecursivePatterns.RequiredVersion();
                         if (Compilation.LanguageVersion < requiredVersion &&
-                            // A null pattern can be tested against a type that can be assigned null, even in C# 7.3
-                            !(expression.ConstantValue == ConstantValue.Null && inputType.CanBeAssignedNull()))
+                            !this.Conversions.ClassifyConversionFromExpression(expression, inputType, ref useSiteDiagnostics).IsImplicit)
                         {
                             diagnostics.Add(ErrorCode.ERR_ConstantPatternVsOpenType,
                                 expression.Syntax.Location, inputType, expression.Display, new CSharpRequiredLanguageVersion(requiredVersion));
