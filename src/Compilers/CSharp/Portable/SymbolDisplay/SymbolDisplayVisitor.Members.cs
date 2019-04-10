@@ -851,7 +851,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddReadOnlyIfRequired()
         {
-            if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeModifiers))
+            // 'readonly' in this context is effectively a 'ref' modifier
+            // because it affects whether the 'this' parameter is 'ref' or 'in'.
+            if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
             {
                 AddKeyword(SyntaxKind.ReadOnlyKeyword);
                 AddSpace();
