@@ -10137,7 +10137,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestMatchingTypeFilterWithExperimentEnabled()
+        public async Task TestTargetTypeFilterWithExperimentEnabled()
         {
             var markup =
 @"public class C
@@ -10155,7 +10155,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNoMatchingTypeFilterWithExperimentDisabled()
+        public async Task TestNoTargetTypeFilterWithExperimentDisabled()
         {
             var markup =
 @"public class C
@@ -10170,6 +10170,46 @@ class Program
                 markup, "intField",
                 matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter },
                 matchingFilterExperimentEnabled: false);
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestTargetTypeFilter_NotOnObjectMembers()
+        {
+            var markup =
+@"public class C
+{
+    void M(int x)
+    {
+        M($$);
+    }
+}";
+            await VerifyItemExistsAsync(
+                markup, "GetHashCode",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.MethodFilter },
+                matchingFilterExperimentEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestTargetTypeFilter_NotNamedTypes()
+        {
+            var markup =
+@"public class C
+{
+    void M(C c)
+    {
+        M($$);
+    }
+}";
+            await VerifyItemExistsAsync(
+                markup, "c",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.LocalAndParameterFilter, CompletionItemFilter.MatchingTypeFilter },
+                matchingFilterExperimentEnabled: true);
+
+            await VerifyItemExistsAsync(
+                markup, "C",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.ClassFilter },
+                matchingFilterExperimentEnabled: true);
         }
     }
 }
