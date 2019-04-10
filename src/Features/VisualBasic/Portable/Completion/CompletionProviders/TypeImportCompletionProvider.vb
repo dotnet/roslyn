@@ -28,11 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetNamespacesInScope(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ImmutableHashSet(Of String)
-
-            ' Names in VB are case insensitive, so case insensitive comparer is required to decide if a namespace is in scope.
-            Dim builder = ImmutableHashSet.CreateBuilder(Of String)(CaseInsensitiveComparison.Comparer)
-
+        Protected Overrides Sub GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel, builder As ImmutableHashSet(Of String).Builder, cancellationToken As CancellationToken)
             ' Get namespaces from import directives
             Dim importsInScope = semanticModel.GetImportNamespacesInScope(location)
             For Each import As INamespaceSymbol In importsInScope
@@ -44,25 +40,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             For Each globalImport As GlobalImport In vbOptions.GlobalImports
                 builder.Add(globalImport.Name)
             Next
-
-            ' Get containing namespaces
-            Dim containingNamespaceDeclaration = location.GetAncestorOrThis(Of NamespaceStatementSyntax)()
-
-            Dim containingNamespaceSymbol As INamespaceSymbol
-            If containingNamespaceDeclaration Is Nothing Then
-                containingNamespaceSymbol = semanticModel.Compilation.RootNamespace()
-            Else
-                containingNamespaceSymbol = semanticModel.GetDeclaredSymbol(containingNamespaceDeclaration, cancellationToken)
-            End If
-
-            If containingNamespaceSymbol IsNot Nothing Then
-                While containingNamespaceSymbol IsNot Nothing
-                    builder.Add(containingNamespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat))
-                    containingNamespaceSymbol = containingNamespaceSymbol.ContainingNamespace
-                End While
-            End If
-
-            Return builder.ToImmutable()
-        End Function
+        End Sub
     End Class
 End Namespace

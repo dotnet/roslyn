@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
@@ -17,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractTypeImportCompletionProvider : CommonCompletionProvider
     {
-        private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
         private readonly ITypeImportCompletionService _typeImportCompletionService;
         private readonly IExperimentationService _experimentationService;
 
@@ -29,7 +29,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
 
-        protected abstract ImmutableHashSet<string> GetNamespacesInScope(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract void GetImportedNamespaces(
+            SyntaxNode location,
+            SemanticModel semanticModel,
+            ImmutableHashSet<string>.Builder builder,
+            CancellationToken cancellationToken);
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
@@ -46,26 +50,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
-            await AddCompletionItemsAsync(document, syntaxContext, completionContext, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task AddCompletionItemsAsync(Document document, SyntaxContext context, CompletionContext completionContext, CancellationToken cancellationToken)
-        {
-            if (!context.IsTypeContext)
+            if (!syntaxContext.IsTypeContext)
             {
                 return;
             }
 
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             {
-                var node = context.LeftToken.Parent;
-                var project = document.Project;
-
                 // Find all namespaces in scope at current cursor location, 
                 // which will be used to filter so the provider only returns out-of-scope types.
-                var namespacesInScope = GetNamespacesInScope(node, context.SemanticModel, cancellationToken);
+                var namespacesInScope = GetNamespacesInScope(document, syntaxContext, cancellationToken);
                 Action<CompletionItem> handleAccessibleItem = item => AddItems(item, completionContext, namespacesInScope);
 
+                // Get completion items from current project.
+                var project = document.Project;
                 await _typeImportCompletionService.GetAccessibleTopLevelTypesFromProjectAsync(project, handleAccessibleItem, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -77,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     var declarationsInReference = ImmutableArray<CompletionItem>.Empty;
                     if (reference is CompilationReference compilationReference)
                     {
+                        // Get completion items from source references.
                         await _typeImportCompletionService.GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
                             project.Solution,
                             compilation,
@@ -86,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                     else if (reference is PortableExecutableReference peReference)
                     {
+                        // Get completion items from metadata references.
                         _typeImportCompletionService.GetAccessibleTopLevelTypesFromPEReference(
                             project.Solution,
                             compilation,
@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
+            return;
+
             static void AddItems(CompletionItem item, CompletionContext completionContext, ImmutableHashSet<string> namespacesInScope)
             {
                 var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(item);
@@ -104,6 +106,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     completionContext.AddItem(item);
                 }
             }
+        }
+
+        private ImmutableHashSet<string> GetNamespacesInScope(Document document, SyntaxContext syntaxContext, CancellationToken cancellationToken)
+        {
+            // This hashset will be used to match namespace names, so it must have the same case-sensitivity as the source language. 
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var builder = ImmutableHashSet.CreateBuilder(syntaxFacts.StringComparer);
+
+            var semanticModel = syntaxContext.SemanticModel;
+            GetImportedNamespaces(syntaxContext.LeftToken.Parent, semanticModel, builder, cancellationToken);
+
+            // Get containing namespaces.
+            var namespaceSymbol = semanticModel.GetEnclosingNamespace(syntaxContext.Position, cancellationToken);
+            while (namespaceSymbol != null)
+            {
+                builder.Add(namespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat));
+                namespaceSymbol = namespaceSymbol.ContainingNamespace;
+            }
+
+            return builder.ToImmutable();
         }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default, CancellationToken cancellationToken = default)
@@ -122,18 +144,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(completionItem);
             Debug.Assert(containingNamespace != null);
 
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
             // Complete type name.
-            var textWithTypeName = root.GetText(text.Encoding).Replace(completionItem.Span, completionItem.DisplayText);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var textWithTypeName = text.Replace(completionItem.Span, completionItem.DisplayText);
             var documentWithTypeName = document.WithText(textWithTypeName);
 
             // Find added node so we can use it to decide where to insert using/imports.
             var treeWithTypeName = await documentWithTypeName.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var rootWithTypeName = await treeWithTypeName.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var addedNode = rootWithTypeName.FindToken(completionItem.Span.Start, findInsideTrivia: true).Parent;
+            var addImportContextNode = rootWithTypeName.FindToken(completionItem.Span.Start, findInsideTrivia: true).Parent;
 
             // Add required using/imports directive.                              
             var addImportService = documentWithTypeName.GetLanguageService<IAddImportsService>();
@@ -142,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var compilation = await documentWithTypeName.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var importNode = CreateImport(documentWithTypeName, containingNamespace);
 
-            var rootWithImport = addImportService.AddImport(compilation, rootWithTypeName, addedNode, importNode, placeSystemNamespaceFirst);
+            var rootWithImport = addImportService.AddImport(compilation, rootWithTypeName, addImportContextNode, importNode, placeSystemNamespaceFirst);
             var documentWithImport = documentWithTypeName.WithSyntaxRoot(rootWithImport);
 
             // Format newly added nodes.

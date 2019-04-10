@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 CancellationToken cancellationToken)
             {
                 var builder = ArrayBuilder<CompletionItemEntry>.GetInstance();
-                VisitNamespace(rootNamespaceSymbol, null, builder, cancellationToken);
+                VisitNamespace(rootNamespaceSymbol, containingNamespace: null, builder, cancellationToken);
                 return builder.ToImmutableAndFree();
 
                 static void VisitNamespace(
@@ -234,10 +234,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     {
                         if (IsAccessible(memberType.DeclaredAccessibility) && memberType.CanBeReferencedByName)
                         {
-                            if (!overloads.TryGetValue(memberType.Name, out var overloadInfo))
-                            {
-                                overloadInfo = default;
-                            }
+                            overloads.TryGetValue(memberType.Name, out var overloadInfo);
                             overloads[memberType.Name] = overloadInfo.Aggregate(memberType);
                         }
                     }

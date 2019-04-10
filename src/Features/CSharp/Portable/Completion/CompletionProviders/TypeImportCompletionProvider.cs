@@ -24,31 +24,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        protected override ImmutableHashSet<string> GetNamespacesInScope(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken)
+        protected override void GetImportedNamespaces(
+            SyntaxNode location,
+            SemanticModel semanticModel,
+            ImmutableHashSet<string>.Builder builder,
+            CancellationToken cancellationToken)
         {
-            // Names in C# are case-sensitive
-            var builder = ImmutableHashSet.CreateBuilder<string>();
-
             // Get namespaces from usings
             foreach (var usingInScope in semanticModel.GetUsingNamespacesInScope(location))
             {
                 builder.Add(usingInScope.ToDisplayString(SymbolDisplayFormats.NameFormat));
             }
-
-            // Get namespaces from containing namespace declaration.
-            var containingNamespaceDeclaration = location.Ancestors()
-                .First(n => n.IsKind(SyntaxKind.NamespaceDeclaration) || n.IsKind(SyntaxKind.CompilationUnit));
-            var symbol = semanticModel.GetDeclaredSymbol(containingNamespaceDeclaration, cancellationToken);
-            if (symbol is INamespaceSymbol namespaceSymbol)
-            {
-                while (namespaceSymbol != null)
-                {
-                    builder.Add(namespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat));
-                    namespaceSymbol = namespaceSymbol.ContainingNamespace;
-                }
-            }
-
-            return builder.ToImmutable();
         }
 
         protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
