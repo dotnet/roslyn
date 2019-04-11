@@ -73,10 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool ShouldDisplayReadOnly(this IPropertySymbol property)
         {
+            var getMethod = property.GetMethod as MethodSymbol;
+            var setMethod = property.SetMethod as MethodSymbol;
+
             // If at least one accessor is present and all present accessors are readonly, the property should be marked readonly.
-            return (property.GetMethod != null || property.SetMethod != null) &&
-                property.GetMethod?.IsReadOnly != false &&
-                property.SetMethod?.IsReadOnly != false;
+            return (getMethod != null || setMethod != null) &&
+                getMethod?.IsDeclaredReadOnly != false &&
+                setMethod?.IsDeclaredReadOnly != false;
         }
     }
 }

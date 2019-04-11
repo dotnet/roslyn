@@ -173,7 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddAccessibilityIfRequired(symbol);
             AddMemberModifiersIfRequired(symbol);
 
-            if ((symbol.AddMethod ?? symbol.RemoveMethod)?.IsReadOnly == true)
+            var accessor = (symbol.AddMethod ?? symbol.RemoveMethod) as MethodSymbol;
+            if (accessor?.IsDeclaredReadOnly == true)
             {
                 AddReadOnlyIfRequired();
             }
@@ -267,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddAccessibilityIfRequired(symbol);
                 AddMemberModifiersIfRequired(symbol);
 
-                if (symbol.IsReadOnly)
+                if ((symbol as MethodSymbol).IsDeclaredReadOnly)
                 {
                     AddReadOnlyIfRequired();
                 }
@@ -778,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddAccessibility(method);
                 }
 
-                if (!property.ShouldDisplayReadOnly() && method.IsReadOnly)
+                if (!property.ShouldDisplayReadOnly() && (method as MethodSymbol)?.IsDeclaredReadOnly == true)
                 {
                     AddReadOnlyIfRequired();
                 }
