@@ -86,7 +86,7 @@ namespace Test.Utilities
             return GetResultAt(VisualBasicDefaultFilePath, line, column, rule, messageArguments);
         }
 
-        protected static DiagnosticResult GetBasicResultAt(IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        protected static DiagnosticResult GetBasicResultAt(IEnumerable<(int line, int column)> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
         {
             return GetResultAt(VisualBasicDefaultFilePath, lineColumnPairs, rule, messageArguments);
         }
@@ -106,7 +106,7 @@ namespace Test.Utilities
             return GetResultAt(CSharpDefaultFilePath, line, column, rule, messageArguments);
         }
 
-        protected static DiagnosticResult GetCSharpResultAt(IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        protected static DiagnosticResult GetCSharpResultAt(IEnumerable<(int line, int column)> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
         {
             return GetResultAt(CSharpDefaultFilePath, lineColumnPairs, rule, messageArguments);
         }
@@ -132,12 +132,12 @@ namespace Test.Utilities
             return new DiagnosticResult(rule).WithLocation(path, line, column).WithArguments(messageArguments);
         }
 
-        private static DiagnosticResult GetResultAt(string path, IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        private static DiagnosticResult GetResultAt(string path, IEnumerable<(int line, int column)> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
         {
             DiagnosticResult result = new DiagnosticResult(rule).WithArguments(messageArguments);
-            foreach (Tuple<int, int> pair in lineColumnPairs)
+            foreach (var (line, column) in lineColumnPairs)
             {
-                result = result.WithLocation(path, pair.Item1, pair.Item2);
+                result = result.WithLocation(path, line, column);
             }
 
             return result;
@@ -303,7 +303,7 @@ namespace Test.Utilities
         protected TestAdditionalDocument GetAdditionalTextFile(string fileName, string text) =>
             new TestAdditionalDocument(fileName, text);
 
-        private static Tuple<Document[], bool, TextSpan?[]> GetDocumentsAndSpans(FileAndSource[] sources, string language, CompilationOptions compilationOptions, ParseOptions parseOptions, ReferenceFlags referenceFlags = ReferenceFlags.None, string projectName = TestProjectName, bool allowUnsafeCode = false)
+        private static (Document[] documents, bool useSpans, TextSpan?[] spans) GetDocumentsAndSpans(FileAndSource[] sources, string language, CompilationOptions compilationOptions, ParseOptions parseOptions, ReferenceFlags referenceFlags = ReferenceFlags.None, string projectName = TestProjectName, bool allowUnsafeCode = false)
         {
             Assert.True(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic, "Unsupported language");
 
@@ -327,7 +327,7 @@ namespace Test.Utilities
             Document[] documents = project.Documents.ToArray();
             Assert.Equal(sources.Length, documents.Length);
 
-            return Tuple.Create(documents, useSpans, spans);
+            return (documents, useSpans, spans);
         }
 
         protected static Document CreateDocument(string source, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, bool allowUnsafeCode = false)
@@ -434,10 +434,7 @@ namespace Test.Utilities
 
         protected static Diagnostic[] GetSortedDiagnostics(FileAndSource[] sources, string language, DiagnosticAnalyzer analyzer, CompilationOptions compilationOptions, ParseOptions parseOptions, TestValidationMode validationMode = DefaultTestValidationMode, ReferenceFlags referenceFlags = ReferenceFlags.None, bool allowUnsafeCode = false, string projectName = TestProjectName, IEnumerable<TestAdditionalDocument> additionalFiles = null)
         {
-            Tuple<Document[], bool, TextSpan?[]> documentsAndUseSpan = GetDocumentsAndSpans(sources, language, compilationOptions, parseOptions, referenceFlags, projectName, allowUnsafeCode);
-            Document[] documents = documentsAndUseSpan.Item1;
-            bool useSpans = documentsAndUseSpan.Item2;
-            TextSpan?[] spans = documentsAndUseSpan.Item3;
+            var (documents, useSpans, spans) = GetDocumentsAndSpans(sources, language, compilationOptions, parseOptions, referenceFlags, projectName, allowUnsafeCode);
             return GetSortedDiagnostics(analyzer, documents, useSpans ? spans : null, validationMode, additionalFiles);
         }
 
