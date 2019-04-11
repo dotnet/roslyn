@@ -15,6 +15,174 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private const string RangeEndAtSignature = "System.Range System.Range.EndAt(System.Index end)";
         private const string RangeAllSignature = "System.Range System.Range.All.get";
 
+        [Fact]
+        public void PatternIndexAndRangeLengthInaccessible()
+        {
+            var src = @"
+class B
+{
+    private int Length => 0;
+    public int this[int i] => 0;
+    public int Slice(int i, int j) => 0;
+}
+class C
+{
+    void M(B b)
+    {
+        _ = b[^0];
+        _ = b[0..];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics(
+                // (12,15): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                //         _ = b[^0];
+                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(12, 15),
+                // (13,15): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         _ = b[0..];
+                Diagnostic(ErrorCode.ERR_BadArgType, "0..").WithArguments("1", "System.Range", "int").WithLocation(13, 15)
+                );
+        }
+
+        [Fact]
+        public void PatternIndexAndRangeLengthNoGetter()
+        {
+            var src = @"
+class B
+{
+    public int Length { set { } }
+    public int this[int i] => 0;
+    public int Slice(int i, int j) => 0;
+}
+class C
+{
+    void M(B b)
+    {
+        _ = b[^0];
+        _ = b[0..];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics(
+                // (12,15): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                //         _ = b[^0];
+                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(12, 15),
+                // (13,15): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         _ = b[0..];
+                Diagnostic(ErrorCode.ERR_BadArgType, "0..").WithArguments("1", "System.Range", "int").WithLocation(13, 15)
+                );
+        }
+
+        [Fact]
+        public void PatternIndexAndRangeGetLengthInaccessible()
+        {
+            var src = @"
+class B
+{
+    public int Length { private get => 0; set { } }
+    public int this[int i] => 0;
+    public int Slice(int i, int j) => 0;
+}
+class C
+{
+    void M(B b)
+    {
+        _ = b[^0];
+        _ = b[0..];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics(
+                // (12,15): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                //         _ = b[^0];
+                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(12, 15),
+                // (13,15): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         _ = b[0..];
+                Diagnostic(ErrorCode.ERR_BadArgType, "0..").WithArguments("1", "System.Range", "int").WithLocation(13, 15)
+                );
+        }
+
+        [Fact]
+        public void PatternIndexAndRangePatternMethodsInaccessible()
+        {
+            var src = @"
+class B
+{
+    public int Length => 0;
+    public int this[int i] { private get => 0; set { } }
+    private int Slice(int i, int j) => 0;
+}
+class C
+{
+    void M(B b)
+    {
+        _ = b[^0];
+        _ = b[0..];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics(
+                // (12,15): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                //         _ = b[^0];
+                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(12, 15),
+                // (13,15): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         _ = b[0..];
+                Diagnostic(ErrorCode.ERR_BadArgType, "0..").WithArguments("1", "System.Range", "int").WithLocation(13, 15)
+                );
+        }
+
+        [Fact]
+        public void PatternIndexAndRangeStaticLength()
+        {
+            var src = @"
+class B
+{
+    public static int Length => 0;
+    public int this[int i] => 0;
+    private int Slice(int i, int j) => 0;
+}
+class C
+{
+    void M(B b)
+    {
+        _ = b[^0];
+        _ = b[0..];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics(
+                // (12,15): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                //         _ = b[^0];
+                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(12, 15),
+                // (13,15): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         _ = b[0..];
+                Diagnostic(ErrorCode.ERR_BadArgType, "0..").WithArguments("1", "System.Range", "int").WithLocation(13, 15)
+                );
+        }
+
+        [Fact]
+        public void PatternIndexAndRangeStaticSlice()
+        {
+            var src = @"
+class B
+{
+    public int Length => 0;
+    private static int Slice(int i, int j) => 0;
+}
+class C
+{
+    void M(B b)
+    {
+        _ = b[0..];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS0021: Cannot apply indexing with [] to an expression of type 'B'
+                //         _ = b[0..];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "b[0..]").WithArguments("B").WithLocation(11, 13)
+                );
+        }
 
         [Fact]
         public void PatternIndexAndRangeNoGetOffset()

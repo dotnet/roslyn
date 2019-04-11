@@ -1748,9 +1748,9 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
 
     <Field Name="Receiver" Type="BoundExpression" Null="disallow" />
-    <Field Name="LengthOrCountProperty" Type="PropertySymbol" />
-    <Field Name="PatternMethod" Type="MethodSymbol" />
-    <Field Name="Argument" Type="BoundExpression" />
+    <Field Name="LengthOrCountProperty" Type="PropertySymbol" Null="disallow" />
+    <Field Name="PatternMethod" Type="MethodSymbol" Null="disallow" />
+    <Field Name="Argument" Type="BoundExpression" Null="disallow" />
   </Node>
 
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">

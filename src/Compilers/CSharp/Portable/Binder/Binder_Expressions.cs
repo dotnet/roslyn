@@ -7506,45 +7506,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            // look for Length first
-            LookupMembersInType(
-                lookupResult,
-                receiverType,
-                WellKnownMemberNames.LengthPropertyName,
-                arity: 0,
-                basesBeingResolved: null,
-                LookupOptions.Default,
-                originalBinder: this,
-                diagnose: false,
-                useSiteDiagnostics: ref useSiteDiagnostics);
+            // Look for Length first
 
-            if (!lookupSatisfiesLengthPattern(out lengthOrCountProperty))
+            if (!tryLookupLengthOrCount(WellKnownMemberNames.LengthPropertyName, out lengthOrCountProperty) &&
+                !tryLookupLengthOrCount(WellKnownMemberNames.CountPropertyName, out lengthOrCountProperty))
             {
-                // Look for Count second
-                lookupResult.Clear();
-                useSiteDiagnostics?.Clear();
-                LookupMembersInType(
-                    lookupResult,
-                    receiverType,
-                    WellKnownMemberNames.CountPropertyName,
-                    arity: 0,
-                    basesBeingResolved: null,
-                    LookupOptions.Default,
-                    originalBinder: this,
-                    diagnose: false,
-                    ref useSiteDiagnostics);
-
-                if (!lookupSatisfiesLengthPattern(out lengthOrCountProperty))
-                {
-                    cleanup();
-                    patternIndexerAccess = null;
-                    return false;
-                }
+                patternIndexerAccess = null;
+                return false;
             }
 
             Debug.Assert(lengthOrCountProperty is { });
-            lookupResult.Clear();
-            useSiteDiagnostics?.Clear();
 
             if (argIsIndex)
             {
@@ -7566,9 +7537,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var candidate in lookupResult.Symbols)
                     {
                         if (!candidate.IsStatic &&
-                            IsAccessible(candidate, ref useSiteDiagnostics) &&
                             candidate is PropertySymbol property &&
                             property.GetOwnOrInheritedGetMethod() is MethodSymbol getMethod &&
+                            IsAccessible(getMethod, ref useSiteDiagnostics) &&
                             getMethod.OriginalDefinition is var original &&
                             original.ParameterCount == 1 &&
                             isIntNotByRef(original.Parameters[0]))
@@ -7580,7 +7551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 getMethod,
                                 arguments[0],
                                 getMethod.ReturnType);
-                            cleanup();
+                            cleanup(lookupResult, ref useSiteDiagnostics);
                             return true;
                         }
                     }
@@ -7600,7 +7571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         substring,
                         arguments[0],
                         substring.ReturnType);
-                    cleanup();
+                    cleanup(lookupResult, ref useSiteDiagnostics);
                     return true;
                 }
             }
@@ -7639,40 +7610,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method,
                                 arguments[0],
                                 method.ReturnType);
-                            cleanup();
+                            cleanup(lookupResult, ref useSiteDiagnostics);
                             return true;
                         }
                     }
                 }
             }
 
-            cleanup();
+            cleanup(lookupResult, ref useSiteDiagnostics);
             patternIndexerAccess = null;
             return false;
 
-            bool isIntNotByRef(ParameterSymbol param)
-                => param.Type.SpecialType == SpecialType.System_Int32 &&
-                   param.RefKind == RefKind.None;
-
-            void cleanup()
+            static void cleanup(LookupResult lookupResult, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             {
                 lookupResult.Free();
                 useSiteDiagnostics = null;
             }
 
-            bool lookupSatisfiesLengthPattern(out PropertySymbol valid)
+            bool isIntNotByRef(ParameterSymbol param)
+                => param.Type.SpecialType == SpecialType.System_Int32 &&
+                   param.RefKind == RefKind.None;
+
+            bool tryLookupLengthOrCount(string propertyName, out PropertySymbol valid)
             {
+                LookupMembersInType(
+                    lookupResult,
+                    receiverType,
+                    propertyName,
+                    arity: 0,
+                    basesBeingResolved: null,
+                    LookupOptions.Default,
+                    originalBinder: this,
+                    diagnose: false,
+                    useSiteDiagnostics: ref useSiteDiagnostics);
+
                 if (lookupResult.IsSingleViable &&
-                    lookupResult.SingleSymbolOrDefault is PropertySymbol property &&
-                    property.GetOwnOrInheritedGetMethod().OriginalDefinition is MethodSymbol getMethod &&
+                    lookupResult.Symbols[0] is PropertySymbol property &&
+                    property.GetOwnOrInheritedGetMethod()?.OriginalDefinition is MethodSymbol getMethod &&
                     getMethod.ReturnType.SpecialType == SpecialType.System_Int32 &&
                     getMethod.RefKind == RefKind.None &&
                     !getMethod.IsStatic &&
                     IsAccessible(getMethod, ref useSiteDiagnostics))
                 {
+                    lookupResult.Clear();
+                    useSiteDiagnostics = null;
                     valid = property;
                     return true;
                 }
+                lookupResult.Clear();
+                useSiteDiagnostics = null;
                 valid = null;
                 return false;
             }
