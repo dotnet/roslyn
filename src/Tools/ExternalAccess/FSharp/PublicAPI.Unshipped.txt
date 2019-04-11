@@ -10,11 +10,28 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DocumentDiagnosticAnaly
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DocumentDiagnosticAnalyzer.DocumentDiagnosticAnalyzer() -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IDiagnosticAnalyzerService
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IDiagnosticAnalyzerService.Reanalyze(Microsoft.CodeAnalysis.Workspace workspace, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectId> projectIds = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId> documentIds = null, bool highPriority = false) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan.Document.get -> Microsoft.CodeAnalysis.Document
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan.DocumentSpan(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan sourceSpan) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan.DocumentSpan(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan sourceSpan, System.Collections.Immutable.ImmutableDictionary<string, object> properties) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan.Equals(Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan obj) -> bool
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, object>
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan.SourceSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult.BraceMatchingResult(Microsoft.CodeAnalysis.Text.TextSpan leftSpan, Microsoft.CodeAnalysis.Text.TextSpan rightSpan) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult.LeftSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult.RightSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.ContentTypeNames
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages.IFSharpFindUsagesContext
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages.IFSharpFindUsagesContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages.IFSharpFindUsagesContext.OnDefinitionFoundAsync(Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages.DefinitionItem definition) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages.IFSharpFindUsagesContext.OnReferenceFoundAsync(Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages.SourceReferenceItem reference) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages.IFSharpFindUsagesContext.ReportMessageAsync(string message) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages.IFSharpFindUsagesContext.ReportProgressAsync(int current, int maximum) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages.IFSharpFindUsagesContext.SetSearchTitleAsync(string title) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages.IFSharpFindUsagesService
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages.IFSharpFindUsagesService.FindImplementationsAsync(Microsoft.CodeAnalysis.Document document, int position, Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages.IFSharpFindUsagesContext context) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages.IFSharpFindUsagesService.FindReferencesAsync(Microsoft.CodeAnalysis.Document document, int position, Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages.IFSharpFindUsagesContext context) -> System.Threading.Tasks.Task
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpBraceMatcher
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpBraceMatcher.FindBracesAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult?>
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingService
@@ -53,6 +70,9 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IndentationResult.Offset.get
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap.ClassificationTypeMap(Microsoft.VisualStudio.Text.Classification.IClassificationTypeRegistryService registryService) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap.GetClassificationType(string name) -> Microsoft.VisualStudio.Text.Classification.IClassificationType
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages.DefinitionItem
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages.SourceReferenceItem
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages.SourceReferenceItem.SourceReferenceItem(Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages.DefinitionItem definition, Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan sourceSpan) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.AddReference = 73 -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.Assembly = 1 -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph
@@ -135,6 +155,8 @@ abstract Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DocumentDiagno
 abstract Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DocumentDiagnosticAnalyzer.AnalyzeSyntaxAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
 const Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DocumentDiagnosticAnalyzer.DefaultPriority = 50 -> int
 const Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.ContentTypeNames.RoslynContentType = "Roslyn Languages" -> string
+override Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan.GetHashCode() -> int
 override sealed Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DocumentDiagnosticAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext context) -> void
 readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugDataTipInfo.Span -> Microsoft.CodeAnalysis.Text.TextSpan
 readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugDataTipInfo.Text -> string
@@ -144,8 +166,12 @@ static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.Classificatio
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.EditAndContinue.get -> string[]
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.Microsoft.get -> string[]
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.Unnecessary.get -> string[]
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan.operator !=(Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan d1, Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan d2) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan.operator ==(Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan d1, Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan d2) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult.CreateLineResult(Microsoft.CodeAnalysis.Document document, string locationNameOpt = null) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult.CreateSpanResult(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, string locationNameOpt = null) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages.DefinitionItem.Create(System.Collections.Immutable.ImmutableArray<string> tags, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> displayParts, Microsoft.CodeAnalysis.ExternalAccess.FSharp.DocumentSpan sourceSpan) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages.DefinitionItem
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages.DefinitionItem.CreateNonNavigableItem(System.Collections.Immutable.ImmutableArray<string> tags, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> displayParts, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> originationParts) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages.DefinitionItem
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.VisualStudioWorkspaceExtensions.GetMetadata(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace workspace, string fullPath, System.DateTime snapshotTimestamp) -> Microsoft.CodeAnalysis.Metadata
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.VisualStudioWorkspaceExtensions.GetOrCreateProjectIdForPath(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace workspace, string filePath, string projectDisplayName) -> Microsoft.CodeAnalysis.ProjectId
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.VisualStudioWorkspaceExtensions.GetProjectFilePath(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace workspace, Microsoft.CodeAnalysis.ProjectId projectId) -> string

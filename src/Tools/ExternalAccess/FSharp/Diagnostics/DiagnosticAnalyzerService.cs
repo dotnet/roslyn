@@ -3,8 +3,8 @@ using System.Composition;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
 {
-    [Export(typeof(IDiagnosticAnalyzerService))]
     [Shared]
+    [Export(typeof(IDiagnosticAnalyzerService))]
     internal class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
         private readonly Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService _delegatee;
