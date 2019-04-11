@@ -59798,8 +59798,8 @@ public interface I1
 
             comp1.VerifyDiagnostics();
 
-            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            void symbolValidator(ModuleSymbol m)
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator1, symbolValidator: symbolValidator1);
+            void symbolValidator1(ModuleSymbol m)
             {
                 bool isSource = !(m is PEModuleSymbol);
 
@@ -59818,6 +59818,43 @@ public interface I1
                 {
                     Assert.Equal(1, attributes.Length);
                     Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", attributes[0].ToString());
+                }
+            }
+
+            var source2 =
+@"
+#nullable enable
+public interface I1
+{
+    void F1<TF1, TF2>() where TF1 : class?;
+}
+";
+            var comp2 = CreateCompilation(source2);
+
+            comp2.VerifyDiagnostics();
+
+            CompileAndVerify(comp2, sourceSymbolValidator: symbolValidator2, symbolValidator: symbolValidator2);
+            void symbolValidator2(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var f1 = (MethodSymbol)m.GlobalNamespace.GetMember("I1.F1");
+                Assert.Equal("void I1.F1<TF1, TF2>() where TF1 : class?", f1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                foreach (TypeParameterSymbol tf1 in f1.TypeParameters)
+                {
+                    Assert.False(tf1.IsNotNullableIfReferenceType);
+                    var attributes = tf1.GetAttributes();
+
+                    if (isSource)
+                    {
+                        Assert.Empty(attributes);
+                    }
+                    else
+                    {
+                        Assert.Equal(1, attributes.Length);
+                        Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", attributes[0].ToString());
+                    }
                 }
             }
         }
@@ -60317,8 +60354,8 @@ public interface I1<TF1>
 
             comp1.VerifyDiagnostics();
 
-            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            void symbolValidator(ModuleSymbol m)
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator1, symbolValidator: symbolValidator1);
+            void symbolValidator1(ModuleSymbol m)
             {
                 bool isSource = !(m is PEModuleSymbol);
 
@@ -60337,6 +60374,42 @@ public interface I1<TF1>
                 {
                     Assert.Equal(1, attributes.Length);
                     Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", attributes[0].ToString());
+                }
+            }
+
+            var source2 =
+@"
+#nullable enable
+public interface I1<TF1, TF2> where TF1 : class?
+{
+}
+";
+            var comp2 = CreateCompilation(source2);
+
+            comp2.VerifyDiagnostics();
+
+            CompileAndVerify(comp2, sourceSymbolValidator: symbolValidator2, symbolValidator: symbolValidator2);
+            void symbolValidator2(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                Assert.Equal("I1<TF1, TF2> where TF1 : class?", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                foreach (TypeParameterSymbol tf1 in i1.TypeParameters)
+                {
+                    Assert.False(tf1.IsNotNullableIfReferenceType);
+                    var attributes = tf1.GetAttributes();
+
+                    if (isSource)
+                    {
+                        Assert.Empty(attributes);
+                    }
+                    else
+                    {
+                        Assert.Equal(1, attributes.Length);
+                        Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", attributes[0].ToString());
+                    }
                 }
             }
         }
