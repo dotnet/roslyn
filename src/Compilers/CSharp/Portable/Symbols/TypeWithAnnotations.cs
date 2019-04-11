@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)type != null;
         }
 
-        public void AddNullableTransforms(ArrayBuilder<byte> transforms)
+        public void AddNullableTransformShallow(ArrayBuilder<byte> transforms)
         {
             var typeSymbol = Type;
             byte flag;
@@ -563,7 +563,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             transforms.Add(flag);
-            typeSymbol.AddNullableTransforms(transforms);
+        }
+
+        public void AddNullableTransforms(ArrayBuilder<byte> transforms)
+        {
+            AddNullableTransformShallow(transforms);
+            Type.AddNullableTransforms(transforms);
         }
 
         public (TypeWithAnnotations type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
@@ -590,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 newType = newType.WithTypeAndModifiers(newTypeSymbol, newType.CustomModifiers);
             }
 
-            if (newType.ApplyNullableTransform(transformFlag) is TypeWithAnnotations finalType)
+            if (newType.ApplyNullableTransformShallow(transformFlag) is TypeWithAnnotations finalType)
             {
                 return (finalType, newResult.Value.data);
             }
@@ -598,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        public TypeWithAnnotations? ApplyNullableTransform(byte transformFlag)
+        public TypeWithAnnotations? ApplyNullableTransformShallow(byte transformFlag)
         {
             switch ((NullableAnnotation)transformFlag)
             {

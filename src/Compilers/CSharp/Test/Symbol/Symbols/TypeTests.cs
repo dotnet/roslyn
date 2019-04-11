@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -45,6 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
             verifyElementAnnotation(x.Type.MergeNullability(x.Type.SetObliviousNullabilityForReferenceTypes(), VarianceKind.None), NullableAnnotation.NotAnnotated);
             verifyElementAnnotation(x.Type.ApplyNullableTransforms(new NullableTransformData(NullableAnnotation.Oblivious)).Value.type, NullableAnnotation.Oblivious);
+
+            var builder = ArrayBuilder<byte>.GetInstance();
+            x.Type.AddNullableTransforms(builder);
+            Assert.Equal(10240, builder.Count);
+            builder.Free();
 
             static void verifyElementAnnotation(TypeSymbol type, NullableAnnotation annotation)
             {

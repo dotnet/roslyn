@@ -410,7 +410,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
-            ElementTypeWithAnnotations.AddNullableTransforms(transforms);
+            var elementType = ElementTypeWithAnnotations;
+            while (elementType.Type is ArrayTypeSymbol arrayType)
+            {
+                elementType.AddNullableTransformShallow(transforms);
+                elementType = arrayType.ElementTypeWithAnnotations;
+            }
+
+            elementType.AddNullableTransforms(transforms);
         }
 
         internal override (TypeSymbol type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
@@ -826,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var innerArray = oldReturn.arrayType;
                 var elementType = state.arrayType.ElementTypeWithAnnotations;
                 elementType = TypeWithAnnotations.Create(oldReturn.arrayType, elementType.NullableAnnotation, elementType.CustomModifiers);
-                var result = elementType.ApplyNullableTransform(state.data.Current);
+                var result = elementType.ApplyNullableTransformShallow(state.data.Current);
                 if (!result.HasValue)
                 {
                     return (null, default);
