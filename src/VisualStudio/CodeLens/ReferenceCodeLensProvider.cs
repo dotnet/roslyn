@@ -63,14 +63,14 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
         public Task<bool> CanCreateDataPointAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
-            if (!descriptorContext.ApplicableSpan.HasValue)
+            if (descriptorContext.ApplicableSpan.HasValue)
             {
-                return SpecializedTasks.False;
+                // we allow all reference points. 
+                // engine will call this for all points our roslyn code lens (reference) tagger tagged.
+                return SpecializedTasks.True;
             }
 
-            // we allow all reference points. 
-            // engine will call this for all points our roslyn code lens (reference) tagger tagged.
-            return SpecializedTasks.True;
+            return SpecializedTasks.False;
         }
 
         public async Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(
@@ -78,9 +78,9 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
         {
             var dataPoint = new DataPoint(
                 this,
+                _lazyCodeLensCallbackService.Value,
                 descriptor,
-                await GetConnectionAsync(cancellationToken).ConfigureAwait(false),
-                _lazyCodeLensCallbackService.Value);
+                await GetConnectionAsync(cancellationToken).ConfigureAwait(false));
 
             await dataPoint.TrackChangesAsync(cancellationToken).ConfigureAwait(false);
 
@@ -102,22 +102,41 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
 
         private class DataPoint : IAsyncCodeLensDataPoint, IDisposable
         {
+            private static readonly List<CodeLensDetailHeaderDescriptor> s_header = new List<CodeLensDetailHeaderDescriptor>()
+            {
+                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.FilePath },
+                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.LineNumber },
+                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ColumnNumber },
+                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceText },
+                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceStart },
+                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceEnd },
+                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceLongDescription },
+                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceImageId },
+                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextBeforeReference2 },
+                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextBeforeReference1 },
+                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextAfterReference1 },
+                new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextAfterReference2 },
+            };
+
             private readonly ReferenceCodeLensProvider _owner;
             private readonly JsonRpc _roslynRpc;
             private readonly ICodeLensCallbackService _callbackService;
 
             public DataPoint(
-                ReferenceCodeLensProvider owner, CodeLensDescriptor descriptor, Stream stream, ICodeLensCallbackService callbackService)
+                ReferenceCodeLensProvider owner,
+                ICodeLensCallbackService callbackService,
+                CodeLensDescriptor descriptor,
+                Stream stream)
             {
                 _owner = owner;
-                this.Descriptor = descriptor;
+                _callbackService = callbackService;
+
+                Descriptor = descriptor;
 
                 _roslynRpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: new RoslynCallbackTarget(Invalidate));
                 _roslynRpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
                 _roslynRpc.StartListening();
-
-                _callbackService = callbackService;
             }
 
             public event AsyncEventHandler InvalidatedAsync;
@@ -126,25 +145,28 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
 
             public async Task<CodeLensDataPointDescriptor> GetDataAsync(CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
             {
+                var codeElementKind = GetCodeElementKindsString(Descriptor.Kind);
+
                 // we always get data through VS rather than Roslyn OOP directly since we want final data rather than
                 // raw data from Roslyn OOP such as razor find all reference results
                 var referenceCount = await _callbackService.InvokeAsync<ReferenceCount>(
-                    _owner, nameof(ICodeLensContext.GetReferenceCountAsync), new object[] { this.Descriptor, descriptorContext }, cancellationToken).ConfigureAwait(false);
-
+                    _owner,
+                    nameof(ICodeLensContext.GetReferenceCountAsync),
+                    new object[] { Descriptor, descriptorContext },
+                    cancellationToken).ConfigureAwait(false);
                 if (referenceCount == null)
                 {
                     return null;
                 }
 
                 var referenceCountString = $"{referenceCount.Count}{(referenceCount.IsCapped ? "+" : string.Empty)}";
-
                 return new CodeLensDataPointDescriptor()
                 {
                     Description = referenceCount.Count == 1
                         ? string.Format(CodeLensVSResources._0_reference, referenceCountString)
                         : string.Format(CodeLensVSResources._0_references, referenceCountString),
                     IntValue = referenceCount.Count,
-                    TooltipText = string.Format(CodeLensVSResources.This_0_has_1_references, GetCodeElementKindsString(Descriptor.Kind), referenceCountString),
+                    TooltipText = string.Format(CodeLensVSResources.This_0_has_1_references, codeElementKind, referenceCountString),
                     ImageId = null
                 };
 
@@ -171,25 +193,15 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
                 // we always get data through VS rather than Roslyn OOP directly since we want final data rather than
                 // raw data from Roslyn OOP such as razor find all reference results
                 var referenceLocationDescriptors = await _callbackService.InvokeAsync<IEnumerable<ReferenceLocationDescriptor>>(
-                    _owner, nameof(ICodeLensContext.FindReferenceLocationsAsync), new object[] { this.Descriptor, descriptorContext }, cancellationToken).ConfigureAwait(false);
+                    _owner,
+                    nameof(ICodeLensContext.FindReferenceLocationsAsync),
+                    new object[] { Descriptor, descriptorContext },
+                    cancellationToken).ConfigureAwait(false);
+
 
                 var details = new CodeLensDetailsDescriptor
                 {
-                    Headers = new List<CodeLensDetailHeaderDescriptor>()
-                    {
-                        new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.FilePath },
-                        new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.LineNumber },
-                        new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ColumnNumber },
-                        new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceText },
-                        new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceStart },
-                        new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceEnd },
-                        new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceLongDescription },
-                        new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.ReferenceImageId },
-                        new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextBeforeReference2 },
-                        new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextBeforeReference1 },
-                        new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextAfterReference1 },
-                        new CodeLensDetailHeaderDescriptor() { UniqueName = ReferenceEntryFieldNames.TextAfterReference2 },
-                    },
+                    Headers = s_header,
                     Entries = referenceLocationDescriptors.Select(referenceLocationDescriptor =>
                     {
                         ImageId imageId = default;
@@ -239,7 +251,20 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
 
             public async Task TrackChangesAsync(CancellationToken cancellationToken)
             {
-                var documentId = await GetDocumentIdAsync().ConfigureAwait(false);
+                var guids = await _callbackService.InvokeAsync<List<Guid>>(
+                    _owner,
+                    nameof(ICodeLensContext.GetDocumentId),
+                    new object[] { Descriptor.ProjectGuid, Descriptor.FilePath },
+                    cancellationToken).ConfigureAwait(false);
+                if (guids == null)
+                {
+                    return;
+                }
+
+                var documentId = DocumentId.CreateFromSerialized(
+                    ProjectId.CreateFromSerialized(guids[0], Descriptor.ProjectGuid.ToString()),
+                    guids[1],
+                    Descriptor.FilePath);
                 if (documentId == null)
                 {
                     return;
@@ -250,19 +275,6 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
                 // that connection
                 await _roslynRpc.InvokeWithCancellationAsync(
                     nameof(IRemoteCodeLensReferencesService.TrackCodeLensAsync), new object[] { documentId }, cancellationToken).ConfigureAwait(false);
-
-                async Task<DocumentId> GetDocumentIdAsync()
-                {
-                    var guids = await _callbackService.InvokeAsync<List<Guid>>(
-                        _owner, nameof(ICodeLensContext.GetDocumentId), new object[] { this.Descriptor.ProjectGuid, this.Descriptor.FilePath }, cancellationToken).ConfigureAwait(false);
-                    if (guids == null)
-                    {
-                        return null;
-                    }
-
-                    return DocumentId.CreateFromSerialized(
-                        ProjectId.CreateFromSerialized(guids[0], this.Descriptor.ProjectGuid.ToString()), guids[1], this.Descriptor.FilePath);
-                }
             }
 
             public void Dispose()

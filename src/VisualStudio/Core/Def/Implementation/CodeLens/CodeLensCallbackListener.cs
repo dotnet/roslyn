@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
@@ -41,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         private int _maxSearchResults = int.MinValue;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeLensCallbackListener(
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
@@ -78,34 +80,46 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
-            if (!TryGetDocument(solution, descriptor.ProjectGuid, descriptor.FilePath, out var document))
+            var (documentId, node) = await GetDocumentIdAndNodeAsync(
+                solution, descriptor, descriptorContext.ApplicableSpan.Value, cancellationToken).ConfigureAwait(false);
+            if (documentId == null)
             {
                 return null;
             }
 
             var maxSearchResults = await GetMaxResultCapAsync(cancellationToken).ConfigureAwait(false);
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(descriptorContext.ApplicableSpan.Value.ToTextSpan());
-
             var service = _workspace.Services.GetService<ICodeLensReferencesService>();
-            return await service.GetReferenceCountAsync(solution, document.Id, node, maxSearchResults, cancellationToken).ConfigureAwait(false);
+            return await service.GetReferenceCountAsync(solution, documentId, node, maxSearchResults, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
-            if (!TryGetDocument(solution, descriptor.ProjectGuid, descriptor.FilePath, out var document))
+            var (documentId, node) = await GetDocumentIdAndNodeAsync(
+                solution, descriptor, descriptorContext.ApplicableSpan.Value, cancellationToken).ConfigureAwait(false);
+            if (documentId == null)
             {
                 return null;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(descriptorContext.ApplicableSpan.Value.ToTextSpan());
-
             var service = _workspace.Services.GetService<ICodeLensReferencesService>();
-            return await service.FindReferenceLocationsAsync(solution, document.Id, node, cancellationToken).ConfigureAwait(false);
+            return await service.FindReferenceLocationsAsync(solution, documentId, node, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<(DocumentId, SyntaxNode)> GetDocumentIdAndNodeAsync(
+            Solution solution, CodeLensDescriptor descriptor, Text.Span span, CancellationToken cancellationToken)
+        {
+            if (!TryGetDocument(solution, descriptor.ProjectGuid, descriptor.FilePath, out var document))
+            {
+                return default;
+            }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(span.ToTextSpan());
+
+            return (document.Id, node);
         }
 
         private async Task<int> GetMaxResultCapAsync(CancellationToken cancellationToken)
@@ -142,6 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             catch (ArgumentException)
             {
                 // guard against users possibly creating a value with datatype other than Int32
+                _maxSearchResults = DefaultMaxSearchResultsValue;
             }
         }
 

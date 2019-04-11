@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async token =>
             {
-                await WorkspaceChangeTracker.TrackAsync(this, SolutionService.PrimaryWorkspace, documentId, cancellationToken).ConfigureAwait(false);
+                await WorkspaceChangeTracker.TrackAsync(this, SolutionService.PrimaryWorkspace, documentId, token).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // if anything under the project this file belong to changes, then invalidate the code lens so that it can refresh
                 var dependentVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-                var _ = new WorkspaceChangeTracker(owner, workspace, documentId, dependentVersion, cancellationToken);
+                new WorkspaceChangeTracker(owner, workspace, documentId, dependentVersion, cancellationToken);
             }
 
             private WorkspaceChangeTracker(
