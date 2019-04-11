@@ -52,14 +52,14 @@ jobs:
         testRunner: XUnit
         testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml
         mergeTestResults: true
-        testRunTitle: 'Integration $(_configuration) $(_completionName)' 
+        testRunTitle: '$(System.JobAttempt)-Integration $(_configuration) $(_completionName)' 
       condition: always()
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Logs
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
-        ArtifactName: 'Logs $(_configuration) $(_completionName) $(Build.BuildNumber)'
+        ArtifactName: '$(System.JobAttempt)-Logs $(_configuration) $(_completionName) $(Build.BuildNumber)'
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())
@@ -68,7 +68,7 @@ jobs:
       displayName: Publish Screenshots
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\$(_configuration)\net472\xUnitResults'
-        ArtifactName: 'Screenshots $(_configuration) $(_completionName) $(Build.BuildNumber)'
+        ArtifactName: '$(System.JobAttempt)-Screenshots $(_configuration) $(_completionName) $(Build.BuildNumber)'
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())
