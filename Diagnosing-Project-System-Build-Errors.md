@@ -20,13 +20,15 @@ There are a few ways to tell:
 ## How do I get log files to diagnose what is happening in Visual Studio 2019?
 
 1. Install the [Project System Tools Extension from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProjectSystemTools)
-2. Restart Visual Studio as a part of installing the extension. Don't open your Solution yet.
-3. Go View > Other Windows > Build Logging.
-4. In the Build Logging window, click the start button.
-5. Open your solution, and open the file you're having troubles with. You should see various entries appearing in the Build Logging window.
-6. Click the stop button in the Build Logging window.
-7. Select all the logs by clicking on one and then pressing Ctrl+A to Select All.
-8. Right click, choose Save Logs. Save them, and attach them to your feedback item.
+2. Restart Visual Studio as a part of installing the extension.
+3. Close Visual Studio again, find your solution file on disk, and delete the .vs hidden folder that is alongside your solution. You'll have to show hidden files if you don't see it.
+4. Open Visual Studio. Don't open your Solution yet.
+5. Go View > Other Windows > Build Logging.
+6. In the Build Logging window, click the start button.
+7. Open your solution, and open the file you're having troubles with. You should see various entries appearing in the Build Logging window.
+8. Click the stop button in the Build Logging window.
+9. Select all the logs by clicking on one and then pressing Ctrl+A to Select All.
+10. Right click, choose Save Logs. Save them, and attach them to your feedback item.
 
 ## How do I get log files to diagnose what is happening in Visual Studio 2015?
 
