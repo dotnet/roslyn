@@ -24,7 +24,25 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             return Create(
                 displayText, displayTextSuffix: string.Empty, rules,
-                glyph, description, sortText, filterText, showsWarningIcon, properties, tags);
+                glyph, description, sortText, filterText, showsWarningIcon, properties, tags, inlineDescription: null);
+        }
+
+        // Back compat overload for FSharp
+        public static CompletionItem Create(
+            string displayText,
+            string displayTextSuffix,
+            CompletionItemRules rules,
+            Glyph? glyph,
+            ImmutableArray<SymbolDisplayPart> description,
+            string sortText,
+            string filterText,
+            bool showsWarningIcon,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<string> tags)
+        {
+            return Create(
+                  displayText, displayTextSuffix, rules,
+                  glyph, description, sortText, filterText, showsWarningIcon, properties, tags, inlineDescription: null);
         }
 
         public static CompletionItem Create(
