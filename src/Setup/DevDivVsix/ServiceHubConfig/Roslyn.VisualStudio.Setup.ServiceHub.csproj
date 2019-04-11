@@ -34,7 +34,7 @@
       <_Lines>
         <![CDATA[use vs
 
-package name=$(VisualStudioInsertionComponent)
+package name=$(MSBuildProjectName)
         version=$(VsixVersion)
 
 folder InstallDir:\Common7\ServiceHub\Services\RoslynCodeAnalysisService
