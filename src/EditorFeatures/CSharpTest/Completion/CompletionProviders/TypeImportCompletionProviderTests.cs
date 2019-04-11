@@ -203,7 +203,7 @@ namespace Foo
     {{}}
 }}";
 
-   var file2 = @"
+            var file2 = @"
 namespace Baz
 {
     using Foo;
@@ -525,11 +525,132 @@ namespace Baz
             await VerifyItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Show_TopLevel_NoImport_InVBReference()
+        {
+            var file1 = $@"
+Namespace Bar
+    Public Class Barr
+    End CLass
+End Namespace";
+            var file2 = @"
+namespace Baz
+{
+    class Bat
+    {
+         $$
+    }
+}";
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "Foo");
+            await VerifyItemExistsAsync(markup, "Barr", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo.Bar");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VB_MixedCapitalization_Test()
+        {
+            var file1 = $@"
+Namespace Na
+    Public Class Foo
+    End Class
+End Namespace
+
+Namespace na
+    Public Class Bar
+    End Class
+End Namespace
+";
+            var file2 = @"
+namespace Baz
+{
+    class Bat
+    {
+         $$
+    }
+}";
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "");
+            await VerifyItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Na");
+            await VerifyItemExistsAsync(markup, "Foo", glyph: (int)Glyph.ClassPublic, inlineDescription: "Na");
+            await VerifyItemIsAbsentAsync(markup, "Bar", inlineDescription: "na");
+            await VerifyItemIsAbsentAsync(markup, "Foo", inlineDescription: "na");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VB_MixedCapitalization_WithImport_Test()
+        {
+            var file1 = $@"
+Namespace Na
+    Public Class Foo
+    End Class
+End Namespace
+
+Namespace na
+    Public Class Bar
+    End Class
+End Namespace
+";
+            var file2 = @"
+using Na;
+namespace Baz
+{
+    class Bat
+    {
+         $$
+    }
+}";
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "");
+            await VerifyItemIsAbsentAsync(markup, "Bar", inlineDescription: "Na");
+            await VerifyItemIsAbsentAsync(markup, "Foo", inlineDescription: "Na");
+            await VerifyItemIsAbsentAsync(markup, "Bar", inlineDescription: "na");
+            await VerifyItemIsAbsentAsync(markup, "Foo", inlineDescription: "na");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task DoNotShow_TopLevel_Internal_NoImport_InVBReference()
+        {
+            var file1 = $@"
+Namespace Bar
+    Friend Class Barr
+    End CLass
+End Namespace";
+            var file2 = @"
+namespace Baz
+{
+    class Bat
+    {
+         $$
+    }
+}";
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "Foo");
+            await VerifyItemIsAbsentAsync(markup, "Barr", inlineDescription: "Foo.Bar");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task DoNotShow_TopLevel_WithImport_InVBReference()
+        {
+            var file1 = $@"
+Namespace Bar
+    Public Class Barr
+    End CLass
+End Namespace";
+            var file2 = @"
+using Foo.Bar;
+namespace Baz
+{
+    class Bat
+    {
+         $$
+    }
+}";
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "Foo");
+            await VerifyItemIsAbsentAsync(markup, "Barr", inlineDescription: "Foo.Bar");
+        }
+
         #endregion
 
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task Commit_NoImport_InProject()
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Commit_NoImport_InProject(SourceCodeKind kind)
         {
             var file1 = $@"
 namespace Foo
@@ -558,7 +679,64 @@ namespace Baz
     }
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-            await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind: kind);
+        }
+
+
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Commit_NoImport_InVBReference(SourceCodeKind kind)
+        {
+            var file1 = $@"
+Namespace Bar
+    Public Class Barr
+    End CLass
+End Namespace";
+            var file2 = @"
+namespace Baz
+{
+    class Bat
+    {
+        $$
+    }
+}"; var expectedCodeAfterCommit = @"
+using Foo.Bar;
+
+namespace Baz
+{
+    class Bat
+    {
+        Barr$$
+    }
+}";
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "Foo");
+            await VerifyCustomCommitProviderAsync(markup, "Barr", expectedCodeAfterCommit, sourceCodeKind: kind);
+        }
+
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Commit_NoImport_InPEReference(SourceCodeKind kind)
+        {
+            var markup = $@"<Workspace>
+    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"">
+        <Document FilePath=""CSharpDocument"">
+class Bar
+{{
+     $$
+}}</Document>
+    </Project>    
+</Workspace>";
+            var expectedCodeAfterCommit = @"
+using System;
+
+class Bar
+{
+     Console$$
+}";
+
+            await VerifyCustomCommitProviderAsync(markup, "Console", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
     }
 }

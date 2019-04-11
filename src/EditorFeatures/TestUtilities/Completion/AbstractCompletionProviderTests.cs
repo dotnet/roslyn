@@ -375,6 +375,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 return;
             }
 
+            // textview is created lazily, so need to access it before making 
+            // changes to document, so the cursor position is tracked correctly.
+            var textView = WorkspaceFixture.CurrentDocument.GetTextView();
+
             var commit = await service.GetChangeAsync(document, completionItem, commitChar, CancellationToken.None);
 
             var text = await document.GetTextAsync();
@@ -383,7 +387,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
             var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
-            var textView = WorkspaceFixture.CurrentDocument.GetTextView();
 
             string actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = commit.NewPosition != null ? commit.NewPosition.Value : textView.Caret.Position.BufferPosition.Position;
@@ -507,13 +510,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return string.Format(@"
 <Workspace>
     <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
-        <Document FilePath=""SourceDocument"">
-{1}
-        </Document>
+        <Document FilePath=""SourceDocument"">{1}</Document>
         <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
-            <Document FilePath=""ReferencedDocument"">
-{3}
-            </Document>
+            <Document FilePath=""ReferencedDocument"">{3}</Document>
         </MetadataReferenceFromSource>
     </Project>
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(metadataReferenceCode));
@@ -532,9 +531,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return string.Format(@"
 <Workspace>
     <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
-        <Document FilePath=""SourceDocument"">
-{1}
-        </Document>
+        <Document FilePath=""SourceDocument"">{1}</Document>
         <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" Aliases=""{3}, global"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
             <Document FilePath=""ReferencedDocument"">
             </Document>
@@ -556,17 +553,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 <Workspace>
     <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
         <ProjectReference>ReferencedProject</ProjectReference>
-        <Document FilePath=""SourceDocument"">
-{1}
-        </Document>
+        <Document FilePath=""SourceDocument"">{1}</Document>
     </Project>
     <Project Language=""{2}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
-        <Document FilePath=""ReferencedDocument"">
-{3}
-        </Document>
+        <Document FilePath=""ReferencedDocument"">{3}</Document>
     </Project>
     
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(referencedCode));
+        }
+
+        protected static string CreateMarkupForProjecWithVBProjectReference(string markup, string referencedCode, string sourceLanguage, string rootnamespace = "")
+        {
+            return string.Format(@"
+<Workspace>
+    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
+        <ProjectReference>ReferencedProject</ProjectReference>
+        <Document FilePath=""SourceDocument"">{1}</Document>
+    </Project>
+    <Project Language=""{2}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
+        <Document FilePath=""ReferencedDocument"">{3}</Document>
+        <CompilationOptions RootNamespace=""{4}""/>
+    </Project>
+    
+</Workspace>", sourceLanguage, SecurityElement.Escape(markup), LanguageNames.VisualBasic, SecurityElement.Escape(referencedCode), rootnamespace);
         }
 
         private Task VerifyItemInSameProjectAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage, bool hideAdvancedMembers)
