@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty);
             }
 
-            var filterCache = new Dictionary<string, AsyncCompletionData.CompletionFilter>();
+            var filterCache = PooledDictionary<string, AsyncCompletionData.CompletionFilter>.GetInstance();
 
             var itemsBuilder = new ArrayBuilder<VSCompletionItem>(completionList.Items.Length);
             foreach (var roslynItem in completionList.Items)
@@ -210,6 +210,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var item = Convert(document, roslynItem, completionService, filterCache);
                 itemsBuilder.Add(item);
             }
+
+            filterCache.Free();
 
             var items = itemsBuilder.ToImmutableAndFree();
 
@@ -287,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             Document document,
             RoslynCompletionItem roslynItem,
             CompletionService completionService,
-            Dictionary<string, AsyncCompletionData.CompletionFilter> filterCache)
+            PooledDictionary<string, AsyncCompletionData.CompletionFilter> filterCache)
         {
             if (roslynItem.UseEditorCompletionItemCache && roslynItem.CachedEditorCompletionItem is VSCompletionItem vsItem)
             {
@@ -349,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return hashSet.ToImmutableArray();
         }
 
-        private ImmutableArray<AsyncCompletionData.CompletionFilter> GetFilters(RoslynCompletionItem item, Dictionary<string, AsyncCompletionData.CompletionFilter> filterCache)
+        private ImmutableArray<AsyncCompletionData.CompletionFilter> GetFilters(RoslynCompletionItem item, PooledDictionary<string, AsyncCompletionData.CompletionFilter> filterCache)
         {
             var listBuilder = new ArrayBuilder<AsyncCompletionData.CompletionFilter>();
             foreach (var filter in CompletionItemFilter.AllFilters)
