@@ -345,9 +345,9 @@ namespace Test.Utilities
             return CreateProject(new[] { source }.ToFileAndSource(), language, referenceFlags, allowUnsafeCode: allowUnsafeCode).Documents.First();
         }
 
-        protected static Document[] CreateDocuments(string[] sources, string language = LanguageNames.CSharp, bool allowUnsafeCode = false)
+        protected static Document[] CreateDocuments(string[] sources, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, bool allowUnsafeCode = false)
         {
-            return CreateProject(sources.ToFileAndSource(), language, allowUnsafeCode: allowUnsafeCode).Documents.ToArray();
+            return CreateProject(sources.ToFileAndSource(), language, referenceFlags, allowUnsafeCode: allowUnsafeCode).Documents.ToArray();
         }
 
         protected static Project CreateProject(string[] sources, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, Solution addToSolution = null)
@@ -378,6 +378,7 @@ namespace Test.Utilities
             Project project = (addToSolution ?? new AdhocWorkspace().CurrentSolution)
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 .AddProject(projectId, projectName, projectName, language)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.Netstandard)
                 .AddMetadataReference(projectId, MetadataReferences.CorlibReference)
                 .AddMetadataReference(projectId, MetadataReferences.SystemCoreReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlReference)

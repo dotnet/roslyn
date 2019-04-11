@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 

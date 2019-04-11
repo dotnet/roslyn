@@ -10,6 +10,7 @@
     <Summary>Public API Analyzer</Summary>
     <ReleaseNotes>Public API Analyzers</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics PublicApi ApiAnalyzer</PackageTags>
+    <AnalyzerDocumentationFileDir>$(RepoRoot)src\PublicApiAnalyzers</AnalyzerDocumentationFileDir>
   </PropertyGroup>
 
   <Choose>

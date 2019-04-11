@@ -23,7 +23,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Mapping from <see cref="NullAbstractValue"/> to a <see cref="PropertySetAbstractValueKind"/>
         /// </summary>
-        /// <param name="valueContentAbstractValue">Property's assigned value's <see cref="ValueContentAbstractValue"/>.</param>
+        /// <param name="nullAbstractValue">Property's assigned value's <see cref="ValueContentAbstractValue"/>.</param>
         /// <returns>What the property's assigned value should map to.</returns>
         public delegate PropertySetAbstractValueKind NullAbstractValueCallback(NullAbstractValue nullAbstractValue);
 

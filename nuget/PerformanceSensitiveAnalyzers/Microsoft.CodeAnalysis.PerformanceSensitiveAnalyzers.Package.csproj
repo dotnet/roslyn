@@ -9,12 +9,15 @@
     <Summary>PerformanceSensitive Analyzers</Summary>
     <ReleaseNotes>PerformanceSensitive Analyzers</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp Diagnostic Analyzers Syntax Semantics Performance</PackageTags>
+    <AnalyzerDocumentationFileDir>$(RepoRoot)src\PerformanceSensitiveAnalyzers</AnalyzerDocumentationFileDir>
   </PropertyGroup>
 
   <ItemGroup>
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll" />
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll" />
+    <AnalyzerNupkgFile Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.targets" />
     <AnalyzerNupkgFile Include="PerformanceSensitiveAttribute.cs" />
+    <AnalyzerNupkgFile Include="PerformanceSensitiveAttribute.vb" />
   </ItemGroup>
 
   <ItemGroup>

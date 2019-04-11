@@ -280,5 +280,15 @@ namespace Analyzer.Utilities
         public const string SystemXmlXmlTextWriter = "System.Xml.XmlTextWriter";
         public const string SystemWindowsMarkupXamlReader = "System.Windows.Markup.XamlReader";
         public const string SystemWebConfigurationHttpRuntimeSection = "System.Web.Configuration.HttpRuntimeSection";
+        public const string SystemEventArgs = "System.EventArgs";
+        public const string SystemXmlSchemaXmlSchemaCollection = "System.Xml.Schema.XmlSchemaCollection";
+        public const string SystemDataDataSet = "System.Data.DataSet";
+        public const string SystemXmlXmlReader = "System.Xml.XmlReader";
+        public const string SystemXmlSerializationXmlSerializer = "System.Xml.Serialization.XmlSerializer";
+        public const string SystemXmlXmlValidatingReader = "System.Xml.XmlValidatingReader";
+        public const string SystemXmlSchemaXmlSchema = "System.Xml.Schema.XmlSchema";
+        public const string SystemXmlXPathXPathDocument = "System.Xml.XPath.XPathDocument";
+        public const string SystemIODirectoryInfo = "System.IO.DirectoryInfo";
+        public const string SystemIOLogLogStore = "System.IO.Log.LogStore";
     }
 }

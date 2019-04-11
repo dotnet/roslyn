@@ -31,9 +31,15 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// String option to configure dispose analysis kind, primarily for CA2000 (DisposeObjectsBeforeLosingScope).
-        /// Allowed option values: Fields from DisposeAnalysisKind enum>.
+        /// Allowed option values: Fields from DisposeAnalysisKind enum.
         /// </summary>
         public const string DisposeAnalysisKind = "dispose_analysis_kind";
+
+        /// <summary>
+        /// Boolean option to configure if passing a disposable object as a constructor argument should be considered
+        /// as a dispose ownership transfer, primarily for CA2000 (DisposeObjectsBeforeLosingScope).
+        /// </summary>
+        public const string DisposeOwnershipTransferAtConstructor = "dispose_ownership_transfer_at_constructor";
 
         /// <summary>
         /// Option to configure whether copy analysis should be executed during dataflow analysis.

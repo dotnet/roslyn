@@ -41,17 +41,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
         private void RegisterSyntaxAnalysis(CodeBlockStartAnalysisContext<TLanguageKindEnum> codeBlockStartAnalysisContext, AttributeChecker performanceSensitiveAttributeChecker)
         {
-            if (AllocationRules.IsIgnoredFile(codeBlockStartAnalysisContext.CodeBlock.SyntaxTree.FilePath))
-            {
-                return;
-            }
-
             var owningSymbol = codeBlockStartAnalysisContext.OwningSymbol;
-
-            if (owningSymbol.GetAttributes().Any(AllocationRules.IsIgnoredAttribute))
-            {
-                return;
-            }
 
             if (!performanceSensitiveAttributeChecker.TryGetContainsPerformanceSensitiveInfo(owningSymbol, out var info))
             {

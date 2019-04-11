@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         {
             private readonly Dictionary<IFieldSymbol, PointsToAbstractValue> _trackedInstanceFieldLocationsOpt;
             private ImmutableHashSet<INamedTypeSymbol> DisposeOwnershipTransferLikelyTypes => DataFlowAnalysisContext.DisposeOwnershipTransferLikelyTypes;
+            private bool DisposeOwnershipTransferAtConstructor => DataFlowAnalysisContext.DisposeOwnershipTransferAtConstructor;
 
             public DisposeDataFlowOperationVisitor(DisposeAnalysisContext analysisContext)
                 : base(analysisContext)
@@ -167,7 +168,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             protected override void SetValueForParameterPointsToLocationOnEntry(IParameterSymbol parameter, PointsToAbstractValue pointsToAbstractValue)
             {
-                if (DisposeOwnershipTransferLikelyTypes.Contains(parameter.Type))
+                if (DisposeOwnershipTransferLikelyTypes.Contains(parameter.Type) ||
+                    (DisposeOwnershipTransferAtConstructor && parameter.ContainingSymbol.IsConstructor()))
                 {
                     SetAbstractValue(pointsToAbstractValue, DisposeAbstractValue.NotDisposed);
                 }
@@ -342,17 +344,34 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 // Local functions.
                 void PostProcessEscapedArgument()
                 {
-                    if (operation.Parameter.Type.IsDisposable(WellKnownTypeProvider.IDisposable))
+                    // Discover if a disposable object is being passed into the creation method for this new disposable object
+                    // and if the new disposable object assumes ownership of that passed in disposable object.
+                    if (IsDisposeOwnershipTransfer())
                     {
-                        // Discover if a disposable object is being passed into the creation method for this new disposable object
-                        // and if the new disposable object assumes ownership of that passed in disposable object.
-                        if ((operation.Parent is IObjectCreationOperation ||
-                             operation.Parent is IInvocationOperation invocation && IsDisposableCreationSpecialCase(invocation.TargetMethod)) &&
-                            DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type))
-                        {
-                            var pointsToValue = GetPointsToAbstractValue(operation.Value);
-                            HandlePossibleEscapingOperation(operation, pointsToValue.Locations);
-                        }
+                        var pointsToValue = GetPointsToAbstractValue(operation.Value);
+                        HandlePossibleEscapingOperation(operation, pointsToValue.Locations);
+                    }
+                }
+
+                bool IsDisposeOwnershipTransfer()
+                {
+                    if (!operation.Parameter.Type.IsDisposable(WellKnownTypeProvider.IDisposable))
+                    {
+                        return false;
+                    }
+
+                    switch (operation.Parent)
+                    {
+                        case IObjectCreationOperation _:
+                            return DisposeOwnershipTransferAtConstructor ||
+                                DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type);
+
+                        case IInvocationOperation invocation:
+                            return IsDisposableCreationSpecialCase(invocation.TargetMethod) &&
+                                DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type);
+
+                        default:
+                            return false;
                     }
                 }
             }
