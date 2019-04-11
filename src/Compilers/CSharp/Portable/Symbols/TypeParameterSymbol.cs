@@ -671,10 +671,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
+        internal override (TypeSymbol type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
         {
-            result = this;
-            return true;
+            return (this, transformData);
         }
 
         internal override TypeSymbol SetObliviousNullabilityForReferenceTypes()

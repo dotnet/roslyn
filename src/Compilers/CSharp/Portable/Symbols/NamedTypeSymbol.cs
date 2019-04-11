@@ -768,12 +768,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
+        internal override (TypeSymbol type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
         {
             if (!IsGenericType)
             {
-                result = this;
-                return true;
+                return (this, transformData);
             }
 
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
@@ -783,16 +782,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < allTypeArguments.Count; i++)
             {
                 TypeWithAnnotations oldTypeArgument = allTypeArguments[i];
-                TypeWithAnnotations newTypeArgument;
-                if (!oldTypeArgument.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newTypeArgument))
+                var result = oldTypeArgument.ApplyNullableTransforms(transformData);
+                if (!result.HasValue)
                 {
                     allTypeArguments.Free();
-                    result = this;
-                    return false;
+                    return null;
                 }
-                else if (!oldTypeArgument.IsSameAs(newTypeArgument))
+                else if (!oldTypeArgument.IsSameAs(result.Value.type))
                 {
-                    allTypeArguments[i] = newTypeArgument;
+                    allTypeArguments[i] = result.Value.type;
                     haveChanges = true;
                 }
             }
@@ -800,17 +798,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!haveChanges)
             {
                 allTypeArguments.Free();
-                result = this;
+                return (this, transformData);
             }
             else
             {
                 TypeMap substitution = new TypeMap(this.OriginalDefinition.GetAllTypeParameters(),
                                                    allTypeArguments.ToImmutableAndFree());
 
-                result = substitution.SubstituteNamedType(this.OriginalDefinition);
+                return (substitution.SubstituteNamedType(this.OriginalDefinition), transformData);
             }
-
-            return true;
         }
 
         internal override TypeSymbol SetObliviousNullabilityForReferenceTypes()

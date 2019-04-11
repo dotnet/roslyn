@@ -1431,15 +1431,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _underlyingType.AddNullableTransforms(transforms);
         }
 
-        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
+        internal override (TypeSymbol type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
         {
-            if (_underlyingType.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out TypeSymbol underlying))
+            var result = _underlyingType.ApplyNullableTransforms(transformData);
+            if (!result.HasValue)
             {
-                result = this.WithUnderlyingType((NamedTypeSymbol)underlying);
-                return true;
+                return null;
             }
-            result = this;
-            return false;
+
+            return (WithUnderlyingType((NamedTypeSymbol)result.Value.type), result.Value.data);
         }
 
         internal override TypeSymbol SetObliviousNullabilityForReferenceTypes()

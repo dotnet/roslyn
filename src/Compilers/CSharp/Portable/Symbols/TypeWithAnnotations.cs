@@ -566,61 +566,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeSymbol.AddNullableTransforms(transforms);
         }
 
-        public bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeWithAnnotations result)
+        public (TypeWithAnnotations type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
         {
-            result = this;
+            if (!transformData.HasData)
+            {
+                return null;
+            }
 
-            byte transformFlag;
-            if (transforms.IsDefault)
-            {
-                transformFlag = defaultTransformFlag;
-            }
-            else if (position < transforms.Length)
-            {
-                transformFlag = transforms[position++];
-            }
-            else
-            {
-                return false;
-            }
+            byte transformFlag = transformData.Current;
+            transformData = transformData.Advance();
 
             TypeSymbol oldTypeSymbol = Type;
-            TypeSymbol newTypeSymbol;
-
-            if (!oldTypeSymbol.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newTypeSymbol))
+            var newResult = oldTypeSymbol.ApplyNullableTransforms(transformData);
+            if (!newResult.HasValue)
             {
-                return false;
+                return null;
             }
 
+            var (newTypeSymbol, newTransformData) = newResult.Value;
+            var newType = this;
             if ((object)oldTypeSymbol != newTypeSymbol)
             {
-                result = result.WithTypeAndModifiers(newTypeSymbol, result.CustomModifiers);
+                newType = newType.WithTypeAndModifiers(newTypeSymbol, newType.CustomModifiers);
             }
 
             switch ((NullableAnnotation)transformFlag)
             {
                 case NullableAnnotation.Annotated:
-                    result = result.AsNullableReferenceType();
+                    newType = newType.AsNullableReferenceType();
                     break;
 
                 case NullableAnnotation.NotAnnotated:
-                    result = result.AsNotNullableReferenceType();
+                    newType = newType.AsNotNullableReferenceType();
                     break;
 
                 case NullableAnnotation.Oblivious:
-                    if (result.NullableAnnotation != NullableAnnotation.Oblivious &&
-                        !(result.NullableAnnotation.IsAnnotated() && oldTypeSymbol.IsNullableType())) // Preserve nullable annotation on Nullable<T>.
+                    if (newType.NullableAnnotation != NullableAnnotation.Oblivious &&
+                        !(newType.NullableAnnotation.IsAnnotated() && oldTypeSymbol.IsNullableType())) // Preserve nullable annotation on Nullable<T>.
                     {
-                        result = CreateNonLazyType(newTypeSymbol, NullableAnnotation.Oblivious, result.CustomModifiers);
+                        newType = CreateNonLazyType(newTypeSymbol, NullableAnnotation.Oblivious, newType.CustomModifiers);
                     }
                     break;
 
                 default:
-                    result = this;
-                    return false;
+                    return null;
             }
 
-            return true;
+            return (newType, newTransformData);
         }
 
         public TypeWithAnnotations WithTopLevelNonNullability()
@@ -1020,6 +1012,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return type.TypeSymbolEqualsCore(other, comparison);
             }
+        }
+    }
+
+    internal readonly struct NullableTransformData
+    {
+        private readonly ImmutableArray<byte> _transforms;
+        private readonly int _positionOrDefault;
+        public bool IsDefault => _transforms.IsDefault;
+        public bool IsDefaultOrEmpty => IsDefault || _positionOrDefault == _transforms.Length;
+        public bool HasData => IsDefault || _positionOrDefault < _transforms.Length;
+        public byte Current => _transforms.IsDefault ? (byte)_positionOrDefault : _transforms[_positionOrDefault];
+
+        public NullableTransformData(ImmutableArray<byte> transforms, int position)
+        {
+            Debug.Assert(!transforms.IsDefault);
+            _transforms = transforms;
+            _positionOrDefault = position;
+        }
+
+        public NullableTransformData(byte defaultState, ImmutableArray<byte> transforms = default)
+        {
+            _transforms = transforms;
+            _positionOrDefault = defaultState;
+        }
+
+        public NullableTransformData Advance()
+        {
+            Debug.Assert(HasData);
+            return IsDefault ? this : new NullableTransformData(_transforms, _positionOrDefault + 1);
         }
     }
 }

@@ -253,19 +253,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PointedAtTypeWithAnnotations.AddNullableTransforms(transforms);
         }
 
-        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
+        internal override (TypeSymbol type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
         {
-            TypeWithAnnotations oldPointedAtType = PointedAtTypeWithAnnotations;
-            TypeWithAnnotations newPointedAtType;
-
-            if (!oldPointedAtType.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newPointedAtType))
+            var result = PointedAtTypeWithAnnotations.ApplyNullableTransforms(transformData);
+            if (!result.HasValue)
             {
-                result = this;
-                return false;
+                return null;
             }
 
-            result = WithPointedAtType(newPointedAtType);
-            return true;
+            return (WithPointedAtType(result.Value.type), result.Value.data);
         }
 
         internal override TypeSymbol SetObliviousNullabilityForReferenceTypes()

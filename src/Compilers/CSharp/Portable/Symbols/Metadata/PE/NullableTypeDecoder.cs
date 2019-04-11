@@ -34,12 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return metadataType;
             }
 
-            int position = 0;
-            TypeWithAnnotations result;
-            if (metadataType.ApplyNullableTransforms(defaultTransformFlag, nullableTransformFlags, ref position, out result) &&
-                (nullableTransformFlags.IsDefault || position == nullableTransformFlags.Length))
+            var data = new NullableTransformData(defaultTransformFlag, nullableTransformFlags);
+            var result = metadataType.ApplyNullableTransforms(new NullableTransformData(defaultTransformFlag, nullableTransformFlags));
+            if (result.HasValue && result.Value.data.IsDefaultOrEmpty)
             {
-                return result;
+                return result.Value.type;
             }
 
             // No NullableAttribute applied to the target symbol, or flags do not line-up, return unchanged metadataType.
