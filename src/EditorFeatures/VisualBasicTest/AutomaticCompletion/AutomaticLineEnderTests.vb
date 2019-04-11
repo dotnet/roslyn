@@ -266,11 +266,10 @@ End Module
 
         Friend Overrides Function CreateCommandHandler(
             undoRegistry As ITextUndoHistoryRegistry,
-            editorOperations As IEditorOperationsFactoryService,
-            asyncCompletionBroker As IAsyncCompletionBroker
+            editorOperations As IEditorOperationsFactoryService
         ) As IChainedCommandHandler(Of AutomaticLineEnderCommandArgs)
 
-            Return New AutomaticLineEnderCommandHandler(undoRegistry, editorOperations, asyncCompletionBroker)
+            Return New AutomaticLineEnderCommandHandler(undoRegistry, editorOperations)
         End Function
 
         Protected Overrides Function CreateNextHandler(workspace As TestWorkspace) As Action

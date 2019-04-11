@@ -358,18 +358,127 @@ F");
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size       35 (0x23)
+  // Code size       44 (0x2c)
   .maxstack  2
   IL_0000:  ldsfld     ""object Test.O""
   IL_0005:  call       ""string string.Concat(object)""
-  IL_000a:  call       ""void System.Console.WriteLine(string)""
-  IL_000f:  ldsfld     ""string Test.S""
-  IL_0014:  dup
-  IL_0015:  brtrue.s   IL_001d
-  IL_0017:  pop
-  IL_0018:  ldstr      """"
-  IL_001d:  call       ""void System.Console.WriteLine(string)""
-  IL_0022:  ret
+  IL_000a:  dup
+  IL_000b:  brtrue.s   IL_0013
+  IL_000d:  pop
+  IL_000e:  ldstr      """"
+  IL_0013:  call       ""void System.Console.WriteLine(string)""
+  IL_0018:  ldsfld     ""string Test.S""
+  IL_001d:  dup
+  IL_001e:  brtrue.s   IL_0026
+  IL_0020:  pop
+  IL_0021:  ldstr      """"
+  IL_0026:  call       ""void System.Console.WriteLine(string)""
+  IL_002b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConcatOneArgWithNullToString()
+        {
+            var source = @"
+using System;
+
+public class Test
+{
+    private static object C = new C();
+
+    static void Main()
+    {
+        Console.WriteLine((C + null) == """" ? ""Y"" : ""N"");
+        Console.WriteLine((C + null + null) == """" ? ""Y"" : ""N"");
+    }
+}
+
+public class C
+{
+    public override string ToString() => null;
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"Y
+Y");
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Main", @"
+{
+  // Code size       97 (0x61)
+  .maxstack  2
+  IL_0000:  ldsfld     ""object Test.C""
+  IL_0005:  call       ""string string.Concat(object)""
+  IL_000a:  dup
+  IL_000b:  brtrue.s   IL_0013
+  IL_000d:  pop
+  IL_000e:  ldstr      """"
+  IL_0013:  ldstr      """"
+  IL_0018:  call       ""bool string.op_Equality(string, string)""
+  IL_001d:  brtrue.s   IL_0026
+  IL_001f:  ldstr      ""N""
+  IL_0024:  br.s       IL_002b
+  IL_0026:  ldstr      ""Y""
+  IL_002b:  call       ""void System.Console.WriteLine(string)""
+  IL_0030:  ldsfld     ""object Test.C""
+  IL_0035:  call       ""string string.Concat(object)""
+  IL_003a:  dup
+  IL_003b:  brtrue.s   IL_0043
+  IL_003d:  pop
+  IL_003e:  ldstr      """"
+  IL_0043:  ldstr      """"
+  IL_0048:  call       ""bool string.op_Equality(string, string)""
+  IL_004d:  brtrue.s   IL_0056
+  IL_004f:  ldstr      ""N""
+  IL_0054:  br.s       IL_005b
+  IL_0056:  ldstr      ""Y""
+  IL_005b:  call       ""void System.Console.WriteLine(string)""
+  IL_0060:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConcatOneArgWithExplicitConcatCall()
+        {
+            var source = @"
+using System;
+
+public class Test
+{
+    private static object O = ""O"";
+
+    static void Main()
+    {
+        Console.WriteLine(string.Concat(O) + null);
+        Console.WriteLine(string.Concat(O) + null + null);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"O
+O");
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Main", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldsfld     ""object Test.O""
+  IL_0005:  call       ""string string.Concat(object)""
+  IL_000a:  dup
+  IL_000b:  brtrue.s   IL_0013
+  IL_000d:  pop
+  IL_000e:  ldstr      """"
+  IL_0013:  call       ""void System.Console.WriteLine(string)""
+  IL_0018:  ldsfld     ""object Test.O""
+  IL_001d:  call       ""string string.Concat(object)""
+  IL_0022:  dup
+  IL_0023:  brtrue.s   IL_002b
+  IL_0025:  pop
+  IL_0026:  ldstr      """"
+  IL_002b:  call       ""void System.Console.WriteLine(string)""
+  IL_0030:  ret
 }
 ");
         }
@@ -398,18 +507,22 @@ F");
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size       35 (0x23)
+  // Code size       44 (0x2c)
   .maxstack  2
   IL_0000:  ldsfld     ""object Test.O""
   IL_0005:  call       ""string string.Concat(object)""
-  IL_000a:  call       ""void System.Console.WriteLine(string)""
-  IL_000f:  ldsfld     ""string Test.S""
-  IL_0014:  dup
-  IL_0015:  brtrue.s   IL_001d
-  IL_0017:  pop
-  IL_0018:  ldstr      """"
-  IL_001d:  call       ""void System.Console.WriteLine(string)""
-  IL_0022:  ret
+  IL_000a:  dup
+  IL_000b:  brtrue.s   IL_0013
+  IL_000d:  pop
+  IL_000e:  ldstr      """"
+  IL_0013:  call       ""void System.Console.WriteLine(string)""
+  IL_0018:  ldsfld     ""string Test.S""
+  IL_001d:  dup
+  IL_001e:  brtrue.s   IL_0026
+  IL_0020:  pop
+  IL_0021:  ldstr      """"
+  IL_0026:  call       ""void System.Console.WriteLine(string)""
+  IL_002b:  ret
 }
 ");
         }
@@ -537,7 +650,7 @@ A0A0
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.TestMethod<T>()", @"
 {
-  // Code size      193 (0xc1)
+  // Code size      211 (0xd3)
   .maxstack  4
   .locals init (T V_0)
   IL_0000:  ldstr      ""A""
@@ -585,18 +698,26 @@ A0A0
   IL_0084:  ldloc.0
   IL_0085:  box        ""T""
   IL_008a:  call       ""string string.Concat(object)""
-  IL_008f:  call       ""void System.Console.WriteLine(string)""
-  IL_0094:  ldstr      ""#""
-  IL_0099:  call       ""void System.Console.WriteLine(string)""
-  IL_009e:  ldloca.s   V_0
-  IL_00a0:  initobj    ""T""
-  IL_00a6:  ldloc.0
-  IL_00a7:  box        ""T""
-  IL_00ac:  call       ""string string.Concat(object)""
-  IL_00b1:  call       ""void System.Console.WriteLine(string)""
-  IL_00b6:  ldstr      ""#""
-  IL_00bb:  call       ""void System.Console.WriteLine(string)""
-  IL_00c0:  ret
+  IL_008f:  dup
+  IL_0090:  brtrue.s   IL_0098
+  IL_0092:  pop
+  IL_0093:  ldstr      """"
+  IL_0098:  call       ""void System.Console.WriteLine(string)""
+  IL_009d:  ldstr      ""#""
+  IL_00a2:  call       ""void System.Console.WriteLine(string)""
+  IL_00a7:  ldloca.s   V_0
+  IL_00a9:  initobj    ""T""
+  IL_00af:  ldloc.0
+  IL_00b0:  box        ""T""
+  IL_00b5:  call       ""string string.Concat(object)""
+  IL_00ba:  dup
+  IL_00bb:  brtrue.s   IL_00c3
+  IL_00bd:  pop
+  IL_00be:  ldstr      """"
+  IL_00c3:  call       ""void System.Console.WriteLine(string)""
+  IL_00c8:  ldstr      ""#""
+  IL_00cd:  call       ""void System.Console.WriteLine(string)""
+  IL_00d2:  ret
 }
 ");
         }
