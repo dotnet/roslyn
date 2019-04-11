@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
 
             [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+            [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
             public async Task NoServerConnection()
             {
                 using (var readyMre = new ManualResetEvent(initialState: false))
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             /// </summary>
             /// <returns></returns>
             [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+            [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
             public async Task ServerShutdownsDuringProcessing()
             {
                 using (var readyMre = new ManualResetEvent(initialState: false))
