@@ -81768,7 +81768,14 @@ class B2 : A<int?>
     {
         ((object?)x).ToString(); // 2
         object? y = x;
-        y.ToString(); // 3
+        y.ToString();
+    }
+
+    void F(int? x)
+    {
+        ((object?)x).ToString(); // 3
+        object? y = x;
+        y.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -81779,9 +81786,9 @@ class B2 : A<int?>
                 // (18,10): warning CS8602: Dereference of a possibly null reference.
                 //         ((object?)x).ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(object?)x").WithLocation(18, 10),
-                // (20,9): warning CS8602: Dereference of a possibly null reference.
-                //         y.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(20, 9)
+                // (25,10): warning CS8602: Dereference of a possibly null reference.
+                //         ((object?)x).ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(object?)x").WithLocation(25, 10)
                 );
         }
 
