@@ -213,9 +213,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var updateService = await GetUpdateServiceIfCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (updateService != null)
             {
-                // we track work by async token but doesn't explicitly wait for it
+                // we track work by async token but doesn't explicitly wait for it. and update service is free-thread service,
+                // no need to switch to UI thread to use it
                 var asyncToken = _listener.BeginAsyncOperation("RegisterDesignerAttribute");
-                _ = updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument).CompletesAsyncOperation(asyncToken);
+                _ = updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument)
+                                 .ReportNonFatalErrorAsync().CompletesAsyncOperation(asyncToken);
             }
             else
             {
