@@ -33018,8 +33018,15 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33011: Deconstruction should infer `string?` for `var y`.
-            comp.VerifyDiagnostics();
+            // https://github.com/dotnet/roslyn/issues/33011: Deconstruction should infer `string?` for `var y`. Shouldn't report nullability
+            // mismatches
+            comp.VerifyDiagnostics(
+                // (8,18): warning CS8619: Nullability of reference types in value of type '(string, string?)' doesn't match target type 'string'.
+                //         foreach ((var x, var y) in F())
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(var x, var y)").WithArguments("(string, string?)", "string").WithLocation(8, 18),
+                // (8,18): warning CS8619: Nullability of reference types in value of type '(string, string?)' doesn't match target type 'string'.
+                //         foreach ((var x, var y) in F())
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(var x, var y)").WithArguments("(string, string?)", "string").WithLocation(8, 18));
             //// (11,13): warning CS8602: Dereference of a possibly null reference.
             ////             y.ToString();
             //Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(11, 13));
@@ -49694,11 +49701,14 @@ class C
         foreach (string y in e)
             y.ToString();
         foreach (string? z in e)
-            z.ToString();
+            z.ToString(); // 1
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (19,13): warning CS8602: Dereference of a possibly null reference.
+                //             z.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(19, 13));
         }
 
         [Fact]
@@ -49731,9 +49741,9 @@ class C
                 // (15,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 13),
-                // (16,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (16,25): warning CS8605: Possible null reference assignment to iteration variable
                 //         foreach (object y in e)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "object").WithLocation(16, 18),
+                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "y").WithLocation(16, 25),
                 // (17,13): warning CS8602: Dereference of a possibly null reference.
                 //             y.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(17, 13),
@@ -49812,18 +49822,18 @@ class C
                 // (50,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(50, 13),
-                // (51,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (51,25): warning CS8605: Possible null reference assignment to iteration variable
                 //         foreach (object y in e)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "object").WithLocation(51, 18),
+                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "y").WithLocation(51, 25),
                 // (52,13): warning CS8602: Dereference of a possibly null reference.
                 //             y.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(52, 13),
                 // (57,13): warning CS8602: Dereference of a possibly null reference.
                 //             z.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(57, 13),
-                // (58,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (58,25): warning CS8605: Possible null reference assignment to iteration variable
                 //         foreach (object w in e)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "object").WithLocation(58, 18),
+                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "w").WithLocation(58, 25),
                 // (59,13): warning CS8602: Dereference of a possibly null reference.
                 //             w.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w").WithLocation(59, 13));
@@ -49912,15 +49922,15 @@ class P
                 // (15,13): warning CS8602: Dereference of a possibly null reference.
                 //             y.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(15, 13),
-                // (16,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (16,20): warning CS8605: Possible null reference assignment to iteration variable
                 //         foreach (T z in c)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "T").WithLocation(16, 18),
+                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "z").WithLocation(16, 20),
                 // (17,13): warning CS8602: Dereference of a possibly null reference.
                 //             z.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(17, 13),
-                // (18,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (18,25): warning CS8605: Possible null reference assignment to iteration variable
                 //         foreach (object w in c)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "object").WithLocation(18, 18),
+                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "w").WithLocation(18, 25),
                 // (19,13): warning CS8602: Dereference of a possibly null reference.
                 //             w.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w").WithLocation(19, 13));
@@ -49972,9 +49982,9 @@ class P
                 // (26,13): warning CS8602: Dereference of a possibly null reference.
                 //             x2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(26, 13),
-                // (27,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (27,20): warning CS8605: Possible null reference assignment to iteration variable
                 //         foreach (T y2 in new S<T?>())
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "T").WithLocation(27, 18),
+                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "y2").WithLocation(27, 20),
                 // (27,32): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'S<T>'. Nullability of type argument 'T?' doesn't match 'class' constraint.
                 //         foreach (T y2 in new S<T?>())
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "T?").WithArguments("S<T>", "T", "T?").WithLocation(27, 32),
@@ -50029,12 +50039,24 @@ static class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
+                // (9,29): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
+                //         foreach (I<object?> a1 in x1)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a1").WithArguments("I<object>", "I<object?>").WithLocation(9, 29),
                 // (10,13): warning CS8602: Dereference of a possibly null reference.
                 //             a1.P.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a1.P").WithLocation(10, 13),
+                // (11,28): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                //         foreach (I<object> b1 in y1)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b1").WithArguments("I<object?>", "I<object>").WithLocation(11, 28),
+                // (16,31): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
+                //         foreach (IIn<object?> a2 in x2)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("IIn<object>", "IIn<object?>").WithLocation(16, 31),
                 // (24,13): warning CS8602: Dereference of a possibly null reference.
                 //             a3.P.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a3.P").WithLocation(24, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a3.P").WithLocation(24, 13),
+                // (25,31): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
+                //         foreach (IOut<object> b3 in y3)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b3").WithArguments("IOut<object?>", "IOut<object>").WithLocation(25, 31));
         }
 
         [Fact]
@@ -50067,18 +50089,18 @@ class C
                 // (10,13): warning CS8602: Dereference of a possibly null reference.
                 //             a2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2").WithLocation(10, 13),
-                // (11,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (11,20): warning CS8605: Possible null reference assignment to iteration variable
                 //         foreach (A a3 in c)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "A").WithLocation(11, 18),
+                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "a3").WithLocation(11, 20),
                 // (12,13): warning CS8602: Dereference of a possibly null reference.
                 //             a3.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a3").WithLocation(12, 13),
                 // (14,13): warning CS8602: Dereference of a possibly null reference.
                 //             b1.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1").WithLocation(14, 13),
-                // (15,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (15,20): warning CS8605: Possible null reference assignment to iteration variable
                 //         foreach (B b2 in c)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "B").WithLocation(15, 18),
+                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "b2").WithLocation(15, 20),
                 // (16,13): warning CS8602: Dereference of a possibly null reference.
                 //             b2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b2").WithLocation(16, 13));
@@ -50110,8 +50132,6 @@ class C
             b1.ToString();
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/29971: Should report WRN_NullabilityMismatchInAssignment
-            // for `A<object> a3 in c` and `B b1 in c`.
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (13,13): warning CS8602: Dereference of a possibly null reference.
@@ -50119,10 +50139,17 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a1.F").WithLocation(13, 13),
                 // (15,13): warning CS8602: Dereference of a possibly null reference.
                 //             a2.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2.F").WithLocation(15, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2.F").WithLocation(15, 13),
+                // (16,28): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'A<object>'.
+                //         foreach (A<object> a3 in c)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a3").WithArguments("A<object?>", "A<object>").WithLocation(16, 28),
+                // (18,20): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'B'.
+                //         foreach (B b1 in c)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b1").WithArguments("A<object?>", "B").WithLocation(18, 20));
         }
 
         [Fact]
+        [WorkItem(29971, "https://github.com/dotnet/roslyn/issues/29971")]
         public void ForEach_11()
         {
             var source =
@@ -50150,18 +50177,16 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29971: Location of WRN_ConvertingNullableToNonNullable should be `y` rather than `B`.
             comp.VerifyDiagnostics(
-                // (15,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (15,20): warning CS8605: Possible null reference assignment to iteration variable
                 //         foreach (B y in e)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "B").WithLocation(15, 18),
+                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "y").WithLocation(15, 20),
                 // (16,13): warning CS8602: Dereference of a possibly null reference.
                 //             y.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(16, 13),
                 // (19,13): warning CS8602: Dereference of a possibly null reference.
                 //             z.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(19, 13)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(19, 13));
         }
 
         [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
@@ -84653,10 +84678,46 @@ class Program
             z3.ToString(); // 8
         }
     }
+    static void F4((object?, object?)[] arr)
+    {
+        foreach ((object, object) el in arr) // 9
+        {
+            el.Item1.ToString();
+            el.Item2.ToString();
+        }
+
+        foreach ((object i1, object i2) in arr) // 10, 11
+        {
+            i1.ToString(); // 12
+            i2.ToString(); // 13
+        }
+    }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33017: Report warnings.
-            comp.VerifyDiagnostics();
+            // https://github.com/dotnet/roslyn/issues/33017: Report warnings for null dereferences,
+            // stop reporting warnings for the type mismatches on var. 10 and 11 should probably be W warnings?
+            comp.VerifyDiagnostics(
+                // (6,18): warning CS8619: Nullability of reference types in value of type '(T, T)' doesn't match target type 'T'.
+                //         foreach (var (x1, y1) in e1)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x1, y1)").WithArguments("(T, T)", "T").WithLocation(6, 18),
+                // (6,18): warning CS8619: Nullability of reference types in value of type '(T, T)' doesn't match target type 'T'.
+                //         foreach (var (x1, y1) in e1)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x1, y1)").WithArguments("(T, T)", "T").WithLocation(6, 18),
+                // (19,18): warning CS8619: Nullability of reference types in value of type '(T, T?)' doesn't match target type 'T'.
+                //         foreach (var (x2, y2) in e2)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x2, y2)").WithArguments("(T, T?)", "T").WithLocation(19, 18),
+                // (19,18): warning CS8619: Nullability of reference types in value of type '(T, T?)' doesn't match target type 'T'.
+                //         foreach (var (x2, y2) in e2)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x2, y2)").WithArguments("(T, T?)", "T").WithLocation(19, 18),
+                // (32,18): warning CS8619: Nullability of reference types in value of type '(T, T?)' doesn't match target type 'T'.
+                //         foreach (var (x3, y3) in e3)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x3, y3)").WithArguments("(T, T?)", "T").WithLocation(32, 18),
+                // (32,18): warning CS8619: Nullability of reference types in value of type '(T, T?)' doesn't match target type 'T?'.
+                //         foreach (var (x3, y3) in e3)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x3, y3)").WithArguments("(T, T?)", "T?").WithLocation(32, 18),
+                // (45,35): warning CS8619: Nullability of reference types in value of type '(object?, object?)' doesn't match target type '(object, object)'.
+                //         foreach ((object, object) el in arr) // 9
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "el").WithArguments("(object?, object?)", "(object, object)").WithLocation(45, 35));
         }
 
         [Fact]
