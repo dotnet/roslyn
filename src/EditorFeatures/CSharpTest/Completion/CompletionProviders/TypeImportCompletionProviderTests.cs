@@ -95,7 +95,7 @@ namespace Baz
          $$
     }
 }";
-            await VerifyItemExistsAsync(
+            await VerifyTypeImportItemExistsAsync(
                 CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp),
                 "Bar",
                 glyph: glyph,
@@ -123,7 +123,7 @@ namespace Foo
          $$
     }
 }";
-            await VerifyItemIsAbsentAsync(
+            await VerifyTypeImportItemIsAbsentAsync(
                 CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp),
                 "Bar",
                 inlineDescription: "Foo");
@@ -157,8 +157,8 @@ namespace Baz
     }
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-            await VerifyItemExistsAsync(markup, "Bar", glyph: glyph, inlineDescription: "Foo");
-            await VerifyItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: glyph, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: glyph, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: glyph, inlineDescription: "Foo");
         }
 
         [InlineData("class")]
@@ -186,7 +186,8 @@ namespace Baz
     }
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-            await VerifyItemIsAbsentAsync(markup, "Faz");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Faz", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Faz", inlineDescription: "Foo.Bar");
         }
 
         [InlineData("class")]
@@ -214,7 +215,7 @@ namespace Baz
     }
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-            await VerifyItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
         private static string GetMarkupWithReference(string currentFile, string referencedFile, bool isProjectReference)
@@ -244,7 +245,7 @@ namespace Baz
     }
 }";
             var markup = GetMarkupWithReference(file2, file1, isProjectReference);
-            await VerifyItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -268,7 +269,7 @@ namespace Baz
     }
 }";
             var markup = GetMarkupWithReference(file2, file1, isProjectReference);
-            await VerifyItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -291,7 +292,7 @@ namespace Baz
     }
 }";
             var markup = GetMarkupWithReference(file2, file1, isProjectReference);
-            await VerifyItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -317,8 +318,8 @@ namespace Baz
     }
 }";
             var markup = GetMarkupWithReference(file2, file1, isProjectReference);
-            await VerifyItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "", inlineDescription: "Foo");
-            await VerifyItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "", inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -345,8 +346,8 @@ namespace Baz
     }
 }";
             var markup = GetMarkupWithReference(file2, file1, isProjectReference);
-            await VerifyItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "", inlineDescription: "Foo");
-            await VerifyItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -374,8 +375,8 @@ namespace Baz
     }
 }";
             var markup = GetMarkupWithReference(file2, file1, isProjectReference);
-            await VerifyItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
-            await VerifyItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -404,8 +405,8 @@ namespace Baz
     }
 }";
             var markup = GetMarkupWithReference(file2, file1, isProjectReference);
-            await VerifyItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
-            await VerifyItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -434,8 +435,8 @@ namespace Baz
     }
 }";
             var markup = GetMarkupWithReference(file2, file1, isProjectReference);
-            await VerifyItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
-            await VerifyItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -464,8 +465,8 @@ namespace Foo.Baz
     }
 }";
             var markup = GetMarkupWithReference(file2, file1, isProjectReference);
-            await VerifyItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
-            await VerifyItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -496,8 +497,8 @@ namespace Baz
     }
 }";
             var markup = GetMarkupWithReference(file2, file1, isProjectReference);
-            await VerifyItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
-            await VerifyItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
         }
 
         [InlineData(true)]
@@ -522,7 +523,7 @@ namespace Baz
     }
 }";
             var markup = GetMarkupWithReference(file2, file1, isProjectReference);
-            await VerifyItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -542,7 +543,7 @@ namespace Baz
     }
 }";
             var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "Foo");
-            await VerifyItemExistsAsync(markup, "Barr", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo.Bar");
+            await VerifyTypeImportItemExistsAsync(markup, "Barr", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo.Bar");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -568,10 +569,10 @@ namespace Baz
     }
 }";
             var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "");
-            await VerifyItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Na");
-            await VerifyItemExistsAsync(markup, "Foo", glyph: (int)Glyph.ClassPublic, inlineDescription: "Na");
-            await VerifyItemIsAbsentAsync(markup, "Bar", inlineDescription: "na");
-            await VerifyItemIsAbsentAsync(markup, "Foo", inlineDescription: "na");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Na");
+            await VerifyTypeImportItemExistsAsync(markup, "Foo", glyph: (int)Glyph.ClassPublic, inlineDescription: "Na");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "na");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Foo", inlineDescription: "na");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -598,10 +599,10 @@ namespace Baz
     }
 }";
             var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "");
-            await VerifyItemIsAbsentAsync(markup, "Bar", inlineDescription: "Na");
-            await VerifyItemIsAbsentAsync(markup, "Foo", inlineDescription: "Na");
-            await VerifyItemIsAbsentAsync(markup, "Bar", inlineDescription: "na");
-            await VerifyItemIsAbsentAsync(markup, "Foo", inlineDescription: "na");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Na");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Foo", inlineDescription: "Na");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "na");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Foo", inlineDescription: "na");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -621,7 +622,7 @@ namespace Baz
     }
 }";
             var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "Foo");
-            await VerifyItemIsAbsentAsync(markup, "Barr", inlineDescription: "Foo.Bar");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Barr", inlineDescription: "Foo.Bar");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -642,7 +643,7 @@ namespace Baz
     }
 }";
             var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "Foo");
-            await VerifyItemIsAbsentAsync(markup, "Barr", inlineDescription: "Foo.Bar");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Barr", inlineDescription: "Foo.Bar");
         }
 
         #endregion
@@ -737,6 +738,21 @@ class Bar
 }";
 
             await VerifyCustomCommitProviderAsync(markup, "Console", expectedCodeAfterCommit, sourceCodeKind: kind);
+        }
+
+        // The use of helper methods below is because we added a extra space at the end of display text suffix,
+        // to differentiate us from regular symbol completion item. This is a hack to temporarily workaround
+        // a limitation of VS completion list.
+
+        private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null)
+        {
+            return VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix + " ", glyph: glyph, inlineDescription: inlineDescription);
+        }
+
+
+        private Task VerifyTypeImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
+        {
+            return VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix + " ", inlineDescription: inlineDescription);
         }
     }
 }
