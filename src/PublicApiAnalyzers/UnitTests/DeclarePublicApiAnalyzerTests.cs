@@ -2,7 +2,6 @@
 
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
@@ -47,10 +46,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                         (DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText),
                         (DeclarePublicApiAnalyzer.UnshippedFileName, unshippedApiText),
                     },
-                }
+                },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
@@ -67,10 +66,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                         (DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText),
                         (DeclarePublicApiAnalyzer.UnshippedFileName, unshippedApiText),
                     },
-                }
+                },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 ? new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>()
                 : (CodeFixTest<XUnitVerifier>)new VisualBasicCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>();
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
+            test.TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
 
             test.TestState.Sources.Add(source);
             test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
