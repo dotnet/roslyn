@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If we are in a recent enough language version, we treat the switch as a fully pattern-based switch
             // for the purposes of flow analysis.
-            if (((CSharpParseOptions)node.Syntax.SyntaxTree.Options).LanguageVersion >= MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+            if (compilation.LanguageVersion >= MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
             {
                 return false;
             }

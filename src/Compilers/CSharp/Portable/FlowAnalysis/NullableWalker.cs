@@ -1066,22 +1066,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState TopState()
         {
-            var state = new LocalState(reachable: true, new ArrayBuilder<NullableFlowState>(nextVariableSlot));
+            var state = LocalState.ReachableState(capacity: nextVariableSlot);
             Populate(ref state, start: 0);
             return state;
         }
 
         protected override LocalState UnreachableState()
         {
-            return new LocalState(reachable: false, null);
+            return LocalState.UnreachableState;
         }
 
         protected override LocalState ReachableBottomState()
         {
             // Create a reachable state in which all variables are known to be non-null.
-            var builder = new ArrayBuilder<NullableFlowState>(nextVariableSlot);
-            builder.AddMany(NullableFlowState.NotNull, nextVariableSlot);
-            return new LocalState(reachable: true, builder);
+            return LocalState.ReachableState(capacity: nextVariableSlot);
         }
 
         private void EnterParameters()
@@ -3954,12 +3952,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
-                case ConversionKind.Unboxing:
                 case ConversionKind.Boxing:
                     resultState = operandType.State;
                     break;
 
+                case ConversionKind.Unboxing:
+                    if (operandType.MayBeNull && targetType.IsNonNullableValueType() && reportRemainingWarnings)
+                    {
+                        ReportSafetyDiagnostic(ErrorCode.WRN_UnboxPossibleNull, node.Syntax);
+                    }
+                    else
+                    {
+                        resultState = operandType.State;
+                    }
+                    break;
+
                 case ConversionKind.ImplicitThrow:
+                    resultState = NullableFlowState.NotNull;
                     break;
 
                 case ConversionKind.NoConversion:
@@ -4506,8 +4515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var nestedVariables = variable.NestedVariables;
                         if (nestedVariables != null)
                         {
-                            // https://github.com/dotnet/roslyn/issues/33005: Not handling deconstructing argument of Deconstruct.
-                            //VisitDeconstructionArguments(nestedVariables, underlyingConversion, arg);
+                            VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: invocation.Arguments[i]);
                         }
                         else
                         {
@@ -5747,7 +5755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Other (typed) expression, including suppressed ones
                 if (result.MayBeNull)
                 {
-                    ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
+                    ReportSafetyDiagnostic(ErrorCode.WRN_ThrowPossibleNull, expr.Syntax);
                 }
             }
             SetUnreachable();
@@ -5804,6 +5812,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        {
+            SetNotNullResult(node);
+            return null;
+        }
+
         protected override string Dump(LocalState state)
         {
             if (!state.Reachable)
@@ -5852,17 +5866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Normalize(ref other);
             }
 
-            for (int slot = 1; slot < self.Capacity; slot++)
-            {
-                NullableFlowState selfState = self[slot];
-                NullableFlowState otherState = other[slot];
-                NullableFlowState union = selfState.Meet(otherState);
-
-                if (selfState != union)
-                {
-                    self[slot] = union;
-                }
-            }
+            self.Meet(in other);
         }
 
         protected override bool Join(ref LocalState self, ref LocalState other)
@@ -5876,26 +5880,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            bool result = false;
-
             if (self.Capacity != other.Capacity)
             {
                 Normalize(ref self);
                 Normalize(ref other);
             }
 
-            for (int slot = 1; slot < self.Capacity; slot++)
-            {
-                NullableFlowState selfAnnotation = self[slot];
-                NullableFlowState intersection = selfAnnotation.Join(other[slot]);
-                if (selfAnnotation != intersection)
-                {
-                    self[slot] = intersection;
-                    result = true;
-                }
-            }
-
-            return result;
+            return self.Join(in other);
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
@@ -5905,79 +5896,55 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct LocalState : ILocalState
 #endif
         {
-            private ArrayBuilder<NullableFlowState> _state;
-            public bool Reachable { get; }
+            // The representation of a state is a bit vector.  We map false<->NotNull and true<->MayBeNull.
+            // Slot 0 is used to represent whether the state is reachable (true) or not.
+            private BitVector _state;
 
-            internal LocalState(bool reachable, ArrayBuilder<NullableFlowState> state)
+            private LocalState(BitVector state) => this._state = state;
+
+            public bool Reachable => _state[0];
+
+            public static LocalState ReachableState(int capacity)
             {
-                this.Reachable = reachable;
-                this._state = state;
+                if (capacity < 1)
+                    capacity = 1;
+
+                BitVector state = BitVector.Create(capacity);
+                state[0] = true;
+                return new LocalState(state);
             }
 
-            internal int Capacity => _state?.Count ?? 0;
-
-            internal void EnsureCapacity(int capacity)
-            {
-                if (!Reachable)
-                {
-                    return;
-                }
-
-                if (_state == null)
-                {
-                    _state = new ArrayBuilder<NullableFlowState>(capacity);
-                }
-
-                if (_state.Count < capacity)
-                {
-                    _state.Count = capacity;
-                }
-            }
-
-            internal NullableFlowState this[int slot]
+            public static LocalState UnreachableState
             {
                 get
                 {
-                    if (slot < Capacity && this.Reachable)
-                    {
-                        return _state[slot];
-                    }
+                    BitVector state = BitVector.Create(1);
+                    state[0] = false;
+                    return new LocalState(state);
+                }
+            }
 
-                    return NullableFlowState.NotNull;
-                }
-                set
-                {
-                    if (this.Reachable)
-                    {
-                        // All variables are be considered not null in unreachable code.
-                        // Moreover, no states should be modified in unreachable code, as there is only one unreachable state.
-                        EnsureCapacity(slot + 1);
-                        _state[slot] = value;
-                    }
-                }
+            public int Capacity => _state.Capacity;
+
+            public void EnsureCapacity(int capacity) => _state.EnsureCapacity(capacity);
+
+            public NullableFlowState this[int slot]
+            {
+                get => (slot < Capacity && this.Reachable && _state[slot]) ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+
+                // No states should be modified in unreachable code, as there is only one unreachable state.
+                set => _ = !this.Reachable || (_state[slot] = (value == NullableFlowState.MaybeNull));
             }
 
             /// <summary>
             /// Produce a duplicate of this flow analysis state.
             /// </summary>
             /// <returns></returns>
-            public LocalState Clone()
-            {
-                ArrayBuilder<NullableFlowState> clone;
+            public LocalState Clone() => new LocalState(_state.Clone());
 
-                if (_state == null)
-                {
-                    clone = null;
-                }
-                else
-                {
-                    clone = new ArrayBuilder<NullableFlowState>(_state.Count);
-                    clone.Count = 0;
-                    clone.AddRange(_state);
-                }
+            public bool Join(in LocalState other) => _state.UnionWith(in other._state);
 
-                return new LocalState(Reachable, clone);
-            }
+            public bool Meet(in LocalState other) => _state.IntersectWith(in other._state);
 
             internal string GetDebuggerDisplay()
             {
@@ -5985,23 +5952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var builder = pooledBuilder.Builder;
                 builder.Append(" ");
                 for (int i = this.Capacity - 1; i >= 0; i--)
-                {
-                    string append;
-
-                    switch (_state[i])
-                    {
-                        case NullableFlowState.NotNull:
-                            append = "!";
-                            break;
-                        case NullableFlowState.MaybeNull:
-                            append = "?";
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(_state[i]);
-                    }
-
-                    builder.Append(append);
-                }
+                    builder.Append(_state[i] ? '?' : '!');
 
                 return pooledBuilder.ToStringAndFree();
             }
