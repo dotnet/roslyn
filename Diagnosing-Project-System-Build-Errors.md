@@ -26,6 +26,7 @@ There are a few ways to tell:
 5. Go View > Other Windows > Build Logging.
 6. In the Build Logging window, click the start button.
 7. Open your solution, and open the file you're having troubles with. You should see various entries appearing in the Build Logging window.
+8. Take a screenshot of Visual Studio after you've opened the file you're having troubles with. Save this screenshot and attach it to your feedback item.
 8. Click the stop button in the Build Logging window.
 9. Select all the logs by clicking on one and then pressing Ctrl+A to Select All.
 10. Right click, choose Save Logs. Save them, and attach them to your feedback item.
