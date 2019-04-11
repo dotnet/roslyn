@@ -422,9 +422,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.
         /// </summary>
-        internal override bool IsDeclaredReadOnly => LocalDeclaredReadOnly || _property.HasReadOnlyModifier || IsReadOnlyAutoGetter;
+        internal override bool IsDeclaredReadOnly
+        {
+            get
+            {
+                if (LocalDeclaredReadOnly || _property.HasReadOnlyModifier)
+                {
+                    return true;
+                }
 
-        private bool IsReadOnlyAutoGetter => ContainingType.IsStructType() && !_property.IsStatic && _isAutoPropertyAccessor && MethodKind == MethodKind.PropertyGet;
+                // If we have IsReadOnly..ctor, we can use the attribute. Otherwise, we need to NOT be a netmodule and the type must not already exist in order to synthesize it.
+                var isReadOnlyAttributeUsable = DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor) != null ||
+                    (DeclaringCompilation.Options.OutputKind != OutputKind.NetModule &&
+                     DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute) is MissingMetadataTypeSymbol);
+
+                if (!isReadOnlyAttributeUsable)
+                {
+                    // if the readonly attribute isn't usable, don't implicitly make auto-getters readonly.
+                    return false;
+                }
+
+                return ContainingType.IsStructType() &&
+                    !_property.IsStatic &&
+                    _isAutoPropertyAccessor &&
+                    MethodKind == MethodKind.PropertyGet;
+            }
+        }
 
         private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
             bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)

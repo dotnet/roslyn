@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    public class ReadOnlyArrayTests
+    public class ImmutableArrayExtensionsTests
     {
         [Fact]
         public void CreateFrom()
@@ -363,6 +363,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             AssertEx.Equal(new[] { 10, 20, 30 }, ImmutableArray.Create(1, 2, 3).SelectAsArray(i => 10 * i));
             AssertEx.Equal(new[] { 10, 20, 30, 40 }, ImmutableArray.Create(1, 2, 3, 4).SelectAsArray(i => 10 * i));
             AssertEx.Equal(new[] { 10, 20, 30, 40, 50 }, ImmutableArray.Create(1, 2, 3, 4, 5).SelectAsArray(i => 10 * i));
+        }
+
+        [Fact]
+        public void SelectAsArrayWithPredicate()
+        {
+            Assert.Empty(ImmutableArray<object>.Empty.SelectAsArray<object, int>(item => throw null, item => throw null));
+
+            var array = ImmutableArray.Create(1, 2, 3, 4, 5);
+            AssertEx.Equal(new[] { 2, 3, 4, 5, 6 }, array.SelectAsArray(item => true, item => item + 1));
+            AssertEx.Equal(new[] { 3, 5 }, array.SelectAsArray(item => item % 2 == 0, item => item + 1));
+            Assert.Empty(array.SelectAsArray<int, int>(item => item < 0, item => throw null));
+        }
+
+        [Fact]
+        public void DangerousCreateFromUnderlyingArray()
+        {
+            var array = new[] { 1, 2, 3, 4 };
+            var copy = array;
+            var immutable = ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref copy);
+            Assert.Null(copy);
+            AssertEx.Equal(array, immutable);
+            Assert.Same(array, ImmutableArrayExtensions.DangerousGetUnderlyingArray(immutable));
         }
 
         [Fact]

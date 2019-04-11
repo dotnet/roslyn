@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
             var typeParameter = (TypeParameterSymbol)type;
-            return !typeParameter.IsValueType && typeParameter.IsNotNullableIfReferenceType != true;
+            return !typeParameter.IsValueType && typeParameter.IsNotNullableIfReferenceType == false;
         }
 
         public static bool IsNonNullableValueType(this TypeSymbol typeArgument)

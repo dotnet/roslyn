@@ -1834,5 +1834,26 @@ class Program
                 //             _         => n.Value.ToString(), // 7: n
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "n").WithLocation(31, 26));
         }
+
+        [Fact]
+        [WorkItem(34246, "https://github.com/dotnet/roslyn/issues/34246")]
+        public void LearnFromConstantPattern_01()
+        {
+            var source = @"
+class Program
+{
+    static void M(string? s)
+    {
+        switch (s?.Length)
+        {
+            case 0:
+                s.ToString();
+                break;
+        }
+    }
+}";
+            var comp = CreateNullableCompilation(source);
+            comp.VerifyDiagnostics();
+        }
     }
 }
