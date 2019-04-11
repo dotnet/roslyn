@@ -100,11 +100,14 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var document = context.Document;
             var service = CompletionService.GetService(document);
 
-            // Disable snippets from ever appearing in the completion items. It's
-            // very unlikely the user would ever misspell a snippet, then use spell-
-            // checking to fix it, then try to invoke the snippet.
+            // Disable snippets and unimported types from ever appearing in the completion items. 
+            // -    It's very unlikely the user would ever misspell a snippet, then use spell-checking to fix it, 
+            //      then try to invoke the snippet.
+            // -    We believe spell-check should only compare what you have typed to what symbol would be offered here.
             var originalOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var options = originalOptions.WithChangedOption(CompletionOptions.SnippetsBehavior, document.Project.Language, SnippetsRule.NeverInclude);
+            var options = originalOptions
+                .WithChangedOption(CompletionOptions.SnippetsBehavior, document.Project.Language, SnippetsRule.NeverInclude)
+                .WithChangedOption(CompletionOptions.ShowImportCompletionItems, document.Project.Language, false);
 
             var completionList = await service.GetCompletionsAsync(
                 document, nameToken.SpanStart, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
