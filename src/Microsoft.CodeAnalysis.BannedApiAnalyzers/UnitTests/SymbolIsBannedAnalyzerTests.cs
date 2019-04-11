@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     Sources = { source },
                     AdditionalFiles = { (SymbolIsBannedAnalyzer.BannedSymbolsFileName, bannedApiText) },
                 },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                     Sources = { source },
                     AdditionalFiles = { (SymbolIsBannedAnalyzer.BannedSymbolsFileName, bannedApiText) },
                 },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
