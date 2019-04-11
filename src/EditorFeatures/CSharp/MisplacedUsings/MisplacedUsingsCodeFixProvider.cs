@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 {
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             {
                 AddImportPlacement.InsideNamespace => MoveUsingsInsideNamespace(newCompilationUnit),
                 AddImportPlacement.OutsideNamespace => MoveUsingsOutsideNamespace(newCompilationUnit),
-                _ => throw new NotSupportedException()
+                _ => throw ExceptionUtilities.Unreachable
             };
 
             newCompilationUnit = AddFileHeader(newCompilationUnit, fileHeader);
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
         {
             CompilationUnitSyntax compilationUnit => compilationUnit.Members,
             NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Members,
-            _ => throw new NotSupportedException()
+            _ => throw ExceptionUtilities.UnexpectedValue(node)
         };
 
         private static TSyntaxNode RemoveLeadingBlankLinesFromFirstMember<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
