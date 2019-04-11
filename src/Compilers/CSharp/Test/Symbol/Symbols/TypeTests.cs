@@ -45,7 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             Assert.Equal(x.Type.SetObliviousNullabilityForReferenceTypes(), x.Type.SetObliviousNullabilityForReferenceTypes());
 
             verifyElementAnnotation(x.Type.MergeNullability(x.Type.SetObliviousNullabilityForReferenceTypes(), VarianceKind.None), NullableAnnotation.NotAnnotated);
-            verifyElementAnnotation(x.Type.ApplyNullableTransforms(new NullableTransformData(NullableAnnotation.Oblivious)).Value.type, NullableAnnotation.Oblivious);
+
+            var stream = NullableTransformStream.Create(NullableAnnotation.Oblivious);
+            verifyElementAnnotation(x.Type.ApplyNullableTransforms(stream), NullableAnnotation.Oblivious);
+            Assert.True(stream.IsComplete);
+            stream.Free();
 
             var builder = ArrayBuilder<byte>.GetInstance();
             x.Type.AddNullableTransforms(builder);

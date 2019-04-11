@@ -420,16 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             elementType.AddNullableTransforms(transforms);
         }
 
-        internal override (TypeSymbol type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
-        {
-            var result = TransformNullable(ApplyTransformNullableTransform.Instance, transformData);
-            if (result.arrayType is null)
-            {
-                return null;
-            }
-
-            return result;
-        }
+        internal override TypeSymbol ApplyNullableTransforms(NullableTransformStream stream) =>
+            TransformNullable(ApplyTransformNullableTransform.Instance, stream);
 
         internal override TypeSymbol SetObliviousNullabilityForReferenceTypes() =>
             TransformNullable(SetObliviousNullableTransform.Instance, null);
@@ -440,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TransformNullable(MergeNullableTransform.Instance, ((ArrayTypeSymbol)other, variance));
         }
 
-        private TReturn TransformNullable<TState, TInitialState, TReturn>(NullableTransform<TState, TInitialState, TReturn> transform, TInitialState initialState)
+        private ArrayTypeSymbol TransformNullable<TState, TInitialState>(NullableTransform<TState, TInitialState> transform, TInitialState initialState)
         {
             // The language supports deeply nested arrays, up to 10,000+ instances. This means we can't implemented a head
             // recursive solution here. Need to take an iterative approach to building up the annotations here.
@@ -735,18 +727,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private abstract class NullableTransform<TState, TInitialState, TReturn>
+        private abstract class NullableTransform<TState, TInitialState>
         {
             internal abstract TState GetInitialState(TInitialState initialState, ArrayTypeSymbol array);
             internal abstract TState GetState(TState outerState, ArrayTypeSymbol currentArray);
-            internal abstract TReturn CreateInitialReturnValue(TState mostNestedState);
-            internal abstract TReturn GetReturnValue(TReturn oldReturn, TState state);
+            internal abstract ArrayTypeSymbol CreateInitialReturnValue(TState mostNestedState);
+            internal abstract ArrayTypeSymbol GetReturnValue(ArrayTypeSymbol oldReturn, TState state);
         }
 
         private sealed class MergeNullableTransform : NullableTransform<
             (ArrayTypeSymbol thisArray, ArrayTypeSymbol otherArray, VarianceKind varianceKind),
-            (ArrayTypeSymbol other, VarianceKind varianceKind),
-            ArrayTypeSymbol>
+            (ArrayTypeSymbol other, VarianceKind varianceKind)>
         {
             internal static readonly MergeNullableTransform Instance = new MergeNullableTransform();
 
@@ -781,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private sealed class SetObliviousNullableTransform : NullableTransform<ArrayTypeSymbol, object, ArrayTypeSymbol>
+        private sealed class SetObliviousNullableTransform : NullableTransform<ArrayTypeSymbol, object>
         {
             internal static readonly SetObliviousNullableTransform Instance = new SetObliviousNullableTransform();
 
@@ -803,50 +794,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private sealed class ApplyTransformNullableTransform : NullableTransform<
-            (ArrayTypeSymbol arrayType, NullableTransformData data),
-            NullableTransformData,
-            (ArrayTypeSymbol arrayType, NullableTransformData data)>
+            (ArrayTypeSymbol arrayType, byte? elementTransformFlag, NullableTransformStream stream),
+            NullableTransformStream>
         {
             internal static readonly ApplyTransformNullableTransform Instance = new ApplyTransformNullableTransform();
-            internal override (ArrayTypeSymbol arrayType, NullableTransformData data) GetInitialState(NullableTransformData initialState, ArrayTypeSymbol array) =>
-                (array, initialState);
+            internal override (ArrayTypeSymbol arrayType, byte? elementTransformFlag, NullableTransformStream stream) GetInitialState(NullableTransformStream initialState, ArrayTypeSymbol array) =>
+                (array, initialState.GetNextTransform(), initialState);
 
-            internal override (ArrayTypeSymbol arrayType, NullableTransformData data) GetState((ArrayTypeSymbol arrayType, NullableTransformData data) outerState, ArrayTypeSymbol currentArray) =>
-                (currentArray, outerState.data.Advance());
+            internal override (ArrayTypeSymbol arrayType, byte? elementTransformFlag, NullableTransformStream stream) GetState(
+                (ArrayTypeSymbol arrayType, byte? elementTransformFlag, NullableTransformStream stream) outerState,
+                ArrayTypeSymbol currentArray) =>
+                (currentArray, outerState.stream.GetNextTransform(), outerState.stream);
 
-            internal override (ArrayTypeSymbol arrayType, NullableTransformData data) CreateInitialReturnValue((ArrayTypeSymbol arrayType, NullableTransformData data) mostNestedState)
+            internal override ArrayTypeSymbol CreateInitialReturnValue((ArrayTypeSymbol arrayType, byte? elementTransformFlag, NullableTransformStream stream) mostNestedState)
             {
                 var arrayType = mostNestedState.arrayType;
-                var result = arrayType.ElementTypeWithAnnotations.ApplyNullableTransforms(mostNestedState.data);
-                if (result.HasValue)
+                var transformFlag = mostNestedState.elementTransformFlag;
+                var stream = mostNestedState.stream;
+                if (!transformFlag.HasValue ||
+                    !(arrayType.ElementTypeWithAnnotations.ApplyNullableTransformShallow(transformFlag.Value) is TypeWithAnnotations newElementType))
                 {
-                    return (arrayType.WithElementType(result.Value.type), result.Value.data);
+                    stream.SetHasInsufficientData();
+                    return null;
                 }
 
-                return (null, default);
+                return arrayType.WithElementType(newElementType);
             }
 
-            internal override (ArrayTypeSymbol arrayType, NullableTransformData data) GetReturnValue(
-                (ArrayTypeSymbol arrayType, NullableTransformData data) oldReturn,
-                (ArrayTypeSymbol arrayType, NullableTransformData data) state)
+            internal override ArrayTypeSymbol GetReturnValue(
+                ArrayTypeSymbol oldReturn,
+                (ArrayTypeSymbol arrayType, byte? elementTransformFlag, NullableTransformStream stream) state)
             {
-                var innerArray = oldReturn.arrayType;
                 var elementType = state.arrayType.ElementTypeWithAnnotations;
-                elementType = TypeWithAnnotations.Create(oldReturn.arrayType, elementType.NullableAnnotation, elementType.CustomModifiers);
+                elementType = TypeWithAnnotations.Create(oldReturn, elementType.NullableAnnotation, elementType.CustomModifiers);
 
-                var currentTransform = state.data.CurrentTransform;
-                if (!currentTransform.HasValue)
+                if (!state.elementTransformFlag.HasValue)
                 {
-                    return (null, default);
+                    Debug.Assert(state.stream.HasInsufficientData);
+                    return state.arrayType.WithElementType(elementType);
                 }
 
-                var result = elementType.ApplyNullableTransformShallow(currentTransform.Value);
+                var result = elementType.ApplyNullableTransformShallow(state.elementTransformFlag.Value);
                 if (!result.HasValue)
                 {
-                    return (null, default);
+                    Debug.Assert(state.stream.HasInsufficientData);
+                    return state.arrayType.WithElementType(elementType);
                 }
 
-                return (state.arrayType.WithElementType(result.Value), oldReturn.data);
+                return state.arrayType.WithElementType(result.Value);
             }
         }
     }

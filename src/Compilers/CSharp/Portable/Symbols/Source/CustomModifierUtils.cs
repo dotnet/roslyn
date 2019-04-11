@@ -94,10 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // that the author did not write and did not validate.
             var flagsBuilder = ArrayBuilder<byte>.GetInstance();
             destinationType.AddNullableTransforms(flagsBuilder);
-            var result = resultType.ApplyNullableTransforms(new NullableTransformData(defaultTransform: 0, flagsBuilder.ToImmutableAndFree()));
-            Debug.Assert(result.HasValue && !result.Value.data.HasUnusedTransforms);
-
-            resultType = result.HasValue && !result.Value.data.HasUnusedTransforms ? result.Value.type : resultType;
+            var stream = NullableTransformStream.Create(defaultTransform: 0, flagsBuilder.ToImmutableAndFree());
+            var result = resultType.ApplyNullableTransforms(stream);
+            Debug.Assert(stream.IsComplete);
+            resultType = stream.IsComplete ? result : resultType;
 
             Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)); // Same custom modifiers as source type.
 

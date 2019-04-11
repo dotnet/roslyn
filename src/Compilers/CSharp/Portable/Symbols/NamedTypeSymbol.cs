@@ -768,11 +768,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override (TypeSymbol type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
+        internal override TypeSymbol ApplyNullableTransforms(NullableTransformStream stream)
         {
             if (!IsGenericType)
             {
-                return (this, transformData);
+                return this;
             }
 
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
@@ -782,15 +782,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < allTypeArguments.Count; i++)
             {
                 TypeWithAnnotations oldTypeArgument = allTypeArguments[i];
-                var result = oldTypeArgument.ApplyNullableTransforms(transformData);
-                if (!result.HasValue)
+                TypeWithAnnotations newTypeArgument = oldTypeArgument.ApplyNullableTransforms(stream);
+                if (stream.HasInsufficientData)
                 {
                     allTypeArguments.Free();
-                    return null;
+                    return this;
                 }
-                else if (!oldTypeArgument.IsSameAs(result.Value.type))
+                else if (!oldTypeArgument.IsSameAs(newTypeArgument))
                 {
-                    allTypeArguments[i] = result.Value.type;
+                    allTypeArguments[i] = newTypeArgument;
                     haveChanges = true;
                 }
             }
@@ -798,14 +798,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!haveChanges)
             {
                 allTypeArguments.Free();
-                return (this, transformData);
+                return this;
             }
             else
             {
                 TypeMap substitution = new TypeMap(this.OriginalDefinition.GetAllTypeParameters(),
                                                    allTypeArguments.ToImmutableAndFree());
 
-                return (substitution.SubstituteNamedType(this.OriginalDefinition), transformData);
+                return substitution.SubstituteNamedType(this.OriginalDefinition);
             }
         }
 

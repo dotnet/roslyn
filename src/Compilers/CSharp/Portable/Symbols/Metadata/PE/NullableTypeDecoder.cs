@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -34,14 +35,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return metadataType;
             }
 
-            var data = new NullableTransformData(defaultTransformFlag, nullableTransformFlags);
-            var result = metadataType.ApplyNullableTransforms(new NullableTransformData(defaultTransformFlag, nullableTransformFlags));
-            if (result.HasValue && !result.Value.data.HasUnusedTransforms)
+            var stream = NullableTransformStream.Create(defaultTransformFlag, nullableTransformFlags);
+            TypeWithAnnotations result = metadataType.ApplyNullableTransforms(stream);
+            if (stream.IsComplete)
             {
-                return result.Value.type;
+                stream.Free();
+                return result;
             }
 
             // No NullableAttribute applied to the target symbol, or flags do not line-up, return unchanged metadataType.
+            stream.Free();
             return metadataType;
         }
 

@@ -253,15 +253,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PointedAtTypeWithAnnotations.AddNullableTransforms(transforms);
         }
 
-        internal override (TypeSymbol type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
+        internal override TypeSymbol ApplyNullableTransforms(NullableTransformStream stream)
         {
-            var result = PointedAtTypeWithAnnotations.ApplyNullableTransforms(transformData);
-            if (!result.HasValue)
-            {
-                return null;
-            }
-
-            return (WithPointedAtType(result.Value.type), result.Value.data);
+            return WithPointedAtType(PointedAtTypeWithAnnotations.ApplyNullableTransforms(stream));
         }
 
         internal override TypeSymbol SetObliviousNullabilityForReferenceTypes()

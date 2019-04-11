@@ -571,36 +571,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Type.AddNullableTransforms(transforms);
         }
 
-        public (TypeWithAnnotations type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
+        /// <summary>
+        /// Apply the transform stream to this type and nested types. If the stream does not contain enough
+        /// data to complete the transform then it will be marked as insufficient and the result of
+        /// transforming the available data will be returned.
+        /// </summary>
+        public TypeWithAnnotations ApplyNullableTransforms(NullableTransformStream transformStream)
         {
-            byte? transformFlag = transformData.CurrentTransform;
-            if (transformFlag.HasValue)
+            byte? transform = transformStream.GetNextTransform();
+            if (!transform.HasValue)
             {
-                return null;
+                Debug.Assert(transformStream.HasInsufficientData);
+                return this;
             }
 
-            transformData = transformData.Advance();
-
-            TypeSymbol oldTypeSymbol = Type;
-            var newResult = oldTypeSymbol.ApplyNullableTransforms(transformData);
-            if (!newResult.HasValue)
-            {
-                return null;
-            }
-
-            var (newTypeSymbol, newTransformData) = newResult.Value;
+            var newTypeSymbol = Type.ApplyNullableTransforms(transformStream);
             var newType = this;
-            if ((object)oldTypeSymbol != newTypeSymbol)
+            if ((object)Type != newTypeSymbol)
             {
                 newType = newType.WithTypeAndModifiers(newTypeSymbol, newType.CustomModifiers);
             }
 
-            if (newType.ApplyNullableTransformShallow(transformFlag.Value) is TypeWithAnnotations finalType)
+            if (newType.ApplyNullableTransformShallow(transform.Value) is TypeWithAnnotations finalType)
             {
-                return (finalType, newResult.Value.data);
+                return finalType;
             }
 
-            return null;
+            transformStream.SetHasInsufficientData();
+            return newType;
         }
 
         public TypeWithAnnotations? ApplyNullableTransformShallow(byte transformFlag)
@@ -1033,10 +1031,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Represents a sequence of <see cref="NullableAnnotation"/> to apply to a type. The sequence of
     /// flags is specific to how the individual <see cref="TypeSymbol"/> walk their nested types.
     /// </summary>
-    internal readonly struct NullableTransformData
+    internal sealed class NullableTransformStream
     {
-        private readonly ImmutableArray<byte> _transforms;
-        private readonly int _positionOrDefault;
+        private static readonly ObjectPool<NullableTransformStream> Pool = new ObjectPool<NullableTransformStream>(() => new NullableTransformStream(), Environment.ProcessorCount);
+
+        private ImmutableArray<byte> _transforms;
+        private int _positionOrDefault;
 
         private bool IsDefault => _transforms.IsDefault;
 
@@ -1044,34 +1044,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns whether or not there is data remaining in the series. When a single flag is used this
         /// will always return false.
         /// </summary>
-        public bool HasUnusedTransforms => !IsDefault && _positionOrDefault <= _transforms.Length;
+        public bool HasUnusedTransforms => !IsDefault && _positionOrDefault >= 0 && _positionOrDefault < _transforms.Length;
+        public bool HasInsufficientData => !IsDefault && _positionOrDefault < 0;
+        public bool IsComplete => !HasUnusedTransforms && !HasInsufficientData;
 
-        public byte? CurrentTransform => IsDefault ? (byte)_positionOrDefault : (byte?)_transforms[_positionOrDefault];
-        public bool CanAdvance => CurrentTransform.HasValue;
-
-        private NullableTransformData(ImmutableArray<byte> transforms, int position)
-        {
-            Debug.Assert(!transforms.IsDefault);
-            _transforms = transforms;
-            _positionOrDefault = position;
-        }
-
-        public NullableTransformData(byte defaultTransform, ImmutableArray<byte> transforms = default)
-        {
-            _transforms = transforms;
-            _positionOrDefault = defaultTransform;
-        }
-
-        public NullableTransformData(NullableAnnotation nullableAnnotation)
-            : this((byte)nullableAnnotation)
+        private NullableTransformStream()
         {
 
         }
 
-        public NullableTransformData Advance()
+        public static NullableTransformStream Create(byte defaultTransform)
         {
-            Debug.Assert(CanAdvance);
-            return IsDefault ? this : new NullableTransformData(_transforms, _positionOrDefault + 1);
+            var stream = Pool.Allocate();
+            stream._positionOrDefault = defaultTransform;
+            return stream;
+        }
+
+        public static NullableTransformStream Create(ImmutableArray<byte> transforms)
+        {
+            var stream = Pool.Allocate();
+            stream._positionOrDefault = 0;
+            stream._transforms = transforms;
+            return stream;
+        }
+
+        public static NullableTransformStream Create(byte defaultTransform, ImmutableArray<byte> transforms) =>
+            transforms.IsDefault ? Create(defaultTransform) : Create(transforms);
+
+        public static NullableTransformStream Create(NullableAnnotation nullableAnnotation) =>
+            Create((byte)nullableAnnotation);
+
+        public void Free()
+        {
+            _transforms = default;
+            Pool.Free(this);
+        }
+
+        public void SetHasInsufficientData()
+        {
+            _positionOrDefault = -1;
+            Debug.Assert(HasInsufficientData && !HasUnusedTransforms);
+        }
+
+        public byte? GetNextTransform()
+        {
+            if (IsDefault)
+            {
+                return (byte)_positionOrDefault;
+            }
+            else if (HasUnusedTransforms)
+            {
+                return _transforms[_positionOrDefault++];
+            }
+            else
+            {
+                SetHasInsufficientData();
+                return null;
+            }
         }
     }
 }

@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract void AddNullableTransforms(ArrayBuilder<byte> transforms);
 
-        internal abstract (TypeSymbol type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData);
+        internal abstract TypeSymbol ApplyNullableTransforms(NullableTransformStream stream);
 
         internal abstract TypeSymbol SetObliviousNullabilityForReferenceTypes();
 
