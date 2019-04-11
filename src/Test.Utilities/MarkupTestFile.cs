@@ -210,52 +210,11 @@ namespace Test.Utilities
             spans = GetOrAdd(dictionary, string.Empty, _ => new List<TextSpan>());
         }
 
-        public static void GetPositionAndSpans(string input, out string output, out int? cursorPositionOpt, out IDictionary<string, IList<TextSpan>> spans)
-        {
-            Parse(input, out output, out cursorPositionOpt, out spans);
-        }
-
-        public static void GetSpans(string input, out string output, out IDictionary<string, IList<TextSpan>> spans)
-        {
-            GetPositionAndSpans(input, out output, out _, out spans);
-        }
-
-        public static void GetPositionAndSpans(string input, out string output, out int cursorPosition, out IList<TextSpan> spans)
-        {
-            GetPositionAndSpans(input, out output, out int? pos, out spans);
-
-            cursorPosition = pos.Value;
-        }
-
-        public static void GetPosition(string input, out string output, out int cursorPosition)
-        {
-            GetPositionAndSpans(input, out output, out cursorPosition, out _);
-        }
-
         public static void GetPositionAndSpan(string input, out string output, out int? cursorPosition, out TextSpan? textSpan)
         {
             GetPositionAndSpans(input, out output, out cursorPosition, out IList<TextSpan> spans);
 
             textSpan = spans.Count == 0 ? null : (TextSpan?)spans.Single();
-        }
-
-        public static void GetPositionAndSpan(string input, out string output, out int cursorPosition, out TextSpan textSpan)
-        {
-            GetPositionAndSpans(input, out output, out cursorPosition, out IList<TextSpan> spans);
-
-            textSpan = spans.Single();
-        }
-
-        public static void GetSpans(string input, out string output, out IList<TextSpan> spans)
-        {
-            GetPositionAndSpans(input, out output, out int? _, out spans);
-        }
-
-        public static void GetSpan(string input, out string output, out TextSpan textSpan)
-        {
-            GetSpans(input, out output, out IList<TextSpan> spans);
-
-            textSpan = spans.Single();
         }
     }
 }
