@@ -36,7 +36,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
-                 displayTextSuffix: typeSymbol.Arity == 0 ? null : "<>",
+                 // HACK:   Right now VS completion list can't handle items with same display text 
+                 //         (constructed by displayTextPrefix + displayText + displayTextSuffix 
+                 //         from roslyn CompletionItem). We append a space at the end of display
+                 //         text suffix so it won't hide items with same display text from symbol 
+                 //         completion. However, multiple type completion items with same display 
+                 //         name but different inlineDescription (i.e. containing namespace)
+                 //         will still collide.
+                 displayTextSuffix: typeSymbol.Arity == 0 ? " " : "<> ",
                  inlineDescription: containingNamespace,
                  useEditorCompletionItemCache: true);
         }

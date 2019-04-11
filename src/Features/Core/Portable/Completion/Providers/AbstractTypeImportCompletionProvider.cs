@@ -55,12 +55,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, CancellationToken cancellation)
+        private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, CancellationToken cancellationToken)
         {
             var document = completionContext.Document;
-            var cancellationToken = completionContext.CancellationToken;
-            var workspace = document.Project.Solution.Workspace;
             var project = document.Project;
+            var workspace = project.Solution.Workspace;
             var typeImportCompletionService = workspace.Services.GetService<ITypeImportCompletionService>();
 
             // Find all namespaces in scope at current cursor location, 
