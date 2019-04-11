@@ -199,7 +199,10 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges();
+            // Include the default formatting rules so that usings inserted into namespace keep their indentation. 
+            var rules = new[] { new CleanUpNewLinesFormatter(text) }.Concat(languageFormatter.GetDefaultFormattingRules());
+
+            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, options, rules, cancellationToken).GetTextChanges();
 
             // If there are no changes then, do less work.
             if (textChanges.Count == 0)

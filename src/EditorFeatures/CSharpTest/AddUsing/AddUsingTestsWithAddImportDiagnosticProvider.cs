@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -301,6 +305,109 @@ class C
 #warning xxx
     };
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddsImportsInsideNamespaceIfPreferred()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace N
+{
+    class C
+    {
+        [|Directory|] private int i;
+    }
+}",
+@"using System;
+
+namespace N
+{
+    using System.IO;
+
+    class C
+    {
+        [|Directory|] private int i;
+    }
+}", options: new Dictionary<OptionKey, object>() { { CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, new CodeStyleOption<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption.Suggestion) } });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddsImportsOutsideNamespaceIfPreferred()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N
+{
+    using System;
+
+    class C
+    {
+        [|Directory|] private int i;
+    }
+}",
+@"using System.IO;
+
+namespace N
+{
+    using System;
+
+    class C
+    {
+        [|Directory|] private int i;
+    }
+}", options: new Dictionary<OptionKey, object>() { { CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, new CodeStyleOption<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption.Suggestion) } });
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddsImportsInsideNamespaceWhenPreserving()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace N
+{
+    class C
+    {
+        [|Directory|] private int i;
+    }
+}",
+@"using System;
+using System.IO;
+
+namespace N
+{
+    class C
+    {
+        [|Directory|] private int i;
+    }
+}", options: new Dictionary<OptionKey, object>() { { CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, new CodeStyleOption<AddImportPlacement>(AddImportPlacement.Preserve, NotificationOption.Suggestion) } });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddsImportsOutsideNamespaceWhenPreserving()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N
+{
+    using System;
+
+    class C
+    {
+        [|Directory|] private int i;
+    }
+}",
+@"namespace N
+{
+    using System;
+    using System.IO;
+
+    class C
+    {
+        [|Directory|] private int i;
+    }
+}", options: new Dictionary<OptionKey, object>() { { CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, new CodeStyleOption<AddImportPlacement>(AddImportPlacement.Preserve, NotificationOption.Suggestion) } });
         }
     }
 }

@@ -2,8 +2,11 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -43,12 +46,16 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         }
 
         private Task TestInRegularAndScriptAsync(
-            string initialMarkup, string expectedMarkup,
-            bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
+            string initialMarkup,
+            string expectedMarkup,
+            bool placeSystemNamespaceFirst,
+            bool separateImportDirectiveGroups,
+            AddImportPlacement preferredImportPlacement)
         {
             var options = OptionsSet(
                 SingleOption(GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst),
-                SingleOption(GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups));
+                SingleOption(GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups),
+                SingleOption(CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, new CodeStyleOption<AddImportPlacement>(preferredImportPlacement, NotificationOption.Suggestion)));
             return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
         }
 
@@ -129,7 +136,7 @@ namespace B
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
+            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false, AddImportPlacement.Preserve);
         }
 
         [WpfFact]
@@ -177,7 +184,7 @@ namespace B
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
+            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false, AddImportPlacement.Preserve);
         }
 
         [WpfFact]
@@ -229,7 +236,7 @@ namespace B
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true);
+            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true, AddImportPlacement.Preserve);
         }
 
         [WpfFact]
@@ -380,7 +387,225 @@ namespace B
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
+            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false, AddImportPlacement.Preserve);
+        }
+
+        [WpfFact]
+        public async Task AddMissingImports_PreferredImportPlacementIsNamespace_AddsImportToNamespace()
+        {
+            var code = @"
+using System;
+
+namespace A
+{
+    class Class
+    {
+        [|public D Foo { get; }
+        public E Bar { get; }|]
+    }
+}
+
+namespace B
+{
+    public class D { }
+}
+
+namespace C
+{
+    public class E { }
+}
+";
+
+            var expected = @"
+using System;
+
+namespace A
+{
+    using B;
+    using C;
+
+    class Class
+    {
+        [|public D Foo { get; }
+        public E Bar { get; }|]
+    }
+}
+
+namespace B
+{
+    public class D { }
+}
+
+namespace C
+{
+    public class E { }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false, AddImportPlacement.InsideNamespace);
+        }
+
+        [WpfFact]
+        public async Task AddMissingImports_PreferredImportPlacementIsOutsideNamespace_AddsImportToCompilationUnit()
+        {
+            var code = @"
+namespace A
+{
+    using System;
+
+    class Class
+    {
+        [|public D Foo { get; }
+        public E Bar { get; }|]
+    }
+}
+
+namespace B
+{
+    public class D { }
+}
+
+namespace C
+{
+    public class E { }
+}
+";
+
+            var expected = @"
+using B;
+using C;
+
+namespace A
+{
+    using System;
+
+    class Class
+    {
+        [|public D Foo { get; }
+        public E Bar { get; }|]
+    }
+}
+
+namespace B
+{
+    public class D { }
+}
+
+namespace C
+{
+    public class E { }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false, AddImportPlacement.OutsideNamespace);
+        }
+
+        [WpfFact]
+        public async Task AddMissingImports_PreferredImportPlacementIsPreserve_AddsImportToCompilationUnit()
+        {
+            var code = @"
+using System;
+
+namespace A
+{
+    class Class
+    {
+        [|public D Foo { get; }
+        public E Bar { get; }|]
+    }
+}
+
+namespace B
+{
+    public class D { }
+}
+
+namespace C
+{
+    public class E { }
+}
+";
+
+            var expected = @"
+using B;
+using C;
+using System;
+
+namespace A
+{
+    class Class
+    {
+        [|public D Foo { get; }
+        public E Bar { get; }|]
+    }
+}
+
+namespace B
+{
+    public class D { }
+}
+
+namespace C
+{
+    public class E { }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false, AddImportPlacement.Preserve);
+        }
+
+        [WpfFact]
+        public async Task AddMissingImports_PreferredImportPlacementIsPreserve_AddsImportToNamespace()
+        {
+            var code = @"
+namespace A
+{
+    using System;
+
+    class Class
+    {
+        [|public D Foo { get; }
+        public E Bar { get; }|]
+    }
+}
+
+namespace B
+{
+    public class D { }
+}
+
+namespace C
+{
+    public class E { }
+}
+";
+
+            var expected = @"
+namespace A
+{
+    using B;
+    using C;
+    using System;
+
+    class Class
+    {
+        [|public D Foo { get; }
+        public E Bar { get; }|]
+    }
+}
+
+namespace B
+{
+    public class D { }
+}
+
+namespace C
+{
+    public class E { }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false, AddImportPlacement.Preserve);
         }
     }
 }
