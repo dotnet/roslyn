@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// will always return false.
         /// </summary>
         public bool HasUnusedTransforms => !IsDefault && _positionOrDefault >= 0 && _positionOrDefault < _transforms.Length;
-        public bool HasInsufficientData => !IsDefault && _positionOrDefault < 0;
+        public bool HasInsufficientData => _positionOrDefault < 0;
         public bool IsComplete => !HasUnusedTransforms && !HasInsufficientData;
 
         private NullableTransformStream()
@@ -1055,6 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static NullableTransformStream Create(byte defaultTransform)
         {
+            Debug.Assert(defaultTransform >= 0);
             var stream = Pool.Allocate();
             stream._positionOrDefault = defaultTransform;
             return stream;
@@ -1083,7 +1084,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public void SetHasInsufficientData()
         {
             _positionOrDefault = -1;
-            Debug.Assert(HasInsufficientData && !HasUnusedTransforms);
+            Debug.Assert(HasInsufficientData);
+            Debug.Assert(!IsComplete);
         }
 
         public byte? GetNextTransform()

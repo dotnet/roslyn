@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var arrayElementType = array.ElementTypeWithAnnotations;
                 var otherElementType = other.ElementTypeWithAnnotations;
-                if (arrayElementType.Type is ArrayTypeSymbol nextArray)
+                if (arrayElementType.IsSZArray())
                 {
                     // Compare everything but the actual ArrayTypeSymbol instance. 
                     var otherTwa = TypeWithAnnotations.Create(arrayElementType.Type, otherElementType.NullableAnnotation, otherElementType.CustomModifiers);
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return false;
                     }
 
-                    array = nextArray;
+                    array = (ArrayTypeSymbol)arrayElementType.Type;
                     other = otherElementType.Type as ArrayTypeSymbol;
                 }
                 else
