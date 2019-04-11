@@ -3952,12 +3952,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
-                case ConversionKind.Unboxing:
                 case ConversionKind.Boxing:
                     resultState = operandType.State;
                     break;
 
+                case ConversionKind.Unboxing:
+                    if (operandType.MayBeNull && targetType.IsNonNullableValueType() && reportRemainingWarnings)
+                    {
+                        ReportSafetyDiagnostic(ErrorCode.WRN_UnboxPossibleNull, node.Syntax);
+                    }
+                    else
+                    {
+                        resultState = operandType.State;
+                    }
+                    break;
+
                 case ConversionKind.ImplicitThrow:
+                    resultState = NullableFlowState.NotNull;
                     break;
 
                 case ConversionKind.NoConversion:
@@ -5744,7 +5755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Other (typed) expression, including suppressed ones
                 if (result.MayBeNull)
                 {
-                    ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
+                    ReportSafetyDiagnostic(ErrorCode.WRN_ThrowPossibleNull, expr.Syntax);
                 }
             }
             SetUnreachable();
