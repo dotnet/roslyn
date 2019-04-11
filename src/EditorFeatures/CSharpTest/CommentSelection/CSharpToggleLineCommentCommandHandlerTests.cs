@@ -8,11 +8,13 @@ using Roslyn.Test.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 using Xunit;
 using System;
+using Microsoft.CodeAnalysis.Test.Utilities.CommentSelection;
+using Microsoft.VisualStudio.Composition;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
 {
     [UseExportProvider]
-    public class ToggleLineCommentCommandHandlerTests : AbstractToggleCommentTestBase
+    public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentTestBase
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)]
         public void AddComment_EmptyCaret()
@@ -536,29 +538,6 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)]
-        public void AddComment_VisualBasicStyleComment()
-        {
-            var markup =
-@"
-Class A
-    [|Function M()
-        Dim a = 1
-
-    End Function|]
-End Class";
-            var expected =
-@"
-Class A
-[|    'Function M()
-    '    Dim a = 1
-
-    'End Function|]
-End Class";
-
-            ToggleComment(markup, expected, true);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)]
         public void RemoveComment_CaretInCommentedLine()
         {
             var markup =
@@ -937,29 +916,6 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)]
-        public void RemoveComment_VisualBasicStyleComment()
-        {
-            var markup =
-@"
-Class A
-    [|'Function M()
-    '    Dim a = 1
-
-    'End Function|]
-End Class";
-            var expected =
-@"
-Class A
-[|    Function M()
-        Dim a = 1
-
-    End Function|]
-End Class";
-
-            ToggleComment(markup, expected, true);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)]
         public void ToggleComment_MultipleLinesSelected()
         {
             var markup =
@@ -1043,42 +999,13 @@ class C
             ToggleCommentMultiple(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)]
-        public void ToggleComment_VisualBasicStyleComment()
-        {
-            var markup =
-@"
-Class A
-    [|Function M()
-        Dim a = 1
-
-    End Function|]
-End Class";
-            var expected = new string[]
-            {
-@"
-Class A
-[|    'Function M()
-    '    Dim a = 1
-
-    'End Function|]
-End Class",
-@"
-Class A
-[|    Function M()
-        Dim a = 1
-
-    End Function|]
-End Class"
-        };
-
-            ToggleCommentMultiple(markup, expected, true);
-        }
-
         internal override AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace)
         {
             return (AbstractCommentSelectionBase<ValueTuple>)workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>()
                 .First(export => typeof(ToggleLineCommentCommandHandler).Equals(export.GetType()));
         }
+
+        internal override TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider)
+            => TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
     }
 }

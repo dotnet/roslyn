@@ -96,17 +96,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 span => GetLinesFromSelectedSpan(span).ToImmutableArray());
 
             Operation operation;
-            // If all the selections are fully commented, uncomment.
-            if (!linesInSelections.Values.Where(lines => SelectionHasUncommentedLines(lines, commentInfo)).Any())
-            {
-                foreach (var selection in linesInSelections)
-                {
-                    UncommentLines(selection.Value, textChanges, trackingSpans, commentInfo);
-                }
-
-                operation = Operation.Uncomment;
-            }
-            else
+            // If any of the lines are uncommented, add comments.
+            if (linesInSelections.Values.Any(lines => SelectionHasUncommentedLines(lines, commentInfo)))
             {
                 foreach (var selection in linesInSelections)
                 {
@@ -114,6 +105,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 }
 
                 operation = Operation.Comment;
+            }
+            else
+            {
+                foreach (var selection in linesInSelections)
+                {
+                    UncommentLines(selection.Value, textChanges, trackingSpans, commentInfo);
+                }
+
+                operation = Operation.Uncomment;
             }
 
             return new CommentSelectionResult(textChanges, trackingSpans, operation);
@@ -175,17 +175,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         }
 
         private bool SelectionHasUncommentedLines(ImmutableArray<ITextSnapshotLine> linesInSelection, CommentSelectionInfo commentInfo)
-            => linesInSelection.Where(l => !IsLineCommented(l, commentInfo)).Any();
+            => linesInSelection.Any(l => !IsLineCommentedOrEmpty(l, commentInfo));
 
-        private static bool IsLineCommented(ITextSnapshotLine line, CommentSelectionInfo info)
+        private static bool IsLineCommentedOrEmpty(ITextSnapshotLine line, CommentSelectionInfo info)
         {
             var lineText = line.GetText();
-            if (lineText.Trim().StartsWith(info.SingleLineCommentString, StringComparison.Ordinal) || line.IsEmptyOrWhitespace())
-            {
-                return true;
-            }
-
-            return false;
+            // We don't add / remove anything for empty lines.
+            return lineText.Trim().StartsWith(info.SingleLineCommentString, StringComparison.Ordinal) || line.IsEmptyOrWhitespace();
         }
     }
 }

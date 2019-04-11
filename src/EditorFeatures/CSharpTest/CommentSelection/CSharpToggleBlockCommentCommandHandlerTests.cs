@@ -9,8 +9,10 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 using Xunit;
 using System.Linq;
 using System;
+using Microsoft.CodeAnalysis.Test.Utilities.CommentSelection;
+using Microsoft.VisualStudio.Composition;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
 {
     [UseExportProvider]
     public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
@@ -225,5 +227,8 @@ class C
             return (AbstractCommentSelectionBase<ValueTuple>)workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>()
                 .First(export => typeof(CSharpToggleBlockCommentCommandHandler).Equals(export.GetType()));
         }
+
+        internal override TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider)
+            => TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
     }
 }

@@ -8,6 +8,8 @@ using Roslyn.Test.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 using Xunit;
 using System;
+using Microsoft.CodeAnalysis.Test.Utilities.CommentSelection;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
 {
@@ -1450,5 +1452,8 @@ class C
             return (AbstractCommentSelectionBase<ValueTuple>)workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>()
                 .First(export => typeof(ToggleBlockCommentCommandHandler).Equals(export.GetType()));
         }
+
+        internal override TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider)
+            => TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
     }
 }
