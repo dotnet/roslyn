@@ -833,7 +833,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var innerArray = oldReturn.arrayType;
                 var elementType = state.arrayType.ElementTypeWithAnnotations;
                 elementType = TypeWithAnnotations.Create(oldReturn.arrayType, elementType.NullableAnnotation, elementType.CustomModifiers);
-                var result = elementType.ApplyNullableTransformShallow(state.data.Current);
+
+                var currentTransform = state.data.CurrentTransform;
+                if (!currentTransform.HasValue)
+                {
+                    return (null, default);
+                }
+
+                var result = elementType.ApplyNullableTransformShallow(currentTransform.Value);
                 if (!result.HasValue)
                 {
                     return (null, default);

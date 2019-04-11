@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             var data = new NullableTransformData(defaultTransformFlag, nullableTransformFlags);
             var result = metadataType.ApplyNullableTransforms(new NullableTransformData(defaultTransformFlag, nullableTransformFlags));
-            if (result.HasValue && result.Value.data.IsDefaultOrEmpty)
+            if (result.HasValue && !result.Value.data.HasUnusedTransforms)
             {
                 return result.Value.type;
             }

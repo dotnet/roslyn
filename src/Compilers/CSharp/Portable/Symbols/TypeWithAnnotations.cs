@@ -573,12 +573,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public (TypeWithAnnotations type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
         {
-            if (!transformData.HasData)
+            byte? transformFlag = transformData.CurrentTransform;
+            if (transformFlag.HasValue)
             {
                 return null;
             }
 
-            byte transformFlag = transformData.Current;
             transformData = transformData.Advance();
 
             TypeSymbol oldTypeSymbol = Type;
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 newType = newType.WithTypeAndModifiers(newTypeSymbol, newType.CustomModifiers);
             }
 
-            if (newType.ApplyNullableTransformShallow(transformFlag) is TypeWithAnnotations finalType)
+            if (newType.ApplyNullableTransformShallow(transformFlag.Value) is TypeWithAnnotations finalType)
             {
                 return (finalType, newResult.Value.data);
             }
@@ -1029,26 +1029,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
+    /// <summary>
+    /// Represents a sequence of <see cref="NullableAnnotation"/> to apply to a type. The sequence of
+    /// flags is specific to how the individual <see cref="TypeSymbol"/> walk their nested types.
+    /// </summary>
     internal readonly struct NullableTransformData
     {
         private readonly ImmutableArray<byte> _transforms;
         private readonly int _positionOrDefault;
-        public bool IsDefault => _transforms.IsDefault;
-        public bool IsDefaultOrEmpty => IsDefault || _positionOrDefault == _transforms.Length;
-        public bool HasData => IsDefault || _positionOrDefault < _transforms.Length;
-        public byte Current => _transforms.IsDefault ? (byte)_positionOrDefault : _transforms[_positionOrDefault];
 
-        public NullableTransformData(ImmutableArray<byte> transforms, int position)
+        private bool IsDefault => _transforms.IsDefault;
+
+        /// <summary>
+        /// Returns whether or not there is data remaining in the series. When a single flag is used this
+        /// will always return false.
+        /// </summary>
+        public bool HasUnusedTransforms => !IsDefault && _positionOrDefault <= _transforms.Length;
+
+        public byte? CurrentTransform => IsDefault ? (byte)_positionOrDefault : (byte?)_transforms[_positionOrDefault];
+        public bool CanAdvance => CurrentTransform.HasValue;
+
+        private NullableTransformData(ImmutableArray<byte> transforms, int position)
         {
             Debug.Assert(!transforms.IsDefault);
             _transforms = transforms;
             _positionOrDefault = position;
         }
 
-        public NullableTransformData(byte defaultState, ImmutableArray<byte> transforms = default)
+        public NullableTransformData(byte defaultTransform, ImmutableArray<byte> transforms = default)
         {
             _transforms = transforms;
-            _positionOrDefault = defaultState;
+            _positionOrDefault = defaultTransform;
         }
 
         public NullableTransformData(NullableAnnotation nullableAnnotation)
@@ -1059,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public NullableTransformData Advance()
         {
-            Debug.Assert(HasData);
+            Debug.Assert(CanAdvance);
             return IsDefault ? this : new NullableTransformData(_transforms, _positionOrDefault + 1);
         }
     }
