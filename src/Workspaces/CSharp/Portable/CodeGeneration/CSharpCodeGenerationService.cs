@@ -680,7 +680,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             // TODO: Move more APIs to use pooled ArrayBuilder
-            return GetUpdatedDeclarationAccessibilityModifiers(newModifierTokens.ToArrayAndFree(), modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
+            var list = newModifierTokens.ToList();
+            newModifierTokens.Free();
+            return GetUpdatedDeclarationAccessibilityModifiers(list, modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
                 .ToSyntaxTokenList();
         }
 
