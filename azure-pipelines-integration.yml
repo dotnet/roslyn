@@ -19,16 +19,16 @@ pr:
 - dev16.1-preview2-vs-deps
 
 jobs:
-- job: Windows_VisualStudio_Integration_Tests
+- job: VS_Integration
   pool: dotnet-external-vs2019-preview
   strategy:
     maxParallel: 4
     matrix:
-      debug:
+      debug_async:
         _configuration: Debug
         _useLegacyCompletion: false
         _completionName: Async
-      release:
+      release_async:
         _configuration: Release
         _useLegacyCompletion: false
         _completionName: Async
