@@ -69,34 +69,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Get completion items from current project. 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             await typeImportCompletionService.GetTopLevelTypesAsync(project, HandlePublicAndInternalItem, cancellationToken)
-                .ConfigureAwait(false); 
+                .ConfigureAwait(false);
 
-            // Get completion items from source references.
-            foreach (var projectReference in project.ProjectReferences)
+            // Get declarations from directly referenced projects and PEs
+            foreach (var assembly in compilation.GetReferencedAssemblySymbols())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var referencedProject = project.Solution.GetProject(projectReference.ProjectId);
-                var referencedCompilation = await referencedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                await typeImportCompletionService.GetTopLevelTypesAsync(
-                    referencedProject,
-                    GetHandler(compilation.Assembly, referencedCompilation.Assembly),
-                    cancellationToken).ConfigureAwait(false);
-            }
-
-            // Get completion items from PE references.
-            foreach (var peReference in project.MetadataReferences.OfType<PortableExecutableReference>())
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol referencedAssembly)
+                var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
+                if (assemblyProject != null && assemblyProject.SupportsCompilation)
+                {
+                    await typeImportCompletionService.GetTopLevelTypesAsync(
+                        assemblyProject,
+                        GetHandler(compilation.Assembly, assembly),
+                        cancellationToken).ConfigureAwait(false);
+                }
+                else if (compilation.GetMetadataReference(assembly) is PortableExecutableReference peReference)
                 {
                     typeImportCompletionService.GetTopLevelTypesFromPEReference(
                         project.Solution,
                         compilation,
                         peReference,
-                        GetHandler(compilation.Assembly, referencedAssembly),
+                        GetHandler(compilation.Assembly, assembly),
                         cancellationToken);
                 }
             }
