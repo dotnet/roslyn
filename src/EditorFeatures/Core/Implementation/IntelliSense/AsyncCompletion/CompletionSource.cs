@@ -201,19 +201,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty);
             }
 
+            ImmutableArray<VSCompletionItem> items;
             var filterCache = PooledDictionary<string, AsyncCompletionData.CompletionFilter>.GetInstance();
-
             var itemsBuilder = new ArrayBuilder<VSCompletionItem>(completionList.Items.Length);
-            foreach (var roslynItem in completionList.Items)
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var item = Convert(document, roslynItem, completionService, filterCache);
-                itemsBuilder.Add(item);
+                foreach (var roslynItem in completionList.Items)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var item = Convert(document, roslynItem, completionService, filterCache);
+                    itemsBuilder.Add(item);
+                }
             }
-
-            filterCache.Free();
-
-            var items = itemsBuilder.ToImmutableAndFree();
+            finally
+            {
+                filterCache.Free();
+                items = itemsBuilder.ToImmutableAndFree();
+            }
 
             var suggestionItemOptions = completionList.SuggestionModeItem != null
                     ? new AsyncCompletionData.SuggestionItemOptions(

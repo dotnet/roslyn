@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Get completion items from current project. 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            await typeImportCompletionService.GetTopLevelTypesFromProjectAsync(project, HandlePublicAndInternalItem, cancellationToken)
+            await typeImportCompletionService.GetTopLevelTypesAsync(project, HandlePublicAndInternalItem, cancellationToken)
                 .ConfigureAwait(false); 
 
             // Get completion items from source references.
@@ -79,18 +79,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var referencedProject = project.Solution.GetProject(projectReference.ProjectId);
                 var referencedCompilation = await referencedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                await typeImportCompletionService.GetTopLevelTypesFromProjectAsync(
+                await typeImportCompletionService.GetTopLevelTypesAsync(
                     referencedProject,
                     GetHandler(compilation.Assembly, referencedCompilation.Assembly),
                     cancellationToken).ConfigureAwait(false);
             }
 
             // Get completion items from PE references.
-            var peReferences = project.MetadataReferences
-                .Where(reference => reference is PortableExecutableReference)
-                .Cast<PortableExecutableReference>();
-
-            foreach (var peReference in peReferences)
+            foreach (var peReference in project.MetadataReferences.OfType<PortableExecutableReference>())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

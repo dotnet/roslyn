@@ -21,16 +21,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// getting types from source only, so the project must support compilation. 
         /// For getting types from PE, use <see cref="GetTopLevelTypesFromPEReference"/>.
         /// </summary>
-        Task GetTopLevelTypesFromProjectAsync(
+        Task GetTopLevelTypesAsync(
             Project project,
-            Action<TypeImportCompletionItemInfo> handleAccessibleItem,
+            Action<TypeImportCompletionItemInfo> handleItem,
             CancellationToken cancellationToken);
 
         void GetTopLevelTypesFromPEReference(
             Solution solution,
             Compilation compilation,
             PortableExecutableReference peReference,
-            Action<TypeImportCompletionItemInfo> handleAccessibleItem,
+            Action<TypeImportCompletionItemInfo> handleItem,
             CancellationToken cancellationToken);
     }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _projectItemsCache = projectReferenceCache;
             }
 
-            public async Task GetTopLevelTypesFromProjectAsync(
+            public async Task GetTopLevelTypesAsync(
                 Project project,
                 Action<TypeImportCompletionItemInfo> handleItem,
                 CancellationToken cancellationToken)
@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                // Since we only need top level types from source, therefore we only care if source symbol checksum changes.
                 var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
                 GetAccessibleTopLevelTypesWorker(
