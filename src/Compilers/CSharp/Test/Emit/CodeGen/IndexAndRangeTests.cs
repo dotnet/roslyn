@@ -17,6 +17,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
 
         [Fact]
+        public void RealIndexersPreferredToPattern()
+        {
+            var src = @"
+using System;
+class C
+{
+    public int Length => throw null;
+    public int this[Index i, int j = 0] { get { Console.WriteLine(""Index""); return 0; } }
+    public int this[int i] { get { Console.WriteLine(""int""); return 0; } }    
+    public int Slice(int i, int j) => throw null;
+    public int this[Range r, int j = 0] { get { Console.WriteLine(""Range""); return 0; } }
+
+    static void Main()
+    {
+        var c = new C();
+        _ = c[0];
+        _ = c[^0];
+        _ = c[0..];
+    }
+}";
+            var verifier = CompileAndVerifyWithIndexAndRange(src, expectedOutput: @"
+int
+Index
+Range");
+        }
+
+        [Fact]
         public void PatternIndexList()
         {
             var src = @"
@@ -24,9 +51,9 @@ using System;
 using System.Collections.Generic;
 class C
 {
+    private static List<int> list = new List<int>() { 2, 4, 5, 6 };
     static void Main()
     {
-        var list = new List<int>() { 2, 4, 5, 6 };
         Console.WriteLine(list[^2]);
         var index = ^1;
         Console.WriteLine(list[index]);
@@ -36,55 +63,43 @@ class C
 6");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size      106 (0x6a)
-  .maxstack  4
+  // Code size       82 (0x52)
+  .maxstack  3
   .locals init (System.Index V_0, //index
                 int V_1,
                 int V_2,
                 System.Index V_3)
-  IL_0000:  newobj     ""System.Collections.Generic.List<int>..ctor()""
+  IL_0000:  ldsfld     ""System.Collections.Generic.List<int> C.list""
   IL_0005:  dup
-  IL_0006:  ldc.i4.2
-  IL_0007:  callvirt   ""void System.Collections.Generic.List<int>.Add(int)""
-  IL_000c:  dup
-  IL_000d:  ldc.i4.4
-  IL_000e:  callvirt   ""void System.Collections.Generic.List<int>.Add(int)""
-  IL_0013:  dup
-  IL_0014:  ldc.i4.5
-  IL_0015:  callvirt   ""void System.Collections.Generic.List<int>.Add(int)""
-  IL_001a:  dup
-  IL_001b:  ldc.i4.6
-  IL_001c:  callvirt   ""void System.Collections.Generic.List<int>.Add(int)""
-  IL_0021:  dup
-  IL_0022:  dup
-  IL_0023:  callvirt   ""int System.Collections.Generic.List<int>.Count.get""
-  IL_0028:  stloc.1
-  IL_0029:  ldc.i4.2
+  IL_0006:  callvirt   ""int System.Collections.Generic.List<int>.Count.get""
+  IL_000b:  stloc.1
+  IL_000c:  ldc.i4.2
+  IL_000d:  ldc.i4.1
+  IL_000e:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0013:  stloc.3
+  IL_0014:  ldloca.s   V_3
+  IL_0016:  ldloc.1
+  IL_0017:  call       ""int System.Index.GetOffset(int)""
+  IL_001c:  stloc.2
+  IL_001d:  ldloc.2
+  IL_001e:  callvirt   ""int System.Collections.Generic.List<int>.this[int].get""
+  IL_0023:  call       ""void System.Console.WriteLine(int)""
+  IL_0028:  ldloca.s   V_0
   IL_002a:  ldc.i4.1
-  IL_002b:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0030:  stloc.3
-  IL_0031:  ldloca.s   V_3
-  IL_0033:  ldloc.1
-  IL_0034:  call       ""int System.Index.GetOffset(int)""
-  IL_0039:  stloc.2
-  IL_003a:  ldloc.2
-  IL_003b:  callvirt   ""int System.Collections.Generic.List<int>.this[int].get""
-  IL_0040:  call       ""void System.Console.WriteLine(int)""
-  IL_0045:  ldloca.s   V_0
-  IL_0047:  ldc.i4.1
-  IL_0048:  ldc.i4.1
-  IL_0049:  call       ""System.Index..ctor(int, bool)""
-  IL_004e:  dup
-  IL_004f:  callvirt   ""int System.Collections.Generic.List<int>.Count.get""
-  IL_0054:  stloc.2
-  IL_0055:  ldloca.s   V_0
-  IL_0057:  ldloc.2
-  IL_0058:  call       ""int System.Index.GetOffset(int)""
-  IL_005d:  stloc.1
-  IL_005e:  ldloc.1
-  IL_005f:  callvirt   ""int System.Collections.Generic.List<int>.this[int].get""
-  IL_0064:  call       ""void System.Console.WriteLine(int)""
-  IL_0069:  ret
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       ""System.Index..ctor(int, bool)""
+  IL_0031:  ldsfld     ""System.Collections.Generic.List<int> C.list""
+  IL_0036:  dup
+  IL_0037:  callvirt   ""int System.Collections.Generic.List<int>.Count.get""
+  IL_003c:  stloc.2
+  IL_003d:  ldloca.s   V_0
+  IL_003f:  ldloc.2
+  IL_0040:  call       ""int System.Index.GetOffset(int)""
+  IL_0045:  stloc.1
+  IL_0046:  ldloc.1
+  IL_0047:  callvirt   ""int System.Collections.Generic.List<int>.this[int].get""
+  IL_004c:  call       ""void System.Console.WriteLine(int)""
+  IL_0051:  ret
 }");
         }
 
