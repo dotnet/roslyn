@@ -590,29 +590,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 newType = newType.WithTypeAndModifiers(newTypeSymbol, newType.CustomModifiers);
             }
 
+            if (newType.ApplyNullableTransform(transformFlag) is TypeWithAnnotations finalType)
+            {
+                return (finalType, newResult.Value.data);
+            }
+
+            return null;
+        }
+
+        public TypeWithAnnotations? ApplyNullableTransform(byte transformFlag)
+        {
             switch ((NullableAnnotation)transformFlag)
             {
                 case NullableAnnotation.Annotated:
-                    newType = newType.AsNullableReferenceType();
-                    break;
+                    return AsNullableReferenceType();
 
                 case NullableAnnotation.NotAnnotated:
-                    newType = newType.AsNotNullableReferenceType();
-                    break;
+                    return AsNotNullableReferenceType();
 
                 case NullableAnnotation.Oblivious:
-                    if (newType.NullableAnnotation != NullableAnnotation.Oblivious &&
-                        !(newType.NullableAnnotation.IsAnnotated() && oldTypeSymbol.IsNullableType())) // Preserve nullable annotation on Nullable<T>.
+                    if (NullableAnnotation != NullableAnnotation.Oblivious &&
+                        !(NullableAnnotation.IsAnnotated() && Type.IsNullableType())) // Preserve nullable annotation on Nullable<T>.
                     {
-                        newType = CreateNonLazyType(newTypeSymbol, NullableAnnotation.Oblivious, newType.CustomModifiers);
+                        return CreateNonLazyType(Type, NullableAnnotation.Oblivious, CustomModifiers);
                     }
-                    break;
+                    else
+                    {
+                        return this;
+                    }
 
                 default:
                     return null;
             }
-
-            return (newType, newTransformData);
         }
 
         public TypeWithAnnotations WithTopLevelNonNullability()
@@ -1035,6 +1044,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _transforms = transforms;
             _positionOrDefault = defaultState;
+        }
+
+        public NullableTransformData(NullableAnnotation nullableAnnotation)
+            : this((byte)nullableAnnotation)
+        {
+
         }
 
         public NullableTransformData Advance()

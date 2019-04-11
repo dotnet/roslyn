@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             Assert.Equal(x.Type.SetObliviousNullabilityForReferenceTypes(), x.Type.SetObliviousNullabilityForReferenceTypes());
 
             verifyElementAnnotation(x.Type.MergeNullability(x.Type.SetObliviousNullabilityForReferenceTypes(), VarianceKind.None), NullableAnnotation.NotAnnotated);
+            verifyElementAnnotation(x.Type.ApplyNullableTransforms(new NullableTransformData(NullableAnnotation.Oblivious)).Value.type, NullableAnnotation.Oblivious);
 
             static void verifyElementAnnotation(TypeSymbol type, NullableAnnotation annotation)
             {

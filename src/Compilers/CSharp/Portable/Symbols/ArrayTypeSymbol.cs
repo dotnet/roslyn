@@ -415,13 +415,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override (TypeSymbol type, NullableTransformData data)? ApplyNullableTransforms(NullableTransformData transformData)
         {
-            var result = ElementTypeWithAnnotations.ApplyNullableTransforms(transformData);
-            if (!result.HasValue)
+            var result = TransformNullable(ApplyTransformNullableTransform.Instance, transformData);
+            if (result.arrayType is null)
             {
                 return null;
             }
 
-            return (WithElementType(result.Value.type), result.Value.data);
+            return result;
         }
 
         internal override TypeSymbol SetObliviousNullabilityForReferenceTypes() =>
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TransformNullable(MergeNullableTransform.Instance, ((ArrayTypeSymbol)other, variance));
         }
 
-        private TypeSymbol TransformNullable<TState, TInitialState>(NullableTransform<TState, TInitialState> transform, TInitialState initialState)
+        private TReturn TransformNullable<TState, TInitialState, TReturn>(NullableTransform<TState, TInitialState, TReturn> transform, TInitialState initialState)
         {
             // The language supports deeply nested arrays, up to 10,000+ instances. This means we can't implemented a head
             // recursive solution here. Need to take an iterative approach to building up the annotations here.
@@ -444,11 +444,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var array = this;
             var state = transform.GetInitialState(initialState, this);
             builder.Push(state);
-
-            ArrayTypeSymbol mostNestedArray;
             do
             {
-                mostNestedArray = array;
                 array = array.ElementType as ArrayTypeSymbol;
                 if (array is object)
                 {
@@ -459,17 +456,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while (array is object);
 
             // Fixup the element type on the most nested array
-            var lastElementType = transform.CreateNonArrayElementType(builder.Pop());
-            var finalArray = mostNestedArray.WithElementType(lastElementType);
+            var returnValue = transform.CreateInitialReturnValue(builder.Pop());
 
             // All but the most nested array instance is just an oblivious array with the same custom modifiers
             while (builder.Count > 0)
             {
-                finalArray = transform.CreateArray(finalArray, builder.Pop());
+                returnValue = transform.GetReturnValue(returnValue, builder.Pop());
             }
 
             builder.Free();
-            return finalArray;
+            return returnValue;
         }
 
         public override Accessibility DeclaredAccessibility
@@ -732,19 +728,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private abstract class NullableTransform<TState, TInitialState>
+        private abstract class NullableTransform<TState, TInitialState, TReturn>
         {
             internal abstract TState GetInitialState(TInitialState initialState, ArrayTypeSymbol array);
             internal abstract TState GetState(TState outerState, ArrayTypeSymbol currentArray);
-            internal abstract TypeWithAnnotations CreateNonArrayElementType(TState mostNestedState);
-            internal abstract ArrayTypeSymbol CreateArray(TypeSymbol arrayElementType, TState state);
+            internal abstract TReturn CreateInitialReturnValue(TState mostNestedState);
+            internal abstract TReturn GetReturnValue(TReturn oldReturn, TState state);
         }
 
         private sealed class MergeNullableTransform : NullableTransform<
             (ArrayTypeSymbol thisArray, ArrayTypeSymbol otherArray, VarianceKind varianceKind),
-            (ArrayTypeSymbol other, VarianceKind varianceKind)>
+            (ArrayTypeSymbol other, VarianceKind varianceKind),
+            ArrayTypeSymbol>
         {
-            internal static MergeNullableTransform Instance { get; } = new MergeNullableTransform();
+            internal static readonly MergeNullableTransform Instance = new MergeNullableTransform();
 
             internal override (ArrayTypeSymbol thisArray, ArrayTypeSymbol otherArray, VarianceKind varianceKind) GetInitialState(
                 (ArrayTypeSymbol other, VarianceKind varianceKind) initialState,
@@ -758,36 +755,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (currentArray, otherArray, outerState.varianceKind);
             }
 
-            internal override TypeWithAnnotations CreateNonArrayElementType(
-                (ArrayTypeSymbol thisArray, ArrayTypeSymbol otherArray, VarianceKind varianceKind) mostNestedState) =>
-                mostNestedState.thisArray.ElementTypeWithAnnotations.MergeNullability(mostNestedState.otherArray.ElementTypeWithAnnotations, mostNestedState.varianceKind);
+            internal override ArrayTypeSymbol CreateInitialReturnValue((ArrayTypeSymbol thisArray, ArrayTypeSymbol otherArray, VarianceKind varianceKind) mostNestedState)
+            {
+                var elementType = mostNestedState.thisArray.ElementTypeWithAnnotations.MergeNullability(
+                    mostNestedState.otherArray.ElementTypeWithAnnotations,
+                    mostNestedState.varianceKind);
+                return mostNestedState.thisArray.WithElementType(elementType);
+            }
 
-            internal override ArrayTypeSymbol CreateArray(TypeSymbol elementType, (ArrayTypeSymbol thisArray, ArrayTypeSymbol otherArray, VarianceKind varianceKind) state)
+            internal override ArrayTypeSymbol GetReturnValue(ArrayTypeSymbol previousArray, (ArrayTypeSymbol thisArray, ArrayTypeSymbol otherArray, VarianceKind varianceKind) state)
             {
                 var nullableAnnotation = NullableAnnotationExtensions.MergeNullableAnnotation(
                     state.thisArray.ElementTypeWithAnnotations.NullableAnnotation,
                     state.otherArray.ElementTypeWithAnnotations.NullableAnnotation,
                     state.varianceKind);
-                var elementTypeWithAnnotations = TypeWithAnnotations.Create(elementType, nullableAnnotation, state.thisArray.ElementTypeWithAnnotations.CustomModifiers);
+                var elementTypeWithAnnotations = TypeWithAnnotations.Create(previousArray, nullableAnnotation, state.thisArray.ElementTypeWithAnnotations.CustomModifiers);
                 return state.thisArray.WithElementType(elementTypeWithAnnotations);
             }
         }
 
-        private sealed class SetObliviousNullableTransform : NullableTransform<ArrayTypeSymbol, object>
+        private sealed class SetObliviousNullableTransform : NullableTransform<ArrayTypeSymbol, object, ArrayTypeSymbol>
         {
-            internal static SetObliviousNullableTransform Instance { get; } = new SetObliviousNullableTransform();
+            internal static readonly SetObliviousNullableTransform Instance = new SetObliviousNullableTransform();
 
             internal override ArrayTypeSymbol GetInitialState(object initialState, ArrayTypeSymbol array) => array;
 
             internal override ArrayTypeSymbol GetState(ArrayTypeSymbol _, ArrayTypeSymbol currentArray) => currentArray;
 
-            internal override TypeWithAnnotations CreateNonArrayElementType(ArrayTypeSymbol mostNestedState) =>
-                mostNestedState.ElementTypeWithAnnotations.SetObliviousNullabilityForReferenceTypes();
-
-            internal override ArrayTypeSymbol CreateArray(TypeSymbol elementType, ArrayTypeSymbol state)
+            internal override ArrayTypeSymbol CreateInitialReturnValue(ArrayTypeSymbol mostNestedState)
             {
-                var elementTypeWithAnnotations = TypeWithAnnotations.Create(elementType, NullableAnnotation.Oblivious, state.ElementTypeWithAnnotations.CustomModifiers);
+                var elementType = mostNestedState.ElementTypeWithAnnotations.SetObliviousNullabilityForReferenceTypes();
+                return mostNestedState.WithElementType(elementType);
+            }
+
+            internal override ArrayTypeSymbol GetReturnValue(ArrayTypeSymbol previousReturnValue, ArrayTypeSymbol state)
+            {
+                var elementTypeWithAnnotations = TypeWithAnnotations.Create(previousReturnValue, NullableAnnotation.Oblivious, state.ElementTypeWithAnnotations.CustomModifiers);
                 return state.WithElementType(elementTypeWithAnnotations);
+            }
+        }
+
+        private sealed class ApplyTransformNullableTransform : NullableTransform<
+            (ArrayTypeSymbol arrayType, NullableTransformData data),
+            NullableTransformData,
+            (ArrayTypeSymbol arrayType, NullableTransformData data)>
+        {
+            internal static readonly ApplyTransformNullableTransform Instance = new ApplyTransformNullableTransform();
+            internal override (ArrayTypeSymbol arrayType, NullableTransformData data) GetInitialState(NullableTransformData initialState, ArrayTypeSymbol array) =>
+                (array, initialState);
+
+            internal override (ArrayTypeSymbol arrayType, NullableTransformData data) GetState((ArrayTypeSymbol arrayType, NullableTransformData data) outerState, ArrayTypeSymbol currentArray) =>
+                (currentArray, outerState.data.Advance());
+
+            internal override (ArrayTypeSymbol arrayType, NullableTransformData data) CreateInitialReturnValue((ArrayTypeSymbol arrayType, NullableTransformData data) mostNestedState)
+            {
+                var arrayType = mostNestedState.arrayType;
+                var result = arrayType.ElementTypeWithAnnotations.ApplyNullableTransforms(mostNestedState.data);
+                if (result.HasValue)
+                {
+                    return (arrayType.WithElementType(result.Value.type), result.Value.data);
+                }
+
+                return (null, default);
+            }
+
+            internal override (ArrayTypeSymbol arrayType, NullableTransformData data) GetReturnValue(
+                (ArrayTypeSymbol arrayType, NullableTransformData data) oldReturn,
+                (ArrayTypeSymbol arrayType, NullableTransformData data) state)
+            {
+                var innerArray = oldReturn.arrayType;
+                var elementType = state.arrayType.ElementTypeWithAnnotations;
+                elementType = TypeWithAnnotations.Create(oldReturn.arrayType, elementType.NullableAnnotation, elementType.CustomModifiers);
+                var result = elementType.ApplyNullableTransform(state.data.Current);
+                if (!result.HasValue)
+                {
+                    return (null, default);
+                }
+
+                return (state.arrayType.WithElementType(result.Value), oldReturn.data);
             }
         }
     }
