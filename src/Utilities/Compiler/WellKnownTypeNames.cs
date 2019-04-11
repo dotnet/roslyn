@@ -5,6 +5,8 @@ namespace Analyzer.Utilities
     internal static class WellKnownTypeNames
     {
         public const string SystemAppContext = "System.AppContext";
+        public const string SystemNetSecurityProtocolType = "System.Net.SecurityProtocolType";
+        public const string SystemWebMvcValidateInputAttribute = "System.Web.Mvc.ValidateInputAttribute";
         public const string SystemWebHttpRequest = "System.Web.HttpRequest";
         public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";
@@ -280,5 +282,8 @@ namespace Analyzer.Utilities
         public const string SystemXmlXmlNotation = "System.Xml.XmlNotation";
         public const string SystemXmlXmlTextWriter = "System.Xml.XmlTextWriter";
         public const string SystemWindowsMarkupXamlReader = "System.Windows.Markup.XamlReader";
+        public const string SystemWebConfigurationHttpRuntimeSection = "System.Web.Configuration.HttpRuntimeSection";
+        public const string SystemEventArgs = "System.EventArgs";
+        public const string SystemXmlSchemaXmlSchemaCollection = "System.Xml.Schema.XmlSchemaCollection";
     }
 }

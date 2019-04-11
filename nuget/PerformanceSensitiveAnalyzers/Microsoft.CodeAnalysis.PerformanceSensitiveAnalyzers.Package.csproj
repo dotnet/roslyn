@@ -1,0 +1,27 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecPackageId>Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers</NuspecPackageId>
+    <Description>PerformanceSensitive Analyzers</Description>
+    <Summary>PerformanceSensitive Analyzers</Summary>
+    <ReleaseNotes>PerformanceSensitive Analyzers</ReleaseNotes>
+    <PackageTags>Roslyn CodeAnalysis Compiler CSharp Diagnostic Analyzers Syntax Semantics Performance</PackageTags>
+    <AnalyzerDocumentationFileDir>$(RepoRoot)src\PerformanceSensitiveAnalyzers</AnalyzerDocumentationFileDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll" />
+    <AnalyzerNupkgFile Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.targets" />
+    <AnalyzerNupkgFile Include="PerformanceSensitiveAttribute.cs" />
+    <AnalyzerNupkgFile Include="PerformanceSensitiveAttribute.vb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PerformanceSensitiveAnalyzers\Core\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.csproj" />
+    <ProjectReference Include="..\..\src\PerformanceSensitiveAnalyzers\CSharp\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.csproj" />
+  </ItemGroup>
+</Project>

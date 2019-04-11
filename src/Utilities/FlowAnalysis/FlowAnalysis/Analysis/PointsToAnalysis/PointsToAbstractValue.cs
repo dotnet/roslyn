@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Analyzer.Utilities;
+using Analyzer.Utilities.PooledObjects;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -15,6 +16,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
     /// </summary>
     public class PointsToAbstractValue : CacheBasedEquatable<PointsToAbstractValue>
     {
+        // An upper bound on number of underlying locations contained in the tracked PointsTo value.
+        // This is required to prevent infinite analysis from interprocedural calls within a loop
+        // The chosen constant value is just an approximate heuristic, which can be fine tuned in future.
+        private const int LocationThreshold = 20;
+
         public static PointsToAbstractValue Undefined { get; } = new PointsToAbstractValue(PointsToAbstractValueKind.Undefined, NullAbstractValue.Undefined);
         public static PointsToAbstractValue Invalid { get; } = new PointsToAbstractValue(PointsToAbstractValueKind.Invalid, NullAbstractValue.Invalid);
         public static PointsToAbstractValue Unknown { get; } = new PointsToAbstractValue(PointsToAbstractValueKind.Unknown, NullAbstractValue.MaybeNull);
@@ -30,6 +36,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             Debug.Assert(nullState != NullAbstractValue.Undefined);
             Debug.Assert(nullState != NullAbstractValue.Invalid);
             Debug.Assert(!locations.Any(l => l.IsAnalysisEntityDefaultLocation && l.AnalysisEntityOpt.HasUnknownInstanceLocation));
+            Debug.Assert(locations.Count <= LocationThreshold);
 
             Locations = locations;
             LValueCapturedOperations = ImmutableHashSet<IOperation>.Empty;
@@ -86,6 +93,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 if (location.IsNoLocation)
                 {
                     return NoLocation;
+                }
+            }
+            else if (locations.Count > LocationThreshold)
+            {
+                switch (nullState)
+                {
+                    case NullAbstractValue.Null:
+                        return UnknownNull;
+
+                    case NullAbstractValue.NotNull:
+                        return UnknownNotNull;
+
+                    default:
+                        return Unknown;
                 }
             }
 

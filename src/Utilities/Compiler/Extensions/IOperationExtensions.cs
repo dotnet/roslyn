@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -533,7 +534,9 @@ namespace Analyzer.Utilities.Extensions
                     return constantPattern.Value.Type;
 
                 default:
-                    Debug.Fail($"Unhandled pattern kind '{pattern.Kind}'");
+                    // Below assert fires for IDiscardPatternOperation.
+                    // https://github.com/dotnet/roslyn-analyzers/issues/2185 tracks enabling this assert.
+                    //Debug.Fail($"Unhandled pattern kind '{pattern.Kind}'");
                     return null;
             }
         }

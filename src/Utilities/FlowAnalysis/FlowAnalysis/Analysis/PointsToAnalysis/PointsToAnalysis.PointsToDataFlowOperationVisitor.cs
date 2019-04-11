@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             private readonly DefaultPointsToValueGenerator _defaultPointsToValueGenerator;
             private readonly PointsToAnalysisDomain _pointsToAnalysisDomain;
             private readonly PooledDictionary<IOperation, ImmutableHashSet<AbstractLocation>.Builder> _escapedOperationLocationsBuilder;
+            private readonly PooledDictionary<IOperation, ImmutableHashSet<AbstractLocation>.Builder> _escapedReturnValueLocationsBuilder;
             private readonly PooledDictionary<AnalysisEntity, ImmutableHashSet<AbstractLocation>.Builder> _escapedEntityLocationsBuilder;
 
             public PointsToDataFlowOperationVisitor(
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 _defaultPointsToValueGenerator = defaultPointsToValueGenerator;
                 _pointsToAnalysisDomain = pointsToAnalysisDomain;
                 _escapedOperationLocationsBuilder = PooledDictionary<IOperation, ImmutableHashSet<AbstractLocation>.Builder>.GetInstance();
+                _escapedReturnValueLocationsBuilder = PooledDictionary<IOperation, ImmutableHashSet<AbstractLocation>.Builder>.GetInstance();
                 _escapedEntityLocationsBuilder = PooledDictionary<AnalysisEntity, ImmutableHashSet<AbstractLocation>.Builder>.GetInstance();
 
                 analysisContext.InterproceduralAnalysisDataOpt?.InitialAnalysisData.AssertValidPointsToAnalysisData();
@@ -42,6 +45,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             public ImmutableDictionary<IOperation, ImmutableHashSet<AbstractLocation>> GetEscapedLocationsThroughOperationsMap()
                 => GetEscapedAbstractLocationsMapAndFreeBuilder(_escapedOperationLocationsBuilder);
+
+            public ImmutableDictionary<IOperation, ImmutableHashSet<AbstractLocation>> GetEscapedLocationsThroughReturnValuesMap()
+                => GetEscapedAbstractLocationsMapAndFreeBuilder(_escapedReturnValueLocationsBuilder);
 
             public ImmutableDictionary<AnalysisEntity, ImmutableHashSet<AbstractLocation>> GetEscapedLocationsThroughEntitiesMap()
                 => GetEscapedAbstractLocationsMapAndFreeBuilder(_escapedEntityLocationsBuilder);
@@ -329,7 +335,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 // Escape the return value, if not currently analyzing an invoked method.
                 if (returnValue != null && DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null)
                 {
-                    HandleEscapingOperation(escapingOperation: returnValue, escapedInstance: returnValue);
+                    HandleEscapingOperation(escapingOperation: returnValue, escapedInstance: returnValue, _escapedReturnValueLocationsBuilder);
                 }
             }
 
@@ -542,23 +548,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 ImmutableArray<ArgumentInfo<PointsToAbstractValue>> argumentValues,
                 IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
                 IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
-                bool isLambdaOrLocalFunction)
+                bool isLambdaOrLocalFunction,
+                bool hasParameterWithDelegateType)
             {
                 pointsToValuesOpt = CurrentAnalysisData.CoreAnalysisData;
                 var initialAnalysisData = base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt, thisOrMeInstanceForCallerOpt,
-                    argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction);
+                    argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
                 AssertValidPointsToAnalysisData(initialAnalysisData);
                 return initialAnalysisData;
             }
 
             private void HandleEscapingOperation(IOperation escapingOperation, IOperation escapedInstance)
             {
+                HandleEscapingOperation(escapingOperation, escapedInstance, _escapedOperationLocationsBuilder);
+            }
+
+            private void HandleEscapingOperation(IOperation escapingOperation, IOperation escapedInstance, PooledDictionary<IOperation, ImmutableHashSet<AbstractLocation>.Builder> builder)
+            {
                 Debug.Assert(escapingOperation != null);
                 Debug.Assert(escapedInstance != null);
 
                 var escapedInstancePointsToValue = GetPointsToAbstractValue(escapedInstance);
                 AnalysisEntityFactory.TryCreate(escapedInstance, out var escapedEntityOpt);
-                HandleEscapingLocations(escapingOperation, _escapedOperationLocationsBuilder, escapedEntityOpt, escapedInstancePointsToValue);
+                HandleEscapingLocations(escapingOperation, builder, escapedEntityOpt, escapedInstancePointsToValue);
             }
 
             private void HandleEscapingLocations<TKey>(
@@ -837,6 +849,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     // FxCop compat: The object added to a collection is considered escaped.
                     var lastArgument = visitedArguments[visitedArguments.Length - 1];
                     HandleEscapingOperation(originalOperation, lastArgument.Value);
+                }
+                else if (visitedArguments.Length == 1 &&
+                    method.IsTaskFromResultMethod(WellKnownTypeProvider.Task))
+                {
+                    // Object wrapped within a task is considered escaped.
+                    HandleEscapingOperation(originalOperation, visitedArguments[0].Value);
                 }
 
                 return VisitInvocationCommon(originalOperation, visitedInstance);

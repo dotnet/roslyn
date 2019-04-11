@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -1035,7 +1036,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 if (targetType == null)
                 {
-                    Debug.Fail($"Unexpected 'null' target type for '{operation.Syntax.ToString()}'");
+                    // Below assert fires for IDeclarationPatternOperation with null DeclaredSymbol, but non-null MatchedType.
+                    // https://github.com/dotnet/roslyn-analyzers/issues/2185 tracks enabling this assert.
+                    //Debug.Fail($"Unexpected 'null' target type for '{operation.Syntax.ToString()}'");
                     return false;
                 }
 
@@ -1301,7 +1304,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
                     else
                     {
-                        Debug.Fail($"Unknown pattern kind '{isPatternOperation.Kind}'");
+                        // Below assert fires for IDiscardPatternOperation.
+                        // https://github.com/dotnet/roslyn-analyzers/issues/2185 tracks enabling this assert.
+                        //Debug.Fail($"Unknown pattern kind '{isPatternOperation.Kind}'");
                         predicateValueKind = PredicateValueKind.Unknown;
                     }
 
@@ -1734,7 +1739,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> arguments,
             IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
             IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
-            bool isLambdaOrLocalFunction)
+            bool isLambdaOrLocalFunction,
+            bool hasParameterWithDelegateType)
             => GetClonedCurrentAnalysisData();
 
         /// <summary>
@@ -1742,7 +1748,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// Default implementation is designed for the default implementation of GetInitialInterproceduralAnalysisData.
         /// and overwrites the CurrentAnalysisData with the given <paramref name="resultData"/>.
         /// </summary>
-        protected virtual void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction, TAnalysisResult analysisResult)
+        protected virtual void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction, bool hasDelegateTypeArgument, TAnalysisResult analysisResult)
             => CurrentAnalysisData = resultData;
 
         private void ApplyInterproceduralAnalysisDataForUnhandledThrowOperations(Dictionary<ThrownExceptionInfo, TAnalysisData> interproceduralUnhandledThrowOperationsData)
@@ -1814,10 +1820,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             invokedMethod = invokedMethod.OriginalDefinition;
 
             // Bail out if configured not to execute interprocedural analysis.
-            var configuredToSkipInterproceduralAnalysis = !isLambdaOrLocalFunction && InterproceduralAnalysisKind == InterproceduralAnalysisKind.None;
+            var skipInterproceduralAnalysis = !isLambdaOrLocalFunction && InterproceduralAnalysisKind == InterproceduralAnalysisKind.None ||
+                DataFlowAnalysisContext.InterproceduralAnalysisPredicateOpt?.SkipInterproceduralAnalysis(invokedMethod, isLambdaOrLocalFunction) == true;
 
             // Also bail out for non-source methods and methods where we are not sure about the actual runtime target method.
-            if (configuredToSkipInterproceduralAnalysis ||
+            if (skipInterproceduralAnalysis ||
                 invokedMethod.Locations.All(l => !l.IsInSource) ||
                 invokedMethod.IsAbstract ||
                 invokedMethod.IsVirtual ||
@@ -1858,6 +1865,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return ResetAnalysisDataAndReturnDefaultValue();
             }
 
+            var hasParameterWithDelegateType = invokedMethod.HasParameterWithDelegateType();
+
             // Ensure we are using the same control flow graphs across analyses.
             Debug.Assert(pointsToAnalysisResultOpt?.ControlFlowGraph == null || cfg == pointsToAnalysisResultOpt?.ControlFlowGraph);
             Debug.Assert(copyAnalysisResultOpt?.ControlFlowGraph == null || cfg == copyAnalysisResultOpt?.ControlFlowGraph);
@@ -1868,47 +1877,61 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Compute optional interprocedural analysis data for context-sensitive analysis.
             bool isContextSensitive = isLambdaOrLocalFunction || InterproceduralAnalysisKind == InterproceduralAnalysisKind.ContextSensitive;
             var interproceduralAnalysisData = isContextSensitive ? ComputeInterproceduralAnalysisData() : null;
+            TAnalysisResult analysisResult;
 
-            // Create analysis context for interprocedural analysis.
-            var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
-                invokedMethod, cfg, originalOperation, pointsToAnalysisResultOpt, copyAnalysisResultOpt, interproceduralAnalysisData);
-
-            // Execute interprocedural analysis and get result.
-            var analysisResult = GetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
-
-            // Save the interprocedural result for the invocation/creation operation.
-            // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
-            _interproceduralResultsBuilder[originalOperation] = analysisResult;
-
-            // Remove the operation from interprocedural call stack.
-            var popped = _interproceduralCallStack.Pop();
-            Debug.Assert(popped == originalOperation);
-
-            // Update the current analysis data based on interprocedural analysis result.
-            if (isContextSensitive)
+            try
             {
-                // Apply any interprocedural analysis data for unhandled exceptions paths.
-                if (analysisResult.AnalysisDataForUnhandledThrowOperationsOpt is Dictionary<ThrownExceptionInfo, TAnalysisData> interproceduralUnhandledThrowOperationsDataOpt)
+                // Create analysis context for interprocedural analysis.
+                var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
+                    invokedMethod, cfg, originalOperation, pointsToAnalysisResultOpt, copyAnalysisResultOpt, interproceduralAnalysisData);
+
+                // Check if the client configured skipping analysis for the given interprocedural analysis context.
+                if (DataFlowAnalysisContext.InterproceduralAnalysisPredicateOpt?.SkipInterproceduralAnalysis(interproceduralDataFlowAnalysisContext) == true)
                 {
-                    ApplyInterproceduralAnalysisDataForUnhandledThrowOperations(interproceduralUnhandledThrowOperationsDataOpt);
+                    return ResetAnalysisDataAndReturnDefaultValue();
+                }
+                else
+                {
+                    // Execute interprocedural analysis and get result.
+                    analysisResult = GetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
+
+                    // Save the interprocedural result for the invocation/creation operation.
+                    // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
+                    _interproceduralResultsBuilder[originalOperation] = analysisResult;
                 }
 
-                // Apply interprocedural result analysis data for non-exception paths.
-                var resultData = GetExitBlockOutputData(analysisResult);
-                ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, analysisResult);
+                // Update the current analysis data based on interprocedural analysis result.
+                if (isContextSensitive)
+                {
+                    // Apply any interprocedural analysis data for unhandled exceptions paths.
+                    if (analysisResult.AnalysisDataForUnhandledThrowOperationsOpt is Dictionary<ThrownExceptionInfo, TAnalysisData> interproceduralUnhandledThrowOperationsDataOpt)
+                    {
+                        ApplyInterproceduralAnalysisDataForUnhandledThrowOperations(interproceduralUnhandledThrowOperationsDataOpt);
+                    }
 
-                Debug.Assert(arguments.All(arg => !_pendingArgumentsToReset.Contains(arg)));
+                    // Apply interprocedural result analysis data for non-exception paths.
+                    var resultData = GetExitBlockOutputData(analysisResult);
+                    ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasParameterWithDelegateType, analysisResult);
+
+                    Debug.Assert(arguments.All(arg => !_pendingArgumentsToReset.Contains(arg)));
+                }
+                else
+                {
+                    // TODO: https://github.com/dotnet/roslyn-analyzers/issues/1810
+                    // Implement Non-context sensitive interprocedural analysis to
+                    // merge the relevant data from invoked method's analysis result into CurrentAnalysisData.
+                    // For now, retain the original logic of resetting the analysis data.
+                    ResetAnalysisData();
+                }
             }
-            else
+            finally
             {
-                // TODO: https://github.com/dotnet/roslyn-analyzers/issues/1810
-                // Implement Non-context sensitive interprocedural analysis to
-                // merge the relevant data from invoked method's analysis result into CurrentAnalysisData.
-                // For now, retain the original logic of resetting the analysis data.
-                ResetAnalysisData();
-            }
+                // Remove the operation from interprocedural call stack.
+                var popped = _interproceduralCallStack.Pop();
+                Debug.Assert(popped == originalOperation);
 
-            interproceduralAnalysisData?.InitialAnalysisData?.Dispose();
+                interproceduralAnalysisData?.InitialAnalysisData?.Dispose();
+            }
 
             Debug.Assert(invokedMethod.ReturnsVoid == !analysisResult.ReturnValueAndPredicateKindOpt.HasValue);
             if (invokedMethod.ReturnsVoid)
@@ -1957,11 +1980,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 var invocationInstance = GetInvocationInstance();
                 var thisOrMeInstance = GetThisOrMeInstance();
-                var argumentValues = GetArgumentValues();
+                var argumentValues = GetArgumentValues(ref invocationInstance);
                 var pointsToValuesOpt = pointsToAnalysisResultOpt?[cfg.GetEntry()].Data;
                 var copyValuesOpt = copyAnalysisResultOpt?[cfg.GetEntry()].Data;
                 var initialAnalysisData = GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstance,
-                    thisOrMeInstance, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction);
+                    thisOrMeInstance, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
 
                 return new InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>(
                     initialAnalysisData,
@@ -2018,17 +2041,36 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 (AnalysisEntity, PointsToAbstractValue)? GetThisOrMeInstance()
                     => (AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue);
 
-                ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> GetArgumentValues()
+                ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> GetArgumentValues(ref (AnalysisEntity entity, PointsToAbstractValue pointsToValue)? invocationInstanceOpt)
                 {
-                    Debug.Assert(arguments.Length == invokedMethod.Parameters.Length);
-
-                    if (arguments.IsEmpty)
+                    ArgumentInfo<TAbstractAnalysisValue> extraArgumentInfoOpt = null;
+                    if (invokedMethod.IsExtensionMethod && arguments.Length == invokedMethod.Parameters.Length - 1)
                     {
-                        return ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>>.Empty;
+                        extraArgumentInfoOpt = new ArgumentInfo<TAbstractAnalysisValue>(
+                            operation: instanceReceiver ?? originalOperation,
+                            analysisEntityOpt: invocationInstanceOpt?.entity,
+                            instanceLocation: invocationInstanceOpt?.pointsToValue ?? PointsToAbstractValue.Unknown,
+                            value: instanceReceiver != null ? GetCachedAbstractValue(instanceReceiver) : ValueDomain.UnknownOrMayBeValue);
+                        invocationInstanceOpt = null;
                     }
                     else
                     {
-                        var builder = ImmutableArray.CreateBuilder<ArgumentInfo<TAbstractAnalysisValue>>(arguments.Length);
+                        Debug.Assert(arguments.Length == invokedMethod.Parameters.Length);
+                    }
+
+                    if (arguments.IsEmpty)
+                    {
+                        return extraArgumentInfoOpt == null ? ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>>.Empty : ImmutableArray.Create(extraArgumentInfoOpt);
+                    }
+                    else
+                    {
+                        var count = extraArgumentInfoOpt == null ? arguments.Length : arguments.Length + 1;
+                        var builder = ImmutableArray.CreateBuilder<ArgumentInfo<TAbstractAnalysisValue>>(count);
+                        if (extraArgumentInfoOpt != null)
+                        {
+                            builder.Add(extraArgumentInfoOpt);
+                        }
+
                         foreach (var argument in arguments)
                         {
                             PointsToAbstractValue instanceLocation;
@@ -2060,7 +2102,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
                     }
 
-                    PooledHashSet<ISymbol> capturedVariables = cfg.OriginalOperation.GetCaptures(invokedMethod);
+                    var capturedVariables = cfg.OriginalOperation.GetCaptures(invokedMethod);
                     try
                     {
                         if (capturedVariables.Count == 0)

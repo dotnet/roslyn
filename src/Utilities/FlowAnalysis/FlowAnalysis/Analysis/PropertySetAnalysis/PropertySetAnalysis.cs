@@ -80,6 +80,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     owningSymbol,
                     wellKnownTypeProvider,
                     interproceduralAnalysisConfig,
+                    interproceduralAnalysisPredicateOpt: null,
                     pessimisticAnalysis);
                 valueContentAnalysisResultOpt = null;
             }

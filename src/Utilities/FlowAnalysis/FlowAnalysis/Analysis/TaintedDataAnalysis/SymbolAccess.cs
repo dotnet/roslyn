@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 

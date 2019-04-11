@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 
 #pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
@@ -28,12 +29,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             CopyAnalysisResult copyAnalysisResultOpt,
             Func<PointsToAnalysisContext, PointsToAnalysisResult> getOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraphOpt,
-            InterproceduralPointsToAnalysisData interproceduralAnalysisDataOpt)
+            InterproceduralPointsToAnalysisData interproceduralAnalysisDataOpt,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis,
-                  predicateAnalysis: true, exceptionPathsAnalysis, copyAnalysisResultOpt: copyAnalysisResultOpt, pointsToAnalysisResultOpt: null,
-                  getOrComputeAnalysisResult: getOrComputeAnalysisResult,
-                  parentControlFlowGraphOpt: parentControlFlowGraphOpt,
-                  interproceduralAnalysisDataOpt: interproceduralAnalysisDataOpt)
+                  predicateAnalysis: true, exceptionPathsAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt: null,
+                  getOrComputeAnalysisResult, parentControlFlowGraphOpt, interproceduralAnalysisDataOpt, interproceduralAnalysisPredicateOpt)
         {
         }
 
@@ -46,10 +46,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             bool pessimisticAnalysis,
             bool exceptionPathsAnalysis,
             CopyAnalysisResult copyAnalysisResultOpt,
-            Func<PointsToAnalysisContext, PointsToAnalysisResult> getOrComputeAnalysisResult)
+            Func<PointsToAnalysisContext, PointsToAnalysisResult> getOrComputeAnalysisResult,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
         {
             return new PointsToAnalysisContext(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig,
-                pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResultOpt, getOrComputeAnalysisResult, parentControlFlowGraphOpt: null, interproceduralAnalysisDataOpt: null);
+                pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResultOpt, getOrComputeAnalysisResult, parentControlFlowGraphOpt: null,
+                interproceduralAnalysisDataOpt: null, interproceduralAnalysisPredicateOpt);
         }
 
         public override PointsToAnalysisContext ForkForInterproceduralAnalysis(
@@ -63,7 +65,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             Debug.Assert(pointsToAnalysisResultOpt == null);
 
             return new PointsToAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, InterproceduralAnalysisConfiguration,
-                PessimisticAnalysis, ExceptionPathsAnalysis, copyAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData);
+                PessimisticAnalysis, ExceptionPathsAnalysis, copyAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
+                InterproceduralAnalysisPredicateOpt);
         }
 
         protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)

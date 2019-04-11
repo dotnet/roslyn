@@ -8,9 +8,9 @@ using Analyzer.Utilities.Extensions;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Analyzer.Utilities.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -41,10 +42,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                   predicateAnalysis: false,
                   exceptionPathsAnalysis: false,
                   copyAnalysisResultOpt: null,
-                  pointsToAnalysisResultOpt: pointsToAnalysisResult,
-                  getOrComputeAnalysisResult: getOrComputeAnalysisResult,
-                  parentControlFlowGraphOpt: parentControlFlowGraph,
-                  interproceduralAnalysisDataOpt: interproceduralAnalysisDataOpt)
+                  pointsToAnalysisResult,
+                  getOrComputeAnalysisResult,
+                  parentControlFlowGraph,
+                  interproceduralAnalysisDataOpt,
+                  interproceduralAnalysisPredicateOpt: null)
         {
             Debug.Assert(pointsToAnalysisResult != null);
 

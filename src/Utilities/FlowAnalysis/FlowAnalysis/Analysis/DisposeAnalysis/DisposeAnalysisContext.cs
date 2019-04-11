@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
@@ -31,20 +32,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             Func<DisposeAnalysisContext, DisposeAnalysisResult> getOrComputeAnalysisResult,
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
+            bool disposeOwnershipTransferAtConstructor,
             bool trackInstanceFields,
             ControlFlowGraph parentControlFlowGraphOpt,
-            InterproceduralDisposeAnalysisData interproceduralAnalysisDataOpt)
+            InterproceduralDisposeAnalysisData interproceduralAnalysisDataOpt,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph,
                   owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis,
                   predicateAnalysis: false,
                   exceptionPathsAnalysis,
                   copyAnalysisResultOpt: null,
-                  pointsToAnalysisResultOpt: pointsToAnalysisResultOpt,
-                  getOrComputeAnalysisResult: getOrComputeAnalysisResult,
-                  parentControlFlowGraphOpt: parentControlFlowGraphOpt,
-                  interproceduralAnalysisDataOpt: interproceduralAnalysisDataOpt)
+                  pointsToAnalysisResultOpt,
+                  getOrComputeAnalysisResult,
+                  parentControlFlowGraphOpt,
+                  interproceduralAnalysisDataOpt,
+                  interproceduralAnalysisPredicateOpt)
         {
             DisposeOwnershipTransferLikelyTypes = disposeOwnershipTransferLikelyTypes;
+            DisposeOwnershipTransferAtConstructor = disposeOwnershipTransferAtConstructor;
             TrackInstanceFields = trackInstanceFields;
         }
 
@@ -54,19 +59,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             ControlFlowGraph controlFlowGraph,
             ISymbol owningSymbol,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt,
             bool pessimisticAnalysis,
             bool exceptionPathsAnalysis,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             Func<DisposeAnalysisContext, DisposeAnalysisResult> getOrComputeAnalysisResult,
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
+            bool disposeOwnershipTransferAtConstructor,
             bool trackInstanceFields)
         {
             return new DisposeAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph,
                 owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis,
                 exceptionPathsAnalysis, pointsToAnalysisResultOpt, getOrComputeAnalysisResult,
-                disposeOwnershipTransferLikelyTypes, trackInstanceFields,
-                parentControlFlowGraphOpt: null, interproceduralAnalysisDataOpt: null);
+                disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor, trackInstanceFields,
+                parentControlFlowGraphOpt: null, interproceduralAnalysisDataOpt: null,
+                interproceduralAnalysisPredicateOpt);
         }
 
         public override DisposeAnalysisContext ForkForInterproceduralAnalysis(
@@ -81,15 +89,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             Debug.Assert(copyAnalysisResultOpt == null);
 
             return new DisposeAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, InterproceduralAnalysisConfiguration, PessimisticAnalysis,
-                ExceptionPathsAnalysis, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, DisposeOwnershipTransferLikelyTypes, TrackInstanceFields, ControlFlowGraph, interproceduralAnalysisData);
+                ExceptionPathsAnalysis, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, DisposeOwnershipTransferLikelyTypes, DisposeOwnershipTransferAtConstructor,
+                TrackInstanceFields, ControlFlowGraph, interproceduralAnalysisData, InterproceduralAnalysisPredicateOpt);
         }
 
         internal ImmutableHashSet<INamedTypeSymbol> DisposeOwnershipTransferLikelyTypes { get; }
+        internal bool DisposeOwnershipTransferAtConstructor { get; }
         internal bool TrackInstanceFields { get; }
 
         protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)
         {
             builder.Add(TrackInstanceFields.GetHashCode());
+            builder.Add(DisposeOwnershipTransferAtConstructor.GetHashCode());
             builder.Add(HashUtilities.Combine(DisposeOwnershipTransferLikelyTypes));
         }
     }
