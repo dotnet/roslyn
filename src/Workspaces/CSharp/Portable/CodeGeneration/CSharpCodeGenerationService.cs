@@ -679,8 +679,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return modifiersList;
             }
 
-            // TODO: check ToList usage
-            return GetUpdatedDeclarationAccessibilityModifiers(newModifierTokens.ToList(), modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
+            // TODO: Move more APIs to use pooled ArrayBuilder
+            return GetUpdatedDeclarationAccessibilityModifiers(newModifierTokens.ToArrayAndFree(), modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
                 .ToSyntaxTokenList();
         }
 
