@@ -27,7 +27,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Deb
         public async Task<CodeAnalysis.Editor.Implementation.Debugging.DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var result = await _service.GetLocationInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return new CodeAnalysis.Editor.Implementation.Debugging.DebugLocationInfo(result.Name, result.LineOffset);
+            if (result.IsDefault)
+            {
+                return new CodeAnalysis.Editor.Implementation.Debugging.DebugLocationInfo();
+            }
+            else
+            {
+                return new CodeAnalysis.Editor.Implementation.Debugging.DebugLocationInfo(result.Name, result.LineOffset);
+            }
         }
     }
 }
