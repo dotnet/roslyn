@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // TODO: Suffix should be language specific, i.e. `(Of ...)` if triggered from VB.
-            return CompletionItem.CreateInternal(
+            return CompletionItem.Create(
                  displayText: typeSymbol.Name,
                  filterText: typeSymbol.Name,
                  sortText: typeSymbol.Name,
@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  //         name but different inlineDescription (i.e. containing namespace)
                  //         will still collide.
                  displayTextSuffix: typeSymbol.Arity == 0 ? " " : "<> ",
-                 inlineDescription: containingNamespace,
-                 useEditorCompletionItemCache: true);
+                 inlineDescription: containingNamespace);
         }
 
         public static string GetContainingNamespace(CompletionItem item)

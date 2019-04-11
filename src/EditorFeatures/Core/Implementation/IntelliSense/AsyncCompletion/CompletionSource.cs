@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionService completionService,
             PooledDictionary<string, AsyncCompletionData.CompletionFilter> filterCache)
         {
-            if (roslynItem.UseEditorCompletionItemCache && roslynItem.CachedEditorCompletionItem is VSCompletionItem vsItem)
+            if (roslynItem.CachedEditorCompletionItem is VSCompletionItem vsItem)
             {
                 return vsItem;
             }
@@ -322,11 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 attributeIcons: attributeImages);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
-
-            if (roslynItem.UseEditorCompletionItemCache)
-            {
-                roslynItem.CachedEditorCompletionItem = item;
-            }
+            roslynItem.CachedEditorCompletionItem = item;
 
             return item;
         }
