@@ -66,23 +66,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public const byte ObliviousAttributeValue = 0;
 
-        /// <summary>
-        /// The mapping from NullableAnnotation to the attribute (metadata) representations.
-        /// </summary>
-        public static byte ToAttributeValue(this NullableAnnotation self) =>
-            self switch
-            {
-                NullableAnnotation.NotAnnotated => NotAnnotatedAttributeValue,
-                NullableAnnotation.Annotated => AnnotatedAttributeValue,
-                NullableAnnotation.Oblivious => ObliviousAttributeValue,
-                _ => throw ExceptionUtilities.UnexpectedValue(self)
-            };
+        ///// <summary>
+        ///// The mapping from NullableAnnotation to the attribute (metadata) representations.  This
+        ///// method is not actually used today, but is here to document the mapping.
+        ///// </summary>
+        //public static byte ToAttributeValue(this NullableAnnotation self) =>
+        //    self switch
+        //    {
+        //        NullableAnnotation.NotAnnotated => NotAnnotatedAttributeValue,
+        //        NullableAnnotation.Annotated => AnnotatedAttributeValue,
+        //        NullableAnnotation.Oblivious => ObliviousAttributeValue,
+        //        _ => throw ExceptionUtilities.UnexpectedValue(self)
+        //    };
 
         ///// <summary>
         ///// The mapping from the attribute (metadata) representations to NullableAnnotation.  This
         ///// method is not actually used today, but is here to document the mapping.
         ///// </summary>
-        //private static NullableAnnotation AttributeValueToNullableAnnotation(this byte value) =>
+        //public static NullableAnnotation AttributeValueToNullableAnnotation(this byte value) =>
         //    value switch
         //    {
         //        NotAnnotatedAttributeValue => NullableAnnotation.NotAnnotated,
