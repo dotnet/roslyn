@@ -431,21 +431,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportSafetyDiagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, ((SwitchExpressionSyntax)node.Syntax).SwitchKeyword.GetLocation());
             }
 
+            // collect expressions, conversions and result types
+            int numSwitchArms = node.SwitchArms.Length;
+            var conversions = ArrayBuilder<Conversion>.GetInstance(numSwitchArms);
+            var resultTypes = ArrayBuilder<TypeWithState>.GetInstance(numSwitchArms);
+            var expressions = ArrayBuilder<BoundExpression>.GetInstance(numSwitchArms);
+            var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(numSwitchArms);
+
             foreach (var arm in node.SwitchArms)
             {
                 SetState(!arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState());
-                VisitRvalue(arm.Value);
+                (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
+                expressions.Add(expression);
+                conversions.Add(conversion);
+                var armType = VisitRvalueWithState(expression);
+                resultTypes.Add(armType);
                 Join(ref endState, ref this.State);
+
+                // Build placeholders for inference in order to preserve annotations.
+                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations()));
             }
 
+            var placeholders = placeholderBuilder.ToImmutableAndFree();
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            TypeSymbol inferredType =
+                BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) ??
+                node.Type.SetUnknownNullabilityForReferenceTypes();
+            var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
+
+            // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
+            for (int i = 0; i < numSwitchArms; i++)
+            {
+                var placeholder = placeholders[i];
+                resultTypes[i] = ApplyConversion(placeholder, placeholder, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
+                    fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
+            }
+
+            var inferredState = BestTypeInferrer.GetNullableState(resultTypes);
+            var resultType = TypeWithState.Create(inferredType, inferredState);
+            inferredTypeWithAnnotations = resultType.ToTypeWithAnnotations();
+
+            for (int i = 0; i < numSwitchArms; i++)
+            {
+                var nodeForSyntax = expressions[i];
+                // Report top-level warnings
+                _ = ApplyConversion(nodeForSyntax, operandOpt: nodeForSyntax, Conversion.Identity, targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
+                    checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
+            }
+
+            conversions.Free();
+            resultTypes.Free();
+            expressions.Free();
             labelStateMap.Free();
             SetState(endState);
-
-            // https://github.com/dotnet/roslyn/issues/34233
-            // We need to recompute the result type and state of the switch expression based on
-            // the result type and state of all of the arms. This can be done in a way similar
-            // to how it is done for an implicit array creation expression.
-            this.ResultType = TypeWithAnnotations.Create(node.Type).ToTypeWithState();
+            SetResult(resultType, inferredTypeWithAnnotations);
             return null;
         }
 
