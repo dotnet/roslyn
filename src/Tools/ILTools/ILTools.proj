@@ -12,6 +12,10 @@
     <GenerateDependencyFile>false</GenerateDependencyFile>
     <CopyBuildOutputToPublishDirectory>false</CopyBuildOutputToPublishDirectory>
     <EnableSourceLink>false</EnableSourceLink>
+    
+    <!-- Explicitly disable debug support -->
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>None</DebugType>
 
     <PublishDir>$(ArtifactsDir)tools\ILTools\$(Configuration)\</PublishDir>
   </PropertyGroup>

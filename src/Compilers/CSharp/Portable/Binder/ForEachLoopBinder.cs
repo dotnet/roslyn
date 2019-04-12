@@ -207,6 +207,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AwaitableInfo awaitInfo = null;
             MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
+            if (getEnumeratorMethod != null)
+            {
+                originalBinder.CheckImplicitThisCopyInReadOnlyMember(collectionExpr, getEnumeratorMethod, diagnostics);
+            }
             if (IsAsync)
             {
                 var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType ?? CreateErrorType());
@@ -219,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            TypeSymbol iterationVariableType;
+            TypeWithAnnotations iterationVariableType;
             BoundTypeExpression boundIterationVariableType;
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
@@ -251,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(declType.HasType);
                         }
 
-                        iterationVariableType = declType.Type;
+                        iterationVariableType = declType;
                         boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
 
                         SourceLocalSymbol local = this.IterationVariable;
@@ -309,12 +313,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ForEachVariableStatement:
                     {
                         var node = (ForEachVariableStatementSyntax)_syntax;
-                        iterationVariableType = inferredType.Type ?? CreateErrorType("var");
+                        iterationVariableType = inferredType.HasType ? inferredType : TypeWithAnnotations.Create(CreateErrorType("var"));
 
                         var variables = node.Variable;
                         if (variables.IsDeconstructionLeft())
                         {
-                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType).MakeCompilerGenerated();
+                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType.Type).MakeCompilerGenerated();
                             DeclarationExpressionSyntax declaration = null;
                             ExpressionSyntax expression = null;
                             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
@@ -351,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType).MakeCompilerGenerated();
+                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, typeWithAnnotations: iterationVariableType).MakeCompilerGenerated();
                         break;
                     }
                 default:
@@ -370,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 iterationVariables.All(local => local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable),
                 "Should not have iteration variables that are not ForEachIterationVariable in valid code");
 
-            hasErrors = hasErrors || boundIterationVariableType.HasErrors || iterationVariableType.IsErrorType();
+            hasErrors = hasErrors || boundIterationVariableType.HasErrors || iterationVariableType.Type.IsErrorType();
 
             // Skip the conversion checks and array/enumerator differentiation if we know we have an error (except local name conflicts).
             if (hasErrors)
@@ -404,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // but it turns out that these are equivalent (when both are available).
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion elementConversion = this.Conversions.ClassifyConversionFromType(inferredType.Type, iterationVariableType, ref useSiteDiagnostics, forCast: true);
+            Conversion elementConversion = this.Conversions.ClassifyConversionFromType(inferredType.Type, iterationVariableType.Type, ref useSiteDiagnostics, forCast: true);
 
             if (!elementConversion.IsValid)
             {
@@ -415,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, inferredType.Type, iterationVariableType);
+                    SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, inferredType.Type, iterationVariableType.Type);
                     diagnostics.Add(ErrorCode.ERR_NoExplicitConv, foreachKeyword.GetLocation(), distinguisher.First, distinguisher.Second);
                 }
                 hasErrors = true;

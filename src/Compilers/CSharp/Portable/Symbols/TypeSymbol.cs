@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the type is a readonly struct
         /// </summary>
-        internal abstract bool IsReadOnly { get; }
+        public abstract bool IsReadOnly { get; }
 
         #region ITypeSymbol Members
 

@@ -62,6 +62,11 @@
         <target state="translated">Seřadit direktivy using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
+        <source>Suggest usings for types in .NET Framework assemblies</source>
+        <target state="new">Suggest usings for types in .NET Framework assemblies</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">Obklopit s</target>
@@ -515,11 +520,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
         <source>Place open brace on new line for properties, indexers, and events</source>
         <target state="translated">Vloží levou složenou závorku na nový řádek pro vlastnosti, indexery a události.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_reference_assemblies">
-        <source>Suggest usings for types in _reference assemblies</source>
-        <target state="translated">Navrhnout použití typů v sestaveních _reference</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">

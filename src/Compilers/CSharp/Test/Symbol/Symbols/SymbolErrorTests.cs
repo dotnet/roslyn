@@ -373,7 +373,7 @@ internal class C
                 Diagnostic(ErrorCode.ERR_BadVisPropertyType, "W").WithArguments("C.D.W", "C.PrivateClass").WithLocation(48, 31));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CS0054ERR_BadVisIndexerReturn()
         {
             var text =
@@ -1767,13 +1767,16 @@ class C
     public extern object P6 { get; } // no error
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 'preview' or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("static", "7.0", "preview").WithLocation(3, 23),
                 // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 'preview' or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.0", "preview").WithLocation(3, 23),
+                // (3,28): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static int P1 { get; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("default interface implementation").WithLocation(3, 28),
                 // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 'preview' or greater.
                 //     abstract int P2 { static set; }
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("abstract", "7.0", "preview").WithLocation(4, 18),
@@ -8926,7 +8929,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
 
             comp.VerifyDiagnostics(
                 // (5,16): error CS0525: Interfaces cannot contain instance fields
@@ -15233,9 +15236,6 @@ public class C
 }
 ";
             var comp = CreateCompilation(text).VerifyDiagnostics(
-    // (8,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-    //         [Obsolete]  // CS1667
-    Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),
     // (10,10): error CS1667: Attribute 'System.Diagnostics.Conditional' is not valid on property or event accessors. It is only valid on 'class, method' declarations.
     //         [System.Diagnostics.Conditional("Bernard")]
     Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "System.Diagnostics.Conditional").WithArguments("System.Diagnostics.Conditional", "class, method")

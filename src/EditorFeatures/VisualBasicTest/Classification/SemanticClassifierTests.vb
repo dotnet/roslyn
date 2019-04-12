@@ -808,5 +808,20 @@ End Class"
                 [Class]("C"),
                 [Class]("C"))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestCatchStatement() As Task
+            Dim code =
+"Try
+
+Catch ex As Exception
+    Throw ex
+End Try"
+
+            Await TestInMethodAsync(code,
+                Local("ex"),
+                [Class]("Exception"),
+                Local("ex"))
+        End Function
     End Class
 End Namespace

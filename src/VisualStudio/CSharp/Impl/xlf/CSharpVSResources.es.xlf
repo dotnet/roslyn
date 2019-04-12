@@ -62,6 +62,11 @@
         <target state="translated">Ordenar instrucciones Using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
+        <source>Suggest usings for types in .NET Framework assemblies</source>
+        <target state="new">Suggest usings for types in .NET Framework assemblies</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">Rodear con</target>
@@ -515,11 +520,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
         <source>Place open brace on new line for properties, indexers, and events</source>
         <target state="translated">Colocar llave de apertura para propiedades, indizadores y eventos en nueva línea</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_reference_assemblies">
-        <source>Suggest usings for types in _reference assemblies</source>
-        <target state="translated">Sugerir usos para tipos de ensamblados de r_eferencia</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">

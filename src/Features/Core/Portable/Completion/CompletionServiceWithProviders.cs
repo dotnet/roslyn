@@ -33,10 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private readonly Workspace _workspace;
 
-        /// <summary>
-        /// Internal for testing purposes.
-        /// </summary>
-        internal readonly ImmutableArray<CompletionProvider>? ExclusiveProviders;
+        private readonly ImmutableArray<CompletionProvider>? _exclusiveProviders;
 
         private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _importedProviders;
 
@@ -50,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<CompletionProvider>? exclusiveProviders = null)
         {
             _workspace = workspace;
-            ExclusiveProviders = exclusiveProviders;
+            _exclusiveProviders = exclusiveProviders;
             _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
             _createRoleProviders = CreateRoleProviders;
             _getProviderByName = GetProviderByName;
@@ -114,9 +111,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
         {
-            if (ExclusiveProviders.HasValue)
+            if (_exclusiveProviders.HasValue)
             {
-                return ExclusiveProviders.Value;
+                return _exclusiveProviders.Value;
             }
 
             var builtin = GetBuiltInProviders();
@@ -422,20 +419,6 @@ namespace Microsoft.CodeAnalysis.Completion
             return result;
         }
 
-        // Internal for testing purposes only.
-        internal async Task<CompletionContext> GetContextAsync(
-            CompletionProvider provider,
-            Document document,
-            int position,
-            CompletionTrigger triggerInfo,
-            OptionSet options,
-            CancellationToken cancellationToken)
-        {
-            return await GetContextAsync(
-                provider, document, position, triggerInfo,
-                options, defaultSpan: null, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
         private async Task<CompletionContext> GetContextAsync(
             CompletionProvider provider,
             Document document,
@@ -536,6 +519,40 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return hash;
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly CompletionServiceWithProviders _completionServiceWithProviders;
+
+            public TestAccessor(CompletionServiceWithProviders completionServiceWithProviders)
+            {
+                _completionServiceWithProviders = completionServiceWithProviders;
+            }
+
+            internal ImmutableArray<CompletionProvider>? ExclusiveProviders
+                => _completionServiceWithProviders._exclusiveProviders;
+
+            internal Task<CompletionContext> GetContextAsync(
+                CompletionProvider provider,
+                Document document,
+                int position,
+                CompletionTrigger triggerInfo,
+                OptionSet options,
+                CancellationToken cancellationToken)
+            {
+                return _completionServiceWithProviders.GetContextAsync(
+                    provider,
+                    document,
+                    position,
+                    triggerInfo,
+                    options,
+                    defaultSpan: null,
+                    cancellationToken);
+            }
         }
     }
 }
