@@ -31,20 +31,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly CompletionHelper _defaultCompletionHelper;
 
         private readonly RecentItemsManager _recentItemsManager;
-        private readonly bool _targetTypeCompletionFilterExperimentEnabled;
 
         /// <summary>
         /// For telemetry.
         /// </summary>
         private readonly object _targetTypeCompletionFilterChosenMarker = new object();
 
-        internal ItemManager(RecentItemsManager recentItemsManager, IExperimentationService experimentationService)
+        internal ItemManager(RecentItemsManager recentItemsManager)
         {
             // Let us make the completion Helper used for non-Roslyn items case-sensitive.
             // We can change this if get requests from partner teams.
             _defaultCompletionHelper = new CompletionHelper(isCaseSensitive: true);
             _recentItemsManager = recentItemsManager;
-            _targetTypeCompletionFilterExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
         }
 
         public Task<ImmutableArray<VSCompletionItem>> SortCompletionListAsync(
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            if (_targetTypeCompletionFilterExperimentEnabled)
+            if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
             {
                 // This method is called exactly once, so use the opportunity to set a baseline for telemetry.
                 if (data.InitialList.Any(i => i.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches)))
@@ -116,9 +114,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var selectedFilters = data.SelectedFilters.Where(f => f.IsSelected).Select(f => f.Filter).ToImmutableArray();
             var needToFilter = selectedFilters.Length > 0 && selectedFilters.Length < data.SelectedFilters.Length;
 
-            // Telemetry: Want to know % of sessions with the "Target type matches" filter where that filter is actually enabled
-            if (_targetTypeCompletionFilterExperimentEnabled)
+            if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
             {
+                // Telemetry: Want to know % of sessions with the "Target type matches" filter where that filter is actually enabled
                 if (needToFilter &&
                     !session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) &&
                     selectedFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
