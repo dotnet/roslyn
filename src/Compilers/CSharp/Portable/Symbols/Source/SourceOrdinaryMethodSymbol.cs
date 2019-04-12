@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 type.VisitType<object>(null, (type, unused1, unused2) =>
                 {
-                    if (type.__defaultType.IsTypeParameter() && ((TypeParameterSymbol)type.__defaultType).DeclaringMethod != null)
+                    if (type.DefaultType.IsTypeParameter() && ((TypeParameterSymbol)type.DefaultType).DeclaringMethod != null)
                     {
                         // we've already checked that this method is an overide/explicit interface implementation.
                         // since an override can't be a nested function, we know that the type parameter was declared in this method.

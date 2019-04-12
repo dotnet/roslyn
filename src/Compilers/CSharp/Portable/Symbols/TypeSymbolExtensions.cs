@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// traversal stops and that type is returned from this method. Otherwise if traversal
         /// completes without the predicate returning true for any type, this method returns null.
         /// </summary>
-        /// <param name="useDefaultType">If true, use <see cref="TypeWithAnnotations.__defaultType"/>
+        /// <param name="useDefaultType">If true, use <see cref="TypeWithAnnotations.DefaultType"/>
         /// instead of <see cref="TypeWithAnnotations.Type"/> to avoid early resolution of nullable types</param>
         public static TypeSymbol VisitType<T>(
             this TypeWithAnnotations typeWithAnnotationsOpt,
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             while (true)
             {
-                TypeSymbol current = typeOpt ?? (useDefaultType ? typeWithAnnotationsOpt.__defaultType : typeWithAnnotationsOpt.Type);
+                TypeSymbol current = typeOpt ?? (useDefaultType ? typeWithAnnotationsOpt.DefaultType : typeWithAnnotationsOpt.Type);
                 bool isNestedNamedType = false;
 
                 // Visit containing types from outer-most to inner-most.
