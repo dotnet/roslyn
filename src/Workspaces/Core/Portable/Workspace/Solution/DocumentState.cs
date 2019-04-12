@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -723,6 +724,12 @@ namespace Microsoft.CodeAnalysis
 
             treeAndVersion = await _treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return treeAndVersion.Version;
+        }
+
+        public async Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
+        {
+            var analyzerConfigSet = await _analyzerConfigSetSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return analyzerConfigSet.GetOptionsForSourcePath(FilePath).AnalyzerOptions;
         }
 
         private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
