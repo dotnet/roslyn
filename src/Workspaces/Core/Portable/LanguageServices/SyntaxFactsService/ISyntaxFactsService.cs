@@ -82,7 +82,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsVerbatimStringLiteral(SyntaxToken token);
         bool IsInterpolatedStringTextToken(SyntaxToken token);
         bool IsStringLiteralExpression(SyntaxNode node);
-
+        bool IsInterpolatedStringExpression(SyntaxNode node);
+        bool IsInterpolation(SyntaxNode node);
+        bool IsInterpolatedStringText(SyntaxNode node);
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
         bool IsUsingOrExternOrImport(SyntaxNode node);

@@ -464,5 +464,85 @@ Public Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(33865, "https://github.com/dotnet/roslyn/issues/33865")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationInsideInterpolation() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim i = 3
+        dim v = 3 & $""string {i[||]}""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim i = 3
+        dim v = $""{3}string {i}""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(33865, "https://github.com/dotnet/roslyn/issues/33865")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationInsideInterpolatedString() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim i = 3
+        dim v = 3 & $""stri[||]ng {i}""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim i = 3
+        dim v = $""{3}string {i}""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(33865, "https://github.com/dotnet/roslyn/issues/33865")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationInsideInterpolatedString2() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim i = 3
+        dim v = 3 & $""[||]string {i}""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim i = 3
+        dim v = $""{3}string {i}""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(33865, "https://github.com/dotnet/roslyn/issues/33865")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationInsideInterpolatedString3() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim i = 3
+        dim v = 3 & $[||]""string {i}""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim i = 3
+        dim v = $""{3}string {i}""
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

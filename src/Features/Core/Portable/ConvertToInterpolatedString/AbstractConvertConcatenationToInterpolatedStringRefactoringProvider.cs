@@ -45,6 +45,14 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             // concats as well.  Walk to the top of that entire chain.
             var selectedExpression = token.Parent;
             var top = selectedExpression;
+
+            while (syntaxFacts.IsInterpolatedStringExpression(top) ||
+                syntaxFacts.IsInterpolation(top) ||
+                syntaxFacts.IsInterpolatedStringText(top))
+            {
+                top = top.Parent;
+            }
+
             while (IsStringConcat(syntaxFacts, top.Parent, semanticModel, cancellationToken))
             {
                 top = top.Parent;
@@ -115,11 +123,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             foreach (var piece in pieces)
             {
                 var currentContentIsStringLiteral = syntaxFacts.IsStringLiteralExpression(piece);
-                if (currentContentIsStringLiteral)
+                var currentContentIsInterpolatedStringLiteral = syntaxFacts.IsInterpolatedStringExpression(piece);
+                if (currentContentIsStringLiteral || currentContentIsInterpolatedStringLiteral)
                 {
-                    var text = piece.GetFirstToken().Text;
-                    var textWithEscapedBraces = text.Replace("{", "{{").Replace("}", "}}");
-                    var textWithoutQuotes = GetTextWithoutQuotes(textWithEscapedBraces, isVerbatimStringLiteral);
+                    var stringText = GetStringText(isVerbatimStringLiteral, syntaxFacts, piece, currentContentIsInterpolatedStringLiteral);
                     if (previousContentWasStringLiteralExpression)
                     {
                         // Last part we added to the content list was also an interpolated-string-text-node.
@@ -130,14 +137,14 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         // not:
                         //      {InterpolatedStringText}{Interpolation}{InterpolatedStringText}{InterpolatedStringText}
                         var existingInterpolatedStringTextNode = content.Last();
-                        var newText = ConcatinateTextToTextNode(generator, existingInterpolatedStringTextNode, textWithoutQuotes);
+                        var newText = ConcatenateTextToTextNode(generator, existingInterpolatedStringTextNode, stringText);
                         content[content.Count - 1] = newText;
                     }
                     else
                     {
                         // This is either the first string literal we have encountered or it is the most recent one we've seen
                         // after adding an interpolation.  Add a new interpolated-string-text-node to the list.
-                        content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutQuotes)));
+                        content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(stringText)));
                     }
                 }
                 else
@@ -145,14 +152,32 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     content.Add(generator.Interpolation(piece.WithoutTrivia()));
                 }
                 // Update this variable to be true every time we encounter a new string literal expression
-                // so we know to concatinate future string literals together if we encounter them.
-                previousContentWasStringLiteralExpression = currentContentIsStringLiteral;
+                // so we know to concatenate future string literals together if we encounter them.
+                previousContentWasStringLiteralExpression = currentContentIsStringLiteral || currentContentIsInterpolatedStringLiteral;
             }
 
             return generator.InterpolatedStringExpression(startToken, content, endToken);
         }
 
-        private static SyntaxNode ConcatinateTextToTextNode(SyntaxGenerator generator, SyntaxNode interpolatedStringTextNode, string textWithoutQuotes)
+        private string GetStringText(bool isVerbatimStringLiteral, ISyntaxFactsService syntaxFacts, SyntaxNode piece, bool currentContentIsInterpolatedStringLiteral)
+        {
+            if (currentContentIsInterpolatedStringLiteral)
+            {
+                // If current string is already an interpolated string, we add the text as if it was a regular string
+                // 1 + $" string {2}"   becomes   $"{1} string {2}"
+                return syntaxFacts.GetContentsOfInterpolatedString(piece).ToString();
+            }
+            else
+            {
+                // If current string is a string literal, we add the text with escaped braces
+                // 1 + " string{test}"  becomes   $"{1} string{{test}}" 
+                var text = piece.GetFirstToken().Text;
+                var textWithEscapedBracesIfNeeded = text.Replace("{", "{{").Replace("}", "}}");
+                return GetTextWithoutQuotes(textWithEscapedBracesIfNeeded, isVerbatimStringLiteral);
+            }
+        }
+
+        private static SyntaxNode ConcatenateTextToTextNode(SyntaxGenerator generator, SyntaxNode interpolatedStringTextNode, string textWithoutQuotes)
         {
             var existingText = interpolatedStringTextNode.GetFirstToken().Text;
             var newText = existingText + textWithoutQuotes;

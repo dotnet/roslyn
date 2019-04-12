@@ -730,5 +730,166 @@ public class C
     }
 }");
         }
+
+        [WorkItem(33865, "https://github.com/dotnet/roslyn/issues/33865")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestInsideInterpolation()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = 1 + $""string {i[||]}"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = $""{1}string {i}"";
+    }
+}");
+        }
+
+        [WorkItem(33865, "https://github.com/dotnet/roslyn/issues/33865")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestInsideInterpolatedString()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = 1 + $""stri[||]ng {i}"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = $""{1}string {i}"";
+    }
+}");
+        }
+
+        [WorkItem(33865, "https://github.com/dotnet/roslyn/issues/33865")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestInsideInterpolatedString2()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = 1 + $""[||]string {i}"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = $""{1}string {i}"";
+    }
+}");
+        }
+
+        [WorkItem(33865, "https://github.com/dotnet/roslyn/issues/33865")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestInsideInterpolatedString3()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = 1 + $[||]""string {i}"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = $""{1}string {i}"";
+    }
+}");
+        }
+
+        [WorkItem(33865, "https://github.com/dotnet/roslyn/issues/33865")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestInsideInterpolatedString4()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = 1 + $""string {i}[||]"";
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = $""{1}string {i}"";
+    }
+}");
+        }
+
+        [WorkItem(33865, "https://github.com/dotnet/roslyn/issues/33865")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestInsideInterpolatedString5()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = $""string {i}[||]"" + 1;
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = $""string {i}{1}"";
+    }
+}");
+        }
+
+        [WorkItem(33865, "https://github.com/dotnet/roslyn/issues/33865")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestInsideInterpolatedString6()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = $""string {i}[||]"" + $""string {i}"" + 1;
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        int i = 3;
+        var v = $""string {i}string {i}{1}"";
+    }
+}");
+        }
     }
 }

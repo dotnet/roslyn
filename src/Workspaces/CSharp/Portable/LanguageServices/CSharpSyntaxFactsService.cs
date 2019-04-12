@@ -1419,6 +1419,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsStringLiteralExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.StringLiteralExpression;
 
+        public bool IsInterpolatedStringExpression(SyntaxNode node)
+            => node is InterpolatedStringExpressionSyntax;
+
+        public bool IsInterpolation(SyntaxNode node)
+            => node is InterpolationSyntax;
+
+        public bool IsInterpolatedStringText(SyntaxNode node)
+            => node is InterpolatedStringTextSyntax;
+
         public bool IsVerbatimStringLiteral(SyntaxToken token)
             => token.IsVerbatimStringLiteral();
 

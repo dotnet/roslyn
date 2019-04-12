@@ -1362,6 +1362,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return token.IsKind(SyntaxKind.StringLiteralToken)
         End Function
 
+        Public Function IsInterpolatedStringExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInterpolatedStringExpression
+            Return TypeOf (node) Is InterpolatedStringExpressionSyntax
+        End Function
+
+        Public Function IsInterpolation(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInterpolation
+            Return TypeOf (node) Is InterpolationSyntax
+        End Function
+
+        Public Function IsInterpolatedStringText(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInterpolatedStringText
+            Return TypeOf (node) Is InterpolatedStringTextSyntax
+        End Function
+
         Public Overrides Function IsInterpolatedStringTextToken(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsInterpolatedStringTextToken
             Return token.IsKind(SyntaxKind.InterpolatedStringTextToken)
         End Function
