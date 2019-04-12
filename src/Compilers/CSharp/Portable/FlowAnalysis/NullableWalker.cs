@@ -2216,7 +2216,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _currentConditionalReceiverVisitResult = default;
             _lastConditionalAccessSlot = previousConditionalAccessSlot;
             ResultType = TypeWithState.Create(type, resultState);
-            if (RequiresSafetyWarningWhenNullIntroduced(this.LvalueResultType))
+
+            // A side effect of the above assignment to ResultType is to compute the corresponding TypeWithAnnotations as
+            // this.LvalueResultType, which is what we need to decide if a safety warning is deserved here.
+            var resultTypeWithAnnotations = this.LvalueResultType;
+            if (RequiresSafetyWarningWhenNullIntroduced(resultTypeWithAnnotations))
             {
                 ReportSafetyDiagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, node.Syntax, node.Type);
             }
@@ -3950,7 +3954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.DefaultOrNullLiteral:
-                    if (checkConversion && RequiresSafetyWarningWhenNullIntroduced(targetTypeWithNullability) && operandOpt?.IsSuppressed != true)
+                    if (checkConversion && RequiresSafetyWarningWhenNullIntroduced(targetTypeWithNullability) && !isSuppressed)
                     {
                         // For type parameters that cannot be annotated, the analysis must report those
                         // places where null values first sneak in, like `default`, `null`, and `GetFirstOrDefault`.
