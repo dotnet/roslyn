@@ -59,7 +59,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
 
             // It's possible we're not in a host context providing this service, in which case
-            // just provide a code action that won't notify of the symbol rename
+            // just provide a code action that won't notify of the symbol rename.
+            // Without the symbol rename operation, code generators (like WPF) may not
+            // know to regenerate code correctly.
             if (symbolRenameCodeActionOperationFactory != null)
             {
                 foreach (var (newName, symbol) in moveToNamespaceResult.NewNameOriginalSymbolMapping)
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             {
                 MoveToNamespaceAnalysisResult.ContainerType.NamedType => (AbstractMoveToNamespaceCodeAction)new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
                 MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult),
-                _ => throw new InvalidOperationException($"Unexpected type {analysisResult.Container}")
+                _ => throw ExceptionUtilities.UnexpectedValue(analysisResult.Container)
             };
     }
 }

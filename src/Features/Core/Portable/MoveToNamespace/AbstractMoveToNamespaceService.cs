@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             var targetTypes = container.DescendantNodes().Where(node => node is TNamedTypeDeclarationSyntax);
             var newNameOriginalSymbolMapping = targetTypes
                 .Select(node => semanticModel.GetDeclaredSymbol(node, cancellationToken))
-                .ToDictionary(symbol => GetNewSymbolName(symbol, targetNamespace));
+                .ToImmutableDictionary(symbol => GetNewSymbolName(symbol, targetNamespace));
 
             var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
             if (changeNamespaceService == null)

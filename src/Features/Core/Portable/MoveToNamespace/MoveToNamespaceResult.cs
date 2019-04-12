@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
@@ -12,14 +13,14 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         public Solution UpdatedSolution { get; }
         public Solution OriginalSolution { get; }
         public DocumentId UpdatedDocumentId { get; }
-        public IReadOnlyDictionary<string, ISymbol> NewNameOriginalSymbolMapping { get; }
+        public ImmutableDictionary<string, ISymbol> NewNameOriginalSymbolMapping { get; }
         public string NewName { get; }
 
         public MoveToNamespaceResult(
             Solution originalSolution,
             Solution updatedSolution, 
             DocumentId updatedDocumentId,
-            IReadOnlyDictionary<string, ISymbol> newNameOriginalSymbolMapping)
+            ImmutableDictionary<string, ISymbol> newNameOriginalSymbolMapping)
         {
             OriginalSolution = originalSolution;
             UpdatedSolution = updatedSolution;
