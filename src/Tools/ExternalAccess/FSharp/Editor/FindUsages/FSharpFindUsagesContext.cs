@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
 
         public CancellationToken CancellationToken => _context.CancellationToken;
 
-        public Task OnDefinitionFoundAsync(FSharp.FindUsages.DefinitionItem definition)
+        public Task OnDefinitionFoundAsync(FSharp.FindUsages.FSharpDefinitionItem definition)
         {
             return _context.OnDefinitionFoundAsync(definition.RoslynDefinitionItem);
         }
 
-        public Task OnReferenceFoundAsync(FSharp.FindUsages.SourceReferenceItem reference)
+        public Task OnReferenceFoundAsync(FSharp.FindUsages.FSharpSourceReferenceItem reference)
         {
             return _context.OnReferenceFoundAsync(reference.RoslynSourceReferenceItem);
         }

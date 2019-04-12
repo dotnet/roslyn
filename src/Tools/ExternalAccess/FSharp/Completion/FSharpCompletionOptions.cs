@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
 {
-    internal static class CompletionOptions
+    internal static class FSharpCompletionOptions
     {
         public static readonly PerLanguageOption<bool> BlockForCompletionItems = Microsoft.CodeAnalysis.Completion.CompletionOptions.BlockForCompletionItems;
     }

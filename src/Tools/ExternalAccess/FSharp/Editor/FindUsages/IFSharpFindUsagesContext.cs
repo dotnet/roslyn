@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages
         /// </summary>
         Task SetSearchTitleAsync(string title);
 
-        Task OnDefinitionFoundAsync(DefinitionItem definition);
-        Task OnReferenceFoundAsync(SourceReferenceItem reference);
+        Task OnDefinitionFoundAsync(FSharpDefinitionItem definition);
+        Task OnReferenceFoundAsync(FSharpSourceReferenceItem reference);
 
         Task ReportProgressAsync(int current, int maximum);
     }

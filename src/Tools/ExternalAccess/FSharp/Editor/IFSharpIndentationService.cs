@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
     /// current line.  With this tuple, both forms can be expressed, and the implementor does not
     /// have to convert from one to the other.
     /// </summary>
-    internal struct IndentationResult
+    internal struct FSharpIndentationResult
     {
         /// <summary>
         /// The base position in the document that the indent should be relative to.  This position
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         /// </summary>
         public int Offset { get; }
 
-        public IndentationResult(int basePosition, int offset) : this()
+        public FSharpIndentationResult(int basePosition, int offset) : this()
         {
             BasePosition = basePosition;
             Offset = offset;
@@ -44,6 +44,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         /// <see langword="null"/> if the line in question is not blank and thus indentation should
         /// be deferred to the formatting command handler to handle.
         /// </summary>
-        IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
+        FSharpIndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
     }
 }

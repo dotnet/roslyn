@@ -7,12 +7,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging
 {
-    internal struct DebugLocationInfo
+    internal struct FSharpDebugLocationInfo
     {
         public readonly string Name;
         public readonly int LineOffset;
 
-        public DebugLocationInfo(string name, int lineOffset)
+        public FSharpDebugLocationInfo(string name, int lineOffset)
         {
             Debug.Assert(name != null);
             Name = name;
@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Deb
         }
     }
 
-    internal struct DebugDataTipInfo
+    internal struct FSharpDebugDataTipInfo
     {
         public readonly TextSpan Span;
         public readonly string Text;
 
-        public DebugDataTipInfo(TextSpan span, string text)
+        public FSharpDebugDataTipInfo(TextSpan span, string text)
         {
             Span = span;
             Text = text;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Deb
 
     internal interface IFSharpLanguageDebugInfoService
     {
-        Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<FSharpDebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
         /// Find an appropriate span to pass the debugger given a point in a snapshot.  Optionally
@@ -52,6 +52,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Deb
         /// example, if the user hovers on "var" then we actually want to pass the fully qualified
         /// name of the type that 'var' binds to, to the debugger.
         /// </summary>
-        Task<DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<FSharpDebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices
 {
-    internal static class VisualStudioWorkspaceExtensions
+    internal static class FSharpVisualStudioWorkspaceExtensions
     {
         public static Metadata GetMetadata(this VisualStudioWorkspace workspace, string fullPath, DateTime snapshotTimestamp)
         {

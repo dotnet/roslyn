@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
     /// <summary>
     /// Represents a <see cref="TextSpan"/> location in a <see cref="Document"/>.
     /// </summary>
-    internal readonly struct DocumentSpan : IEquatable<DocumentSpan>
+    internal readonly struct FSharpDocumentSpan : IEquatable<FSharpDocumentSpan>
     {
         public Document Document { get; }
         public TextSpan SourceSpan { get; }
@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
         /// </summary>
         public ImmutableDictionary<string, object> Properties { get; }
 
-        public DocumentSpan(Document document, TextSpan sourceSpan)
+        public FSharpDocumentSpan(Document document, TextSpan sourceSpan)
             : this(document, sourceSpan, properties: null)
         {
         }
 
-        public DocumentSpan(
+        public FSharpDocumentSpan(
             Document document,
             TextSpan sourceSpan,
             ImmutableDictionary<string, object> properties)
@@ -36,15 +36,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
         }
 
         public override bool Equals(object obj)
-            => Equals((DocumentSpan)obj);
+            => Equals((FSharpDocumentSpan)obj);
 
-        public bool Equals(DocumentSpan obj)
+        public bool Equals(FSharpDocumentSpan obj)
             => this.Document == obj.Document && this.SourceSpan == obj.SourceSpan;
 
-        public static bool operator ==(DocumentSpan d1, DocumentSpan d2)
+        public static bool operator ==(FSharpDocumentSpan d1, FSharpDocumentSpan d2)
             => d1.Equals(d2);
 
-        public static bool operator !=(DocumentSpan d1, DocumentSpan d2)
+        public static bool operator !=(FSharpDocumentSpan d1, FSharpDocumentSpan d2)
             => !(d1 == d2);
 
         public override int GetHashCode()

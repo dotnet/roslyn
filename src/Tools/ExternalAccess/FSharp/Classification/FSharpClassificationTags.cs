@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification
 {
-    internal static class ClassificationTags
+    internal static class FSharpClassificationTags
     {
         public static string GetClassificationTypeName(string textTag) => textTag.ToClassificationTypeName();
     }

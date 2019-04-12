@@ -4,16 +4,16 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages
 {
-    internal class SourceReferenceItem
+    internal class FSharpSourceReferenceItem
     {
         private readonly Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem _roslynSourceReferenceItem;
 
-        private SourceReferenceItem(Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem roslynDefinitionItem)
+        private FSharpSourceReferenceItem(Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem roslynDefinitionItem)
         {
             _roslynSourceReferenceItem = roslynDefinitionItem;
         }
 
-        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan)
+        public FSharpSourceReferenceItem(FSharpDefinitionItem definition, FSharpDocumentSpan sourceSpan)
         {
             _roslynSourceReferenceItem = new Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem(definition.RoslynDefinitionItem, sourceSpan.ToRoslynDocumentSpan(), ImmutableDictionary<string, ImmutableArray<string>>.Empty);
         }

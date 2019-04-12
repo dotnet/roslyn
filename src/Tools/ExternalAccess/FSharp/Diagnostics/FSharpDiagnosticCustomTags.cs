@@ -4,7 +4,7 @@ using Microsoft;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
 {
-    internal static class DiagnosticCustomTags
+    internal static class FSharpDiagnosticCustomTags
     {
 #pragma warning disable CA1819 // Properties should not return arrays
         public static string[] Microsoft => CodeAnalysis.Diagnostics.DiagnosticCustomTags.Microsoft;

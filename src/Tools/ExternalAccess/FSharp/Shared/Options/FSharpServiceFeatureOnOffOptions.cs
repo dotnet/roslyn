@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Shared.Options
 {
-    internal static class ServiceFeatureOnOffOptions
+    internal static class FSharpServiceFeatureOnOffOptions
     {
         /// <summary>
         /// this option is solely for performance. don't confused by option name. 

@@ -11,13 +11,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities
 {
     [Export]
-    internal class ClassificationTypeMap
+    internal class FSharpClassificationTypeMap
     {
         private readonly Dictionary<string, IClassificationType> _identityMap;
         private readonly IClassificationTypeRegistryService _registryService;
 
         [ImportingConstructor]
-        public ClassificationTypeMap(IClassificationTypeRegistryService registryService)
+        public FSharpClassificationTypeMap(IClassificationTypeRegistryService registryService)
         {
             _registryService = registryService;
 
