@@ -159,10 +159,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                               .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
                 sessionOpt.PresenterSession.PresentItems(
-                    triggerSpan, modelOpt.FilteredItems, selectedItem,
+                    modelOpt.TriggerSnapshot, triggerSpan, modelOpt.FilteredItems, selectedItem,
                     modelOpt.SuggestionModeItem, modelOpt.UseSuggestionMode,
                     modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters,
-                    modelOpt.FilterText, modelOpt.TriggerDocument);
+                    modelOpt.FilterText);
             }
         }
 

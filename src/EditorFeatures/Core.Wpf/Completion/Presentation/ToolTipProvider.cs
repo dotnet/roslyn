@@ -12,7 +12,9 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
@@ -50,7 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return null;
             }
 
-            var document = context.Properties.GetProperty<Document>(CompletionPresenterSession.DocumentKey);
+            var textSnapshot = context.Properties.GetProperty<ITextSnapshot>(CompletionPresenterSession.TextSnapshotKey);
+            var document = textSnapshot?.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return null;
