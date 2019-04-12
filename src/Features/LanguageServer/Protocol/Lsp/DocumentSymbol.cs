@@ -56,7 +56,9 @@ namespace Microsoft.VisualStudio.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the children of this symbol, e.g. properties of a class.
         /// </summary>
+#pragma warning disable CA1819
         [DataMember(Name = "children")]
         public DocumentSymbol[] Children { get; set; }
+#pragma warning restore
     }
 }
