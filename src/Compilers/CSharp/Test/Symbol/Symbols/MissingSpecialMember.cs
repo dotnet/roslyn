@@ -1370,39 +1370,6 @@ class Program
         }
 
         [Fact]
-        public void System_String__ConcatObjectObject()
-        {
-            var source =
-@"
-
-using System;
-
-class Class1
-{
-    static void Main()
-    {
-    }
-}
-
-class MyClass
-{
-    public static implicit operator MyClass(decimal Value)
-    {
-        Console.WriteLine(""Value is: "" + Value);
-        return new MyClass();
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObjectObject);
-            compilation.VerifyEmitDiagnostics(
-                // (16,27): error CS0656: Missing compiler required member 'System.String.Concat'
-                //         Console.WriteLine("Value is: " + Value);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Value is: "" + Value").WithArguments("System.String", "Concat").WithLocation(16, 27)
-                );
-        }
-
-        [Fact]
         public void System_Nullable_T_GetValueOrDefault_04()
         {
             var source =
@@ -1520,6 +1487,31 @@ namespace Test
         }
 
         [Fact]
+        public void System_String__ConcatObjectObject()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+class Class1
+{
+    static void Main()
+    {
+        Expression<Func<object, string>> e = x => ""X = "" + x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObjectObject);
+            compilation.VerifyEmitDiagnostics(
+                // (9,51): error CS0656: Missing compiler required member 'System.String.Concat'
+                //         Expression<Func<object, string>> e = x => "X = " + x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""X = "" + x").WithArguments("System.String", "Concat").WithLocation(9, 51)
+                );
+        }
+
+        [Fact]
         public void System_String__ConcatStringStringString()
         {
             string source = @"
@@ -1529,7 +1521,7 @@ struct S
     private string str;
     public S(char chr) { this.str = chr.ToString(); }
     public S(string str) { this.str = str; }
-    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+    public static S operator + (S x, S y) { return new S(x.str + '+' + y.str); }
 }
 
 class C
@@ -1542,8 +1534,8 @@ class C
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringStringString);
             compilation.VerifyEmitDiagnostics(
                 // (8,58): error CS0656: Missing compiler required member 'System.String.Concat'
-                //     public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '+'").WithArguments("System.String", "Concat").WithLocation(8, 58)
+                //     public static S operator + (S x, S y) { return new S(x.str + '+' + y.str); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.str + '+' + y.str").WithArguments("System.String", "Concat").WithLocation(8, 58)
                 );
         }
 
@@ -2257,33 +2249,6 @@ struct X
                 // (14,7): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //       case 1:
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "case 1:").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(14, 7)
-                );
-        }
-
-        [Fact]
-        public void System_String__ConcatObject()
-        {
-            var source = @"
-using System;
-
-public class Test
-{
-    private static string S = ""F"";
-    private static object O = ""O"";
-
-    static void Main()
-    {
-        Console.WriteLine(O + null);
-        Console.WriteLine(S + null);
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObject);
-            compilation.VerifyEmitDiagnostics(
-                // (11,27): error CS0656: Missing compiler required member 'System.String.Concat'
-                //         Console.WriteLine(O + null);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "O + null").WithArguments("System.String", "Concat").WithLocation(11, 27)
                 );
         }
 

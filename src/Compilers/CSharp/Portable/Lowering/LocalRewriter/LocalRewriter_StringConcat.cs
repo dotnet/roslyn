@@ -46,9 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return RewriteStringConcatInExpressionLambda(syntax, operatorKind, loweredLeft, loweredRight, type);
             }
 
-            // avoid run time boxing and ToString operations if we can reasonably convert to a string at compile time
-            loweredLeft = ConvertConcatExprToStringIfPossible(syntax, loweredLeft);
-            loweredRight = ConvertConcatExprToStringIfPossible(syntax, loweredRight);
+            // Convert both sides to a string (calling ToString if necessary)
+            loweredLeft = ConvertConcatExprToString(syntax, loweredLeft);
+            loweredRight = ConvertConcatExprToString(syntax, loweredRight);
+
+            Debug.Assert(loweredLeft.Type.IsStringType() || loweredLeft.ConstantValue?.IsNull == true || loweredLeft.Type.IsErrorType());
+            Debug.Assert(loweredRight.Type.IsStringType() || loweredRight.ConstantValue?.IsNull == true || loweredRight.Type.IsErrorType());
 
             // try fold two args without flattening.
             var folded = TryFoldTwoConcatOperands(syntax, loweredLeft, loweredRight);
@@ -416,90 +419,96 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Checks whether the expression represents a boxing conversion of a special value type.
-        /// If it does, it tries to return a string-based representation instead in order
-        /// to avoid allocations.  If it can't, the original expression is returned.
+        /// Returns an expression which converts the given expression into a string (or null).
+        /// If necessary, this invokes .ToString() on the expression, to avoid boxing value types.
         /// </summary>
-        private BoundExpression ConvertConcatExprToStringIfPossible(SyntaxNode syntax, BoundExpression expr)
+        private BoundExpression ConvertConcatExprToString(SyntaxNode syntax, BoundExpression expr)
         {
+            // If it's a value type, it'll have been boxed by the +(string, object) or +(object, string)
+            // operator. Undo that.
             if (expr.Kind == BoundKind.Conversion)
             {
                 BoundConversion conv = (BoundConversion)expr;
                 if (conv.ConversionKind == ConversionKind.Boxing)
                 {
-                    BoundExpression operand = conv.Operand;
-                    if (operand != null)
+                    expr = conv.Operand;
+                }
+            }
+
+            // Is the expression a literal char?  If so, we can
+            // simply make it a literal string instead and avoid any 
+            // allocations for converting the char to a string at run time.
+            // Similarly if it's a literal null, don't do anything special.
+            if (expr.Kind == BoundKind.Literal)
+            {
+                ConstantValue cv = ((BoundLiteral)expr).ConstantValue;
+                if (cv != null)
+                {
+                    if (cv.SpecialType == SpecialType.System_Char)
                     {
-                        // Is the expression a literal char?  If so, we can
-                        // simply make it a literal string instead and avoid any 
-                        // allocations for converting the char to a string at run time.
-                        if (operand.Kind == BoundKind.Literal)
-                        {
-                            ConstantValue cv = ((BoundLiteral)operand).ConstantValue;
-                            if (cv != null && cv.SpecialType == SpecialType.System_Char)
-                            {
-                                return _factory.StringLiteral(cv.CharValue.ToString());
-                            }
-                        }
-
-                        // Can the expression be optimized with a ToString call?
-                        // If so, we can synthesize a ToString call to avoid boxing.
-                        if (ConcatExprCanBeOptimizedWithToString(operand.Type))
-                        {
-                            var toString = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
-
-                            var type = (NamedTypeSymbol)operand.Type;
-                            var toStringMembers = type.GetMembers(toString.Name);
-                            foreach (var member in toStringMembers)
-                            {
-                                var toStringMethod = member as MethodSymbol;
-                                if (toStringMethod.GetLeastOverriddenMethod(type) == (object)toString)
-                                {
-                                    return BoundCall.Synthesized(syntax, operand, toStringMethod);
-                                }
-                            }
-                        }
+                        return _factory.StringLiteral(cv.CharValue.ToString());
+                    }
+                    else if (cv.IsNull)
+                    {
+                        return expr;
                     }
                 }
             }
 
-            // Optimization not possible; just return the original expression.
-            return expr;
-        }
-
-        /// <summary>
-        /// Gets whether the type of an argument used in string concatenation can
-        /// be optimized by first calling ToString on it before passing the argument
-        /// to the String.Concat function.
-        /// </summary>
-        /// <param name="symbol">The type symbol of the argument.</param>
-        /// <returns>
-        /// true if ToString may be used; false if using ToString could lead to observable differences in behavior.
-        /// </returns>
-        private static bool ConcatExprCanBeOptimizedWithToString(TypeSymbol symbol)
-        {
-            // There are several constraints applied here in support of backwards compatibility:
-            // - This optimization potentially changes the order in which ToString is called
-            //   on the arguments.  That's a a compatibility issue if one argument's ToString
-            //   depends on state mutated by another, such as current culture.
-            // - For value types, this optimization causes ToString to be called on the original
-            //   value rather than on a boxed copy.  That means a mutating ToString implementation
-            //   could change the original rather than the copy.
-            // For these reasons, this optimization is currently restricted to primitives
-            // known to have a non-mutating ToString implementation that is independent
-            // of externally mutable state.  Common value types such as Int32 and Double
-            // do not meet this bar.
-
-            switch (symbol.SpecialType)
+            // If it's a string already, just return it
+            if (expr.Type.SpecialType == SpecialType.System_String)
             {
-                case SpecialType.System_Boolean:
-                case SpecialType.System_Char:
-                case SpecialType.System_IntPtr:
-                case SpecialType.System_UIntPtr:
-                    return true;
-                default:
-                    return false;
+                return expr;
             }
+
+            // Evaluate toString at the last possible moment, to avoid spurious diagnostics if it's missing.
+            // All code paths below here use it.
+            var toString = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
+
+            // If it's a special value type, we know that it has its own ToString method. Assume that this won't
+            // be removed, and emit a direct call rather than a constrained virtual call. 
+            // This keeps in the spirit of #7079, but expands the range of types to all special value types.
+            if (expr.Type.IsValueType && expr.Type.SpecialType != SpecialType.None)
+            {
+                var type = (NamedTypeSymbol)expr.Type;
+                var toStringMembers = type.GetMembers(toString.Name);
+                foreach (var member in toStringMembers)
+                {
+                    var toStringMethod = (MethodSymbol)member;
+                    if (toStringMethod.GetLeastOverriddenMethod(type) == (object)toString)
+                    {
+                        return BoundCall.Synthesized(expr.Syntax, expr, toStringMethod);
+                    }
+                }
+            }
+
+            // If it's a value type (or unconstrained generic), and it's not constant and not readonly,
+            // then we need a copy. This is to mimic the old behaviour, where ToString was called on a box
+            // of the value type, and so any side-effects of ToString weren't made to the original.
+            if (!expr.Type.IsReferenceType && !expr.Type.IsReadOnly && expr.ConstantValue == null)
+            {
+                expr = new BoundPassByCopy(expr.Syntax, expr, expr.Type);
+            }
+
+            // No need for a conditional access if it's a value type - we know it's not null.
+            if (expr.Type.IsValueType)
+            {
+                return BoundCall.Synthesized(expr.Syntax, expr, toString);
+            }
+
+            int currentConditionalAccessID = ++_currentConditionalAccessID;
+
+            return new BoundLoweredConditionalAccess(
+                syntax,
+                expr,
+                hasValueMethodOpt: null,
+                whenNotNull: BoundCall.Synthesized(
+                    syntax,
+                    new BoundConditionalReceiver(syntax, currentConditionalAccessID, expr.Type),
+                    toString),
+                whenNullOpt: null,
+                id: currentConditionalAccessID,
+                type: _compilation.GetSpecialType(SpecialType.System_String));
         }
     }
 }

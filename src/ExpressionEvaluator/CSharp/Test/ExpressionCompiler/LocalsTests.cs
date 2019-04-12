@@ -3492,6 +3492,7 @@ class C
 {
   // Code size        7 (0x7)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldfld      ""int <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<z>i__Field""
   IL_0006:  ret
@@ -3501,6 +3502,7 @@ class C
 {
   // Code size       12 (0xc)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
   IL_0006:  ldfld      ""string <>f__AnonymousType0<string, string>.<x>i__Field""
@@ -3511,6 +3513,7 @@ class C
 {
   // Code size       12 (0xc)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
   IL_0006:  ldfld      ""string <>f__AnonymousType0<string, string>.<y>i__Field""
@@ -3577,6 +3580,7 @@ class C
 {
   // Code size        2 (0x2)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.1
   IL_0001:  ret
 }
@@ -3585,6 +3589,7 @@ class C
 {
   // Code size       12 (0xc)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""<>f__AnonymousType1<<>f__AnonymousType0<string, string>, int> C.<>c__DisplayClass0_0.<>h__TransparentIdentifier1""
   IL_0006:  ldfld      ""int <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<z>i__Field""
@@ -3595,6 +3600,7 @@ class C
 {
   // Code size       17 (0x11)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""<>f__AnonymousType1<<>f__AnonymousType0<string, string>, int> C.<>c__DisplayClass0_0.<>h__TransparentIdentifier1""
   IL_0006:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
@@ -3606,6 +3612,7 @@ class C
 {
   // Code size       17 (0x11)
   .maxstack  1
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""<>f__AnonymousType1<<>f__AnonymousType0<string, string>, int> C.<>c__DisplayClass0_0.<>h__TransparentIdentifier1""
   IL_0006:  ldfld      ""<>f__AnonymousType0<string, string> <>f__AnonymousType1<<>f__AnonymousType0<string, string>, int>.<<>h__TransparentIdentifier0>i__Field""
