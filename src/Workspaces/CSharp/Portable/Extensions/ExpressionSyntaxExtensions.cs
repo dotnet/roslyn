@@ -2282,7 +2282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool IsNonReducableQualifiedNameInUsingDirective(SemanticModel model, NameSyntax name, TypeSyntax reducedName)
         {
             // Whereas most of the time we do not want to reduce namespace names, We will
-            // make and exceptions for namespaces with the global:: alias.
+            // make an exception for namespaces with the global:: alias.
             return IsQualifiedNameInUsingDirective(model, name, reducedName) &&
                 !IsGlobalAliasQualifiedName(name);
         }
