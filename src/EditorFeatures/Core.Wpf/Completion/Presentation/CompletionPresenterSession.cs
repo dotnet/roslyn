@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
     internal sealed class CompletionPresenterSession : ForegroundThreadAffinitizedObject, ICompletionPresenterSession
     {
+        public static readonly object DocumentKey = new object();
+
         internal static readonly object Key = new object();
 
         private readonly ICompletionBroker _completionBroker;
@@ -81,7 +83,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
-            string filterText)
+            string filterText,
+            Document document)
         {
             AssertIsForeground();
 
@@ -132,6 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // so that we can call back into ourselves, get the items and add it to the
                 // session.
                 _editorSessionOpt.Properties.AddProperty(Key, this);
+                _editorSessionOpt.Properties.AddProperty(DocumentKey, document);
                 _editorSessionOpt.Start();
             }
 
