@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
@@ -29,8 +31,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 
         public IndentationResult(int basePosition, int offset) : this()
         {
-            this.BasePosition = basePosition;
-            this.Offset = offset;
+            BasePosition = basePosition;
+            Offset = offset;
         }
     }
 

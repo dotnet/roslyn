@@ -1,16 +1,18 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Composition;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
 {
     [Shared]
-    [Export(typeof(IDiagnosticAnalyzerService))]
-    internal class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
+    [Export(typeof(IFSharpDiagnosticAnalyzerService))]
+    internal class FSharpDiagnosticAnalyzerService : IFSharpDiagnosticAnalyzerService
     {
         private readonly Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService _delegatee;
 
         [ImportingConstructor]
-        public DiagnosticAnalyzerService(Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService delegatee)
+        public FSharpDiagnosticAnalyzerService(Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService delegatee)
         {
             _delegatee = delegatee;
         }

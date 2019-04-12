@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices
             return metadataReferenceProvider.GetMetadata(fullPath, snapshotTimestamp);
         }
 
-        [Obsolete("This is a compatibility shim for F#; please do not use it.")]
+        [Obsolete("When Roslyn/ProjectSystem integration is finished, don't use this.")]
         public static bool TryGetProjectIdByBinPath(this VisualStudioWorkspace workspace, string filePath, out ProjectId projectId)
         {
             if (workspace is VisualStudioWorkspaceImpl)
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices
             return false;
         }
 
-        [Obsolete("This is a compatibility shim for F#; please do not use it.")]
+        [Obsolete("When Roslyn/ProjectSystem integration is finished, don't use this.")]
         public static ProjectId GetOrCreateProjectIdForPath(this VisualStudioWorkspace workspace, string filePath, string projectDisplayName)
         {
             if (workspace is VisualStudioWorkspaceImpl)
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices
             return default(ProjectId);
         }
 
-        [Obsolete("This is a compatibility shim for F#; please do not use it.")]
+        [Obsolete("When Roslyn/ProjectSystem integration is finished, don't use this.")]
         public static string GetProjectFilePath(this VisualStudioWorkspace workspace, ProjectId projectId)
         {
             if (workspace is VisualStudioWorkspaceImpl)

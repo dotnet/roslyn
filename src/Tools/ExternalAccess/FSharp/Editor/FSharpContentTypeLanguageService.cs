@@ -1,10 +1,12 @@
-﻿using System.Composition;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
-    [ExportContentTypeLanguageService(LanguageNames.FSharp, LanguageNames.FSharp), Shared]
+    [ExportContentTypeLanguageService(ContentTypeNames.FSharpContentType, LanguageNames.FSharp), Shared]
     internal class FSharpContentTypeLanguageService : IContentTypeLanguageService
     {
         private readonly IContentTypeRegistryService _contentTypeRegistry;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 
         public IContentType GetDefaultContentType()
         {
-            return _contentTypeRegistry.GetContentType(LanguageNames.FSharp);
+            return _contentTypeRegistry.GetContentType(ContentTypeNames.FSharpContentType);
         }
     }
 }
