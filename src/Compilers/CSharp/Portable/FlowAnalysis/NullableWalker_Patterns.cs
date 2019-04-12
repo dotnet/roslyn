@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             TypeSymbol inferredType =
                 BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) ??
-                node.Type.SetUnknownNullabilityForReferenceTypes();
+                node.Type.SetObliviousNullabilityForReferenceTypes();
             var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
 
             // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
