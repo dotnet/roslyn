@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
-        <target state="needs-review-translation">若要对内插逐字字符串使用 “@$” 而不是 “$@”，请使用语言版本 {0} 或更高版本。</target>
+        <target state="translated">若要对内插逐字字符串使用 “@$” 而不是 “$@”，请使用语言版本“{0}”或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -30,21 +30,6 @@
       <trans-unit id="ERR_AsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</source>
         <target state="translated">在 as 表达式中使用可以为 null 的引用类型“{0}?”是非法的；请改用基础类型“{0}”。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
-        <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
-        <target state="new">Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AutoSetterCantBeReadOnly">
-        <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
-        <target state="new">Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="new">Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -82,11 +67,6 @@
         <target state="translated">类型参数“{1}”具有 "unmanaged" 约束，因此“{1}”不能用作“{0}”的约束</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ConstantPatternVsOpenType">
-        <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
-        <target state="new">An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">名称“{0}”与相应 "Deconstruct" 参数“{1}”不匹配。</target>
@@ -94,12 +74,12 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
+        <target state="translated">无法嵌入类型“{0}”，因为它有非抽象成员。请考虑将“嵌入互操作类型”属性设置为 false。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
         <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
+        <target state="translated">修饰符“{0}”对 C# {1} 中的此项无效。请使用语言版本“{2}”或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -115,11 +95,6 @@
       <trans-unit id="ERR_DuplicateExplicitImpl">
         <source>'{0}' is explicitly implemented more than once.</source>
         <target state="translated">多次显式实现“{0}”。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
-        <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
-        <target state="new">Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -177,11 +152,6 @@
         <target state="translated">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
-        <source>Field-like event '{0}' cannot be 'readonly'.</source>
-        <target state="new">Field-like event '{0}' cannot be 'readonly'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">“{0}”不包含“{1}”的公共实例定义，因此 foreach 语句不能作用于“{0}”类型的变量。是否希望使用 "await foreach" 而非 "foreach"?</target>
@@ -204,7 +174,7 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</target>
+        <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法隐式实现非公共成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -219,7 +189,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
-        <target state="new">Interfaces cannot contain conversion, equality, or inequality operators</target>
+        <target state="translated">接口不可包含转换、等式或不等式运算符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -230,11 +200,6 @@
       <trans-unit id="ERR_InvalidObjectCreation">
         <source>Invalid object creation</source>
         <target state="translated">对象创建无效</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
-        <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
-        <target state="new">Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidStackAllocArray">
@@ -259,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
+        <target state="translated">“{0}”不实现类型“{2}”中的接口成员“{1}”，因为功能“{3}”在 C# {4} 中不可用。请使用语言版本“{5}”或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
@@ -269,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
-        <target state="new">Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</target>
+        <target state="translated">接口成员“{0}”不具备最特定的实现。“{1}”和“{2}”均不是最特定的。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -289,17 +254,17 @@
       </trans-unit>
       <trans-unit id="ERR_NotBaseOrImplementedInterface">
         <source>'{0}' is not base type or interface of {1}.</source>
-        <target state="new">'{0}' is not base type or interface of {1}.</target>
+        <target state="translated">“{0}”不是 {1} 的基类型或基接口。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotDeclaredInBase">
         <source>'{0}' is not an immediate member of {1}.</source>
-        <target state="new">'{0}' is not an immediate member of {1}.</target>
+        <target state="translated">“{0}”不是 {1}.的直接成员。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotImplementedInBase">
         <source>'{0}' is not implemented in base interface {1}.</source>
-        <target state="new">'{0}' is not implemented in base interface {1}.</target>
+        <target state="translated">“{0}”不是在基接口 {1} 中实现的。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -309,7 +274,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="needs-review-translation">无效的“{0}”值: C# {2} 的“{1}”。请使用语言版本 {3} 或更高版本。</target>
+        <target state="translated">“{0}”值无效: C# {2} 的“{1}”。请使用语言版本“{3}”或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -320,11 +285,6 @@
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">out 变量无法声明为 ref 局部变量</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodReadOnlyDifference">
-        <source>Both partial method declarations must be readonly or neither may be readonly</source>
-        <target state="new">Both partial method declarations must be readonly or neither may be readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -347,11 +307,6 @@
         <target state="translated">属性子模式需要引用要匹配的属性或字段，例如，"{{ Name: {0} }}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ReadOnlyModMissingAccessor">
-        <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
-        <target state="new">'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">无法将“{1}”重新赋值为“{0}”，因为“{1}”具有比“{0}”更窄的转义范围。</target>
@@ -364,17 +319,17 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
-        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <target state="translated">目标运行时不支持默认接口实现。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</target>
+        <target state="translated">“{0}”不能实现类型“{2}”中的接口成员“{1}”，因为目标运行时不支持默认接口实现。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
-        <target state="new">Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</target>
+        <target state="translated">对于接口成员，目标运行时不支持“受保护”、“内部受保护”或“专用受保护”这三种可访问性。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
@@ -390,11 +345,6 @@
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureVariable">
         <source>A static local function cannot contain a reference to '{0}'.</source>
         <target state="translated">静态本地函数不能包含对“{0}”的引用。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_StaticMemberCantBeReadOnly">
-        <source>Static member '{0}' cannot be marked 'readonly'.</source>
-        <target state="new">Static member '{0}' cannot be marked 'readonly'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -465,11 +415,6 @@
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
         <target state="translated">文件名“{0}”为空、包含无效字符、未使用绝对路径指定驱动器或太长</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_BaseTypeInBaseExpression">
-        <source>specifying base type in base expression</source>
-        <target state="new">specifying base type in base expression</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_CSCHelp">
@@ -619,7 +564,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                               Visual C# 编译器选项
 
                         - 输出文件 -
@@ -768,9 +713,14 @@
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
+      <trans-unit id="IDS_BaseTypeInBaseExpression">
+        <source>specifying base type in base expression</source>
+        <target state="translated">正在基表达式中指定基类型</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
-        <target state="new">default interface implementation</target>
+        <target state="translated">默认接口实现</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
@@ -833,11 +783,6 @@
         <target state="translated">对象泛型类型约束</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
-        <source>obsolete on property accessor</source>
-        <target state="new">obsolete on property accessor</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">
         <source>warning action enable or safeonly</source>
         <target state="translated">警告操作 enable 或 safeonly</target>
@@ -846,11 +791,6 @@
       <trans-unit id="IDS_FeatureRangeOperator">
         <source>range operator</source>
         <target state="translated">范围运算符</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureReadOnlyMembers">
-        <source>readonly members</source>
-        <target state="new">readonly members</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecursivePatterns">
@@ -900,7 +840,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
         <source>unmanaged constructed types</source>
-        <target state="new">unmanaged constructed types</target>
+        <target state="translated">非托管的结构化类型</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
@@ -1295,12 +1235,12 @@
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull">
         <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">当“{0}”是不可为 null 的引用类型时，“as” 运算符可能会生成 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
         <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="new">The 'as' operator may produce a null value for a type parameter.</target>
+        <target state="translated">“as” 运算符可能会为类型参数生成 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
@@ -1315,12 +1255,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull">
         <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">Conditional access may produce a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">当“{0}”是不可为 null 的引用类型时，条件访问可能会生成 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
         <source>Conditional access may produce a null value for a type parameter.</source>
-        <target state="new">Conditional access may produce a null value for a type parameter.</target>
+        <target state="translated">条件访问可能会为类型参数生成 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
@@ -1335,12 +1275,12 @@
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
         <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">A default expression introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">当“{0}”是不可为 null 的引用类型时，默认表达式会引入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
         <source>A default expression introduces a null value for a type parameter.</source>
-        <target state="new">A default expression introduces a null value for a type parameter.</target>
+        <target state="translated">默认表达式会为类型参数引入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
@@ -1393,16 +1333,6 @@
         <target state="translated">在 #pragma warning safeonly 之后应是可为 null</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
-        <source>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</source>
-        <target state="new">Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
-        <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
-        <target state="new">Call to non-readonly member from a 'readonly' member results in an implicit copy.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
         <source>The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</source>
         <target state="translated">名称 "_" 引用类型“{0}”，而不引用放弃模式。对于类型，请使用 "@_"；对于弃用，请使用 "var _"。</target>
@@ -1425,22 +1355,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="needs-review-translation">无法将 null 文本转换为非 null 引用或无约束类型参数。</target>
+        <target state="translated">无法将 null 文本转换为不可为 null 的引用类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="needs-review-translation">无法将 null 文本转换为非 null 引用或无约束类型参数。</target>
+        <target state="translated">无法将 null 文本转换为不可为 null 的引用类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
         <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="new">A null literal introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <target state="translated">当“{0}”是不可为 null 的引用类型时，null 文本会引入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
         <source>A null literal introduces a null value for a type parameter.</source>
-        <target state="new">A null literal introduces a null value for a type parameter.</target>
+        <target state="translated">null 文本会为类型参数引入 null 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
@@ -1465,12 +1395,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
         <source>Dereference of a possibly null reference.</source>
-        <target state="needs-review-translation">null 引用可能的取消引用。</target>
+        <target state="translated">取消引用可能为 null 的引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver_Title">
         <source>Dereference of a possibly null reference.</source>
-        <target state="needs-review-translation">null 引用可能的取消引用。</target>
+        <target state="translated">取消引用可能为 null 的引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn">
@@ -1485,22 +1415,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
         <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
-        <target state="needs-review-translation">类型“{0}”的实参中引用类型的为 Null 性与“{3}”中形参“{2}”的目标类型“{1}”不匹配。</target>
+        <target state="translated">由于引用类型在为 Null 性上的差异，不可在“{3}”中对类型为“{1}”的形参“{2}”使用类型为“{0}”的实参。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
         <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
-        <target state="new">Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</target>
+        <target state="translated">由于引用类型在为 Null 性上的差异，不可在“{3}”中将类型为“{0}”的实参用作形参“{2}”的类型“{1}”的输出。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
         <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
-        <target state="new">Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</target>
+        <target state="translated">由于引用类型在为 Null 性上的差异，不可将实参用作形参的输出。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
         <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
-        <target state="needs-review-translation">参数中的引用类型的为 Null 性与目标类型不匹配。</target>
+        <target state="translated">由于引用类型在为 Null 性上的差异，不可将实参用于形参。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -1693,6 +1623,16 @@
         <target state="translated">可为 null 的值类型可为 null。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PossibleNull">
+        <source>Possible null value.</source>
+        <target state="translated">可能的 null 值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull_Title">
+        <source>Possible null value.</source>
+        <target state="translated">可能的 null 值。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="translated">Switch 表达式不会处理所有可能的输入（它并非详尽无遗）。</target>
@@ -1700,27 +1640,17 @@
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
         <source>The switch expression does not handle some null inputs (it is not exhaustive).</source>
-        <target state="new">The switch expression does not handle some null inputs (it is not exhaustive).</target>
+        <target state="translated">Switch 表达式不会处理某些 null 输入(它并非详尽无遗)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
         <source>The switch expression does not handle some null inputs.</source>
-        <target state="new">The switch expression does not handle some null inputs.</target>
+        <target state="translated">Switch 表达式不会处理某些 null 输入。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="translated">Switch 表达式不会处理所有可能的输入（它并非详尽无遗）。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ThrowPossibleNull">
-        <source>Thrown value may be null.</source>
-        <target state="new">Thrown value may be null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_ThrowPossibleNull_Title">
-        <source>Thrown value may be null.</source>
-        <target state="new">Thrown value may be null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
@@ -1741,16 +1671,6 @@
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
         <target state="translated">类型参数与外部方法中的类型参数有相同的类型。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnboxPossibleNull">
-        <source>Unboxing a possibly null value.</source>
-        <target state="new">Unboxing a possibly null value.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_UnboxPossibleNull_Title">
-        <source>Unboxing a possibly null value.</source>
-        <target state="new">Unboxing a possibly null value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -2080,12 +2000,12 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceEventInitializer">
         <source>'{0}': instance event in interface cannot have initializer</source>
-        <target state="needs-review-translation">'“{0}”: 接口中的事件不能有初始值设定项</target>
+        <target state="translated">'“{0}”: 接口中的实例事件不能有初始值设定项</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
         <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
-        <target state="needs-review-translation">'“{0}”没有预定义的大小，因此 sizeof 只能在不安全的上下文中使用(请考虑使用 System.Runtime.InteropServices.Marshal.SizeOf)</target>
+        <target state="translated">“{0}”没有预定义的大小，因此仅可在不安全的上下文中使用 sizeof</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventUsage">
@@ -3664,12 +3584,12 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainFields">
         <source>Interfaces cannot contain instance fields</source>
-        <target state="needs-review-translation">接口不能包含字段</target>
+        <target state="translated">接口不能包含实例字段</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
         <source>Interfaces cannot contain instance constructors</source>
-        <target state="needs-review-translation">接口不能包含构造函数</target>
+        <target state="translated">接口不能包含实例构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">
@@ -3719,7 +3639,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InterfaceMemberNotFound">
         <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented</source>
-        <target state="needs-review-translation">'显式接口声明中的“{0}”不是接口成员</target>
+        <target state="translated">在可实现的接口的成员中找不到显式接口声明中的“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassDoesntImplementInterface">
@@ -3729,7 +3649,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
         <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="needs-review-translation">'“{0}”: 显式接口声明只能在类或结构中声明</target>
+        <target state="translated">“{0}”: 显式接口声明只能在类、结构或接口中声明</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -4629,7 +4549,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
         <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
-        <target state="needs-review-translation">分部方法必须在分部类或分部结构内声明</target>
+        <target state="translated">分部方法必须在分部类、分部结构或分部接口内声明</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
@@ -5383,7 +5303,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
         <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="needs-review-translation">'为 Main 方法指定的“{0}”必须是有效的非泛型类或结构</target>
+        <target state="translated">为 Main 方法指定的“{0}”必须为非泛型类、结构或接口</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
@@ -8037,7 +7957,7 @@ You should consider suppressing the warning only if you're sure that you don't w
 To embed interop type information for both assemblies, use /link for references to each assembly (set the Embed Interop Types property to True).
 
 To remove the warning, you can use /reference instead (set the Embed Interop Types property to False). In this case, a primary interop assembly (PIA) provides interop type information.</source>
-        <target state="needs-review-translation">使用 /link 添加了对程序集的引用(“嵌入互操作类型”属性设置为 True)。这指示编译器嵌入来自该程序集的互操作类型信息。但是，编译器无法嵌入来自该程序集的互操作类型信息，因为已引用的另一个程序集也使用 /reference 引用该程序集(“嵌入互操作类型”属性设置为 False)。
+        <target state="translated">使用 /link 添加了对程序集的引用(“嵌入互操作类型”属性设置为 True)。这指示编译器嵌入来自该程序集的互操作类型信息。但是，编译器无法嵌入来自该程序集的互操作类型信息，因为已引用的另一个程序集也使用 /reference 引用该程序集(“嵌入互操作类型”属性设置为 False)。
 
 要嵌入两个程序集的互操作类型信息，请对每个程序集的引用使用 /link (将“嵌入互操作类型”属性设置为 True)。
 
@@ -8661,7 +8581,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyInitializerInInterface">
         <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="needs-review-translation">接口中自动实现的属性不能具有初始值设定项。</target>
+        <target state="translated">接口中实例自动实现的属性不能具有初始值设定项。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
@@ -9061,7 +8981,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
         <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="needs-review-translation">ref 三元运算符的分支不能引用具有不兼容的声明范围的变量</target>
+        <target state="translated">ref 条件运算符的分支不能引用具有不兼容的声明范围的变量</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">
@@ -9536,7 +9456,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
         <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="needs-review-translation">"in" 扩展方法“{0}”的第一个参数必须是值类型。</target>
+        <target state="translated">"in" 扩展方法“{0}”的第一个参数必须是具体(非泛型)值类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
