@@ -192,16 +192,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
 
                     var overloads = PooledDictionary<string, TypeOverloadInfo>.GetInstance();
-                    var memberTypes = symbol.GetTypeMembers();
+                    var types = symbol.GetTypeMembers();
 
                     // Iterate over all top level internal and public types, keep track of "type overloads".
-                    foreach (var memberType in memberTypes)
+                    foreach (var type in types)
                     {
                         // No need to check accessibility here, since top level types can only be internal or public.
-                        if (memberType.CanBeReferencedByName)
+                        if (type.CanBeReferencedByName)
                         {
-                            overloads.TryGetValue(memberType.Name, out var overloadInfo);
-                            overloads[memberType.Name] = overloadInfo.Aggregate(memberType);
+                            overloads.TryGetValue(type.Name, out var overloadInfo);
+                            overloads[type.Name] = overloadInfo.Aggregate(type);
                         }
                     }
 
@@ -265,18 +265,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 if (type.Arity == 0)
                 {
-                    return new TypeOverloadInfo(type, BestGenericOverload, ContainsPublicGenericOverload);
+                    return new TypeOverloadInfo(nonGenericOverload: type, BestGenericOverload, ContainsPublicGenericOverload);
                 }
 
-                var containsPublic = type.DeclaredAccessibility >= Accessibility.Public || ContainsPublicGenericOverload;
+                // We consider generic with fewer type parameters better symbol to show in description
+                var newBestGenericOverload = BestGenericOverload == null || type.Arity < BestGenericOverload.Arity
+                    ? type
+                    : BestGenericOverload;
 
-                // We consider generic with fewer type parameters better symbol to show in description.
-                if (BestGenericOverload == null || type.Arity < BestGenericOverload.Arity)
-                {
-                    return new TypeOverloadInfo(NonGenericOverload, type, containsPublic);
-                }
+                var newContainsPublicGenericOverload = type.DeclaredAccessibility >= Accessibility.Public || ContainsPublicGenericOverload;
 
-                return new TypeOverloadInfo(NonGenericOverload, BestGenericOverload, containsPublic);
+                return new TypeOverloadInfo(NonGenericOverload, newBestGenericOverload, newContainsPublicGenericOverload);
             }
         }
 
