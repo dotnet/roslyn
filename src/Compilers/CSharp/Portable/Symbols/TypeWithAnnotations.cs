@@ -278,6 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public bool IsVoid =>
             _extensions.IsVoid(_defaultType);
+        public bool IsArray() =>
+            _extensions.IsArray(_defaultType);
         public bool IsSZArray() =>
             _extensions.IsSZArray(_defaultType);
         public bool IsStatic =>
@@ -761,6 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal abstract bool IsStatic(TypeSymbol typeSymbol);
             internal abstract bool IsVoid(TypeSymbol typeSymbol);
             internal abstract bool IsSZArray(TypeSymbol typeSymbol);
+            internal abstract bool IsArray(TypeSymbol typeSymbol);
 
             internal abstract TypeWithAnnotations WithTypeAndModifiers(TypeWithAnnotations type, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
@@ -788,6 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override bool IsStatic(TypeSymbol typeSymbol) => typeSymbol.IsStatic;
             internal override bool IsVoid(TypeSymbol typeSymbol) => typeSymbol.SpecialType == SpecialType.System_Void;
             internal override bool IsSZArray(TypeSymbol typeSymbol) => typeSymbol.IsSZArray();
+            internal override bool IsArray(TypeSymbol typeSymbol) => typeSymbol.IsArray();
 
             internal override TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol) => typeSymbol.StrippedType();
 
@@ -880,6 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool IsVoid(TypeSymbol typeSymbol) => false;
             internal override bool IsSZArray(TypeSymbol typeSymbol) => false;
+            internal override bool IsArray(TypeSymbol typeSymbol) => false;
             internal override bool IsStatic(TypeSymbol typeSymbol) => false;
 
             private TypeSymbol GetResolvedType()
@@ -1023,85 +1028,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return type.TypeSymbolEqualsCore(other, comparison);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Represents a sequence of <see cref="NullableAnnotation"/> to apply to a type. The sequence of
-    /// flags is specific to how the individual <see cref="TypeSymbol"/> walk their nested types.
-    /// </summary>
-    internal sealed class NullableTransformStream
-    {
-        private static readonly ObjectPool<NullableTransformStream> Pool = new ObjectPool<NullableTransformStream>(() => new NullableTransformStream(), Environment.ProcessorCount);
-
-        private ImmutableArray<byte> _transforms;
-        private int _positionOrDefault;
-
-        private bool IsDefault => _transforms.IsDefault;
-
-        /// <summary>
-        /// Returns whether or not there is data remaining in the series. When a single flag is used this
-        /// will always return false.
-        /// </summary>
-        public bool HasUnusedTransforms => !IsDefault && _positionOrDefault >= 0 && _positionOrDefault < _transforms.Length;
-        public bool HasInsufficientData => _positionOrDefault < 0;
-        public bool IsComplete => !HasUnusedTransforms && !HasInsufficientData;
-
-        private NullableTransformStream()
-        {
-
-        }
-
-        public static NullableTransformStream Create(byte defaultTransform)
-        {
-            Debug.Assert(defaultTransform >= 0);
-            var stream = Pool.Allocate();
-            stream._positionOrDefault = defaultTransform;
-            return stream;
-        }
-
-        public static NullableTransformStream Create(ImmutableArray<byte> transforms)
-        {
-            var stream = Pool.Allocate();
-            stream._positionOrDefault = 0;
-            stream._transforms = transforms;
-            return stream;
-        }
-
-        public static NullableTransformStream Create(byte defaultTransform, ImmutableArray<byte> transforms) =>
-            transforms.IsDefault ? Create(defaultTransform) : Create(transforms);
-
-        public static NullableTransformStream Create(NullableAnnotation nullableAnnotation) =>
-            Create((byte)nullableAnnotation);
-
-        public void Free()
-        {
-            _transforms = default;
-            Pool.Free(this);
-        }
-
-        public void SetHasInsufficientData()
-        {
-            _positionOrDefault = -1;
-            Debug.Assert(HasInsufficientData);
-            Debug.Assert(!IsComplete);
-        }
-
-        public byte? GetNextTransform()
-        {
-            if (IsDefault)
-            {
-                return (byte)_positionOrDefault;
-            }
-            else if (HasUnusedTransforms)
-            {
-                return _transforms[_positionOrDefault++];
-            }
-            else
-            {
-                SetHasInsufficientData();
-                return null;
             }
         }
     }

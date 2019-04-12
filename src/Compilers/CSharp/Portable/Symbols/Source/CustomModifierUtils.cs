@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // that the author did not write and did not validate.
             var flagsBuilder = ArrayBuilder<byte>.GetInstance();
             destinationType.AddNullableTransforms(flagsBuilder);
-            var stream = NullableTransformStream.Create(defaultTransform: 0, flagsBuilder.ToImmutableAndFree());
+            var stream = NullableTransformStream.GetInstance(flagsBuilder.ToImmutableAndFree());
             var result = resultType.ApplyNullableTransforms(stream);
             Debug.Assert(stream.IsComplete);
             resultType = stream.IsComplete ? result : resultType;

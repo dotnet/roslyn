@@ -352,8 +352,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // We don't want to blow the stack if we have a type like T[][][][][][][][]....[][],
-            // so we do not recurse until we have a non-array. Rather, hash all the ranks together
-            // and then hash that with the "T" type.
+            // so we do not recurse until we have a non-array. Rather, check all the ranks
+            // and then check the final "T" type.
             var array = this;
             do
             {
@@ -438,26 +438,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // recursive solution here. Need to take an iterative approach to building up the annotations here.
             var builder = ArrayBuilder<TState>.GetInstance();
 
-            // Dig through the element types to get the set of ArrayTypeSymbol instances that need to be marked
-            // as oblivious
+            // First build up the TState values for each of the ArrayTypeSymbol in the chain of arrays
             var array = this;
             var state = transform.GetInitialState(initialState, this);
             builder.Push(state);
             do
             {
                 array = array.ElementType as ArrayTypeSymbol;
-                if (array is object)
+                if (array is null)
+                {
+                    break;
+                }
+                else
                 {
                     state = transform.GetState(state, array);
                     builder.Push(state);
                 }
             }
-            while (array is object);
+            while (true);
 
-            // Fixup the element type on the most nested array
+            // Create the initial return for the most nested array. 
             var returnValue = transform.CreateInitialReturnValue(builder.Pop());
 
-            // All but the most nested array instance is just an oblivious array with the same custom modifiers
             while (builder.Count > 0)
             {
                 returnValue = transform.GetReturnValue(returnValue, builder.Pop());

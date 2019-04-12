@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return metadataType;
             }
 
-            var stream = NullableTransformStream.Create(defaultTransformFlag, nullableTransformFlags);
+            var stream = NullableTransformStream.GetInstance(defaultTransformFlag, nullableTransformFlags);
             TypeWithAnnotations result = metadataType.ApplyNullableTransforms(stream);
             if (stream.IsComplete)
             {

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
             verifyElementAnnotation(x.Type.MergeNullability(x.Type.SetObliviousNullabilityForReferenceTypes(), VarianceKind.None), NullableAnnotation.NotAnnotated);
 
-            var stream = NullableTransformStream.Create(NullableAnnotation.Oblivious);
+            var stream = NullableTransformStream.GetInstance(NullableAnnotation.Oblivious);
             verifyElementAnnotation(x.Type.ApplyNullableTransforms(stream), NullableAnnotation.Oblivious);
             Assert.True(stream.IsComplete);
             stream.Free();

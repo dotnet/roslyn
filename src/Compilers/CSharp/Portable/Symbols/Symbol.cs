@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// The base class for all symbols (namespaces, classes, method, parameters, etc.) that are 
     /// exposed by the compiler.
     /// </summary>
-    //   [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal abstract partial class Symbol : ISymbol, IFormattable
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
