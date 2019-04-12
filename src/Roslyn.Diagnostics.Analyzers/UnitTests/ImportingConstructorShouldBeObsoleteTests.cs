@@ -22,6 +22,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             var source = $@"
 using System;
 using {mefNamespace};
+using Microsoft.CodeAnalysis.Host.Mef;
 
 [Export]
 class C {{
@@ -30,8 +31,10 @@ class C {{
     public C() {{ }}
 }}
 
-static class MefConstruction {{
-    internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+namespace Microsoft.CodeAnalysis.Host.Mef {{
+    static class MefConstruction {{
+        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+    }}
 }}
 ";
 
@@ -53,6 +56,7 @@ static class MefConstruction {{
             var source = $@"
 Imports System
 Imports {mefNamespace}
+Imports Microsoft.CodeAnalysis.Host.Mef
 
 <Export>
 Class C
@@ -62,9 +66,11 @@ Class C
     End Sub
 End Class
 
-Module MefConstruction
-    Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-End Module
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+    Module MefConstruction
+        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
+    End Module
+End Namespace
 ";
 
             await new VerifyVB.Test
@@ -85,6 +91,7 @@ End Module
             var source = $@"
 using System;
 using {mefNamespace};
+using Microsoft.CodeAnalysis.Host.Mef;
 
 [Export]
 class C {{
@@ -93,13 +100,16 @@ class C {{
     public C() {{ }}
 }}
 
-static class MefConstruction {{
-    internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+namespace Microsoft.CodeAnalysis.Host.Mef {{
+    static class MefConstruction {{
+        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+    }}
 }}
 ";
             var fixedSource = $@"
 using System;
 using {mefNamespace};
+using Microsoft.CodeAnalysis.Host.Mef;
 
 [Export]
 class C {{
@@ -108,8 +118,10 @@ class C {{
     public C() {{ }}
 }}
 
-static class MefConstruction {{
-    internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+namespace Microsoft.CodeAnalysis.Host.Mef {{
+    static class MefConstruction {{
+        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+    }}
 }}
 ";
 
@@ -119,7 +131,7 @@ static class MefConstruction {{
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(8, 6, 8, 73).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(9, 6, 9, 73).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -136,6 +148,7 @@ static class MefConstruction {{
             var source = $@"
 Imports System
 Imports {mefNamespace}
+Imports Microsoft.CodeAnalysis.Host.Mef
 
 <Export>
 Class C
@@ -145,13 +158,16 @@ Class C
     End Sub
 End Class
 
-Module MefConstruction
-    Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-End Module
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+    Module MefConstruction
+        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
+    End Module
+End Namespace
 ";
             var fixedSource = $@"
 Imports System
 Imports {mefNamespace}
+Imports Microsoft.CodeAnalysis.Host.Mef
 
 <Export>
 Class C
@@ -161,9 +177,11 @@ Class C
     End Sub
 End Class
 
-Module MefConstruction
-    Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-End Module
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+    Module MefConstruction
+        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
+    End Module
+End Namespace
 ";
 
             await new VerifyVB.Test
@@ -172,7 +190,7 @@ End Module
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(8, 6, 8, 66).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(9, 6, 9, 66).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -195,6 +213,12 @@ class C {{
     [ImportingConstructor]
     public C() {{ }}
 }}
+
+namespace Microsoft.CodeAnalysis.Host.Mef {{
+    static class MefConstruction {{
+        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+    }}
+}}
 ";
             var fixedSource = $@"
 using System;
@@ -203,8 +227,14 @@ using {mefNamespace};
 [Export]
 class C {{
     [ImportingConstructor]
-    [Obsolete(""This exported object must be obtained through the MEF export provider."", error: true)]
+    [Obsolete(Microsoft.CodeAnalysis.Host.Mef.MefConstruction.ImportingConstructorMessage, error: true)]
     public C() {{ }}
+}}
+
+namespace Microsoft.CodeAnalysis.Host.Mef {{
+    static class MefConstruction {{
+        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+    }}
 }}
 ";
 
@@ -238,6 +268,12 @@ Class C
     Public Sub New()
     End Sub
 End Class
+
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+    Module MefConstruction
+        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
+    End Module
+End Namespace
 ";
             var fixedSource = $@"
 Imports System
@@ -246,10 +282,16 @@ Imports {mefNamespace}
 <Export>
 Class C
     <ImportingConstructor>
-    <Obsolete(""This exported object must be obtained through the MEF export provider."", True)>
+    <Obsolete(Microsoft.CodeAnalysis.Host.Mef.MefConstruction.ImportingConstructorMessage, True)>
     Public Sub New()
     End Sub
 End Class
+
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+    Module MefConstruction
+        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
+    End Module
+End Namespace
 ";
 
             await new VerifyVB.Test
@@ -282,6 +324,12 @@ class C {{
     [Obsolete]
     public C() {{ }}
 }}
+
+namespace Microsoft.CodeAnalysis.Host.Mef {{
+    static class MefConstruction {{
+        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+    }}
+}}
 ";
             var fixedSource = $@"
 using System;
@@ -290,8 +338,14 @@ using {mefNamespace};
 [Export]
 class C {{
     [ImportingConstructor]
-    [Obsolete(""This exported object must be obtained through the MEF export provider."", error: true)]
+    [Obsolete(Microsoft.CodeAnalysis.Host.Mef.MefConstruction.ImportingConstructorMessage, error: true)]
     public C() {{ }}
+}}
+
+namespace Microsoft.CodeAnalysis.Host.Mef {{
+    static class MefConstruction {{
+        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+    }}
 }}
 ";
 
@@ -326,6 +380,12 @@ Class C
     Public Sub New()
     End Sub
 End Class
+
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+    Module MefConstruction
+        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
+    End Module
+End Namespace
 ";
             var fixedSource = $@"
 Imports System
@@ -334,10 +394,16 @@ Imports {mefNamespace}
 <Export>
 Class C
     <ImportingConstructor>
-    <Obsolete(""This exported object must be obtained through the MEF export provider."", True)>
+    <Obsolete(Microsoft.CodeAnalysis.Host.Mef.MefConstruction.ImportingConstructorMessage, True)>
     Public Sub New()
     End Sub
 End Class
+
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+    Module MefConstruction
+        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
+    End Module
+End Namespace
 ";
 
             await new VerifyVB.Test
@@ -363,6 +429,7 @@ End Class
             var source = $@"
 using System;
 using {mefNamespace};
+using Microsoft.CodeAnalysis.Host.Mef;
 
 [Export]
 class C {{
@@ -371,13 +438,16 @@ class C {{
     public C() {{ }}
 }}
 
-static class MefConstruction {{
-    internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+namespace Microsoft.CodeAnalysis.Host.Mef {{
+    static class MefConstruction {{
+        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+    }}
 }}
 ";
             var fixedSource = $@"
 using System;
 using {mefNamespace};
+using Microsoft.CodeAnalysis.Host.Mef;
 
 [Export]
 class C {{
@@ -386,8 +456,10 @@ class C {{
     public C() {{ }}
 }}
 
-static class MefConstruction {{
-    internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+namespace Microsoft.CodeAnalysis.Host.Mef {{
+    static class MefConstruction {{
+        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+    }}
 }}
 ";
 
@@ -397,7 +469,7 @@ static class MefConstruction {{
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(8, 6, 8, 59).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(9, 6, 9, 59).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -414,6 +486,7 @@ static class MefConstruction {{
             var source = $@"
 Imports System
 Imports {mefNamespace}
+Imports Microsoft.CodeAnalysis.Host.Mef
 
 <Export>
 Class C
@@ -423,13 +496,16 @@ Class C
     End Sub
 End Class
 
-Module MefConstruction
-    Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-End Module
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+    Module MefConstruction
+        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
+    End Module
+End Namespace
 ";
             var fixedSource = $@"
 Imports System
 Imports {mefNamespace}
+Imports Microsoft.CodeAnalysis.Host.Mef
 
 <Export>
 Class C
@@ -439,9 +515,11 @@ Class C
     End Sub
 End Class
 
-Module MefConstruction
-    Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-End Module
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+    Module MefConstruction
+        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
+    End Module
+End Namespace
 ";
 
             await new VerifyVB.Test
@@ -450,7 +528,7 @@ End Module
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(8, 6, 8, 59).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(9, 6, 9, 59).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -471,12 +549,14 @@ using {mefNamespace};
 [Export]
 class C {{
     [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage)]
+    [Obsolete(""INCORRECT MESSAGE"")]
     public C() {{ }}
 }}
 
-static class MefConstruction {{
-    internal const string ImportingConstructorMessage = ""INCORRECT MESSAGE"";
+namespace Microsoft.CodeAnalysis.Host.Mef {{
+    static class MefConstruction {{
+        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+    }}
 }}
 ";
             var fixedSource = $@"
@@ -486,12 +566,14 @@ using {mefNamespace};
 [Export]
 class C {{
     [ImportingConstructor]
-    [Obsolete(""This exported object must be obtained through the MEF export provider."", error: true)]
+    [Obsolete(Microsoft.CodeAnalysis.Host.Mef.MefConstruction.ImportingConstructorMessage, error: true)]
     public C() {{ }}
 }}
 
-static class MefConstruction {{
-    internal const string ImportingConstructorMessage = ""INCORRECT MESSAGE"";
+namespace Microsoft.CodeAnalysis.Host.Mef {{
+    static class MefConstruction {{
+        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
+    }}
 }}
 ";
 
@@ -501,7 +583,7 @@ static class MefConstruction {{
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(8, 6, 8, 59).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(8, 6, 8, 35).WithArguments("C") },
                 },
                 FixedState =
                 {
@@ -524,14 +606,16 @@ Imports {mefNamespace}
 <Export>
 Class C
     <ImportingConstructor>
-    <Obsolete(MefConstruction.ImportingConstructorMessage)>
+    <Obsolete(""INCORRECT MESSAGE"")>
     Public Sub New()
     End Sub
 End Class
 
-Module MefConstruction
-    Friend Const ImportingConstructorMessage As String = ""INCORRECT MESSAGE""
-End Module
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+    Module MefConstruction
+        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
+    End Module
+End Namespace
 ";
             var fixedSource = $@"
 Imports System
@@ -540,14 +624,16 @@ Imports {mefNamespace}
 <Export>
 Class C
     <ImportingConstructor>
-    <Obsolete(""This exported object must be obtained through the MEF export provider."", True)>
+    <Obsolete(Microsoft.CodeAnalysis.Host.Mef.MefConstruction.ImportingConstructorMessage, True)>
     Public Sub New()
     End Sub
 End Class
 
-Module MefConstruction
-    Friend Const ImportingConstructorMessage As String = ""INCORRECT MESSAGE""
-End Module
+Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+    Module MefConstruction
+        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
+    End Module
+End Namespace
 ";
 
             await new VerifyVB.Test
@@ -556,7 +642,7 @@ End Module
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(8, 6, 8, 59).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(8, 6, 8, 35).WithArguments("C") },
                 },
                 FixedState =
                 {

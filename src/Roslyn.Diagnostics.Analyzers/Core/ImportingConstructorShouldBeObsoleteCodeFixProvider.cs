@@ -6,6 +6,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -107,7 +108,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 generator.TypeExpression(obsoleteAttributeSymbol),
                 new[]
                 {
-                    GenerateDescriptionArgument(generator),
+                    GenerateDescriptionArgument(generator, semanticModel),
                     GenerateErrorArgument(generator, allowNamedArgument: document.Project.Language == LanguageNames.CSharp),
                 });
 
@@ -118,6 +119,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private async Task<Document> AddDescriptionAndErrorAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var obsoleteAttributeApplication = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
 
@@ -136,7 +138,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 declarationKind = generator.GetDeclarationKind(declaration);
             }
 
-            var descriptionArgument = GenerateDescriptionArgument(generator);
+            var descriptionArgument = GenerateDescriptionArgument(generator, semanticModel);
             var errorArgument = GenerateErrorArgument(generator, allowNamedArgument: document.Project.Language == LanguageNames.CSharp);
             var newDeclaration = generator.AddAttributeArguments(declaration, new[] { descriptionArgument, errorArgument });
             return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
@@ -145,6 +147,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private async Task<Document> UpdateDescriptionAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var obsoleteAttributeApplication = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
 
@@ -169,7 +172,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 return document;
             }
 
-            var descriptionArgument = GenerateDescriptionArgument(generator);
+            var descriptionArgument = GenerateDescriptionArgument(generator, semanticModel);
             return document.WithSyntaxRoot(root.ReplaceNode(argumentToReplace, descriptionArgument));
         }
 
@@ -230,9 +233,24 @@ namespace Roslyn.Diagnostics.Analyzers
             return document.WithSyntaxRoot(root.ReplaceNode(argumentToReplace, errorArgument));
         }
 
-        private static SyntaxNode GenerateDescriptionArgument(SyntaxGenerator generator)
+        private static SyntaxNode GenerateDescriptionArgument(SyntaxGenerator generator, SemanticModel semanticModel)
         {
-            return generator.AttributeArgument(generator.LiteralExpression("This exported object must be obtained through the MEF export provider."));
+            var mefConstructionType = semanticModel.Compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.Host.Mef.MefConstruction");
+            var knownConstant = mefConstructionType?.GetMembers("ImportingConstructorMessage").OfType<IFieldSymbol>().Any();
+
+            SyntaxNode attributeArgument;
+            if (knownConstant is object)
+            {
+                attributeArgument = generator.MemberAccessExpression(
+                    generator.TypeExpressionForStaticMemberAccess(mefConstructionType),
+                    generator.IdentifierName("ImportingConstructorMessage"));
+            }
+            else
+            {
+                attributeArgument = generator.LiteralExpression("This exported object must be obtained through the MEF export provider.");
+            }
+
+            return generator.AttributeArgument(attributeArgument);
         }
 
         private static SyntaxNode GenerateErrorArgument(SyntaxGenerator generator, bool allowNamedArgument)
