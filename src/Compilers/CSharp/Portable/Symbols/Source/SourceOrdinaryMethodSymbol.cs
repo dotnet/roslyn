@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Any nullable typeParameter declared by the method in the signature of an override or explicit interface implementation is considered a Nullable<T>
-            if (IsExplicitInterfaceImplementation || IsOverride)
+            if (syntax.ExplicitInterfaceSpecifier != null || IsOverride)
             {
                 foreach (var param in _lazyParameters)
                 {
@@ -392,14 +392,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 type.VisitType<object>(null, (type, unused1, unused2) =>
                 {
-                    if (type.DefaultType.IsTypeParameter() && ((TypeParameterSymbol)type.DefaultType).DeclaringMethod != null)
+                    if ((type.DefaultType as TypeParameterSymbol)?.DeclaringMethod == (object)this)
                     {
-                        // we've already checked that this method is an overide/explicit interface implementation.
-                        // since an override can't be a nested function, we know that the type parameter was declared in this method.
                         type.TryForceResolveAsNullableValueType();
                     }
                     return false;
-                }, null, null, false, true);
+                }, typePredicateOpt: null, arg: null, canDigThroughNullable: false, useDefaultType: true);
             }
         }
 
