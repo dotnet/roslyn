@@ -698,9 +698,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 .OrderBy(d => d.Location.GetLineSpan().Path, StringComparer.Ordinal)
                 .ThenBy(d => d.Location.SourceSpan.Start)
                 .ThenBy(d => d.Location.SourceSpan.End)
-                .ThenBy(d => d.Id)
-                .ThenBy(d => d.GetMessage(), StringComparer.Ordinal)
-                .ToArray();
+                .ThenBy(d => d.Id).ToArray();
         }
 
         /// <summary>
