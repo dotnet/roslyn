@@ -249,4 +249,7 @@
   <data name="ImportingConstructorShouldBeObsoleteCodeFix_MissingError" xml:space="preserve">
     <value>Set ObsoleteAttribute.Error to true</value>
   </data>
+  <data name="TestExportsShouldNotBeDiscoverableCodeFix" xml:space="preserve">
+    <value>Apply PartNotDiscoverableAttribute</value>
+  </data>
 </root>

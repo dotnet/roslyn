@@ -5,10 +5,10 @@ using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Roslyn.Diagnostics.Analyzers.TestExportsShouldNotBeDiscoverable,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+    Roslyn.Diagnostics.Analyzers.TestExportsShouldNotBeDiscoverableCodeFixProvider>;
 using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Roslyn.Diagnostics.Analyzers.TestExportsShouldNotBeDiscoverable,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+    Roslyn.Diagnostics.Analyzers.TestExportsShouldNotBeDiscoverableCodeFixProvider>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
@@ -25,7 +25,13 @@ using {mefNamespace};
 [Export]
 class C {{ }}
 ";
+            var fixedSource = $@"
+using {mefNamespace};
 
+[Export]
+[PartNotDiscoverable]
+class C {{ }}
+";
 
             await new VerifyCS.Test
             {
@@ -34,6 +40,10 @@ class C {{ }}
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
                 },
             }.RunAsync();
         }
@@ -73,7 +83,14 @@ Imports {mefNamespace}
 Class C
 End Class
 ";
+            var fixedSource = $@"
+Imports {mefNamespace}
 
+<Export>
+<PartNotDiscoverable>
+Class C
+End Class
+";
 
             await new VerifyVB.Test
             {
@@ -82,6 +99,10 @@ End Class
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
                 },
             }.RunAsync();
         }

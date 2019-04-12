@@ -72,6 +72,11 @@
         <target state="new">Importing constructor should be [Obsolete]</target>
         <note />
       </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
+        <source>Apply PartNotDiscoverableAttribute</source>
+        <target state="new">Apply PartNotDiscoverableAttribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
         <source>Test exports should not be discoverable</source>
         <target state="new">Test exports should not be discoverable</target>
