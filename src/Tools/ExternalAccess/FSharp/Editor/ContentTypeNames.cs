@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
-    public static class ContentTypeNames
+    internal static class ContentTypeNames
     {
         public const string RoslynContentType = Microsoft.CodeAnalysis.Editor.ContentTypeNames.RoslynContentType;
         public const string FSharpContentType = "F#";

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages
 {
-    public interface IFSharpFindUsagesContext
+    internal interface IFSharpFindUsagesContext
     {
         CancellationToken CancellationToken { get; }
 

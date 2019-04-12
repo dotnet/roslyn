@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages
 {
-    public interface IFSharpFindUsagesService
+    internal interface IFSharpFindUsagesService
     {
         /// <summary>
         /// Finds the references for the symbol at the specific position in the document,

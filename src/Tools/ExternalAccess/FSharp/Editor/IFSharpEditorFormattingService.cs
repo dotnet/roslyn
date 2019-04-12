@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
-    public interface IFSharpEditorFormattingService
+    internal interface IFSharpEditorFormattingService
     {
         bool SupportsFormatDocument { get; }
         bool SupportsFormatSelection { get; }

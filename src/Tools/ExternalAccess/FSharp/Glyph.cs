@@ -4,7 +4,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
 {
-    public enum Glyph
+    internal enum Glyph
     {
         None,
 

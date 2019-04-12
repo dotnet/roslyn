@@ -5,10 +5,11 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
 {
     [Shared]
     [ExportLanguageService(typeof(IClassificationService), LanguageNames.FSharp)]

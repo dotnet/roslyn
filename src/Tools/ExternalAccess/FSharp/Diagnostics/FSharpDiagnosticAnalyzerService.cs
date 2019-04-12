@@ -2,8 +2,9 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 {
     [Shared]
     [Export(typeof(IFSharpDiagnosticAnalyzerService))]

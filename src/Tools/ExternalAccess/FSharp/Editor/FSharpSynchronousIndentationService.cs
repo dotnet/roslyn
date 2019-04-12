@@ -3,9 +3,10 @@
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
     [Shared]
     [ExportLanguageService(typeof(ISynchronousIndentationService), LanguageNames.FSharp)]

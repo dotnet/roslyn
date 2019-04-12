@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging
 {
-    public class BreakpointResolutionResult
+    internal class BreakpointResolutionResult
     {
         public Document Document { get; }
         public TextSpan TextSpan { get; }
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Deb
         }
     }
 
-    public interface IFSharpBreakpointResolutionService
+    internal interface IFSharpBreakpointResolutionService
     {
         Task<BreakpointResolutionResult> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default);
 

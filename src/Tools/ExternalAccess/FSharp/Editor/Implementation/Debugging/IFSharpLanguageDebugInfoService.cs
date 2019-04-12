@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging
 {
-    public struct DebugLocationInfo
+    internal struct DebugLocationInfo
     {
         public readonly string Name;
         public readonly int LineOffset;
@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Deb
         public DebugLocationInfo(string name, int lineOffset)
         {
             Debug.Assert(name != null);
-            this.Name = name;
-            this.LineOffset = lineOffset;
+            Name = name;
+            LineOffset = lineOffset;
         }
 
         public bool IsDefault
@@ -25,15 +25,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Deb
         }
     }
 
-    public struct DebugDataTipInfo
+    internal struct DebugDataTipInfo
     {
         public readonly TextSpan Span;
         public readonly string Text;
 
         public DebugDataTipInfo(TextSpan span, string text)
         {
-            this.Span = span;
-            this.Text = text;
+            Span = span;
+            Text = text;
         }
 
         public bool IsDefault
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Deb
         }
     }
 
-    public interface IFSharpLanguageDebugInfoService
+    internal interface IFSharpLanguageDebugInfoService
     {
         Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken);
 

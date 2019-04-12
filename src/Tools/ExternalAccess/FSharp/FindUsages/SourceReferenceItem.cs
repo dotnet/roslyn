@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages
 {
-    public class SourceReferenceItem
+    internal class SourceReferenceItem
     {
         private readonly Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem _roslynSourceReferenceItem;
 

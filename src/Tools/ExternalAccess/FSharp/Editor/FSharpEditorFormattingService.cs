@@ -5,10 +5,11 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
     [Shared]
     [ExportLanguageService(typeof(IEditorFormattingService), LanguageNames.FSharp)]

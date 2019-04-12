@@ -6,10 +6,11 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implementation.Debugging
 {
     [Shared]
     [ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.FSharp)]

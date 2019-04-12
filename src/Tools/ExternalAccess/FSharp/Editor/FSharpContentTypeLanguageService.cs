@@ -3,10 +3,11 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
-    [ExportContentTypeLanguageService(ContentTypeNames.FSharpContentType, LanguageNames.FSharp), Shared]
+    [ExportContentTypeLanguageService(FSharp.Editor.ContentTypeNames.FSharpContentType, LanguageNames.FSharp), Shared]
     internal class FSharpContentTypeLanguageService : IContentTypeLanguageService
     {
         private readonly IContentTypeRegistryService _contentTypeRegistry;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 
         public IContentType GetDefaultContentType()
         {
-            return _contentTypeRegistry.GetContentType(ContentTypeNames.FSharpContentType);
+            return _contentTypeRegistry.GetContentType(FSharp.Editor.ContentTypeNames.FSharpContentType);
         }
     }
 }

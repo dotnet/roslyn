@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages
 {
-    public class DefinitionItem
+    internal class DefinitionItem
     {
         private readonly Microsoft.CodeAnalysis.FindUsages.DefinitionItem _roslynDefinitionItem;
 

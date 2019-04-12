@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities
 {
     [Export]
-    public class ClassificationTypeMap
+    internal class ClassificationTypeMap
     {
         private readonly Dictionary<string, IClassificationType> _identityMap;
         private readonly IClassificationTypeRegistryService _registryService;

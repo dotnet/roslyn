@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification
 {
-    public interface IFSharpClassificationService
+    internal interface IFSharpClassificationService
     {
         /// <summary>
         /// Produce the classifications for the span of text specified.  Classification should be

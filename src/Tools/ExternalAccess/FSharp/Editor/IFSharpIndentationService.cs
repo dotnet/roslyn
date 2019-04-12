@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
     /// current line.  With this tuple, both forms can be expressed, and the implementor does not
     /// have to convert from one to the other.
     /// </summary>
-    public struct IndentationResult
+    internal struct IndentationResult
     {
         /// <summary>
         /// The base position in the document that the indent should be relative to.  This position
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         }
     }
 
-    public interface IFSharpSynchronousIndentationService
+    internal interface IFSharpSynchronousIndentationService
     {
         /// <summary>
         /// Determines the desired indentation of a given line.  May return <see langword="null"/> if the

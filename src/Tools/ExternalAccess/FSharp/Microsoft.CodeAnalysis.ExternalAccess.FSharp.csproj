@@ -17,9 +17,10 @@
   
   <ItemGroup>
     <!--
-      ⚠ ONLY F# ASSEMBLIES MAY BE ADDED HERE ⚠ - Will be removed soon once all IVTs are removed.
+      ⚠ ONLY F# ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" />
+    <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" />
   </ItemGroup>
 
   <ItemGroup>

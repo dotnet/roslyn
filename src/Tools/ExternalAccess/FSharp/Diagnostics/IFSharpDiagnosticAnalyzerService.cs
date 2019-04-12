@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
 {
-    public interface IFSharpDiagnosticAnalyzerService
+    internal interface IFSharpDiagnosticAnalyzerService
     {
         /// <summary>
         /// re-analyze given projects and documents

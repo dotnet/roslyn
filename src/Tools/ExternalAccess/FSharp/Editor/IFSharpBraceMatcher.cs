@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
-    public struct BraceMatchingResult
+    internal struct BraceMatchingResult
     {
         public TextSpan LeftSpan { get; }
         public TextSpan RightSpan { get; }
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
         }
     }
 
-    public interface IFSharpBraceMatcher
+    internal interface IFSharpBraceMatcher
     {
         Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken = default);
     }

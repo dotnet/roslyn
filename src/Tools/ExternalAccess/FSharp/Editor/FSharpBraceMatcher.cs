@@ -4,8 +4,9 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
     [ExportBraceMatcher(LanguageNames.FSharp)]
     internal class FSharpBraceMatcher : IBraceMatcher
