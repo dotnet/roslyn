@@ -2,6 +2,9 @@
 
 using Roslyn.Utilities;
 
+// https://github.com/dotnet/roslyn/issues/34962 IDE005 "Fix formatting" does a poor job with a switch expression as the body of an expression-bodied method
+#pragma warning disable IDE0055
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class NullableAnnotationExtensions
@@ -28,23 +31,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Return the nullable annotation to use when two annotations are expected to be "compatible", which means
         /// they could be the same. These are the "invariant" merging rules.
         /// </summary>
-        public static NullableAnnotation EnsureCompatible(this NullableAnnotation a, NullableAnnotation b) => (a, b) switch
-        {
-            (NullableAnnotation.Oblivious, _) => b,
-            (_, NullableAnnotation.Oblivious) => a,
-            _ => a < b ? a : b,
-        };
+        public static NullableAnnotation EnsureCompatible(this NullableAnnotation a, NullableAnnotation b) =>
+            (a, b) switch
+            {
+                (NullableAnnotation.Oblivious, _) => b,
+                (_, NullableAnnotation.Oblivious) => a,
+                _ => a < b ? a : b,
+            };
 
         /// <summary>
         /// Merges nullability.
         /// </summary>
-        public static NullableAnnotation MergeNullableAnnotation(this NullableAnnotation a, NullableAnnotation b, VarianceKind variance) => variance switch
-        {
-            VarianceKind.In => a.Meet(b),
-            VarianceKind.Out => a.Join(b),
-            VarianceKind.None => a.EnsureCompatible(b),
-            _ => throw ExceptionUtilities.UnexpectedValue(variance)
-        };
+        public static NullableAnnotation MergeNullableAnnotation(this NullableAnnotation a, NullableAnnotation b, VarianceKind variance) =>
+            variance switch
+            {
+                VarianceKind.In => a.Meet(b),
+                VarianceKind.Out => a.Join(b),
+                VarianceKind.None => a.EnsureCompatible(b),
+                _ => throw ExceptionUtilities.UnexpectedValue(variance)
+            };
 
         /// <summary>
         /// The attribute (metadata) representation of <see cref="NullableAnnotation.NotAnnotated"/>.
@@ -64,23 +69,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The mapping from NullableAnnotation to the attribute (metadata) representations.
         /// </summary>
-        public static byte ToAttributeValue(this NullableAnnotation self) => self switch
-        {
-            NullableAnnotation.NotAnnotated => NotAnnotatedAttributeValue,
-            NullableAnnotation.Annotated => AnnotatedAttributeValue,
-            NullableAnnotation.Oblivious => ObliviousAttributeValue,
-            _ => throw ExceptionUtilities.UnexpectedValue(self)
-        };
+        public static byte ToAttributeValue(this NullableAnnotation self) =>
+            self switch
+            {
+                NullableAnnotation.NotAnnotated => NotAnnotatedAttributeValue,
+                NullableAnnotation.Annotated => AnnotatedAttributeValue,
+                NullableAnnotation.Oblivious => ObliviousAttributeValue,
+                _ => throw ExceptionUtilities.UnexpectedValue(self)
+            };
 
-        /// <summary>
-        /// The mapping from the attribute (metadata) representations to NullableAnnotation.  This
-        /// method is not actually used, but is here to document the mapping.
-        /// </summary>
-        private static NullableAnnotation AttributeValueToNullableAnnotation(this byte value) => value switch
-        {
-            NotAnnotatedAttributeValue => NullableAnnotation.NotAnnotated,
-            AnnotatedAttributeValue => NullableAnnotation.Annotated,
-            _ => NullableAnnotation.Oblivious, // metadata readers should somehow be resilient to bad metadata
-        };
+        ///// <summary>
+        ///// The mapping from the attribute (metadata) representations to NullableAnnotation.  This
+        ///// method is not actually used today, but is here to document the mapping.
+        ///// </summary>
+        //private static NullableAnnotation AttributeValueToNullableAnnotation(this byte value) =>
+        //    value switch
+        //    {
+        //        NotAnnotatedAttributeValue => NullableAnnotation.NotAnnotated,
+        //        AnnotatedAttributeValue => NullableAnnotation.Annotated,
+        //        _ => NullableAnnotation.Oblivious, // metadata readers should somehow be resilient to bad metadata
+        //    };
     }
 }
