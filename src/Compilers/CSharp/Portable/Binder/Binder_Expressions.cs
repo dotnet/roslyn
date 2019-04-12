@@ -7627,7 +7627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteDiagnostics = null;
             }
 
-            bool isIntNotByRef(ParameterSymbol param)
+            static bool isIntNotByRef(ParameterSymbol param)
                 => param.Type.SpecialType == SpecialType.System_Int32 &&
                    param.RefKind == RefKind.None;
 
