@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var arrayElementType = array.ElementTypeWithAnnotations;
                 var otherElementType = other.ElementTypeWithAnnotations;
-                if (arrayElementType.IsSZArray())
+                if (arrayElementType.IsArray())
                 {
                     // Compare everything but the actual ArrayTypeSymbol instance. 
                     var otherTwa = TypeWithAnnotations.Create(arrayElementType.Type, otherElementType.NullableAnnotation, otherElementType.CustomModifiers);
@@ -427,55 +427,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<(ArrayTypeSymbol array, byte? transform)>.GetInstance();
 
             // First build up the state for each of the ArrayTypeSymbol in the chain of arrays.
-            var array = this;
-            builder.Push((this, stream.GetNextTransform()));
+            for (var array = this; array is object; array = array.ElementType as ArrayTypeSymbol)
+            {
+                builder.Push((array, stream.GetNextTransform()));
+            }
+
+            // Unwind and rebuild the array
+            var finalArray = builder.Peek().array.ElementType.ApplyNullableTransforms(stream);
             do
             {
-                array = array.ElementType as ArrayTypeSymbol;
-                if (array is null)
-                {
-                    break;
-                }
-                else
-                {
-                    builder.Push((array, stream.GetNextTransform()));
-                }
-            }
-            while (true);
-
-            // Create the initial return for the most nested array. 
-            var lastState = builder.Pop();
-            var lastElementType = apply(
-                lastState.array.ElementTypeWithAnnotations,
-                lastState.array.ElementTypeWithAnnotations.Type.ApplyNullableTransforms(stream),
-                lastState.transform);
-            var finalArray = lastState.array.WithElementType(lastElementType);
-
-            // Unwind the stack and rebuild the array chain.
-            while (builder.Count > 0)
-            {
                 var state = builder.Pop();
-                var elementType = apply(state.array.ElementTypeWithAnnotations, finalArray, state.transform);
-                finalArray = state.array.WithElementType(elementType);
-            }
-
-            builder.Free();
-            return finalArray;
-
-            TypeWithAnnotations apply(TypeWithAnnotations twa, TypeSymbol type, byte? transform)
-            {
-                twa = TypeWithAnnotations.Create(type, twa.NullableAnnotation, twa.CustomModifiers);
-                if (transform.HasValue &&
-                    twa.ApplyNullableTransformShallow(transform.Value) is TypeWithAnnotations other)
+                var elementType = TypeWithAnnotations.Create(finalArray,
+                    state.array.ElementTypeWithAnnotations.NullableAnnotation,
+                    state.array.ElementTypeWithAnnotations.CustomModifiers);
+                if (state.transform.HasValue &&
+                    elementType.ApplyNullableTransformShallow(state.transform.Value) is TypeWithAnnotations other)
                 {
-                    return other;
+                    elementType = other;
                 }
                 else
                 {
                     stream.SetHasInsufficientData();
-                    return twa;
                 }
+
+                finalArray = state.array.WithElementType(elementType);
             }
+            while (builder.Count > 0);
+
+            builder.Free();
+            return finalArray;
         }
 
         internal override TypeSymbol SetObliviousNullabilityForReferenceTypes()
@@ -485,33 +465,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<ArrayTypeSymbol>.GetInstance();
 
             // First build up the state for each of the ArrayTypeSymbol in the chain of arrays.
-            var array = this;
-            builder.Push(array);
-            do
+            for (var array = this; array is object; array = array.ElementType as ArrayTypeSymbol)
             {
-                array = array.ElementType as ArrayTypeSymbol;
-                if (array is null)
-                {
-                    break;
-                }
-                else
-                {
-                    builder.Push(array);
-                }
+                builder.Push(array);
             }
-            while (true);
-
-            // Create the initial return for the most nested array. 
-            var finalArray = builder.Pop();
-            finalArray = finalArray.WithElementType(finalArray.ElementTypeWithAnnotations.SetObliviousNullabilityForReferenceTypes());
 
             // Unwind the stack and rebuild the array chain.
-            while (builder.Count > 0)
+            var finalArray = builder.Peek().ElementType.SetObliviousNullabilityForReferenceTypes();
+            do
             {
                 var state = builder.Pop();
                 var elementType = TypeWithAnnotations.Create(finalArray, NullableAnnotation.Oblivious, state.ElementTypeWithAnnotations.CustomModifiers);
                 finalArray = state.WithElementType(elementType);
             }
+            while (builder.Count > 0);
 
             builder.Free();
             return finalArray;
@@ -523,32 +490,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<(ArrayTypeSymbol thisArray, ArrayTypeSymbol otherArray)>.GetInstance();
 
             // First build up the pair of arrays that need to be processed.
-            var state = (thisArray: this, otherArray: (ArrayTypeSymbol)other);
-            builder.Push(state);
-            do
+            for (
+                (ArrayTypeSymbol array, ArrayTypeSymbol other) it = (this, (ArrayTypeSymbol)other);
+                it.array is object;
+                it = (it.array.ElementType as ArrayTypeSymbol, it.other.ElementType as ArrayTypeSymbol))
             {
-                var nextArray = state.thisArray.ElementType as ArrayTypeSymbol;
-                if (nextArray is null)
-                {
-                    break;
-                }
-                else
-                {
-                    state = (nextArray, (ArrayTypeSymbol)state.otherArray.ElementType);
-                    builder.Push(state);
-                }
+                builder.Push(it);
             }
-            while (true);
-
-            // Next build up the most nested element.
-            var lastState = builder.Pop();
-            var lastElementType = lastState.thisArray.ElementTypeWithAnnotations.MergeNullability(
-                lastState.otherArray.ElementTypeWithAnnotations,
-                variance);
-            var finalArray = lastState.thisArray.WithElementType(lastElementType);
 
             // Unwind the stack and rebuild the array chain.
-            while (builder.Count > 0)
+            var state = builder.Peek();
+            var finalArray = state.thisArray.ElementType.MergeNullability(state.otherArray.ElementType, variance);
+            do
             {
                 state = builder.Pop();
                 var nullableAnnotation = NullableAnnotationExtensions.MergeNullableAnnotation(
@@ -558,7 +511,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var elementType = TypeWithAnnotations.Create(finalArray, nullableAnnotation, state.thisArray.ElementTypeWithAnnotations.CustomModifiers);
                 finalArray = state.thisArray.WithElementType(elementType);
             }
+            while (builder.Count > 0);
 
+            builder.Free();
             return finalArray;
         }
 
