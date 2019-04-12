@@ -8620,8 +8620,6 @@ class Derived : Base
             Assert.True(tuple.TupleElements[1].Type.IsNullableType());
         }
 
-
-
         [Fact]
         [WorkItem(34583, "https://github.com/dotnet/roslyn/issues/34583")]
         public void ExplicitImplementationOfNullableStructWithMultipleTypeParameters()

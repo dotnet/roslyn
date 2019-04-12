@@ -89038,5 +89038,29 @@ class C2 : I
                 //     object? I.Foo<T>(T? value) => 42;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("I.Foo", "C2").WithLocation(12, 15));
         }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableClassTypeParameterDefinedByClass_WithMethodTakingNullableClassParameter()
+        {
+            var source = @"
+#nullable enable
+abstract class Base<T> where T : class
+{
+    public abstract void Foo(T? value);
+}
+
+class Derived<T> : Base<T> where T : class
+{
+    public override void Foo(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.False(dFoo.Parameters[0].Type.IsNullableType());
+            Assert.True(dFoo.Parameters[0].TypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated);
+        }
     }
 }
