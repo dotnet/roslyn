@@ -32,6 +32,31 @@
         <target state="new">Exported parts should have [ImportingConstructor]</target>
         <note />
       </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
+        <source>Set ObsoleteAttribute.Error to true</source>
+        <target state="new">Set ObsoleteAttribute.Error to true</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
+        <source>Use correct ObsoleteAttribute message</source>
+        <target state="new">Use correct ObsoleteAttribute message</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
+        <source>Add ObsoleteAttribute</source>
+        <target state="new">Add ObsoleteAttribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
+        <source>Configure ObsoleteAttribute for importing constructor</source>
+        <target state="new">Configure ObsoleteAttribute for importing constructor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
+        <source>Set ObsoleteAttribute.Error to true</source>
+        <target state="new">Set ObsoleteAttribute.Error to true</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
         <source>Importing constructor should be [Obsolete]</source>
         <target state="new">Importing constructor should be [Obsolete]</target>

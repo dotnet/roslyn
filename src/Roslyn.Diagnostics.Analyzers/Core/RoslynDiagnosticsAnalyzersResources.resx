@@ -234,4 +234,19 @@
   <data name="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor" xml:space="preserve">
     <value>Make constructor public</value>
   </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse" xml:space="preserve">
+    <value>Set ObsoleteAttribute.Error to true</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription" xml:space="preserve">
+    <value>Use correct ObsoleteAttribute message</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute" xml:space="preserve">
+    <value>Add ObsoleteAttribute</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription" xml:space="preserve">
+    <value>Configure ObsoleteAttribute for importing constructor</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_MissingError" xml:space="preserve">
+    <value>Set ObsoleteAttribute.Error to true</value>
+  </data>
 </root>

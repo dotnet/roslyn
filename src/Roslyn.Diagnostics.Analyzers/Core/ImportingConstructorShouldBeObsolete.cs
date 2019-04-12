@@ -75,8 +75,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
-            var exportAttributeApplication = namedTypeAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttributeOpt));
-            if (exportAttributeApplication is null)
+            if (!namedTypeAttributes.Any(ad => ad.AttributeClass.DerivesFrom(exportAttributeOpt)))
             {
                 return;
             }
@@ -89,8 +88,19 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
 
                 var constructorAttributes = constructor.GetAttributes();
-                if (!constructorAttributes.Any(ad => ad.AttributeClass.DerivesFrom(importingConstructorAttribute)))
+                AttributeData importingConstructorAttributeData = null;
+                foreach (var attributeData in constructorAttributes)
                 {
+                    if (attributeData.AttributeClass.DerivesFrom(importingConstructorAttribute))
+                    {
+                        importingConstructorAttributeData = attributeData;
+                        break;
+                    }
+                }
+
+                if (importingConstructorAttributeData is null)
+                {
+                    // This constructor is not marked [ImportingConstructor]
                     continue;
                 }
 
@@ -105,22 +115,37 @@ namespace Roslyn.Diagnostics.Analyzers
                     foundObsoleteAttribute = true;
                     if (attributeData.ConstructorArguments.Length != 2)
                     {
-                        // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
-                        break;
+                        if (attributeData.ConstructorArguments.Length == 0)
+                        {
+                            // '{0}' is MEF-exported and should have a single importing constructor of the correct form
+                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.MissingDescription, namedType.Name));
+                            break;
+                        }
+                        else if (attributeData.ConstructorArguments.Length == 1)
+                        {
+                            // '{0}' is MEF-exported and should have a single importing constructor of the correct form
+                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.MissingError, namedType.Name));
+                            break;
+                        }
+                        else
+                        {
+                            // '{0}' is MEF-exported and should have a single importing constructor of the correct form
+                            context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                            break;
+                        }
                     }
 
                     if (!Equals(attributeData.ConstructorArguments[0].Value, "This exported object must be obtained through the MEF export provider."))
                     {
                         // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.IncorrectDescription, namedType.Name));
                         break;
                     }
 
                     if (!Equals(attributeData.ConstructorArguments[1].Value, true))
                     {
                         // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, attributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.ErrorSetToFalse, namedType.Name));
                         break;
                     }
 
@@ -130,10 +155,28 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (!foundObsoleteAttribute)
                 {
                     // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, importingConstructorAttributeData.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.MissingAttribute, namedType.Name));
                     break;
                 }
             }
+        }
+
+        internal static class Scenario
+        {
+            public const string MissingAttribute = nameof(MissingAttribute);
+            public const string MissingDescription = nameof(MissingDescription);
+            public const string IncorrectDescription = nameof(IncorrectDescription);
+            public const string MissingError = nameof(MissingError);
+            public const string ErrorSetToFalse = nameof(ErrorSetToFalse);
+        }
+
+        private static class ScenarioProperties
+        {
+            public static readonly ImmutableDictionary<string, string> MissingAttribute = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MissingAttribute));
+            public static readonly ImmutableDictionary<string, string> MissingDescription = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MissingDescription));
+            public static readonly ImmutableDictionary<string, string> IncorrectDescription = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(IncorrectDescription));
+            public static readonly ImmutableDictionary<string, string> MissingError = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MissingError));
+            public static readonly ImmutableDictionary<string, string> ErrorSetToFalse = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(ErrorSetToFalse));
         }
     }
 }
