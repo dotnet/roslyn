@@ -1249,11 +1249,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show _import completion items (experimental).
+        ///   Looks up a localized string similar to Show items from unimported namespaces (experimental).
         /// </summary>
-        internal static string Show_import_completion_items {
+        internal static string Show_items_from_unimported_namespaces {
             get {
-                return ResourceManager.GetString("Show_import_completion_items", resourceCulture);
+                return ResourceManager.GetString("Show_items_from_unimported_namespaces", resourceCulture);
             }
         }
         

@@ -533,11 +533,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Show _import completion items (experimental).
+        '''  Looks up a localized string similar to Show items from unimported namespaces (experimental).
         '''</summary>
-        Friend Shared ReadOnly Property Show_import_completion_items() As String
+        Friend Shared ReadOnly Property Show_items_from_unimported_namespaces() As String
             Get
-                Return ResourceManager.GetString("Show_import_completion_items", resourceCulture)
+                Return ResourceManager.GetString("Show_items_from_unimported_namespaces", resourceCulture)
             End Get
         End Property
         

@@ -316,12 +316,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property Option_ShowImportCompletionItems As Integer
+        Public Property Option_ShowItemsFromUnimportedNamespaces As Integer
             Get
-                Return GetBooleanOption(CompletionOptions.ShowImportCompletionItems)
+                Return GetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces)
             End Get
             Set(value As Integer)
-                SetBooleanOption(CompletionOptions.ShowImportCompletionItems, value)
+                SetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, value)
             End Set
         End Property
 

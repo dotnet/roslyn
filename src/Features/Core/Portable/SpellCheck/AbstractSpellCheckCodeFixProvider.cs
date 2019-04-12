@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var originalOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var options = originalOptions
                 .WithChangedOption(CompletionOptions.SnippetsBehavior, document.Project.Language, SnippetsRule.NeverInclude)
-                .WithChangedOption(CompletionOptions.ShowImportCompletionItems, document.Project.Language, false);
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language, false);
 
             var completionList = await service.GetCompletionsAsync(
                 document, nameToken.SpanStart, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);

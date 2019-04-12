@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(Show_name_suggestions, CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp);
 
-            Show_import_completion_items.IsChecked = this.OptionStore.GetOption(CompletionOptions.ShowImportCompletionItems, LanguageNames.CSharp);
+            Show_items_from_unimported_namespaces.IsChecked = this.OptionStore.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp);
         }
 
         private void Show_completion_list_after_a_character_is_typed_Checked(object sender, RoutedEventArgs e)
@@ -55,11 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             this.OptionStore.SetOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, value: false);
         }
 
-        private void Show_import_completion_items_CheckedChanged(object sender, RoutedEventArgs e)
+        private void Show_items_from_unimported_namespaces_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            bool newVal = (Show_import_completion_items.IsChecked == true);
-            Show_import_completion_items.IsChecked = newVal;
-            this.OptionStore.SetOption(CompletionOptions.ShowImportCompletionItems, LanguageNames.CSharp, value: newVal);
+            Show_items_from_unimported_namespaces.IsThreeState = false;
+            this.OptionStore.SetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, value: Show_items_from_unimported_namespaces.IsChecked);
         }
     }
 }

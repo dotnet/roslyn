@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         protected override void SetWorkspaceOptions(TestWorkspace workspace)
         {
             workspace.Options = workspace.Options
-                .WithChangedOption(CompletionOptions.ShowImportCompletionItems, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue);
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue);
         }
 
         #region "Option tests"

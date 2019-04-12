@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Completion
         //Dev16 options
 
         // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-        public static readonly PerLanguageOption<bool?> ShowImportCompletionItems =
-            new PerLanguageOption<bool?>(nameof(CompletionOptions), nameof(ShowImportCompletionItems), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowImportCompletionItems"));
+        public static readonly PerLanguageOption<bool?> ShowItemsFromUnimportedNamespaces =
+            new PerLanguageOption<bool?>(nameof(CompletionOptions), nameof(ShowItemsFromUnimportedNamespaces), defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces"));
 
         public static IEnumerable<PerLanguageOption<bool>> GetDev15CompletionOptions()
         {

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var workspace = document.Project.Solution.Workspace;
             var experimentationService = workspace.Services.GetService<IExperimentationService>();
 
-            var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowImportCompletionItems, document.Project.Language);
+            var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
 
             // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
             if (importCompletionOptionValue == false ||

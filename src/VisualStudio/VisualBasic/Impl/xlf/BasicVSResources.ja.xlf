@@ -42,9 +42,9 @@
         <target state="translated">参照の等値性のチェックには 'Is Nothing' を優先する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_import_completion_items">
-        <source>Show _import completion items (experimental)</source>
-        <target state="new">Show _import completion items (experimental)</target>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="new">Show items from unimported namespaces (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
