@@ -161,8 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 sessionOpt.PresenterSession.PresentItems(
                     modelOpt.TriggerSnapshot, triggerSpan, modelOpt.FilteredItems, selectedItem,
                     modelOpt.SuggestionModeItem, modelOpt.UseSuggestionMode,
-                    modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters,
-                    modelOpt.FilterText);
+                    modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.FilterText);
             }
         }
 
