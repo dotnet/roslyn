@@ -436,12 +436,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var finalArray = builder.Peek().array.ElementType.ApplyNullableTransforms(stream);
             do
             {
-                var state = builder.Pop();
+                var (array, transform) = builder.Pop();
                 var elementType = TypeWithAnnotations.Create(finalArray,
-                    state.array.ElementTypeWithAnnotations.NullableAnnotation,
-                    state.array.ElementTypeWithAnnotations.CustomModifiers);
-                if (state.transform.HasValue &&
-                    elementType.ApplyNullableTransformShallow(state.transform.Value) is TypeWithAnnotations other)
+                    array.ElementTypeWithAnnotations.NullableAnnotation,
+                    array.ElementTypeWithAnnotations.CustomModifiers);
+                if (transform.HasValue &&
+                    elementType.ApplyNullableTransformShallow(transform.GetValueOrDefault()) is TypeWithAnnotations other)
                 {
                     elementType = other;
                 }
@@ -499,17 +499,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Unwind the stack and rebuild the array chain.
-            var state = builder.Peek();
-            var finalArray = state.thisArray.ElementType.MergeNullability(state.otherArray.ElementType, variance);
+            var (thisArray, otherArray) = builder.Peek();
+            var finalArray = thisArray.ElementType.MergeNullability(otherArray.ElementType, variance);
             do
             {
-                state = builder.Pop();
+                (thisArray, otherArray) = builder.Pop();
                 var nullableAnnotation = NullableAnnotationExtensions.MergeNullableAnnotation(
-                    state.thisArray.ElementTypeWithAnnotations.NullableAnnotation,
-                    state.otherArray.ElementTypeWithAnnotations.NullableAnnotation,
+                    thisArray.ElementTypeWithAnnotations.NullableAnnotation,
+                    otherArray.ElementTypeWithAnnotations.NullableAnnotation,
                     variance);
-                var elementType = TypeWithAnnotations.Create(finalArray, nullableAnnotation, state.thisArray.ElementTypeWithAnnotations.CustomModifiers);
-                finalArray = state.thisArray.WithElementType(elementType);
+                var elementType = TypeWithAnnotations.Create(finalArray, nullableAnnotation, thisArray.ElementTypeWithAnnotations.CustomModifiers);
+                finalArray = thisArray.WithElementType(elementType);
             }
             while (builder.Count > 0);
 
