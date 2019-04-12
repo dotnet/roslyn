@@ -3184,6 +3184,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression of type &apos;{0}&apos; cannot be handled by a pattern of type &apos;{1}&apos;. Please use language version &apos;{2}&apos; or greater to match an open type with a constant pattern..
+        /// </summary>
+        internal static string ERR_ConstantPatternVsOpenType {
+            get {
+                return ResourceManager.GetString("ERR_ConstantPatternVsOpenType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
         /// </summary>
         internal static string ERR_ConstantStringTooLong {

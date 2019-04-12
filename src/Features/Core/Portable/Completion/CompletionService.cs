@@ -177,32 +177,5 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return bestItems.ToImmutableAndFree();
         }
-
-        internal async Task<CompletionList> GetCompletionsAndSetItemDocumentAsync(
-            Document documentOpt, int caretPosition, CompletionTrigger trigger = default,
-            ImmutableHashSet<string> roles = null, OptionSet options = null, CancellationToken cancellationToken = default)
-        {
-            if (documentOpt == null)
-            {
-                return null;
-            }
-
-            var completions = await this.GetCompletionsAsync(
-                documentOpt, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
-            if (completions != null)
-            {
-                foreach (var item in completions.Items)
-                {
-                    item.Document = documentOpt;
-                }
-
-                if (completions.SuggestionModeItem != null)
-                {
-                    completions.SuggestionModeItem.Document = documentOpt;
-                }
-            }
-
-            return completions;
-        }
     }
 }

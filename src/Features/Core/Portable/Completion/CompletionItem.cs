@@ -77,14 +77,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItemRules Rules { get; }
 
         /// <summary>
-        /// The <see cref="Document"/> that this <see cref="CompletionItem"/> was
-        /// created for.  Not available to clients.  Only used by the Completion
-        /// subsystem itself for things like being able to go back to the originating
-        /// Document when doing things like getting descriptions.
-        /// </summary>
-        internal Document Document { get; set; }
-
-        /// <summary>
         /// The name of the <see cref="CompletionProvider"/> that created this 
         /// <see cref="CompletionItem"/>. Not available to clients. Only used by 
         /// the Completion subsystem itself for things like getting description text

@@ -345,17 +345,17 @@ class C
 
                 var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
                 var service = CompletionService.GetService(document);
-                var completions = await service.GetCompletionsAndSetItemDocumentAsync(document, position);
+                var completions = await service.GetCompletionsAsync(document, position);
 
                 var item = completions.Items.First(i => i.DisplayText == "Beep");
                 var edit = testDocument.GetTextBuffer().CreateEdit();
                 edit.Delete(Span.FromBounds(position - 10, position));
                 edit.Apply();
 
-                document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+                var currentDocument = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-                Assert.NotEqual(document, item.Document);
-                var description = service.GetDescriptionAsync(item.Document, item);
+                Assert.NotEqual(currentDocument, document);
+                var description = service.GetDescriptionAsync(document, item);
             }
         }
     }
