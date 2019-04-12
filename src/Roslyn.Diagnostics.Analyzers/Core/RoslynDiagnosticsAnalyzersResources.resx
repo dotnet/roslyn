@@ -225,4 +225,13 @@
   <data name="TestExportsShouldNotBeDiscoverableTitle" xml:space="preserve">
     <value>Test exports should not be discoverable</value>
   </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor" xml:space="preserve">
+    <value>Explicitly define the importing constructor</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute" xml:space="preserve">
+    <value>Add 'ImportingConstructor' attribute</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor" xml:space="preserve">
+    <value>Make constructor public</value>
+  </data>
 </root>

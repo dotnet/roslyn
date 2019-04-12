@@ -19,7 +19,6 @@ namespace Roslyn.Diagnostics.Analyzers
     public sealed class ExportedPartsShouldHaveImportingConstructor : DiagnosticAnalyzer
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.ExportedPartsShouldHaveImportingConstructorTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.ExportedPartsShouldHaveImportingConstructorMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.ExportedPartsShouldHaveImportingConstructorDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
@@ -78,30 +77,65 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
+            IMethodSymbol importingConstructor = null;
+            ImmutableArray<IMethodSymbol> nonImportingConstructors = ImmutableArray<IMethodSymbol>.Empty;
             foreach (var constructor in namedType.Constructors)
             {
                 if (constructor.IsImplicitlyDeclared)
                 {
                     // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.ImplicitConstructor, namedType.Name));
                     continue;
                 }
 
                 var constructorAttributes = constructor.GetAttributes();
-                if (!constructorAttributes.Any(ad => ad.AttributeClass.DerivesFrom(importingConstructorAttribute)))
+                var appliedImportingConstructorAttribute = constructorAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(importingConstructorAttribute));
+                if (appliedImportingConstructorAttribute is null)
                 {
-                    // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                    nonImportingConstructors = nonImportingConstructors.Add(constructor);
                     continue;
                 }
 
+                importingConstructor = constructor;
                 if (constructor.DeclaredAccessibility != Accessibility.Public)
                 {
                     // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, appliedImportingConstructorAttribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.NonPublicConstructor, namedType.Name));
                     continue;
                 }
             }
+
+            IMethodSymbol missingImportingConstructor = null;
+            if (importingConstructor is null)
+            {
+                missingImportingConstructor = nonImportingConstructors.FirstOrDefault(constructor => constructor.DeclaredAccessibility == Accessibility.Public)
+                    ?? nonImportingConstructors.FirstOrDefault();
+            }
+
+            foreach (var constructor in nonImportingConstructors)
+            {
+                var properties = constructor == missingImportingConstructor ? ScenarioProperties.MissingAttribute : ScenarioProperties.MultipleConstructors;
+
+                // '{0}' is MEF-exported and should have a single importing constructor of the correct form
+                context.ReportDiagnostic(Diagnostic.Create(Rule, constructor.DeclaringSyntaxReferences.First().GetSyntax().GetLocation(), properties, namedType.Name));
+                continue;
+            }
+        }
+
+        internal static class Scenario
+        {
+            public const string ImplicitConstructor = nameof(ImplicitConstructor);
+            public const string NonPublicConstructor = nameof(NonPublicConstructor);
+            public const string MissingAttribute = nameof(MissingAttribute);
+            public const string MultipleConstructors = nameof(MultipleConstructors);
+        }
+
+        private static class ScenarioProperties
+        {
+            public static readonly ImmutableDictionary<string, string> ImplicitConstructor = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(ImplicitConstructor));
+            public static readonly ImmutableDictionary<string, string> NonPublicConstructor = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(NonPublicConstructor));
+            public static readonly ImmutableDictionary<string, string> MissingAttribute = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MissingAttribute));
+            public static readonly ImmutableDictionary<string, string> MultipleConstructors = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MultipleConstructors));
         }
     }
 }

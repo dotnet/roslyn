@@ -5,10 +5,10 @@ using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Roslyn.Diagnostics.Analyzers.ExportedPartsShouldHaveImportingConstructor,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+    Roslyn.Diagnostics.Analyzers.ExportedPartsShouldHaveImportingConstructorCodeFixProvider>;
 using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Roslyn.Diagnostics.Analyzers.ExportedPartsShouldHaveImportingConstructor,
-    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+    Roslyn.Diagnostics.Analyzers.ExportedPartsShouldHaveImportingConstructorCodeFixProvider>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
@@ -76,7 +76,17 @@ using {mefNamespace};
 [Export]
 class C {{ }}
 ";
+            var fixedSource = $@"
+using {mefNamespace};
 
+[Export]
+class C {{
+    [ImportingConstructor]
+    public C()
+    {{
+    }}
+}}
+";
 
             await new VerifyCS.Test
             {
@@ -85,6 +95,10 @@ class C {{ }}
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
                 },
             }.RunAsync();
         }
@@ -101,7 +115,16 @@ Imports {mefNamespace}
 Class C
 End Class
 ";
+            var fixedSource = $@"
+Imports {mefNamespace}
 
+<Export>
+Class C
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+";
 
             await new VerifyVB.Test
             {
@@ -110,6 +133,88 @@ End Class
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task MissingAttributeConstructor_CSharp(string mefNamespace)
+        {
+            var source = $@"
+using {mefNamespace};
+
+[Export]
+class C {{
+    public C() {{ }}
+}}
+";
+            var fixedSource = $@"
+using {mefNamespace};
+
+[Export]
+class C {{
+    [ImportingConstructor]
+    public C() {{ }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(6, 5, 6, 19).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task MissingAttributeConstructor_VisualBasic(string mefNamespace)
+        {
+            var source = $@"
+Imports {mefNamespace}
+
+<Export>
+Class C
+    Public Sub New()
+    End Sub
+End Class
+";
+            var fixedSource = $@"
+Imports {mefNamespace}
+
+<Export>
+Class C
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(6, 5, 6, 21).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
                 },
             }.RunAsync();
         }
@@ -128,7 +233,15 @@ class C {{
     internal C() {{ }}
 }}
 ";
+            var fixedSource = $@"
+using {mefNamespace};
 
+[Export]
+class C {{
+    [ImportingConstructor]
+    public C() {{ }}
+}}
+";
 
             await new VerifyCS.Test
             {
@@ -136,7 +249,11 @@ class C {{
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(6, 6, 6, 26).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
                 },
             }.RunAsync();
         }
@@ -156,7 +273,16 @@ Class C
     End Sub
 End Class
 ";
+            var fixedSource = $@"
+Imports {mefNamespace}
 
+<Export>
+Class C
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+";
 
             await new VerifyVB.Test
             {
@@ -164,7 +290,11 @@ End Class
                 {
                     Sources = { source },
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(6, 6, 6, 26).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
                 },
             }.RunAsync();
         }
@@ -188,7 +318,6 @@ class C {{
 }}
 ";
 
-
             await new VerifyCS.Test
             {
                 TestState =
@@ -197,9 +326,14 @@ class C {{
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics =
                     {
-                        VerifyCS.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C"),
-                        VerifyCS.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C"),
+                        VerifyCS.Diagnostic().WithSpan(9, 5, 9, 29).WithArguments("C"),
+                        VerifyCS.Diagnostic().WithSpan(11, 5, 11, 25).WithArguments("C"),
                     },
+                },
+                FixedState =
+                {
+                    // No code fix is offered for this case
+                    Sources = { source },
                 },
             }.RunAsync();
         }
@@ -226,7 +360,6 @@ Class C
 End Class
 ";
 
-
             await new VerifyVB.Test
             {
                 TestState =
@@ -235,9 +368,14 @@ End Class
                     AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
                     ExpectedDiagnostics =
                     {
-                        VerifyVB.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C"),
-                        VerifyVB.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C"),
+                        VerifyVB.Diagnostic().WithSpan(10, 5, 10, 32).WithArguments("C"),
+                        VerifyVB.Diagnostic().WithSpan(13, 5, 13, 34).WithArguments("C"),
                     },
+                },
+                FixedState =
+                {
+                    // No code fix is offered for this case
+                    Sources = { source },
                 },
             }.RunAsync();
         }

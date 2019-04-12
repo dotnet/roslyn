@@ -2,6 +2,21 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
+        <source>Explicitly define the importing constructor</source>
+        <target state="new">Explicitly define the importing constructor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute">
+        <source>Add 'ImportingConstructor' attribute</source>
+        <target state="new">Add 'ImportingConstructor' attribute</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor">
+        <source>Make constructor public</source>
+        <target state="new">Make constructor public</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
         <source>Exported parts should have [ImportingConstructor]</source>
         <target state="new">Exported parts should have [ImportingConstructor]</target>
