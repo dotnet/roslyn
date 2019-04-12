@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.Equal(CommonCompiler.Succeeded, exitCode);
             }
 
-            [Fact]
+            [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+            [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
             public async Task NoServerConnection()
             {
                 using (var readyMre = new ManualResetEvent(initialState: false))
@@ -111,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             /// the client can error out.
             /// </summary>
             /// <returns></returns>
-            [Fact]
+            [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+            [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
             public async Task ServerShutdownsDuringProcessing()
             {
                 using (var readyMre = new ManualResetEvent(initialState: false))
