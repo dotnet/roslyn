@@ -4941,6 +4941,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        {
+            var receiverType = VisitRvalueWithState(node.Receiver);
+            VisitRvalue(node.Argument);
+            var patternMethod = node.PatternMethod;
+            if (!receiverType.HasNullType)
+            {
+                patternMethod = (MethodSymbol)AsMemberOfType(receiverType.Type, patternMethod);
+            }
+
+            LvalueResultType = patternMethod.ReturnTypeWithAnnotations;
+            return null;
+        }
+
         public override BoundNode VisitEventAccess(BoundEventAccess node)
         {
             VisitMemberAccess(node, node.ReceiverOpt, node.EventSymbol);
