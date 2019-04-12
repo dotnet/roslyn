@@ -186,13 +186,14 @@
                 case ErrorCode.WRN_IsTypeNamedUnderscore:
                 case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
-                case ErrorCode.WRN_PossibleNull:
+                case ErrorCode.WRN_ThrowPossibleNull:
                 case ErrorCode.WRN_IllegalPPWarningSafeOnly:
                 case ErrorCode.WRN_ConvertingNullableToNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:
                 case ErrorCode.WRN_NullReferenceReturn:
                 case ErrorCode.WRN_NullReferenceArgument:
+                case ErrorCode.WRN_UnboxPossibleNull:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
@@ -222,6 +223,8 @@
                 case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
                 case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
                 case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                     return true;
                 default:
                     return false;

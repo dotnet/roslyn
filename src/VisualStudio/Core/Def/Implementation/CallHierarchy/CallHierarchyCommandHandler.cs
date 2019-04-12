@@ -37,12 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         public bool ExecuteCommand(ViewCallHierarchyCommandArgs args, CommandExecutionContext context)
         {
-            AddRootNode(args, context);
-            return true;
-        }
-
-        private void AddRootNode(ViewCallHierarchyCommandArgs args, CommandExecutionContext context)
-        {
             using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Computing_Call_Hierarchy_Information))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
@@ -50,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     context.OperationContext).WaitAndGetResult(cancellationToken);
                 if (document == null)
                 {
-                    return;
+                    return true;
                 }
 
                 var workspace = document.Project.Solution.Workspace;
@@ -85,6 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
                 }
             }
+
+            return true;
         }
 
         public VSCommanding.CommandState GetCommandState(ViewCallHierarchyCommandArgs args)

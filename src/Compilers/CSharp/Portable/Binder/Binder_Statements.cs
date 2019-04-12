@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }, (binder: this, invalidDimensions: invalidDimensions, diagnostics: diagnostics));
 
-                boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, dimensionsOpt: invalidDimensions.ToImmutableAndFree(), type: declTypeOpt.Type);
+                boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, dimensionsOpt: invalidDimensions.ToImmutableAndFree(), typeWithAnnotations: declTypeOpt);
             }
 
             return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, inferredType: isVar, hasErrors: hasErrors);

@@ -371,6 +371,16 @@ Enter 鍵行為;
         <target state="translated">在 IDE 中使用的 C# 元件。根據您的專案類型與設定，可能會使用其他版本的編譯器。</target>
         <note>Help &gt; About</note>
       </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="new">An empty C# script file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="new">Visual C# Script</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

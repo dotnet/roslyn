@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.AddParameter
 {
-    internal struct CodeFixData
+    internal readonly struct CodeFixData
     {
         public CodeFixData(
             IMethodSymbol method,
