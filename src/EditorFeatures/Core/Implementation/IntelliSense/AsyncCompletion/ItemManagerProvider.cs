@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
@@ -18,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ItemManagerProvider(RecentItemsManager recentItemsManager)
+        public ItemManagerProvider(RecentItemsManager recentItemsManager, IExperimentationService experimentationService)
         {
-            _instance = new ItemManager(recentItemsManager);
+            _instance = new ItemManager(recentItemsManager, experimentationService);
         }
 
         public IAsyncCompletionItemManager GetOrCreate(ITextView textView) => _instance;

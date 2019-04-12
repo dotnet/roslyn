@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private readonly RecentItemsManager _recentItemsManager;
         private readonly ITextView _textView;
+        private readonly bool _targetTypeCompletionFilterExperimentEnabled;
 
         public IEnumerable<char> PotentialCommitCharacters
         {
@@ -48,10 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IThreadingContext threadingContext) : base(threadingContext)
+        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IThreadingContext threadingContext, IExperimentationService experimentationService) : base(threadingContext)
         {
             _recentItemsManager = recentItemsManager;
             _textView = textView;
+            _targetTypeCompletionFilterExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
         }
 
         /// <summary>
@@ -184,22 +186,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CommitBehavior.None;
             }
 
-            var change = completionService.GetChangeAsync(
-                document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
-            var textChange = change.TextChange;
-            var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
-            var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-
             // Capture the % of committed completion items that 
             var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
-            if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter))
+            if (_targetTypeCompletionFilterExperimentEnabled)
             {
+                // Capture the % of committed completion items that would have appeared in the "Target type matches" filter
+                // (regardless of whether that filter button was active at the time of commit).
                 Logger.Log(FunctionId.Intellisense_AsyncCompletion_CommitWithTargetTypeCompletionExperimentEnabled);
                 if (item.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
                 {
                     Logger.Log(FunctionId.Intellisense_AsyncCompletion_CommitItemWithTargetTypeFilter);
                 }
             }
+
+            var change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
+            var textChange = change.TextChange;
+            var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
+            var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
             using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
             {

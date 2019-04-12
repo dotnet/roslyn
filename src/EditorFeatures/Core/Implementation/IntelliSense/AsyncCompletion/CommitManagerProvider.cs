@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
@@ -17,16 +18,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     {
         private readonly IThreadingContext _threadingContext;
         private readonly RecentItemsManager _recentItemsManager;
+        private readonly IExperimentationService _experimentationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CommitManagerProvider(IThreadingContext threadingContext, RecentItemsManager recentItemsManager)
+        public CommitManagerProvider(IThreadingContext threadingContext, RecentItemsManager recentItemsManager, IExperimentationService experimentationService)
         {
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
+            _experimentationService = experimentationService;
         }
 
         IAsyncCompletionCommitManager IAsyncCompletionCommitManagerProvider.GetOrCreate(ITextView textView)
-            => new CommitManager(textView, _recentItemsManager, _threadingContext);
+            => new CommitManager(textView, _recentItemsManager, _threadingContext, _experimentationService);
     }
 }

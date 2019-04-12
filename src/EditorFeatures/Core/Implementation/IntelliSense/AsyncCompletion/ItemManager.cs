@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -30,15 +31,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly CompletionHelper _defaultCompletionHelper;
 
         private readonly RecentItemsManager _recentItemsManager;
+        private readonly bool _targetTypeCompletionFilterExperimentEnabled;
 
+        /// <summary>
+        /// For telemetry.
+        /// </summary>
         private readonly object _targetTypeCompletionFilterChosenMarker = new object();
 
-        internal ItemManager(RecentItemsManager recentItemsManager)
+        internal ItemManager(RecentItemsManager recentItemsManager, IExperimentationService experimentationService)
         {
             // Let us make the completion Helper used for non-Roslyn items case-sensitive.
             // We can change this if get requests from partner teams.
             _defaultCompletionHelper = new CompletionHelper(isCaseSensitive: true);
             _recentItemsManager = recentItemsManager;
+            _targetTypeCompletionFilterExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
         }
 
         public Task<ImmutableArray<VSCompletionItem>> SortCompletionListAsync(
@@ -46,9 +52,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            if (data.InitialList.Any(i => i.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches)))
+            if (_targetTypeCompletionFilterExperimentEnabled)
             {
-                Logger.Log(FunctionId.Intellisense_AsyncCompletion_SessionContainsTargetTypeFilter);
+                // This method is called exactly once, so use the opportunity to set a baseline for telemetry.
+                if (data.InitialList.Any(i => i.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches)))
+                {
+                    Logger.Log(FunctionId.Intellisense_AsyncCompletion_SessionContainsTargetTypeFilter);
+                }
             }
 
             return Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
@@ -106,12 +116,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var selectedFilters = data.SelectedFilters.Where(f => f.IsSelected).Select(f => f.Filter).ToImmutableArray();
             var needToFilter = selectedFilters.Length > 0 && selectedFilters.Length < data.SelectedFilters.Length;
 
-            if (needToFilter && session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) && selectedFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
+            // Telemetry: Want to know % of sessions with the "Target type matches" filter where that filter is actually enabled
+            if (_targetTypeCompletionFilterExperimentEnabled)
             {
-                Logger.Log(FunctionId.Intellisense_AsyncCompletion_TargetTypeFilterChosenInSession);
-                session.Properties.AddProperty(_targetTypeCompletionFilterChosenMarker, _targetTypeCompletionFilterChosenMarker);
-            }
+                if (needToFilter &&
+                    !session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) &&
+                    selectedFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
+                {
+                    Logger.Log(FunctionId.Intellisense_AsyncCompletion_TargetTypeFilterChosenInSession);
 
+                    // Make sure we only record one enabling of the filter per session
+                    session.Properties.AddProperty(_targetTypeCompletionFilterChosenMarker, _targetTypeCompletionFilterChosenMarker);
+                }
+            }
 
             var filterReason = Helpers.GetFilterReason(data.Trigger);
 
