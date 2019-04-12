@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             for (int i = 0; i < list.Count; i++)
             {
-                if (list[i] != null && list[i].TextSpan.Start >= span.Start && list[i].TextSpan.End <= span.End)
+                if (list[i] != null && list[i].TextSpan.Start >= span.Start && list[i].TextSpan.End <= span.End && list[i].Option == SuppressOption.NoWrappingIfOnSingleLine)
                 {
                     list[i] = null;
                 }
