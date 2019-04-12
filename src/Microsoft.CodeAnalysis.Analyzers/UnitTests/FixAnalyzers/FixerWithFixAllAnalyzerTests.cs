@@ -1,17 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.FixAnalyzers;
-using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.Analyzers.FixAnalyzers.FixerWithFixAllAnalyzer,
+    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers.FixerWithFixAllFix>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.Analyzers.FixAnalyzers.FixerWithFixAllAnalyzer,
+    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers.FixerWithFixAllFix>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
 {
-    public class FixerWithFixAllAnalyzerTests : CodeFixTestBase
+    public class FixerWithFixAllAnalyzerTests : DiagnosticAnalyzerTestBase
     {
         #region CSharp tests
 
@@ -713,16 +717,6 @@ Class C1
 
         #endregion
 
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
-        {
-            return new FixerWithFixAllFix();
-        }
-
-        protected override CodeFixProvider GetBasicCodeFixProvider()
-        {
-            return new FixerWithFixAllFix();
-        }
-
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new FixerWithFixAllAnalyzer();
@@ -735,45 +729,32 @@ Class C1
 
         private static DiagnosticResult GetCSharpOverrideCodeActionEquivalenceKeyExpectedDiagnostic(int line, int column, string customCodeActionName)
         {
-            string message = string.Format(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyMessage, customCodeActionName, "EquivalenceKey");
-            return GetExpectedDiagnostic(line, column, FixerWithFixAllAnalyzer.OverrideCodeActionEquivalenceKeyRule.Id, message);
+            return VerifyCS.Diagnostic(FixerWithFixAllAnalyzer.OverrideCodeActionEquivalenceKeyRule).WithLocation(line, column).WithArguments(customCodeActionName, nameof(CodeAction.EquivalenceKey));
         }
 
         private static DiagnosticResult GetBasicOverrideCodeActionEquivalenceKeyExpectedDiagnostic(int line, int column, string customCodeActionName)
         {
-            string message = string.Format(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyMessage, customCodeActionName, "EquivalenceKey");
-            return GetExpectedDiagnostic(line, column, FixerWithFixAllAnalyzer.OverrideCodeActionEquivalenceKeyRule.Id, message);
+            return VerifyVB.Diagnostic(FixerWithFixAllAnalyzer.OverrideCodeActionEquivalenceKeyRule).WithLocation(line, column).WithArguments(customCodeActionName, nameof(CodeAction.EquivalenceKey));
         }
 
         private static DiagnosticResult GetCSharpCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(int line, int column)
         {
-            string message = string.Format(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyMessage, "equivalenceKey");
-            return GetExpectedDiagnostic(line, column, FixerWithFixAllAnalyzer.CreateCodeActionEquivalenceKeyRule.Id, message);
+            return VerifyCS.Diagnostic(FixerWithFixAllAnalyzer.CreateCodeActionEquivalenceKeyRule).WithLocation(line, column).WithArguments("equivalenceKey");
         }
 
         private static DiagnosticResult GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(int line, int column)
         {
-            string message = string.Format(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyMessage, "equivalenceKey");
-            return GetExpectedDiagnostic(line, column, FixerWithFixAllAnalyzer.CreateCodeActionEquivalenceKeyRule.Id, message);
+            return VerifyVB.Diagnostic(FixerWithFixAllAnalyzer.CreateCodeActionEquivalenceKeyRule).WithLocation(line, column).WithArguments("equivalenceKey");
         }
 
         private static DiagnosticResult GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(int line, int column, string codeFixProviderTypeName)
         {
-            string message = string.Format(CodeAnalysisDiagnosticsResources.OverrideGetFixAllProviderMessage, codeFixProviderTypeName);
-            return GetExpectedDiagnostic(line, column, FixerWithFixAllAnalyzer.OverrideGetFixAllProviderRule.Id, message);
+            return VerifyCS.Diagnostic(FixerWithFixAllAnalyzer.OverrideGetFixAllProviderRule).WithLocation(line, column).WithArguments(codeFixProviderTypeName);
         }
 
         private static DiagnosticResult GetBasicOverrideGetFixAllProviderExpectedDiagnostic(int line, int column, string codeFixProviderTypeName)
         {
-            string message = string.Format(CodeAnalysisDiagnosticsResources.OverrideGetFixAllProviderMessage, codeFixProviderTypeName);
-            return GetExpectedDiagnostic(line, column, FixerWithFixAllAnalyzer.OverrideGetFixAllProviderRule.Id, message);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string id, string message)
-        {
-            return new DiagnosticResult(id, DiagnosticHelpers.DefaultDiagnosticSeverity)
-                .WithLocation(line, column)
-                .WithMessageFormat(message);
+            return VerifyVB.Diagnostic(FixerWithFixAllAnalyzer.OverrideGetFixAllProviderRule).WithLocation(line, column).WithArguments(codeFixProviderTypeName);
         }
     }
 }
