@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateExplicitImpl">
         <source>'{0}' is explicitly implemented more than once.</source>
-        <target state="translated">"{0}" ist explizit mehrfach implementiert.</target>
+        <target state="translated">"{0}" ist mehrfach explizit implementiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -1234,7 +1234,7 @@
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
         <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Ein Standardausdruck führt einen NULL-Wert ein, wenn "{0}" ein Verweistyp ist, der keine NULL-Werte zulässt.</target>
+        <target state="translated">Ein default-Ausdruck führt einen NULL-Wert ein, wenn "{0}" ein Verweistyp ist, der keine NULL-Werte zulässt.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
@@ -2564,7 +2564,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
         <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
-        <target state="translated">Nur assignment-, call-, increment-, decrement- und new object-Ausdrücke können als Anweisung verwendet werden.</target>
+        <target state="translated">Nur assignment-, call-, increment-, decrement-, await- und new object-Ausdrücke können als Anweisung verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -8540,7 +8540,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyInitializerInInterface">
         <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">Von der Instanz automatisch implementierte Eigenschaften in Schnittstellen können keine Initialisierer aufweisen.</target>
+        <target state="translated">Automatisch implementierte Instanzeigenschaften in Schnittstellen können keine Initialisierer aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
