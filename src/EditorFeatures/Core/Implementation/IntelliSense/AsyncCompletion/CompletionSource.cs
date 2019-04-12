@@ -201,7 +201,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty);
             }
 
-            ImmutableArray<VSCompletionItem> items;
             var filterCache = PooledDictionary<string, AsyncCompletionData.CompletionFilter>.GetInstance();
             var itemsBuilder = new ArrayBuilder<VSCompletionItem>(completionList.Items.Length);
             try
@@ -216,8 +215,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             finally
             {
                 filterCache.Free();
-                items = itemsBuilder.ToImmutableAndFree();
             }
+
+            var items = itemsBuilder.ToImmutableAndFree();
 
             var suggestionItemOptions = completionList.SuggestionModeItem != null
                     ? new AsyncCompletionData.SuggestionItemOptions(

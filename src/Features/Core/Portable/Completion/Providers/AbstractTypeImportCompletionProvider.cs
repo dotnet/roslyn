@@ -126,8 +126,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(itemInfo.Item);
                     if (!namespacesInScope.Contains(containingNamespace))
                     {
-                        // We can return cached item directly, because the span and document 
-                        // of item will be fixed by completion service.
+                        // We can return cached item directly, item's span will be fixed by completion service.
+                        
+                        // On the other hand, because of this (i.e. mutating the  span of cached item for each run),
+                        // the provider can not be used as a service by components that might be run in parallel 
+                        // with completion, which would be a race.
                         completionContext.AddItem(itemInfo.Item);
                     }
                 }
