@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 GetAccessibleTopLevelTypesWorker(
                     project.Id,
-                    compilation.Assembly.GlobalNamespace,
+                    compilation.Assembly,
                     checksum,
                     handleItem,
                     _projectItemsCache,
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken);
                 GetAccessibleTopLevelTypesWorker(
                     key,
-                    assemblySymbol.GlobalNamespace,
+                    assemblySymbol,
                     checksum,
                     handleItem,
                     _peItemsCache,
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             private static void GetAccessibleTopLevelTypesWorker<TKey>(
                 TKey key,
-                INamespaceSymbol rootNamespace,
+                IAssemblySymbol assembly,
                 Checksum checksum,
                 Action<TypeImportCompletionItemInfo> handleItem,
                 ConcurrentDictionary<TKey, ReferenceCacheEntry> cache,
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (!cache.TryGetValue(key, out var cacheEntry) ||
                     cacheEntry.Checksum != checksum)
                 {
-                    var items = GetCompletionItemsForTopLevelTypeDeclarations(rootNamespace, cancellationToken);
+                    var items = GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, cancellationToken);
                     cacheEntry = new ReferenceCacheEntry(checksum, items);
                     cache[key] = cacheEntry;
                 }

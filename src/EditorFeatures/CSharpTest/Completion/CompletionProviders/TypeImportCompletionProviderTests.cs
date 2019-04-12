@@ -218,7 +218,7 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
-        private static string GetMarkupWithReference(string currentFile, string referencedFile, bool isProjectReference)
+        private static string GetMarkupWithReference(string currentFile, string referencedFile, bool isProjectReference, string alias = null)
         {
             return isProjectReference
                 ? CreateMarkupForProjecWithProjectReference(currentFile, referencedFile, LanguageNames.CSharp, LanguageNames.CSharp)
@@ -648,6 +648,7 @@ namespace Baz
 
         #endregion
 
+        #region "Commit Change Tests"
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -738,6 +739,71 @@ class Bar
 }";
 
             await VerifyCustomCommitProviderAsync(markup, "Console", expectedCodeAfterCommit, sourceCodeKind: kind);
+        }
+
+        #endregion
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task DoNotShow_TopLevel_Public_NoImport_InNonGLobalAliasedMetadataReference()
+        {
+            var file1 = $@"
+namespace Foo
+{{
+    public class Bar
+    {{}}
+}}";
+            var file2 = @"
+namespace Baz
+{
+    class Bat
+    {
+         $$
+    }
+}";
+            var markup = CreateMarkupForProjectWithAliasedMetadataReference(file2, "alias1", file1, LanguageNames.CSharp, LanguageNames.CSharp, hasGlobalAlias: false);
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Show_TopLevel_Public_NoImport_InGlobalAliasedMetadataReference()
+        {
+            var file1 = $@"
+namespace Foo
+{{
+    public class Bar
+    {{}}
+}}";
+            var file2 = @"
+namespace Baz
+{
+    class Bat
+    {
+         $$
+    }
+}";
+            var markup = CreateMarkupForProjectWithAliasedMetadataReference(file2, "alias1", file1, LanguageNames.CSharp, LanguageNames.CSharp, hasGlobalAlias: true);
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task DoNotShow_TopLevel_Public_NoImport_InNonGlobalAliasedProjectReference()
+        {
+            var file1 = $@"
+namespace Foo
+{{
+    public class Bar
+    {{}}
+}}";
+            var file2 = @"
+namespace Baz
+{
+    class Bat
+    {
+         $$
+    }
+}";
+            var markup = CreateMarkupForProjecWithAliasedProjectReference(file2, "alias1", file1, LanguageNames.CSharp, LanguageNames.CSharp);
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
         // The use of helper methods below is because we added a extra space at the end of display text suffix,

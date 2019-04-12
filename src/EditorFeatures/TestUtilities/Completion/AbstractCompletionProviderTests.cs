@@ -521,23 +521,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected Task VerifyItemWithAliasedMetadataReferencesAsync(string markup, string metadataAlias, string expectedItem, int expectedSymbols,
                                                    string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
         {
-            var xmlString = CreateMarkupForProjectWithAliasedMetadataReference(markup, metadataAlias, sourceLanguage, referencedLanguage);
+            var xmlString = CreateMarkupForProjectWithAliasedMetadataReference(markup, metadataAlias, "", sourceLanguage, referencedLanguage);
 
             return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
         }
 
-        protected static string CreateMarkupForProjectWithAliasedMetadataReference(string markup, string metadataAlias, string sourceLanguage, string referencedLanguage)
+        protected static string CreateMarkupForProjectWithAliasedMetadataReference(string markup, string metadataAlias, string referencedCode, string sourceLanguage, string referencedLanguage, bool hasGlobalAlias = true)
         {
+            var aliases = hasGlobalAlias ? $"{metadataAlias},{MetadataReferenceProperties.GlobalAlias}" : $"{metadataAlias}";
             return string.Format(@"
 <Workspace>
     <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
         <Document FilePath=""SourceDocument"">{1}</Document>
-        <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" Aliases=""{3}, global"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
-            <Document FilePath=""ReferencedDocument"">
-            </Document>
+        <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" Aliases=""{3}"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
+            <Document FilePath=""ReferencedDocument"">{4}</Document>
         </MetadataReferenceFromSource>
     </Project>
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(metadataAlias));
+</Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(aliases), SecurityElement.Escape(referencedCode));
         }
 
         protected Task VerifyItemWithProjectReferenceAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
@@ -545,6 +545,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var xmlString = CreateMarkupForProjecWithProjectReference(markup, referencedCode, sourceLanguage, referencedLanguage);
 
             return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
+        }
+
+        protected static string CreateMarkupForProjecWithAliasedProjectReference(string markup, string projectAlias, string referencedCode, string sourceLanguage, string referencedLanguage)
+        {
+            return string.Format(@"
+<Workspace>
+    <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
+        <ProjectReference Alias=""{4}"">ReferencedProject</ProjectReference>
+        <Document FilePath=""SourceDocument"">{1}</Document>
+    </Project>
+    <Project Language=""{2}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
+        <Document FilePath=""ReferencedDocument"">{3}</Document>
+    </Project>
+    
+</Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(referencedCode), SecurityElement.Escape(projectAlias));
         }
 
         protected static string CreateMarkupForProjecWithProjectReference(string markup, string referencedCode, string sourceLanguage, string referencedLanguage)

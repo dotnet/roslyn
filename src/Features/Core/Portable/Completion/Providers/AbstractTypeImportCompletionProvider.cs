@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
@@ -77,22 +78,28 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
-                if (assemblyProject != null && assemblyProject.SupportsCompilation)
+                // Skip reference with only non-global alias.
+                var metadataReference = compilation.GetMetadataReference(assembly);
+                if (metadataReference.Properties.Aliases.IsEmpty ||
+                    metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias))
                 {
-                    await typeImportCompletionService.GetTopLevelTypesAsync(
-                        assemblyProject,
-                        GetHandler(compilation.Assembly, assembly),
-                        cancellationToken).ConfigureAwait(false);
-                }
-                else if (compilation.GetMetadataReference(assembly) is PortableExecutableReference peReference)
-                {
-                    typeImportCompletionService.GetTopLevelTypesFromPEReference(
-                        project.Solution,
-                        compilation,
-                        peReference,
-                        GetHandler(compilation.Assembly, assembly),
-                        cancellationToken);
+                    var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
+                    if (assemblyProject != null && assemblyProject.SupportsCompilation)
+                    {
+                        await typeImportCompletionService.GetTopLevelTypesAsync(
+                            assemblyProject,
+                            GetHandler(compilation.Assembly, assembly),
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                    else if (metadataReference is PortableExecutableReference peReference)
+                    {
+                        typeImportCompletionService.GetTopLevelTypesFromPEReference(
+                            project.Solution,
+                            compilation,
+                            peReference,
+                            GetHandler(compilation.Assembly, assembly),
+                            cancellationToken);
+                    }
                 }
             }
 
@@ -155,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Find context node so we can use it to decide where to insert using/imports.
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var addImportContextNode = root.FindToken(completionItem.Span.Start, findInsideTrivia: true).Parent; 
+            var addImportContextNode = root.FindToken(completionItem.Span.Start, findInsideTrivia: true).Parent;
 
             // Add required using/imports directive.                              
             var addImportService = document.GetLanguageService<IAddImportsService>();
@@ -176,14 +183,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Create text change for complete type name.
             //
-            // Note: Don't try to obtain TextChange for completed tyep name by replace the text directly, 
-            //       then use Document.GetTextChangesAsync on document creatd from changed text. This is
-            //       because it will do a diff and return TextChanges with minimum span.
+            // Note: Don't try to obtain TextChange for completed type name by replacing the text directly, 
+            //       then use Document.GetTextChangesAsync on document created from the changed text. This is
+            //       because it will do a diff and return TextChanges with minimum span instead of actual 
+            //       replacement span.
             //
-            //       For example: If I'm typing "asd", the completion provider might be triggered after "a"
+            //       For example: If I'm typing "asd", the completion provider could be triggered after "a"
             //       is typed. Then if I selected type "AsnEncodedData" to commit, by using the approach described 
-            //       above, we will end up with a TextChange of "AsnEncodedDat" instead of the full display text. 
-            //       This will later mess up span-tracking and we end up with "AsnEncodedDatasd" in the code.
+            //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
+            //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
+            //       with "AsnEncodedDatasd" in the code.
             builder.Add(new TextChange(completionItem.Span, completionItem.DisplayText));
 
             // Then get the combined change
