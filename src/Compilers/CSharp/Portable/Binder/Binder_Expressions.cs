@@ -7561,7 +7561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(argIsRange);
                 // Look for Substring
-                var substring = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Substring);
+                var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
                 if (substring is { })
                 {
                     patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(

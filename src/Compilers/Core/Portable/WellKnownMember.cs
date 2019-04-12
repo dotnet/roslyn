@@ -414,7 +414,6 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames,
 
         System_String__Format_IFormatProvider,
-        System_String__Substring,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
