@@ -10500,6 +10500,7 @@ class D : C
             Assert.True(m2.OverriddenMethod.Parameters[0].Type.IsNullableType());
         }
 
+        [Fact]
         public void Overriding_06()
         {
             var source = @"
@@ -10544,7 +10545,7 @@ class B : A
     {
     }
 
-    public override void M5<T>(C<T?> x) where T : class
+    public override void M5<T>(C<T?> x)
     {
     }
 }
@@ -10552,7 +10553,13 @@ class B : A
 class C<T> {}
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (43,26): error CS0115: 'B.M5<T>(C<T?>)': no suitable method found to override
+                //     public override void M5<T>(C<T?> x) where T : class
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M5").WithArguments("B.M5<T>(C<T?>)").WithLocation(43, 26),
+                // (43,38): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void M5<T>(C<T?> x) where T : class
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(43, 38));
 
             var b = compilation.GetTypeByMetadataName("B");
             var m3 = b.GetMember<MethodSymbol>("M3");
@@ -10562,8 +10569,8 @@ class C<T> {}
             Assert.True(((NamedTypeSymbol)m3.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
             Assert.True(((NamedTypeSymbol)m4.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
             Assert.True(((NamedTypeSymbol)m4.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.False(((NamedTypeSymbol)m5.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.False(((NamedTypeSymbol)m5.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m5.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.Null(m5.OverriddenMethod);
         }
 
         [Fact]
@@ -12517,6 +12524,7 @@ class B : IA
             compilation.VerifyDiagnostics();
         }
 
+        [Fact]
         public void Overriding_19()
         {
             var source = @"
@@ -12552,27 +12560,43 @@ class B : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                 // (22,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                 //     public override void M2<T>(T?[] x)
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("x").WithLocation(22, 26),
-                 // (18,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                 //     public override void M1(string?[] x)
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(18, 26)
+                // (22,26): error CS0115: 'B.M2<T>(T?[])': no suitable method found to override
+                //     public override void M2<T>(T?[] x)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M2").WithArguments("B.M2<T>(T?[])").WithLocation(22, 26),
+                // (26,26): error CS0115: 'B.M3<T>(T?[]?)': no suitable method found to override
+                //     public override void M3<T>(T?[]? x)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("B.M3<T>(T?[]?)").WithLocation(26, 26),
+                // (18,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override void M1(string?[] x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(18, 26),
+                // (16,7): error CS0534: 'B' does not implement inherited abstract member 'A.M3<T>(T?[]?)'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.M3<T>(T?[]?)").WithLocation(16, 7),
+                // (16,7): error CS0534: 'B' does not implement inherited abstract member 'A.M2<T>(T[])'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.M2<T>(T[])").WithLocation(16, 7),
+                // (22,37): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void M2<T>(T?[] x)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(22, 37),
+                // (26,38): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void M3<T>(T?[]? x)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(26, 38)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
-            foreach (string memberName in new[] { "M1", "M2" })
-            {
-                var member = b.GetMember<MethodSymbol>(memberName);
-                Assert.False(member.Parameters[0].TypeWithAnnotations.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).Parameters[0].TypeWithAnnotations,
-                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
-            }
+
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.False(m1.Parameters[0].TypeWithAnnotations.Equals(m1.OverriddenMethod.ConstructIfGeneric(m1.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).Parameters[0].TypeWithAnnotations,
+                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+
+            var m2 = b.GetMember<MethodSymbol>("M2");
+            Assert.Null(m2.OverriddenMethod);
 
             var m3 = b.GetMember<MethodSymbol>("M3");
-            Assert.True(m3.Parameters[0].TypeWithAnnotations.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).Parameters[0].TypeWithAnnotations,
-                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+            Assert.Null(m3.OverriddenMethod);
         }
 
+        [Fact]
         [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
         public void Overriding_24()
         {
@@ -12601,18 +12625,24 @@ class B : A
             var compilation = CreateCompilation(new[] { source });
 
             compilation.VerifyDiagnostics(
-                // (13,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override void M1(string?[] x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(13, 26),
-                // (18,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override void M2<T>(T?[] x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("x").WithLocation(18, 26),
                 // (18,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override void M2<T>(T?[] x)
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(18, 33),
                 // (13,35): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override void M1(string?[] x)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 35)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 35),
+                // (18,26): error CS0115: 'B.M2<T>(T?[])': no suitable method found to override
+                //     public override void M2<T>(T?[] x)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M2").WithArguments("B.M2<T>(T?[])").WithLocation(18, 26),
+                // (13,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override void M1(string?[] x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(13, 26),
+                // (10,7): error CS0534: 'B' does not implement inherited abstract member 'A.M2<T>(T[])'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.M2<T>(T[])").WithLocation(10, 7),
+                // (18,37): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void M2<T>(T?[] x)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(18, 37)
                 );
         }
 

@@ -8483,6 +8483,144 @@ class C2 : I
         }
 
         [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Foo<T>(T? value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter2()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Foo<T>(T?[] value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Foo<T>(T?[] value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(((ArrayTypeSymbol)dFoo.Parameters[0].Type).ElementType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter3()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Foo<T>((T a, T? b)? value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Foo<T>((T a, T? b)? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.Parameters[0].Type.IsNullableType());
+            var tuple = dFoo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodReturningNullableStruct1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract T? Foo<T>() where T : struct;
+}
+
+class Derived : Base
+{
+    public override T? Foo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.ReturnType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodReturningNullableStruct2()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract T?[] Foo<T>() where T : struct;
+}
+
+class Derived : Base
+{
+    public override T?[] Foo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(((ArrayTypeSymbol)dFoo.ReturnType).ElementType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodReturningNullableStruct3()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract (T a, T? b)? Foo<T>() where T : struct;
+}
+
+class Derived : Base
+{
+    public override (T a, T? b)? Foo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.ReturnType.IsNullableType());
+            var tuple = dFoo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
+        }
+
+        [Fact]
         [WorkItem(34583, "https://github.com/dotnet/roslyn/issues/34583")]
         public void ExplicitImplementationOfNullableStructWithMultipleTypeParameters()
         {
