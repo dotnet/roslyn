@@ -701,16 +701,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared ReadOnly s_conflictMarkerLength As Integer = "<<<<<<<".Length
 
         Private Function IsConflictMarkerTrivia() As Boolean
-            ' Is directly after a newline?
-            If Not IsAtNewLine Then
-                Return False
-            End If
-            ' Is branch seperator?
-            If NextAre("=======") Then
-                Return True
-            End If
-            ' Is branch conflict marker, and followed by a space.
-            Return NextIs(" "c, s_conflictMarkerLength) AndAlso (NextAre("<<<<<<<") OrElse NextAre(">>>>>>>"))
+            ' Is directly after a newlinem andalso a Conflict Branch Seperator or a branch conflict marker that is followed by a space.
+            Return IsAtNewLine() AndAlso (NextAre("=======") OrElse NextAre("<<<<<<< ") OrElse NextAre(">>>>>>> "))
         End Function
 
         Private Sub ScanConflictMarker(tList As SyntaxListBuilder)

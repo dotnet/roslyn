@@ -340,7 +340,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (!CanGet(offset + n - 1)) return false;
             for (var i = 0; i < n; i++)
             {
-                if (chars[i] != PeekChar(offset + i)) return false;
+                if (chars[i] != PeekChar(offset + i))
+                {
+                    return false;
+                }
             }
             return true;
         }

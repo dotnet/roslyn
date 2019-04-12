@@ -2365,18 +2365,8 @@ LoopExit:
 
         private bool IsConflictMarkerTrivia()
         {
-            // Is directly after a newline?
-            if (!IsAtNewLine())
-            {
-                return false;
-            }
-            // Is the branch seperator marker?
-            if (TextWindow.NextAre("======="))
-            {
-                return true;
-            }
-            // Is branch conflict marker, and followed by a space.
-            return TextWindow.NextIs(' ', s_conflictMarkerLength) && (TextWindow.NextAre("<<<<<<<") || TextWindow.NextAre(">>>>>>>"));
+            // Is directly after a newlinem andalso a Conflict Branch Seperator or a branch conflict marker that is followed by a space.
+            return IsAtNewLine() && (TextWindow.NextAre("=======") || TextWindow.NextAre("<<<<<<< ") || TextWindow.NextAre(">>>>>>> "));
         }
 
         private bool IsAtNewLine() => (TextWindow.Offset == 0) || SyntaxFacts.IsNewLine(TextWindow.PeekChar(-1));
