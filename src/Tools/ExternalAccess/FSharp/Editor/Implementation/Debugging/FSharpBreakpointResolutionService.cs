@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implement
         private readonly IFSharpBreakpointResolutionService _service;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FSharpBreakpointResolutionService(IFSharpBreakpointResolutionService service)
         {
             _service = service;

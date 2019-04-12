@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
 
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities
         private readonly IClassificationTypeRegistryService _registryService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FSharpClassificationTypeMap(IClassificationTypeRegistryService registryService)
         {
             _registryService = registryService;
