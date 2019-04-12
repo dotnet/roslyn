@@ -84428,14 +84428,17 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33005: Not handling deconstructing argument of Deconstruct.
             comp.VerifyDiagnostics(
                 // (9,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         (T a, (T? b, T? c)) = p; // 1
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "T a").WithLocation(9, 10),
                 // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         a.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(10, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(10, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         c.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(12, 9)
+                );
         }
 
         [Fact]
@@ -84458,14 +84461,17 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33005: Not handling deconstructing argument of Deconstruct.
             comp.VerifyDiagnostics(
                 // (9,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         (T a, (T? b, T? c)) = p; // 1
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "T a").WithLocation(9, 10),
                 // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         a.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(10, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(10, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         c.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(12, 9)
+                );
         }
 
         [Fact]
