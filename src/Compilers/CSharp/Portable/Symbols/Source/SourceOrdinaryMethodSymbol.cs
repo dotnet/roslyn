@@ -215,6 +215,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_FinalizeMethod, location);
             }
 
+            // Any nullable typeParameter declared by the method in the signature of an override or explicit interface implementation is considered a Nullable<T>
+            if (IsExplicitInterfaceImplementation || IsOverride)
+            {
+                foreach (var param in _lazyParameters)
+                {
+                    forceMethodTypeParametersAsNullable(param.TypeWithAnnotations);
+                }
+                forceMethodTypeParametersAsNullable(_lazyReturnType);
+            }
+
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
@@ -375,6 +385,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckModifiers(_hasAnyBody, location, diagnostics);
+
+            return;
+
+            void forceMethodTypeParametersAsNullable(TypeWithAnnotations type)
+            {
+                type.VisitType<object>(null, (type, unused1, unused2) =>
+                {
+                    if (type.__defaultType.IsTypeParameter() && ((TypeParameterSymbol)type.__defaultType).DeclaringMethod != null)
+                    {
+                        // we've already checked that this method is an overide/explicit interface implementation.
+                        // since an override can't be a nested function, we know that the type parameter was declared in this method.
+                        type.TryForceResolveAsNullableValueType();
+                    }
+                    return false;
+                }, null, null, false, true);
+            }
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?

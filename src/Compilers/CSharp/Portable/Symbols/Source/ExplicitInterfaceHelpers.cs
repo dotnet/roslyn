@@ -225,10 +225,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //do a lookup anyway
             }
 
-            var interfaceMembers = explicitInterfaceNamedType.GetMembers(interfaceMemberName);
+            var hasParamsParam = implementingMember.HasParamsParameter();
 
+            // Setting this flag to true does not imply that an interface member has been successfully implemented.
+            // It just indicates that a corresponding interface member has been found (there may still be errors).
+            var foundMatchingMember = false;
 
-            var (foundMatchingMember, implementedMember) = FindMatchingInterfaceMember(implementingMember, interfaceMembers, diagnostics);
+            Symbol implementedMember = null;
+
+            foreach (Symbol interfaceMember in explicitInterfaceNamedType.GetMembers(interfaceMemberName))
+            {
+                // At this point, we know that explicitInterfaceNamedType is an interface.
+                // However, metadata interface members can be static - we ignore them, as does Dev10.
+                if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
+                {
+                    continue;
+                }
+
+                if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
+                {
+                    foundMatchingMember = true;
+                    // Cannot implement accessor directly unless
+                    // the accessor is from an indexed property.
+                    if (interfaceMember.IsAccessor() && !((MethodSymbol)interfaceMember).IsIndexedPropertyAccessor())
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ExplicitMethodImplAccessor, memberLocation, implementingMember, interfaceMember);
+                    }
+                    else
+                    {
+                        if (interfaceMember.MustCallMethodsDirectly())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BogusExplicitImpl, memberLocation, implementingMember, interfaceMember);
+                        }
+                        else if (hasParamsParam && !interfaceMember.HasParamsParameter())
+                        {
+                            // Note: no error for !hasParamsParam && interfaceMethod.HasParamsParameter()
+                            // Still counts as an implementation.
+                            diagnostics.Add(ErrorCode.ERR_ExplicitImplParams, memberLocation, implementingMember, interfaceMember);
+                        }
+
+                        implementedMember = interfaceMember;
+                        break;
+                    }
+                }
+            }
 
             if (!foundMatchingMember)
             {
@@ -279,99 +319,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return implementedMember;
         }
 
-        /// <summary>
-        /// Finds the member of an interface that an implementing member matches, and warns if there are multiple such members.
-        /// </summary>
-        private static (bool foundMatchingMember, Symbol implementedMember) FindMatchingInterfaceMember(Symbol implementingMember, ImmutableArray<Symbol> interfaceMembers, DiagnosticBag diagnostics)
-        {
-            var comparer = MemberSignatureComparer.ExplicitImplementationComparer;
-            var foundMatchingMember = false;
-            Symbol matchingMember = null;
-
-            foreach (Symbol interfaceMember in interfaceMembers)
-            {
-                var isRuntimeCollision = false;
-                if (matchingMember != null)
-                {
-                    // In constructed types, it is possible that two method signatures could differ by only ref/out
-                    // after substitution. We look for this as part of explicit implementation because, if someone
-                    // tried to implement the ambiguous interface implicitly, we would separately raise an error about
-                    // the implicit implementation methods differing by only ref/out.
-                    // The runtime also sometimes may match an explicit interface implementation to the wrong interface member.
-                    // We warn if that can occur. See https://blogs.msdn.microsoft.com/ericlippert/2006/04/06/odious-ambiguous-overloads-part-two/
-                    isRuntimeCollision = CheckExplicitImplementationRuntimeCollision(implementingMember, matchingMember, interfaceMember, diagnostics);
-                }
-
-                // At this point, we know that explicitInterfaceNamedType is an interface.
-                // However, metadata interface members can be static - we ignore them, as does Dev10.
-                if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
-                {
-                    continue;
-                }
-
-                if (comparer.Equals(implementingMember, interfaceMember))
-                {
-                    foundMatchingMember = true;
-                    // Cannot implement accessor directly unless
-                    // the accessor is from an indexed property.
-                    if (interfaceMember.IsAccessor() && !((MethodSymbol)interfaceMember).IsIndexedPropertyAccessor())
-                    {
-                        diagnostics.Add(ErrorCode.ERR_ExplicitMethodImplAccessor, implementingMember.Locations[0], implementingMember, interfaceMember);
-                    }
-                    else
-                    {
-                        if (interfaceMember.MustCallMethodsDirectly())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_BogusExplicitImpl, implementingMember.Locations[0], implementingMember, interfaceMember);
-                        }
-                        else if (implementingMember.HasParamsParameter() && !interfaceMember.HasParamsParameter())
-                        {
-                            // Note: no error for !hasParamsParam && interfaceMethod.HasParamsParameter()
-                            // Still counts as an implementation.
-                            diagnostics.Add(ErrorCode.ERR_ExplicitImplParams, implementingMember.Locations[0], implementingMember, interfaceMember);
-                        }
-
-                        if (matchingMember != null)
-                        {
-                            // Warn that the correct matching interface member is ambiguous to the compiler.
-                            // To avoid duplicated diagnostics, we don't report this if we've already reported that it's ambiguous to the runtime.
-                            if (!isRuntimeCollision)
-                            {
-                                diagnostics.Add(ErrorCode.WRN_ExplicitImplCollision, implementingMember.Locations[0], implementingMember);
-                            }
-                        }
-                        else
-                        {
-                            matchingMember = interfaceMember;
-                        }
-                    }
-                }
-            }
-
-            // Above we warned about runtime collisions for members that appeared in the interfaceMembers list after the matchingMember was found.
-            // Now we warn about runtime collisions for members that appear in the interfaceMembers list before the matchingMember.
-            // We have to do this in two stages because we can't check this till we know the matchingMember,
-            // but have to know if we report a runtime collision before we report a compiler collision to avoid duplicate diagnostics.
-            if (matchingMember != null)
-            {
-                foreach (Symbol interfaceMember in interfaceMembers)
-                {
-                    if (interfaceMember == matchingMember)
-                        break;
-
-                    // In constructed types, it is possible that two method signatures could differ by only ref/out
-                    // after substitution. We look for this as part of explicit implementation because, if someone
-                    // tried to implement the ambiguous interface implicitly, we would separately raise an error about
-                    // the implicit implementation methods differing by only ref/out.
-                    // The runtime also sometimes may match an explicit interface implementation to the wrong interface member.
-                    // We warn if that can occur. See https://blogs.msdn.microsoft.com/ericlippert/2006/04/06/odious-ambiguous-overloads-part-two/
-                    CheckExplicitImplementationRuntimeCollision(implementingMember, matchingMember, interfaceMember, diagnostics);
-                }
-            }
-
-            return (foundMatchingMember, matchingMember);
-        }
-
         internal static void FindExplicitlyImplementedMemberVerification(
             this Symbol implementingMember,
             Symbol implementedMember,
@@ -388,56 +335,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var memberLocation = implementingMember.Locations[0];
                 diagnostics.Add(ErrorCode.ERR_ImplBadTupleNames, memberLocation, implementingMember, implementedMember);
             }
+
+            // In constructed types, it is possible that two method signatures could differ by only ref/out
+            // after substitution.  We look for this as part of explicit implementation because, if someone
+            // tried to implement the ambiguous interface implicitly, we would separately raise an error about
+            // the implicit implementation methods differing by only ref/out.
+            FindExplicitImplementationCollisions(implementingMember, implementedMember, diagnostics);
         }
 
         /// <summary>
-        /// Given two members on an interface, check if they will not be distinguishable by the runtime.
-        /// Returns true if they won't be distinguished, false otherwise.
+        /// Given a member, look for other members contained in the same type with signatures that will
+        /// not be distinguishable by the runtime.
         /// </summary>
-        private static bool CheckExplicitImplementationRuntimeCollision(Symbol implementingMember, Symbol implementedMember, Symbol collisionCandidateMember, DiagnosticBag diagnostics)
+        private static void FindExplicitImplementationCollisions(Symbol implementingMember, Symbol implementedMember, DiagnosticBag diagnostics)
         {
-            Debug.Assert(implementedMember != null);
-            Debug.Assert(collisionCandidateMember != null);
-            Debug.Assert(implementedMember != collisionCandidateMember);
+            if ((object)implementedMember == null)
+            {
+                return;
+            }
 
             NamedTypeSymbol explicitInterfaceType = implementedMember.ContainingType;
+            bool explicitInterfaceTypeIsDefinition = explicitInterfaceType.IsDefinition; //no runtime ref/out ambiguities if this is true
 
-            //no runtime ref/out ambiguities if this is true
-            if (explicitInterfaceType.IsDefinition)
-                return false;
-
-            if (collisionCandidateMember.Kind != implementingMember.Kind)
-                return false;
-
-            // NOTE: we are more precise than Dev10 - we will not generate a diagnostic if the return types differ 
-            // because that is enough to distinguish them in the runtime.
-            if (!MemberSignatureComparer.RuntimeSignatureComparer.Equals(implementedMember, collisionCandidateMember))
-                return false;
-
-            bool foundMismatchedRefKind = false;
-            ImmutableArray<ParameterSymbol> implementedMemberParameters = implementedMember.GetParameters();
-            ImmutableArray<ParameterSymbol> collisionCandidateParameters = collisionCandidateMember.GetParameters();
-            int numParams = implementedMemberParameters.Length;
-            for (int i = 0; i < numParams; i++)
+            foreach (Symbol collisionCandidateMember in explicitInterfaceType.GetMembers(implementedMember.Name))
             {
-                if (implementedMemberParameters[i].RefKind != collisionCandidateParameters[i].RefKind)
+                if (collisionCandidateMember.Kind == implementingMember.Kind && implementedMember != collisionCandidateMember)
                 {
-                    foundMismatchedRefKind = true;
-                    break;
+                    // NOTE: we are more precise than Dev10 - we will not generate a diagnostic if the return types differ 
+                    // because that is enough to distinguish them in the runtime.
+                    if (!explicitInterfaceTypeIsDefinition && MemberSignatureComparer.RuntimeSignatureComparer.Equals(implementedMember, collisionCandidateMember))
+                    {
+                        bool foundMismatchedRefKind = false;
+                        ImmutableArray<ParameterSymbol> implementedMemberParameters = implementedMember.GetParameters();
+                        ImmutableArray<ParameterSymbol> collisionCandidateParameters = collisionCandidateMember.GetParameters();
+                        int numParams = implementedMemberParameters.Length;
+                        for (int i = 0; i < numParams; i++)
+                        {
+                            if (implementedMemberParameters[i].RefKind != collisionCandidateParameters[i].RefKind)
+                            {
+                                foundMismatchedRefKind = true;
+                                break;
+                            }
+                        }
+
+                        if (foundMismatchedRefKind)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ExplicitImplCollisionOnRefOut, explicitInterfaceType.Locations[0], explicitInterfaceType, implementedMember);
+                        }
+                        else
+                        {
+                            //UNDONE: related locations for conflicting members - keep iterating to find others?
+                            diagnostics.Add(ErrorCode.WRN_ExplicitImplCollision, implementingMember.Locations[0], implementingMember);
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementedMember, collisionCandidateMember))
+                        {
+                            // NOTE: this is different from the same error code above.  Above, the diagnostic means that
+                            // the runtime behavior is ambiguous because the runtime cannot distinguish between two or
+                            // more interface members.  This diagnostic means that *C#* cannot distinguish between two
+                            // or more interface members (because of custom modifiers).
+                            diagnostics.Add(ErrorCode.WRN_ExplicitImplCollision, implementingMember.Locations[0], implementingMember);
+                        }
+                    }
                 }
             }
-
-            if (foundMismatchedRefKind)
-            {
-                diagnostics.Add(ErrorCode.ERR_ExplicitImplCollisionOnRefOut, explicitInterfaceType.Locations[0], explicitInterfaceType, implementedMember);
-            }
-            else
-            {
-                //UNDONE: related locations for conflicting members - keep iterating to find others?
-                diagnostics.Add(ErrorCode.WRN_ExplicitImplCollision, implementingMember.Locations[0], implementingMember);
-            }
-
-            return true;
         }
     }
 }
