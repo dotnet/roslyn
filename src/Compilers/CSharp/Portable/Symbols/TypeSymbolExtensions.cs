@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool CanContainNull(this TypeSymbol type)
         {
             // unbound type parameters might contain null, even though they cannot be *assigned* null.
-            return !type.IsValueType || type.IsNullableType();
+            return !type.IsValueType || type.IsNullableTypeOrTypeParameter();
         }
 
         public static bool CanBeConst(this TypeSymbol typeSymbol)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
             var typeParameter = (TypeParameterSymbol)type;
-            return !typeParameter.IsValueType && typeParameter.IsNotNullableIfReferenceType != true;
+            return !typeParameter.IsValueType && typeParameter.IsNotNullableIfReferenceType == false;
         }
 
         public static bool IsNonNullableValueType(this TypeSymbol typeArgument)
