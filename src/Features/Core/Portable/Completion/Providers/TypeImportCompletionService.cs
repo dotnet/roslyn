@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cacheService.CacheFlushRequested += OnCacheFlushRequested;
             }
 
-            return new Service(_peItemsCache, _projectItemsCache);
+            return new Service(workspaceServices.Workspace, _peItemsCache, _projectItemsCache);
         }
 
         private void OnCacheFlushRequested(object sender, EventArgs e)
@@ -79,10 +79,32 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             private readonly ConcurrentDictionary<string, ReferenceCacheEntry> _peItemsCache;
             private readonly ConcurrentDictionary<ProjectId, ReferenceCacheEntry> _projectItemsCache;
 
-            public Service(ConcurrentDictionary<string, ReferenceCacheEntry> peReferenceCache, ConcurrentDictionary<ProjectId, ReferenceCacheEntry> projectReferenceCache)
+            public Service(
+                Workspace workspace,
+                ConcurrentDictionary<string, ReferenceCacheEntry> peReferenceCache,
+                ConcurrentDictionary<ProjectId, ReferenceCacheEntry> projectReferenceCache)
             {
                 _peItemsCache = peReferenceCache;
                 _projectItemsCache = projectReferenceCache;
+
+                workspace.WorkspaceChanged += OnWorkspaceChanged;
+            }
+
+            private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+            {
+                switch (e.Kind)
+                {
+                    case WorkspaceChangeKind.SolutionCleared:
+                    case WorkspaceChangeKind.SolutionReloaded:
+                    case WorkspaceChangeKind.SolutionRemoved:
+                        _peItemsCache.Clear();
+                        _projectItemsCache.Clear();
+                        break;
+                    case WorkspaceChangeKind.ProjectRemoved:
+                    case WorkspaceChangeKind.ProjectReloaded:
+                        _projectItemsCache.TryRemove(e.ProjectId, out _);
+                        break;
+                }
             }
 
             public async Task GetTopLevelTypesAsync(

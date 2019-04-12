@@ -239,6 +239,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // We don't keep CachedEditorCompletionItem around if any of the properies has changed.
+            // Same for ProviderName, which will be updated when adding item to completion list.
             return new CompletionItem(
                 displayText: newDisplayText,
                 filterText: newFilterText,
