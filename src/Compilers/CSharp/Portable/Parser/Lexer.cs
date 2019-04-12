@@ -2359,10 +2359,6 @@ LoopExit:
             }
         }
 
-        // All conflict markers consist of the same character repeated seven times.  If it is
-        // a <<<<<<< or >>>>>>> marker then it is also followed by a space.
-        private static readonly int s_conflictMarkerLength = "<<<<<<<".Length;
-
         private bool IsConflictMarkerTrivia()
         {
             // Is directly after a newlinem andalso a Conflict Branch Seperator or a branch conflict marker that is followed by a space.
@@ -2375,7 +2371,8 @@ LoopExit:
         {
             this.Start();
 
-            this.AddError(TextWindow.Position, s_conflictMarkerLength,
+            // Conflict markers are 7 character long.
+            this.AddError(TextWindow.Position, 7,
                 ErrorCode.ERR_Merge_conflict_marker_encountered);
 
             var startCh = this.TextWindow.PeekChar();

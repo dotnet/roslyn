@@ -696,10 +696,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return False
         End Function
 
-        ' All conflict markers consist of the same character repeated seven times.  If it Is
-        ' a <<<<<<< Or >>>>>>> marker then it Is also followed by a space.
-        Private Shared ReadOnly s_conflictMarkerLength As Integer = "<<<<<<<".Length
-
         Private Function IsConflictMarkerTrivia() As Boolean
             ' Is directly after a newlinem andalso a Conflict Branch Seperator or a branch conflict marker that is followed by a space.
             Return IsAtNewLine() AndAlso (NextAre("=======") OrElse NextAre("<<<<<<< ") OrElse NextAre(">>>>>>> "))
