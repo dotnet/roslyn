@@ -39,15 +39,24 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
             var project = context.Document.Project;
             var solution = project.Solution;
             var newVersion = SuggestedVersion(context.Diagnostics);
+
             var result = new List<CodeAction>();
             var language = project.Language;
+
+            var upgradeableProjects = solution.Projects.Where(p => CanUpgrade(p, language, newVersion)).AsImmutable();
+
+            if (upgradeableProjects.Length == 0)
+            {
+                return ImmutableArray<CodeAction>.Empty;
+            }
 
             var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);
             var fixOneProject = new ProjectOptionsChangeAction(fixOneProjectTitle,
                 _ => Task.FromResult(UpgradeProject(project, newVersion)));
 
             result.Add(fixOneProject);
-            if (solution.Projects.Count(p => CanUpgrade(p, language, newVersion)) > 1)
+
+            if (upgradeableProjects.Length > 1)
             {
                 var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
 
