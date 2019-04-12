@@ -163,13 +163,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolGroup.ToList(),
                             originatingContextMap[symbolGroup.First()], invalidProjectMap, totalProjects, preselect);
 
-                    if (symbolGroup.Any(
-                        s => ShouldIncludeInTargetTypedCompletionList(
-                            s, inferredTypes, originatingContextMap.First().Value.SemanticModel,
-                            originatingContextMap.First().Value.Position)))
-                    {
-                        item = item.AddTag(WellKnownTags.TargetTypeMatch);
-                    }
+                    item = AddTargetTypeMatchTagIfAppropriate(item, originatingContextMap, inferredTypes, symbolGroup);
 
                     itemListBuilder.Add(item);
                 }
@@ -188,6 +182,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 return q.ToImmutableArray();
             }
+        }
+
+        private CompletionItem AddTargetTypeMatchTagIfAppropriate(
+            CompletionItem item,
+            Dictionary<ISymbol, SyntaxContext> originatingContextMap,
+            ImmutableArray<ITypeSymbol> inferredTypes,
+            IGrouping<(string displayText, string suffix, string insertionText), ISymbol> symbolGroup)
+        {
+            foreach (var symbol in symbolGroup)
+            {
+                foreach (var syntaxContext in originatingContextMap.Values)
+                {
+                    if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypes, syntaxContext.SemanticModel, syntaxContext.Position))
+                    {
+                        return item.AddTag(WellKnownTags.TargetTypeMatch);
+                    }
+                }
+            }
+
+            return item;
         }
 
         /// <summary>
