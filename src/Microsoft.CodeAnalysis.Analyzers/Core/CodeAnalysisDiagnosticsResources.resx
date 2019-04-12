@@ -338,4 +338,16 @@
   <data name="UpgradeMSBuildWorkspaceTitle" xml:space="preserve">
     <value>Upgrade MSBuildWorkspace</value>
   </data>
+  <data name="CompareSymbolsCorrectlyDescription" xml:space="preserve">
+    <value>Compare symbols correctly</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyMessage" xml:space="preserve">
+    <value>Compare symbols correctly</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyTitle" xml:space="preserve">
+    <value>Compare symbols correctly</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyCodeFix" xml:space="preserve">
+    <value>Compare symbols correctly</value>
+  </data>
 </root>
