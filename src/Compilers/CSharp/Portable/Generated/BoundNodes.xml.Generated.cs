@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         PropertyAccess,
         EventAccess,
         IndexerAccess,
+        IndexOrRangePatternIndexerAccess,
         DynamicIndexerAccess,
         Lambda,
         UnboundLambda,
@@ -6673,6 +6674,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundIndexOrRangePatternIndexerAccess : BoundExpression
+    {
+        public BoundIndexOrRangePatternIndexerAccess(SyntaxNode syntax, BoundExpression receiver, PropertySymbol lengthOrCountProperty, MethodSymbol patternMethod, BoundExpression argument, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.IndexOrRangePatternIndexerAccess, syntax, type, hasErrors || receiver.HasErrors() || argument.HasErrors())
+        {
+
+            Debug.Assert((object)receiver != null, "Field 'receiver' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert((object)lengthOrCountProperty != null, "Field 'lengthOrCountProperty' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert((object)patternMethod != null, "Field 'patternMethod' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert((object)argument != null, "Field 'argument' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Receiver = receiver;
+            this.LengthOrCountProperty = lengthOrCountProperty;
+            this.PatternMethod = patternMethod;
+            this.Argument = argument;
+        }
+
+
+        public BoundExpression Receiver { get; }
+
+        public PropertySymbol LengthOrCountProperty { get; }
+
+        public MethodSymbol PatternMethod { get; }
+
+        public BoundExpression Argument { get; }
+        public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitIndexOrRangePatternIndexerAccess(this);
+
+        public BoundIndexOrRangePatternIndexerAccess Update(BoundExpression receiver, PropertySymbol lengthOrCountProperty, MethodSymbol patternMethod, BoundExpression argument, TypeSymbol type)
+        {
+            if (receiver != this.Receiver || lengthOrCountProperty != this.LengthOrCountProperty || patternMethod != this.PatternMethod || argument != this.Argument || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundIndexOrRangePatternIndexerAccess(this.Syntax, receiver, lengthOrCountProperty, patternMethod, argument, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+
+        protected override BoundExpression ShallowClone()
+        {
+            var result = new BoundIndexOrRangePatternIndexerAccess(this.Syntax, this.Receiver, this.LengthOrCountProperty, this.PatternMethod, this.Argument, this.Type, this.HasErrors);
+            result.CopyAttributes(this);
+            return result;
+        }
+    }
+
     internal sealed partial class BoundDynamicIndexerAccess : BoundExpression
     {
         public BoundDynamicIndexerAccess(SyntaxNode syntax, BoundExpression receiverOpt, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<PropertySymbol> applicableIndexers, TypeSymbol type, bool hasErrors = false)
@@ -7855,6 +7903,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitEventAccess(node as BoundEventAccess, arg);
                 case BoundKind.IndexerAccess: 
                     return VisitIndexerAccess(node as BoundIndexerAccess, arg);
+                case BoundKind.IndexOrRangePatternIndexerAccess: 
+                    return VisitIndexOrRangePatternIndexerAccess(node as BoundIndexOrRangePatternIndexerAccess, arg);
                 case BoundKind.DynamicIndexerAccess: 
                     return VisitDynamicIndexerAccess(node as BoundDynamicIndexerAccess, arg);
                 case BoundKind.Lambda: 
@@ -8067,6 +8117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitPropertyAccess(BoundPropertyAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitEventAccess(BoundEventAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitIndexerAccess(BoundIndexerAccess node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitLambda(BoundLambda node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitUnboundLambda(UnboundLambda node, A arg) => this.DefaultVisit(node, arg);
@@ -8252,6 +8303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode VisitPropertyAccess(BoundPropertyAccess node) => this.DefaultVisit(node);
         public virtual BoundNode VisitEventAccess(BoundEventAccess node) => this.DefaultVisit(node);
         public virtual BoundNode VisitIndexerAccess(BoundIndexerAccess node) => this.DefaultVisit(node);
+        public virtual BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node) => this.DefaultVisit(node);
         public virtual BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node) => this.DefaultVisit(node);
         public virtual BoundNode VisitLambda(BoundLambda node) => this.DefaultVisit(node);
         public virtual BoundNode VisitUnboundLambda(UnboundLambda node) => this.DefaultVisit(node);
@@ -8990,6 +9042,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.ReceiverOpt);
             this.VisitList(node.Arguments);
+            return null;
+        }
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        {
+            this.Visit(node.Receiver);
+            this.Visit(node.Argument);
             return null;
         }
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
@@ -10021,6 +10079,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, node.UseSetterForDefaultArgumentGeneration, type);
+        }
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(receiver, node.LengthOrCountProperty, node.PatternMethod, argument, type);
         }
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
@@ -11444,6 +11509,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
             new TreeDumperNode("binderOpt", node.BinderOpt, null),
             new TreeDumperNode("useSetterForDefaultArgumentGeneration", node.UseSetterForDefaultArgumentGeneration, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+        }
+        );
+        public override TreeDumperNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, object arg) => new TreeDumperNode("indexOrRangePatternIndexerAccess", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
+            new TreeDumperNode("lengthOrCountProperty", node.LengthOrCountProperty, null),
+            new TreeDumperNode("patternMethod", node.PatternMethod, null),
+            new TreeDumperNode("argument", null, new TreeDumperNode[] { Visit(node.Argument, null) }),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
         }
