@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool useDefaultType = false)
         {
             Debug.Assert(typeWithAnnotationsOpt.HasType == (typeOpt is null));
-            Debug.Assert(canDigThroughNullable = false || useDefaultType == false, "digging through nullable will cause early resolution of nullable types");
+            Debug.Assert(canDigThroughNullable == false || useDefaultType == false, "digging through nullable will cause early resolution of nullable types");
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
