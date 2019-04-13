@@ -87536,5 +87536,93 @@ partial class C
             var comp = CreateCompilation(new[] { source1, source2 });
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(29956, "https://github.com/dotnet/roslyn/issues/29956")]
+        public void ConditionalExpression_InferredResultType()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+class C
+{
+    void Test1(object? x)
+    {
+        _ = (M(x)?.Self)/*T:Box<object?>?*/;
+        if (x == null) return;
+        _ = (M(x)?.Self)/*T:Box<object!>?*/;
+    }
+
+    void Test2<T>(T x)
+    {
+        _ = (M(x)?.Self)/*T:Box<T>?*/;
+        if (x == null) return;
+        _ = (M(x)?.Self)/*T:Box<T>?*/;
+    }
+
+    void Test3(int x)
+    {
+        _ = (M(x)?.Self)/*T:Box<int>?*/;
+        if (x == null) return; // 1
+        _ = (M(x)?.Self)/*T:Box<int>?*/;
+    }
+
+    void Test4(int? x)
+    {
+        _ = (M(x)?.Self)/*T:Box<int?>?*/;
+        if (x == null) return;
+        _ = (M(x)?.Self)/*T:Box<int?>?*/;
+    }
+
+    void Test5<T>(T? x) where T : class
+    {
+        _ = (M(x)?.Self)/*T:Box<T?>?*/;
+        if (x == null) return;
+        _ = (M(x)?.Self)/*T:Box<T!>?*/;
+    }
+
+    void Test6<T>(T x) where T : struct
+    {
+        _ = (M(x)?.Self)/*T:Box<T>?*/;
+        if (x == null) return; // 2
+        _ = (M(x)?.Self)/*T:Box<T>?*/;
+    }
+
+    void Test7<T>(T? x) where T : struct
+    {
+        _ = (M(x)?.Self)/*T:Box<T?>?*/;
+        if (x == null) return; // 2
+        _ = (M(x)?.Self)/*T:Box<T?>?*/;
+    }
+
+    void Test8<T>(T x) where T : class
+    {
+        _ = (M(x)?.Self)/*T:Box<T!>?*/;
+        if (x == null) return;
+        _ = (M(x)?.Self)/*T:Box<T!>?*/;
+    }
+
+    void Test9<T>(T x) where T : class
+    {
+        _ = (M(x)?.Self)/*T:Box<T!>?*/;
+        if (x != null) return;
+        _ = (M(x)?.Self)/*T:Box<T?>?*/;
+    }
+
+    static Box<T> M<T>(T t) => new Box<T>(t);
+}
+
+class Box<T>
+{
+    public Box<T> Self => this;
+    public Box(T value) { }
+}
+");
+            c.VerifyDiagnostics(
+                // (21,13): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
+                //         if (x == null) return; // 1
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "x == null").WithArguments("false", "int", "int?").WithLocation(21, 13),
+                // (42,13): error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
+                //         if (x == null) return; // 2
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == null").WithArguments("==", "T", "<null>").WithLocation(42, 13));
+            c.VerifyTypes();
+        }
     }
 }

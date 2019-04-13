@@ -2221,27 +2221,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LearnFromNonNullTest(receiver, ref this.State);
             }
 
-            var accessExpressionType = VisitRvalueWithState(node.AccessExpression);
+            var accessTypeWithAnnotations = VisitLvalueWithAnnotations(node.AccessExpression);
+            TypeSymbol accessType = accessTypeWithAnnotations.Type;
             Join(ref this.State, ref receiverState);
-
-            // Per LDM 2019-02-13 decision, the result of a conditional access might be null even if
-            // both the receiver and right-hand-side are believed not to be null.
-            NullableFlowState resultState = NullableFlowState.MaybeNull;
-
-            // https://github.com/dotnet/roslyn/issues/29956 Use flow analysis type rather than node.Type
-            // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
-            TypeSymbol type = node.Type;
 
             // If the result type does not allow annotations, then we produce a warning because
             // the result may be null.
-            if (RequiresSafetyWarningWhenNullIntroduced(type))
+            if (RequiresSafetyWarningWhenNullIntroduced(accessType))
             {
-                ReportSafetyDiagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, node.Syntax, node.Type);
+                ReportSafetyDiagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, node.Syntax, accessType);
             }
 
+            var resultType =
+                accessType.SpecialType == SpecialType.System_Void || accessType.IsPointerType() || accessType.IsRestrictedType() ? compilation.GetSpecialType(SpecialType.System_Void) :
+                accessType.CanBeAssignedNull() ? accessType :
+                accessType.IsNonNullableValueType() ? compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(accessTypeWithAnnotations)) :
+                compilation.GetSpecialType(SpecialType.System_Void);
+
+            // Per LDM 2019-02-13 decision, the result of a conditional access "may be null" even if
+            // both the receiver and right-hand-side are believed not to be null.
+            ResultType = TypeWithState.Create(resultType, NullableFlowState.MaybeNull);
             _currentConditionalReceiverVisitResult = default;
             _lastConditionalAccessSlot = previousConditionalAccessSlot;
-            ResultType = TypeWithState.Create(type, resultState);
             return null;
         }
 
