@@ -124,6 +124,14 @@ namespace Microsoft.CodeAnalysis.Completion
             return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
         }
 
+        /// <summary>
+        /// Preferred overload of <see cref="GetChangeAsync(Document, CompletionItem, char?,
+        /// CancellationToken)"/>.
+        ///
+        /// This overload is passed the value of <see cref="CompletionContext.CompletionListSpan"/>
+        /// which should be used to determine what span should be updated in the original <paramref
+        /// name="document"/> passed in.
+        /// </summary>
         internal virtual Task<CompletionChange> GetChangeAsync(
             Document document, CompletionItem item, TextSpan completionListSpan,
             char? commitCharacter = null, CancellationToken cancellationToken = default)
