@@ -7188,7 +7188,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!lookupResult.IsMultiViable)
             {
-                indexerAccessExpression = BadIndexerExpression(node, expr, analyzedArguments, lookupResult.Error, diagnostics);
+                if (TryBindIndexOrRangeIndexer(
+                    node,
+                    expr,
+                    analyzedArguments.Arguments,
+                    out var patternIndexerAccess))
+                {
+                    indexerAccessExpression = patternIndexerAccess;
+                }
+                else
+                {
+                    indexerAccessExpression = BadIndexerExpression(node, expr, analyzedArguments, lookupResult.Error, diagnostics);
+                }
             }
             else
             {
@@ -7350,22 +7361,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!analyzedArguments.HasErrors)
                 {
-                    // Dev10 uses the "this" keyword as the method name for indexers.
-                    var candidate = candidates[0];
-                    var name = candidate.IsIndexer ? SyntaxFacts.GetText(SyntaxKind.ThisKeyword) : candidate.Name;
+                    if (TryBindIndexOrRangeIndexer(
+                        syntax,
+                        receiverOpt,
+                        analyzedArguments.Arguments,
+                        out var patternIndexerAccess))
+                    {
+                        return patternIndexerAccess;
+                    }
+                    else
+                    {
+                        // Dev10 uses the "this" keyword as the method name for indexers.
+                        var candidate = candidates[0];
+                        var name = candidate.IsIndexer ? SyntaxFacts.GetText(SyntaxKind.ThisKeyword) : candidate.Name;
 
-                    overloadResolutionResult.ReportDiagnostics(
-                        binder: this,
-                        location: syntax.Location,
-                        nodeOpt: syntax,
-                        diagnostics: diagnostics,
-                        name: name,
-                        receiver: null,
-                        invokedExpression: null,
-                        arguments: analyzedArguments,
-                        memberGroup: candidates,
-                        typeContainingConstructor: null,
-                        delegateTypeBeingInvoked: null);
+                        overloadResolutionResult.ReportDiagnostics(
+                            binder: this,
+                            location: syntax.Location,
+                            nodeOpt: syntax,
+                            diagnostics: diagnostics,
+                            name: name,
+                            receiver: null,
+                            invokedExpression: null,
+                            arguments: analyzedArguments,
+                            memberGroup: candidates,
+                            typeContainingConstructor: null,
+                            delegateTypeBeingInvoked: null);
+                    }
                 }
 
                 ImmutableArray<BoundExpression> arguments = BuildArgumentsForErrorRecovery(analyzedArguments, candidates);
@@ -7436,6 +7458,210 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             overloadResolutionResult.Free();
             return propertyAccess;
+        }
+
+        private bool TryBindIndexOrRangeIndexer(
+            SyntaxNode syntax,
+            BoundExpression receiverOpt,
+            ArrayBuilder<BoundExpression> arguments,
+            out BoundIndexOrRangePatternIndexerAccess patternIndexerAccess)
+        {
+            // Verify a few things up-front, namely that we have a single argument
+            // to this indexer that has an Index or Range type and that there is
+            // a real receiver with a known type
+
+            if (arguments.Count != 1)
+            {
+                patternIndexerAccess = null;
+                return false;
+            }
+
+            var argType = arguments[0].Type;
+            bool argIsIndex = TypeSymbol.Equals(argType,
+                Compilation.GetWellKnownType(WellKnownType.System_Index),
+                TypeCompareKind.ConsiderEverything);
+            bool argIsRange = !argIsIndex || TypeSymbol.Equals(argType,
+                Compilation.GetWellKnownType(WellKnownType.System_Range),
+                TypeCompareKind.ConsiderEverything);
+
+            if ((!argIsIndex && !argIsRange) ||
+                !(receiverOpt?.Type is TypeSymbol receiverType))
+            {
+                patternIndexerAccess = null;
+                return false;
+            }
+
+            // SPEC:
+
+            // An indexer invocation with a single argument of System.Index or System.Range will
+            // succeed if the receiver type conforms to an appropriate pattern, namely
+
+            // 1. The receiver type's original definition has an accessible property getter that returns
+            //    an int and has the name Length or Count
+            // 2. For Index: Has an accessible indexer with a single int parameter
+            //    For Range: Has an accessible Slice method that takes two int parameters
+
+            PropertySymbol lengthOrCountProperty;
+
+            var lookupResult = LookupResult.GetInstance();
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+            // Look for Length first
+
+            if (!tryLookupLengthOrCount(WellKnownMemberNames.LengthPropertyName, out lengthOrCountProperty) &&
+                !tryLookupLengthOrCount(WellKnownMemberNames.CountPropertyName, out lengthOrCountProperty))
+            {
+                patternIndexerAccess = null;
+                return false;
+            }
+
+            Debug.Assert(lengthOrCountProperty is { });
+
+            if (argIsIndex)
+            {
+                // Look for `T this[int i]` indexer
+
+                LookupMembersInType(
+                    lookupResult,
+                    receiverType,
+                    WellKnownMemberNames.Indexer,
+                    arity: 0,
+                    basesBeingResolved: null,
+                    LookupOptions.Default,
+                    originalBinder: this,
+                    diagnose: false,
+                    ref useSiteDiagnostics);
+
+                if (lookupResult.IsMultiViable)
+                {
+                    foreach (var candidate in lookupResult.Symbols)
+                    {
+                        if (!candidate.IsStatic &&
+                            candidate is PropertySymbol property &&
+                            property.GetOwnOrInheritedGetMethod() is MethodSymbol getMethod &&
+                            IsAccessible(getMethod, ref useSiteDiagnostics) &&
+                            getMethod.OriginalDefinition is var original &&
+                            original.ParameterCount == 1 &&
+                            isIntNotByRef(original.Parameters[0]))
+                        {
+                            patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
+                                syntax,
+                                receiverOpt,
+                                lengthOrCountProperty,
+                                getMethod,
+                                arguments[0],
+                                getMethod.ReturnType);
+                            cleanup(lookupResult, ref useSiteDiagnostics);
+                            return true;
+                        }
+                    }
+                }
+            }
+            else if (receiverType.SpecialType == SpecialType.System_String)
+            {
+                Debug.Assert(argIsRange);
+                // Look for Substring
+                var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
+                if (substring is { })
+                {
+                    patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
+                        syntax,
+                        receiverOpt,
+                        lengthOrCountProperty,
+                        substring,
+                        arguments[0],
+                        substring.ReturnType);
+                    cleanup(lookupResult, ref useSiteDiagnostics);
+                    return true;
+                }
+            }
+            else
+            {
+                Debug.Assert(argIsRange);
+                // Look for `T Slice(int, int)` indexer
+
+                LookupMembersInType(
+                    lookupResult,
+                    receiverType,
+                    WellKnownMemberNames.SliceMethodName,
+                    arity: 0,
+                    basesBeingResolved: null,
+                    LookupOptions.Default,
+                    originalBinder: this,
+                    diagnose: false,
+                    ref useSiteDiagnostics);
+
+                if (lookupResult.IsMultiViable)
+                {
+                    foreach (var candidate in lookupResult.Symbols)
+                    {
+                        if (!candidate.IsStatic &&
+                            IsAccessible(candidate, ref useSiteDiagnostics) &&
+                            candidate is MethodSymbol method &&
+                            method.OriginalDefinition is var original &&
+                            original.ParameterCount == 2 &&
+                            isIntNotByRef(original.Parameters[0]) &&
+                            isIntNotByRef(original.Parameters[1]))
+                        {
+                            patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
+                                syntax,
+                                receiverOpt,
+                                lengthOrCountProperty,
+                                method,
+                                arguments[0],
+                                method.ReturnType);
+                            cleanup(lookupResult, ref useSiteDiagnostics);
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            cleanup(lookupResult, ref useSiteDiagnostics);
+            patternIndexerAccess = null;
+            return false;
+
+            static void cleanup(LookupResult lookupResult, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            {
+                lookupResult.Free();
+                useSiteDiagnostics = null;
+            }
+
+            static bool isIntNotByRef(ParameterSymbol param)
+                => param.Type.SpecialType == SpecialType.System_Int32 &&
+                   param.RefKind == RefKind.None;
+
+            bool tryLookupLengthOrCount(string propertyName, out PropertySymbol valid)
+            {
+                LookupMembersInType(
+                    lookupResult,
+                    receiverType,
+                    propertyName,
+                    arity: 0,
+                    basesBeingResolved: null,
+                    LookupOptions.Default,
+                    originalBinder: this,
+                    diagnose: false,
+                    useSiteDiagnostics: ref useSiteDiagnostics);
+
+                if (lookupResult.IsSingleViable &&
+                    lookupResult.Symbols[0] is PropertySymbol property &&
+                    property.GetOwnOrInheritedGetMethod()?.OriginalDefinition is MethodSymbol getMethod &&
+                    getMethod.ReturnType.SpecialType == SpecialType.System_Int32 &&
+                    getMethod.RefKind == RefKind.None &&
+                    !getMethod.IsStatic &&
+                    IsAccessible(getMethod, ref useSiteDiagnostics))
+                {
+                    lookupResult.Clear();
+                    useSiteDiagnostics = null;
+                    valid = property;
+                    return true;
+                }
+                lookupResult.Clear();
+                useSiteDiagnostics = null;
+                valid = null;
+                return false;
+            }
         }
 
         private ErrorPropertySymbol CreateErrorPropertySymbol(ImmutableArray<PropertySymbol> propertyGroup)
