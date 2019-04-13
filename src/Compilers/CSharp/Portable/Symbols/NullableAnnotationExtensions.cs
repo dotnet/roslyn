@@ -65,30 +65,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The attribute (metadata) representation of <see cref="NullableAnnotation.Oblivious"/>.
         /// </summary>
         public const byte ObliviousAttributeValue = 0;
-
-        ///// <summary>
-        ///// The mapping from NullableAnnotation to the attribute (metadata) representations.  This
-        ///// method is not actually used today, but is here to document the mapping.
-        ///// </summary>
-        //public static byte ToAttributeValue(this NullableAnnotation self) =>
-        //    self switch
-        //    {
-        //        NullableAnnotation.NotAnnotated => NotAnnotatedAttributeValue,
-        //        NullableAnnotation.Annotated => AnnotatedAttributeValue,
-        //        NullableAnnotation.Oblivious => ObliviousAttributeValue,
-        //        _ => throw ExceptionUtilities.UnexpectedValue(self)
-        //    };
-
-        ///// <summary>
-        ///// The mapping from the attribute (metadata) representations to NullableAnnotation.  This
-        ///// method is not actually used today, but is here to document the mapping.
-        ///// </summary>
-        //public static NullableAnnotation AttributeValueToNullableAnnotation(this byte value) =>
-        //    value switch
-        //    {
-        //        NotAnnotatedAttributeValue => NullableAnnotation.NotAnnotated,
-        //        AnnotatedAttributeValue => NullableAnnotation.Annotated,
-        //        _ => NullableAnnotation.Oblivious, // metadata readers should somehow be resilient to bad metadata
-        //    };
     }
 }
