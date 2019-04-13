@@ -117,76 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ClosureCaptureRuleMessage" xml:space="preserve">
-    <value>The compiler will emit a class that will hold this as a field to allow capturing of this closure</value>
+  <data name="AnonymousNewObjectRuleTitleAndMessage" xml:space="preserve">
+    <value>Explicit new anonymous object allocation</value>
   </data>
-  <data name="ClosureCaptureRuleTitle" xml:space="preserve">
-    <value>Display class allocation to capture closure</value>
+  <data name="LetCauseRuleTitleAndMessage" xml:space="preserve">
+    <value>Let clause induced allocation</value>
   </data>
-  <data name="ClosureDriverRuleMessage" xml:space="preserve">
-    <value>Heap allocation of closure Captures: {0}</value>
+  <data name="NewArrayRuleTitleAndMessage" xml:space="preserve">
+    <value>Explicit new array type allocation</value>
   </data>
-  <data name="ClosureDriverRuleTitle" xml:space="preserve">
-    <value>Closure Allocation Source</value>
-  </data>
-  <data name="DelegateOnStructInstanceRuleMessage" xml:space="preserve">
-    <value>Struct instance method being used for delegate creation, this will result in a boxing instruction</value>
-  </data>
-  <data name="DelegateOnStructInstanceRuleTitle" xml:space="preserve">
-    <value>Delegate on struct instance caused a boxing allocation</value>
-  </data>
-  <data name="LambaOrAnonymousMethodInGenericMethodRuleMessage" xml:space="preserve">
-    <value>Considering moving this out of the generic method</value>
-  </data>
-  <data name="LambaOrAnonymousMethodInGenericMethodRuleTitle" xml:space="preserve">
-    <value>Lambda or anonymous method in a generic method allocates a delegate instance</value>
-  </data>
-  <data name="MethodGroupAllocationRuleMessage" xml:space="preserve">
-    <value>This will allocate a delegate instance</value>
-  </data>
-  <data name="MethodGroupAllocationRuleTitle" xml:space="preserve">
-    <value>Delegate allocation from a method group</value>
-  </data>
-  <data name="ParamsParameterRuleMessage" xml:space="preserve">
-    <value>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</value>
-  </data>
-  <data name="ParamsParameterRuleTitle" xml:space="preserve">
-    <value>Array allocation for params parameter</value>
-  </data>
-  <data name="ReadonlyMethodGroupAllocationRuleMessage" xml:space="preserve">
-    <value>This will allocate a delegate instance</value>
-  </data>
-  <data name="ReadonlyMethodGroupAllocationRuleTitle" xml:space="preserve">
-    <value>Delegate allocation from a method group</value>
-  </data>
-  <data name="ReferenceTypeEnumeratorRuleMessage" xml:space="preserve">
-    <value>Non-ValueType enumerator may result in a heap allocation</value>
-  </data>
-  <data name="ReferenceTypeEnumeratorRuleTitle" xml:space="preserve">
-    <value>Possible allocation of reference type enumerator</value>
-  </data>
-  <data name="StringConcatenationAllocationRuleMessage" xml:space="preserve">
-    <value>Considering using StringBuilder</value>
-  </data>
-  <data name="StringConcatenationAllocationRuleTitle" xml:space="preserve">
-    <value>Implicit string concatenation allocation</value>
-  </data>
-  <data name="ValueTypeNonOverridenCallRuleMessage" xml:space="preserve">
-    <value>Non-overridden virtual method call on a value type adds a boxing or constrained instruction</value>
-  </data>
-  <data name="ValueTypeNonOverridenCallRuleTitle" xml:space="preserve">
-    <value>Non-overridden virtual method call on value type</value>
-  </data>
-  <data name="ValueTypeToReferenceTypeConversionRuleMessage" xml:space="preserve">
-    <value>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</value>
-  </data>
-  <data name="ValueTypeToReferenceTypeConversionRuleTitle" xml:space="preserve">
-    <value>Value type to reference type conversion causing boxing allocation</value>
-  </data>
-  <data name="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage" xml:space="preserve">
-    <value>Value type ({0}) is being boxed to a reference type for a string concatenation.</value>
-  </data>
-  <data name="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle" xml:space="preserve">
-    <value>Value type to reference type conversion allocation for string concatenation</value>
+  <data name="NewObjectRuleTitleAndMessage" xml:space="preserve">
+    <value>Explicit new reference type allocation</value>
   </data>
 </root>
