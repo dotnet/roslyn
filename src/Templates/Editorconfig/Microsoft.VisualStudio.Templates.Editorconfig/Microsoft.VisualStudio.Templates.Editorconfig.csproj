@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <!-- rewriting of .vstemplate files to reference the correct assembly version number -->
-  <UsingTask AssemblyFile="$(ArtifactsBinDir)UpdateTemplateVersion\net461\UpdateTemplateVersion.dll" TaskName="UpdateTemplateVersion" />
+  <UsingTask AssemblyFile="$(ArtifactsBinDir)UpdateTemplateVersion\$(Configuration)\net461\UpdateTemplateVersion.dll" TaskName="UpdateTemplateVersion" />
   <Target Name="UpdateAssemblyVersionInTemplates" BeforeTargets="GetZipFilesFromVSTemplates">
     <ItemGroup>
       <_OriginalVSTemplate Include="@(VSTemplate)" />
