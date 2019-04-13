@@ -385,40 +385,5 @@ namespace System.Runtime.CompilerServices
         }
     }
 }";
-
-        // The references we use for System.String do not have an indexer for
-        // System.Index and System.Range, so this wrapper mimics the behavior
-        public const string StringWithIndexers = @"
-internal readonly struct MyString
-{
-    private readonly string _s;
-    public MyString(string s)
-    {
-        _s = s;
-    }
-    public static implicit operator MyString(string s) => new MyString(s);
-    public static implicit operator string(MyString m) => m._s;
-
-    public int Length => _s.Length;
-
-    public char this[int index] => _s[index];
-
-    public char this[Index index]
-    {
-        get
-        {
-            int actualIndex = index.GetOffset(Length);
-            return this[actualIndex];
-        }
-    }
-
-    public string this[Range range] => Substring(range);
-
-    public string Substring(Range range)
-    {
-        (int start, int length) = range.GetOffsetAndLength(Length);
-        return _s.Substring(start, length);
-    }
-}";
     }
 }
