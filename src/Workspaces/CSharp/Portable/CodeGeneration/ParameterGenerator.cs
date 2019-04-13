@@ -154,19 +154,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (parameter.Type.IsReferenceType)
             {
-                var newAttributes = attributes.RemoveAll(IsAllowNullOrMaybeNullAttribute);
-                if (newAttributes.Length != attributes.Length)
+                if (!(parameter.Type is ITypeParameterSymbol parameterTypeParameter) ||
+                    parameterTypeParameter.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.NotAnnotated)
                 {
-                    attributes = newAttributes;
+                    var newAttributes = attributes.RemoveAll(IsAllowNullOrMaybeNullAttribute);
+                    if (newAttributes.Length != attributes.Length)
+                    {
+                        attributes = newAttributes;
+                        if (nullableAnnotation == NullableAnnotation.NotAnnotated)
+                        {
+                            nullableAnnotation = NullableAnnotation.Annotated;
+                        }
+                    }
+
                     if (nullableAnnotation == NullableAnnotation.NotAnnotated)
                     {
-                        nullableAnnotation = NullableAnnotation.Annotated;
+                        attributes = attributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
                     }
-                }
-
-                if (nullableAnnotation == NullableAnnotation.NotAnnotated)
-                {
-                    attributes = attributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
                 }
             }
             else if (parameter.Type.IsValueType)

@@ -8852,12 +8852,12 @@ interface IInterface<T>
 
 class Class<T> : IInterface<T?> where T : class
 {{
-    public T MethodAllowNull(T value)
+    public T? MethodAllowNull(T? value)
     {{
         throw new System.NotImplementedException();
     }}
 
-    public T MethodDisallowNull([DisallowNull] T value)
+    public T MethodDisallowNull([DisallowNull] T? value)
     {{
         throw new System.NotImplementedException();
     }}
@@ -8904,12 +8904,14 @@ interface IInterface<T>
 
 class Class<T> : IInterface<T> where T : class?
 {{
-    public T MethodAllowNull(T value)
+    [return: MaybeNull]
+    public T MethodAllowNull([AllowNull] T value)
     {{
         throw new System.NotImplementedException();
     }}
 
-    public T MethodDisallowNull(T value)
+    [return: NotNull]
+    public T MethodDisallowNull([DisallowNull] T value)
     {{
         throw new System.NotImplementedException();
     }}

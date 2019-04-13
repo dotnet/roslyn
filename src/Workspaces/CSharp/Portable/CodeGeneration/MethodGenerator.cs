@@ -202,23 +202,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (method.ReturnType.IsReferenceType)
             {
-                var newAttributes = returnTypeAttributes.RemoveAll(IsAllowNullOrMaybeNullAttribute);
-                if (newAttributes.Length != returnTypeAttributes.Length)
+                if (!(method.ReturnType is ITypeParameterSymbol returnTypeParameter) ||
+                    returnTypeParameter.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.NotAnnotated)
                 {
-                    returnTypeAttributes = newAttributes;
-                    if (returnNullableAnnotation == NullableAnnotation.NotAnnotated)
+                    var newAttributes = returnTypeAttributes.RemoveAll(IsAllowNullOrMaybeNullAttribute);
+                    if (newAttributes.Length != returnTypeAttributes.Length)
                     {
-                        returnNullableAnnotation = NullableAnnotation.Annotated;
+                        returnTypeAttributes = newAttributes;
+                        if (returnNullableAnnotation == NullableAnnotation.NotAnnotated)
+                        {
+                            returnNullableAnnotation = NullableAnnotation.Annotated;
+                        }
                     }
-                }
 
-                newAttributes = returnTypeAttributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
-                if (newAttributes.Length != returnTypeAttributes.Length)
-                {
-                    returnTypeAttributes = newAttributes;
-                    if (method.ReturnNullableAnnotation == NullableAnnotation.Annotated)
+                    newAttributes = returnTypeAttributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
+                    if (newAttributes.Length != returnTypeAttributes.Length)
                     {
-                        returnNullableAnnotation = NullableAnnotation.NotAnnotated;
+                        returnTypeAttributes = newAttributes;
+                        if (returnNullableAnnotation == NullableAnnotation.Annotated)
+                        {
+                            returnNullableAnnotation = NullableAnnotation.NotAnnotated;
+                        }
                     }
                 }
             }
