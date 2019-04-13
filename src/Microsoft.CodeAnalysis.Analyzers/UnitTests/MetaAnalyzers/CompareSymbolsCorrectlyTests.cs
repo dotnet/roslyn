@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpSecurityCodeFixVerifier<
     Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CompareSymbolsCorrectlyAnalyzer,
@@ -36,6 +37,30 @@ class TestClass {{
 ";
 
             await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+        }
+
+        [Theory]
+        [WorkItem(2335, "https://github.com/dotnet/roslyn-analyzers/issues/2335")]
+        [InlineData(nameof(ISymbol))]
+        [InlineData(nameof(INamedTypeSymbol))]
+        public async Task CompareTwoSymbolsByIdentity_CSharp(string symbolType)
+        {
+            var source = $@"
+using Microsoft.CodeAnalysis;
+class TestClass {{
+    bool Method1({symbolType} x, {symbolType} y) {{
+        return (object)x == y;
+    }}
+    bool Method2({symbolType} x, {symbolType} y) {{
+        return x == (object)y;
+    }}
+    bool Method3({symbolType} x, {symbolType} y) {{
+        return (object)x == (object)y;
+    }}
+}}
+";
+
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         [Theory]
@@ -101,6 +126,24 @@ End Class
 ";
 
             await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+        }
+
+        [Theory]
+        [WorkItem(2335, "https://github.com/dotnet/roslyn-analyzers/issues/2335")]
+        [InlineData(nameof(ISymbol))]
+        [InlineData(nameof(INamedTypeSymbol))]
+        public async Task CompareTwoSymbolsByIdentity_VisualBasic(string symbolType)
+        {
+            var source = $@"
+Imports Microsoft.CodeAnalysis
+Class TestClass
+    Function Method(x As {symbolType}, y As {symbolType}) As Boolean
+        Return DirectCast(x, Object) Is y
+    End Function
+End Class
+";
+
+            await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
         [Theory]

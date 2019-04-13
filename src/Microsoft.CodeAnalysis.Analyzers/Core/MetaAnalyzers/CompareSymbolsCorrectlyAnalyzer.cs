@@ -67,6 +67,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return;
             }
 
+            if (IsExplicitCastToObject(binary.LeftOperand) || IsExplicitCastToObject(binary.RightOperand))
+            {
+                return;
+            }
+
             context.ReportDiagnostic(binary.Syntax.GetLocation().CreateDiagnostic(Rule));
         }
 
@@ -91,6 +96,21 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
 
             return false;
+        }
+
+        private static bool IsExplicitCastToObject(IOperation operation)
+        {
+            if (!(operation is IConversionOperation conversion))
+            {
+                return false;
+            }
+
+            if (conversion.IsImplicit)
+            {
+                return false;
+            }
+
+            return conversion.Type?.SpecialType == SpecialType.System_Object;
         }
     }
 }
