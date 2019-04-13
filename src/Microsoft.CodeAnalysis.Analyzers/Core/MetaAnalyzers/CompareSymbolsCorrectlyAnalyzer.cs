@@ -55,6 +55,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return;
             }
 
+            // Allow user-defined operators
+            if (binary.OperatorMethod?.ContainingSymbol is INamedTypeSymbol containingType
+                && containingType.SpecialType != SpecialType.System_Object)
+            {
+                return;
+            }
+
             // If either operand is 'null' or 'default', do not analyze
             if (binary.LeftOperand.HasNullConstantValue() || binary.RightOperand.HasNullConstantValue())
             {
