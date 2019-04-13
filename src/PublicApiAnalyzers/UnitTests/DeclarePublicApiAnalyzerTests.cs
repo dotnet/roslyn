@@ -2,7 +2,6 @@
 
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
@@ -47,10 +46,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                         (DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText),
                         (DeclarePublicApiAnalyzer.UnshippedFileName, unshippedApiText),
                     },
-                }
+                },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
@@ -67,10 +66,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                         (DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText),
                         (DeclarePublicApiAnalyzer.UnshippedFileName, unshippedApiText),
                     },
-                }
+                },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 ? new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>()
                 : (CodeFixTest<XUnitVerifier>)new VisualBasicCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>();
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
+            test.TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
 
             test.TestState.Sources.Add(source);
             test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
@@ -168,7 +167,7 @@ public class C
                 GetCSharpResultAt(7, 43, DeclarePublicApiAnalyzer.DeclareNewApiRule, "ArrowExpressionProperty.get"));
         }
 
-        [Fact(Skip = "821"), WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/821"), WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
         public async Task SimpleMissingMember_Basic()
         {
             var source = @"
@@ -200,6 +199,8 @@ End Class
             await VerifyBasicAsync(source, shippedText, unshippedText,
                 // Test0.vb(4,14): warning RS0016: Symbol 'C' is not part of the declared API.
                 GetBasicResultAt(4, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"),
+                // Test0.cs(2,14): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
+                GetBasicResultAt(4, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "implicit constructor for C"),
                 // Test0.vb(5,12): warning RS0016: Symbol 'Field' is not part of the declared API.
                 GetBasicResultAt(5, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Field"),
                 // Test0.vb(8,9): warning RS0016: Symbol 'Property' is not part of the declared API.

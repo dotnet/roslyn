@@ -1,21 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Analyzer.Utilities;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes;
-using Test.Utilities;
 using Xunit;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.DiagnosticAnalyzerAttributeAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers.CSharpApplyDiagnosticAnalyzerAttributeFix>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.DiagnosticAnalyzerAttributeAnalyzer,
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes.BasicApplyDiagnosticAnalyzerAttributeFix>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
-    public class MissingDiagnosticAnalyzerAttributeRuleTests : CodeFixTestBase
+    public class MissingDiagnosticAnalyzerAttributeRuleTests
     {
         [Fact]
-        public void CSharp_VerifyDiagnosticAndFixes()
+        public async Task CSharp_VerifyDiagnosticAndFixes()
         {
             var source = @"
 using System;
@@ -37,8 +38,8 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            DiagnosticResult expected = GetCSharpExpectedDiagnostic(7, 7);
-            VerifyCSharp(source, expected);
+            DiagnosticResult expected = VerifyCS.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName);
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
 
             var fixedCode_WithCSharpAttribute = @"
 using System;
@@ -62,7 +63,17 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharpFix(source, fixedCode_WithCSharpAttribute, codeFixIndex: 0);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    ExpectedDiagnostics = { expected },
+                },
+                FixedState = { Sources = { fixedCode_WithCSharpAttribute } },
+                CodeFixIndex = 0,
+                CodeFixEquivalenceKey = "Apply DiagnosticAnalyzer attribute for 'C#'.",
+            }.RunAsync();
 
             var fixedCode_WithCSharpAndVBAttributes = @"
 using System;
@@ -86,11 +97,21 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharpFix(source, fixedCode_WithCSharpAndVBAttributes, codeFixIndex: 2);
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    ExpectedDiagnostics = { expected },
+                },
+                FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
+                CodeFixIndex = 2,
+                CodeFixEquivalenceKey = "Apply DiagnosticAnalyzer attribute for both 'C#' and 'Visual Basic'.",
+            }.RunAsync();
         }
 
         [Fact]
-        public void VisualBasic_VerifyDiagnosticAndFixes()
+        public async Task VisualBasic_VerifyDiagnosticAndFixes()
         {
             var source = @"
 Imports System
@@ -110,8 +131,8 @@ Class MyAnalyzer
 	End Sub
 End Class
 ";
-            DiagnosticResult expected = GetBasicExpectedDiagnostic(7, 7);
-            VerifyBasic(source, expected);
+            DiagnosticResult expected = VerifyVB.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.MissingDiagnosticAnalyzerAttributeRule).WithLocation(7, 7).WithArguments(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName);
+            await VerifyVB.VerifyAnalyzerAsync(source, expected);
 
             var fixedCode_WithVBAttribute = @"
 Imports System
@@ -133,7 +154,17 @@ Class MyAnalyzer
 End Class
 ";
 
-            VerifyBasicFix(source, fixedCode_WithVBAttribute, codeFixIndex: 1);
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    ExpectedDiagnostics = { expected },
+                },
+                FixedState = { Sources = { fixedCode_WithVBAttribute } },
+                CodeFixIndex = 1,
+                CodeFixEquivalenceKey = "Apply DiagnosticAnalyzer attribute for 'Visual Basic'.",
+            }.RunAsync();
 
             var fixedCode_WithCSharpAndVBAttributes = @"
 Imports System
@@ -155,11 +186,21 @@ Class MyAnalyzer
 End Class
 ";
 
-            VerifyBasicFix(source, fixedCode_WithCSharpAndVBAttributes, codeFixIndex: 2);
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    ExpectedDiagnostics = { expected },
+                },
+                FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
+                CodeFixIndex = 2,
+                CodeFixEquivalenceKey = "Apply DiagnosticAnalyzer attribute for both 'C#' and 'Visual Basic'.",
+            }.RunAsync();
         }
 
         [Fact]
-        public void CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCases()
         {
             var source = @"
 using System;
@@ -187,11 +228,11 @@ public abstract class MyAbstractAnalyzerWithoutAttribute : DiagnosticAnalyzer
 {
 }
 ";
-            VerifyCSharp(source);
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         [Fact]
-        public void VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCases()
         {
             var source = @"
 Imports System
@@ -216,45 +257,7 @@ Public MustInherit Class MyAbstractAnalyzerWithoutAttribute
 	Inherits DiagnosticAnalyzer
 End Class
 ";
-            VerifyBasic(source);
-        }
-
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
-        {
-            return new CSharpApplyDiagnosticAnalyzerAttributeFix();
-        }
-
-        protected override CodeFixProvider GetBasicCodeFixProvider()
-        {
-            return new BasicApplyDiagnosticAnalyzerAttributeFix();
-        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new DiagnosticAnalyzerAttributeAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new DiagnosticAnalyzerAttributeAnalyzer();
-        }
-
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column)
-        {
-            return GetExpectedDiagnostic(line, column);
-        }
-
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column)
-        {
-            return GetExpectedDiagnostic(line, column);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column)
-        {
-            return new DiagnosticResult(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
-                .WithLocation(line, column)
-                .WithMessageFormat(CodeAnalysisDiagnosticsResources.MissingAttributeMessage)
-                .WithArguments(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName);
+            await VerifyVB.VerifyAnalyzerAsync(source);
         }
     }
 }

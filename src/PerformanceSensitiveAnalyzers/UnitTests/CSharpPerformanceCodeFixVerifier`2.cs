@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Test.Utilities;
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
 
@@ -62,10 +62,11 @@ namespace Roslyn.Utilities
                         source,
                         ("PerformanceSensitiveAttribute.cs", PerformanceSensitiveAttributeSource)
                     },
+                    AdditionalReferences = { AdditionalMetadataReferences.Netstandard },
                 },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
@@ -89,9 +90,9 @@ namespace Roslyn.Utilities
                     },
                 },
                 FixedCode = fixedSource,
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }

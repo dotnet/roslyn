@@ -27,5 +27,6 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string AnalyzerCategoryAndIdRangeFileInvalidRuleId = "RS1021";
         public const string DoNotUseTypesFromAssemblyRuleId = "RS1022";
         public const string UpgradeMSBuildWorkspaceRuleId = "RS1023";
+        public const string CompareSymbolsCorrectlyRuleId = "RS1024";
     }
 }
