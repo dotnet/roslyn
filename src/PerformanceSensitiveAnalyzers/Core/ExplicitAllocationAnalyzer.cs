@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
             if (context.Operation is IAnonymousObjectCreationOperation)
             {
-                if (context.Operation.Syntax.IsKind(CSharp.SyntaxKind.LetClause))
+                if (context.Operation.IsImplicit)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(LetCauseRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
                 }
