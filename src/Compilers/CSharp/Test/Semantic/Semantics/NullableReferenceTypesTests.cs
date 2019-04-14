@@ -10177,7 +10177,7 @@ class C3
             var source = @"
 class A
 {
-    public virtual T? Foo<T>() where T : struct 
+    public virtual T? Goo<T>() where T : struct 
     { 
         return null; 
     }
@@ -10185,7 +10185,7 @@ class A
 
 class B : A
 {
-    public override T? Foo<T>()
+    public override T? Goo<T>()
     {
         return null;
     }
@@ -10194,12 +10194,12 @@ class B : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             //var a = compilation.GetTypeByMetadataName("A");
-            //var aFoo = a.GetMember<MethodSymbol>("Foo");
-            //Assert.Equal("T? A.Foo<T>()", aFoo.ToTestDisplayString());
+            //var aGoo = a.GetMember<MethodSymbol>("Goo");
+            //Assert.Equal("T? A.Goo<T>()", aGoo.ToTestDisplayString());
 
             //var b = compilation.GetTypeByMetadataName("B");
-            //var bFoo = b.GetMember<MethodSymbol>("Foo");
-            //Assert.Equal("T? A.Foo<T>()", bFoo.OverriddenMethod.ToTestDisplayString());
+            //var bGoo = b.GetMember<MethodSymbol>("Goo");
+            //Assert.Equal("T? A.Goo<T>()", bGoo.OverriddenMethod.ToTestDisplayString());
 
             compilation.VerifyDiagnostics();
         }
@@ -10210,14 +10210,14 @@ class B : A
             var source = @"
 class A
 {
-    public virtual void Foo<T>(T? x) where T : struct 
+    public virtual void Goo<T>(T? x) where T : struct 
     { 
     }
 }
 
 class B : A
 {
-    public override void Foo<T>(T? x)
+    public override void Goo<T>(T? x)
     {
     }
 } 
@@ -10232,7 +10232,7 @@ class B : A
             var source = @"
 class A
 {
-    public virtual System.Nullable<T> Foo<T>() where T : struct 
+    public virtual System.Nullable<T> Goo<T>() where T : struct 
     { 
         return null; 
     }
@@ -10240,7 +10240,7 @@ class A
 
 class B : A
 {
-    public override T? Foo<T>()
+    public override T? Goo<T>()
     {
         return null;
     }
@@ -10255,14 +10255,14 @@ class B : A
             var source = @"
 class A
 {
-    public virtual void Foo<T>(System.Nullable<T> x) where T : struct 
+    public virtual void Goo<T>(System.Nullable<T> x) where T : struct 
     { 
     }
 }
 
 class B : A
 {
-    public override void Foo<T>(T? x)
+    public override void Goo<T>(T? x)
     {
     }
 } 
@@ -10276,7 +10276,7 @@ class B : A
             var source = @"
 class A
 {
-    public virtual T? Foo<T>() where T : struct 
+    public virtual T? Goo<T>() where T : struct 
     { 
         return null; 
     }
@@ -10284,7 +10284,7 @@ class A
 
 class B : A
 {
-    public override System.Nullable<T> Foo<T>()
+    public override System.Nullable<T> Goo<T>()
     {
         return null;
     }
@@ -87983,9 +87983,9 @@ class G<T>
             var source =
 @"
 #nullable enable
-public struct Foo<T>
+public struct Goo<T>
 {
-    public static Foo<T> Bar;
+    public static Goo<T> Bar;
 }
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -88578,28 +88578,28 @@ public class Class : Interface<string>
 #nullable enable
 interface I
 {
-    void Foo<T>(T? value) where T : class;
+    void Goo<T>(T? value) where T : class;
 }
 
 class C1 : I
 {
-    public void Foo<T>(T? value) where T : class { }
+    public void Goo<T>(T? value) where T : class { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T? value) { }
+    void I.Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (13,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // (13,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
                 // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(13, 12),
-                // (15,12): error CS0539: 'C2.Foo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Foo").WithArguments("C2.Foo<T>(T?)").WithLocation(15, 12),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(13, 12),
+                // (15,12): error CS0539: 'C2.Goo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.Goo<T>(T? value) { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C2.Goo<T>(T?)").WithLocation(15, 12),
                 // (15,22): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     void I.Foo<T>(T? value) { }
+                //     void I.Goo<T>(T? value) { }
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "value").WithArguments("System.Nullable<T>", "T", "T").WithLocation(15, 22));
         }
 
@@ -88611,31 +88611,31 @@ class C2 : I
 #nullable enable
 interface I
 {
-    void Foo<T>(T value) where T : class;
+    void Goo<T>(T value) where T : class;
 }
 
 class C1 : I
 {
-    public void Foo<T>(T? value) where T : class { }
+    public void Goo<T>(T? value) where T : class { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T? value) { }
+    void I.Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (10,17): warning CS8614: Nullability of reference types in type of parameter 'value' doesn't match implicitly implemented member 'void I.Foo<T>(T value)'.
-                //     public void Foo<T>(T? value) where T : class { }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Foo").WithArguments("value", "void I.Foo<T>(T value)").WithLocation(10, 17),
-                // (13,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T)'
+                // (10,17): warning CS8614: Nullability of reference types in type of parameter 'value' doesn't match implicitly implemented member 'void I.Goo<T>(T value)'.
+                //     public void Goo<T>(T? value) where T : class { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Goo").WithArguments("value", "void I.Goo<T>(T value)").WithLocation(10, 17),
+                // (13,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T)'
                 // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T)").WithLocation(13, 12),
-                // (15,12): error CS0539: 'C2.Foo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Foo").WithArguments("C2.Foo<T>(T?)").WithLocation(15, 12),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T)").WithLocation(13, 12),
+                // (15,12): error CS0539: 'C2.Goo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.Goo<T>(T? value) { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C2.Goo<T>(T?)").WithLocation(15, 12),
                 // (15,22): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     void I.Foo<T>(T? value) { }
+                //     void I.Goo<T>(T? value) { }
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "value").WithArguments("System.Nullable<T>", "T", "T").WithLocation(15, 22));
         }
 
@@ -88647,26 +88647,26 @@ class C2 : I
 #nullable enable
 interface I
 {
-    void Foo<T>(T? value) where T : class;
+    void Goo<T>(T? value) where T : class;
 }
 
 class C1 : I
 {
-    public void Foo<T>(T value) where T : class { }
+    public void Goo<T>(T value) where T : class { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T value) { }
+    void I.Goo<T>(T value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (10,17): warning CS8614: Nullability of reference types in type of parameter 'value' doesn't match implicitly implemented member 'void I.Foo<T>(T? value)'.
-                //     public void Foo<T>(T value) where T : class { }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Foo").WithArguments("value", "void I.Foo<T>(T? value)").WithLocation(10, 17),
-                // (15,12): warning CS8617: Nullability of reference types in type of parameter 'value' doesn't match implemented member 'void I.Foo<T>(T? value)'.
-                //     void I.Foo<T>(T value) { }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "Foo").WithArguments("value", "void I.Foo<T>(T? value)").WithLocation(15, 12));
+                // (10,17): warning CS8614: Nullability of reference types in type of parameter 'value' doesn't match implicitly implemented member 'void I.Goo<T>(T? value)'.
+                //     public void Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Goo").WithArguments("value", "void I.Goo<T>(T? value)").WithLocation(10, 17),
+                // (15,12): warning CS8617: Nullability of reference types in type of parameter 'value' doesn't match implemented member 'void I.Goo<T>(T? value)'.
+                //     void I.Goo<T>(T value) { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "Goo").WithArguments("value", "void I.Goo<T>(T? value)").WithLocation(15, 12));
         }
 
         [Fact]
@@ -88676,20 +88676,20 @@ class C2 : I
             var source = @"
 interface I
 {
-    void Foo<T>(T value);
-    void Foo<T>(T? value) where T : struct;
+    void Goo<T>(T value);
+    void Goo<T>(T? value) where T : struct;
 }
 
 class C1 : I
 {
-    public void Foo<T>(T value) { }
-    public void Foo<T>(T? value) where T : struct { }
+    public void Goo<T>(T value) { }
+    public void Goo<T>(T? value) where T : struct { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T value) { }
-    void I.Foo<T>(T? value) { }
+    void I.Goo<T>(T value) { }
+    void I.Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
@@ -88702,20 +88702,20 @@ class C2 : I
             var source = @"
 interface I
 {
-    void Foo<T>(T? value) where T : struct;
-    void Foo<T>(T value);
+    void Goo<T>(T? value) where T : struct;
+    void Goo<T>(T value);
 }
 
 class C1 : I
 {
-    public void Foo<T>(T value) { }
-    public void Foo<T>(T? value) where T : struct { }
+    public void Goo<T>(T value) { }
+    public void Goo<T>(T? value) where T : struct { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T value) { }
-    void I.Foo<T>(T? value) { }
+    void I.Goo<T>(T value) { }
+    void I.Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
@@ -88729,20 +88729,20 @@ class C2 : I
 #nullable enable
 interface I
 {
-    void Foo<T>(T value) where T : class;
-    void Foo<T>(T? value) where T : struct;
+    void Goo<T>(T value) where T : class;
+    void Goo<T>(T? value) where T : struct;
 }
 
 class C1 : I
 {
-    public void Foo<T>(T value) where T : class { }
-    public void Foo<T>(T? value) where T : struct { }
+    public void Goo<T>(T value) where T : class { }
+    public void Goo<T>(T? value) where T : struct { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T value) { }
-    void I.Foo<T>(T? value) { }
+    void I.Goo<T>(T value) { }
+    void I.Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
@@ -88756,35 +88756,35 @@ class C2 : I
 #nullable enable
 interface I<U> where U : class
 {
-    U Foo<T>(T value);
-    U Foo<T>(T? value) where T : struct;
+    U Goo<T>(T value);
+    U Goo<T>(T? value) where T : struct;
 }
 
 class C1<U> : I<U> where U : class
 {
-    public U? Foo<T>(T value) => default;
-    public U? Foo<T>(T? value) where T : struct => default;
+    public U? Goo<T>(T value) => default;
+    public U? Goo<T>(T? value) where T : struct => default;
 }
 
 class C2<U> : I<U> where U : class
 {
-    U? I<U>.Foo<T>(T value) => default;
-    U? I<U>.Foo<T>(T? value) => default;
+    U? I<U>.Goo<T>(T value) => default;
+    U? I<U>.Goo<T>(T? value) => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (11,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T value)'.
-                //     public U? Foo<T>(T value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(11, 15),
-                // (12,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T? value)'.
-                //     public U? Foo<T>(T? value) where T : struct => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(12, 15),
-                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T value)'.
-                //     U? I<U>.Foo<T>(T value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(17, 13),
-                // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T? value)'.
-                //     U? I<U>.Foo<T>(T? value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(18, 13));
+                // (11,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Goo<T>(T value)'.
+                //     public U? Goo<T>(T value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T value)").WithLocation(11, 15),
+                // (12,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Goo<T>(T? value)'.
+                //     public U? Goo<T>(T? value) where T : struct => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T? value)").WithLocation(12, 15),
+                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Goo<T>(T value)'.
+                //     U? I<U>.Goo<T>(T value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T value)").WithLocation(17, 13),
+                // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Goo<T>(T? value)'.
+                //     U? I<U>.Goo<T>(T? value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T? value)").WithLocation(18, 13));
         }
 
         [Fact]
@@ -88795,37 +88795,37 @@ class C2<U> : I<U> where U : class
 #nullable enable
 interface I<U> where U : class
 {
-    U Foo<T>(T? value) where T : struct;
-    U Foo<T>(T value);
+    U Goo<T>(T? value) where T : struct;
+    U Goo<T>(T value);
 }
 
 class C1<U> : I<U> where U : class
 {
-    public U? Foo<T>(T value) => default;
-    public U? Foo<T>(T? value) where T : struct => default;
+    public U? Goo<T>(T value) => default;
+    public U? Goo<T>(T? value) where T : struct => default;
 }
 
 class C2<U> : I<U> where U : class
 {
-    U? I<U>.Foo<T>(T value) => default;
-    U? I<U>.Foo<T>(T? value) => default;
+    U? I<U>.Goo<T>(T value) => default;
+    U? I<U>.Goo<T>(T? value) => default;
 }
 ";
             //As a result of https://github.com/dotnet/roslyn/issues/34583 these don't test anything useful at the moment
 
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (11,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T value)'.
-                //     public U? Foo<T>(T value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(11, 15),
-                // (12,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T? value)'.
-                //     public U? Foo<T>(T? value) where T : struct => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(12, 15),
-                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T value)'.
-                //     U? I<U>.Foo<T>(T value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(17, 13),
-                // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T? value)'.
-                //     U? I<U>.Foo<T>(T? value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(18, 13));
+                // (11,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Goo<T>(T value)'.
+                //     public U? Goo<T>(T value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T value)").WithLocation(11, 15),
+                // (12,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Goo<T>(T? value)'.
+                //     public U? Goo<T>(T? value) where T : struct => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T? value)").WithLocation(12, 15),
+                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Goo<T>(T value)'.
+                //     U? I<U>.Goo<T>(T value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T value)").WithLocation(17, 13),
+                // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Goo<T>(T? value)'.
+                //     U? I<U>.Goo<T>(T? value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T? value)").WithLocation(18, 13));
         }
 
 
@@ -88837,19 +88837,19 @@ class C2<U> : I<U> where U : class
 #nullable enable
 interface I
 {
-    void Foo<T>(T? value) where T : class;
-    void Foo<T>(T? value) where T : struct;
+    void Goo<T>(T? value) where T : class;
+    void Goo<T>(T? value) where T : struct;
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T? value) { }
+    void I.Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
                 // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(9, 12));
         }
 
         [Fact]
@@ -88860,20 +88860,20 @@ class C2 : I
 #nullable enable
 interface I
 {
-    void Foo<T>(T? value) where T : class;
-    void Foo<T>(T? value) where T : struct;
+    void Goo<T>(T? value) where T : class;
+    void Goo<T>(T? value) where T : struct;
 }
 
 class C2 : I
 {
-    public void Foo<T>(T? value) where T : struct { }
-    void I.Foo<T>(T? value) { }
+    public void Goo<T>(T? value) where T : struct { }
+    void I.Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
                 // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(9, 12));
         }
 
         [Fact]
@@ -88884,14 +88884,14 @@ class C2 : I
 #nullable enable
 interface I
 {
-    void Foo<T>(T? value) where T : class;
-    void Foo<T>(T? value) where T : struct;
+    void Goo<T>(T? value) where T : class;
+    void Goo<T>(T? value) where T : struct;
 }
 
 class C2 : I
 {
-    public void Foo<T>(T? value) where T : class { }
-    void I.Foo<T>(T? value) { }
+    public void Goo<T>(T? value) where T : class { }
+    void I.Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
@@ -88905,20 +88905,20 @@ class C2 : I
 #nullable enable
 interface I
 {
-    void Foo<T>(T? value) where T : struct;
-    void Foo<T>(T? value) where T : class;
+    void Goo<T>(T? value) where T : struct;
+    void Goo<T>(T? value) where T : class;
 }
 
 class C2 : I
 {
-    public void Foo<T>(T? value) where T : struct { }
-    void I.Foo<T>(T? value) { }
+    public void Goo<T>(T? value) where T : struct { }
+    void I.Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
                 // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(9, 12));
         }
 
         [Fact]
@@ -88929,14 +88929,14 @@ class C2 : I
 #nullable enable
 interface I
 {
-    void Foo<T>(T? value) where T : struct;
-    void Foo<T>(T? value) where T : class;
+    void Goo<T>(T? value) where T : struct;
+    void Goo<T>(T? value) where T : class;
 }
 
 class C2 : I
 {
-    public void Foo<T>(T? value) where T : class { }
-    void I.Foo<T>(T? value) { }
+    public void Goo<T>(T? value) where T : class { }
+    void I.Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
@@ -88950,19 +88950,19 @@ class C2 : I
 #nullable enable
 interface I
 {
-    void Foo<T>(T? value) where T : struct;
-    void Foo<T>(T? value) where T : class;
+    void Goo<T>(T? value) where T : struct;
+    void Goo<T>(T? value) where T : class;
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T? value) { }
+    void I.Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
                 // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(9, 12));
         }
 
         [Fact]
@@ -88973,25 +88973,25 @@ class C2 : I
 #nullable enable
 interface I
 {
-    string Foo<T>(T? value) where T : class;
-    int Foo<T>(T? value) where T : struct;
+    string Goo<T>(T? value) where T : class;
+    int Goo<T>(T? value) where T : struct;
 }
 
 class C2 : I
 {
-    int I.Foo<T>(T? value) => 42;
-    string I.Foo<T>(T? value) => ""42"";
+    int I.Goo<T>(T? value) => 42;
+    string I.Goo<T>(T? value) => ""42"";
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
                 // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
-                // (12,14): error CS0539: 'C2.Foo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     string I.Foo<T>(T? value) => "42";
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Foo").WithArguments("C2.Foo<T>(T?)").WithLocation(12, 14),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(9, 12),
+                // (12,14): error CS0539: 'C2.Goo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     string I.Goo<T>(T? value) => "42";
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C2.Goo<T>(T?)").WithLocation(12, 14),
                 // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     string I.Foo<T>(T? value) => "42";
+                //     string I.Goo<T>(T? value) => "42";
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "value").WithArguments("System.Nullable<T>", "T", "T").WithLocation(12, 24));
         }
 
@@ -89003,29 +89003,29 @@ class C2 : I
 #nullable enable
 interface I
 {
-    object Foo<T>(T? value) where T : class;
-    object? Foo<T>(T? value) where T : struct;
+    object Goo<T>(T? value) where T : class;
+    object? Goo<T>(T? value) where T : struct;
 }
 
 class C2 : I
 {
-    object I.Foo<T>(T? value) => 42;
-    object? I.Foo<T>(T? value) => 42;
+    object I.Goo<T>(T? value) => 42;
+    object? I.Goo<T>(T? value) => 42;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,7): error CS8646: 'I.Foo<T>(T?)' is explicitly implemented more than once.
+                // (9,7): error CS8646: 'I.Goo<T>(T?)' is explicitly implemented more than once.
                 // class C2 : I
-                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I.Foo<T>(T?)").WithLocation(9, 7),
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I.Goo<T>(T?)").WithLocation(9, 7),
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
                 // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
-                // (11,14): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'object? I.Foo<T>(T? value)'.
-                //     object I.Foo<T>(T? value) => 42;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("object? I.Foo<T>(T? value)").WithLocation(11, 14),
-                // (12,15): error CS0111: Type 'C2' already defines a member called 'I.Foo' with the same parameter types
-                //     object? I.Foo<T>(T? value) => 42;
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("I.Foo", "C2").WithLocation(12, 15));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(9, 12),
+                // (11,14): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'object? I.Goo<T>(T? value)'.
+                //     object I.Goo<T>(T? value) => 42;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Goo").WithArguments("object? I.Goo<T>(T? value)").WithLocation(11, 14),
+                // (12,15): error CS0111: Type 'C2' already defines a member called 'I.Goo' with the same parameter types
+                //     object? I.Goo<T>(T? value) => 42;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Goo").WithArguments("I.Goo", "C2").WithLocation(12, 15));
         }
 
         [Fact]
@@ -89036,20 +89036,20 @@ class C2 : I
 #nullable enable
 abstract class Base<T> where T : class
 {
-    public abstract void Foo(T? value);
+    public abstract void Goo(T? value);
 }
 
 class Derived<T> : Base<T> where T : class
 {
-    public override void Foo(T? value) { }
+    public override void Goo(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.False(dFoo.Parameters[0].Type.IsNullableType());
-            Assert.True(dFoo.Parameters[0].TypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated);
+            Assert.False(dGoo.Parameters[0].Type.IsNullableType());
+            Assert.True(dGoo.Parameters[0].TypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated);
         }
     }
 }

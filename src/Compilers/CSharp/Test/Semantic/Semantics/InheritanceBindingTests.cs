@@ -8321,24 +8321,24 @@ public class D : C, I0<dynamic>
             var source = @"
 interface I
 {
-    void Foo<T>(T? value) where T : struct;
+    void Goo<T>(T? value) where T : struct;
 }
 
 class C1 : I
 {
-    public void Foo<T>(T? value) where T : struct { }
+    public void Goo<T>(T? value) where T : struct { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T? value) { }
+    void I.Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
 
-            Assert.True(c2Foo.Parameters[0].Type.IsNullableType());
+            Assert.True(c2Goo.Parameters[0].Type.IsNullableType());
         }
 
         [Fact]
@@ -8348,24 +8348,24 @@ class C2 : I
             var source = @"
 interface I
 {
-    void Foo<T>(T?[] value) where T : struct;
+    void Goo<T>(T?[] value) where T : struct;
 }
 
 class C1 : I
 {
-    public void Foo<T>(T?[] value) where T : struct { }
+    public void Goo<T>(T?[] value) where T : struct { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T?[] value) { }
+    void I.Goo<T>(T?[] value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
 
-            Assert.True(((ArrayTypeSymbol)c2Foo.Parameters[0].Type).ElementType.IsNullableType());
+            Assert.True(((ArrayTypeSymbol)c2Goo.Parameters[0].Type).ElementType.IsNullableType());
         }
 
         [Fact]
@@ -8375,25 +8375,25 @@ class C2 : I
             var source = @"
 interface I
 {
-    void Foo<T>((T a, T? b)? value) where T : struct;
+    void Goo<T>((T a, T? b)? value) where T : struct;
 }
 
 class C1 : I
 {
-    public void Foo<T>((T a, T? b)? value) where T : struct { }
+    public void Goo<T>((T a, T? b)? value) where T : struct { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>((T a, T? b)? value) { }
+    void I.Goo<T>((T a, T? b)? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
 
-            Assert.True(c2Foo.Parameters[0].Type.IsNullableType());
-            var tuple = c2Foo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.True(c2Goo.Parameters[0].Type.IsNullableType());
+            var tuple = c2Goo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
             Assert.False(tuple.TupleElements[0].Type.IsNullableType());
             Assert.True(tuple.TupleElements[1].Type.IsNullableType());
         }
@@ -8405,24 +8405,24 @@ class C2 : I
             var source = @"
 interface I
 {
-    T? Foo<T>() where T : struct;
+    T? Goo<T>() where T : struct;
 }
 
 class C1 : I
 {
-    public T? Foo<T>() where T : struct => default;
+    public T? Goo<T>() where T : struct => default;
 }
 
 class C2 : I
 {
-    T? I.Foo<T>() => default;
+    T? I.Goo<T>() => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
 
-            Assert.True(c2Foo.ReturnType.IsNullableType());
+            Assert.True(c2Goo.ReturnType.IsNullableType());
         }
 
         [Fact]
@@ -8432,24 +8432,24 @@ class C2 : I
             var source = @"
 interface I
 {
-    T?[] Foo<T>() where T : struct;
+    T?[] Goo<T>() where T : struct;
 }
 
 class C1 : I
 {
-    public T?[] Foo<T>() where T : struct => default;
+    public T?[] Goo<T>() where T : struct => default;
 }
 
 class C2 : I
 {
-    T?[] I.Foo<T>() => default;
+    T?[] I.Goo<T>() => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
 
-            Assert.True(((ArrayTypeSymbol)c2Foo.ReturnType).ElementType.IsNullableType());
+            Assert.True(((ArrayTypeSymbol)c2Goo.ReturnType).ElementType.IsNullableType());
         }
 
         [Fact]
@@ -8459,25 +8459,25 @@ class C2 : I
             var source = @"
 interface I
 {
-    (T a, T? b)? Foo<T>() where T : struct;
+    (T a, T? b)? Goo<T>() where T : struct;
 }
 
 class C1 : I
 {
-    public (T a, T? b)? Foo<T>() where T : struct => default;
+    public (T a, T? b)? Goo<T>() where T : struct => default;
 }
 
 class C2 : I
 {
-    (T a, T? b)? I.Foo<T>() => default;
+    (T a, T? b)? I.Goo<T>() => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
 
-            Assert.True(c2Foo.ReturnType.IsNullableType());
-            var tuple = c2Foo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.True(c2Goo.ReturnType.IsNullableType());
+            var tuple = c2Goo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
             Assert.False(tuple.TupleElements[0].Type.IsNullableType());
             Assert.True(tuple.TupleElements[1].Type.IsNullableType());
         }
@@ -8489,19 +8489,19 @@ class C2 : I
             var source = @"
 abstract class Base
 {
-    public abstract void Foo<T>(T? value) where T : struct;
+    public abstract void Goo<T>(T? value) where T : struct;
 }
 
 class Derived : Base
 {
-    public override void Foo<T>(T? value) { }
+    public override void Goo<T>(T? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(dFoo.Parameters[0].Type.IsNullableType());
+            Assert.True(dGoo.Parameters[0].Type.IsNullableType());
         }
 
         [Fact]
@@ -8511,19 +8511,19 @@ class Derived : Base
             var source = @"
 abstract class Base
 {
-    public abstract void Foo<T>(T?[] value) where T : struct;
+    public abstract void Goo<T>(T?[] value) where T : struct;
 }
 
 class Derived : Base
 {
-    public override void Foo<T>(T?[] value) { }
+    public override void Goo<T>(T?[] value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(((ArrayTypeSymbol)dFoo.Parameters[0].Type).ElementType.IsNullableType());
+            Assert.True(((ArrayTypeSymbol)dGoo.Parameters[0].Type).ElementType.IsNullableType());
         }
 
         [Fact]
@@ -8533,20 +8533,20 @@ class Derived : Base
             var source = @"
 abstract class Base
 {
-    public abstract void Foo<T>((T a, T? b)? value) where T : struct;
+    public abstract void Goo<T>((T a, T? b)? value) where T : struct;
 }
 
 class Derived : Base
 {
-    public override void Foo<T>((T a, T? b)? value) { }
+    public override void Goo<T>((T a, T? b)? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(dFoo.Parameters[0].Type.IsNullableType());
-            var tuple = dFoo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.True(dGoo.Parameters[0].Type.IsNullableType());
+            var tuple = dGoo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
             Assert.False(tuple.TupleElements[0].Type.IsNullableType());
             Assert.True(tuple.TupleElements[1].Type.IsNullableType());
         }
@@ -8558,19 +8558,19 @@ class Derived : Base
             var source = @"
 abstract class Base
 {
-    public abstract T? Foo<T>() where T : struct;
+    public abstract T? Goo<T>() where T : struct;
 }
 
 class Derived : Base
 {
-    public override T? Foo<T>() => default;
+    public override T? Goo<T>() => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(dFoo.ReturnType.IsNullableType());
+            Assert.True(dGoo.ReturnType.IsNullableType());
         }
 
         [Fact]
@@ -8580,19 +8580,19 @@ class Derived : Base
             var source = @"
 abstract class Base
 {
-    public abstract T?[] Foo<T>() where T : struct;
+    public abstract T?[] Goo<T>() where T : struct;
 }
 
 class Derived : Base
 {
-    public override T?[] Foo<T>() => default;
+    public override T?[] Goo<T>() => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(((ArrayTypeSymbol)dFoo.ReturnType).ElementType.IsNullableType());
+            Assert.True(((ArrayTypeSymbol)dGoo.ReturnType).ElementType.IsNullableType());
         }
 
         [Fact]
@@ -8602,20 +8602,20 @@ class Derived : Base
             var source = @"
 abstract class Base
 {
-    public abstract (T a, T? b)? Foo<T>() where T : struct;
+    public abstract (T a, T? b)? Goo<T>() where T : struct;
 }
 
 class Derived : Base
 {
-    public override (T a, T? b)? Foo<T>() => default;
+    public override (T a, T? b)? Goo<T>() => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(dFoo.ReturnType.IsNullableType());
-            var tuple = dFoo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.True(dGoo.ReturnType.IsNullableType());
+            var tuple = dGoo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
             Assert.False(tuple.TupleElements[0].Type.IsNullableType());
             Assert.True(tuple.TupleElements[1].Type.IsNullableType());
         }
@@ -8627,17 +8627,17 @@ class Derived : Base
             var source = @"
 interface I
 {
-    void Foo<T, U>(T? value) where T : struct;
+    void Goo<T, U>(T? value) where T : struct;
 }
 
 class C1 : I
 {
-    public void Foo<T, U>(T? value) where T : struct {}
+    public void Goo<T, U>(T? value) where T : struct {}
 }
 
 class C2 : I
 {
-    void I.Foo<T, U>(T? value) {}
+    void I.Goo<T, U>(T? value) {}
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
