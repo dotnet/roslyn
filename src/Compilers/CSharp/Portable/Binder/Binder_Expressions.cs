@@ -1121,7 +1121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeofBinder typeofBinder = new TypeofBinder(typeSyntax, this); //has special handling for unbound types
             AliasSymbol alias;
-            TypeSymbol type = typeofBinder.BindType(typeSyntax, diagnostics, out alias).Type;
+            TypeWithAnnotations typeWithAnnotations = typeofBinder.BindType(typeSyntax, diagnostics, out alias);
+            TypeSymbol type = typeWithAnnotations.Type;
 
             bool hasError = false;
 
@@ -1133,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = true;
             }
 
-            BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, type, type.IsErrorType());
+            BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, type.IsErrorType());
             return new BoundTypeOfOperator(node, boundType, null, this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node), hasError);
         }
 
@@ -1141,11 +1142,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ExpressionSyntax typeSyntax = node.Type;
             AliasSymbol alias;
-            TypeSymbol type = this.BindType(typeSyntax, diagnostics, out alias).Type;
+            TypeWithAnnotations typeWithAnnotations = this.BindType(typeSyntax, diagnostics, out alias);
+            TypeSymbol type = typeWithAnnotations.Type;
 
             bool typeHasErrors = type.IsErrorType() || CheckManagedAddr(type, node, diagnostics);
 
-            BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, type, typeHasErrors);
+            BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
             bool hasErrors = ReferenceEquals(constantValue, null) && ReportUnsafeIfNotAllowed(node, diagnostics, type);
             return new BoundSizeOfOperator(node, boundType, constantValue,
@@ -5753,7 +5755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Error(diagnostics, lookupResult.Error, right);
 
                                 return new BoundTypeExpression(node, null,
-                                        new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), symbols.ToImmutable(), lookupResult.Kind, lookupResult.Error, rightArity));
+                                            new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), symbols.ToImmutable(), lookupResult.Kind, lookupResult.Error, rightArity));
                             }
                             else if (lookupResult.Kind == LookupResultKind.Empty)
                             {
@@ -5812,6 +5814,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if ((object)leftType != null)
                             {
+                                // NB: We don't know if we really only need RValue access, or if we are actually
+                                // passing the receiver implicitly by ref (e.g. in a struct instance method invocation).
+                                // These checks occur later.
                                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
                                 return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                             }
@@ -6238,7 +6243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             aliasOpt: null,
                             boundContainingTypeOpt: left as BoundTypeExpression,
                             boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
-                            type: type);
+                            typeWithAnnotations: TypeWithAnnotations.Create(type));
                         break;
 
                     case SymbolKind.Property:

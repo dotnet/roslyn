@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Formatting
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
         protected static void AssertResult(string expected, SourceText sourceText, IList<TextChange> result)
         {
             var actual = sourceText.WithChanges(result).ToString();
-            Assert.Equal(expected, actual);
+            AssertEx.EqualOrDiff(expected, actual);
         }
     }
 }

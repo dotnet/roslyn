@@ -4723,61 +4723,6 @@ public class Class : Interface<int>
         }
 
         [Fact]
-        public void TestExplicitImplementationAmbiguousInterfaceMethod_DifferingNullabilityAnnotations1()
-        {
-            var text = @"
-#nullable enable
-public interface Interface<T> where T : class
-{
-    void Method(string i);
-    void Method(T? i);
-}
-
-public class Class : Interface<string>
-{
-    void Interface<string>.Method(string i) { } //this explicitly implements both methods in Interface<string>
-    public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
-}
-";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (11,28): warning CS0473: Explicit interface implementation 'Class.Interface<string>.Method(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-                //     void Interface<string>.Method(string i) { } //this explicitly implements both methods in Interface<int>
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<string>.Method(string)").WithLocation(11, 28),
-                // (12,17): warning CS8614: Nullability of reference types in type of parameter 'i' doesn't match implicitly implemented member 'void Interface<string>.Method(string? i)'.
-                //     public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Method").WithArguments("i", "void Interface<string>.Method(string? i)").WithLocation(12, 17));
-        }
-
-        [Fact]
-        public void TestExplicitImplementationAmbiguousInterfaceMethod_DifferingNullabilityAnnotations2()
-        {
-            var text = @"
-#nullable enable
-public interface Interface<T> where T : class
-{
-    void Method(string i);
-    void Method(T? i);
-}
-
-public class Class : Interface<string>
-{
-    void Interface<string>.Method(string? i) { } //this explicitly implements both methods in Interface<string>
-    public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
-}
-";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (11,28): warning CS0473: Explicit interface implementation 'Class.Interface<string>.Method(string?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-                //     void Interface<string>.Method(string? i) { } //this explicitly implements both methods in Interface<string>
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<string>.Method(string?)").WithLocation(11, 28),
-                // (11,28): warning CS8617: Nullability of reference types in type of parameter 'i' doesn't match implemented member 'void Interface<string>.Method(string i)'.
-                //     void Interface<string>.Method(string? i) { } //this explicitly implements both methods in Interface<string>
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "Method").WithArguments("i", "void Interface<string>.Method(string i)").WithLocation(11, 28),
-                // (12,17): warning CS8614: Nullability of reference types in type of parameter 'i' doesn't match implicitly implemented member 'void Interface<string>.Method(string? i)'.
-                //     public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Method").WithArguments("i", "void Interface<string>.Method(string? i)").WithLocation(12, 17));
-        }
-
-        [Fact]
         public void TestExplicitImplementationAmbiguousInterfaceIndexer()
         {
             var text = @"
@@ -8371,7 +8316,7 @@ public class D : C, I0<dynamic>
 
         [Fact]
         [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter()
+        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter1()
         {
             var source = @"
 interface I
@@ -8390,464 +8335,289 @@ class C2 : I
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+
+            Assert.True(c2Foo.Parameters[0].Type.IsNullableType());
         }
 
         [Fact]
         [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void ImplementMethodTakingNullableClassParameter_WithMethodTakingNullableClassParameter()
-        {
-            var source = @"
-#nullable enable
-interface I
-{
-    void Foo<T>(T? value) where T : class;
-}
-
-class C1 : I
-{
-    public void Foo<T>(T? value) where T : class { }
-}
-
-class C2 : I
-{
-    void I.Foo<T>(T? value) { }
-}
-";
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (13,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
-                // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(13, 12),
-                // (15,12): error CS0539: 'C2.Foo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Foo").WithArguments("C2.Foo<T>(T?)").WithLocation(15, 12),
-                // (15,22): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "value").WithArguments("System.Nullable<T>", "T", "T").WithLocation(15, 22));
-        }
-
-        [Fact]
-        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void ImplementMethodTakingNonNullableClassParameter_WithMethodTakingNullableClassParameter()
-        {
-            var source = @"
-#nullable enable
-interface I
-{
-    void Foo<T>(T value) where T : class;
-}
-
-class C1 : I
-{
-    public void Foo<T>(T? value) where T : class { }
-}
-
-class C2 : I
-{
-    void I.Foo<T>(T? value) { }
-}
-";
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (10,17): warning CS8614: Nullability of reference types in type of parameter 'value' doesn't match implicitly implemented member 'void I.Foo<T>(T value)'.
-                //     public void Foo<T>(T? value) where T : class { }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Foo").WithArguments("value", "void I.Foo<T>(T value)").WithLocation(10, 17),
-                // (13,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T)'
-                // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T)").WithLocation(13, 12),
-                // (15,12): error CS0539: 'C2.Foo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Foo").WithArguments("C2.Foo<T>(T?)").WithLocation(15, 12),
-                // (15,22): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "value").WithArguments("System.Nullable<T>", "T", "T").WithLocation(15, 22));
-        }
-
-        [Fact]
-        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void ImplementMethodTakingNullableClassParameter_WithMethodTakingNonNullableClassParameter()
-        {
-            var source = @"
-#nullable enable
-interface I
-{
-    void Foo<T>(T? value) where T : class;
-}
-
-class C1 : I
-{
-    public void Foo<T>(T value) where T : class { }
-}
-
-class C2 : I
-{
-    void I.Foo<T>(T value) { }
-}
-";
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (10,17): warning CS8614: Nullability of reference types in type of parameter 'value' doesn't match implicitly implemented member 'void I.Foo<T>(T? value)'.
-                //     public void Foo<T>(T value) where T : class { }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Foo").WithArguments("value", "void I.Foo<T>(T? value)").WithLocation(10, 17),
-                // (15,12): warning CS8617: Nullability of reference types in type of parameter 'value' doesn't match implemented member 'void I.Foo<T>(T? value)'.
-                //     void I.Foo<T>(T value) { }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "Foo").WithArguments("value", "void I.Foo<T>(T? value)").WithLocation(15, 12));
-        }
-
-        [Fact]
-        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void ExplicitImplementationOverloadAcceptingNullableT()
+        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter2()
         {
             var source = @"
 interface I
 {
-    void Foo<T>(T value);
-    void Foo<T>(T? value) where T : struct;
+    void Foo<T>(T?[] value) where T : struct;
 }
 
 class C1 : I
 {
-    public void Foo<T>(T value) { }
-    public void Foo<T>(T? value) where T : struct { }
+    public void Foo<T>(T?[] value) where T : struct { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T value) { }
-    void I.Foo<T>(T? value) { }
+    void I.Foo<T>(T?[] value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+
+            Assert.True(((ArrayTypeSymbol)c2Foo.Parameters[0].Type).ElementType.IsNullableType());
         }
 
         [Fact]
         [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void ExplicitImplementationOverloadAcceptingNullableT_OppositeDeclarationOrder()
+        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter3()
         {
             var source = @"
 interface I
 {
-    void Foo<T>(T? value) where T : struct;
-    void Foo<T>(T value);
+    void Foo<T>((T a, T? b)? value) where T : struct;
 }
 
 class C1 : I
 {
-    public void Foo<T>(T value) { }
-    public void Foo<T>(T? value) where T : struct { }
+    public void Foo<T>((T a, T? b)? value) where T : struct { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T value) { }
-    void I.Foo<T>(T? value) { }
+    void I.Foo<T>((T a, T? b)? value) { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+
+            Assert.True(c2Foo.Parameters[0].Type.IsNullableType());
+            var tuple = c2Foo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
         }
 
         [Fact]
         [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void ExplicitImplementationOverloadAcceptingNullableT_WithClassConstraint()
+        public void ImplementMethodReturningNullableStructParameter_WithMethodReturningNullableStruct1()
         {
             var source = @"
-#nullable enable
 interface I
 {
-    void Foo<T>(T value) where T : class;
-    void Foo<T>(T? value) where T : struct;
+    T? Foo<T>() where T : struct;
 }
 
 class C1 : I
 {
-    public void Foo<T>(T value) where T : class { }
-    public void Foo<T>(T? value) where T : struct { }
+    public T? Foo<T>() where T : struct => default;
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T value) { }
-    void I.Foo<T>(T? value) { }
+    T? I.Foo<T>() => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+
+            Assert.True(c2Foo.ReturnType.IsNullableType());
         }
 
         [Fact]
         [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void ExplicitImplementationOverloadAcceptingNullableT_ReturnTypesDoNotMatchNullabilityModifiers()
+        public void ImplementMethodReturningNullableStructParameter_WithMethodReturningNullableStruct2()
         {
             var source = @"
-#nullable enable
-interface I<U> where U : class
-{
-    U Foo<T>(T value);
-    U Foo<T>(T? value) where T : struct;
-}
-
-class C1<U> : I<U> where U : class
-{
-    public U? Foo<T>(T value) => default;
-    public U? Foo<T>(T? value) where T : struct => default;
-}
-
-class C2<U> : I<U> where U : class
-{
-    U? I<U>.Foo<T>(T value) => default;
-    U? I<U>.Foo<T>(T? value) => default;
-}
-";
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (11,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T value)'.
-                //     public U? Foo<T>(T value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(11, 15),
-                // (12,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T? value)'.
-                //     public U? Foo<T>(T? value) where T : struct => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(12, 15),
-                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T value)'.
-                //     U? I<U>.Foo<T>(T value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(17, 13),
-                // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T? value)'.
-                //     U? I<U>.Foo<T>(T? value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(18, 13));
-        }
-
-        [Fact]
-        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void ExplicitImplementationOverloadAcceptingNullableT_ReturnTypesDoNotMatchNullabilityModifiers_OppositeDeclarationOrder()
-        {
-            var source = @"
-#nullable enable
-interface I<U> where U : class
-{
-    U Foo<T>(T? value) where T : struct;
-    U Foo<T>(T value);
-}
-
-class C1<U> : I<U> where U : class
-{
-    public U? Foo<T>(T value) => default;
-    public U? Foo<T>(T? value) where T : struct => default;
-}
-
-class C2<U> : I<U> where U : class
-{
-    U? I<U>.Foo<T>(T value) => default;
-    U? I<U>.Foo<T>(T? value) => default;
-}
-";
-            //As a result of https://github.com/dotnet/roslyn/issues/34583 these don't test anything useful at the moment
-
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (11,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T value)'.
-                //     public U? Foo<T>(T value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(11, 15),
-                // (12,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T? value)'.
-                //     public U? Foo<T>(T? value) where T : struct => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(12, 15),
-                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T value)'.
-                //     U? I<U>.Foo<T>(T value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(17, 13),
-                // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T? value)'.
-                //     U? I<U>.Foo<T>(T? value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(18, 13));
-        }
-
-
-        [Fact]
-        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void AmbiguousExplicitInterfaceImplementation()
-        {
-            var source = @"
-#nullable enable
 interface I
 {
-    void Foo<T>(T? value) where T : class;
-    void Foo<T>(T? value) where T : struct;
+    T?[] Foo<T>() where T : struct;
+}
+
+class C1 : I
+{
+    public T?[] Foo<T>() where T : struct => default;
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T? value) { }
-}
-";
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
-                // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12));
-        }
-
-        [Fact]
-        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void AmbiguousExplicitInterfaceImplementation_WithImplicitOverrideOfStructMember()
-        {
-            var source = @"
-#nullable enable
-interface I
-{
-    void Foo<T>(T? value) where T : class;
-    void Foo<T>(T? value) where T : struct;
-}
-
-class C2 : I
-{
-    public void Foo<T>(T? value) where T : struct { }
-    void I.Foo<T>(T? value) { }
-}
-";
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
-                // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12));
-        }
-
-        [Fact]
-        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void AmbiguousExplicitInterfaceImplementation_WithImplicitOverrideOfClassMember()
-        {
-            var source = @"
-#nullable enable
-interface I
-{
-    void Foo<T>(T? value) where T : class;
-    void Foo<T>(T? value) where T : struct;
-}
-
-class C2 : I
-{
-    public void Foo<T>(T? value) where T : class { }
-    void I.Foo<T>(T? value) { }
+    T?[] I.Foo<T>() => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+
+            Assert.True(((ArrayTypeSymbol)c2Foo.ReturnType).ElementType.IsNullableType());
         }
 
         [Fact]
         [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void AmbiguousExplicitInterfaceImplementation_WithImplicitOverrideOfStructMember_OppositeDeclarationOrder()
+        public void ImplementMethodReturningNullableStructParameter_WithMethodReturningNullableStruct3()
         {
             var source = @"
-#nullable enable
 interface I
 {
-    void Foo<T>(T? value) where T : struct;
-    void Foo<T>(T? value) where T : class;
+    (T a, T? b)? Foo<T>() where T : struct;
+}
+
+class C1 : I
+{
+    public (T a, T? b)? Foo<T>() where T : struct => default;
 }
 
 class C2 : I
 {
-    public void Foo<T>(T? value) where T : struct { }
-    void I.Foo<T>(T? value) { }
-}
-";
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
-                // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12));
-        }
-
-        [Fact]
-        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void AmbiguousExplicitInterfaceImplementation_WithImplicitOverrideOfClassMember_OppositeDeclarationOrder()
-        {
-            var source = @"
-#nullable enable
-interface I
-{
-    void Foo<T>(T? value) where T : struct;
-    void Foo<T>(T? value) where T : class;
-}
-
-class C2 : I
-{
-    public void Foo<T>(T? value) where T : class { }
-    void I.Foo<T>(T? value) { }
+    (T a, T? b)? I.Foo<T>() => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+
+            Assert.True(c2Foo.ReturnType.IsNullableType());
+            var tuple = c2Foo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
         }
 
         [Fact]
         [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void AmbiguousExplicitInterfaceImplementation_OppositeDeclarationOrder()
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter1()
         {
             var source = @"
-#nullable enable
-interface I
+abstract class Base
 {
-    void Foo<T>(T? value) where T : struct;
-    void Foo<T>(T? value) where T : class;
+    public abstract void Foo<T>(T? value) where T : struct;
 }
 
-class C2 : I
+class Derived : Base
 {
-    void I.Foo<T>(T? value) { }
+    public override void Foo<T>(T? value) { }
 }
 ";
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
-                // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12));
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.Parameters[0].Type.IsNullableType());
         }
 
         [Fact]
         [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void AmbiguousExplicitInterfaceImplementation_DifferingReturnType()
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter2()
         {
             var source = @"
-#nullable enable
-interface I
+abstract class Base
 {
-    string Foo<T>(T? value) where T : class;
-    int Foo<T>(T? value) where T : struct;
+    public abstract void Foo<T>(T?[] value) where T : struct;
 }
 
-class C2 : I
+class Derived : Base
 {
-    int I.Foo<T>(T? value) => 42;
-    string I.Foo<T>(T? value) => ""42"";
+    public override void Foo<T>(T?[] value) { }
 }
 ";
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
-                // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
-                // (12,14): error CS0539: 'C2.Foo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     string I.Foo<T>(T? value) => "42";
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Foo").WithArguments("C2.Foo<T>(T?)").WithLocation(12, 14),
-                // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     string I.Foo<T>(T? value) => "42";
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "value").WithArguments("System.Nullable<T>", "T", "T").WithLocation(12, 24));
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(((ArrayTypeSymbol)dFoo.Parameters[0].Type).ElementType.IsNullableType());
         }
 
         [Fact]
         [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
-        public void AmbiguousExplicitInterfaceImplementation_ReturnTypeDifferingInNullabilityAnotation()
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter3()
         {
             var source = @"
-#nullable enable
-interface I
+abstract class Base
 {
-    object Foo<T>(T? value) where T : class;
-    object? Foo<T>(T? value) where T : struct;
+    public abstract void Foo<T>((T a, T? b)? value) where T : struct;
 }
 
-class C2 : I
+class Derived : Base
 {
-    object I.Foo<T>(T? value) => 42;
-    object? I.Foo<T>(T? value) => 42;
+    public override void Foo<T>((T a, T? b)? value) { }
 }
 ";
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,7): error CS8646: 'I.Foo<T>(T?)' is explicitly implemented more than once.
-                // class C2 : I
-                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I.Foo<T>(T?)").WithLocation(9, 7),
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
-                // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
-                // (11,14): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'object? I.Foo<T>(T? value)'.
-                //     object I.Foo<T>(T? value) => 42;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("object? I.Foo<T>(T? value)").WithLocation(11, 14),
-                // (12,15): error CS0111: Type 'C2' already defines a member called 'I.Foo' with the same parameter types
-                //     object? I.Foo<T>(T? value) => 42;
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("I.Foo", "C2").WithLocation(12, 15));
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.Parameters[0].Type.IsNullableType());
+            var tuple = dFoo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodReturningNullableStructParameter_WithMethodReturningNullableStruct1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract T? Foo<T>() where T : struct;
+}
+
+class Derived : Base
+{
+    public override T? Foo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.ReturnType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodReturningNullableStructParameter_WithMethodReturningNullableStruct2()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract T?[] Foo<T>() where T : struct;
+}
+
+class Derived : Base
+{
+    public override T?[] Foo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(((ArrayTypeSymbol)dFoo.ReturnType).ElementType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodReturningNullableStructParameter_WithMethodReturningNullableStruct3()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract (T a, T? b)? Foo<T>() where T : struct;
+}
+
+class Derived : Base
+{
+    public override (T a, T? b)? Foo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.ReturnType.IsNullableType());
+            var tuple = dFoo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
         }
 
         [Fact]

@@ -684,6 +684,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
+            LookupMembersInClass(result, type, name, arity, basesBeingResolved, options, originalBinder, type, diagnose, ref useSiteDiagnostics);
+        }
+
+        // Lookup member in a class, struct, enum, delegate.
+        private void LookupMembersInClass(
+            LookupResult result,
+            TypeSymbol type,
+            string name,
+            int arity,
+            ConsList<TypeSymbol> basesBeingResolved,
+            LookupOptions options,
+            Binder originalBinder,
+            TypeSymbol accessThroughType,
+            bool diagnose,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
             Debug.Assert((object)type != null);
             Debug.Assert(!type.IsInterfaceType() && type.TypeKind != TypeKind.TypeParameter);
 
@@ -694,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while ((object)currentType != null)
             {
                 tmp.Clear();
-                LookupMembersWithoutInheritance(tmp, currentType, name, arity, options, originalBinder, type, diagnose, ref useSiteDiagnostics, basesBeingResolved);
+                LookupMembersWithoutInheritance(tmp, currentType, name, arity, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics, basesBeingResolved);
 
                 MergeHidingLookupResults(result, tmp, ref useSiteDiagnostics);
 
@@ -951,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var tmp = LookupResult.GetInstance();
                 // NB: we assume use-site-errors on System.Object, if any, have been reported earlier.
-                this.LookupMembersInClass(tmp, this.Compilation.GetSpecialType(SpecialType.System_Object), name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
+                this.LookupMembersInClass(tmp, this.Compilation.GetSpecialType(SpecialType.System_Object), name, arity, basesBeingResolved, options, originalBinder, type, diagnose, ref useSiteDiagnostics);
                 MergeHidingLookupResults(current, tmp, ref useSiteDiagnostics);
                 tmp.Free();
             }

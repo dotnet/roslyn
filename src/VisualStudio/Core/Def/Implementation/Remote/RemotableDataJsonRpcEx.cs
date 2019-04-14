@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -45,18 +46,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             try
             {
-                using (var source = CancellationTokenSource.CreateLinkedTokenSource(_shutdownCancellationSource.Token, cancellationToken))
-                using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, source.Token))
-                using (var stream = await DirectStream.GetAsync(streamName, source.Token).ConfigureAwait(false))
+                using (var combinedCancellationToken = _shutdownCancellationSource.Token.CombineWith(cancellationToken))
+                using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, combinedCancellationToken.Token))
+                using (var stream = await DirectStream.GetAsync(streamName, combinedCancellationToken.Token).ConfigureAwait(false))
                 {
-                    using (var writer = new ObjectWriter(stream, source.Token))
+                    using (var writer = new ObjectWriter(stream, combinedCancellationToken.Token))
                     {
                         writer.WriteInt32(scopeId);
 
-                        await WriteAssetAsync(writer, scopeId, checksums, source.Token).ConfigureAwait(false);
+                        await WriteAssetAsync(writer, scopeId, checksums, combinedCancellationToken.Token).ConfigureAwait(false);
                     }
 
-                    await stream.FlushAsync(source.Token).ConfigureAwait(false);
+                    await stream.FlushAsync(combinedCancellationToken.Token).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))

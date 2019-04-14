@@ -229,6 +229,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_FinalizeMethod, location);
             }
 
+            // Any nullable typeParameter declared by the method in the signature of an override or explicit interface implementation is considered a Nullable<T>
+            if (syntax.ExplicitInterfaceSpecifier != null || IsOverride)
+            {
+                foreach (var param in _lazyParameters)
+                {
+                    forceMethodTypeParametersAsNullable(param.TypeWithAnnotations);
+                }
+                forceMethodTypeParametersAsNullable(_lazyReturnType);
+            }
+
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
@@ -389,6 +399,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckModifiers(_hasAnyBody, location, diagnostics);
+
+            return;
+
+            void forceMethodTypeParametersAsNullable(TypeWithAnnotations type)
+            {
+                type.VisitType<object>(null, (type, unused1, unused2) =>
+                {
+                    if ((type.DefaultType as TypeParameterSymbol)?.DeclaringMethod == (object)this)
+                    {
+                        type.TryForceResolveAsNullableValueType();
+                    }
+                    return false;
+                }, typePredicateOpt: null, arg: null, canDigThroughNullable: false, useDefaultType: true);
+            }
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
@@ -803,6 +827,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
 
+            if (ContainingType.IsStructType())
+            {
+                allowedModifiers |= DeclarationModifiers.ReadOnly;
+            }
+
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
@@ -969,6 +998,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The modifier '{0}' is not valid for this item
                 diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.VirtualKeyword));
             }
+            else if (IsStatic && IsDeclaredReadOnly)
+            {
+                // Static member '{0}' cannot be marked 'readonly'.
+                diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
+            }
             else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {
                 // '{0}' is abstract but it is contained in non-abstract class '{1}'
@@ -1073,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 PartialMethodChecks(this, implementingPart, diagnostics);
             }
 
-            if (_refKind == RefKind.RefReadOnly)
+            if (_refKind == RefKind.RefReadOnly || IsDeclaredReadOnly)
             {
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -1100,6 +1134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (definition.IsStatic != implementation.IsStatic)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodStaticDifference, implementation.Locations[0]);
+            }
+
+            if (definition.IsDeclaredReadOnly != implementation.IsDeclaredReadOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMethodReadOnlyDifference, implementation.Locations[0]);
             }
 
             if (definition.IsExtensionMethod != implementation.IsExtensionMethod)

@@ -1244,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidDebugInfo = 7103,
         #endregion diagnostics introduced in C# 6
 
-        // huge gap here; unused 7104-8000
+        // unused 7104-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,
@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LocalFunctionMissingBody = 8112,
         ERR_InvalidHashAlgorithmName = 8113,
 
-        // Available = 8113, 8114, 8115
+        // Unused 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
         ERR_ThrowMisplaced = 8115,
@@ -1450,7 +1450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadLanguageVersion = 8192,
         #endregion
 
-        // Available  = 8193-8195
+        // Unused 8193-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
@@ -1598,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PossibleAsyncIteratorWithoutYieldOrAwait = 8420,
         ERR_StaticLocalFunctionCannotCaptureVariable = 8421,
         ERR_StaticLocalFunctionCannotCaptureThis = 8422,
-
+        ERR_AttributeNotOnEventAccessor = 8423,
         #region diagnostics introduced for recursive patterns
         // 8501, // available
         ERR_WrongNumberOfSubpatterns = 8502,
@@ -1610,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarMayNotBindToType = 8508,
         WRN_SwitchExpressionNotExhaustive = 8509,
         ERR_SwitchArmSubsumed = 8510,
-        // 8511, // available
+        ERR_ConstantPatternVsOpenType = 8511,
         WRN_CaseConstantNamedUnderscore = 8512,
         WRN_IsTypeNamedUnderscore = 8513,
         ERR_ExpressionTreeContainsSwitchExpression = 8514,
@@ -1625,7 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DiscardPatternInSwitchStatement = 8523,
         #endregion diagnostics introduced for recursive patterns
 
-        WRN_PossibleNull = 8597,
+        WRN_ThrowPossibleNull = 8597,
         ERR_IllegalSuppression = 8598,
         WRN_IllegalPPWarningSafeOnly = 8599,
         WRN_ConvertingNullableToNonNullable = 8600,
@@ -1633,9 +1633,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceReceiver = 8602,
         WRN_NullReferenceReturn = 8603,
         WRN_NullReferenceArgument = 8604,
-        // Available = 8605,
-        // Available = 8606,
-        // Available = 8607,
+        WRN_UnboxPossibleNull = 8605,
+        // Unused 8606-8607
         WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
         WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
@@ -1667,7 +1666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
         WRN_ConditionalAccessMayReturnNull = 8638,
-        // Available = 8639,
+        // Unused 8639
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
         ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
@@ -1683,7 +1682,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureInPreview = 8652,
         WRN_DefaultExpressionMayIntroduceNullT = 8653,
         WRN_NullLiteralMayIntroduceNullT = 8654,
-
+        WRN_SwitchExpressionNotExhaustiveForNull = 8655,
+        WRN_ImplicitCopyInReadOnlyMember = 8656,
+        ERR_StaticMemberCantBeReadOnly = 8657,
+        ERR_AutoSetterCantBeReadOnly = 8658,
+        ERR_AutoPropertyWithSetterCantBeReadOnly = 8659,
+        ERR_InvalidPropertyReadOnlyMods = 8660,
+        ERR_DuplicatePropertyReadOnlyMods = 8661,
+        ERR_FieldLikeEventCantBeReadOnly = 8662,
+        ERR_PartialMethodReadOnlyDifference = 8663,
+        ERR_ReadOnlyModMissingAccessor = 8664,
 
 
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8701,

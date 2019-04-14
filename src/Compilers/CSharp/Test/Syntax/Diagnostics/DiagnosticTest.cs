@@ -296,11 +296,14 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
                         case ErrorCode.ERR_FeatureInPreview:
-                        case ErrorCode.WRN_PossibleNull:
+                        case ErrorCode.WRN_ThrowPossibleNull:
+                        case ErrorCode.WRN_UnboxPossibleNull:
                         case ErrorCode.WRN_ConditionalAccessMayReturnNull:
                         case ErrorCode.WRN_AsOperatorMayReturnNull:
                         case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
                         case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                        case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
