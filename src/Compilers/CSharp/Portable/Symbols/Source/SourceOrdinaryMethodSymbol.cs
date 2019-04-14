@@ -130,17 +130,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // When a generic method overrides a generic method declared in a base class, or is an 
             // explicit interface member implementation of a method in a base interface, the method
-            // shall not specify any type-parameter-constraints-clauses. In these cases, the type 
-            // parameters of the method inherit constraints from the method being overridden or 
+            // shall not specify any type-parameter-constraints-clauses, except for a struct constraint, or a class constraint.
+            // In these cases, the type parameters of the method inherit constraints from the method being overridden or 
             // implemented
             if (syntax.ConstraintClauses.Count > 0)
             {
                 if (syntax.ExplicitInterfaceSpecifier != null ||
                     syntax.Modifiers.Any(SyntaxKind.OverrideKeyword))
                 {
-                    diagnostics.Add(
-                        ErrorCode.ERR_OverrideWithConstraints,
-                        syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
+                    bool anyInvalidConstraints = false;
+                    foreach(var constraintClause in syntax.ConstraintClauses)
+                    {
+                        foreach (var constraint in constraintClause.Constraints)
+                        {
+                            if (constraint.Kind() != SyntaxKind.ClassConstraint && constraint.Kind() != SyntaxKind.StructConstraint)
+                            {
+                                anyInvalidConstraints = true;
+                            }
+                        }
+                    }
+                    if (anyInvalidConstraints)
+                    {
+                        diagnostics.Add(
+                            ErrorCode.ERR_OverrideWithConstraints,
+                            syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
+                    }
                 }
             }
 
