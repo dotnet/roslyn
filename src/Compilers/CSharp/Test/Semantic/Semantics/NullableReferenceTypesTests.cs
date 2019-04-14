@@ -12243,12 +12243,12 @@ class B : IA
         return new string?[] {};
     } 
 
-    S?[] IA.M2<S>() where S : class
+    S?[] IA.M2<S>()
     {
         return new S?[] {};
     } 
 
-    S?[]? IA.M3<S>() where S : class
+    S?[]? IA.M3<S>()
     {
         return new S?[] {};
     } 
@@ -12257,14 +12257,6 @@ class B : IA
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                // (23,21): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                //     S?[] IA.M2<S>() where S : class
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(23, 21),
-                // (28,22): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                //     S?[]? IA.M3<S>() where S : class
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(28, 22),
-                // (23,13): error CS0539: 'B.M2<S>()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     S?[] IA.M2<S>() where S : class
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("B.M2<S>()").WithLocation(23, 13),
                 // (28,14): error CS0539: 'B.M3<S>()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     S?[]? IA.M3<S>() where S : class
@@ -56620,7 +56612,7 @@ class A<T>
 
 class B : A<int>
 {
-    public override void F1<T11>(T11? t1) where T : class
+    public override void F1<T11>(T11? t1)
     {
     }
 
@@ -56636,10 +56628,7 @@ class B : A<int>
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F1").WithArguments("B.F1<T11>(T11?)").WithLocation(15, 26),
                 // (15,39): error CS0453: The type 'T11' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public override void F1<T11>(T11? t1) where T : class
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t1").WithArguments("System.Nullable<T>", "T", "T11").WithLocation(15, 39),
-                // (15,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                //     public override void F1<T11>(T11? t1) where T : class
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(15, 43));
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t1").WithArguments("System.Nullable<T>", "T", "T11").WithLocation(15, 39));
         }
 
         [Fact]
