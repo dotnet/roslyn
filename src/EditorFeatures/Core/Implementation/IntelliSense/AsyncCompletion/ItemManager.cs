@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             IAsyncCompletionSession session,
             AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
-        => Task.FromResult(UpdateCompletionList(session, data, cancellationToken));
+            => Task.FromResult(UpdateCompletionList(session, data, cancellationToken));
 
         private FilteredCompletionModel UpdateCompletionList(
             IAsyncCompletionSession session,
