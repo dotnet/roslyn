@@ -200,6 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
                     }
 
+                    // An event is readonly if its accessors are readonly.
+                    // If one accessor is readonly and the other one is not,
+                    // the event is malformed and cannot be properly displayed.
                     if (@event.AddMethod?.IsReadOnly == true)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));

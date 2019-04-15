@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -58,11 +57,6 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        internal SyntaxTokenList(ArrayBuilder<SyntaxToken> tokens)
-            : this(null, CreateNode(tokens), 0, 0)
-        {
-        }
-
         private static GreenNode CreateNode(SyntaxToken[] tokens)
         {
             if (tokens == null)
@@ -78,16 +72,6 @@ namespace Microsoft.CodeAnalysis
                 builder.Add(tokens[i].Node);
             }
 
-            return builder.ToList().Node;
-        }
-
-        private static GreenNode CreateNode(ArrayBuilder<SyntaxToken> tokens)
-        {
-            var builder = new SyntaxTokenListBuilder(tokens.Count);
-            for (int i = 0; i < tokens.Count; i++)
-            {
-                builder.Add(tokens[i].Node);
-            }
             return builder.ToList().Node;
         }
 
