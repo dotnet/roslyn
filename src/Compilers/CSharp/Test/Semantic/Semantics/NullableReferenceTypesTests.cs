@@ -10176,7 +10176,7 @@ class C3
             var source = @"
 class A
 {
-    public virtual T? Foo<T>() where T : struct 
+    public virtual T? Goo<T>() where T : struct 
     { 
         return null; 
     }
@@ -10184,7 +10184,7 @@ class A
 
 class B : A
 {
-    public override T? Foo<T>()
+    public override T? Goo<T>()
     {
         return null;
     }
@@ -10193,12 +10193,12 @@ class B : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             //var a = compilation.GetTypeByMetadataName("A");
-            //var aFoo = a.GetMember<MethodSymbol>("Foo");
-            //Assert.Equal("T? A.Foo<T>()", aFoo.ToTestDisplayString());
+            //var aGoo = a.GetMember<MethodSymbol>("Goo");
+            //Assert.Equal("T? A.Goo<T>()", aGoo.ToTestDisplayString());
 
             //var b = compilation.GetTypeByMetadataName("B");
-            //var bFoo = b.GetMember<MethodSymbol>("Foo");
-            //Assert.Equal("T? A.Foo<T>()", bFoo.OverriddenMethod.ToTestDisplayString());
+            //var bGoo = b.GetMember<MethodSymbol>("Goo");
+            //Assert.Equal("T? A.Goo<T>()", bGoo.OverriddenMethod.ToTestDisplayString());
 
             compilation.VerifyDiagnostics();
         }
@@ -10209,14 +10209,14 @@ class B : A
             var source = @"
 class A
 {
-    public virtual void Foo<T>(T? x) where T : struct 
+    public virtual void Goo<T>(T? x) where T : struct 
     { 
     }
 }
 
 class B : A
 {
-    public override void Foo<T>(T? x)
+    public override void Goo<T>(T? x)
     {
     }
 } 
@@ -10231,7 +10231,7 @@ class B : A
             var source = @"
 class A
 {
-    public virtual System.Nullable<T> Foo<T>() where T : struct 
+    public virtual System.Nullable<T> Goo<T>() where T : struct 
     { 
         return null; 
     }
@@ -10239,7 +10239,7 @@ class A
 
 class B : A
 {
-    public override T? Foo<T>()
+    public override T? Goo<T>()
     {
         return null;
     }
@@ -10254,14 +10254,14 @@ class B : A
             var source = @"
 class A
 {
-    public virtual void Foo<T>(System.Nullable<T> x) where T : struct 
+    public virtual void Goo<T>(System.Nullable<T> x) where T : struct 
     { 
     }
 }
 
 class B : A
 {
-    public override void Foo<T>(T? x)
+    public override void Goo<T>(T? x)
     {
     }
 } 
@@ -10275,7 +10275,7 @@ class B : A
             var source = @"
 class A
 {
-    public virtual T? Foo<T>() where T : struct 
+    public virtual T? Goo<T>() where T : struct 
     { 
         return null; 
     }
@@ -10283,7 +10283,7 @@ class A
 
 class B : A
 {
-    public override System.Nullable<T> Foo<T>()
+    public override System.Nullable<T> Goo<T>()
     {
         return null;
     }
@@ -10350,23 +10350,33 @@ class B : A
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (16,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
+                //     public override void M1<T>(T? x)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(16, 26),
+                // (16,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void M1<T>(T? x)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(16, 35),
+                // (20,24): error CS0508: 'B.M2<T>()': return type must be 'T' to match overridden member 'A.M2<T>()'
+                //     public override T? M2<T>()
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("B.M2<T>()", "A.M2<T>()", "T").WithLocation(20, 24),
+                // (20,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override T? M2<T>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2").WithArguments("System.Nullable<T>", "T", "T").WithLocation(20, 24));
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(m1.Parameters[0].Type.IsNullableType());
-            Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].TypeWithAnnotations.NullableAnnotation);
-            Assert.True(m1.Parameters[0].Type.IsReferenceType);
-            Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.False(m1.Parameters[0].Type.IsReferenceType);
+            Assert.Null(m1.OverriddenMethod);
 
             var m2 = b.GetMember<MethodSymbol>("M2");
-            Assert.False(m2.ReturnType.IsNullableType());
-            Assert.Equal(NullableAnnotation.Annotated, m2.ReturnTypeWithAnnotations.NullableAnnotation);
-            Assert.True(m2.ReturnType.IsReferenceType);
+            Assert.True(m2.ReturnType.IsNullableType());
+            Assert.False(m2.ReturnType.IsReferenceType);
             Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29846 : Override matches other M3<T>.")]
+        [Fact]
         [WorkItem(29846, "https://github.com/dotnet/roslyn/issues/29846")]
         public void Overriding_04()
         {
@@ -10485,8 +10495,8 @@ class D : C
 
             var d = compilation.GetTypeByMetadataName("D");
             var m2 = d.GetMember<MethodSymbol>("M2");
-            Assert.False(m2.Parameters[0].Type.IsNullableType());
-            Assert.False(m2.OverriddenMethod.Parameters[0].Type.IsNullableType());
+            Assert.True(m2.Parameters[0].Type.IsNullableType());
+            Assert.True(m2.OverriddenMethod.Parameters[0].Type.IsNullableType());
         }
 
         [Fact]
@@ -10542,7 +10552,13 @@ class B : A
 class C<T> {}
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (43,26): error CS0115: 'B.M5<T>(C<T?>)': no suitable method found to override
+                //     public override void M5<T>(C<T?> x) where T : class
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M5").WithArguments("B.M5<T>(C<T?>)").WithLocation(43, 26),
+                // (43,38): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void M5<T>(C<T?> x) where T : class
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(43, 38));
 
             var b = compilation.GetTypeByMetadataName("B");
             var m3 = b.GetMember<MethodSymbol>("M3");
@@ -10552,8 +10568,8 @@ class C<T> {}
             Assert.True(((NamedTypeSymbol)m3.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
             Assert.True(((NamedTypeSymbol)m4.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
             Assert.True(((NamedTypeSymbol)m4.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.False(((NamedTypeSymbol)m5.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.False(((NamedTypeSymbol)m5.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m5.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.Null(m5.OverriddenMethod);
         }
 
         [Fact]
@@ -10607,17 +10623,17 @@ class B : A
                 // (11,38): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 //     public override void M1<T>(T? x) where T : struct
                 Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(11, 38),
-                // (11,26): error CS0506: 'B.M1<T>(T?)': cannot override inherited member 'A.M1<T>(T)' because it is not marked virtual, abstract, or override
+                // (11,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
                 //     public override void M1<T>(T? x) where T : struct
-                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M1").WithArguments("B.M1<T>(T?)", "A.M1<T>(T)").WithLocation(11, 26),
-                // (11,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(11, 26),
+                // (11,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public override void M1<T>(T? x) where T : struct
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(11, 32)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(11, 35)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(m1.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
             Assert.False(m1.Parameters[0].Type.StrippedType().IsValueType);
             Assert.False(m1.Parameters[0].Type.StrippedType().IsReferenceType);
             Assert.Null(m1.OverriddenMethod);
@@ -10668,32 +10684,32 @@ class B : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                 // (8,23): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public void M2<T>(T? x)
+                //     public void M2<T>(T? x) 
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(8, 23),
-                // (27,26): error CS0506: 'B.M2<T>(T?)': cannot override inherited member 'A.M2<T>(T?)' because it is not marked virtual, abstract, or override
+                // (27,26): error CS0115: 'B.M2<T>(T?)': no suitable method found to override
                 //     public override void M2<T>(T? x)
-                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M2").WithArguments("B.M2<T>(T?)", "A.M2<T>(T?)").WithLocation(27, 26),
-                // (31,26): error CS0506: 'B.M3<T>(T?)': cannot override inherited member 'A.M3<T>(T?)' because it is not marked virtual, abstract, or override
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M2").WithArguments("B.M2<T>(T?)").WithLocation(27, 26),
+                // (31,26): error CS0115: 'B.M3<T>(T?)': no suitable method found to override
                 //     public override void M3<T>(T? x)
-                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M3").WithArguments("B.M3<T>(T?)", "A.M3<T>(T?)").WithLocation(31, 26),
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("B.M3<T>(T?)").WithLocation(31, 26),
                 // (35,26): error CS0506: 'B.M4<T>(T?)': cannot override inherited member 'A.M4<T>(T?)' because it is not marked virtual, abstract, or override
                 //     public override void M4<T>(T? x)
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M4").WithArguments("B.M4<T>(T?)", "A.M4<T>(T?)").WithLocation(35, 26),
-                // (23,26): error CS0506: 'B.M1<T>(T?)': cannot override inherited member 'A.M1<T>(T)' because it is not marked virtual, abstract, or override
+                // (23,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
                 //     public override void M1<T>(T? x)
-                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M1").WithArguments("B.M1<T>(T?)", "A.M1<T>(T)").WithLocation(23, 26),
-                // (23,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public override void M1<T>(T? x)
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(23, 32),
-                // (27,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(23, 26),
+                // (27,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public override void M2<T>(T? x)
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(27, 32),
-                // (31,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(27, 35),
+                // (31,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public override void M3<T>(T? x)
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(31, 32),
-                // (35,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(31, 35),
+                // (35,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public override void M4<T>(T? x)
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(35, 32)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(35, 35),
+                // (23,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void M1<T>(T? x)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(23, 35)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -10701,10 +10717,10 @@ class B : A
             var m2 = b.GetMember<MethodSymbol>("M2");
             var m3 = b.GetMember<MethodSymbol>("M3");
             var m4 = b.GetMember<MethodSymbol>("M4");
-            Assert.False(m1.Parameters[0].Type.IsNullableType());
-            Assert.False(m2.Parameters[0].Type.IsNullableType());
-            Assert.False(m3.Parameters[0].Type.IsNullableType());
-            Assert.False(m4.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.True(m2.Parameters[0].Type.IsNullableType());
+            Assert.True(m3.Parameters[0].Type.IsNullableType());
+            Assert.True(m4.Parameters[0].Type.IsNullableType());
 
             Assert.Null(m1.OverriddenMethod);
             Assert.Null(m2.OverriddenMethod);
@@ -10735,18 +10751,15 @@ class B : A
                 // (4,50): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public virtual void M1<T>(System.Nullable<T> x) where T : class
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(4, 50),
-                // (11,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
+                // (11,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public override void M1<T>(T? x)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(11, 26),
-                // (11,32): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public override void M1<T>(T? x)
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(11, 32)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(11, 35)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(m1.Parameters[0].Type.IsNullableType());
-            Assert.Null(m1.OverriddenMethod);
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.NotNull(m1.OverriddenMethod);
         }
 
         [Fact]
@@ -10773,17 +10786,17 @@ class C<T> {}
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
-                 // (4,42): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                 //     public virtual C<System.Nullable<T>> M1<T>() where T : class
-                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M1").WithArguments("System.Nullable<T>", "T", "T").WithLocation(4, 42),
-                 // (12,27): error CS0508: 'B.M1<T>()': return type must be 'C<T?>' to match overridden member 'A.M1<T>()'
-                 //     public override C<T?> M1<T>()
-                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M1").WithArguments("B.M1<T>()", "A.M1<T>()", "C<T?>").WithLocation(12, 27)
+                // (4,42): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public virtual C<System.Nullable<T>> M1<T>() where T : class
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M1").WithArguments("System.Nullable<T>", "T", "T").WithLocation(4, 42),
+                // (12,27): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override C<T?> M1<T>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M1").WithArguments("System.Nullable<T>", "T", "T").WithLocation(12, 27)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(((NamedTypeSymbol)m1.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m1.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
             Assert.True(((NamedTypeSymbol)m1.OverriddenMethod.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
         }
 
@@ -12051,25 +12064,30 @@ class B : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                 // (23,26): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                 //     public override S?[] M2<S>()
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M2").WithLocation(23, 26),
-                 // (18,31): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                 //     public override string?[] M1()
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(18, 31)
-                );
+                // (23,26): error CS0508: 'B.M2<S>()': return type must be 'S[]' to match overridden member 'A.M2<T>()'
+                //     public override S?[] M2<S>()
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("B.M2<S>()", "A.M2<T>()", "S[]").WithLocation(23, 26),
+                // (28,27): error CS0508: 'B.M3<S>()': return type must be 'S?[]' to match overridden member 'A.M3<T>()'
+                //     public override S?[]? M3<S>()
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M3").WithArguments("B.M3<S>()", "A.M3<T>()", "S?[]").WithLocation(28, 27),
+                // (18,31): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override string?[] M1()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(18, 31),
+                // (23,26): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override S?[] M2<S>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2").WithArguments("System.Nullable<T>", "T", "S").WithLocation(23, 26),
+                // (28,27): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override S?[]? M3<S>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M3").WithArguments("System.Nullable<T>", "T", "S").WithLocation(28, 27));
 
             var b = compilation.GetTypeByMetadataName("B");
-            foreach (string memberName in new[] { "M1", "M2" })
+
+            foreach (string memberName in new[] { "M1", "M2", "M3" })
             {
                 var member = b.GetMember<MethodSymbol>(memberName);
                 Assert.False(member.ReturnTypeWithAnnotations.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).ReturnTypeWithAnnotations,
                     TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
-
-            var m3 = b.GetMember<MethodSymbol>("M3");
-            Assert.True(m3.ReturnTypeWithAnnotations.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).ReturnTypeWithAnnotations,
-                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
         }
 
         [Fact]
@@ -12107,18 +12125,21 @@ class B : A
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
-                // (18,31): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override string?[] M1()
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(18, 31),
                 // (24,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override S?[] M2<S>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(24, 22),
-                // (24,26): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override S?[] M2<S>()
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M2").WithLocation(24, 26),
                 // (18,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override string?[] M1()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(18, 27),
+                // (24,26): error CS0508: 'B.M2<S>()': return type must be 'S[]' to match overridden member 'A.M2<T>()'
+                //     public override S?[] M2<S>()
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("B.M2<S>()", "A.M2<T>()", "S[]").WithLocation(24, 26),
+                // (18,31): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override string?[] M1()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(18, 31),
+                // (24,26): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override S?[] M2<S>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2").WithArguments("System.Nullable<T>", "T", "S").WithLocation(24, 26),
                 // (20,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         return new string?[] {};
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 26),
@@ -12221,12 +12242,12 @@ class B : IA
         return new string?[] {};
     } 
 
-    S?[] IA.M2<S>() 
+    S?[] IA.M2<S>()
     {
         return new S?[] {};
     } 
 
-    S?[]? IA.M3<S>() 
+    S?[]? IA.M3<S>()
     {
         return new S?[] {};
     } 
@@ -12235,38 +12256,52 @@ class B : IA
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                 // (23,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
-                 //     S?[] IA.M2<S>()
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M2").WithArguments("T[] IA.M2<T>()").WithLocation(23, 13),
-                 // (18,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
-                 //     string?[] IA.M1()
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(18, 18)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("B.M2<S>()").WithLocation(23, 13),
+                // (28,14): error CS0539: 'B.M3<S>()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     S?[]? IA.M3<S>() where S : class
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M3").WithArguments("B.M3<S>()").WithLocation(28, 14),
+                // (18,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
+                //     string?[] IA.M1()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(18, 18),
+                // (16,11): error CS0535: 'B' does not implement interface member 'IA.M3<T>()'
+                // class B : IA
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.M3<T>()").WithLocation(16, 11),
+                // (16,11): error CS0535: 'B' does not implement interface member 'IA.M2<T>()'
+                // class B : IA
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.M2<T>()").WithLocation(16, 11),
+                // (23,13): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     S?[] IA.M2<S>() where S : class
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2").WithArguments("System.Nullable<T>", "T", "S").WithLocation(23, 13),
+                // (28,14): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     S?[]? IA.M3<S>() where S : class
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M3").WithArguments("System.Nullable<T>", "T", "S").WithLocation(28, 14),
+                // (25,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //         return new S?[] {};
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "S?").WithLocation(25, 20),
+                // (30,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //         return new S?[] {};
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "S?").WithLocation(30, 20)
                 );
 
             var ia = compilation.GetTypeByMetadataName("IA");
             var b = compilation.GetTypeByMetadataName("B");
 
-            foreach (var memberName in new[] { "M1", "M2" })
-            {
-                var member = ia.GetMember<MethodSymbol>(memberName);
-                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
-                Assert.False(implementing.ReturnTypeWithAnnotations.Equals(implemented.ReturnTypeWithAnnotations,
-                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
-            }
 
-            {
-                var member = ia.GetMember<MethodSymbol>("M3");
-                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
-                Assert.True(implementing.ReturnTypeWithAnnotations.Equals(implemented.ReturnTypeWithAnnotations,
-                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
-            }
+            var member = ia.GetMember<MethodSymbol>("M1");
+            var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+            var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+            Assert.False(implementing.ReturnTypeWithAnnotations.Equals(implemented.ReturnTypeWithAnnotations,
+                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+
+            member = ia.GetMember<MethodSymbol>("M2");
+            Assert.Null(b.FindImplementationForInterfaceMember(member));
+
+            member = ia.GetMember<MethodSymbol>("M3");
+            Assert.Null(b.FindImplementationForInterfaceMember(member));
         }
 
         [Fact]
-        [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
-        public void ImplementingNonNullWithNullable()
+        public void ImplementingNonNullWithNullable_01()
         {
             var source = @"
 interface IA
@@ -12292,24 +12327,92 @@ class B : IA
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
-                // (11,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
-                //     string?[] IA.M1()
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(11, 18),
+
                 // (17,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     S?[] IA.M2<S>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(17, 6),
-                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
+                // (17,13): error CS0539: 'B.M2<S>()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     S?[] IA.M2<S>()
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M2").WithArguments("T[] IA.M2<T>()").WithLocation(17, 13),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("B.M2<S>()").WithLocation(17, 13),
                 // (11,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     string?[] IA.M1()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 11),
+                // (11,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
+                //     string?[] IA.M1()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(11, 18),
+                // (8,11): error CS0535: 'B' does not implement interface member 'IA.M2<T>()'
+                // class B : IA
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.M2<T>()").WithLocation(8, 11),
+                // (17,13): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     S?[] IA.M2<S>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2").WithArguments("System.Nullable<T>", "T", "S").WithLocation(17, 13),
                 // (13,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         return new string?[] {};
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 26),
                 // (19,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         return new S?[] {};
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 21)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 21),
+                // (19,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //         return new S?[] {};
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "S?").WithLocation(19, 20)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
+        public void ImplementingNonNullWithNullable_02()
+        {
+            var source = @"
+interface IA
+{
+    string[] M1();
+    T[] M2<T>() where T : class;
+}
+
+class B : IA
+{
+" + NonNullTypesOff() + @"
+    string?[] IA.M1()
+    {
+        return new string?[] {};
+    }
+
+" + NonNullTypesOff() + @"
+    S?[] IA.M2<S>()
+    {
+        return new S?[] {};
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            compilation.VerifyDiagnostics(
+                // (17,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     S?[] IA.M2<S>()
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(17, 6),
+                // (17,13): error CS0539: 'B.M2<S>()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     S?[] IA.M2<S>()
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("B.M2<S>()").WithLocation(17, 13),
+                // (11,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     string?[] IA.M1()
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 11),
+                // (11,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
+                //     string?[] IA.M1()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(11, 18),
+                // (8,11): error CS0535: 'B' does not implement interface member 'IA.M2<T>()'
+                // class B : IA
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.M2<T>()").WithLocation(8, 11),
+                // (17,13): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     S?[] IA.M2<S>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2").WithArguments("System.Nullable<T>", "T", "S").WithLocation(17, 13),
+                // (13,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //         return new string?[] {};
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 26),
+                // (19,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //         return new S?[] {};
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 21),
+                // (19,20): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         return new S?[] {};
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "S?").WithArguments("System.Nullable<T>", "T", "S").WithLocation(19, 20)
                 );
         }
 
@@ -12448,25 +12551,40 @@ class B : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                 // (22,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                 //     public override void M2<T>(T?[] x)
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("x").WithLocation(22, 26),
-                 // (18,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                 //     public override void M1(string?[] x)
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(18, 26)
+                // (22,26): error CS0115: 'B.M2<T>(T?[])': no suitable method found to override
+                //     public override void M2<T>(T?[] x)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M2").WithArguments("B.M2<T>(T?[])").WithLocation(22, 26),
+                // (26,26): error CS0115: 'B.M3<T>(T?[]?)': no suitable method found to override
+                //     public override void M3<T>(T?[]? x)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("B.M3<T>(T?[]?)").WithLocation(26, 26),
+                // (18,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override void M1(string?[] x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(18, 26),
+                // (16,7): error CS0534: 'B' does not implement inherited abstract member 'A.M3<T>(T?[]?)'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.M3<T>(T?[]?)").WithLocation(16, 7),
+                // (16,7): error CS0534: 'B' does not implement inherited abstract member 'A.M2<T>(T[])'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.M2<T>(T[])").WithLocation(16, 7),
+                // (22,37): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void M2<T>(T?[] x)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(22, 37),
+                // (26,38): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void M3<T>(T?[]? x)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(26, 38)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
-            foreach (string memberName in new[] { "M1", "M2" })
-            {
-                var member = b.GetMember<MethodSymbol>(memberName);
-                Assert.False(member.Parameters[0].TypeWithAnnotations.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).Parameters[0].TypeWithAnnotations,
-                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
-            }
+
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.False(m1.Parameters[0].TypeWithAnnotations.Equals(m1.OverriddenMethod.ConstructIfGeneric(m1.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).Parameters[0].TypeWithAnnotations,
+                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+
+            var m2 = b.GetMember<MethodSymbol>("M2");
+            Assert.Null(m2.OverriddenMethod);
 
             var m3 = b.GetMember<MethodSymbol>("M3");
-            Assert.True(m3.Parameters[0].TypeWithAnnotations.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).Parameters[0].TypeWithAnnotations,
-                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+            Assert.Null(m3.OverriddenMethod);
         }
 
         [Fact]
@@ -12498,18 +12616,24 @@ class B : A
             var compilation = CreateCompilation(new[] { source });
 
             compilation.VerifyDiagnostics(
-                // (13,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override void M1(string?[] x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(13, 26),
-                // (18,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override void M2<T>(T?[] x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("x").WithLocation(18, 26),
                 // (18,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override void M2<T>(T?[] x)
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(18, 33),
                 // (13,35): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override void M1(string?[] x)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 35)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 35),
+                // (18,26): error CS0115: 'B.M2<T>(T?[])': no suitable method found to override
+                //     public override void M2<T>(T?[] x)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M2").WithArguments("B.M2<T>(T?[])").WithLocation(18, 26),
+                // (13,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override void M1(string?[] x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(13, 26),
+                // (10,7): error CS0534: 'B' does not implement inherited abstract member 'A.M2<T>(T[])'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.M2<T>(T[])").WithLocation(10, 7),
+                // (18,37): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void M2<T>(T?[] x)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(18, 37)
                 );
         }
 
@@ -12632,6 +12756,394 @@ class B : A
                 );
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Overriding_26()
+        {
+            var source = @"
+class A
+{
+    public virtual void M1<T>(T? x) where T : class 
+    { 
+    }
+
+    public virtual T? M2<T>() where T : class 
+    { 
+        return null;
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x)
+    {
+    }
+
+    public override T? M2<T>() where T : class
+    { 
+        return null;
+    }
+} 
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            compilation.VerifyDiagnostics();
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.False(m1.Parameters[0].Type.IsNullableType());
+            Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].TypeWithAnnotations.NullableAnnotation);
+            Assert.True(m1.Parameters[0].Type.IsReferenceType);
+            Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+
+            var m2 = b.GetMember<MethodSymbol>("M2");
+            Assert.False(m2.ReturnType.IsNullableType());
+            Assert.Equal(NullableAnnotation.Annotated, m2.ReturnTypeWithAnnotations.NullableAnnotation);
+            Assert.True(m2.ReturnType.IsReferenceType);
+            Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Overriding_27()
+        {
+            var source = @"
+class A
+{
+    public virtual void M1<T>(System.Nullable<T> x) where T : struct
+    {
+    }
+
+    public virtual void M2<T>(T? x) where T : struct
+    {
+    }
+
+    public virtual void M3<T>(C<T?> x) where T : struct
+    {
+    }
+
+    public virtual void M4<T>(C<System.Nullable<T>> x) where T : struct
+    {
+    }
+
+    public virtual void M5<T>(C<T?> x) where T : class
+    {
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x)
+    {
+    }
+
+    public override void M2<T>(T? x)
+    {
+    }
+
+    public override void M3<T>(C<T?> x)
+    {
+    }
+
+    public override void M4<T>(C<T?> x)
+    {
+    }
+
+    public override void M5<T>(C<T?> x) where T : class
+    {
+    }
+}
+
+class C<T> {}
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            compilation.VerifyDiagnostics();
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m3 = b.GetMember<MethodSymbol>("M3");
+            var m4 = b.GetMember<MethodSymbol>("M4");
+            var m5 = b.GetMember<MethodSymbol>("M5");
+            Assert.True(((NamedTypeSymbol)m3.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m3.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m4.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m4.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.False(((NamedTypeSymbol)m5.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.False(((NamedTypeSymbol)m5.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Overriding_28()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+abstract class A
+{
+    public abstract string[] M1(); 
+    public abstract T[] M2<T>() where T : class; 
+    public abstract T?[]? M3<T>() where T : class; 
+}
+
+class B : A
+{
+    public override string?[] M1()
+    {
+        return new string?[] {};
+    } 
+
+    public override S?[] M2<S>() where S : class
+    {
+        return new S?[] {};
+    } 
+
+    public override S?[]? M3<S>() where S : class
+    {
+        return new S?[] {};
+    } 
+}
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            compilation.VerifyDiagnostics(
+                 // (23,26): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                 //     public override S?[] M2<S>()
+                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M2").WithLocation(23, 26),
+                 // (18,31): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                 //     public override string?[] M1()
+                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(18, 31)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            foreach (string memberName in new[] { "M1", "M2" })
+            {
+                var member = b.GetMember<MethodSymbol>(memberName);
+                Assert.False(member.ReturnTypeWithAnnotations.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).ReturnTypeWithAnnotations,
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+            }
+
+            var m3 = b.GetMember<MethodSymbol>("M3");
+            Assert.True(m3.ReturnTypeWithAnnotations.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).ReturnTypeWithAnnotations,
+                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
+        public void Overriding_29()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+abstract class A
+{
+    public abstract string[] M1(); 
+    public abstract T[] M2<T>() where T : class; 
+}
+
+class B : A
+{
+" + NonNullTypesOff() + @"
+    public override string?[] M1()
+    {
+        return new string?[] {};
+    }
+
+" + NonNullTypesOff() + @"
+    public override S?[] M2<S>() where S : class
+    {
+        return new S?[] {};
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            compilation.VerifyDiagnostics(
+                // (18,31): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override string?[] M1()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(18, 31),
+                // (24,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     public override S?[] M2<S>()
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(24, 22),
+                // (24,26): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override S?[] M2<S>()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M2").WithLocation(24, 26),
+                // (18,27): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     public override string?[] M1()
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(18, 27),
+                // (20,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //         return new string?[] {};
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 26),
+                // (26,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //         return new S?[] {};
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(26, 21)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Overriding_30()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+abstract class A
+{
+    public abstract void M1(string[] x); 
+    public abstract void M2<T>(T[] x) where T : class; 
+    public abstract void M3<T>(T?[]? x) where T : class; 
+}
+
+class B : A
+{
+    public override void M1(string?[] x)
+    {
+    } 
+
+    public override void M2<T>(T?[] x) where T : class
+    {
+    } 
+
+    public override void M3<T>(T?[]? x) where T : class
+    {
+    } 
+}
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            compilation.VerifyDiagnostics(
+                 // (22,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                 //     public override void M2<T>(T?[] x)
+                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("x").WithLocation(22, 26),
+                 // (18,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                 //     public override void M1(string?[] x)
+                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(18, 26)
+                );
+
+            var b = compilation.GetTypeByMetadataName("B");
+            foreach (string memberName in new[] { "M1", "M2" })
+            {
+                var member = b.GetMember<MethodSymbol>(memberName);
+                Assert.False(member.Parameters[0].TypeWithAnnotations.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).Parameters[0].TypeWithAnnotations,
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+            }
+
+            var m3 = b.GetMember<MethodSymbol>("M3");
+            Assert.True(m3.Parameters[0].TypeWithAnnotations.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).Parameters[0].TypeWithAnnotations,
+                TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
+        public void Overriding_31()
+        {
+            var source = @"
+" + NonNullTypesOn() + @"
+
+abstract class A
+{
+    public abstract void M1(string[] x);
+    public abstract void M2<T>(T[] x) where T : class;
+}
+
+class B : A
+{
+" + NonNullTypesOff() + @"
+    public override void M1(string?[] x)
+    {
+    }
+
+" + NonNullTypesOff() + @"
+    public override void M2<T>(T?[] x) where T ; class
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { source });
+
+            compilation.VerifyDiagnostics(
+                // (13,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override void M1(string?[] x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(13, 26),
+                // (18,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override void M2<T>(T?[] x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("x").WithLocation(18, 26),
+                // (18,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     public override void M2<T>(T?[] x)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(18, 33),
+                // (13,35): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     public override void M1(string?[] x)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 35)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [WorkItem(29847, "https://github.com/dotnet/roslyn/issues/29847")]
+        public void Overriding_32()
+        {
+            var source = @"
+class A
+{
+    public virtual void M1<T>(T? x) where T : struct 
+    { 
+    }
+
+    public virtual void M1<T>(T? x) where T : class 
+    { 
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x)
+    {
+    }
+} 
+
+class C
+{
+    public virtual void M2<T>(T? x) where T : class 
+    { 
+    }
+
+    public virtual void M2<T>(T? x) where T : struct 
+    { 
+    }
+}
+
+class D : C
+{
+    public override void M2<T>(T? x) where T : class
+    {
+    }
+} 
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            // https://github.com/dotnet/roslyn/issues/29847: The overriding is ambiguous.
+            // We simply matched the first candidate. Should this be an error?
+            compilation.VerifyDiagnostics();
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+
+            var d = compilation.GetTypeByMetadataName("D");
+            var m2 = d.GetMember<MethodSymbol>("M2");
+            Assert.False(m2.Parameters[0].Type.IsNullableType());
+            Assert.False(m2.OverriddenMethod.Parameters[0].Type.IsNullableType());
+        }
+
         [Fact]
         public void Implementing_07()
         {
@@ -12729,33 +13241,27 @@ class B : IA
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                 // (20,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M2<T>(T[] x)'.
-                 //     void IA.M2<T>(T?[] x)
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "M2").WithArguments("x", "void IA.M2<T>(T[] x)").WithLocation(20, 13),
-                 // (16,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M1(string[] x)'.
-                 //     void IA.M1(string?[] x)
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "M1").WithArguments("x", "void IA.M1(string[] x)").WithLocation(16, 13)
-                );
-
-            var ia = compilation.GetTypeByMetadataName("IA");
-            var b = compilation.GetTypeByMetadataName("B");
-
-            foreach (var memberName in new[] { "M1", "M2" })
-            {
-                var member = ia.GetMember<MethodSymbol>(memberName);
-                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
-                Assert.False(implementing.Parameters[0].TypeWithAnnotations.Equals(implemented.Parameters[0].TypeWithAnnotations,
-                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
-            }
-
-            {
-                var member = ia.GetMember<MethodSymbol>("M3");
-                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
-                Assert.True(implementing.Parameters[0].TypeWithAnnotations.Equals(implemented.Parameters[0].TypeWithAnnotations,
-                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
-            }
+                // (20,13): error CS0539: 'B.M2<T>(T?[])' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void IA.M2<T>(T?[] x)  
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("B.M2<T>(T?[])").WithLocation(20, 13),
+                // (24,13): error CS0539: 'B.M3<T>(T?[]?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void IA.M3<T>(T?[]? x)  
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M3").WithArguments("B.M3<T>(T?[]?)").WithLocation(24, 13),
+                // (16,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M1(string[] x)'.
+                //     void IA.M1(string?[] x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "M1").WithArguments("x", "void IA.M1(string[] x)").WithLocation(16, 13),
+                // (14,11): error CS0535: 'B' does not implement interface member 'IA.M3<T>(T?[]?)'
+                // class B : IA
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.M3<T>(T?[]?)").WithLocation(14, 11),
+                // (14,11): error CS0535: 'B' does not implement interface member 'IA.M2<T>(T[])'
+                // class B : IA
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.M2<T>(T[])").WithLocation(14, 11),
+                // (20,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void IA.M2<T>(T?[] x)  
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(20, 24),
+                // (24,25): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void IA.M3<T>(T?[]? x)  
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(24, 25));
         }
 
         [Fact]
@@ -13890,6 +14396,236 @@ public partial class C3 : I1<A?> {}
 @"C3.M
 C3.M");
         }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Implementing_22()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+interface IA
+{
+    string[] M1(); 
+    T[] M2<T>() where T : class; 
+    T?[]? M3<T>() where T : class; 
+}
+
+class B : IA
+{
+    string?[] IA.M1()
+    {
+        return new string?[] {};
+    } 
+
+    S?[] IA.M2<S>() where S : class
+    {
+        return new S?[] {};
+    } 
+
+    S?[]? IA.M3<S>() where S : class
+    {
+        return new S?[] {};
+    } 
+}
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            compilation.VerifyDiagnostics(
+                // (23,13): error CS0539: 'B.M2<S>()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     S?[] IA.M2<S>() 
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("B.M2<S>()").WithLocation(23, 13),
+                // (28,14): error CS0539: 'B.M3<S>()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     S?[]? IA.M3<S>() 
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M3").WithArguments("B.M3<S>()").WithLocation(28, 14),
+                // (18,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
+                //     string?[] IA.M1()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(18, 18),
+                // (16,11): error CS0535: 'B' does not implement interface member 'IA.M3<T>()'
+                // class B : IA
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.M3<T>()").WithLocation(16, 11),
+                // (16,11): error CS0535: 'B' does not implement interface member 'IA.M2<T>()'
+                // class B : IA
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.M2<T>()").WithLocation(16, 11),
+                // (23,13): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     S?[] IA.M2<S>() 
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2").WithArguments("System.Nullable<T>", "T", "S").WithLocation(23, 13),
+                // (28,14): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     S?[]? IA.M3<S>() 
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M3").WithArguments("System.Nullable<T>", "T", "S").WithLocation(28, 14),
+                // (25,20): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         return new S?[] {};
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "S?").WithArguments("System.Nullable<T>", "T", "S").WithLocation(25, 20),
+                // (30,20): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         return new S?[] {};
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "S?").WithArguments("System.Nullable<T>", "T", "S").WithLocation(30, 20)
+                );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Implementing_23()
+        {
+
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+interface IA
+{
+    void M1(string[] x); 
+    void M2<T>(T[] x) where T : class; 
+    void M3<T>(T?[]? x) where T : class; 
+}
+class B : IA
+{
+    void IA.M1(string?[] x)
+    {
+    } 
+
+    void IA.M2<T>(T?[] x)  where T : class
+    {
+    } 
+
+    void IA.M3<T>(T?[]? x)  where T : class
+    {
+    } 
+}
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            compilation.VerifyDiagnostics(
+                 // (20,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M2<T>(T[] x)'.
+                 //     void IA.M2<T>(T?[] x)
+                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "M2").WithArguments("x", "void IA.M2<T>(T[] x)").WithLocation(20, 13),
+                 // (16,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M1(string[] x)'.
+                 //     void IA.M1(string?[] x)
+                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "M1").WithArguments("x", "void IA.M1(string[] x)").WithLocation(16, 13)
+                );
+
+            var ia = compilation.GetTypeByMetadataName("IA");
+            var b = compilation.GetTypeByMetadataName("B");
+
+            foreach (var memberName in new[] { "M1", "M2" })
+            {
+                var member = ia.GetMember<MethodSymbol>(memberName);
+                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+                Assert.False(implementing.Parameters[0].TypeWithAnnotations.Equals(implemented.Parameters[0].TypeWithAnnotations,
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+            }
+
+            {
+                var member = ia.GetMember<MethodSymbol>("M3");
+                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+                Assert.True(implementing.Parameters[0].TypeWithAnnotations.Equals(implemented.Parameters[0].TypeWithAnnotations,
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Implementing_24()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    { 
+    }
+}
+
+interface IA
+{
+    string[] M1(); 
+    T[] M2<T>() where T : class; 
+    T?[]? M3<T>() where T : class; 
+}
+
+class B : IA
+{
+    string?[] IA.M1()
+    {
+        return new string?[] {};
+    } 
+
+    S?[] IA.M2<S>() where S : class
+    {
+        return new S?[] {};
+    } 
+
+    S?[]? IA.M3<S>() where S : class
+    {
+        return new S?[] {};
+    } 
+}
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            compilation.VerifyDiagnostics(
+                 // (23,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
+                 //     S?[] IA.M2<S>()
+                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M2").WithArguments("T[] IA.M2<T>()").WithLocation(23, 13),
+                 // (18,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
+                 //     string?[] IA.M1()
+                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(18, 18)
+                );
+
+            var ia = compilation.GetTypeByMetadataName("IA");
+            var b = compilation.GetTypeByMetadataName("B");
+
+            foreach (var memberName in new[] { "M1", "M2" })
+            {
+                var member = ia.GetMember<MethodSymbol>(memberName);
+                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+                Assert.False(implementing.ReturnTypeWithAnnotations.Equals(implemented.ReturnTypeWithAnnotations,
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+            }
+
+            {
+                var member = ia.GetMember<MethodSymbol>("M3");
+                var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+                Assert.True(implementing.ReturnTypeWithAnnotations.Equals(implemented.ReturnTypeWithAnnotations,
+                    TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+            }
+        }
+
+        [Fact]
+        public void Implementing_25()
+        {
+            var source = @"
+#nullable enable
+    interface I
+    {
+        void M<T>(T value) where T : class;
+    }
+
+    class C : I
+    {
+        void I.M<T>(T value)
+        {
+            T? x = value;
+        }
+    }
+";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+
+            var c = compilation.GetTypeByMetadataName("C");
+
+            var member = c.GetMember<MethodSymbol>("I.M");
+            var tp = member.GetMemberTypeParameters()[0];
+            Assert.True(tp.IsReferenceType);
+            Assert.False(tp.IsNullableType());
+        }
+
 
         [Fact]
         public void PartialMethods_01()
@@ -40296,6 +41032,33 @@ class C : I
 {
     void I.M<T>(T? x) { }
 }";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (5,11): error CS0535: 'C' does not implement interface member 'I.M<T>(T?)'
+                // class C : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.M<T>(T?)").WithLocation(5, 11),
+                // (7,12): error CS0539: 'C.M<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.M<T>(T? x) { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M").WithArguments("C.M<T>(T?)").WithLocation(7, 12),
+                // (7,20): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void I.M<T>(T? x) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(7, 20));
+            var method = compilation.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
+            var implementations = method.ExplicitInterfaceImplementations;
+            Assert.Empty(implementations);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void ExplicitImplementations_LazyMethodChecks_01()
+        {
+            var source =
+@"interface I
+{
+    void M<T>(T? x) where T : class;
+}
+class C : I
+{
+    void I.M<T>(T? x) where T : class{ }
+}";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             var method = compilation.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
             var implementations = method.ExplicitInterfaceImplementations;
@@ -55859,67 +56622,12 @@ class B : A<int>
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-            );
-
-            CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            void symbolValidator(ModuleSymbol m)
-            {
-                bool isSource = !(m is PEModuleSymbol);
-
-                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t11.GetAttributes());
-                }
-                else
-                {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
-                }
-
-                var af1 = bf1.OverriddenMethod;
-                Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t1 = af1.TypeParameters[0];
-                Assert.False(t1.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t1.GetAttributes());
-                }
-                else
-                {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t1.GetAttributes().Single().ToString());
-                }
-
-                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-
-                TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t22.GetAttributes());
-                }
-                else
-                {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t22.GetAttributes().Single().ToString());
-                }
-
-                var af2 = bf2.OverriddenMethod;
-                Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-
-                TypeParameterSymbol t2 = af2.TypeParameters[0];
-                Assert.True(t2.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t2.GetAttributes());
-                }
-                else
-                {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t2.GetAttributes().Single().ToString());
-                }
-            }
+                // (15,26): error CS0115: 'B.F1<T11>(T11?)': no suitable method found to override
+                //     public override void F1<T11>(T11? t1) where T : class
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F1").WithArguments("B.F1<T11>(T11?)").WithLocation(15, 26),
+                // (15,39): error CS0453: The type 'T11' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void F1<T11>(T11? t1) where T : class
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t1").WithArguments("System.Nullable<T>", "T", "T11").WithLocation(15, 39));
         }
 
         [Fact]
@@ -55954,43 +56662,14 @@ class B : A<int>
 }
 ";
 
-            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
-
-            CompileAndVerify(comp2, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            void symbolValidator(ModuleSymbol m)
-            {
-                bool isSource = !(m is PEModuleSymbol);
-
-                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t11.GetAttributes());
-                }
-                else
-                {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
-                }
-
-                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-
-                TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t22.GetAttributes());
-                }
-                else
-                {
-                    CSharpAttributeData nullableAttribute = t22.GetAttributes().Single();
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", nullableAttribute.ToString());
-                    Assert.Same(m, nullableAttribute.AttributeClass.ContainingModule);
-                    Assert.Equal(Accessibility.Internal, nullableAttribute.AttributeClass.DeclaredAccessibility);
-                }
-            }
+            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() })
+                .VerifyDiagnostics(
+                    // (4,26): error CS0115: 'B.F1<T11>(T11?)': no suitable method found to override
+                    //     public override void F1<T11>(T11? t1)
+                    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F1").WithArguments("B.F1<T11>(T11?)").WithLocation(4, 26),
+                    // (4,39): error CS0453: The type 'T11' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                    //     public override void F1<T11>(T11? t1)
+                    Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t1").WithArguments("System.Nullable<T>", "T", "T11").WithLocation(4, 39));
         }
 
         [Fact]
@@ -56011,8 +56690,6 @@ public class A<T>
 ";
             var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
 
-            var comp2 = CreateCompilation(NullableAttributeDefinition);
-
             var source3 =
 @"
 class B : A<int>
@@ -56028,43 +56705,14 @@ class B : A<int>
 ";
 
             var comp3 = CreateCompilation(new[] { source3 }, options: WithNonNullTypesTrue(),
-                                          references: new[] { comp1.EmitToImageReference(), comp2.EmitToImageReference() },
-                                          parseOptions: TestOptions.Regular8);
-
-            CompileAndVerify(comp3, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            void symbolValidator(ModuleSymbol m)
-            {
-                bool isSource = !(m is PEModuleSymbol);
-
-                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t11.GetAttributes());
-                }
-                else
-                {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
-                }
-
-                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-
-                TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t22.GetAttributes());
-                }
-                else
-                {
-                    CSharpAttributeData nullableAttribute = t22.GetAttributes().Single();
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", nullableAttribute.ToString());
-                    Assert.NotEqual(m, nullableAttribute.AttributeClass.ContainingModule);
-                }
-            }
+                                          references: new[] { comp1.EmitToImageReference() },
+                                          parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (4,26): error CS0115: 'B.F1<T11>(T11?)': no suitable method found to override
+                //     public override void F1<T11>(T11? t1)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F1").WithArguments("B.F1<T11>(T11?)").WithLocation(4, 26),
+                // (4,39): error CS0453: The type 'T11' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void F1<T11>(T11? t1)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t1").WithArguments("System.Nullable<T>", "T", "T11").WithLocation(4, 39));
         }
 
         [Fact]
@@ -56155,34 +56803,30 @@ class A<T>
 
 class B : A<int>
 {
-    public override void F1<T11>(T11? t1) where T11 : class?
+    public override void F1<T11>(T11? t1)
     {
     }
 
-    public override void F2<T22>(T22 t2) where T22 : class
+    public override void F2<T22>(T22 t2)
     {
     }
 }
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (15,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                //     public override void F1<T11>(T11? t1) where T11 : class?
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(15, 43),
-                // (19,42): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                //     public override void F2<T22>(T22 t2) where T22 : class
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(19, 42)
-            );
+                // (15,26): error CS0115: 'B.F1<T11>(T11?)': no suitable method found to override
+                //     public override void F1<T11>(T11? t1)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F1").WithArguments("B.F1<T11>(T11?)").WithLocation(15, 26),
+                // (15,39): error CS0453: The type 'T11' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void F1<T11>(T11? t1)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t1").WithArguments("System.Nullable<T>", "T", "T11").WithLocation(15, 39));
 
             var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F1<T11>(T11? t1)", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t11 = bf1.TypeParameters[0];
-            Assert.False(t11.ReferenceTypeConstraintIsNullable);
+            Assert.False(t11.IsReferenceType);
 
-            var af1 = bf1.OverriddenMethod;
-            Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-            TypeParameterSymbol t1 = af1.TypeParameters[0];
-            Assert.False(t1.ReferenceTypeConstraintIsNullable);
+            Assert.Null(bf1.OverriddenMethod);
 
             var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F2");
             Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -56661,18 +57305,26 @@ class B : IA
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
+                // (8,11): error CS0535: 'B' does not implement interface member 'IA.F1<T1>(T1?)'
+                // class B : IA
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.F1<T1>(T1?)").WithLocation(8, 11),
+                // (10,13): error CS0539: 'B.F1<T11>(T11?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void IA.F1<T11>(T11? t1) where T11 : class?
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "F1").WithArguments("B.F1<T11>(T11?)").WithLocation(10, 13),
+                // (10,26): error CS0453: The type 'T11' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void IA.F1<T11>(T11? t1) where T11 : class?
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t1").WithArguments("System.Nullable<T>", "T", "T11").WithLocation(10, 26),
                 // (10,30): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 //     void IA.F1<T11>(T11? t1) where T11 : class?
                 Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(10, 30),
                 // (14,29): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 //     void IA.F2<T22>(T22 t2) where T22 : class
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(14, 29)
-            );
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(14, 29));
 
             var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.IA.F1");
-            Assert.Equal("void B.IA.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.F1<T11>(T11? t1)", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t11 = bf1.TypeParameters[0];
-            Assert.False(t11.ReferenceTypeConstraintIsNullable);
+            Assert.False(t11.IsReferenceType);
 
             var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.IA.F2");
             Assert.Equal("void B.IA.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -59518,6 +60170,295 @@ class C {
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(12, 20));
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Constraints_152()
+        {
+            var source =
+ @"
+class A<T>
+{
+    public virtual void F1<T1>(T1? t1) where T1 : class
+    {
+    }
+
+    public virtual void F2<T2>(T2 t2) where T2 : class?
+    {
+    }
+}
+
+class B : A<int>
+{
+    public override void F1<T11>(T11? t1) where T : class
+    {
+    }
+
+    public override void F2<T22>(T22 t2)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t11 = bf1.TypeParameters[0];
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
+
+                var af1 = bf1.OverriddenMethod;
+                Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t1 = af1.TypeParameters[0];
+                Assert.False(t1.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t1.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t1.GetAttributes().Single().ToString());
+                }
+
+                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
+                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol t22 = bf2.TypeParameters[0];
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t22.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t22.GetAttributes().Single().ToString());
+                }
+
+                var af2 = bf2.OverriddenMethod;
+                Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol t2 = af2.TypeParameters[0];
+                Assert.True(t2.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t2.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t2.GetAttributes().Single().ToString());
+                }
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Constraints_153()
+        {
+            var source1 =
+@"
+public class A<T>
+{
+    public virtual void F1<T1>(T1? t1) where T1 : class
+    {
+    }
+
+    public virtual void F2<T2>(T2 t2) where T2 : class?
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
+
+            var source2 =
+@"
+class B : A<int>
+{
+    public override void F1<T11>(T11? t1) where T11 : class
+    {
+    }
+
+    public override void F2<T22>(T22 t2)
+    {
+    }
+}
+";
+
+            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
+
+            CompileAndVerify(comp2, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t11 = bf1.TypeParameters[0];
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
+
+                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
+                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol t22 = bf2.TypeParameters[0];
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t22.GetAttributes());
+                }
+                else
+                {
+                    CSharpAttributeData nullableAttribute = t22.GetAttributes().Single();
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", nullableAttribute.ToString());
+                    Assert.Same(m, nullableAttribute.AttributeClass.ContainingModule);
+                    Assert.Equal(Accessibility.Internal, nullableAttribute.AttributeClass.DeclaredAccessibility);
+                }
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Constraints_154()
+        {
+            var source1 =
+ @"
+public class A<T>
+{
+    public virtual void F1<T1>(T1? t1) where T1 : class
+    {
+    }
+
+    public virtual void F2<T2>(T2 t2) where T2 : class?
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
+
+            var comp2 = CreateCompilation(NullableAttributeDefinition);
+
+            var source3 =
+@"
+class B : A<int>
+{
+    public override void F1<T11>(T11? t1) where T11 : class
+    {
+    }
+
+    public override void F2<T22>(T22 t2)
+    {
+    }
+}
+";
+
+            var comp3 = CreateCompilation(new[] { source3 }, options: WithNonNullTypesTrue(),
+                                          references: new[] { comp1.EmitToImageReference(), comp2.EmitToImageReference() },
+                                          parseOptions: TestOptions.Regular8);
+
+            CompileAndVerify(comp3, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t11 = bf1.TypeParameters[0];
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
+
+                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
+                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol t22 = bf2.TypeParameters[0];
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t22.GetAttributes());
+                }
+                else
+                {
+                    CSharpAttributeData nullableAttribute = t22.GetAttributes().Single();
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", nullableAttribute.ToString());
+                    Assert.NotEqual(m, nullableAttribute.AttributeClass.ContainingModule);
+                }
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Constraints_155()
+        {
+            var source =
+@"
+class A<T>
+{
+    public virtual void F1<T1>(T1? t1) where T1 : class
+    {
+    }
+
+    public virtual void F2<T2>(T2 t2) where T2 : class?
+    {
+    }
+}
+
+class B : A<int>
+{
+    public override void F1<T11>(T11? t1) where T11 : class?
+    {
+    }
+
+    public override void F2<T22>(T22 t2) where T22 : class
+    {
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F1");
+            Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            TypeParameterSymbol t11 = bf1.TypeParameters[0];
+            Assert.False(t11.ReferenceTypeConstraintIsNullable);
+
+            var af1 = bf1.OverriddenMethod;
+            Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            TypeParameterSymbol t1 = af1.TypeParameters[0];
+            Assert.False(t1.ReferenceTypeConstraintIsNullable);
+
+            var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F2");
+            Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+            TypeParameterSymbol t22 = bf2.TypeParameters[0];
+            Assert.True(t22.ReferenceTypeConstraintIsNullable);
+
+            var af2 = bf2.OverriddenMethod;
+            Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+            TypeParameterSymbol t2 = af2.TypeParameters[0];
+            Assert.True(t2.ReferenceTypeConstraintIsNullable);
+        }
+
         [Fact]
         public void UnconstrainedTypeParameter_Local()
         {
@@ -62077,15 +63018,51 @@ class B : A
                 // (9,34): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     internal abstract void F6<T>(T? t) where T : I; // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(9, 34),
-                // (14,34): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                // (12,7): error CS0534: 'B' does not implement inherited abstract member 'A.F4<T>(T?)'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F4<T>(T?)").WithLocation(12, 7),
+                // (12,7): error CS0534: 'B' does not implement inherited abstract member 'A.F1<T>(T?)'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F1<T>(T?)").WithLocation(12, 7),
+                // (12,7): error CS0534: 'B' does not implement inherited abstract member 'A.F7<T>(T?)'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F7<T>(T?)").WithLocation(12, 7),
+                // (12,7): error CS0534: 'B' does not implement inherited abstract member 'A.F2<T>(T?)'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F2<T>(T?)").WithLocation(12, 7),
+                // (12,7): error CS0534: 'B' does not implement inherited abstract member 'A.F6<T>(T?)'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F6<T>(T?)").WithLocation(12, 7),
+                // (14,28): error CS0115: 'B.F1<U>(U?)': no suitable method found to override
                 //     internal override void F1<U>(U? u) { } // error
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?").WithLocation(14, 34),
-                // (17,34): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F1").WithArguments("B.F1<U>(U?)").WithLocation(14, 28),
+                // (14,37): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     internal override void F1<U>(U? u) { } // error
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "u").WithArguments("System.Nullable<T>", "T", "U").WithLocation(14, 37),
+                // (15,28): error CS0115: 'B.F2<U>(U?)': no suitable method found to override
+                //     internal override void F2<U>(U? u) { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F2").WithArguments("B.F2<U>(U?)").WithLocation(15, 28),
+                // (15,37): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     internal override void F2<U>(U? u) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "u").WithArguments("System.Nullable<T>", "T", "U").WithLocation(15, 37),
+                // (17,28): error CS0115: 'B.F4<U>(U?)': no suitable method found to override
                 //     internal override void F4<U>(U? u) { } // error
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?").WithLocation(17, 34),
-                // (19,34): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F4").WithArguments("B.F4<U>(U?)").WithLocation(17, 28),
+                // (17,37): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     internal override void F4<U>(U? u) { } // error
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "u").WithArguments("System.Nullable<T>", "T", "U").WithLocation(17, 37),
+                // (19,28): error CS0115: 'B.F6<U>(U?)': no suitable method found to override
                 //     internal override void F6<U>(U? u) { } // error
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?").WithLocation(19, 34));
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F6").WithArguments("B.F6<U>(U?)").WithLocation(19, 28),
+                // (19,37): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     internal override void F6<U>(U? u) { } // error
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "u").WithArguments("System.Nullable<T>", "T", "U").WithLocation(19, 37),
+                // (20,28): error CS0115: 'B.F7<U>(U?)': no suitable method found to override
+                //     internal override void F7<U>(U? u) { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F7").WithArguments("B.F7<U>(U?)").WithLocation(20, 28),
+                // (20,37): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     internal override void F7<U>(U? u) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "u").WithArguments("System.Nullable<T>", "T", "U").WithLocation(20, 37));
         }
 
         [Fact]
@@ -87005,9 +87982,9 @@ class G<T>
             var source =
 @"
 #nullable enable
-public struct Foo<T>
+public struct Goo<T>
 {
-    public static Foo<T> Bar;
+    public static Goo<T> Bar;
 }
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -87535,6 +88512,543 @@ partial class C
 }";
             var comp = CreateCompilation(new[] { source1, source2 });
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestExplicitImplementationAmbiguousInterfaceMethod_DifferingNullabilityAnnotations1()
+        {
+            var text = @"
+#nullable enable
+public interface Interface<T> where T : class
+{
+    void Method(string i);
+    void Method(T? i);
+}
+
+public class Class : Interface<string>
+{
+    void Interface<string>.Method(string i) { } //this explicitly implements both methods in Interface<string>
+    public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,28): warning CS0473: Explicit interface implementation 'Class.Interface<string>.Method(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void Interface<string>.Method(string i) { } //this explicitly implements both methods in Interface<int>
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<string>.Method(string)").WithLocation(11, 28),
+                // (12,17): warning CS8614: Nullability of reference types in type of parameter 'i' doesn't match implicitly implemented member 'void Interface<string>.Method(string? i)'.
+                //     public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Method").WithArguments("i", "void Interface<string>.Method(string? i)").WithLocation(12, 17));
+        }
+
+        [Fact]
+        public void TestExplicitImplementationAmbiguousInterfaceMethod_DifferingNullabilityAnnotations2()
+        {
+            var text = @"
+#nullable enable
+public interface Interface<T> where T : class
+{
+    void Method(string i);
+    void Method(T? i);
+}
+
+public class Class : Interface<string>
+{
+    void Interface<string>.Method(string? i) { } //this explicitly implements both methods in Interface<string>
+    public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,28): warning CS0473: Explicit interface implementation 'Class.Interface<string>.Method(string?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void Interface<string>.Method(string? i) { } //this explicitly implements both methods in Interface<string>
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<string>.Method(string?)").WithLocation(11, 28),
+                // (11,28): warning CS8617: Nullability of reference types in type of parameter 'i' doesn't match implemented member 'void Interface<string>.Method(string i)'.
+                //     void Interface<string>.Method(string? i) { } //this explicitly implements both methods in Interface<string>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "Method").WithArguments("i", "void Interface<string>.Method(string i)").WithLocation(11, 28),
+                // (12,17): warning CS8614: Nullability of reference types in type of parameter 'i' doesn't match implicitly implemented member 'void Interface<string>.Method(string? i)'.
+                //     public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Method").WithArguments("i", "void Interface<string>.Method(string? i)").WithLocation(12, 17));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNullableClassParameter_WithMethodTakingNullableClassParameter()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Goo<T>(T? value) where T : class;
+}
+
+class C1 : I
+{
+    public void Goo<T>(T? value) where T : class { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (13,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(13, 12),
+                // (15,12): error CS0539: 'C2.Goo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.Goo<T>(T? value) { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C2.Goo<T>(T?)").WithLocation(15, 12),
+                // (15,22): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void I.Goo<T>(T? value) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "value").WithArguments("System.Nullable<T>", "T", "T").WithLocation(15, 22));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNonNullableClassParameter_WithMethodTakingNullableClassParameter()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Goo<T>(T value) where T : class;
+}
+
+class C1 : I
+{
+    public void Goo<T>(T? value) where T : class { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,17): warning CS8614: Nullability of reference types in type of parameter 'value' doesn't match implicitly implemented member 'void I.Goo<T>(T value)'.
+                //     public void Goo<T>(T? value) where T : class { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Goo").WithArguments("value", "void I.Goo<T>(T value)").WithLocation(10, 17),
+                // (13,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T)").WithLocation(13, 12),
+                // (15,12): error CS0539: 'C2.Goo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.Goo<T>(T? value) { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C2.Goo<T>(T?)").WithLocation(15, 12),
+                // (15,22): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void I.Goo<T>(T? value) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "value").WithArguments("System.Nullable<T>", "T", "T").WithLocation(15, 22));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNullableClassParameter_WithMethodTakingNonNullableClassParameter()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Goo<T>(T? value) where T : class;
+}
+
+class C1 : I
+{
+    public void Goo<T>(T value) where T : class { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,17): warning CS8614: Nullability of reference types in type of parameter 'value' doesn't match implicitly implemented member 'void I.Goo<T>(T? value)'.
+                //     public void Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Goo").WithArguments("value", "void I.Goo<T>(T? value)").WithLocation(10, 17),
+                // (15,12): warning CS8617: Nullability of reference types in type of parameter 'value' doesn't match implemented member 'void I.Goo<T>(T? value)'.
+                //     void I.Goo<T>(T value) { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "Goo").WithArguments("value", "void I.Goo<T>(T? value)").WithLocation(15, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ExplicitImplementationOverloadAcceptingNullableT()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value);
+    void Goo<T>(T? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Goo<T>(T value) { }
+    public void Goo<T>(T? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T value) { }
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ExplicitImplementationOverloadAcceptingNullableT_OppositeDeclarationOrder()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T? value) where T : struct;
+    void Goo<T>(T value);
+}
+
+class C1 : I
+{
+    public void Goo<T>(T value) { }
+    public void Goo<T>(T? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T value) { }
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ExplicitImplementationOverloadAcceptingNullableT_WithClassConstraint()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Goo<T>(T value) where T : class;
+    void Goo<T>(T? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Goo<T>(T value) where T : class { }
+    public void Goo<T>(T? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T value) { }
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ExplicitImplementationOverloadAcceptingNullableT_ReturnTypesDoNotMatchNullabilityModifiers()
+        {
+            var source = @"
+#nullable enable
+interface I<U> where U : class
+{
+    U Goo<T>(T value);
+    U Goo<T>(T? value) where T : struct;
+}
+
+class C1<U> : I<U> where U : class
+{
+    public U? Goo<T>(T value) => default;
+    public U? Goo<T>(T? value) where T : struct => default;
+}
+
+class C2<U> : I<U> where U : class
+{
+    U? I<U>.Goo<T>(T value) => default;
+    U? I<U>.Goo<T>(T? value) => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (11,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Goo<T>(T value)'.
+                //     public U? Goo<T>(T value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T value)").WithLocation(11, 15),
+                // (12,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Goo<T>(T? value)'.
+                //     public U? Goo<T>(T? value) where T : struct => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T? value)").WithLocation(12, 15),
+                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Goo<T>(T value)'.
+                //     U? I<U>.Goo<T>(T value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T value)").WithLocation(17, 13),
+                // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Goo<T>(T? value)'.
+                //     U? I<U>.Goo<T>(T? value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T? value)").WithLocation(18, 13));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ExplicitImplementationOverloadAcceptingNullableT_ReturnTypesDoNotMatchNullabilityModifiers_OppositeDeclarationOrder()
+        {
+            var source = @"
+#nullable enable
+interface I<U> where U : class
+{
+    U Goo<T>(T? value) where T : struct;
+    U Goo<T>(T value);
+}
+
+class C1<U> : I<U> where U : class
+{
+    public U? Goo<T>(T value) => default;
+    public U? Goo<T>(T? value) where T : struct => default;
+}
+
+class C2<U> : I<U> where U : class
+{
+    U? I<U>.Goo<T>(T value) => default;
+    U? I<U>.Goo<T>(T? value) => default;
+}
+";
+            //As a result of https://github.com/dotnet/roslyn/issues/34583 these don't test anything useful at the moment
+
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (11,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Goo<T>(T value)'.
+                //     public U? Goo<T>(T value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T value)").WithLocation(11, 15),
+                // (12,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Goo<T>(T? value)'.
+                //     public U? Goo<T>(T? value) where T : struct => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T? value)").WithLocation(12, 15),
+                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Goo<T>(T value)'.
+                //     U? I<U>.Goo<T>(T value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T value)").WithLocation(17, 13),
+                // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Goo<T>(T? value)'.
+                //     U? I<U>.Goo<T>(T? value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Goo").WithArguments("U I<U>.Goo<T>(T? value)").WithLocation(18, 13));
+        }
+
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Goo<T>(T? value) where T : class;
+    void Goo<T>(T? value) where T : struct;
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(9, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_WithImplicitOverrideOfStructMember()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Goo<T>(T? value) where T : class;
+    void Goo<T>(T? value) where T : struct;
+}
+
+class C2 : I
+{
+    public void Goo<T>(T? value) where T : struct { }
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(9, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_WithImplicitOverrideOfClassMember()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Goo<T>(T? value) where T : class;
+    void Goo<T>(T? value) where T : struct;
+}
+
+class C2 : I
+{
+    public void Goo<T>(T? value) where T : class { }
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_WithImplicitOverrideOfStructMember_OppositeDeclarationOrder()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Goo<T>(T? value) where T : struct;
+    void Goo<T>(T? value) where T : class;
+}
+
+class C2 : I
+{
+    public void Goo<T>(T? value) where T : struct { }
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(9, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_WithImplicitOverrideOfClassMember_OppositeDeclarationOrder()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Goo<T>(T? value) where T : struct;
+    void Goo<T>(T? value) where T : class;
+}
+
+class C2 : I
+{
+    public void Goo<T>(T? value) where T : class { }
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_OppositeDeclarationOrder()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Goo<T>(T? value) where T : struct;
+    void Goo<T>(T? value) where T : class;
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(9, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_DifferingReturnType()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    string Goo<T>(T? value) where T : class;
+    int Goo<T>(T? value) where T : struct;
+}
+
+class C2 : I
+{
+    int I.Goo<T>(T? value) => 42;
+    string I.Goo<T>(T? value) => ""42"";
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(9, 12),
+                // (12,14): error CS0539: 'C2.Goo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     string I.Goo<T>(T? value) => "42";
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C2.Goo<T>(T?)").WithLocation(12, 14),
+                // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     string I.Goo<T>(T? value) => "42";
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "value").WithArguments("System.Nullable<T>", "T", "T").WithLocation(12, 24));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_ReturnTypeDifferingInNullabilityAnotation()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    object Goo<T>(T? value) where T : class;
+    object? Goo<T>(T? value) where T : struct;
+}
+
+class C2 : I
+{
+    object I.Goo<T>(T? value) => 42;
+    object? I.Goo<T>(T? value) => 42;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,7): error CS8646: 'I.Goo<T>(T?)' is explicitly implemented more than once.
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I.Goo<T>(T?)").WithLocation(9, 7),
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Goo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Goo<T>(T?)").WithLocation(9, 12),
+                // (11,14): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'object? I.Goo<T>(T? value)'.
+                //     object I.Goo<T>(T? value) => 42;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Goo").WithArguments("object? I.Goo<T>(T? value)").WithLocation(11, 14),
+                // (12,15): error CS0111: Type 'C2' already defines a member called 'I.Goo' with the same parameter types
+                //     object? I.Goo<T>(T? value) => 42;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Goo").WithArguments("I.Goo", "C2").WithLocation(12, 15));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableClassTypeParameterDefinedByClass_WithMethodTakingNullableClassParameter()
+        {
+            var source = @"
+#nullable enable
+abstract class Base<T> where T : class
+{
+    public abstract void Goo(T? value);
+}
+
+class Derived<T> : Base<T> where T : class
+{
+    public override void Goo(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.False(dGoo.Parameters[0].Type.IsNullableType());
+            Assert.True(dGoo.Parameters[0].TypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated);
         }
     }
 }

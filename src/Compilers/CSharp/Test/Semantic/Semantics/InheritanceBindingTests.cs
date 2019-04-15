@@ -4673,6 +4673,56 @@ public class Class : Interface<int>
         }
 
         [Fact]
+        public void TestExplicitImplementationAmbiguousInterfaceMethodWithDifferingConstraints()
+        {
+            var text = @"
+public interface Interface<T>
+{
+    void Method<V>(int i) where V : new();
+    void Method<V>(T i);
+}
+
+public class Class : Interface<int>
+{
+    void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+    public void Method<V>(int i) { } //this is here to avoid CS0535 - not implementing interface method
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,25): warning CS0473: Explicit interface implementation 'Class.Interface<int>.Method<V>(int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<int>.Method<V>(int)").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void TestExplicitImplementationAmbiguousInterfaceMethodWithDifferingConstraints_OppositeDeclarationOrder()
+        {
+            var text = @"
+public interface Interface<T>
+{
+    void Method<V>(T i);
+    void Method<V>(int i) where V : new();
+}
+
+public class Class : Interface<int>
+{
+    void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+    public void Method<V>(int i) { } //this is here to avoid CS0535 - not implementing interface method
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,25): warning CS0473: Explicit interface implementation 'Class.Interface<int>.Method<V>(int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<int>.Method<V>(int)").WithLocation(10, 25),
+                // (10,48): error CS0304: Cannot create an instance of the variable type 'V' because it does not have the new() constraint
+                //     void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new V()").WithArguments("V").WithLocation(10, 48),
+                // (11,17): error CS0425: The constraints for type parameter 'V' of method 'Class.Method<V>(int)' must match the constraints for type parameter 'V' of interface method 'Interface<int>.Method<V>(int)'. Consider using an explicit interface implementation instead.
+                //     public void Method<V>(int i) { } //this is here to avoid CS0535 - not implementing interface method
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Method").WithArguments("V", "Class.Method<V>(int)", "V", "Interface<int>.Method<V>(int)").WithLocation(11, 17));
+        }
+
+        [Fact]
         public void TestExplicitImplementationAmbiguousInterfaceIndexer()
         {
             var text = @"
@@ -8262,6 +8312,335 @@ public class D : C, I0<dynamic>
                 // public class D : C, I0<dynamic>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0<dynamic>").WithArguments("D", "I0<dynamic>.M()").WithLocation(12, 21)
                 );
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter1()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Goo<T>(T? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(c2Goo.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter2()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T?[] value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Goo<T>(T?[] value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T?[] value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(((ArrayTypeSymbol)c2Goo.Parameters[0].Type).ElementType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter3()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>((T a, T? b)? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Goo<T>((T a, T? b)? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>((T a, T? b)? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(c2Goo.Parameters[0].Type.IsNullableType());
+            var tuple = c2Goo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodReturningNullableStructParameter_WithMethodReturningNullableStruct1()
+        {
+            var source = @"
+interface I
+{
+    T? Goo<T>() where T : struct;
+}
+
+class C1 : I
+{
+    public T? Goo<T>() where T : struct => default;
+}
+
+class C2 : I
+{
+    T? I.Goo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(c2Goo.ReturnType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodReturningNullableStructParameter_WithMethodReturningNullableStruct2()
+        {
+            var source = @"
+interface I
+{
+    T?[] Goo<T>() where T : struct;
+}
+
+class C1 : I
+{
+    public T?[] Goo<T>() where T : struct => default;
+}
+
+class C2 : I
+{
+    T?[] I.Goo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(((ArrayTypeSymbol)c2Goo.ReturnType).ElementType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodReturningNullableStructParameter_WithMethodReturningNullableStruct3()
+        {
+            var source = @"
+interface I
+{
+    (T a, T? b)? Goo<T>() where T : struct;
+}
+
+class C1 : I
+{
+    public (T a, T? b)? Goo<T>() where T : struct => default;
+}
+
+class C2 : I
+{
+    (T a, T? b)? I.Goo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(c2Goo.ReturnType.IsNullableType());
+            var tuple = c2Goo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T? value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(dGoo.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter2()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T?[] value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T?[] value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(((ArrayTypeSymbol)dGoo.Parameters[0].Type).ElementType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter3()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>((T a, T? b)? value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>((T a, T? b)? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(dGoo.Parameters[0].Type.IsNullableType());
+            var tuple = dGoo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodReturningNullableStructParameter_WithMethodReturningNullableStruct1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract T? Goo<T>() where T : struct;
+}
+
+class Derived : Base
+{
+    public override T? Goo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(dGoo.ReturnType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodReturningNullableStructParameter_WithMethodReturningNullableStruct2()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract T?[] Goo<T>() where T : struct;
+}
+
+class Derived : Base
+{
+    public override T?[] Goo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(((ArrayTypeSymbol)dGoo.ReturnType).ElementType.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void OverrideMethodReturningNullableStructParameter_WithMethodReturningNullableStruct3()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract (T a, T? b)? Goo<T>() where T : struct;
+}
+
+class Derived : Base
+{
+    public override (T a, T? b)? Goo<T>() => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(dGoo.ReturnType.IsNullableType());
+            var tuple = dGoo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.False(tuple.TupleElements[0].Type.IsNullableType());
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(34583, "https://github.com/dotnet/roslyn/issues/34583")]
+        public void ExplicitImplementationOfNullableStructWithMultipleTypeParameters()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T, U>(T? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Goo<T, U>(T? value) where T : struct {}
+}
+
+class C2 : I
+{
+    void I.Goo<T, U>(T? value) {}
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
         }
     }
 }
