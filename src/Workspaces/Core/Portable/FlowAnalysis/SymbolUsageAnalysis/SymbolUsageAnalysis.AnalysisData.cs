@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 {
@@ -81,6 +81,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public BasicBlockAnalysisData AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction, CancellationToken cancellationToken)
             {
+                Debug.Assert(localFunction.IsLocalFunction());
+                Debug.Assert(localFunction.Equals(localFunction.OriginalDefinition));
+
                 if (!LambdaOrLocalFunctionsBeingAnalyzed.Add(localFunction))
                 {
                     ResetState();
