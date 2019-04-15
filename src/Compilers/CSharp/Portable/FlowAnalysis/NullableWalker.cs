@@ -4820,11 +4820,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // https://github.com/dotnet/roslyn/issues/33006: Check nullability of `this` argument.
-                    }
+                        // Check nullability for `this` parameter
+                        var parameter = deconstructMethod.Parameters[0];
+                        VisitArgumentConversion(
+                                right, conversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations,
+                                new VisitArgumentResult(new VisitResult(ResultType, ResultType.ToTypeWithAnnotations()), stateForLambda: default),
+                                extensionMethodThisArgument: true);
 
-                    // https://github.com/dotnet/roslyn/issues/33006: Update `Deconstruct` method
-                    // based on inferred receiver type, and check constraints.
+                        if (invocation.Method.IsGenericMethod)
+                        {
+                            // re-infer the deconstruct parameters based on the 'this' parameter 
+                            ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n);
+                            placeholderArgs.Add(CreatePlaceholderIfNecessary(right, ResultType.ToTypeWithAnnotations()));
+                            for (int i = 0; i < n; i++)
+                            {
+                                placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
+                            }
+                            deconstructMethod = InferMethodTypeArguments(invocation, deconstructMethod, placeholderArgs.ToImmutableAndFree());
+
+                            // check the constraints remain valid with the re-inferred parameter types
+                            if (ConstraintsHelper.RequiresChecking(deconstructMethod))
+                            {
+                                CheckMethodConstraints(invocation.Syntax, deconstructMethod);
+                            }
+                        }
+                    }
 
                     var parameters = deconstructMethod.Parameters;
                     int offset = invocation.InvokedAsExtensionMethod ? 1 : 0;
@@ -4837,7 +4857,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var nestedVariables = variable.NestedVariables;
                         if (nestedVariables != null)
                         {
-                            VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: invocation.Arguments[i]);
+                            var nestedRight = CreatePlaceholderIfNecessary(invocation.Arguments[i + offset], deconstructMethod.Parameters[i + offset].TypeWithAnnotations);
+                            VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: nestedRight);
                         }
                         else
                         {
@@ -4934,9 +4955,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NestedVariables = null;
             }
 
-            internal DeconstructionVariable(ArrayBuilder<DeconstructionVariable> nestedVariables)
+            internal DeconstructionVariable(BoundExpression expression, ArrayBuilder<DeconstructionVariable> nestedVariables)
             {
-                Expression = null;
+                Expression = expression;
                 Type = default;
                 NestedVariables = nestedVariables;
             }
@@ -4958,7 +4979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.TupleLiteral:
                     case BoundKind.ConvertedTupleLiteral:
-                        return new DeconstructionVariable(GetDeconstructionAssignmentVariables((BoundTupleExpression)expr));
+                        return new DeconstructionVariable(expr, GetDeconstructionAssignmentVariables((BoundTupleExpression)expr));
                     default:
                         Visit(expr);
                         return new DeconstructionVariable(expr, LvalueResultType);
@@ -6207,9 +6228,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        public override BoundNode VisitExpressionWithNullability(BoundExpressionWithNullability node)
         {
-            SetNotNullResult(node);
+            ResultType = TypeWithState.Create(node.Type, node.NullableAnnotation == NullableAnnotation.Annotated ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
             return null;
         }
 
