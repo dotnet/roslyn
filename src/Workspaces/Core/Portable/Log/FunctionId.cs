@@ -453,14 +453,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         GraphQuery_IsUsedBy,
         GraphQuery_Overrides,
 
-        // Intellisense_AsyncCompletion_CommitItemWithTargetTypeFilter / Intellisense_AsyncCompletion_CommitWithTargetTypeCompletionExperimentEnabled
-        // indicates % of the time a completion item is committed that could have been picked via the Target Type Completion Filter.
-        Intellisense_AsyncCompletion_CommitWithTargetTypeCompletionExperimentEnabled,
-        Intellisense_AsyncCompletion_CommitItemWithTargetTypeFilter,
-
-        // Intellisense_AsyncCompletion_TargetTypeFilterChosenInSession / Intellisense_AsyncCompletion_SessionContainsTargetTypeFilter
-        // indicates % of the time the Target Type Completion Filter is chosen of the sessions offering it.
-        Intellisense_AsyncCompletion_SessionContainsTargetTypeFilter,
-        Intellisense_AsyncCompletion_TargetTypeFilterChosenInSession,
+        Intellisense_AsyncCompletion_Data,
     }
 }

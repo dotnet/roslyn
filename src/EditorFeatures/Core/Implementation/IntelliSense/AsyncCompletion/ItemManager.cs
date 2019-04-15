@@ -52,10 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
             {
+                AsyncCompletionLogger.LogSessionHasExperimentEnabled();
+
                 // This method is called exactly once, so use the opportunity to set a baseline for telemetry.
                 if (data.InitialList.Any(i => i.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches)))
                 {
-                    Logger.Log(FunctionId.Intellisense_AsyncCompletion_SessionContainsTargetTypeFilter);
+                    AsyncCompletionLogger.LogSessionContainsTargetTypeFilter();
                 }
             }
 
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     !session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) &&
                     selectedFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
                 {
-                    Logger.Log(FunctionId.Intellisense_AsyncCompletion_TargetTypeFilterChosenInSession);
+                    AsyncCompletionLogger.LogTargetTypeFilterChosenInSession();
 
                     // Make sure we only record one enabling of the filter per session
                     session.Properties.AddProperty(_targetTypeCompletionFilterChosenMarker, _targetTypeCompletionFilterChosenMarker);

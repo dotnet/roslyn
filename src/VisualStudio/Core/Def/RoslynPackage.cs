@@ -200,6 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             PersistedVersionStampLogger.ReportTelemetry();
             LinkedFileDiffMergingLogger.ReportTelemetry();
             SolutionLogger.ReportTelemetry();
+            AsyncCompletionLogger.ReportTelemetry();
         }
 
         private void DisposeVisualStudioServices()
