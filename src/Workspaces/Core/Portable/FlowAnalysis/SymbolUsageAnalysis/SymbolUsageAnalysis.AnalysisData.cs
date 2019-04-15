@@ -82,7 +82,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             public BasicBlockAnalysisData AnalyzeLocalFunctionInvocation(IMethodSymbol localFunction, CancellationToken cancellationToken)
             {
                 Debug.Assert(localFunction.IsLocalFunction());
-                Debug.Assert(localFunction.Equals(localFunction.OriginalDefinition));
+
+                // Use the original definition of the local function for flow analysis.
+                localFunction = localFunction.OriginalDefinition;
 
                 if (!LambdaOrLocalFunctionsBeingAnalyzed.Add(localFunction))
                 {

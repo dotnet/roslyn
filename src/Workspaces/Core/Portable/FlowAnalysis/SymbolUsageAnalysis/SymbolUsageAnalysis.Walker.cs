@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 Debug.Assert(localFunction.IsLocalFunction());
 
-                var newAnalysisData = _currentAnalysisData.AnalyzeLocalFunctionInvocation(localFunction.OriginalDefinition, _cancellationToken);
+                var newAnalysisData = _currentAnalysisData.AnalyzeLocalFunctionInvocation(localFunction, _cancellationToken);
                 _currentAnalysisData.SetCurrentBlockAnalysisDataFrom(newAnalysisData);
             }
 
