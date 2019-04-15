@@ -1612,15 +1612,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics);
                 }
 
-                TypeWithAnnotations inferredType;
-                if (bestType is null)
-                {
-                    inferredType = elementType.SetUnknownNullabilityForReferenceTypes();
-                }
-                else
-                {
-                    inferredType = TypeWithAnnotations.Create(bestType);
-                }
+                TypeWithAnnotations inferredType = (bestType is null)
+                    ? elementType.SetUnknownNullabilityForReferenceTypes()
+                    : TypeWithAnnotations.Create(bestType);
 
                 if ((object)bestType != null)
                 {
@@ -1633,7 +1627,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // Set top-level nullability on inferred element type
-                    inferredType = TypeWithAnnotations.Create(inferredType.Type, BestTypeInferrer.GetNullableAnnotation(resultTypes));
+                    var elementState = BestTypeInferrer.GetNullableState(resultTypes);
+                    inferredType = TypeWithState.Create(inferredType.Type, elementState).ToTypeWithAnnotations();
 
                     for (int i = 0; i < n; i++)
                     {
@@ -3952,12 +3947,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
-                case ConversionKind.Unboxing:
                 case ConversionKind.Boxing:
                     resultState = operandType.State;
                     break;
 
+                case ConversionKind.Unboxing:
+                    if (operandType.MayBeNull && targetType.IsNonNullableValueType() && reportRemainingWarnings)
+                    {
+                        ReportSafetyDiagnostic(ErrorCode.WRN_UnboxPossibleNull, node.Syntax);
+                    }
+                    else
+                    {
+                        resultState = operandType.State;
+                    }
+                    break;
+
                 case ConversionKind.ImplicitThrow:
+                    resultState = NullableFlowState.NotNull;
                     break;
 
                 case ConversionKind.NoConversion:
@@ -4935,6 +4941,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        {
+            var receiverType = VisitRvalueWithState(node.Receiver);
+            VisitRvalue(node.Argument);
+            var patternMethod = node.PatternMethod;
+            if (!receiverType.HasNullType)
+            {
+                patternMethod = (MethodSymbol)AsMemberOfType(receiverType.Type, patternMethod);
+            }
+
+            LvalueResultType = patternMethod.ReturnTypeWithAnnotations;
+            return null;
+        }
+
         public override BoundNode VisitEventAccess(BoundEventAccess node)
         {
             VisitMemberAccess(node, node.ReceiverOpt, node.EventSymbol);
@@ -5744,7 +5764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Other (typed) expression, including suppressed ones
                 if (result.MayBeNull)
                 {
-                    ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
+                    ReportSafetyDiagnostic(ErrorCode.WRN_ThrowPossibleNull, expr.Syntax);
                 }
             }
             SetUnreachable();
