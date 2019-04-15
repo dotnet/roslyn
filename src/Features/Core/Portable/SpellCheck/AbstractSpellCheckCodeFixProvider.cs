@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                     continue;
                 }
 
-                var insertionText = await GetInsertionTextAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var insertionText = await GetInsertionTextAsync(document, item, completionList.Span, cancellationToken: cancellationToken).ConfigureAwait(false);
                 results.Add(matchCost, insertionText);
             }
 
@@ -178,10 +178,10 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
         }
 
-        private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
         {
             var service = CompletionService.GetService(document);
-            var change = await service.GetChangeAsync(document, item, null, cancellationToken).ConfigureAwait(false);
+            var change = await service.GetChangeAsync(document, item, completionListSpan, commitCharacter: null, cancellationToken).ConfigureAwait(false);
 
             return change.TextChange.NewText;
         }

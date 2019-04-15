@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return namespacesInScope;
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem completionItem, char? commitKey = default, CancellationToken cancellationToken = default)
+        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem completionItem, TextSpan completionListSpan, char? commitKey, CancellationToken cancellationToken)
         {
             var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(completionItem);
             Debug.Assert(containingNamespace != null);
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Find context node so we can use it to decide where to insert using/imports.
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var addImportContextNode = root.FindToken(completionItem.Span.Start, findInsideTrivia: true).Parent;
+                var addImportContextNode = root.FindToken(completionListSpan.Start, findInsideTrivia: true).Parent;
 
                 // Add required using/imports directive.                              
                 var addImportService = document.GetLanguageService<IAddImportsService>();
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
                 //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
                 //       with "AsnEncodedDatasd" in the code.
-                builder.Add(new TextChange(completionItem.Span, completionItem.DisplayText));
+                builder.Add(new TextChange(completionListSpan, completionItem.DisplayText));
 
                 // Then get the combined change
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // For workspace that doesn't support document change, e.g. DebuggerIntellisense
                 // we complete the type name in its fully qualified form instead.
                 var fullyQualifiedName = containingNamespace + completionItem.DisplayText;
-                var change = new TextChange(completionItem.Span, fullyQualifiedName);
+                var change = new TextChange(completionListSpan, fullyQualifiedName);
 
                 return CompletionChange.Create(change);
             }
