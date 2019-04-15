@@ -27,11 +27,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 builder.Add(TypeAritySuffixName, GetAritySuffix(typeSymbol.Arity));
             }
 
-            // TODO: Suffix should be language specific, i.e. `(Of ...)` if triggered from VB.
+            // TODO: 
+            // 1. Suffix should be language specific, i.e. `(Of ...)` if triggered from VB.
+            // 2. Sort the import items to be after in-scope symbols in a less hacky way.
             return CompletionItem.Create(
                  displayText: typeSymbol.Name,
                  filterText: typeSymbol.Name,
-                 sortText: typeSymbol.Name,
+                 sortText: "~" + typeSymbol.Name,   // Hack: prepend tilde (ASCII: 126) to make import items show after in-scope items
                  properties: builder.ToImmutableDictionaryAndFree(),
                  tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
                  rules: CompletionItemRules.Default,
