@@ -1652,16 +1652,6 @@
         <target state="translated">Il tipo valore nullable non può essere Null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PossibleNull">
-        <source>Possible null value.</source>
-        <target state="new">Possible null value.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PossibleNull_Title">
-        <source>Possible null value.</source>
-        <target state="new">Possible null value.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="translated">L'espressione switch non gestisce tutti gli input possibili (non è esaustiva).</target>
@@ -1682,6 +1672,16 @@
         <target state="translated">L'espressione switch non gestisce tutti gli input possibili (non è esaustiva).</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull">
+        <source>Thrown value may be null.</source>
+        <target state="new">Thrown value may be null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull_Title">
+        <source>Thrown value may be null.</source>
+        <target state="new">Thrown value may be null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
         <source>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
         <target state="translated">Il nome dell'elemento di tupla '{0}' viene ignorato perché nell'altra parte dell'operatore == o != di tupla è specificato un nome diverso o non è specificato alcun nome.</target>
@@ -1700,6 +1700,16 @@
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
         <target state="translated">Il tipo del parametro di tipo è lo stesso del parametro di tipo del metodo esterno.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull">
+        <source>Unboxing a possibly null value.</source>
+        <target state="new">Unboxing a possibly null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull_Title">
+        <source>Unboxing a possibly null value.</source>
+        <target state="new">Unboxing a possibly null value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">

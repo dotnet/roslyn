@@ -388,7 +388,7 @@ class C
 {
     void M()
     {
-        _ = this is {}
+        _ = this is { }
     }
 }";
 
@@ -431,7 +431,7 @@ class C
 {
     void M()
     {
-        _ = this is {}
+        _ = this is { }
         M();
     }
 }";
@@ -476,7 +476,7 @@ class C
 {
     void M()
     {
-        _ = this is (1, 2) {}
+        _ = this is (1, 2) { }
         M();
     }
 }";

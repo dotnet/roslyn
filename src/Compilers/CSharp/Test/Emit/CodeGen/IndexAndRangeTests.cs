@@ -17,6 +17,282 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
 
         [Fact]
+        public void RealIndexersPreferredToPattern()
+        {
+            var src = @"
+using System;
+class C
+{
+    public int Length => throw null;
+    public int this[Index i, int j = 0] { get { Console.WriteLine(""Index""); return 0; } }
+    public int this[int i] { get { Console.WriteLine(""int""); return 0; } }    
+    public int Slice(int i, int j) => throw null;
+    public int this[Range r, int j = 0] { get { Console.WriteLine(""Range""); return 0; } }
+
+    static void Main()
+    {
+        var c = new C();
+        _ = c[0];
+        _ = c[^0];
+        _ = c[0..];
+    }
+}";
+            var verifier = CompileAndVerifyWithIndexAndRange(src, expectedOutput: @"
+int
+Index
+Range");
+        }
+
+        [Fact]
+        public void PatternIndexList()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+class C
+{
+    private static List<int> list = new List<int>() { 2, 4, 5, 6 };
+    static void Main()
+    {
+        Console.WriteLine(list[^2]);
+        var index = ^1;
+        Console.WriteLine(list[index]);
+    }
+}";
+            var verifier = CompileAndVerifyWithIndexAndRange(src, expectedOutput: @"5
+6");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  3
+  .locals init (System.Index V_0, //index
+                int V_1,
+                int V_2,
+                System.Index V_3)
+  IL_0000:  ldsfld     ""System.Collections.Generic.List<int> C.list""
+  IL_0005:  dup
+  IL_0006:  callvirt   ""int System.Collections.Generic.List<int>.Count.get""
+  IL_000b:  stloc.1
+  IL_000c:  ldc.i4.2
+  IL_000d:  ldc.i4.1
+  IL_000e:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0013:  stloc.3
+  IL_0014:  ldloca.s   V_3
+  IL_0016:  ldloc.1
+  IL_0017:  call       ""int System.Index.GetOffset(int)""
+  IL_001c:  stloc.2
+  IL_001d:  ldloc.2
+  IL_001e:  callvirt   ""int System.Collections.Generic.List<int>.this[int].get""
+  IL_0023:  call       ""void System.Console.WriteLine(int)""
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  ldc.i4.1
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       ""System.Index..ctor(int, bool)""
+  IL_0031:  ldsfld     ""System.Collections.Generic.List<int> C.list""
+  IL_0036:  dup
+  IL_0037:  callvirt   ""int System.Collections.Generic.List<int>.Count.get""
+  IL_003c:  stloc.2
+  IL_003d:  ldloca.s   V_0
+  IL_003f:  ldloc.2
+  IL_0040:  call       ""int System.Index.GetOffset(int)""
+  IL_0045:  stloc.1
+  IL_0046:  ldloc.1
+  IL_0047:  callvirt   ""int System.Collections.Generic.List<int>.this[int].get""
+  IL_004c:  call       ""void System.Console.WriteLine(int)""
+  IL_0051:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData("Length")]
+        [InlineData("Count")]
+        public void PatternRangeIndexers(string propertyName)
+        {
+            var src = @"
+using System;
+class C
+{
+    private int[] _f = { 2, 4, 5, 6 };
+    public int " + propertyName + @" => _f.Length;
+    public int[] Slice(int start, int length) => _f[start..length];
+    static void Main()
+    {
+        var c = new C();
+        foreach (var x in c[1..])
+        {
+            Console.WriteLine(x);
+        }
+        foreach (var x in c[..^2])
+        {
+            Console.WriteLine(x);
+        }
+    }
+}";
+            var verifier = CompileAndVerifyWithIndexAndRange(src, @"
+4
+5
+2
+4");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size      197 (0xc5)
+  .maxstack  4
+  .locals init (C V_0, //c
+                int[] V_1,
+                int V_2,
+                int V_3,
+                System.Range V_4,
+                int V_5,
+                int V_6,
+                System.Index V_7)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  dup
+  IL_0008:  callvirt   ""int C." + propertyName + @".get""
+  IL_000d:  stloc.3
+  IL_000e:  ldc.i4.1
+  IL_000f:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0014:  call       ""System.Range System.Range.StartAt(System.Index)""
+  IL_0019:  stloc.s    V_4
+  IL_001b:  ldloca.s   V_4
+  IL_001d:  call       ""System.Index System.Range.Start.get""
+  IL_0022:  stloc.s    V_7
+  IL_0024:  ldloca.s   V_7
+  IL_0026:  ldloc.3
+  IL_0027:  call       ""int System.Index.GetOffset(int)""
+  IL_002c:  stloc.s    V_5
+  IL_002e:  ldloca.s   V_4
+  IL_0030:  call       ""System.Index System.Range.End.get""
+  IL_0035:  stloc.s    V_7
+  IL_0037:  ldloca.s   V_7
+  IL_0039:  ldloc.3
+  IL_003a:  call       ""int System.Index.GetOffset(int)""
+  IL_003f:  stloc.s    V_6
+  IL_0041:  ldloc.s    V_5
+  IL_0043:  ldloc.s    V_6
+  IL_0045:  ldloc.s    V_5
+  IL_0047:  sub
+  IL_0048:  callvirt   ""int[] C.Slice(int, int)""
+  IL_004d:  stloc.1
+  IL_004e:  ldc.i4.0
+  IL_004f:  stloc.2
+  IL_0050:  br.s       IL_005e
+  IL_0052:  ldloc.1
+  IL_0053:  ldloc.2
+  IL_0054:  ldelem.i4
+  IL_0055:  call       ""void System.Console.WriteLine(int)""
+  IL_005a:  ldloc.2
+  IL_005b:  ldc.i4.1
+  IL_005c:  add
+  IL_005d:  stloc.2
+  IL_005e:  ldloc.2
+  IL_005f:  ldloc.1
+  IL_0060:  ldlen
+  IL_0061:  conv.i4
+  IL_0062:  blt.s      IL_0052
+  IL_0064:  ldloc.0
+  IL_0065:  dup
+  IL_0066:  callvirt   ""int C." + propertyName + @".get""
+  IL_006b:  stloc.s    V_6
+  IL_006d:  ldc.i4.2
+  IL_006e:  ldc.i4.1
+  IL_006f:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0074:  call       ""System.Range System.Range.EndAt(System.Index)""
+  IL_0079:  stloc.s    V_4
+  IL_007b:  ldloca.s   V_4
+  IL_007d:  call       ""System.Index System.Range.Start.get""
+  IL_0082:  stloc.s    V_7
+  IL_0084:  ldloca.s   V_7
+  IL_0086:  ldloc.s    V_6
+  IL_0088:  call       ""int System.Index.GetOffset(int)""
+  IL_008d:  stloc.s    V_5
+  IL_008f:  ldloca.s   V_4
+  IL_0091:  call       ""System.Index System.Range.End.get""
+  IL_0096:  stloc.s    V_7
+  IL_0098:  ldloca.s   V_7
+  IL_009a:  ldloc.s    V_6
+  IL_009c:  call       ""int System.Index.GetOffset(int)""
+  IL_00a1:  stloc.3
+  IL_00a2:  ldloc.s    V_5
+  IL_00a4:  ldloc.3
+  IL_00a5:  ldloc.s    V_5
+  IL_00a7:  sub
+  IL_00a8:  callvirt   ""int[] C.Slice(int, int)""
+  IL_00ad:  stloc.1
+  IL_00ae:  ldc.i4.0
+  IL_00af:  stloc.2
+  IL_00b0:  br.s       IL_00be
+  IL_00b2:  ldloc.1
+  IL_00b3:  ldloc.2
+  IL_00b4:  ldelem.i4
+  IL_00b5:  call       ""void System.Console.WriteLine(int)""
+  IL_00ba:  ldloc.2
+  IL_00bb:  ldc.i4.1
+  IL_00bc:  add
+  IL_00bd:  stloc.2
+  IL_00be:  ldloc.2
+  IL_00bf:  ldloc.1
+  IL_00c0:  ldlen
+  IL_00c1:  conv.i4
+  IL_00c2:  blt.s      IL_00b2
+  IL_00c4:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData("Length")]
+        [InlineData("Count")]
+        public void PatternIndexIndexers(string propertyName)
+        {
+            var src = @"
+using System;
+class C
+{
+    private int[] _f = { 2, 4, 5, 6 };
+    public int " + propertyName + @" => _f.Length;
+    public int this[int x] => _f[x];
+    static void Main()
+    {
+        var c = new C();
+        Console.WriteLine(c[0]);
+        Console.WriteLine(c[^1]);
+    }
+}";
+            var verifier = CompileAndVerifyWithIndexAndRange(src, @"
+2
+6");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       53 (0x35)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                System.Index V_2)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldc.i4.0
+  IL_0007:  callvirt   ""int C.this[int].get""
+  IL_000c:  call       ""void System.Console.WriteLine(int)""
+  IL_0011:  dup
+  IL_0012:  callvirt   ""int C." + propertyName + @".get""
+  IL_0017:  stloc.0
+  IL_0018:  ldc.i4.1
+  IL_0019:  ldc.i4.1
+  IL_001a:  newobj     ""System.Index..ctor(int, bool)""
+  IL_001f:  stloc.2
+  IL_0020:  ldloca.s   V_2
+  IL_0022:  ldloc.0
+  IL_0023:  call       ""int System.Index.GetOffset(int)""
+  IL_0028:  stloc.1
+  IL_0029:  ldloc.1
+  IL_002a:  callvirt   ""int C.this[int].get""
+  IL_002f:  call       ""void System.Console.WriteLine(int)""
+  IL_0034:  ret
+}");
+        }
+
+        [Fact]
         public void RefToArrayIndexIndexer()
         {
             var verifier = CompileAndVerifyWithIndexAndRange(@"
@@ -108,10 +384,10 @@ class C
 {
     public static void Main()
     {
-        MyString s = ""abcdef"";
+        string s = ""abcdef"";
         Console.WriteLine(s[^2..]);
     }
-}" + TestSources.StringWithIndexers, expectedOutput: "ef");
+}", expectedOutput: "ef");
         }
 
         [Fact]
@@ -123,10 +399,10 @@ class C
 {
     public static void Main()
     {
-        MyString s = ""abcdef"";
+        string s = ""abcdef"";
         Console.WriteLine(s[^4..^1]);
     }
-}" + TestSources.StringWithIndexers, expectedOutput: "cde");
+}", expectedOutput: "cde");
         }
 
         [Fact]
@@ -141,12 +417,12 @@ class C
         var s = ""abcdef"";
         M(s);
     }
-    public static void M(MyString s)
+    public static void M(string s)
     {
         Console.WriteLine(s[new Index(1, false)]);
         Console.WriteLine(s[new Index(1, false), ^1]);
     }
-}" + TestSources.StringWithIndexers);
+}");
             comp.VerifyDiagnostics(
                 // (13,27): error CS1501: No overload for method 'this' takes 2 arguments
                 //         Console.WriteLine(s[new Index(1, false), ^1]);
@@ -189,32 +465,49 @@ class C
     public static void Main()
     {
         var s = ""abcdef"";
-        M(s);
-    }
-    public static void M(MyString s)
-    {
         Console.WriteLine(s[new Index(1, false)]);
         Console.WriteLine(s[^1]);
     }
-}" + TestSources.StringWithIndexers, expectedOutput: @"b
+}", expectedOutput: @"b
 f");
-            verifier.VerifyIL("C.M", @"
+            verifier.VerifyIL("C.Main", @"
 {
-  // Code size       39 (0x27)
-  .maxstack  3
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  ldc.i4.1
-  IL_0003:  ldc.i4.0
-  IL_0004:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0009:  call       ""char MyString.this[System.Index].get""
-  IL_000e:  call       ""void System.Console.WriteLine(char)""
-  IL_0013:  ldarga.s   V_0
-  IL_0015:  ldc.i4.1
-  IL_0016:  ldc.i4.1
-  IL_0017:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001c:  call       ""char MyString.this[System.Index].get""
-  IL_0021:  call       ""void System.Console.WriteLine(char)""
-  IL_0026:  ret
+  // Code size       77 (0x4d)
+  .maxstack  4
+  .locals init (int V_0,
+                int V_1,
+                System.Index V_2)
+  IL_0000:  ldstr      ""abcdef""
+  IL_0005:  dup
+  IL_0006:  dup
+  IL_0007:  callvirt   ""int string.Length.get""
+  IL_000c:  stloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  ldc.i4.0
+  IL_000f:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_2
+  IL_0017:  ldloc.0
+  IL_0018:  call       ""int System.Index.GetOffset(int)""
+  IL_001d:  stloc.1
+  IL_001e:  ldloc.1
+  IL_001f:  callvirt   ""char string.this[int].get""
+  IL_0024:  call       ""void System.Console.WriteLine(char)""
+  IL_0029:  dup
+  IL_002a:  callvirt   ""int string.Length.get""
+  IL_002f:  stloc.1
+  IL_0030:  ldc.i4.1
+  IL_0031:  ldc.i4.1
+  IL_0032:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0037:  stloc.2
+  IL_0038:  ldloca.s   V_2
+  IL_003a:  ldloc.1
+  IL_003b:  call       ""int System.Index.GetOffset(int)""
+  IL_0040:  stloc.0
+  IL_0041:  ldloc.0
+  IL_0042:  callvirt   ""char string.this[int].get""
+  IL_0047:  call       ""void System.Console.WriteLine(char)""
+  IL_004c:  ret
 }");
         }
 
@@ -228,23 +521,49 @@ class C
     public static void Main()
     {
         var s = ""abcdef"";
-        var result = M(s);
-        Console.WriteLine(result);
+        Console.WriteLine(s[1..3]);
     }
-    public static string M(MyString s) => s[1..3];
-}" + TestSources.StringWithIndexers, expectedOutput: "bc");
-            verifier.VerifyIL("C.M", @"
+}", expectedOutput: "bc");
+            verifier.VerifyIL("C.Main", @"
 {
-  // Code size       25 (0x19)
-  .maxstack  3
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  ldc.i4.1
-  IL_0003:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_0008:  ldc.i4.3
-  IL_0009:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_000e:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0013:  call       ""string MyString.this[System.Range].get""
-  IL_0018:  ret
+  // Code size       82 (0x52)
+  .maxstack  4
+  .locals init (int V_0,
+                System.Range V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
+  IL_0000:  ldstr      ""abcdef""
+  IL_0005:  dup
+  IL_0006:  callvirt   ""int string.Length.get""
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  ldc.i4.1
+  IL_000f:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0014:  ldc.i4.3
+  IL_0015:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_001a:  call       ""System.Range..ctor(System.Index, System.Index)""
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  call       ""System.Index System.Range.Start.get""
+  IL_0026:  stloc.s    V_4
+  IL_0028:  ldloca.s   V_4
+  IL_002a:  ldloc.0
+  IL_002b:  call       ""int System.Index.GetOffset(int)""
+  IL_0030:  stloc.2
+  IL_0031:  ldloca.s   V_1
+  IL_0033:  call       ""System.Index System.Range.End.get""
+  IL_0038:  stloc.s    V_4
+  IL_003a:  ldloca.s   V_4
+  IL_003c:  ldloc.0
+  IL_003d:  call       ""int System.Index.GetOffset(int)""
+  IL_0042:  stloc.3
+  IL_0043:  ldloc.2
+  IL_0044:  ldloc.3
+  IL_0045:  ldloc.2
+  IL_0046:  sub
+  IL_0047:  callvirt   ""string string.Substring(int, int)""
+  IL_004c:  call       ""void System.Console.WriteLine(string)""
+  IL_0051:  ret
 }");
         }
 
@@ -261,8 +580,8 @@ class C
         var result = M(s);
         Console.WriteLine(result);
     }
-    public static string M(MyString s) => s[1..];
-}" + TestSources.StringWithIndexers, expectedOutput: "bcdef");
+    public static string M(string s) => s[1..];
+}", expectedOutput: "bcdef");
         }
 
         [Fact]
@@ -278,8 +597,8 @@ class C
         var result = M(s);
         Console.WriteLine(result);
     }
-    public static string M(MyString s) => s[..^2];
-}" + TestSources.StringWithIndexers, expectedOutput: "abcd");
+    public static string M(string s) => s[..^2];
+}", expectedOutput: "abcd");
         }
 
         [Fact]
@@ -1514,6 +1833,7 @@ partial class Program
     }
 }", options: TestOptions.ReleaseExe), expectedOutput: "YES");
         }
+
 
         private const string PrintIndexesAndRangesCode = @"
 partial class Program

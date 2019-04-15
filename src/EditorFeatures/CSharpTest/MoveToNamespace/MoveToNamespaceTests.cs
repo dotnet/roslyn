@@ -418,7 +418,9 @@ targetNamespace: "B");
     {
     }
 }",
-expectedMarkup: @"namespace A
+expectedMarkup: @"using B;
+
+namespace A
 {
     class MyClass : IMyClass
     {
@@ -622,7 +624,9 @@ expectedSuccess: false);
     {
     }
 }",
-expectedMarkup: @"namespace A
+expectedMarkup: @"using B;
+
+namespace A
 {
     class MyClass : IMyClass
     {
@@ -941,5 +945,43 @@ expectedNamespaceName: "A  .    B   .   C");
     }
 }",
 expectedNamespaceName: "A  .    B   .   C");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(34736, "https://github.com/dotnet/roslyn/issues/34736")]
+        public Task MoveToNamespace_MoveType_Usings()
+            => TestMoveToNamespaceAsync(
+@"namespace One
+{
+    using Two;
+    class C1
+    {
+        private C2 c2;
+    }
+}
+
+namespace [||]Two
+{
+    class C2
+    {
+
+    }
+}",
+expectedMarkup: @"namespace One
+{
+    using Three;
+    class C1
+    {
+        private C2 c2;
+    }
+}
+
+namespace {|Warning:Three|}
+{
+    class C2
+    {
+
+    }
+}",
+targetNamespace: "Three");
     }
 }
