@@ -363,26 +363,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsUnmanagedAttribute(this));
             }
 
-            var annotation = NullableAnnotation.Oblivious;
+            byte nullableAttributeValue = NullableAnnotationExtensions.ObliviousAttributeValue;
 
             if (this.HasReferenceTypeConstraint)
             {
                 switch (this.ReferenceTypeConstraintIsNullable)
                 {
                     case true:
-                        annotation = NullableAnnotation.Annotated;
+                        nullableAttributeValue = NullableAnnotationExtensions.AnnotatedAttributeValue;
                         break;
                     case false:
-                        annotation = NullableAnnotation.NotAnnotated;
+                        nullableAttributeValue = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
                         break;
                 }
             }
             else if (!this.HasValueTypeConstraint && this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullableIfReferenceType == false)
             {
-                annotation = NullableAnnotation.Annotated;
+                nullableAttributeValue = NullableAnnotationExtensions.AnnotatedAttributeValue;
             }
 
-            if (annotation != NullableAnnotation.Oblivious)
+            if (nullableAttributeValue != NullableAnnotationExtensions.ObliviousAttributeValue)
             {
                 NamedTypeSymbol byteType = DeclaringCompilation.GetSpecialType(SpecialType.System_Byte);
                 Debug.Assert((object)byteType != null);
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ref attributes,
                     moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
                                                               ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive,
-                                                                                                      (byte)annotation))));
+                                                                                                      nullableAttributeValue))));
             }
         }
 

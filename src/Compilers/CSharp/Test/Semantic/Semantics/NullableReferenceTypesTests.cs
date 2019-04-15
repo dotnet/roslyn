@@ -60204,295 +60204,6 @@ class C {
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(12, 20));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
-        public void Constraints_152()
-        {
-            var source =
- @"
-class A<T>
-{
-    public virtual void F1<T1>(T1? t1) where T1 : class
-    {
-    }
-
-    public virtual void F2<T2>(T2 t2) where T2 : class?
-    {
-    }
-}
-
-class B : A<int>
-{
-    public override void F1<T11>(T11? t1) where T : class
-    {
-    }
-
-    public override void F2<T22>(T22 t2)
-    {
-    }
-}
-";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            void symbolValidator(ModuleSymbol m)
-            {
-                bool isSource = !(m is PEModuleSymbol);
-
-                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t11.GetAttributes());
-                }
-                else
-                {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
-                }
-
-                var af1 = bf1.OverriddenMethod;
-                Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t1 = af1.TypeParameters[0];
-                Assert.False(t1.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t1.GetAttributes());
-                }
-                else
-                {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t1.GetAttributes().Single().ToString());
-                }
-
-                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-
-                TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t22.GetAttributes());
-                }
-                else
-                {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t22.GetAttributes().Single().ToString());
-                }
-
-                var af2 = bf2.OverriddenMethod;
-                Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-
-                TypeParameterSymbol t2 = af2.TypeParameters[0];
-                Assert.True(t2.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t2.GetAttributes());
-                }
-                else
-                {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t2.GetAttributes().Single().ToString());
-                }
-            }
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
-        public void Constraints_153()
-        {
-            var source1 =
-@"
-public class A<T>
-{
-    public virtual void F1<T1>(T1? t1) where T1 : class
-    {
-    }
-
-    public virtual void F2<T2>(T2 t2) where T2 : class?
-    {
-    }
-}
-";
-            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
-
-            var source2 =
-@"
-class B : A<int>
-{
-    public override void F1<T11>(T11? t1) where T11 : class
-    {
-    }
-
-    public override void F2<T22>(T22 t2)
-    {
-    }
-}
-";
-
-            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
-
-            CompileAndVerify(comp2, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            void symbolValidator(ModuleSymbol m)
-            {
-                bool isSource = !(m is PEModuleSymbol);
-
-                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t11.GetAttributes());
-                }
-                else
-                {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
-                }
-
-                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-
-                TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t22.GetAttributes());
-                }
-                else
-                {
-                    CSharpAttributeData nullableAttribute = t22.GetAttributes().Single();
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", nullableAttribute.ToString());
-                    Assert.Same(m, nullableAttribute.AttributeClass.ContainingModule);
-                    Assert.Equal(Accessibility.Internal, nullableAttribute.AttributeClass.DeclaredAccessibility);
-                }
-            }
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
-        public void Constraints_154()
-        {
-            var source1 =
- @"
-public class A<T>
-{
-    public virtual void F1<T1>(T1? t1) where T1 : class
-    {
-    }
-
-    public virtual void F2<T2>(T2 t2) where T2 : class?
-    {
-    }
-}
-";
-            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
-
-            var comp2 = CreateCompilation(NullableAttributeDefinition);
-
-            var source3 =
-@"
-class B : A<int>
-{
-    public override void F1<T11>(T11? t1) where T11 : class
-    {
-    }
-
-    public override void F2<T22>(T22 t2)
-    {
-    }
-}
-";
-
-            var comp3 = CreateCompilation(new[] { source3 }, options: WithNonNullTypesTrue(),
-                                          references: new[] { comp1.EmitToImageReference(), comp2.EmitToImageReference() },
-                                          parseOptions: TestOptions.Regular8);
-
-            CompileAndVerify(comp3, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
-            void symbolValidator(ModuleSymbol m)
-            {
-                bool isSource = !(m is PEModuleSymbol);
-
-                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
-                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-                TypeParameterSymbol t11 = bf1.TypeParameters[0];
-                Assert.False(t11.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t11.GetAttributes());
-                }
-                else
-                {
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
-                }
-
-                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
-                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-
-                TypeParameterSymbol t22 = bf2.TypeParameters[0];
-                Assert.True(t22.ReferenceTypeConstraintIsNullable);
-                if (isSource)
-                {
-                    Assert.Empty(t22.GetAttributes());
-                }
-                else
-                {
-                    CSharpAttributeData nullableAttribute = t22.GetAttributes().Single();
-                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", nullableAttribute.ToString());
-                    Assert.NotEqual(m, nullableAttribute.AttributeClass.ContainingModule);
-                }
-            }
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
-        public void Constraints_155()
-        {
-            var source =
-@"
-class A<T>
-{
-    public virtual void F1<T1>(T1? t1) where T1 : class
-    {
-    }
-
-    public virtual void F2<T2>(T2 t2) where T2 : class?
-    {
-    }
-}
-
-class B : A<int>
-{
-    public override void F1<T11>(T11? t1) where T11 : class?
-    {
-    }
-
-    public override void F2<T22>(T22 t2) where T22 : class
-    {
-    }
-}
-";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
-
-            var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-            TypeParameterSymbol t11 = bf1.TypeParameters[0];
-            Assert.False(t11.ReferenceTypeConstraintIsNullable);
-
-            var af1 = bf1.OverriddenMethod;
-            Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-            TypeParameterSymbol t1 = af1.TypeParameters[0];
-            Assert.False(t1.ReferenceTypeConstraintIsNullable);
-
-            var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-
-            TypeParameterSymbol t22 = bf2.TypeParameters[0];
-            Assert.True(t22.ReferenceTypeConstraintIsNullable);
-
-            var af2 = bf2.OverriddenMethod;
-            Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-
-            TypeParameterSymbol t2 = af2.TypeParameters[0];
-            Assert.True(t2.ReferenceTypeConstraintIsNullable);
-        }
-
         [Fact]
         public void Constraints_80()
         {
@@ -63180,6 +62891,295 @@ partial void M1<TF1>() where TF1 : object?;
                 // partial void M1<TF1>() where TF1 : object?;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 42)
                 );
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Constraints_152()
+        {
+            var source =
+ @"
+class A<T>
+{
+    public virtual void F1<T1>(T1? t1) where T1 : class
+    {
+    }
+
+    public virtual void F2<T2>(T2 t2) where T2 : class?
+    {
+    }
+}
+
+class B : A<int>
+{
+    public override void F1<T11>(T11? t1) where T : class
+    {
+    }
+
+    public override void F2<T22>(T22 t2)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t11 = bf1.TypeParameters[0];
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
+
+                var af1 = bf1.OverriddenMethod;
+                Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t1 = af1.TypeParameters[0];
+                Assert.False(t1.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t1.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t1.GetAttributes().Single().ToString());
+                }
+
+                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
+                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol t22 = bf2.TypeParameters[0];
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t22.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t22.GetAttributes().Single().ToString());
+                }
+
+                var af2 = bf2.OverriddenMethod;
+                Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol t2 = af2.TypeParameters[0];
+                Assert.True(t2.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t2.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", t2.GetAttributes().Single().ToString());
+                }
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Constraints_153()
+        {
+            var source1 =
+@"
+public class A<T>
+{
+    public virtual void F1<T1>(T1? t1) where T1 : class
+    {
+    }
+
+    public virtual void F2<T2>(T2 t2) where T2 : class?
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
+
+            var source2 =
+@"
+class B : A<int>
+{
+    public override void F1<T11>(T11? t1) where T11 : class
+    {
+    }
+
+    public override void F2<T22>(T22 t2)
+    {
+    }
+}
+";
+
+            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), references: new[] { comp1.EmitToImageReference() });
+
+            CompileAndVerify(comp2, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t11 = bf1.TypeParameters[0];
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
+
+                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
+                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol t22 = bf2.TypeParameters[0];
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t22.GetAttributes());
+                }
+                else
+                {
+                    CSharpAttributeData nullableAttribute = t22.GetAttributes().Single();
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", nullableAttribute.ToString());
+                    Assert.Same(m, nullableAttribute.AttributeClass.ContainingModule);
+                    Assert.Equal(Accessibility.Internal, nullableAttribute.AttributeClass.DeclaredAccessibility);
+                }
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Constraints_154()
+        {
+            var source1 =
+ @"
+public class A<T>
+{
+    public virtual void F1<T1>(T1? t1) where T1 : class
+    {
+    }
+
+    public virtual void F2<T2>(T2 t2) where T2 : class?
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
+
+            var comp2 = CreateCompilation(NullableAttributeDefinition);
+
+            var source3 =
+@"
+class B : A<int>
+{
+    public override void F1<T11>(T11? t1) where T11 : class
+    {
+    }
+
+    public override void F2<T22>(T22 t2)
+    {
+    }
+}
+";
+
+            var comp3 = CreateCompilation(new[] { source3 }, options: WithNonNullTypesTrue(),
+                                          references: new[] { comp1.EmitToImageReference(), comp2.EmitToImageReference() },
+                                          parseOptions: TestOptions.Regular8);
+
+            CompileAndVerify(comp3, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var bf1 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F1");
+                Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+                TypeParameterSymbol t11 = bf1.TypeParameters[0];
+                Assert.False(t11.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t11.GetAttributes());
+                }
+                else
+                {
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(1)", t11.GetAttributes().Single().ToString());
+                }
+
+                var bf2 = (MethodSymbol)m.GlobalNamespace.GetMember("B.F2");
+                Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol t22 = bf2.TypeParameters[0];
+                Assert.True(t22.ReferenceTypeConstraintIsNullable);
+                if (isSource)
+                {
+                    Assert.Empty(t22.GetAttributes());
+                }
+                else
+                {
+                    CSharpAttributeData nullableAttribute = t22.GetAttributes().Single();
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", nullableAttribute.ToString());
+                    Assert.NotEqual(m, nullableAttribute.AttributeClass.ContainingModule);
+                }
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        public void Constraints_155()
+        {
+            var source =
+@"
+class A<T>
+{
+    public virtual void F1<T1>(T1? t1) where T1 : class
+    {
+    }
+
+    public virtual void F2<T2>(T2 t2) where T2 : class?
+    {
+    }
+}
+
+class B : A<int>
+{
+    public override void F1<T11>(T11? t1) where T11 : class?
+    {
+    }
+
+    public override void F2<T22>(T22 t2) where T22 : class
+    {
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F1");
+            Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            TypeParameterSymbol t11 = bf1.TypeParameters[0];
+            Assert.False(t11.ReferenceTypeConstraintIsNullable);
+
+            var af1 = bf1.OverriddenMethod;
+            Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            TypeParameterSymbol t1 = af1.TypeParameters[0];
+            Assert.False(t1.ReferenceTypeConstraintIsNullable);
+
+            var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F2");
+            Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+            TypeParameterSymbol t22 = bf2.TypeParameters[0];
+            Assert.True(t22.ReferenceTypeConstraintIsNullable);
+
+            var af2 = bf2.OverriddenMethod;
+            Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+            TypeParameterSymbol t2 = af2.TypeParameters[0];
+            Assert.True(t2.ReferenceTypeConstraintIsNullable);
         }
 
         [Fact]

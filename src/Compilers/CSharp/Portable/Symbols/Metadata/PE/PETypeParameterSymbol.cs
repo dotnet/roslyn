@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (constraints.Count == 0)
                     {
-                        if (module.HasNullableAttribute(_handle, out byte transformFlag, out _) && (NullableAnnotation)transformFlag == NullableAnnotation.Annotated)
+                        if (module.HasNullableAttribute(_handle, out byte transformFlag, out _) && transformFlag == NullableAnnotationExtensions.AnnotatedAttributeValue)
                         {
                             return false;
                         }
