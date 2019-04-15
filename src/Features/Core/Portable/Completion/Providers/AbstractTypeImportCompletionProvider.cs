@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     if (!namespacesInScope.Contains(containingNamespace))
                     {
                         // We can return cached item directly, item's span will be fixed by completion service.
-                        
+
                         // On the other hand, because of this (i.e. mutating the  span of cached item for each run),
                         // the provider can not be used as a service by components that might be run in parallel 
                         // with completion, which would be a race.
@@ -162,47 +162,59 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(completionItem);
             Debug.Assert(containingNamespace != null);
 
-            // Find context node so we can use it to decide where to insert using/imports.
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var addImportContextNode = root.FindToken(completionItem.Span.Start, findInsideTrivia: true).Parent;
+            if (document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            {
+                // Find context node so we can use it to decide where to insert using/imports.
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                var addImportContextNode = root.FindToken(completionItem.Span.Start, findInsideTrivia: true).Parent;
 
-            // Add required using/imports directive.                              
-            var addImportService = document.GetLanguageService<IAddImportsService>();
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var importNode = CreateImport(document, containingNamespace);
+                // Add required using/imports directive.                              
+                var addImportService = document.GetLanguageService<IAddImportsService>();
+                var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var importNode = CreateImport(document, containingNamespace);
 
-            var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst);
-            var documentWithImport = document.WithSyntaxRoot(rootWithImport);
-            var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst);
+                var documentWithImport = document.WithSyntaxRoot(rootWithImport);
+                var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var builder = ArrayBuilder<TextChange>.GetInstance();
+                var builder = ArrayBuilder<TextChange>.GetInstance();
 
-            // Get text change for add improt
-            var importChanges = await formattedDocumentWithImport.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            builder.AddRange(importChanges);
+                // Get text change for add improt
+                var importChanges = await formattedDocumentWithImport.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+                builder.AddRange(importChanges);
 
-            // Create text change for complete type name.
-            //
-            // Note: Don't try to obtain TextChange for completed type name by replacing the text directly, 
-            //       then use Document.GetTextChangesAsync on document created from the changed text. This is
-            //       because it will do a diff and return TextChanges with minimum span instead of actual 
-            //       replacement span.
-            //
-            //       For example: If I'm typing "asd", the completion provider could be triggered after "a"
-            //       is typed. Then if I selected type "AsnEncodedData" to commit, by using the approach described 
-            //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
-            //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
-            //       with "AsnEncodedDatasd" in the code.
-            builder.Add(new TextChange(completionItem.Span, completionItem.DisplayText));
+                // Create text change for complete type name.
+                //
+                // Note: Don't try to obtain TextChange for completed type name by replacing the text directly, 
+                //       then use Document.GetTextChangesAsync on document created from the changed text. This is
+                //       because it will do a diff and return TextChanges with minimum span instead of actual 
+                //       replacement span.
+                //
+                //       For example: If I'm typing "asd", the completion provider could be triggered after "a"
+                //       is typed. Then if I selected type "AsnEncodedData" to commit, by using the approach described 
+                //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
+                //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
+                //       with "AsnEncodedDatasd" in the code.
+                builder.Add(new TextChange(completionItem.Span, completionItem.DisplayText));
 
-            // Then get the combined change
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newText = text.WithChanges(builder);
+                // Then get the combined change
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = text.WithChanges(builder);
 
-            return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
+                return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
+            }
+            else
+            {
+                // For workspace that doesn't support document change, e.g. DebuggerIntellisense
+                // we complete the type name in its fully qualified form instead.
+                var fullyQualifiedName = containingNamespace + completionItem.DisplayText;
+                var change = new TextChange(completionItem.Span, fullyQualifiedName);
+
+                return CompletionChange.Create(change);
+            }
         }
 
         private static SyntaxNode CreateImport(Document document, string namespaceName)
