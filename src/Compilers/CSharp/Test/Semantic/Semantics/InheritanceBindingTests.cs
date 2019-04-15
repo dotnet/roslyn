@@ -8621,6 +8621,878 @@ class Derived : Base
         }
 
         [Fact]
+        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter_WithStructConstraint()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Goo<T>(T? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Goo<T>(T? value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
+
+            Assert.True(c2Goo.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        public void OverrideMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter_WithStructConstraint()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T? value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T? value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
+
+            Assert.True(dGoo.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        public void AllowStructConstraintInOverride()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AllowClassConstraintInOverride()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : class;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ErrorIfNonExistentTypeParameter_HasStructConstraintInOverride()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value);
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where U : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,48): error CS0699: 'Derived.Goo<T>(T)' does not define type parameter 'U'
+                //     public override void Goo<T>(T value) where U : struct { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "Derived.Goo<T>(T)").WithLocation(9, 48));
+        }
+
+        [Fact]
+        public void ErrorIfNonExistentTypeParameter_HasClassConstraintInOverride()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value);
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where U : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,48): error CS0699: 'Derived.Goo<T>(T)' does not define type parameter 'U'
+                //     public override void Goo<T>(T value) where U : class { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "Derived.Goo<T>(T)").WithLocation(9, 48));
+        }
+
+        [Fact]
+        public void ErrorIfTypeParameterDeclaredOutsideMethod_HasStructConstraintInOverride()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value);
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where U : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,48): error CS0699: 'Derived.Goo<T>(T)' does not define type parameter 'U'
+                //     public override void Goo<T>(T value) where U : struct { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "Derived.Goo<T>(T)").WithLocation(9, 48));
+        }
+
+        [Fact]
+        public void ErrorIfTypeParameterDeclaredOutsideMethod_HasClassConstraintInOverride()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value);
+}
+
+class Derived<U> : Base
+{
+    public override void Goo<T>(T value) where U : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,48): error CS0699: 'Derived<U>.Goo<T>(T)' does not define type parameter 'U'
+                //     public override void Goo<T>(T value) where U : class { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "Derived<U>.Goo<T>(T)").WithLocation(9, 48));
+        }
+
+        [Fact]
+        public void AllowStructConstraintInExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value) where T : struct;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AllowClassConstraintInExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value) where T : class;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ErrorIfNonExistentTypeParameter_HasStructConstraintInExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value);
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where U : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,34): error CS0699: 'C.I.Goo<T>(T)' does not define type parameter 'U'
+                //     void I.Goo<T>(T value) where U : struct { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "C.I.Goo<T>(T)").WithLocation(9, 34));
+        }
+
+        [Fact]
+        public void ErrorIfNonExistentTypeParameter_HasClassConstraintInExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value);
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where U : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,34): error CS0699: 'C.I.Goo<T>(T)' does not define type parameter 'U'
+                //     void I.Goo<T>(T value) where U : class { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "C.I.Goo<T>(T)").WithLocation(9, 34));
+        }
+
+        [Fact]
+        public void ErrorIfTypeParameterDeclaredOutsideMethod_HasStructConstraintInExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value);
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where U : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,34): error CS0699: 'C.I.Goo<T>(T)' does not define type parameter 'U'
+                //     void I.Goo<T>(T value) where U : struct { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "C.I.Goo<T>(T)").WithLocation(9, 34));
+        }
+
+        [Fact]
+        public void ErrorIfTypeParameterDeclaredOutsideMethod_HasClassConstraintInExplicitInterfaceImplementation()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value);
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where U : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,34): error CS0699: 'C.I.Goo<T>(T)' does not define type parameter 'U'
+                //     void I.Goo<T>(T value) where U : class { }
+                Diagnostic(ErrorCode.ERR_TyVarNotFoundInConstraint, "U").WithArguments("U", "C.I.Goo<T>(T)").WithLocation(9, 34));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasStructAndClassConstraints1()
+        {
+            var source = @"
+abstract class Base
+{
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct, class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (8,26): error CS0115: 'Derived.Goo<T>(T)': no suitable method found to override
+                //     public override void Goo<T>(T value) where T : class, struct { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Goo").WithArguments("Derived.Goo<T>(T)").WithLocation(8, 26),
+                // (8,42): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : class, struct { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 42));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasStructAndClassConstraints2()
+        {
+            var source = @"
+abstract class Base
+{
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class, struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (8,26): error CS0115: 'Derived.Goo<T>(T)': no suitable method found to override
+                //     public override void Goo<T>(T value) where T : class, struct { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Goo").WithArguments("Derived.Goo<T>(T)").WithLocation(8, 26),
+                // (8,42): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : class, struct { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 42));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasStructAndClassConstraints3()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct, class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,42): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : struct, class { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(9, 42));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitImplementation_HasStructAndClassConstraints1()
+        {
+            var source = @"
+interface I
+{
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : struct, class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (8,12): error CS0539: 'C.Goo<T>(T)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.Goo<T>(T value) where T : struct, class { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C.Goo<T>(T)").WithLocation(8, 12),
+                // (8,28): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.Goo<T>(T value) where T : struct, class { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 28));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitImplementation_HasStructAndClassConstraints2()
+        {
+            var source = @"
+interface I
+{
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class, struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (8,12): error CS0539: 'C.Goo<T>(T)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.Goo<T>(T value) where T : class, struct { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Goo").WithArguments("C.Goo<T>(T)").WithLocation(8, 12),
+                // (8,28): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.Goo<T>(T value) where T : class, struct { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 28));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitImplementation_HasStructAndClassConstraints3()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value) where T : struct;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : struct, class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,28): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.Goo<T>(T value) where T : struct, class { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(9, 28));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasNullableClassConstraint()
+        {
+            var source = @"
+#nullable enable
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : class?;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class? { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,42): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : class? { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(10, 42));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementation_HasNullableClassConstraint()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Goo<T>(T value) where T : class?;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class? { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,28): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.Goo<T>(T value) where T : class? { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(10, 28));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasReferenceTypeConstraint1()
+        {
+            var source = @"
+using System.IO;
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : Stream;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : Stream { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,42): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : Stream { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(10, 42));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasReferenceTypeConstraint2()
+        {
+            var source = @"
+using System.IO;
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : Stream;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class, Stream { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,42): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T>(T value) where T : class, Stream { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(10, 42));
+        }
+
+        [Fact]
+        public void Error_WhenOverride_HasReferenceTypeConstraint3()
+        {
+            var source = @"
+using System.IO;
+abstract class Base
+{
+    public abstract void Goo<T, U>(T value) where T : class where U : Stream;
+}
+
+class Derived : Base
+{
+    public override void Goo<T, U>(T value) where T : class where U : Stream { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     public override void Goo<T, U>(T value) where T : class where U Stream { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(10, 45));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementation_HasReferenceTypeConstraint1()
+        {
+            var source = @"
+using System.IO;
+interface I
+{
+    void Goo<T>(T value) where T : Stream;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : Stream { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,28): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.Goo<T>(T value) where T : Stream { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(10, 28));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementation_HasReferenceTypeConstraint2()
+        {
+            var source = @"
+using System.IO;
+interface I
+{
+    void Goo<T>(T value) where T : Stream;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class, Stream { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,28): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.Goo<T>(T value) where T : class, Stream { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(10, 28));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementation_HasReferenceTypeConstraint3()
+        {
+            var source = @"
+using System.IO;
+interface I
+{
+    void Goo<T, U>(T value) where T : class where U : Stream;
+}
+
+class C : I
+{
+    void I.Goo<T, U>(T value) where T : class where U : Stream { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,31): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.Goo<T, U>(T value) where T : class where U : Stream { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(10, 31));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementationHasStructConstraint_AndInterfaceDoesNot1()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value);
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,16): error CS8665: Type parameter 'T' of method 'C.I.Goo<T>(T)' declares a 'struct' constraint, but type parameter 'T' of overridden or explicitly implemented method 'I.Goo<T>(T)' is not constrained to a 'struct'.
+                //     void I.Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "C.I.Goo<T>(T)", "struct", "T", "I.Goo<T>(T)").WithLocation(9, 16));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementationHasStructConstraint_AndInterfaceDoesNot2()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value) where T : class;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,16): error CS8665: Type parameter 'T' of method 'C.I.Goo<T>(T)' declares a 'struct' constraint, but type parameter 'T' of overridden or explicitly implemented method 'I.Goo<T>(T)' is not constrained to a 'struct'.
+                //     void I.Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "C.I.Goo<T>(T)", "struct", "T", "I.Goo<T>(T)").WithLocation(9, 16));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementationHasStructConstraint_AndInterfaceDoesNot3()
+        {
+            var source = @"
+using System.IO;
+interface I
+{
+    void Goo<T>(T value) where T : Stream;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,16): error CS8665: Type parameter 'T' of method 'C.I.Goo<T>(T)' declares a 'struct' constraint, but type parameter 'T' of overridden or explicitly implemented method 'I.Goo<T>(T)' is not constrained to a 'struct'.
+                //     void I.Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "C.I.Goo<T>(T)", "struct", "T", "I.Goo<T>(T)").WithLocation(10, 16));
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasStructConstraint_AndOverriddenDoesNot1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value);
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,30): error CS8665: Type parameter 'T' of method 'Derived.Goo<T>(T)' declares a 'struct' constraint, but type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not constrained to a 'struct'.
+                //     public override void Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "Derived.Goo<T>(T)", "struct", "T", "Base.Goo<T>(T)").WithLocation(9, 30));
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasStructConstraint_AndOverriddenDoesNot2()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : class;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,30): error CS8665: Type parameter 'T' of method 'Derived.Goo<T>(T)' declares a 'struct' constraint, but type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not constrained to a 'struct'.
+                //     public override void Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "Derived.Goo<T>(T)", "struct", "T", "Base.Goo<T>(T)").WithLocation(9, 30));
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasStructConstraint_AndOverriddenDoesNot3()
+        {
+            var source = @"
+using System.IO;
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : Stream;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,30): error CS8665: Type parameter 'T' of method 'Derived.Goo<T>(T)' declares a 'struct' constraint, but type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not constrained to a 'struct'.
+                //     public override void Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "Derived.Goo<T>(T)", "struct", "T", "Base.Goo<T>(T)").WithLocation(10, 30));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementationHasClassConstraint_AndInterfaceDoesNot1()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value);
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,16): error CS8665: Type parameter 'T' of method 'C.I.Goo<T>(T)' declares a 'class' constraint, but type parameter 'T' of overridden or explicitly implemented method 'I.Goo<T>(T)' is not constrained to a 'class'.
+                //     void I.Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "C.I.Goo<T>(T)", "class", "T", "I.Goo<T>(T)").WithLocation(9, 16));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementationHasClassConstraint_AndInterfaceDoesNot2()
+        {
+            var source = @"
+interface I
+{
+    void Goo<T>(T value) where T : struct;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,16): error CS8665: Type parameter 'T' of method 'C.I.Goo<T>(T)' declares a 'class' constraint, but type parameter 'T' of overridden or explicitly implemented method 'I.Goo<T>(T)' is not constrained to a 'class'.
+                //     void I.Goo<T>(T value) where T : class{ }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "C.I.Goo<T>(T)", "class", "T", "I.Goo<T>(T)").WithLocation(9, 16));
+        }
+
+        [Fact]
+        public void Error_WhenExplicitInterfaceImplementationHasClassConstraint_AndInterfaceDoesNot3()
+        {
+            var source = @"
+using System;
+interface I
+{
+    void Goo<T>(T value) where T : Enum;
+}
+
+class C : I
+{
+    void I.Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,16): error CS8665: Type parameter 'T' of method 'C.I.Goo<T>(T)' declares a 'class' constraint, but type parameter 'T' of overridden or explicitly implemented method 'I.Goo<T>(T)' is not constrained to a 'class'.
+                //     void I.Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "C.I.Goo<T>(T)", "class", "T", "I.Goo<T>(T)").WithLocation(10, 16));
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasClassConstraint_AndOverriddenDoesNot1()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value);
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,30): error CS8665: Type parameter 'T' of method 'Derived.Goo<T>(T)' declares a 'class' constraint, but type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not constrained to a 'class'.
+                //     public override void Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "Derived.Goo<T>(T)", "class", "T", "Base.Goo<T>(T)").WithLocation(9, 30));
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasClassConstraint_AndOverriddenDoesNot2()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : struct;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,30): error CS8665: Type parameter 'T' of method 'Derived.Goo<T>(T)' declares a 'class' constraint, but type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not constrained to a 'class'.
+                //     public override void Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "Derived.Goo<T>(T)", "class", "T", "Base.Goo<T>(T)").WithLocation(9, 30));
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasClassConstraint_AndOverriddenDoesNot3()
+        {
+            var source = @"
+using System;
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : Enum;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,30): error CS8665: Type parameter 'T' of method 'Derived.Goo<T>(T)' declares a 'class' constraint, but type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not constrained to a 'class'.
+                //     public override void Goo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "Derived.Goo<T>(T)", "class", "T", "Base.Goo<T>(T)").WithLocation(10, 30));
+        }
+
+        [Fact]
+        public void Error_WhenOverrideHasStructConstraint_AndOverriddenHasEnumConstraint()
+        {
+            var source = @"
+using System;
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : Enum;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,30): error CS8665: Type parameter 'T' of method 'Derived.Goo<T>(T)' declares a 'struct' constraint, but type parameter 'T' of overridden or explicitly implemented method 'Base.Goo<T>(T)' is not constrained to a 'struct'.
+                //     public override void Goo<T>(T value) where T : struct { }
+                Diagnostic(ErrorCode.ERR_OverrideOrExpImplBadConstraints, "T").WithArguments("T", "Derived.Goo<T>(T)", "struct", "T", "Base.Goo<T>(T)").WithLocation(10, 30));
+        }
+
+        [Fact]
+        public void NoError_WhenOverrideHasStructConstraint_AndOverriddenHasUnmanagedConstraint()
+        {
+            var source = @"
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : unmanaged;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : struct { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NoError_WhenOverrideHasClassConstraint_AndOverriddenHasReferenceTypeConstraint()
+        {
+            var source = @"
+using System.IO;
+abstract class Base
+{
+    public abstract void Goo<T>(T value) where T : Stream;
+}
+
+class Derived : Base
+{
+    public override void Goo<T>(T value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+
+        [Fact]
         [WorkItem(34583, "https://github.com/dotnet/roslyn/issues/34583")]
         public void ExplicitImplementationOfNullableStructWithMultipleTypeParameters()
         {

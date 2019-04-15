@@ -297,6 +297,11 @@
         <target state="translated">Eine out-Variable kann nicht als lokales ref-Element deklariert werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverrideOrExpImplBadConstraints">
+        <source>Type parameter '{0}' of method '{1}' declares a '{2}' constraint, but type parameter '{3}' of overridden or explicitly implemented method '{4}' is not constrained to a '{2}'.</source>
+        <target state="new">Type parameter '{0}' of method '{1}' declares a '{2}' constraint, but type parameter '{3}' of overridden or explicitly implemented method '{4}' is not constrained to a '{2}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="new">Both partial method declarations must be readonly or neither may be readonly</target>
@@ -3428,8 +3433,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
-        <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</source>
-        <target state="translated">Einschränkungen für Überschreibungs- und explizite Schnittstellenimplementierungsmethoden werden von der Basismethode geerbt und können daher nicht direkt angegeben werden.</target>
+        <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</source>
+        <target state="needs-review-translation">Einschränkungen für Überschreibungs- und explizite Schnittstellenimplementierungsmethoden werden von der Basismethode geerbt und können daher nicht direkt angegeben werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigOverride">

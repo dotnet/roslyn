@@ -1693,6 +1693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FieldLikeEventCantBeReadOnly = 8662,
         ERR_PartialMethodReadOnlyDifference = 8663,
         ERR_ReadOnlyModMissingAccessor = 8664,
+        ERR_OverrideOrExpImplBadConstraints = 8665,
 
 
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8701,

@@ -1381,7 +1381,7 @@
     <value>Cannot use attribute constructor '{0}' because it is has 'in' parameters.</value>
   </data>
   <data name="ERR_OverrideWithConstraints" xml:space="preserve">
-    <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</value>
+    <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</value>
   </data>
   <data name="ERR_AmbigOverride" xml:space="preserve">
     <value>The inherited members '{0}' and '{1}' have the same signature in type '{2}', so they cannot be overridden</value>
@@ -5882,5 +5882,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_NullReferenceIterationVariable_Title" xml:space="preserve">
 	<value>Possible null reference assignment to iteration variable</value>
+  </data>
+  <data name="ERR_OverrideOrExpImplBadConstraints" xml:space="preserve">
+    <value>Type parameter '{0}' of method '{1}' declares a '{2}' constraint, but type parameter '{3}' of overridden or explicitly implemented method '{4}' is not constrained to a '{2}'.</value>
   </data>
 </root>

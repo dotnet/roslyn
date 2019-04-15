@@ -249,6 +249,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _extensions.TryForceResolveAsNullableValueType();
         }
 
+        /// <summary>
+        /// If this is a lazy nullable type, forces this to be resolved as a nullable reference type, and return true.
+        /// Otherwise, return false.
+        /// </summary>
+        public bool TryForceResolveAsNullableReferenceType()
+        {
+            return _extensions.TryForceResolveAsNullableReferenceType();
+        }
+
         private TypeWithAnnotations AsNullableReferenceType() => _extensions.AsNullableReferenceType(this);
         public TypeWithAnnotations AsNotNullableReferenceType() => _extensions.AsNotNullableReferenceType(this);
 
@@ -774,6 +783,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics);
 
             internal abstract bool TryForceResolveAsNullableValueType();
+
+            internal abstract bool TryForceResolveAsNullableReferenceType();
         }
 
         private sealed class NonLazyType : Extensions
@@ -868,6 +879,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
+
+            internal override bool TryForceResolveAsNullableReferenceType()
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -899,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!_underlying.Type.IsValueType)
                     {
-                        _resolved = _underlying.Type;
+                        TryForceResolveAsNullableReferenceType();
                     }
                     else
                     {
@@ -1038,6 +1054,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Interlocked.CompareExchange(ref _resolved,
                     _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(_underlying)),
                     null) is null;
+            }
+
+            internal override bool TryForceResolveAsNullableReferenceType()
+            {
+                _resolved = _underlying.Type;
+                return true;
             }
         }
     }
