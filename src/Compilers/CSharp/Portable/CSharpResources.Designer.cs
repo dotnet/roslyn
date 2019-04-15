@@ -8044,7 +8044,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly.
+        ///   Looks up a localized string similar to Type parameter &apos;{0}&apos; of method &apos;{1}&apos; declares a &apos;{2}&apos; constraint, but type parameter &apos;{3}&apos; of overridden or explicitly implemented method &apos;{4}&apos; is not constrained to a &apos;{2}&apos;..
+        /// </summary>
+        internal static string ERR_OverrideOrExpImplBadConstraints {
+            get {
+                return ResourceManager.GetString("ERR_OverrideOrExpImplBadConstraints", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a &apos;class&apos;, or a &apos;struct&apos; constraint..
         /// </summary>
         internal static string ERR_OverrideWithConstraints {
             get {

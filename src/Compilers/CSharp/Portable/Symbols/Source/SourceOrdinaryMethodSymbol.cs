@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _isExpressionBodied;
         private readonly bool _hasAnyBody;
         private readonly RefKind _refKind;
+        private SmallDictionary<TypeParameterSymbol, DeclaredConstraintType> _declaredConstraints;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
@@ -138,17 +139,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (syntax.ExplicitInterfaceSpecifier != null ||
                     syntax.Modifiers.Any(SyntaxKind.OverrideKeyword))
                 {
-                    bool anyInvalidConstraints = false;
-                    foreach(var constraintClause in syntax.ConstraintClauses)
+                    _declaredConstraints = new SmallDictionary<TypeParameterSymbol, DeclaredConstraintType>();
+                    var typeParameterNameDic = new SmallDictionary<string, TypeParameterSymbol>();
+                    foreach (var typeParameter in _typeParameters)
                     {
-                        foreach (var constraint in constraintClause.Constraints)
+                        if (!typeParameterNameDic.ContainsKey(typeParameter.Name))
+                            typeParameterNameDic.Add(typeParameter.Name, typeParameter);
+                        _declaredConstraints.Add(typeParameter, DeclaredConstraintType.None);
+                    }
+
+                    bool anyInvalidConstraints = false;
+                    foreach (var constraintClause in syntax.ConstraintClauses)
+                    {
+                        if (constraintClause.Constraints.Count > 1)
                         {
-                            if (constraint.Kind() != SyntaxKind.ClassConstraint && constraint.Kind() != SyntaxKind.StructConstraint)
-                            {
-                                anyInvalidConstraints = true;
-                            }
+                            anyInvalidConstraints = true;
+                            continue;
+                        }
+
+                        if (constraintClause.Constraints.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        var constraint = constraintClause.Constraints[0];
+                        if (!(constraint is ClassOrStructConstraintSyntax classOrStructConstraint) || classOrStructConstraint.QuestionToken != default)
+                        {
+                            anyInvalidConstraints = true;
+                            continue;
+                        }
+
+                        var typeParamName = constraintClause.Name.Identifier.ValueText;
+
+                        if (typeParameterNameDic.TryGetValue(typeParamName, out var typeParameter))
+                        {
+                            _declaredConstraints[typeParameter] = constraint.Kind() == SyntaxKind.ClassConstraint ? DeclaredConstraintType.Class : DeclaredConstraintType.Struct;
+                        }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_TyVarNotFoundInConstraint, constraintClause.Name.Location, typeParamName, this);
                         }
                     }
+
                     if (anyInvalidConstraints)
                     {
                         diagnostics.Add(
@@ -398,20 +430,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (_declaredConstraints is { })
+            {
+                var overriddenOrImplementedMethod = _lazyExplicitInterfaceImplementations.IsEmpty ? this.OverriddenMethod : _lazyExplicitInterfaceImplementations[0];
+                if (overriddenOrImplementedMethod is { })
+                {
+                    foreach (var (typeParam, constraint) in _declaredConstraints)
+                    {
+                        if (constraint == DeclaredConstraintType.Class && !typeParam.IsReferenceType)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_OverrideOrExpImplBadConstraints, typeParam.Locations[0], typeParam, this, "class", overriddenOrImplementedMethod.TypeParameters[typeParam.Ordinal], overriddenOrImplementedMethod);
+                        }
+                        else if (constraint == DeclaredConstraintType.Struct && !typeParam.IsValueType)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_OverrideOrExpImplBadConstraints, typeParam.Locations[0], typeParam, this, "struct", overriddenOrImplementedMethod.TypeParameters[typeParam.Ordinal], overriddenOrImplementedMethod);
+                        }
+                    }
+                }
+            }
+
             CheckModifiers(_hasAnyBody, location, diagnostics);
 
             return;
 
             void forceMethodTypeParametersAsNullable(TypeWithAnnotations type)
             {
-                type.VisitType<object>(null, (type, unused1, unused2) =>
+                type.VisitType(null, (type, method, unused2) =>
                 {
-                    if ((type.DefaultType as TypeParameterSymbol)?.DeclaringMethod == (object)this)
+                    if (type.DefaultType is TypeParameterSymbol typeParameterSymbol && typeParameterSymbol.DeclaringMethod == (object)method)
                     {
-                        type.TryForceResolveAsNullableValueType();
+                        if ((method._declaredConstraints?[typeParameterSymbol] ?? DeclaredConstraintType.None) == DeclaredConstraintType.Class)
+                        {
+                            type.TryForceResolveAsNullableReferenceType();
+                        }
+                        else
+                        {
+                            type.TryForceResolveAsNullableValueType();
+                        }
                     }
                     return false;
-                }, typePredicateOpt: null, arg: null, canDigThroughNullable: false, useDefaultType: true);
+                }, typePredicateOpt: null, arg: this, canDigThroughNullable: false, useDefaultType: true);
             }
         }
 
@@ -1208,5 +1266,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool GenerateDebugInfo => !IsAsync && !IsIterator;
+
+        // Overrides and Explicit Interface Implementations can only declare struct and class constraints.
+        private enum DeclaredConstraintType
+        {
+            None,
+            Struct,
+            Class,
+        }
     }
 }

@@ -10621,9 +10621,6 @@ class B : A
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
-                // (11,38): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                //     public override void M1<T>(T? x) where T : struct
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(11, 38),
                 // (11,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
                 //     public override void M1<T>(T? x) where T : struct
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(11, 26),
@@ -12359,7 +12356,7 @@ class B : IA
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
         public void ImplementingNonNullWithNullable_02()
         {
@@ -12757,7 +12754,7 @@ class B : A
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         public void Overriding_26()
         {
             var source = @"
@@ -12803,7 +12800,7 @@ class B : A
             Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         public void Overriding_27()
         {
             var source = @"
@@ -12870,7 +12867,7 @@ class C<T> {}
             Assert.False(((NamedTypeSymbol)m5.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         public void Overriding_28()
         {
             var source = @"
@@ -12930,7 +12927,7 @@ class B : A
                 TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
         public void Overriding_29()
         {
@@ -12986,7 +12983,7 @@ class B : A
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         public void Overriding_30()
         {
             var source = @"
@@ -13043,7 +13040,7 @@ class B : A
                 TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
         public void Overriding_31()
         {
@@ -13087,7 +13084,7 @@ class B : A
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         [WorkItem(29847, "https://github.com/dotnet/roslyn/issues/29847")]
         public void Overriding_32()
         {
@@ -14398,7 +14395,7 @@ public partial class C3 : I1<A?> {}
 C3.M");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         public void Implementing_22()
         {
             var source = @"
@@ -14467,7 +14464,7 @@ class B : IA
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         public void Implementing_23()
         {
 
@@ -14531,7 +14528,7 @@ class B : IA
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         public void Implementing_24()
         {
             var source = @"
@@ -41048,7 +41045,7 @@ class C : I
             Assert.Empty(implementations);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         public void ExplicitImplementations_LazyMethodChecks_01()
         {
             var source =
@@ -57315,12 +57312,9 @@ class B : IA
                 // (10,26): error CS0453: The type 'T11' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     void IA.F1<T11>(T11? t1) where T11 : class?
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t1").WithArguments("System.Nullable<T>", "T", "T11").WithLocation(10, 26),
-                // (10,30): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (10,30): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     void IA.F1<T11>(T11? t1) where T11 : class?
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(10, 30),
-                // (14,29): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                //     void IA.F2<T22>(T22 t2) where T22 : class
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(14, 29));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(10, 30));
 
             var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.IA.F1");
             Assert.Equal("void B.F1<T11>(T11? t1)", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -60171,7 +60165,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(12, 20));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         public void Constraints_152()
         {
             var source =
@@ -60262,7 +60256,7 @@ class B : A<int>
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         public void Constraints_153()
         {
             var source1 =
@@ -60333,7 +60327,7 @@ class B : A<int>
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         public void Constraints_154()
         {
             var source1 =
@@ -60407,7 +60401,7 @@ class B : A<int>
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34798")]
+        [Fact()]
         public void Constraints_155()
         {
             var source =
@@ -89050,6 +89044,360 @@ class Derived<T> : Base<T> where T : class
 
             Assert.False(dGoo.Parameters[0].Type.IsNullableType());
             Assert.True(dGoo.Parameters[0].TypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated);
+        }
+
+        [Fact]
+        public void ImplementMethodTakingNullableClassParameter_WithMethodTakingNullableClassParameter1()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>(T? value) where T : class;
+}
+
+class C1 : I
+{
+    public void Foo<T>(T? value) where T : class { }
+}
+
+class C2 : I
+{
+    void I.Foo<T>(T? value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+
+            Assert.True(c2Foo.Parameters[0].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, c2Foo.Parameters[0].TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void ImplementMethodTakingNullableClassParameter_WithMethodTakingNullableClassParameter2()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>(T?[] value) where T : class;
+}
+
+class C1 : I
+{
+    public void Foo<T>(T?[] value) where T : class { }
+}
+
+class C2 : I
+{
+    void I.Foo<T>(T?[] value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+
+            Assert.True(((ArrayTypeSymbol)c2Foo.Parameters[0].Type).ElementType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, ((ArrayTypeSymbol)c2Foo.Parameters[0].Type).ElementTypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void ImplementMethodTakingNullableClassParameter_WithMethodTakingNullableClassParameter3()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>((T a, T? b)? value) where T : class;
+}
+
+class C1 : I
+{
+    public void Foo<T>((T a, T? b)? value) where T : class { }
+}
+
+class C2 : I
+{
+    void I.Foo<T>((T a, T? b)? value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+
+            Assert.True(c2Foo.Parameters[0].Type.IsNullableType());
+            var tuple = c2Foo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.True(tuple.TupleElements[0].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.NotAnnotated, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
+            Assert.True(tuple.TupleElements[1].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, tuple.TupleElements[1].TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void ImplementMethodReturningNullableClassParameter_WithMethodReturningNullableClass1()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    T? Foo<T>() where T : class;
+}
+
+class C1 : I
+{
+    public T? Foo<T>() where T : class => default;
+}
+
+class C2 : I
+{
+    T? I.Foo<T>() where T : class => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+
+            Assert.True(c2Foo.ReturnType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, c2Foo.ReturnTypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void ImplementMethodReturningNullableClassParameter_WithMethodReturningNullableClass2()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    T?[] Foo<T>() where T : class;
+}
+
+class C1 : I
+{
+    public T?[] Foo<T>() where T : class => default!;
+}
+
+class C2 : I
+{
+    T?[] I.Foo<T>() where T : class => default!;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+
+            Assert.True(((ArrayTypeSymbol)c2Foo.ReturnType).ElementType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, ((ArrayTypeSymbol)c2Foo.ReturnType).ElementTypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void ImplementMethodReturningNullableClassParameter_WithMethodReturningNullableClass3()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    (T a, T? b)? Foo<T>() where T : class;
+}
+
+class C1 : I
+{
+    public (T a, T? b)? Foo<T>() where T : class => default;
+}
+
+class C2 : I
+{
+    (T a, T? b)? I.Foo<T>() where T : class => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+
+            Assert.True(c2Foo.ReturnType.IsNullableType());
+            var tuple = c2Foo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.True(tuple.TupleElements[0].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.NotAnnotated, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
+            Assert.True(tuple.TupleElements[1].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, tuple.TupleElements[1].TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void OverrideMethodTakingNullableClassParameter_WithMethodTakingNullableClassParameter1()
+        {
+            var source = @"
+#nullable enable
+abstract class Base
+{
+    public abstract void Foo<T>(T? value) where T : class;
+}
+
+class Derived : Base
+{
+    public override void Foo<T>(T? value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.Parameters[0].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, dFoo.Parameters[0].TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void OverrideMethodTakingNullableClassParameter_WithMethodTakingNullableClassParameter2()
+        {
+            var source = @"
+#nullable enable
+abstract class Base
+{
+    public abstract void Foo<T>(T?[] value) where T : class;
+}
+
+class Derived : Base
+{
+    public override void Foo<T>(T?[] value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(((ArrayTypeSymbol)dFoo.Parameters[0].Type).ElementType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, ((ArrayTypeSymbol)dFoo.Parameters[0].Type).ElementTypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void OverrideMethodTakingNullableClassParameter_WithMethodTakingNullableClassParameter3()
+        {
+            var source = @"
+#nullable enable
+abstract class Base
+{
+    public abstract void Foo<T>((T a, T? b)? value) where T : class;
+}
+
+class Derived : Base
+{
+    public override void Foo<T>((T a, T? b)? value) where T : class { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.Parameters[0].Type.IsNullableType());
+            var tuple = dFoo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.True(tuple.TupleElements[0].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.NotAnnotated, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
+            Assert.True(tuple.TupleElements[1].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, tuple.TupleElements[1].TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void OverrideMethodReturningNullableClassParameter_WithMethodReturningNullableClass1()
+        {
+            var source = @"
+#nullable enable
+abstract class Base
+{
+    public abstract T? Foo<T>() where T : class;
+}
+
+class Derived : Base
+{
+    public override T? Foo<T>() where T : class => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.ReturnType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, dFoo.ReturnTypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void OverrideMethodReturningNullableClassParameter_WithMethodReturningNullableClass2()
+        {
+            var source = @"
+#nullable enable
+abstract class Base
+{
+    public abstract T?[] Foo<T>() where T : class;
+}
+
+class Derived : Base
+{
+    public override T?[] Foo<T>() where T : class => default!;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(((ArrayTypeSymbol)dFoo.ReturnType).ElementType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, ((ArrayTypeSymbol)dFoo.ReturnType).ElementTypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void OverrideMethodReturningNullableClassParameter_WithMethodReturningNullableClass3()
+        {
+            var source = @"
+#nullable enable
+abstract class Base
+{
+    public abstract (T a, T? b)? Foo<T>() where T : class;
+}
+
+class Derived : Base
+{
+    public override (T a, T? b)? Foo<T>() where T : class => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.ReturnType.IsNullableType());
+            var tuple = dFoo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.True(tuple.TupleElements[0].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.NotAnnotated, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
+            Assert.True(tuple.TupleElements[1].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, tuple.TupleElements[1].TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void OverrideMethod_WithMultipleClassAndStructConstraints()
+        {
+            var source = @"
+using System.IO;
+
+#nullable enable
+abstract class Base
+{
+    public abstract T? Foo<T, U, V>(U? u, (V?, U?) vu) where T : Stream where U : struct where V : class;
+}
+
+class Derived : Base
+{
+    public override T? Foo<T, U, V>(U? u, (V?, U?) vu) where T : class where U : struct where V : class => default!;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+
+            Assert.True(dFoo.ReturnType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, dFoo.ReturnTypeWithAnnotations.NullableAnnotation);
+
+            Assert.True(dFoo.Parameters[0].Type.IsNullableType());
+
+            var tuple = dFoo.Parameters[1].Type;
+            Assert.True(tuple.TupleElements[0].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
+            Assert.True(tuple.TupleElements[1].Type.IsNullableType());
         }
     }
 }
