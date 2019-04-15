@@ -5,15 +5,12 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Analyzer.Utilities;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
-
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CallSiteImplicitAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>
     {
