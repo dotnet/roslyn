@@ -57,8 +57,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     return CompletionTriggerKind.Deletion;
                 case AsyncCompletionData.CompletionTriggerReason.SnippetsMode:
                     return CompletionTriggerKind.Snippets;
-                case AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique:
-                    return CompletionTriggerKind.InvokeAndCommitIfUnique;
                 default:
                     return CompletionTriggerKind.Invoke;
             }
