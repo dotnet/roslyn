@@ -143,12 +143,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
+            // Telemetry
+            if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
+            {
+                // Capture the % of committed completion items that would have appeared in the "Target type matches" filter
+                // (regardless of whether that filter button was active at the time of commit).
+                AsyncCompletionLogger.LogCommitWithTargetTypeCompletionExperimentEnabled();
+                if (item.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
+                {
+                    AsyncCompletionLogger.LogCommitItemWithTargetTypeFilter();
+                }
+            }
+
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
                 triggerDocument, completionService, session.TextView, subjectBuffer,
-                item, roslynItem, commitChar, triggerSnapshot, serviceRules, filterText,
-                cancellationToken);
+                roslynItem, commitChar, triggerSnapshot, serviceRules, filterText, cancellationToken);
 
             _recentItemsManager.MakeMostRecentItem(roslynItem.DisplayText);
             return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
@@ -159,7 +170,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionService completionService,
             ITextView view,
             ITextBuffer subjectBuffer,
-            VSCompletionItem item,
             RoslynCompletionItem roslynItem,
             TextSpan completionListSpan,
             char? commitCharacter,
@@ -182,19 +192,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 FatalError.ReportWithoutCrash(new InvalidOperationException("Subject buffer is editing by someone else."));
                 return AsyncCompletionData.CommitBehavior.None;
-            }
-
-            // Capture the % of committed completion items that 
-            var experimentationService = document.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
-            if (view.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
-            {
-                // Capture the % of committed completion items that would have appeared in the "Target type matches" filter
-                // (regardless of whether that filter button was active at the time of commit).
-                AsyncCompletionLogger.LogCommitWithTargetTypeCompletionExperimentEnabled();
-                if (item.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
-                {
-                    AsyncCompletionLogger.LogCommitItemWithTargetTypeFilter();
-                }
             }
 
             var change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);

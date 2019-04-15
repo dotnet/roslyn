@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string PotentialCommitCharacters = nameof(PotentialCommitCharacters);
         internal const string ExcludedCommitCharacters = nameof(ExcludedCommitCharacters);
         internal const string NonBlockingCompletion = nameof(NonBlockingCompletion);
-
         internal const string TargetTypeFilterExperimentEnabled = nameof(TargetTypeFilterExperimentEnabled);
 
         private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray =
