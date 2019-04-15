@@ -14,27 +14,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private const string GenericTypeNameManglingString = "`";
         private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
-        private const string ContainingNamespaceName = nameof(ContainingNamespaceName);
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
 
         public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace)
         {
-            var builder = PooledDictionary<string, string>.GetInstance();
-            builder.Add(ContainingNamespaceName, containingNamespace);
+            PooledDictionary<string, string> builder = null;
 
             if (typeSymbol.Arity > 0)
             {
+                builder = PooledDictionary<string, string>.GetInstance();
                 builder.Add(TypeAritySuffixName, GetAritySuffix(typeSymbol.Arity));
             }
 
             // TODO: 
             // 1. Suffix should be language specific, i.e. `(Of ...)` if triggered from VB.
-            // 2. Sort the import items to be after in-scope symbols in a less hacky way.
+            // 2. Add editor support for multiple items with identical display text but different inline description.
+            // 3. Sort the import items to be after in-scope symbols in a less hacky way.
             return CompletionItem.Create(
                  displayText: typeSymbol.Name,
                  filterText: typeSymbol.Name,
                  sortText: "~" + typeSymbol.Name,   // Hack: prepend tilde (ASCII: 126) to make import items show after in-scope items
-                 properties: builder.ToImmutableDictionaryAndFree(),
+                 properties: builder?.ToImmutableDictionaryAndFree(),
                  tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
@@ -50,11 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static string GetContainingNamespace(CompletionItem item)
-        {
-            return item.Properties.TryGetValue(ContainingNamespaceName, out var containingNamespace)
-                ? containingNamespace
-                : null;
-        }
+            => item.InlineDescription;
 
         public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
@@ -97,18 +93,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static string GetMetadataName(CompletionItem item)
         {
-            if (item.Properties.TryGetValue(ContainingNamespaceName, out var containingNamespace))
+            var containingNamespace = GetContainingNamespace(item);
+            var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, item.DisplayText);
+            if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
             {
-                var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, item.DisplayText);
-                if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
-                {
-                    return fullyQualifiedName + aritySuffix;
-                }
-
-                return fullyQualifiedName;
+                return fullyQualifiedName + aritySuffix;
             }
 
-            return null;
+            return fullyQualifiedName;
         }
     }
 }
