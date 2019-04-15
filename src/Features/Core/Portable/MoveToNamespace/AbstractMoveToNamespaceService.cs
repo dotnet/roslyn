@@ -148,10 +148,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var targetTypes = container.DescendantNodes().Where(node => node is TNamedTypeDeclarationSyntax);
-            var newNameOriginalSymbolMapping = targetTypes
-                .Select(node => semanticModel.GetDeclaredSymbol(node, cancellationToken))
-                .ToImmutableDictionary(symbol => GetNewSymbolName(symbol, targetNamespace));
+            var containerSymbol = (INamespaceSymbol)semanticModel.GetDeclaredSymbol(container);
+            var members = containerSymbol.GetMembers();
+            var newNameOriginalSymbolMapping = members
+                .ToImmutableDictionary(symbol => GetNewSymbolName(symbol, targetNamespace), symbol => (ISymbol)symbol);
 
             var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
             if (changeNamespaceService == null)
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         private static string GetNewSymbolName(ISymbol symbol, string targetNamespace)
         {
             Debug.Assert(symbol != null);
-            return targetNamespace + "." + symbol.Name.Substring(symbol.ContainingNamespace.Name.Length);
+            return targetNamespace + symbol.ToDisplayString().Substring(symbol.ContainingNamespace.ToDisplayString().Length);
         }
 
         private static SymbolDisplayFormat QualifiedNamespaceFormat = new SymbolDisplayFormat(

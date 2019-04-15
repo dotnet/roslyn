@@ -1,6 +1,7 @@
 ﻿// Copyright(c) Microsoft.All Rights Reserved.Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             TestParameters? testParameters = null,
             string targetNamespace = null,
             bool optionCancelled = false,
-            bool testAnalysis = false
+            bool testAnalysis = false,
+            IReadOnlyDictionary<string, string> expectedSymbolChanges = null
             )
         {
             testParameters ??= new TestParameters();
@@ -66,7 +68,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                     else
                     {
                         Assert.NotEmpty(operations);
-                        Assert.NotEmpty(operations.Where(operation => operation is TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation));
+                        var renamedCodeActionsOperations = operations
+                            .Where(operation => operation is TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)
+                            .Cast<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>()
+                            .ToImmutableArray();
+
+                        Assert.NotEmpty(renamedCodeActionsOperations);
+
+                        Assert.NotNull(expectedSymbolChanges);
+
+                        var checkedCodeActions = new HashSet<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>(renamedCodeActionsOperations.Length);
+                        foreach (var kvp in expectedSymbolChanges)
+                        {
+                            var originalName = kvp.Key;
+                            var newName = kvp.Value;
+
+                            var codeAction = renamedCodeActionsOperations.FirstOrDefault(a => a._symbol.ToDisplayString() == originalName);
+                            Assert.Equal(newName, codeAction?._newName);
+                            Assert.False(checkedCodeActions.Contains(codeAction));
+
+                            checkedCodeActions.Add(codeAction);
+                        }
                     }
 
                 }
