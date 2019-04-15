@@ -2312,9 +2312,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool IsGlobalAliasQualifiedName(NameSyntax name)
         {
             // Checks whether the `global::` alias is applied to the name
-            return name is AliasQualifiedNameSyntax aliasName
-                ? aliasName.Alias.Identifier.IsKind(SyntaxKind.GlobalKeyword)
-                : false;
+            return name is AliasQualifiedNameSyntax aliasName &&
+                aliasName.Alias.Identifier.IsKind(SyntaxKind.GlobalKeyword);
         }
 
         private static bool IsInScriptClass(SemanticModel model, NameSyntax name)
