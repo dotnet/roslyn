@@ -262,6 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (filterReason == CompletionFilterReason.Insertion &&
                 !IsPotentialFilterCharacter(typeChar) &&
                 !string.IsNullOrEmpty(filterText) &&
+                !string.Equals(filterText, typeChar.ToString(), StringComparison.OrdinalIgnoreCase) &&
                 !Helpers.IsFilterCharacter(bestOrFirstCompletionItem, typeChar, filterText))
             {
                 return null;
