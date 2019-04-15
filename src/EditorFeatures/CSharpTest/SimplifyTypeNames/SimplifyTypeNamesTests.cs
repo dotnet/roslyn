@@ -4035,11 +4035,13 @@ namespace Root
         public async Task TestGlobalAliasSimplifiesInUsingDirectiveInNamespace()
         {
             await TestInRegularAndScriptAsync(
-@"namespace N
+@"using System;
+namespace N
 {
     using [|global::System.IO|];
 }",
-@"namespace N
+@"using System;
+namespace N
 {
     using System.IO;
 }");
@@ -4062,11 +4064,13 @@ namespace Root
         public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
         {
             await TestInRegularAndScriptAsync(
-$@"namespace N
+$@"using System;
+namespace N
 {{
     using My{typeName} = [|global::System.{typeName}|];
 }}",
-$@"namespace N
+$@"using System;
+namespace N
 {{
     using My{typeName} = System.{typeName};
 }}");
@@ -4076,11 +4080,13 @@ $@"namespace N
         public async Task TestGlobalAliasSimplifiesInUsingStaticDirectiveInNamespace()
         {
             await TestInRegularAndScriptAsync(
-@"namespace N
+@"using System;
+namespace N
 {
     using static [|global::System.Math|];
 }",
-@"namespace N
+@"using System;
+namespace N
 {
     using static System.Math;
 }");
@@ -4104,7 +4110,7 @@ $@"namespace N
         {
             await TestMissingAsync(
 $@"using System;
- namespace N
+namespace N
 {{
     using My{typeName} = [|{typeName}|];
 }}");
@@ -4127,7 +4133,7 @@ $@"using System;
         public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType2(string typeName)
         {
             await TestMissingAsync(
-$@"
+$@"using System;
 namespace N
 {{
     using My{typeName} = [|System.{typeName}|];
