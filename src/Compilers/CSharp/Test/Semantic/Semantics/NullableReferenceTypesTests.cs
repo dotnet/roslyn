@@ -1329,16 +1329,15 @@ public class MyClass
         public void NullableRangeIndexer()
         {
             var text = @"
-using System;
 #nullable enable
 class Program
 {
-    void M(int[] x, MyString m)
+    void M(int[] x, string m)
     {
         var y = x[1..3];
         var z = m[1..3];
     }
-}" + TestSources.GetSubArray + TestSources.StringWithIndexers;
+}" + TestSources.GetSubArray;
             CreateCompilationWithIndexAndRange(text).VerifyDiagnostics();
         }
 

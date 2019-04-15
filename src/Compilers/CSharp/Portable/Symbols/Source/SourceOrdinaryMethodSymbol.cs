@@ -271,6 +271,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 forceMethodTypeParametersAsNullable(_lazyReturnType);
             }
 
+            // Any nullable typeParameter declared by the method in the signature of an override or explicit interface implementation is considered a Nullable<T>
+            if (syntax.ExplicitInterfaceSpecifier != null || IsOverride)
+            {
+                foreach (var param in _lazyParameters)
+                {
+                    forceMethodTypeParametersAsNullable(param.TypeWithAnnotations);
+                }
+                forceMethodTypeParametersAsNullable(_lazyReturnType);
+            }
+
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
