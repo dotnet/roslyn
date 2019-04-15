@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 ReportDiagnostic.Info => EditorConfigSeverityStrings.Suggestion,
                 ReportDiagnostic.Warn => EditorConfigSeverityStrings.Warning,
                 ReportDiagnostic.Error => EditorConfigSeverityStrings.Error,
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.UnexpectedValue(notificationOption.Severity)
             };
         }
     }
