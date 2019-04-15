@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -227,6 +228,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_local_over_anonymous_function"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}")});
 
+        public static readonly CodeStyleOption<AddImportPlacement> PreservePlacementWithSilentEnforcement =
+           new CodeStyleOption<AddImportPlacement>(AddImportPlacement.Preserve, NotificationOption.Silent);
+
+        public static readonly Option<CodeStyleOption<AddImportPlacement>> PreferredUsingDirectivesPlacement = CreateOption(
+            CSharpCodeStyleOptionGroups.UsingPreferences, nameof(PreferredUsingDirectivesPlacement),
+            defaultValue: PreservePlacementWithSilentEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                new EditorConfigStorageLocation<CodeStyleOption<AddImportPlacement>>(
+                    "csharp_using_directive_placement",
+                    s => ParseUsingDirectivesPlacement(s, PreservePlacementWithSilentEnforcement),
+                    GetUsingDirectivesPlacementEditorConfigString),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredUsingDirectivesPlacement)}") });
+
         internal static readonly Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatement =
             CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
                 CSharpCodeStyleOptionGroups.ExpressionLevelPreferences,
@@ -287,5 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly OptionGroup Modifier = new OptionGroup(WorkspacesResources.Modifier_preferences, priority: 5);
         public static readonly OptionGroup CodeBlockPreferences = new OptionGroup(CSharpWorkspaceResources.Code_block_preferences, priority: 6);
         public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(WorkspacesResources.Expression_level_preferences, priority: 7);
+        public static readonly OptionGroup UsingPreferences = new OptionGroup(CSharpWorkspaceResources.using_preferences, priority: 8);
     }
 }
