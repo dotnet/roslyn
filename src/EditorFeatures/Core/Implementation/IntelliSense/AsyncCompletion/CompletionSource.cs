@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     {
         internal const string RoslynItem = nameof(RoslynItem);
         internal const string TriggerSnapshot = nameof(TriggerSnapshot);
+        internal const string CompletionListSpan = nameof(CompletionListSpan);
         internal const string InsertionText = nameof(InsertionText);
         internal const string HasSuggestionItemOptions = nameof(HasSuggestionItemOptions);
         internal const string Description = nameof(Description);
@@ -230,6 +231,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Have to store the snapshot to reuse it in some projections related scenarios
             // where data and session in further calls are able to provide other snapshots.
             session.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
+
+            // Store around the span this completion list applies to.  We'll use this later
+            // to pass this value in when we're committing a completion list item.
+            session.Properties.AddProperty(CompletionListSpan, completionList.Span);
 
             // This is a code supporting original completion scenarios: 
             // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
