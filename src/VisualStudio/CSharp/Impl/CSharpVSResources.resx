@@ -577,4 +577,23 @@
   <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
     <value>Show items from unimported namespaces (experimental)</value>
   </data>
+  <data name="Inside_namespace" xml:space="preserve">
+    <value>Inside namespace</value>
+    <comment>'namespace' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="Preserve" xml:space="preserve">
+    <value>Preserve</value>
+  </data>
+  <data name="Outside_namespace" xml:space="preserve">
+    <value>Outside namespace</value>
+    <comment>'namespace' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="Using_directives_placement" xml:space="preserve">
+    <value>Using directives placement</value>
+    <comment>'using' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="using_preferences_colon" xml:space="preserve">
+    <value>'using' preferences:</value>
+    <comment>'using' is a C# keyword and should not be localized</comment>
+  </data>
 </root>
