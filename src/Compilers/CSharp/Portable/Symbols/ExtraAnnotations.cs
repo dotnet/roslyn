@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static ImmutableArray<byte> Nullable(bool isNullable)
         {
-            return ImmutableArray.Create((byte)(isNullable ? NullableAnnotation.Annotated : NullableAnnotation.NotAnnotated));
+            return ImmutableArray.Create(isNullable ? NullableAnnotationExtensions.AnnotatedAttributeValue : NullableAnnotationExtensions.NotAnnotatedAttributeValue);
         }
 
         internal static ImmutableArray<ImmutableArray<byte>> GetExtraAnnotations(string key)
