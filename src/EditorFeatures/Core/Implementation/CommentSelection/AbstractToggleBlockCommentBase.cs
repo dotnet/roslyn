@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             if (Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
             {
                 var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
-                if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynToggleBlockComment))
+                if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.ToggleBlockComment))
                 {
                     return VSCommanding.CommandState.Unspecified;
                 }
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             }), cancellationToken))
             {
                 var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-                if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynToggleBlockComment))
+                if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.ToggleBlockComment))
                 {
                     return s_emptyCommentSelectionResult;
                 }

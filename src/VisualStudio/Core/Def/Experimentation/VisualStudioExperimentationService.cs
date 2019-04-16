@@ -50,34 +50,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             _isCachedFlightEnabledInfo = isCachedFlightEnabledInfo;
         }
 
-        public bool IsExperimentEnabled(string experimentName)
+        public bool IsExperimentEnabled(ExperimentName experimentName)
         {
             ThisCanBeCalledOnAnyThread();
+            try
+            {
+                var enabled = _featureFlags.IsFeatureEnabled(experimentName.NameWithPrefix, defaultValue: false);
+                if (enabled)
+                {
+                    return enabled;
+                }
+            }
+            catch
+            {
+            }
+
             if (_isCachedFlightEnabledInfo != null)
             {
                 try
                 {
-                    // check whether "." exist in the experimentName since it is requirement for featureflag service.
-                    // we do this since RPS complains about resource file being loaded for invalid name exception
-                    // we are not testing all rules but just simple "." check
-                    if (experimentName.IndexOf(".") > 0)
-                    {
-                        var enabled = _featureFlags.IsFeatureEnabled(experimentName, defaultValue: false);
-                        if (enabled)
-                        {
-                            return enabled;
-                        }
-                    }
-                }
-                catch
-                {
-                    // featureFlags can throw if given name is in incorrect format which can happen for us
-                    // since we use this for experimentation service as well
-                }
-
-                try
-                {
-                    return (bool)_isCachedFlightEnabledInfo.Invoke(_experimentationServiceOpt, new object[] { experimentName });
+                    return (bool)_isCachedFlightEnabledInfo.Invoke(_experimentationServiceOpt, new object[] { experimentName.Name });
                 }
                 catch
                 {

@@ -86,9 +86,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
         [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test), Shared]
         private class MockToggleBlockCommentExperimentationService : IExperimentationService
         {
-            public bool IsExperimentEnabled(string experimentName)
+            public bool IsExperimentEnabled(ExperimentName experimentName)
             {
-                return WellKnownExperimentNames.RoslynToggleBlockComment.Equals(experimentName);
+                return WellKnownExperimentNames.ToggleBlockComment.Equals(experimentName);
             }
         }
     }
