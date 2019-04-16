@@ -2449,8 +2449,21 @@ public class C
         } while (n$$ < 5)
     }
 }";
-
-            VerifyNoSpecialSemicolonHandling(code);
+            var expected =
+ @"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < 5);$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -3344,6 +3357,30 @@ class C
 }";
             VerifyNoSpecialSemicolonHandling(code);
         }
+
+        [WorkItem(34983, "https://github.com/dotnet/roslyn/issues/34983")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void AttributeParsedAsElementAccessExpression()
+        {
+            var code = @"
+using System;
+internal class TestMethodAttribute : Attribute
+{
+    readonly int i = Foo(3,4$$)
+
+    [Test]
+}";
+            var expected = @"
+using System;
+internal class TestMethodAttribute : Attribute
+{
+    readonly int i = Foo(3,4);$$
+
+    [Test]
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
         internal override VSCommanding.ICommandHandler GetCommandHandler(TestWorkspace workspace)
         {
             return workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
