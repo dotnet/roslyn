@@ -327,16 +327,20 @@ End Class
 
         [Theory]
         [WorkItem(2336, "https://github.com/dotnet/roslyn-analyzers/issues/2336")]
-        [InlineData("Symbol")]
-        [InlineData(nameof(ISymbol))]
-        [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolImplementations_VisualBasic(string symbolType)
+        [CombinatorialData]
+        public async Task CompareTwoSymbolImplementations_VisualBasic(
+            [CombinatorialValues("Symbol", nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
+            [CombinatorialValues("=", "<>", "Is", "IsNot")] string @operator)
         {
             var source = $@"
 Imports Microsoft.CodeAnalysis
 Class TestClass
-    Function Method(x As Symbol, y As {symbolType}) As Boolean
-        Return x = y
+    Function Method1(x As Symbol, y As {symbolType}) As Boolean
+        Return x {@operator} y
+    End Function
+
+    Function Method2(x As Symbol, y As {symbolType}) As Boolean
+        Return y {@operator} x
     End Function
 End Class
 ";
@@ -344,37 +348,6 @@ End Class
             await new VerifyVB.Test
             {
                 TestState = { Sources = { source, MinimalSymbolImplementationVisualBasic } },
-            }.RunAsync();
-        }
-
-        [Theory]
-        [WorkItem(2336, "https://github.com/dotnet/roslyn-analyzers/issues/2336")]
-        [InlineData("Symbol")]
-        [InlineData(nameof(ISymbol))]
-        [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareSymbolImplementationWithInterface_VisualBasic(string symbolType)
-        {
-            var source = $@"
-Imports Microsoft.CodeAnalysis
-Class TestClass
-    Function Method(x As Symbol, y As {symbolType}) As Boolean
-        Return [|x Is y|]
-    End Function
-End Class
-";
-            var fixedSource = $@"
-Imports Microsoft.CodeAnalysis
-Class TestClass
-    Function Method(x As Symbol, y As {symbolType}) As Boolean
-        Return Equals(x, y)
-    End Function
-End Class
-";
-
-            await new VerifyVB.Test
-            {
-                TestState = { Sources = { source, MinimalSymbolImplementationVisualBasic } },
-                FixedState = { Sources = { fixedSource, MinimalSymbolImplementationVisualBasic } },
             }.RunAsync();
         }
 
