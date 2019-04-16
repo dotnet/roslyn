@@ -234,12 +234,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             {
                 var useNullableReferenceAnalysisOption = _optionService.GetOption(FeatureOnOffOptions.UseNullableReferenceTypeAnalysis);
 
-                parseOptions = useNullableReferenceAnalysisOption switch
+                if (useNullableReferenceAnalysisOption == -1)
                 {
-                    -1 => parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "false") }),
-                    1 => parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "true") }),
-                    _ => parseOptions
-                };
+                    parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "false") });
+                }
+                else if (useNullableReferenceAnalysisOption == 1)
+                {
+                    parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "true") });
+                }
 
                 var symbols = GetStringOption(CompilerOptions.OPTID_CCSYMBOLS, defaultValue: "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
