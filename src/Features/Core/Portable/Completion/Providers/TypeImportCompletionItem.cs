@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal static class TypeImportCompletionItem
     {
+        private const string SortTextFormat = "~{0}~{1}";
         private const string GenericTypeNameManglingString = "`";
         private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
@@ -18,34 +19,33 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace)
         {
-            PooledDictionary<string, string> builder = null;
+            PooledDictionary<string, string> propertyBuilder = null;
 
             if (typeSymbol.Arity > 0)
             {
-                builder = PooledDictionary<string, string>.GetInstance();
-                builder.Add(TypeAritySuffixName, GetAritySuffix(typeSymbol.Arity));
+                propertyBuilder = PooledDictionary<string, string>.GetInstance();
+                propertyBuilder.Add(TypeAritySuffixName, GetAritySuffix(typeSymbol.Arity));
             }
+
+            // Hack: add tildes (ASCII: 126) to name and namespace as sort text:
+            // 1. '~' before type name makes import items show after in-scope items
+            // 2. '~' before namespace makes types with identical type name but from different namespace all show up in the list
+            var sortTextBuilder = PooledStringBuilder.GetInstance();
+            sortTextBuilder.Builder.AppendFormat(SortTextFormat, typeSymbol.Name, containingNamespace);
 
             // TODO: 
             // 1. Suffix should be language specific, i.e. `(Of ...)` if triggered from VB.
-            // 2. Add editor support for multiple items with identical display text but different inline description.
-            // 3. Sort the import items to be after in-scope symbols in a less hacky way.
+            // 2. Sort the import items to be after in-scope symbols in a less hacky way.
+            // 3. Editor support for resolving item text conflicts?
             return CompletionItem.Create(
                  displayText: typeSymbol.Name,
                  filterText: typeSymbol.Name,
-                 sortText: "~" + typeSymbol.Name,   // Hack: prepend tilde (ASCII: 126) to make import items show after in-scope items
-                 properties: builder?.ToImmutableDictionaryAndFree(),
+                 sortText: sortTextBuilder.ToStringAndFree(),
+                 properties: propertyBuilder?.ToImmutableDictionaryAndFree(),
                  tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
-                 // HACK:   Right now VS completion list can't handle items with same display text 
-                 //         (constructed by displayTextPrefix + displayText + displayTextSuffix 
-                 //         from roslyn CompletionItem). We append a space at the end of display
-                 //         text suffix so it won't hide items with same display text from symbol 
-                 //         completion. However, multiple type completion items with same display 
-                 //         name but different inlineDescription (i.e. containing namespace)
-                 //         will still collide.
-                 displayTextSuffix: typeSymbol.Arity == 0 ? " " : "<> ",
+                 displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : "<>",
                  inlineDescription: containingNamespace);
         }
 
