@@ -32,6 +32,21 @@
         <target state="translated">Użycie typu odwołania dopuszczającego wartość null „{0}?” w wyrażeniu „as” jest niedozwolone. Zamiast tego użyj bazowego typu „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="new">Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
+        <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
+        <target state="new">Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AutoSetterCantBeReadOnly">
+        <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
+        <target state="new">Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</source>
         <target state="translated">Asynchroniczna instrukcja foreach nie może operować na zmiennych typu „{0}”, ponieważ typ „{0}” nie zawiera odpowiedniej publicznej definicji wystąpienia elementu „{1}”</target>
@@ -67,6 +82,11 @@
         <target state="translated">Parametr typu „{1}” ma ograniczenie „unmanaged”, dlatego elementu „{1}” nie można użyć jako ograniczenia dla elementu „{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ConstantPatternVsOpenType">
+        <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
+        <target state="new">An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">Nazwa „{0}” nie jest zgodna z odpowiednim parametrem „Deconstruct” „{1}”.</target>
@@ -90,6 +110,11 @@
       <trans-unit id="ERR_DuplicateExplicitImpl">
         <source>'{0}' is explicitly implemented more than once.</source>
         <target state="translated">Element „{0}” jest jawnie zaimplementowany więcej niż raz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
+        <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
+        <target state="new">Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -147,6 +172,11 @@
         <target state="translated">Funkcja „{0}” nie jest dostępna w języku C# 8.0. Użyj języka w wersji {1} lub nowszej.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
+        <source>Field-like event '{0}' cannot be 'readonly'.</source>
+        <target state="new">Field-like event '{0}' cannot be 'readonly'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">Instrukcja foreach nie może operować na zmiennych typu „{0}”, ponieważ typ „{0}” nie zawiera publicznej definicji wystąpienia elementu „{1}”. Czy planowano użyć instrukcji „await foreach”, a nie „foreach”?</target>
@@ -185,6 +215,11 @@
       <trans-unit id="ERR_InvalidObjectCreation">
         <source>Invalid object creation</source>
         <target state="translated">Nieprawidłowa operacja tworzenia obiektu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
+        <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
+        <target state="new">Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidStackAllocArray">
@@ -262,6 +297,11 @@
         <target state="translated">Zmiennej out nie można zadeklarować jako lokalnej zmiennej ref</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodReadOnlyDifference">
+        <source>Both partial method declarations must be readonly or neither may be readonly</source>
+        <target state="new">Both partial method declarations must be readonly or neither may be readonly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">Dopasowanie wzorca jest niedozwolone dla typów wskaźnika.</target>
@@ -280,6 +320,11 @@
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">Wzorzec podrzędny właściwości wymaga odwołania do właściwości lub pola, które należy dopasować, na przykład „{{ Name: {0} }}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReadOnlyModMissingAccessor">
+        <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
+        <target state="new">'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -310,6 +355,11 @@
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureVariable">
         <source>A static local function cannot contain a reference to '{0}'.</source>
         <target state="translated">Statyczna funkcja lokalna nie może zawierać odwołania do elementu „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticMemberCantBeReadOnly">
+        <source>Static member '{0}' cannot be marked 'readonly'.</source>
+        <target state="new">Static member '{0}' cannot be marked 'readonly'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -742,6 +792,11 @@
         <target state="translated">ogólne ograniczenie typu obiektu</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
+        <source>obsolete on property accessor</source>
+        <target state="new">obsolete on property accessor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">
         <source>warning action enable or safeonly</source>
         <target state="translated">akcja warning: enable lub safeonly</target>
@@ -750,6 +805,11 @@
       <trans-unit id="IDS_FeatureRangeOperator">
         <source>range operator</source>
         <target state="translated">operator zakresu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureReadOnlyMembers">
+        <source>readonly members</source>
+        <target state="new">readonly members</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecursivePatterns">
@@ -1292,6 +1352,16 @@
         <target state="translated">Oczekiwano elementu dopuszczającego wartość null po dyrektywne #pragma warning safeonly</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
+        <source>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</source>
+        <target state="new">Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
+        <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
+        <target state="new">Call to non-readonly member from a 'readonly' member results in an implicit copy.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
         <source>The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</source>
         <target state="translated">Nazwa „_” odwołuje się do typu „{0}”, a nie do wzorca odrzucania. Użyj elementu „@_” aby odwołać się do typu, lub użyj elementu „var _”, aby odrzucić wartość.</target>
@@ -1582,16 +1652,6 @@
         <target state="translated">Typ wartości dopuszczający wartość null może być równy null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PossibleNull">
-        <source>Possible null value.</source>
-        <target state="translated">Możliwa wartość null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PossibleNull_Title">
-        <source>Possible null value.</source>
-        <target state="translated">Możliwa wartość null.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="translated">Wyrażenie switch nie obsługuje wszystkich możliwych danych wejściowych (nie jest kompletne).</target>
@@ -1612,6 +1672,16 @@
         <target state="translated">Wyrażenie switch nie obsługuje wszystkich możliwych danych wejściowych (nie jest kompletne).</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull">
+        <source>Thrown value may be null.</source>
+        <target state="new">Thrown value may be null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull_Title">
+        <source>Thrown value may be null.</source>
+        <target state="new">Thrown value may be null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
         <source>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
         <target state="translated">Nazwa elementu krotki „{0}” została zignorowana, ponieważ po drugiej stronie operatora == lub != krotki określono inną nazwę lub nie określono żadnej nazwy.</target>
@@ -1630,6 +1700,16 @@
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
         <target state="translated">Parametr typu ma ten sam typ co parametr typu z metody zewnętrznej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull">
+        <source>Unboxing a possibly null value.</source>
+        <target state="new">Unboxing a possibly null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull_Title">
+        <source>Unboxing a possibly null value.</source>
+        <target state="new">Unboxing a possibly null value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
