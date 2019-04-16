@@ -72,9 +72,9 @@
         <target state="translated">Element není platný.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_use_nullable_reference_types">
-        <source>Enable use nullable reference types</source>
-        <target state="new">Enable use nullable reference types</target>
+      <trans-unit id="Enable_nullable_reference_type_analysis">
+        <source>Enable nullable reference type analysis</source>
+        <target state="new">Enable nullable reference type analysis</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">

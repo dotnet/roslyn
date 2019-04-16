@@ -1201,7 +1201,7 @@ I agree to all of the foregoing:</value>
   <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
     <value>Use enhanced colors for C# and Basic</value>
   </data>
-  <data name="Enable_use_nullable_reference_types" xml:space="preserve">
-    <value>Enable use nullable reference types</value>
+  <data name="Enable_nullable_reference_type_analysis" xml:space="preserve">
+    <value>Enable nullable reference type analysis</value>
   </data>
 </root>

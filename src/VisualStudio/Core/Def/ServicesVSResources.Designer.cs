@@ -906,11 +906,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable use nullable reference types.
+        ///   Looks up a localized string similar to Enable nullable reference type analysis.
         /// </summary>
-        internal static string Enable_use_nullable_reference_types {
+        internal static string Enable_nullable_reference_type_analysis {
             get {
-                return ResourceManager.GetString("Enable_use_nullable_reference_types", resourceCulture);
+                return ResourceManager.GetString("Enable_nullable_reference_type_analysis", resourceCulture);
             }
         }
         

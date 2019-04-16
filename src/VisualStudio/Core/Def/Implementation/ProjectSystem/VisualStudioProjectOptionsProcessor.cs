@@ -2,9 +2,7 @@
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -14,7 +12,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly VisualStudioProject _project;
         private readonly HostWorkspaceServices _workspaceServices;
         private readonly ICommandLineParserService _commandLineParserService;
-        private IOptionService _optionService;
 
         /// <summary>
         /// Gate to guard all mutable fields in this class.
@@ -31,25 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project = project ?? throw new ArgumentNullException(nameof(project));
             _workspaceServices = workspaceServices;
             _commandLineParserService = workspaceServices.GetLanguageServices(project.Language).GetRequiredService<ICommandLineParserService>();
-            _optionService = workspaceServices.GetRequiredService<IOptionService>();
-
-            if (project.Language == LanguageNames.CSharp)
-            {
-                // For C#, we need to listen to the options for NRT analysis 
-                // that can change in VS through tools > options
-                _optionService.OptionChanged += OptionService_OptionChanged;
-            }
 
             // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in the constructor so nothing can race.
             ReparseCommandLine_NoLock();
-        }
-
-        private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
-        {
-            if (e.Option.Feature == FeatureOnOffOptions.UseNullableReferenceTypes.Feature)
-            {
-                UpdateProjectForNewHostValues();
-            }
         }
 
         public string CommandLine
@@ -178,18 +159,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, this._ruleSetFile?.Target.Value);
             parseOptions = ComputeParseOptionsWithHostValues(parseOptions);
 
-            if (_project.Language == LanguageNames.CSharp)
-            {
-                var useNullableReferenceTypesOption = _optionService.GetOption(FeatureOnOffOptions.UseNullableReferenceTypes);
-
-                parseOptions = useNullableReferenceTypesOption switch
-                {
-                    -1 => parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "false") }),
-                    1 => parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "true") }),
-                    _ => parseOptions
-                };
-            }
-
             // For managed projects, AssemblyName has to be non-null, but the command line we get might be a partial command line
             // and not contain the existing value. Only update if we have one.
             _project.AssemblyName = _commandLineArgumentsForCommandLine.CompilationName ?? _project.AssemblyName;
@@ -256,12 +225,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 DisposeOfRuleSetFile_NoLock();
-
-                if (_optionService != null)
-                {
-                    _optionService.OptionChanged -= OptionService_OptionChanged;
-                    _optionService = null;
-                }
             }
         }
     }
