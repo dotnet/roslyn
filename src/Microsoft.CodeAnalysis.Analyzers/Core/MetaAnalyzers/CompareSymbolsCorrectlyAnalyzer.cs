@@ -74,6 +74,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return;
             }
 
+            if (binary.Language == LanguageNames.VisualBasic)
+            {
+                if (IsSymbolClassType(binary.LeftOperand) || IsSymbolClassType(binary.RightOperand))
+                {
+                    return;
+                }
+            }
+
             if (IsExplicitCastToObject(binary.LeftOperand) || IsExplicitCastToObject(binary.RightOperand))
             {
                 return;
@@ -100,6 +108,25 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             if (operation is IConversionOperation conversion)
             {
                 return IsSymbolType(conversion.Operand, symbolType);
+            }
+
+            return false;
+        }
+
+        private static bool IsSymbolClassType(IOperation operation)
+        {
+            if (operation.Type is object)
+            {
+                if (operation.Type.TypeKind == TypeKind.Class
+                    && operation.Type.SpecialType != SpecialType.System_Object)
+                {
+                    return true;
+                }
+            }
+
+            if (operation is IConversionOperation conversion)
+            {
+                return IsSymbolClassType(conversion.Operand);
             }
 
             return false;
