@@ -2989,7 +2989,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 foreach (ThrownExceptionInfo pendingThrow in AnalysisDataForUnhandledThrowOperations.Keys.ToArray())
                 {
-                    if (caughtExceptionTypeOpt == null || pendingThrow.HandlingCatchRegionOpt == CurrentBasicBlock.EnclosingRegion)
+                    if (ShouldHandlePendingThrow(pendingThrow))
                     {
                         var previousCurrentAnalysisData = CurrentAnalysisData;
                         var exceptionData = AnalysisDataForUnhandledThrowOperations[pendingThrow];
@@ -3003,6 +3003,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
                     }
                 }
+            }
+
+            bool ShouldHandlePendingThrow(ThrownExceptionInfo pendingThrow)
+            {
+                if (pendingThrow.HandlingCatchRegionOpt == CurrentBasicBlock.EnclosingRegion)
+                {
+                    // Catch region explicitly handling the thrown exception.
+                    return true;
+                }
+
+                if (caughtExceptionTypeOpt == null)
+                {
+                    // Check if finally region is executed for pending throw.
+                    Debug.Assert(CurrentBasicBlock.IsFirstBlockOfFinally(out _));
+                    var tryFinallyRegion = CurrentBasicBlock.GetContainingRegionOfKind(ControlFlowRegionKind.TryAndFinally);
+                    var tryRegion = tryFinallyRegion.NestedRegions[0];
+                    return tryRegion.FirstBlockOrdinal <= pendingThrow.BasicBlockOrdinal && tryRegion.LastBlockOrdinal >= pendingThrow.BasicBlockOrdinal;
+                }
+
+                return false;
             }
         }
 
