@@ -806,19 +806,15 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
-        // The use of helper methods below is because we added a extra space at the end of display text suffix,
-        // to differentiate us from regular symbol completion item. This is a hack to temporarily workaround
-        // a limitation of VS completion list.
-
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null)
         {
-            return VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix + " ", glyph: glyph, inlineDescription: inlineDescription);
+            return VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription);
         }
 
 
         private Task VerifyTypeImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
         {
-            return VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix + " ", inlineDescription: inlineDescription);
+            return VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
         }
     }
 }

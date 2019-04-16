@@ -58,13 +58,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var cacheService = workspaceServices.GetService<IWorkspaceCacheService>();
-            if (cacheService != null)
+            var workspace = workspaceServices.Workspace;
+            if (workspace.Kind == WorkspaceKind.Host)
             {
-                cacheService.CacheFlushRequested += OnCacheFlushRequested;
+                var cacheService = workspaceServices.GetService<IWorkspaceCacheService>();
+                if (cacheService != null)
+                {
+                    cacheService.CacheFlushRequested += OnCacheFlushRequested;
+                }
             }
 
-            return new Service(workspaceServices.Workspace, _peItemsCache, _projectItemsCache);
+            return new Service(workspace, _peItemsCache, _projectItemsCache);
         }
 
         private void OnCacheFlushRequested(object sender, EventArgs e)
@@ -90,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 workspace.WorkspaceChanged += OnWorkspaceChanged;
             }
 
-            private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+            public void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
             {
                 switch (e.Kind)
                 {

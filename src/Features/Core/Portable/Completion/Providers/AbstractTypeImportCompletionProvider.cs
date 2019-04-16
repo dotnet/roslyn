@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractTypeImportCompletionProvider : CommonCompletionProvider
     {
+        private bool? _isTypeImportCompletionExperimentEnabled = null;
+
         protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
 
         protected abstract ImmutableArray<string> GetImportedNamespaces(
@@ -34,13 +36,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var cancellationToken = completionContext.CancellationToken;
             var document = completionContext.Document;
             var workspace = document.Project.Solution.Workspace;
-            var experimentationService = workspace.Services.GetService<IExperimentationService>();
 
             var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
 
             // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
             if (importCompletionOptionValue == false ||
-                (importCompletionOptionValue == null && experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion) != true))
+                (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(workspace)))
             {
                 return;
             }
@@ -55,6 +56,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 await AddCompletionItemsAsync(completionContext, syntaxContext, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private bool IsTypeImportCompletionExperimentEnabled(Workspace workspace)
+        {
+            if (!_isTypeImportCompletionExperimentEnabled.HasValue)
+            {
+                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                _isTypeImportCompletionExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion);
+            }
+
+            return _isTypeImportCompletionExperimentEnabled == true;
         }
 
         private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, CancellationToken cancellationToken)
@@ -210,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 // For workspace that doesn't support document change, e.g. DebuggerIntellisense
                 // we complete the type name in its fully qualified form instead.
-                var fullyQualifiedName = containingNamespace + completionItem.DisplayText;
+                var fullyQualifiedName = $"{containingNamespace}.{completionItem.DisplayText}";
                 var change = new TextChange(completionListSpan, fullyQualifiedName);
 
                 return CompletionChange.Create(change);
