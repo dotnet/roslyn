@@ -67,6 +67,11 @@
         <target state="translated">Недопустимый параметр "{0}" для /nullable. Требуется "disable", "enable", "safeonly", "warnings" или "safeonlywarnings".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableTypeof">
+        <source>The typeof operator cannot be used on a nullable reference type</source>
+        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Недопустимый операнд для сопоставления с шаблоном. Требуется значение, но найдено "{0}".</target>

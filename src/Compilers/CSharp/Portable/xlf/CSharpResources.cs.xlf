@@ -67,6 +67,11 @@
         <target state="translated">Neplatná možnost {0} pro /nullable; musí mít hodnotu disable, enable, safeonly, warnings nebo safeonlywarnings.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableTypeof">
+        <source>The typeof operator cannot be used on a nullable reference type</source>
+        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Neplatný operand pro porovnávací vzorek. Vyžaduje se hodnota, ale nalezeno: {0}.</target>

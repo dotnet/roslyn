@@ -3944,6 +3944,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_BadDynamicTypeof" xml:space="preserve">
     <value>The typeof operator cannot be used on the dynamic type</value>
   </data>
+  <data name="ERR_BadNullableTypeof" xml:space="preserve">
+    <value>The typeof operator cannot be used on a nullable reference type</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsDynamicOperation" xml:space="preserve">
     <value>An expression tree may not contain a dynamic operation</value>
   </data>
