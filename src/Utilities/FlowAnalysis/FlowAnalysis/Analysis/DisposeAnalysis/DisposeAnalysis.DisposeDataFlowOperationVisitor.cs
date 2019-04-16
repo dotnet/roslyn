@@ -343,6 +343,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                         var pointsToValue = GetPointsToAbstractValue(operation.Value);
                         HandlePossibleEscapingOperation(operation, pointsToValue.Locations);
                     }
+                    else if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse &&
+                        operation.Parameter.RefKind == RefKind.Out &&
+                        operation.Parent is IInvocationOperation invocation &&
+                        invocation.TargetMethod.ReturnType.SpecialType == SpecialType.System_Boolean)
+                    {
+                        // Case 1:
+                        //      // Assume 'obj' is not a valid object on the 'else' path.
+                        //      if (TryXXX(out IDisposable obj))
+                        //      {
+                        //          obj.Dispose();
+                        //      }
+                        //
+                        //      return;
+
+                        // Case 2:
+                        //      if (!TryXXX(out IDisposable obj))
+                        //      {
+                        //          return; // Assume 'obj' is not a valid object on this path.
+                        //      }
+                        //
+                        //      obj.Dispose();
+
+                        HandlePossibleInvalidatingOperation(operation);
+                    }
                 }
                 else if (operation.Parameter.RefKind == RefKind.Out || operation.Parameter.RefKind == RefKind.Ref)
                 {
@@ -352,7 +376,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 return;
 
                 // Local functions.
-
                 bool IsDisposeOwnershipTransfer()
                 {
                     if (!operation.Parameter.Type.IsDisposable(WellKnownTypeProvider.IDisposable))
