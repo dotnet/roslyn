@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -125,13 +126,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
             PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> allResults = null;
 
-            foreach ((IOperation Operation, ISymbol ContainingSymbol) pair in rootOperationsNeedingAnalysis)
+            foreach ((IOperation Operation, ISymbol ContainingSymbol) in rootOperationsNeedingAnalysis)
             {
                 ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> dfaResult =
                     PropertySetAnalysis.GetOrComputeHazardousUsages(
-                        pair.Operation.GetEnclosingControlFlowGraph(),
+                        Operation.GetEnclosingControlFlowGraph(),
                         compilation,
-                        pair.ContainingSymbol,
+                        ContainingSymbol,
                         typeToTrackMetadataName,
                         constructorMapper,
                         propertyMappers,
