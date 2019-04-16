@@ -672,7 +672,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Assignment,
             Return,
-            Argument
+            Argument,
+            ForEachIterationVariable
         }
 
         /// <summary>
@@ -685,7 +686,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useLegacyWarnings,
             AssignmentKind assignmentKind = AssignmentKind.Assignment,
             Symbol target = null,
-            Conversion conversion = default)
+            Conversion conversion = default,
+            Location location = null)
         {
             Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
 
@@ -698,6 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            location ??= value.Syntax.GetLocation();
             var unwrappedValue = SkipReferenceConversions(value);
             if (unwrappedValue.IsSuppressed)
             {
@@ -721,31 +724,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings = false;
             }
 
-            if (reportNullLiteralAssignmentIfNecessary(value))
+            if (reportNullLiteralAssignmentIfNecessary(value, location))
             {
                 return true;
             }
 
             if (assignmentKind == AssignmentKind.Argument)
             {
-                ReportSafetyDiagnostic(ErrorCode.WRN_NullReferenceArgument, value.Syntax,
+                ReportSafetyDiagnostic(ErrorCode.WRN_NullReferenceArgument, location,
                     new FormattedSymbol(target, SymbolDisplayFormat.ShortFormat),
                     new FormattedSymbol(target.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
             else if (useLegacyWarnings)
             {
-                ReportNonSafetyDiagnostic(value.Syntax);
+                ReportNonSafetyDiagnostic(location);
             }
             else
             {
-                ReportSafetyDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullReferenceAssignment, value.Syntax);
+                ReportSafetyDiagnostic(assignmentKind switch { AssignmentKind.Return => ErrorCode.WRN_NullReferenceReturn, AssignmentKind.ForEachIterationVariable => ErrorCode.WRN_NullReferenceIterationVariable, _ => ErrorCode.WRN_NullReferenceAssignment }, location);
             }
 
             return true;
 
             // Report warning converting null literal to non-nullable reference type.
             // target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
-            bool reportNullLiteralAssignmentIfNecessary(BoundExpression expr)
+            bool reportNullLiteralAssignmentIfNecessary(BoundExpression expr, Location location)
             {
                 if (expr.ConstantValue?.IsNull != true)
                 {
@@ -757,11 +760,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // as a safety diagnostic.  This is one of those places.
                 if (useLegacyWarnings && !RequiresSafetyWarningWhenNullIntroduced(expr.Type))
                 {
-                    ReportNonSafetyDiagnostic(expr.Syntax);
+                    ReportNonSafetyDiagnostic(location);
                 }
                 else
                 {
-                    ReportSafetyDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, expr.Syntax);
+                    ReportSafetyDiagnostic(assignmentKind == AssignmentKind.Return ? ErrorCode.WRN_NullReferenceReturn : ErrorCode.WRN_NullAsNonNullable, location);
                 }
                 return true;
             }
@@ -816,6 +819,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportNullabilityMismatchInAssignment(SyntaxNode syntaxNode, object sourceType, object destinationType)
         {
             ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, syntaxNode, sourceType, destinationType);
+        }
+
+        private void ReportNullabilityMismatchInAssignment(Location location, object sourceType, object destinationType)
+        {
+            ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, location, sourceType, destinationType);
         }
 
         /// <summary>
@@ -894,18 +902,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportNonSafetyDiagnostic(SyntaxNode syntax)
+        private void ReportNonSafetyDiagnostic(Location location)
         {
-            ReportNonSafetyDiagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, syntax);
+            ReportNonSafetyDiagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, location);
         }
 
-        private void ReportNonSafetyDiagnostic(ErrorCode errorCode, SyntaxNode syntax)
+        private void ReportNonSafetyDiagnostic(ErrorCode errorCode, Location location)
         {
             // All warnings should be in the `#pragma warning ... nullable` set.
             Debug.Assert(!ErrorFacts.NullableFlowAnalysisSafetyWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
             Debug.Assert(ErrorFacts.NullableFlowAnalysisNonSafetyWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
 #pragma warning disable CS0618
-            ReportDiagnostic(errorCode, syntax.GetLocation());
+            ReportDiagnostic(errorCode, location);
 #pragma warning restore CS0618
         }
 
@@ -2996,7 +3004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.Type, lValueType.Type, ref useSiteDiagnostics))
                             {
-                                ReportNullabilityMismatchInArgument(argument, lValueType.Type, parameter, parameterType.Type, forOutput: true);
+                                ReportNullabilityMismatchInArgument(argument.Syntax, lValueType.Type, parameter, parameterType.Type, forOutput: true);
                             }
                         }
                         else
@@ -3777,7 +3785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void ReportNullabilityMismatchWithTargetDelegate(SyntaxNode syntax, NamedTypeSymbol delegateType, MethodSymbol method)
+        private void ReportNullabilityMismatchWithTargetDelegate(Location location, NamedTypeSymbol delegateType, MethodSymbol method)
         {
             Debug.Assert((object)method != null);
             Debug.Assert(method.MethodKind != MethodKind.LambdaMethod);
@@ -3790,7 +3798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (IsNullabilityMismatch(method.ReturnTypeWithAnnotations, invoke.ReturnTypeWithAnnotations, requireIdentity: false))
             {
-                ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, syntax,
+                ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, location,
                     new FormattedSymbol(method, SymbolDisplayFormat.MinimallyQualifiedFormat),
                     delegateType);
             }
@@ -3802,7 +3810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodParameter = method.Parameters[i];
                 if (IsNullabilityMismatch(invokeParameter.TypeWithAnnotations, methodParameter.TypeWithAnnotations, requireIdentity: invokeParameter.RefKind != RefKind.None))
                 {
-                    ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
+                    ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
                         new FormattedSymbol(methodParameter, SymbolDisplayFormat.ShortFormat),
                         new FormattedSymbol(method, SymbolDisplayFormat.MinimallyQualifiedFormat),
                         delegateType);
@@ -3810,7 +3818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportNullabilityMismatchWithTargetDelegate(SyntaxNode syntax, NamedTypeSymbol delegateType, UnboundLambda unboundLambda)
+        private void ReportNullabilityMismatchWithTargetDelegate(Location location, NamedTypeSymbol delegateType, UnboundLambda unboundLambda)
         {
             if (!unboundLambda.HasExplicitlyTypedParameterList)
             {
@@ -3835,7 +3843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IsNullabilityMismatch(invokeParameter.TypeWithAnnotations, unboundLambda.ParameterTypeWithAnnotations(i), requireIdentity: true))
                 {
                     // https://github.com/dotnet/roslyn/issues/29959 Consider using location of specific lambda parameter.
-                    ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
+                    ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
                         unboundLambda.ParameterName(i),
                         unboundLambda.MessageID.Localize(),
                         delegateType);
@@ -3890,7 +3898,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reportRemainingWarnings = true,
             bool extensionMethodThisArgument = false,
             Optional<LocalState> stateForLambda = default,
-            bool trackMembers = false)
+            bool trackMembers = false,
+            Location location = null)
         {
             Debug.Assert(!trackMembers || !IsConditionalState);
             Debug.Assert(node != null);
@@ -3901,6 +3910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableFlowState resultState = NullableFlowState.NotNull;
             bool canConvertNestedNullability = true;
             bool isSuppressed = false;
+            location ??= node.Syntax.GetLocation();
 
             if (operandOpt?.IsSuppressed == true)
             {
@@ -3915,7 +3925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup:
                     if (reportRemainingWarnings)
                     {
-                        ReportNullabilityMismatchWithTargetDelegate(node.Syntax, targetType.GetDelegateType(), conversion.Method);
+                        ReportNullabilityMismatchWithTargetDelegate(location, targetType.GetDelegateType(), conversion.Method);
                     }
                     resultState = NullableFlowState.NotNull;
                     break;
@@ -3930,7 +3940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: null, initialState: variableState);
                         if (reportRemainingWarnings)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(node.Syntax, delegateType, unboundLambda);
+                            ReportNullabilityMismatchWithTargetDelegate(location, delegateType, unboundLambda);
                         }
 
                         return TypeWithState.Create(targetType, NullableFlowState.NotNull);
@@ -3943,7 +3953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
-                    return ApplyUserDefinedConversion(node, operandOpt, conversion, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target, reportTopLevelWarnings, reportRemainingWarnings);
+                    return ApplyUserDefinedConversion(node, operandOpt, conversion, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target, reportTopLevelWarnings, reportRemainingWarnings, location);
 
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
@@ -4004,7 +4014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // For type parameters that cannot be annotated, the analysis must report those
                         // places where null values first sneak in, like `default`, `null`, and `GetFirstOrDefault`.
                         // This is one of those places.
-                        ReportSafetyDiagnostic(ErrorCode.WRN_NullLiteralMayIntroduceNullT, node.Syntax, targetType);
+                        ReportSafetyDiagnostic(ErrorCode.WRN_NullLiteralMayIntroduceNullT, location, targetType);
                     }
                     goto case ConversionKind.ExplicitReference;
 
@@ -4052,7 +4062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
                         if (reportTopLevelWarnings && operandType.MayBeNull)
                         {
-                            ReportSafetyDiagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, node.Syntax);
+                            ReportSafetyDiagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, location);
                         }
 
                         // Mark the value as not nullable, regardless of whether it was known to be nullable,
@@ -4140,18 +4150,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target, conversion: conversion);
+                        ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target, conversion, location);
                     }
                 }
                 if (reportRemainingWarnings && !canConvertNestedNullability)
                 {
                     if (assignmentKind == AssignmentKind.Argument)
                     {
-                        ReportNullabilityMismatchInArgument(node, operandType.Type, target, targetType, forOutput: false);
+                        ReportNullabilityMismatchInArgument(location, operandType.Type, target, targetType, forOutput: false);
                     }
                     else
                     {
-                        ReportNullabilityMismatchInAssignment(node.Syntax, GetTypeAsDiagnosticArgument(operandType.Type), targetType);
+                        ReportNullabilityMismatchInAssignment(location, GetTypeAsDiagnosticArgument(operandType.Type), targetType);
                     }
                 }
             }
@@ -4169,7 +4179,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssignmentKind assignmentKind,
             ParameterSymbol target,
             bool reportTopLevelWarnings,
-            bool reportRemainingWarnings)
+            bool reportRemainingWarnings,
+            Location location = null)
         {
             Debug.Assert(!IsConditionalState);
             Debug.Assert(node != null);
@@ -4179,6 +4190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.Kind == ConversionKind.ExplicitUserDefined || conversion.Kind == ConversionKind.ImplicitUserDefined);
 
             TypeSymbol targetType = targetTypeWithNullability.Type;
+            location ??= node.Syntax.GetLocation();
 
             // cf. Binder.CreateUserDefinedConversion
             if (!conversion.IsValid)
@@ -4200,7 +4212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 assignmentKind,
                 target,
                 reportTopLevelWarnings,
-                reportRemainingWarnings);
+                reportRemainingWarnings,
+                location: location);
 
             // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
             // (see NullableReferenceTypesTests.ImplicitConversions_07).
@@ -4221,7 +4234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // conversion "from" type -> method parameter type
             NullableFlowState operandState = operandType.State;
             _ = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType,
-                useLegacyWarnings, AssignmentKind.Argument, target: parameter, reportWarnings: reportRemainingWarnings);
+                useLegacyWarnings, AssignmentKind.Argument, target: parameter, reportWarnings: reportRemainingWarnings, location: operandOpt is null ? location : null);
 
             // method parameter type -> method return type
             var methodReturnType = methodOpt.ReturnTypeWithAnnotations;
@@ -4230,7 +4243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandType = LiftedReturnType(methodReturnType, operandState);
                 if (RequiresSafetyWarningWhenNullIntroduced(methodReturnType.Type) && operandState == NullableFlowState.MaybeNull)
                 {
-                    ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, operandType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target, conversion: conversion);
+                    ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, operandType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target, conversion, location);
                 }
             }
             else
@@ -4241,14 +4254,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // method return type -> conversion "to" type
             // May be distinct from method return type for Nullable<T>.
             operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType,
-                useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
+                useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings, location: operandOpt is null ? location : null);
 
             // conversion "to" type -> final type
             // https://github.com/dotnet/roslyn/issues/29959 If the original conversion was
             // explicit, this conversion should not report nested nullability mismatches.
             // (see NullableReferenceTypesTests.ExplicitCast_UserDefined_02).
             operandType = ClassifyAndApplyConversion(node, targetTypeWithNullability, operandType,
-                useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
+                useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings, location);
             return operandType;
         }
 
@@ -4272,20 +4285,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useLegacyWarnings,
             AssignmentKind assignmentKind,
             ParameterSymbol target,
-            bool reportWarnings)
+            bool reportWarnings,
+            Location location)
         {
             Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            location ??= node.Syntax.GetLocation();
             var conversion = _conversions.ClassifyStandardConversion(null, operandType.Type, targetType.Type, ref useSiteDiagnostics);
             if (reportWarnings && !conversion.Exists)
             {
                 if (assignmentKind == AssignmentKind.Argument)
                 {
-                    ReportNullabilityMismatchInArgument(node, operandType.Type, target, targetType.Type, forOutput: false);
+                    ReportNullabilityMismatchInArgument(location, operandType.Type, target, targetType.Type, forOutput: false);
                 }
                 else
                 {
-                    ReportNullabilityMismatchInAssignment(node.Syntax, operandType.Type, targetType.Type);
+                    ReportNullabilityMismatchInAssignment(location, operandType.Type, targetType.Type);
                 }
             }
 
@@ -4301,7 +4316,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 assignmentKind,
                 target,
                 reportTopLevelWarnings: reportWarnings,
-                reportRemainingWarnings: reportWarnings);
+                reportRemainingWarnings: reportWarnings,
+                location: location);
         }
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
@@ -4864,7 +4880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!argumentType.HasNullType && IsNullabilityMismatch(paramType.Type, argumentType.Type))
             {
-                ReportNullabilityMismatchInArgument(argument, argumentType.Type, parameter, paramType.Type, forOutput: false);
+                ReportNullabilityMismatchInArgument(argument.Syntax, argumentType.Type, parameter, paramType.Type, forOutput: false);
             }
         }
 
@@ -4880,10 +4896,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Report warning passing argument where nested nullability does not match
         /// parameter (e.g.: calling `void F(object[] o)` with `F(new[] { maybeNull })`).
         /// </summary>
-        private void ReportNullabilityMismatchInArgument(BoundExpression argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType, bool forOutput)
+        private void ReportNullabilityMismatchInArgument(SyntaxNode argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType, bool forOutput)
+        {
+            ReportNullabilityMismatchInArgument(argument.GetLocation(), argumentType, parameter, parameterType, forOutput);
+        }
+
+        private void ReportNullabilityMismatchInArgument(Location argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType, bool forOutput)
         {
             ReportSafetyDiagnostic(forOutput ? ErrorCode.WRN_NullabilityMismatchInArgumentForOutput : ErrorCode.WRN_NullabilityMismatchInArgument,
-                argument.Syntax, argumentType, parameterType,
+                argument, argumentType, parameterType,
                 new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
                 new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
         }
@@ -5049,6 +5070,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // declare and assign all iteration variables
             TypeWithAnnotations sourceType = node.EnumeratorInfoOpt?.ElementTypeWithAnnotations ?? default;
             TypeWithState sourceState = sourceType.ToTypeWithState();
+
+#pragma warning disable IDE0055 // Fix formatting
+            var variableLocation = node.Syntax switch
+                {
+                    ForEachStatementSyntax statement => statement.Identifier.GetLocation(),
+                    ForEachVariableStatementSyntax variableStatement => variableStatement.Variable.GetLocation(),
+                    _ => throw ExceptionUtilities.UnexpectedValue(node.Syntax)
+                };
+#pragma warning restore IDE0055 // Fix formatting
+
             foreach (var iterationVariable in node.IterationVariables)
             {
                 var state = NullableFlowState.NotNull;
@@ -5073,24 +5104,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // foreach (var (..., ...) in collection)
                         // and asynchronous variants
                         HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                        Conversion conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref useSiteDiagnostics);
+                        Conversion conversion = node.ElementConversion.Kind == ConversionKind.UnsetConversionKind
+                            ? _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref useSiteDiagnostics)
+                            : node.ElementConversion;
                         TypeWithState result = ApplyConversion(
                             node.IterationVariableType,
                             operandOpt: null,
                             conversion,
                             destinationType,
                             sourceState,
-                            checkConversion: false,
-                            fromExplicitCast: false,
+                            checkConversion: true,
+                            fromExplicitCast: !conversion.IsImplicit,
                             useLegacyWarnings: false,
-                            AssignmentKind.Assignment,
-                            reportTopLevelWarnings: false,
-                            reportRemainingWarnings: false);
-                        if (destinationType.Type.IsReferenceType && destinationType.NullableAnnotation.IsNotAnnotated() && result.MayBeNull)
-                        {
-                            ReportNonSafetyDiagnostic(node.IterationVariableType.Syntax);
-                        }
-
+                            AssignmentKind.ForEachIterationVariable,
+                            reportTopLevelWarnings: true,
+                            reportRemainingWarnings: true,
+                            location: variableLocation);
                         state = result.State;
                     }
                 }
