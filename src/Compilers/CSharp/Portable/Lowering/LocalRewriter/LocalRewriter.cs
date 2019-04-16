@@ -797,6 +797,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     return ((BoundIndexerAccess)expr).Indexer.RefKind != RefKind.None;
+
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    var refKind = patternIndexer.PatternSymbol is PropertySymbol p
+                        ? p.RefKind
+                        : ((MethodSymbol)patternIndexer.PatternSymbol).RefKind;
+                    return refKind != RefKind.None;
             }
 
             return false;

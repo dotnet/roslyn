@@ -4945,13 +4945,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var receiverType = VisitRvalueWithState(node.Receiver);
             VisitRvalue(node.Argument);
-            var patternMethod = node.PatternMethod;
+            var patternSymbol = node.PatternSymbol;
             if (!receiverType.HasNullType)
             {
-                patternMethod = (MethodSymbol)AsMemberOfType(receiverType.Type, patternMethod);
+                patternSymbol = AsMemberOfType(receiverType.Type, patternSymbol);
             }
 
-            LvalueResultType = patternMethod.ReturnTypeWithAnnotations;
+            LvalueResultType = patternSymbol switch
+            {
+                PropertySymbol p => p.TypeWithAnnotations,
+                MethodSymbol m => m.ReturnTypeWithAnnotations,
+                _ => throw ExceptionUtilities.Unreachable,
+            };
             return null;
         }
 

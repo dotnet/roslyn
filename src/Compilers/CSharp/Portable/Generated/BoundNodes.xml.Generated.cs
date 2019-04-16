@@ -6676,19 +6676,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundIndexOrRangePatternIndexerAccess : BoundExpression
     {
-        public BoundIndexOrRangePatternIndexerAccess(SyntaxNode syntax, BoundExpression receiver, PropertySymbol lengthOrCountProperty, MethodSymbol patternMethod, BoundExpression argument, TypeSymbol type, bool hasErrors = false)
+        public BoundIndexOrRangePatternIndexerAccess(SyntaxNode syntax, BoundExpression receiver, PropertySymbol lengthOrCountProperty, Symbol patternSymbol, BoundExpression argument, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.IndexOrRangePatternIndexerAccess, syntax, type, hasErrors || receiver.HasErrors() || argument.HasErrors())
         {
 
             Debug.Assert((object)receiver != null, "Field 'receiver' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert((object)lengthOrCountProperty != null, "Field 'lengthOrCountProperty' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert((object)patternMethod != null, "Field 'patternMethod' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert((object)patternSymbol != null, "Field 'patternSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert((object)argument != null, "Field 'argument' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Receiver = receiver;
             this.LengthOrCountProperty = lengthOrCountProperty;
-            this.PatternMethod = patternMethod;
+            this.PatternSymbol = patternSymbol;
             this.Argument = argument;
         }
 
@@ -6697,16 +6697,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public PropertySymbol LengthOrCountProperty { get; }
 
-        public MethodSymbol PatternMethod { get; }
+        public Symbol PatternSymbol { get; }
 
         public BoundExpression Argument { get; }
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitIndexOrRangePatternIndexerAccess(this);
 
-        public BoundIndexOrRangePatternIndexerAccess Update(BoundExpression receiver, PropertySymbol lengthOrCountProperty, MethodSymbol patternMethod, BoundExpression argument, TypeSymbol type)
+        public BoundIndexOrRangePatternIndexerAccess Update(BoundExpression receiver, PropertySymbol lengthOrCountProperty, Symbol patternSymbol, BoundExpression argument, TypeSymbol type)
         {
-            if (receiver != this.Receiver || lengthOrCountProperty != this.LengthOrCountProperty || patternMethod != this.PatternMethod || argument != this.Argument || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiver != this.Receiver || lengthOrCountProperty != this.LengthOrCountProperty || patternSymbol != this.PatternSymbol || argument != this.Argument || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundIndexOrRangePatternIndexerAccess(this.Syntax, receiver, lengthOrCountProperty, patternMethod, argument, type, this.HasErrors);
+                var result = new BoundIndexOrRangePatternIndexerAccess(this.Syntax, receiver, lengthOrCountProperty, patternSymbol, argument, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6715,7 +6715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundIndexOrRangePatternIndexerAccess(this.Syntax, this.Receiver, this.LengthOrCountProperty, this.PatternMethod, this.Argument, this.Type, this.HasErrors);
+            var result = new BoundIndexOrRangePatternIndexerAccess(this.Syntax, this.Receiver, this.LengthOrCountProperty, this.PatternSymbol, this.Argument, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -10085,7 +10085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
             BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(receiver, node.LengthOrCountProperty, node.PatternMethod, argument, type);
+            return node.Update(receiver, node.LengthOrCountProperty, node.PatternSymbol, argument, type);
         }
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
@@ -11517,7 +11517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
             new TreeDumperNode("lengthOrCountProperty", node.LengthOrCountProperty, null),
-            new TreeDumperNode("patternMethod", node.PatternMethod, null),
+            new TreeDumperNode("patternSymbol", node.PatternSymbol, null),
             new TreeDumperNode("argument", null, new TreeDumperNode[] { Visit(node.Argument, null) }),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
