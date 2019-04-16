@@ -4951,12 +4951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 patternSymbol = AsMemberOfType(receiverType.Type, patternSymbol);
             }
 
-            LvalueResultType = patternSymbol switch
-            {
-                PropertySymbol p => p.TypeWithAnnotations,
-                MethodSymbol m => m.ReturnTypeWithAnnotations,
-                _ => throw ExceptionUtilities.Unreachable,
-            };
+            LvalueResultType = patternSymbol.GetTypeOrReturnType();
             return null;
         }
 

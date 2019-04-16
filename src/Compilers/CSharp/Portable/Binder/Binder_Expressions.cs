@@ -7539,8 +7539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!candidate.IsStatic &&
                             candidate is PropertySymbol property &&
                             IsAccessible(property, ref useSiteDiagnostics) &&
-                            property.OriginalDefinition is var original &&
-                            original.ParameterCount == 1 &&
+                            property.OriginalDefinition is { ParameterCount: 1 } original &&
                             isIntNotByRef(original.Parameters[0]))
                         {
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(

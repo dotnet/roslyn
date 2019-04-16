@@ -17,6 +17,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
 
         [Fact]
+        public void SpanTaskReturn()
+        {
+            var src = @"
+using System;
+using System.Threading.Tasks;
+class C
+{
+    static void Throws(Action a)
+    {
+        try
+        {
+            a();
+        }
+        catch
+        {
+            Console.WriteLine(""throws"");
+        }
+    }
+
+    public static void Main()
+    {
+        string s = ""abcd"";
+        Throws(() => { var span = new Span<char>(s.ToCharArray())[0..10]; });
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "throws");
+        }
+
+        [Fact]
         public void PatternIndexSetter()
         {
             var src = @"

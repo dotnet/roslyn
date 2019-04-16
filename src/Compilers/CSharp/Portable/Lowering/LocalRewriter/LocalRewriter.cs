@@ -800,9 +800,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    var refKind = patternIndexer.PatternSymbol is PropertySymbol p
-                        ? p.RefKind
-                        : ((MethodSymbol)patternIndexer.PatternSymbol).RefKind;
+                    var refKind = patternIndexer.PatternSymbol switch
+                    {
+                        PropertySymbol p => p.RefKind,
+                        MethodSymbol m => m.RefKind,
+                        _ => throw ExceptionUtilities.UnexpectedValue(patternIndexer.PatternSymbol)
+                    };
                     return refKind != RefKind.None;
             }
 

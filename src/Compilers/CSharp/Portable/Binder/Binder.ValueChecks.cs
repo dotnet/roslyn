@@ -314,12 +314,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
 
                 case BoundKind.IndexOrRangePatternIndexerAccess:
-                    if (((BoundIndexOrRangePatternIndexerAccess)expr).PatternSymbol.Kind == SymbolKind.Property)
+                    var patternIndexer = ((BoundIndexOrRangePatternIndexerAccess)expr);
+                    if (patternIndexer.PatternSymbol.Kind == SymbolKind.Property)
                     {
-                        // If this is an Index indexer PatternSymbol should be a property, pointing to the
+                        // If this is an Index indexer, PatternSymbol should be a property, pointing to the
                         // pattern indexer. If it's a Range access, it will be a method, pointing to a Slice method
+                        // and it's handled below as part of invocations.
                         return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
                     }
+                    Debug.Assert(patternIndexer.PatternSymbol.Kind == SymbolKind.Method);
                     break;
 
                 case BoundKind.EventAccess:
@@ -484,7 +487,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    // Index access should have been handled with properties, above
+                    // If we got here this should be a pttern indexer taking a Range,
+                    // meaning that the pattern symbol must be a method (either Slice or Substring)
                     return CheckMethodReturnValueKind(
                         (MethodSymbol)patternIndexer.PatternSymbol,
                         patternIndexer.Syntax,
@@ -2393,9 +2397,12 @@ moreArguments:
 
                 case BoundKind.IndexOrRangePatternIndexerAccess:
                     var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
-                    var parameters = patternIndexer.PatternSymbol is PropertySymbol p
-                        ? p.Parameters
-                        : ((MethodSymbol)patternIndexer.PatternSymbol).Parameters;
+                    var parameters = patternIndexer.PatternSymbol switch
+                    {
+                        PropertySymbol p => p.Parameters,
+                        MethodSymbol m => m.Parameters,
+                        _ => throw ExceptionUtilities.UnexpectedValue(patternIndexer.PatternSymbol)
+                    };
 
                     return GetInvocationEscapeScope(
                         patternIndexer.PatternSymbol,

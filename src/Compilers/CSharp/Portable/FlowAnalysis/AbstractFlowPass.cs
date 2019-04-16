@@ -1203,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 PropertySymbol p => GetReadMethod(p),
                 MethodSymbol m => m,
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.UnexpectedValue(node.PatternSymbol)
             };
             VisitReceiverAfterCall(node.Receiver, method);
 
