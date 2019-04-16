@@ -952,16 +952,12 @@ abstract class B : A, I
                 Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(14, 20),
                 // (15,22): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(15, 22),
-                // (16,37): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(16, 37),
                 // (17,36): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(17, 36),
                 // (18,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(18, 45),
                 // (19,37): error CS0115: 'B.M4<T>()': no suitable method found to override
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("B.M4<T>()").WithLocation(19, 37),
-                // (19,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(19, 45));
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("B.M4<T>()").WithLocation(19, 37));
         }
 
         [WorkItem(862094, "DevDiv/Personal")]

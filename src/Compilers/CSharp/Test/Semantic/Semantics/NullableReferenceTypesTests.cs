@@ -12375,7 +12375,7 @@ class B : IA
     }
 
 " + NonNullTypesOff() + @"
-    S?[] IA.M2<S>()
+    S?[] IA.M2<S>() where S : class
     {
         return new S?[] {};
     }
@@ -12384,32 +12384,23 @@ class B : IA
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                 // (17,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     S?[] IA.M2<S>()
+                //     S?[] IA.M2<S>() where S : class
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(17, 6),
-                // (17,13): error CS0539: 'B.M2<S>()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     S?[] IA.M2<S>()
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("B.M2<S>()").WithLocation(17, 13),
+                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
+                //     S?[] IA.M2<S>() where S : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M2").WithArguments("T[] IA.M2<T>()").WithLocation(17, 13),
                 // (11,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     string?[] IA.M1()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(11, 11),
                 // (11,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
                 //     string?[] IA.M1()
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(11, 18),
-                // (8,11): error CS0535: 'B' does not implement interface member 'IA.M2<T>()'
-                // class B : IA
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.M2<T>()").WithLocation(8, 11),
-                // (17,13): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     S?[] IA.M2<S>()
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2").WithArguments("System.Nullable<T>", "T", "S").WithLocation(17, 13),
                 // (13,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         return new string?[] {};
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(13, 26),
                 // (19,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         return new S?[] {};
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 21),
-                // (19,20): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //         return new S?[] {};
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "S?").WithArguments("System.Nullable<T>", "T", "S").WithLocation(19, 20)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 21)
                 );
         }
 
@@ -12771,7 +12762,7 @@ class A
 
 class B : A
 {
-    public override void M1<T>(T? x)
+    public override void M1<T>(T? x) where T : class
     {
     }
 
@@ -13060,7 +13051,7 @@ class B : A
     }
 
 " + NonNullTypesOff() + @"
-    public override void M2<T>(T?[] x) where T ; class
+    public override void M2<T>(T?[] x) where T : class
     {
     }
 }
@@ -14433,33 +14424,12 @@ class B : IA
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                // (23,13): error CS0539: 'B.M2<S>()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     S?[] IA.M2<S>() 
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("B.M2<S>()").WithLocation(23, 13),
-                // (28,14): error CS0539: 'B.M3<S>()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     S?[]? IA.M3<S>() 
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M3").WithArguments("B.M3<S>()").WithLocation(28, 14),
+                // (23,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
+                //     S?[] IA.M2<S>() where S : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M2").WithArguments("T[] IA.M2<T>()").WithLocation(23, 13),
                 // (18,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
                 //     string?[] IA.M1()
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(18, 18),
-                // (16,11): error CS0535: 'B' does not implement interface member 'IA.M3<T>()'
-                // class B : IA
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.M3<T>()").WithLocation(16, 11),
-                // (16,11): error CS0535: 'B' does not implement interface member 'IA.M2<T>()'
-                // class B : IA
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.M2<T>()").WithLocation(16, 11),
-                // (23,13): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     S?[] IA.M2<S>() 
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2").WithArguments("System.Nullable<T>", "T", "S").WithLocation(23, 13),
-                // (28,14): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     S?[]? IA.M3<S>() 
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M3").WithArguments("System.Nullable<T>", "T", "S").WithLocation(28, 14),
-                // (25,20): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //         return new S?[] {};
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "S?").WithArguments("System.Nullable<T>", "T", "S").WithLocation(25, 20),
-                // (30,20): error CS0453: The type 'S' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //         return new S?[] {};
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "S?").WithArguments("System.Nullable<T>", "T", "S").WithLocation(30, 20)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(18, 18)
                 );
         }
 
@@ -60182,7 +60152,7 @@ class A<T>
 
 class B : A<int>
 {
-    public override void F1<T11>(T11? t1) where T : class
+    public override void F1<T11>(T11? t1) where T11 : class
     {
     }
 
@@ -60418,11 +60388,11 @@ class A<T>
 
 class B : A<int>
 {
-    public override void F1<T11>(T11? t1) where T11 : class?
+    public override void F1<T11>(T11? t1) where T11 : class
     {
     }
 
-    public override void F2<T22>(T22 t2) where T22 : class
+    public override void F2<T22>(T22 t2)
     {
     }
 }
