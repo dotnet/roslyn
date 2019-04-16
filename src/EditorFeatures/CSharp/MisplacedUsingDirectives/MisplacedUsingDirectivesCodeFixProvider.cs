@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -44,12 +45,18 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
-            var options = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
+            var document = context.Document;
+            var cancellationToken = context.CancellationToken;
 
-            // Do not offer a code fix when there are multiple namespaces in the source file.
-            if (CountNamespaces(compilationUnit.Members) > 1)
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            // Read the preffered placement option and verify if it can be applied to this code file.
+            // There are cases where we will not be able to fix the diagnostic and the user will need to resolve
+            // it manually.
+            var (placement, preferPreservation) = DeterminePlacement(compilationUnit, options);
+            if (preferPreservation)
             {
                 return;
             }
@@ -57,64 +64,67 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             foreach (var diagnostic in context.Diagnostics)
             {
                 context.RegisterCodeFix(
-                    new MoveMisplacedUsingsCodeAction(cancellationToken => GetTransformedDocumentAsync(context.Document, compilationUnit, options, cancellationToken)),
+                    new MoveMisplacedUsingsCodeAction(token => GetTransformedDocumentAsync(document, compilationUnit, options, placement, token)),
                     diagnostic);
             }
         }
 
-        private static async Task<Document> GetTransformedDocumentAsync(Document document, CompilationUnitSyntax compilationUnit, OptionSet options, CancellationToken cancellationToken)
+        private static async Task<Document> GetTransformedDocumentAsync(
+            Document document,
+            CompilationUnitSyntax compilationUnit,
+            OptionSet options,
+            AddImportPlacement placement,
+            CancellationToken cancellationToken)
         {
-            var usingDirectivesPlacement = DeterminePlacement(compilationUnit, options);
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
-            // There should only be a diagnostic when there are usings directives that need moving.
-            Debug.Assert(!usingDirectivesPlacement.preferPreservation);
+            // Expand usings so that they can be properly simplified after they are relocated.
+            var compilationUnitWithExpandedUsings = (CompilationUnitSyntax)await ExpandUsingDirectivesAsync(document, compilationUnit, cancellationToken).ConfigureAwait(false);
 
-            var compilationUnitWithExpandedUsings = await ExpandUsingDirectivesAsync(document, compilationUnit, cancellationToken).ConfigureAwait(false);
+            // Remove the file header from the compilation unit so that we do not lose it when making changes to usings.
+            var (compilationUnitWithoutHeader, fileHeader) = RemoveFileHeader(compilationUnitWithExpandedUsings, syntaxFactsService);
 
-            var (compilationUnitWithoutHeader, fileHeader) = RemoveFileHeader(compilationUnitWithExpandedUsings);
+            var newCompilationUnit = placement == AddImportPlacement.InsideNamespace
+                ? MoveUsingsInsideNamespace(compilationUnitWithoutHeader)
+                : MoveUsingsOutsideNamespace(compilationUnitWithoutHeader);
 
-            var newCompilationUnit = usingDirectivesPlacement.placement switch
-            {
-                AddImportPlacement.InsideNamespace => MoveUsingsInsideNamespace(compilationUnitWithoutHeader),
-                AddImportPlacement.OutsideNamespace => MoveUsingsOutsideNamespace(compilationUnitWithoutHeader),
-                _ => throw ExceptionUtilities.Unreachable
-            };
-
+            // Re-attach the header now that using have been moved and LeadingTrivia is no longer being altered.
             var newCompilationUnitWithHeader = AddFileHeader(newCompilationUnit, fileHeader);
-
             var newDocument = document.WithSyntaxRoot(newCompilationUnitWithHeader);
 
+            // Simplify usings now that they have been moved and are in the proper context.
             return await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, options, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<CompilationUnitSyntax> ExpandUsingDirectivesAsync(Document document, CompilationUnitSyntax compilationUnit, CancellationToken cancellationToken)
+        private static async Task<SyntaxNode> ExpandUsingDirectivesAsync(Document document, CompilationUnitSyntax containerNode, CancellationToken cancellationToken)
         {
-            // Expand the usings declarations in the compilation unit.
-            var expandCompilationUnitUsingsTasks = compilationUnit.Usings.Select(
+            // Get all using directives so they can be expanded at one time.
+            var namespaceDeclarations = GetMembers(containerNode).OfType<NamespaceDeclarationSyntax>();
+            var allUsingDirectives = namespaceDeclarations.SelectMany(GetUsingDirectives).Concat(containerNode.Usings);
+
+            // Create a map between the original node and the future expanded node.
+            var expandUsingDirectiveTasks = allUsingDirectives.ToDictionary(
+                usingDirective => (SyntaxNode)usingDirective,
                 usingDirective => ExpandUsingDirectiveAsync(document, usingDirective, cancellationToken));
-            var newCompilationUnitUsings = await Task.WhenAll(expandCompilationUnitUsingsTasks).ConfigureAwait(false);
 
-            var compilationUnitWithExpandedUsings = compilationUnit.WithUsings(new SyntaxList<UsingDirectiveSyntax>(newCompilationUnitUsings));
+            // Wait for all using directives to be expanded
+            await Task.WhenAll(expandUsingDirectiveTasks.Values).ConfigureAwait(false);
 
-            // To expand the using declarations in the namespace we need to get an updated document, since the 
-            // expander requires that the SyntaxTree for the semantic model match that of the using directives.
-            var newDocument = document.WithSyntaxRoot(compilationUnitWithExpandedUsings);
-            var newCompilationUnit = (CompilationUnitSyntax)await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            // Expand the using declarations in the namespace declaration.
-            var namespaceDeclaration = newCompilationUnit.Members.OfType<NamespaceDeclarationSyntax>().First();
-
-            var expandNamespaceDeclarationUsingsTasks = namespaceDeclaration.Usings.Select(
-                usingDirective => ExpandUsingDirectiveAsync(newDocument, usingDirective, cancellationToken));
-            var newNamespaceDeclarationUsings = await Task.WhenAll(expandNamespaceDeclarationUsingsTasks).ConfigureAwait(false);
-
-            var namespaceDeclarationWithExpandedUsings = namespaceDeclaration.WithUsings(new SyntaxList<UsingDirectiveSyntax>(newNamespaceDeclarationUsings));
-
-            return newCompilationUnit.ReplaceNode(namespaceDeclaration, namespaceDeclarationWithExpandedUsings);
+            // Replace using directives with their expanded version.
+            return ((SyntaxNode)containerNode).ReplaceNodes(
+                expandUsingDirectiveTasks.Keys,
+                (node, _) => expandUsingDirectiveTasks[node].Result);
         }
 
-        private static async Task<UsingDirectiveSyntax> ExpandUsingDirectiveAsync(Document document, UsingDirectiveSyntax usingDirective, CancellationToken cancellationToken)
+        private static IEnumerable<UsingDirectiveSyntax> GetUsingDirectives(NamespaceDeclarationSyntax namespaceDeclaration)
         {
+            var namespaceDeclarations = namespaceDeclaration.Members.OfType<NamespaceDeclarationSyntax>();
+            return namespaceDeclarations.SelectMany(GetUsingDirectives).Concat(namespaceDeclaration.Usings);
+        }
+
+        private static async Task<SyntaxNode> ExpandUsingDirectiveAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var usingDirective = (UsingDirectiveSyntax)node;
             var newName = await Simplifier.ExpandAsync(usingDirective.Name, document, cancellationToken: cancellationToken).ConfigureAwait(false);
             return usingDirective.WithName(newName);
         }
@@ -126,11 +136,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
                 directive => directive.WithAdditionalAnnotations(Formatter.Annotation));
 
             // Remove usings and fix leading trivia for compilation unit.
-            var compilationUnitWithoutUsings = compilationUnit.WithUsings(new SyntaxList<UsingDirectiveSyntax>());
+            var compilationUnitWithoutUsings = compilationUnit.WithUsings(default);
             var compilationUnitWithoutBlankLine = RemoveLeadingBlankLinesFromFirstMember(compilationUnitWithoutUsings);
 
             // Fix the leading trivia for the namespace declaration.
-            var namespaceDeclaration = compilationUnitWithoutBlankLine.Members.OfType<NamespaceDeclarationSyntax>().First();
+            var namespaceDeclaration = (NamespaceDeclarationSyntax)compilationUnitWithoutBlankLine.Members[0];
             var namespaceDeclarationWithBlankLine = EnsureLeadingBlankLineBeforeFirstMember(namespaceDeclaration);
 
             // Update the namespace declaration with the usings from the compilation unit.
@@ -150,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
                 directive => directive.WithAdditionalAnnotations(Formatter.Annotation));
 
             // Remove usings and fix leading trivia for namespace declaration.
-            var namespaceDeclarationWithoutUsings = namespaceDeclaration.WithUsings(new SyntaxList<UsingDirectiveSyntax>());
+            var namespaceDeclarationWithoutUsings = namespaceDeclaration.WithUsings(default);
             var namespaceDeclarationWithoutBlankLine = RemoveLeadingBlankLinesFromFirstMember(namespaceDeclarationWithoutUsings);
             var compilationUnitWithReplacedNamespace = compilationUnit.ReplaceNode(namespaceDeclaration, namespaceDeclarationWithoutBlankLine);
 
@@ -162,12 +172,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             return EnsureLeadingBlankLineBeforeFirstMember(compilationUnitWithUsings);
         }
 
-        private static SyntaxList<MemberDeclarationSyntax> GetMembers(SyntaxNode node) => node switch
-        {
-            CompilationUnitSyntax compilationUnit => compilationUnit.Members,
-            NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Members,
-            _ => throw ExceptionUtilities.UnexpectedValue(node)
-        };
+        private static SyntaxList<MemberDeclarationSyntax> GetMembers(SyntaxNode node)
+            => node switch
+            {
+                CompilationUnitSyntax compilationUnit => compilationUnit.Members,
+                NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Members,
+                _ => throw ExceptionUtilities.UnexpectedValue(node)
+            };
 
         private static TSyntaxNode RemoveLeadingBlankLinesFromFirstMember<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
         {
@@ -186,14 +197,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
                 return node;
             }
 
-            var newTrivia = splitIntoLines(firstMemberTrivia)
+            var newTrivia = SplitIntoLines(firstMemberTrivia)
                 .SkipWhile(trivia => trivia.All(t => t.IsWhitespaceOrEndOfLine()) && trivia.Last().IsKind(SyntaxKind.EndOfLineTrivia))
                 .SelectMany(t => t);
 
             var newFirstMember = firstMember.WithLeadingTrivia(newTrivia);
             return node.ReplaceNode(firstMember, newFirstMember);
 
-            IEnumerable<IEnumerable<SyntaxTrivia>> splitIntoLines(SyntaxTriviaList triviaList)
+            IEnumerable<IEnumerable<SyntaxTrivia>> SplitIntoLines(SyntaxTriviaList triviaList)
             {
                 var index = 0;
                 for (var i = 0; i < triviaList.Count; i++)
@@ -236,32 +247,31 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private static (AddImportPlacement placement, bool preferPreservation) DeterminePlacement(CompilationUnitSyntax compilationUnit, OptionSet options)
         {
             var codeStyleOption = options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
+
+            var placement = codeStyleOption.Value;
             var preferPreservation = codeStyleOption.Notification == NotificationOption.None;
 
-            switch (codeStyleOption.Value)
+            if (preferPreservation || placement == AddImportPlacement.OutsideNamespace)
             {
-                case AddImportPlacement.InsideNamespace:
-                    var namespaceCount = CountNamespaces(compilationUnit.Members);
-
-                    // Only move using declarations inside the namespace when
-                    // - There are no global attributes
-                    // - There are no type definitions outside of the single top level namespace
-                    // - There is only a single namespace declared at the top level
-                    if (compilationUnit.AttributeLists.Any()
-                        || compilationUnit.Members.Count > 1
-                        || namespaceCount != 1)
-                    {
-                        // Override the user's setting with a more conservative one
-                        return (AddImportPlacement.OutsideNamespace, preferPreservation: true);
-                    }
-
-                    return (AddImportPlacement.InsideNamespace, preferPreservation);
-
-                case AddImportPlacement.OutsideNamespace:
-                    return (AddImportPlacement.OutsideNamespace, preferPreservation);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(codeStyleOption.Value);
+                return (codeStyleOption.Value, preferPreservation);
             }
+
+            // Determine if we can safely apply the InsideNamespace preference.
+
+            // Do not offer a code fix when there are multiple namespaces in the source file. When there are
+            // nested namespaces it is not clear if inner usings can be moved outwards without causing 
+            // collisions. Also, when moving usings inwards it is complex to determine which namespaces they
+            // should be moved into.
+
+            // Only move using declarations inside the namespace when
+            // - There are no global attributes
+            // - There are no type definitions outside of the single top level namespace
+            // - There is only a single namespace declared at the top level
+            var forcePreservation = compilationUnit.AttributeLists.Any()
+                || compilationUnit.Members.Count > 1
+                || CountNamespaces(compilationUnit.Members) != 1;
+
+            return (AddImportPlacement.InsideNamespace, forcePreservation);
         }
 
         private static int CountNamespaces(SyntaxList<MemberDeclarationSyntax> members)
@@ -276,9 +286,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             return result;
         }
 
-        private static (CompilationUnitSyntax compilationUnitWithoutHeader, ImmutableArray<SyntaxTrivia> header) RemoveFileHeader(CompilationUnitSyntax syntaxRoot)
+        private static (CompilationUnitSyntax compilationUnitWithoutHeader, ImmutableArray<SyntaxTrivia> header) RemoveFileHeader(
+            CompilationUnitSyntax syntaxRoot, ISyntaxFactsService syntaxFactsService)
         {
-            var fileHeader = GetFileHeader(syntaxRoot);
+            var fileHeader = syntaxFactsService.GetFileBanner(syntaxRoot);
             var leadingTrivia = syntaxRoot.GetLeadingTrivia();
 
             for (var i = fileHeader.Length - 1; i >= 0; i--)
@@ -289,60 +300,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var newCompilationUnit = syntaxRoot.WithLeadingTrivia(leadingTrivia);
 
             return (newCompilationUnit, fileHeader);
-        }
-
-        private static ImmutableArray<SyntaxTrivia> GetFileHeader(SyntaxNode syntaxRoot)
-        {
-            var onBlankLine = true;
-            var hasHeader = false;
-            var fileHeaderBuilder = ImmutableArray.CreateBuilder<SyntaxTrivia>();
-
-            var firstToken = syntaxRoot.GetFirstToken(includeZeroWidth: true);
-            var firstTokenLeadingTrivia = firstToken.LeadingTrivia;
-
-            int i;
-            for (i = 0; i < firstTokenLeadingTrivia.Count; i++)
-            {
-                var done = false;
-                switch (firstTokenLeadingTrivia[i].Kind())
-                {
-                    case SyntaxKind.SingleLineCommentTrivia:
-                    case SyntaxKind.MultiLineCommentTrivia:
-                        fileHeaderBuilder.Add(firstTokenLeadingTrivia[i]);
-                        onBlankLine = false;
-                        break;
-
-                    case SyntaxKind.WhitespaceTrivia:
-                        fileHeaderBuilder.Add(firstTokenLeadingTrivia[i]);
-                        break;
-
-                    case SyntaxKind.EndOfLineTrivia:
-                        hasHeader = true;
-                        fileHeaderBuilder.Add(firstTokenLeadingTrivia[i]);
-
-                        if (onBlankLine)
-                        {
-                            done = true;
-                        }
-                        else
-                        {
-                            onBlankLine = true;
-                        }
-
-                        break;
-
-                    default:
-                        done = true;
-                        break;
-                }
-
-                if (done)
-                {
-                    break;
-                }
-            }
-
-            return hasHeader ? fileHeaderBuilder.ToImmutableArray() : ImmutableArray.Create<SyntaxTrivia>();
         }
 
         private static CompilationUnitSyntax AddFileHeader(CompilationUnitSyntax compilationUnit, ImmutableArray<SyntaxTrivia> fileHeader)

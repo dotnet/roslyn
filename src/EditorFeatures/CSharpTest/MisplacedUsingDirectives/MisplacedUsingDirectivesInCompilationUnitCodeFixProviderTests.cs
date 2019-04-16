@@ -401,9 +401,9 @@ namespace TestNamespace
 }
 ";
 
-            var fixedTestCode = @"
-namespace TestNamespace
+            var fixedTestCode = @"namespace TestNamespace
 {
+
     // Some comment
     using System;
     using System.Threading;

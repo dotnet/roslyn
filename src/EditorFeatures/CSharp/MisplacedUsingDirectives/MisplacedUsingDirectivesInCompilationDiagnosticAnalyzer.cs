@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
                 return;
             }
 
+            // Note: We will report diagnostics when a code file contains multiple namespaces even though we will
+            // not offer a code fix in these cases.
             MisplacedUsingsUtilities.ReportDiagnostics(context, Descriptor, compilationUnit.Usings, option);
         }
 
