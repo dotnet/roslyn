@@ -1,33 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives;
-using Microsoft.CodeAnalysis.CSharp.Testing;
-using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirectives
 {
-    using Verify = CSharpCodeFixVerifier<MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer, MisplacedUsingDirectivesCodeFixProvider, XUnitVerifier>;
-
     /// <summary>
     /// Unit tests for the <see cref="MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer"/> and <see cref="MisplacedUsingDirectivesCodeFixProvider"/>.
     /// </summary>
     public class MisplacedUsingDirectivesInNamespaceCodeFixProviderTests : AbstractMisplacedUsingDirectivesCodeFixProviderTests
     {
-        protected override DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
-            return Verify.Diagnostic(descriptor);
-        }
-
-        protected override CodeFixTest<XUnitVerifier> CreateTest((string filename, string content) sourceFile, string fixedSource)
-        {
-            return new CSharpCodeFixTest<MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer, MisplacedUsingDirectivesCodeFixProvider, XUnitVerifier>
-            {
-                TestState = { Sources = { sourceFile } },
-                FixedCode = fixedSource
-            };
+            return (new MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer(), new MisplacedUsingDirectivesCodeFixProvider());
         }
 
         #region Test Preserve
@@ -40,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
         {
             var testCode = @"namespace TestNamespace
 {
-    using System;
-    using System.Threading;
+    [|using System;
+    using System.Threading;|]
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, OutsidePreferPreservationOption, DiagnosticResult.EmptyDiagnosticResults);
+            return TestDiagnosticMissingAsync(testCode, OutsidePreferPreservationOption);
         }
 
         /// <summary>
@@ -59,11 +47,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
 
 namespace TestNamespace
 {
-    using System.Threading;
+    [|using System.Threading;|]
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, OutsidePreferPreservationOption, DiagnosticResult.EmptyDiagnosticResults);
+            return TestDiagnosticMissingAsync(testCode, OutsidePreferPreservationOption);
         }
 
         #endregion
@@ -77,15 +65,15 @@ namespace TestNamespace
         [Fact]
         public Task WhenOutsidePreferred_UsingsInCompilationUnit_ValidUsingStatements()
         {
-            var testCode = @"using System;
-using System.Threading;
+            var testCode = @"[|using System;
+using System.Threading;|]
 
 namespace TestNamespace
 {
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, OutsideNamespaceOption, DiagnosticResult.EmptyDiagnosticResults);
+            return TestDiagnosticMissingAsync(testCode, OutsideNamespaceOption);
         }
 
         /// <summary>
@@ -100,12 +88,12 @@ namespace TestNamespace
         [InlineData(DelegateDefinition)]
         public Task WhenOutsidePreferred_UsingsInCompilationUnitWithMember_ValidUsingStatements(string typeDefinition)
         {
-            var testCode = $@"using System;
+            var testCode = $@"[|using System;|]
 
 {typeDefinition}
 ";
 
-            return VerifyAnalyzerAsync(testCode, OutsideNamespaceOption, DiagnosticResult.EmptyDiagnosticResults);
+            return TestDiagnosticMissingAsync(testCode, OutsideNamespaceOption);
         }
 
         /// <summary>
@@ -116,8 +104,8 @@ namespace TestNamespace
         {
             var testCode = @"namespace TestNamespace
 {
-    using System;
-    using System.Threading;
+    [|using System;
+    using System.Threading;|]
 }
 ";
             var fixedTestCode = @"using System;
@@ -128,15 +116,8 @@ namespace TestNamespace
 }
 ";
 
-            var expected = new DiagnosticResult[]
-            {
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(3, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(4, 5),
-            };
-
-            return VerifyCodeFixAsync(testCode, OutsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true);
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
-
 
         /// <summary>
         /// Verifies that simplified using statements in a namespace are expanded during the code fix operation.
@@ -147,9 +128,9 @@ namespace TestNamespace
         {
             var testCode = @"namespace System
 {
-    using System;
+    [|using System;
     using System.Threading;
-    using Reflection;
+    using Reflection;|]
 }
 ";
             var fixedTestCode = @"using System;
@@ -161,16 +142,8 @@ namespace System
 }
 ";
 
-            var expected = new DiagnosticResult[]
-            {
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(3, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(4, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(5, 5),
-            };
-
-            return VerifyCodeFixAsync(testCode, OutsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true);
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
-
 
         /// <summary>
         /// Verifies that simplified using statements in a namespace are expanded during the code fix operation.
@@ -180,10 +153,10 @@ namespace System
         {
             var testCode = @"namespace System.MyExtension
 {
-    using System.Threading;
+    [|using System.Threading;
     using Reflection;
     using Assembly = Reflection.Assembly;
-    using List = Collections.Generic.IList<int>;
+    using List = Collections.Generic.IList<int>;|]
 }
 ";
             var fixedTestCode = @"using System.Threading;
@@ -196,15 +169,7 @@ namespace System.MyExtension
 }
 ";
 
-            var expected = new DiagnosticResult[]
-            {
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(3, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(4, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(5, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(6, 5),
-            };
-
-            return VerifyCodeFixAsync(testCode, OutsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true);
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
 
         /// <summary>
@@ -220,8 +185,8 @@ namespace System.MyExtension
 
 namespace TestNamespace
 {
-    using System;
-    using System.Threading;
+    [|using System;
+    using System.Threading;|]
 }
 ";
             var fixedTestCode = @"using System.Reflection;
@@ -235,13 +200,7 @@ namespace TestNamespace
 }
 ";
 
-            var expected = new DiagnosticResult[]
-            {
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(7, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(8, 5),
-            };
-
-            return VerifyCodeFixAsync(testCode, OutsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true);
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
 
         /// <summary>
@@ -257,7 +216,7 @@ namespace TestNamespace
 
 namespace TestNamespace
 {
-    using System;
+    [|using System;|]
 }
 ";
             var fixedTestCode = @"// Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
@@ -270,12 +229,7 @@ namespace TestNamespace
 }
 ";
 
-            var expected = new DiagnosticResult[]
-            {
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(6, 5),
-            };
-
-            return VerifyCodeFixAsync(testCode, OutsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true);
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
 
         [Fact]
@@ -288,9 +242,9 @@ namespace TestNamespace
 {
     // Separated Comment
 
-    using System.Collections;
+    [|using System.Collections;
     // Comment
-    using System;
+    using System;|]
 }
 ";
             var fixedTestCode = @"// Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
@@ -307,13 +261,7 @@ namespace TestNamespace
 }
 ";
 
-            var expected = new DiagnosticResult[]
-            {
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(8, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(10, 5),
-            };
-
-            return VerifyCodeFixAsync(testCode, OutsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true);
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
 
         [Fact]
@@ -321,7 +269,7 @@ namespace TestNamespace
         {
             var testCode = @"namespace Foo
 {
-    using Microsoft.CodeAnalysis;
+    [|using Microsoft.CodeAnalysis;
     using SystemAction = System.Action;
     using static System.Math;
     using System;
@@ -330,7 +278,7 @@ namespace TestNamespace
     using MyFunc = System.Func<int, bool>;
 
     using System.Collections.Generic;
-    using System.Collections;
+    using System.Collections;|]
 
     public class Bar
     {
@@ -357,19 +305,7 @@ namespace Foo
 }
 ";
 
-            var expected = new DiagnosticResult[]
-            {
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(3, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(4, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(5, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(6, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(8, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(9, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(11, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(12, 5),
-            };
-
-            return VerifyCodeFixAsync(testCode, OutsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: true);
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
 
         [Fact]
@@ -377,7 +313,7 @@ namespace Foo
         {
             var testCode = @"namespace Foo
 {
-    using Microsoft.CodeAnalysis;
+    [|using Microsoft.CodeAnalysis;
     using SystemAction = System.Action;
     using static System.Math;
     using System;
@@ -386,7 +322,7 @@ namespace Foo
     using MyFunc = System.Func<int, bool>;
 
     using System.Collections.Generic;
-    using System.Collections;
+    using System.Collections;|]
 
     public class Bar
     {
@@ -413,19 +349,7 @@ namespace Foo
 }
 ";
 
-            var expected = new DiagnosticResult[]
-            {
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(3, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(4, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(5, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(6, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(8, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(9, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(11, 5),
-                Diagnostic(MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer.OutsideDescriptor).WithLocation(12, 5),
-            };
-
-            return VerifyCodeFixAsync(testCode, OutsideNamespaceOption, expected, fixedTestCode, placeSystemNamespaceFirst: false);
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: false);
         }
 
         #endregion

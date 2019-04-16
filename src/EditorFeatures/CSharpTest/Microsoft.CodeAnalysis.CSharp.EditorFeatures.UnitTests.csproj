@@ -16,7 +16,6 @@
     <ProjectReference Include="..\..\EditorFeatures\CSharp.Wpf\Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
     <ProjectReference Include="..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
-    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
@@ -51,7 +50,6 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />

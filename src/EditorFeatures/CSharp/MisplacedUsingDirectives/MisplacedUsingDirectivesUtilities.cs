@@ -13,18 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 {
     internal static class MisplacedUsingsUtilities
     {
-        private static readonly CodeStyleOption<AddImportPlacement> s_outsidePreferPreservationOption =
-            new CodeStyleOption<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption.None);
-
         public static readonly LocalizableResourceString LocalizableTitle = new LocalizableResourceString(
            nameof(CSharpEditorResources.Misplaced_using_directive), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));
 
-        public static Task<CodeStyleOption<AddImportPlacement>> GetPreferredPlacementOptionAsync(SyntaxNodeAnalysisContext context)
+        public static async Task<CodeStyleOption<AddImportPlacement>> GetPreferredPlacementOptionAsync(SyntaxNodeAnalysisContext context)
         {
-            return context.GetOptionOrDefaultAsync(
-                CSharpCodeStyleOptions.PreferredUsingDirectivePlacement,
-                CSharpCodeStyleOptions.ParseUsingDirectivesPlacement,
-                s_outsidePreferPreservationOption);
+            var options = await context.Options.GetDocumentOptionSetAsync(context.Node.SyntaxTree, context.CancellationToken);
+            return options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
         }
 
         public static void ReportDiagnostics(

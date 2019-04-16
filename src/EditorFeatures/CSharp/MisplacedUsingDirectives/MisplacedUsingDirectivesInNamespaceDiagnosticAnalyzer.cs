@@ -14,15 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private static readonly LocalizableResourceString s_localizableOutsideMessage = new LocalizableResourceString(
             nameof(CSharpEditorResources.Using_directives_must_be_placed_outside_of_a_namespace_declaration), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));
 
-        // Created for unit tests to validate against 
-        internal static readonly DiagnosticDescriptor OutsideDescriptor = CreateDescriptorWithId(
-            IDEDiagnosticIds.MoveMisplacedUsingsDiagnosticId,
-            MisplacedUsingsUtilities.LocalizableTitle,
-            s_localizableOutsideMessage,
-            isConfigurable: true);
-
         public MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer()
-           : base(IDEDiagnosticIds.MoveMisplacedUsingsDiagnosticId, MisplacedUsingsUtilities.LocalizableTitle, s_localizableOutsideMessage)
+           : base(IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId, MisplacedUsingsUtilities.LocalizableTitle, s_localizableOutsideMessage)
         {
         }
 

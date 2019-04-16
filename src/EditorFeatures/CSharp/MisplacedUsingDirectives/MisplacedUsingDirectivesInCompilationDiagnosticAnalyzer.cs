@@ -3,6 +3,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp;
@@ -15,15 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
             nameof(CSharpEditorResources.Using_directives_must_be_placed_inside_of_a_namespace_declaration), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));
 
-        // Created for unit tests to validate against 
-        internal static readonly DiagnosticDescriptor InsideDescriptor = CreateDescriptorWithId(
-            IDEDiagnosticIds.MoveMisplacedUsingsDiagnosticId,
-            MisplacedUsingsUtilities.LocalizableTitle,
-            s_localizableInsideMessage,
-            isConfigurable: true);
-
         public MisplacedUsingDirectivesInCompilationDiagnosticAnalyzer()
-           : base(IDEDiagnosticIds.MoveMisplacedUsingsDiagnosticId, MisplacedUsingsUtilities.LocalizableTitle, s_localizableInsideMessage)
+           : base(IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId, MisplacedUsingsUtilities.LocalizableTitle, s_localizableInsideMessage)
         {
         }
 
@@ -48,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         private bool ShouldSuppressDiagnostic(CompilationUnitSyntax compilationUnit)
         {
-            // Suppress if there are nodes other than usings and namespaces in the compilation unit.
-            return !compilationUnit.ChildNodes().All(node =>
-                node.IsKind(SyntaxKind.UsingDirective)
-                || node.IsKind(SyntaxKind.NamespaceDeclaration));
+            // Suppress if there are nodes other than usings and namespaces in the 
+            // compilation unit (including ExternAlias).
+            return compilationUnit.ChildNodes().Any(
+                t => !t.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration));
         }
     }
 }

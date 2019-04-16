@@ -29,17 +29,17 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
     /// <summary>
     /// Implements a code fix for all misplaced using statements.
     /// </summary>
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MoveMisplacedUsings)]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MoveMisplacedUsingDirectives)]
     [Shared]
     internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixProvider
     {
         private static readonly SyntaxAnnotation s_usingPlacementCodeFixAnnotation = new SyntaxAnnotation(nameof(s_usingPlacementCodeFixAnnotation));
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.MoveMisplacedUsingsDiagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId);
 
         public override FixAllProvider GetFixAllProvider()
         {
-            return FixAll.Instance;
+            return WellKnownFixAllProviders.BatchFixer;
         }
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -358,29 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var newFirstToken = firstToken.WithLeadingTrivia(newLeadingTrivia);
 
             return compilationUnit.ReplaceToken(firstToken, newFirstToken);
-        }
-
-        private class FixAll : DocumentBasedFixAllProvider
-        {
-            public static FixAllProvider Instance { get; } = new FixAll();
-
-            protected override string CodeActionTitle => CSharpEditorResources.Move_misplaced_using_directives;
-
-            /// <inheritdoc/>
-            protected override async Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
-            {
-                if (diagnostics.IsEmpty)
-                {
-                    return null;
-                }
-
-                var syntaxRoot = await document.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
-                var options = await document.GetOptionsAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
-
-                var newDocument = await GetTransformedDocumentAsync(document, (CompilationUnitSyntax)syntaxRoot, options, fixAllContext.CancellationToken).ConfigureAwait(false);
-
-                return await newDocument.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
-            }
         }
 
         private class MoveMisplacedUsingsCodeAction : DocumentChangeAction

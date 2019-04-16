@@ -28,7 +28,6 @@
     <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\..\CodeStyle\Core\CodeFixes\DocumentBasedFixAllProvider.cs" Link="CodeFixes\FixAllOccurrences\DocumentBasedFixAllProvider.cs" />
     <Compile Include="..\..\..\CodeStyle\Core\CodeFixes\FixAllContextHelper.cs" Link="CodeFixes\FixAllOccurrences\FixAllContextHelper.cs" />
     <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
       <Link>Execution\Desktop\DesktopAnalyzerAssemblyLoader.cs</Link>
