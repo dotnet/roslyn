@@ -7,42 +7,45 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
+namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 {
-    public abstract class AbstractToggleBlockCommentTestBase
+    public abstract class AbstractToggleCommentTestBase
     {
-        abstract internal ToggleBlockCommentCommandHandler GetToggleBlockCommentCommandHandler(TestWorkspace workspace);
+        abstract internal AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace);
 
-        protected void ToggleBlockComment(string markup, string expected)
+        abstract internal TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider);
+
+        protected void ToggleComment(string markup, string expected)
         {
-            ToggleBlockCommentMultiple(markup, new string[] { expected });
+            ToggleCommentMultiple(markup, new string[] { expected });
         }
 
-        protected void ToggleBlockCommentMultiple(string markup, string[] expectedText)
+        protected void ToggleCommentMultiple(string markup, string[] expectedText)
         {
             var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(MockToggleBlockCommentExperimentationService)))
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(MockToggleCommentExperimentationService)))
                 .CreateExportProvider();
 
-            using (var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider))
+            using (var workspace = GetWorkspace(markup, exportProvider))
             {
-
                 var doc = workspace.Documents.First();
                 SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
-                var commandHandler = GetToggleBlockCommentCommandHandler(workspace);
+                var commandHandler = GetToggleCommentCommandHandler(workspace);
                 var textView = doc.GetTextView();
                 var textBuffer = doc.GetTextBuffer();
 
@@ -84,11 +87,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
         }
 
         [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test), Shared]
-        private class MockToggleBlockCommentExperimentationService : IExperimentationService
+        private class MockToggleCommentExperimentationService : IExperimentationService
         {
             public bool IsExperimentEnabled(string experimentName)
             {
-                return WellKnownExperimentNames.RoslynToggleBlockComment.Equals(experimentName);
+                return WellKnownExperimentNames.RoslynToggleBlockComment.Equals(experimentName)
+                    || WellKnownExperimentNames.RoslynToggleLineComment.Equals(experimentName);
             }
         }
     }

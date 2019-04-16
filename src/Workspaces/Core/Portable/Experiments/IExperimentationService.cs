@@ -23,5 +23,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string CompletionAPI = nameof(CompletionAPI);
         public const string PartialLoadMode = "Roslyn.PartialLoadMode";
         public const string RoslynToggleBlockComment = "Roslyn.ToggleBlockComment";
+        public const string RoslynToggleLineComment = "Roslyn.ToggleLineComment";
     }
 }
