@@ -336,14 +336,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 base.PostProcessArgument(operation, isEscaped);
                 if (isEscaped)
                 {
-                    PostProcessEscapedArgument();
-                }
-
-                return;
-
-                // Local functions.
-                void PostProcessEscapedArgument()
-                {
                     // Discover if a disposable object is being passed into the creation method for this new disposable object
                     // and if the new disposable object assumes ownership of that passed in disposable object.
                     if (IsDisposeOwnershipTransfer())
@@ -352,6 +344,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                         HandlePossibleEscapingOperation(operation, pointsToValue.Locations);
                     }
                 }
+                else if (operation.Parameter.RefKind == RefKind.Out || operation.Parameter.RefKind == RefKind.Ref)
+                {
+                    HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
+                }
+
+                return;
+
+                // Local functions.
 
                 bool IsDisposeOwnershipTransfer()
                 {
