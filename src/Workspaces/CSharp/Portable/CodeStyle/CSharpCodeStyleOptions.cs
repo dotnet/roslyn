@@ -231,15 +231,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly CodeStyleOption<AddImportPlacement> PreservePlacementWithSilentEnforcement =
            new CodeStyleOption<AddImportPlacement>(AddImportPlacement.Preserve, NotificationOption.Silent);
 
-        public static readonly Option<CodeStyleOption<AddImportPlacement>> PreferredUsingDirectivesPlacement = CreateOption(
-            CSharpCodeStyleOptionGroups.UsingPreferences, nameof(PreferredUsingDirectivesPlacement),
+        public static readonly Option<CodeStyleOption<AddImportPlacement>> PreferredUsingDirectivePlacement = CreateOption(
+            CSharpCodeStyleOptionGroups.UsingDirectivePreferences, nameof(PreferredUsingDirectivePlacement),
             defaultValue: PreservePlacementWithSilentEnforcement,
             storageLocations: new OptionStorageLocation[]{
                 new EditorConfigStorageLocation<CodeStyleOption<AddImportPlacement>>(
                     "csharp_using_directive_placement",
                     s => ParseUsingDirectivesPlacement(s, PreservePlacementWithSilentEnforcement),
                     GetUsingDirectivesPlacementEditorConfigString),
-                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredUsingDirectivesPlacement)}") });
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredUsingDirectivePlacement)}") });
 
         internal static readonly Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatement =
             CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
@@ -301,6 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly OptionGroup Modifier = new OptionGroup(WorkspacesResources.Modifier_preferences, priority: 5);
         public static readonly OptionGroup CodeBlockPreferences = new OptionGroup(CSharpWorkspaceResources.Code_block_preferences, priority: 6);
         public static readonly OptionGroup ExpressionLevelPreferences = new OptionGroup(WorkspacesResources.Expression_level_preferences, priority: 7);
-        public static readonly OptionGroup UsingPreferences = new OptionGroup(CSharpWorkspaceResources.using_preferences, priority: 8);
+        public static readonly OptionGroup UsingDirectivePreferences = new OptionGroup(CSharpWorkspaceResources.using_directive_preferences, priority: 8);
     }
 }

@@ -197,11 +197,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;using&apos; preferences.
+        ///   Looks up a localized string similar to &apos;using&apos; directive preferences.
         /// </summary>
-        internal static string using_preferences {
+        internal static string using_directive_preferences {
             get {
-                return ResourceManager.GetString("using preferences", resourceCulture);
+                return ResourceManager.GetString("using_directive_preferences", resourceCulture);
             }
         }
         

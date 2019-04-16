@@ -1637,7 +1637,7 @@ class C2
 
             // Using preferences.
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<AddImportPlacement>(
-                CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, CSharpVSResources.Using_directives_placement,
+                CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CSharpVSResources.Using_directives_placement,
                 new[] { AddImportPlacement.Preserve, AddImportPlacement.InsideNamespace, AddImportPlacement.OutsideNamespace },
                 s_usingDirectivesPlacement, this, optionStore, usingsGroupTitle, usingDirectivesPlacementPreferences));
 
