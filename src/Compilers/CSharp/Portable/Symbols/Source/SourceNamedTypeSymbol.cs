@@ -273,24 +273,49 @@ next:;
             int arity = typeParameters.Length;
             if (arity > 0)
             {
+                bool skipPartialDeclarationsWithoutConstraintClauses = false;
+
+                foreach (var decl in declaration.Declarations)
+                {
+                    if (GetConstraintClauses((CSharpSyntaxNode)decl.SyntaxReference.GetSyntax(), out _).Count != 0)
+                    {
+                        skipPartialDeclarationsWithoutConstraintClauses = true;
+                        break;
+                    }
+                }
+
                 foreach (var decl in declaration.Declarations)
                 {
                     var syntaxRef = decl.SyntaxReference;
-                    var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax());
-                    if (constraintClauses.Count == 0)
+                    var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax(), out TypeParameterListSyntax typeParameterList);
+
+                    if (skipPartialDeclarationsWithoutConstraintClauses && constraintClauses.Count == 0)
                     {
                         continue;
                     }
 
                     var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntaxRef.SyntaxTree);
-                    var binder = binderFactory.GetBinder(constraintClauses[0]);
+                    Binder binder;
+                    ImmutableArray<TypeParameterConstraintClause> constraints;
 
-                    // Wrap binder from factory in a generic constraints specific binder 
-                    // to avoid checking constraints when binding type names.
-                    Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-                    binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+                    if (constraintClauses.Count == 0)
+                    {
+                        binder = binderFactory.GetBinder(typeParameterList.Parameters[0]);
 
-                    var constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, constraintClauses, diagnostics);
+                        constraints = binder.GetDefaultTypeParameterConstraintClauses(typeParameterList);
+                    }
+                    else
+                    {
+                        binder = binderFactory.GetBinder(constraintClauses[0]);
+
+                        // Wrap binder from factory in a generic constraints specific binder 
+                        // to avoid checking constraints when binding type names.
+                        Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+                        binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+
+                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, diagnostics);
+                    }
+
                     Debug.Assert(constraints.Length == arity);
 
                     if (results.Length == 0)
@@ -303,6 +328,11 @@ next:;
                         // partial declarations can be checked in late step.
                         results = results.ZipAsArray(constraints, (x, y) => x.AddPartialDeclaration(y));
                     }
+                }
+
+                if (results.ContainsOnlyEmptyConstraintClauses())
+                {
+                    results = ImmutableArray<TypeParameterConstraintClause>.Empty;
                 }
             }
 
@@ -334,19 +364,30 @@ next:;
                 }
             }
 
-            return ConstraintsHelper.MakeTypeParameterConstraintsLate(typeParameters, constraintClauses, diagnostics);
+            ImmutableArray<TypeParameterConstraintClause> results = ConstraintsHelper.MakeTypeParameterConstraintsLate(typeParameters, constraintClauses, diagnostics);
+
+            if (results.ContainsOnlyEmptyConstraintClauses())
+            {
+                results = ImmutableArray<TypeParameterConstraintClause>.Empty;
+            }
+
+            return results;
         }
 
-        private static SyntaxList<TypeParameterConstraintClauseSyntax> GetConstraintClauses(CSharpSyntaxNode node)
+        private static SyntaxList<TypeParameterConstraintClauseSyntax> GetConstraintClauses(CSharpSyntaxNode node, out TypeParameterListSyntax typeParameterList)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
-                    return ((TypeDeclarationSyntax)node).ConstraintClauses;
+                    var typeDeclaration = (TypeDeclarationSyntax)node;
+                    typeParameterList = typeDeclaration.TypeParameterList;
+                    return typeDeclaration.ConstraintClauses;
                 case SyntaxKind.DelegateDeclaration:
-                    return ((DelegateDeclarationSyntax)node).ConstraintClauses;
+                    var delegateDeclaration = (DelegateDeclarationSyntax)node;
+                    typeParameterList = delegateDeclaration.TypeParameterList;
+                    return delegateDeclaration.ConstraintClauses;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
