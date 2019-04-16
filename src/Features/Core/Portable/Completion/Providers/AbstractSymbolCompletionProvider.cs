@@ -137,7 +137,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return false;
             }
 
-            return inferredTypes.Any(inferredType => semanticModel.Compilation.ClassifyCommonConversion(type, inferredType).IsImplicit);
+            foreach(var inferredType in inferredTypes)
+            {
+                if (semanticModel.Compilation.ClassifyCommonConversion(type, inferredType).IsImplicit)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
