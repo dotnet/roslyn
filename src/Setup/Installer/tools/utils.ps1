@@ -93,8 +93,12 @@ function Test-Process([string]$processName) {
   return $all -ne $null
 }
 
-function Get-MefCacheDir([string]$vsMajorVersion, [string]$vsId, [string]$rootSuffix) {
-  return Join-Path $env:LOCALAPPDATA "Microsoft\VisualStudio\$vsMajorVersion.0_$vsId$rootSuffix\ComponentModelCache"
+function Get-VisualStudioLocalDir([string]$vsMajorVersion, [string]$vsId, [string]$rootSuffix) {
+  return Join-Path $env:LOCALAPPDATA "Microsoft\VisualStudio\$vsMajorVersion.0_$vsId$rootSuffix"
+}
+
+function Get-MefCacheDir([string]$vsLocalDir) {
+  return Join-Path $vsLocalDir "ComponentModelCache"
 }
 
 function Install-VsixViaTool([string]$vsDir, [string]$vsId, [string]$rootSuffix) {
@@ -163,7 +167,6 @@ function Stop-Processes([string]$vsDir, [string]$extensionDir) {
   }
 
   foreach ($process in $stopProcesses) {
-    Write-Host "Stopping $($process.Path)"
-    $_ = $process.Kill
+    Stop-Process $process.Id -Force -ErrorAction SilentlyContinue
   }
 }

@@ -43,9 +43,9 @@ try {
   $vsDir = $vsInstance.installationPath.Trim("\")
   $vsId = $vsInstance.instanceId
   $vsMajorVersion = $vsInstance.installationVersion.Split(".")[0]
-  $mefCacheFolder = Get-MefCacheDir -vsMajorVersion $vsMajorVersion -vsId $vsId -rootSuffix $rootSuffix
+  $vsLocalDir = Get-VisualStudioLocalDir -vsMajorVersion $vsMajorVersion -vsId $vsId -rootSuffix $rootSuffix
 
-  Stop-Processes $vsDir (Split-Path $mefCacheFolder)
+  Stop-Processes $vsDir $vsLocalDir
 
   # Install VSIX
   $vsExe = Join-Path $vsDir "Common7\IDE\devenv.exe"
@@ -56,6 +56,7 @@ try {
 
   # Clear MEF Cache
   Write-Host "Refreshing MEF Cache" -ForegroundColor Gray
+  $mefCacheFolder = Get-MefCacheDir $vsLocalDir
   if (Test-Path $mefCacheFolder) {
     Get-ChildItem -Path $mefCacheFolder -Include *.* -File -Recurse | foreach { Remove-Item $_ }
   }
