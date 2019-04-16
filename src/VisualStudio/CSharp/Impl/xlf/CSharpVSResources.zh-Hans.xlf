@@ -62,6 +62,11 @@
         <target state="translated">引用相等检查偏好 “is null”</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Preferred_using_directive_placement">
+        <source>Preferred 'using' directive placement</source>
+        <target state="new">Preferred 'using' directive placement</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Preserve">
         <source>Preserve</source>
         <target state="new">Preserve</target>
@@ -561,11 +566,6 @@
         <source>Elsewhere</source>
         <target state="translated">其他位置</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Using_directives_placement">
-        <source>Using directives placement</source>
-        <target state="new">Using directives placement</target>
-        <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="When_on_multiple_lines">
         <source>When on multiple lines</source>

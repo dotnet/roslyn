@@ -1096,6 +1096,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Preferred &apos;using&apos; directive placement.
+        /// </summary>
+        internal static string Preferred_using_directive_placement {
+            get {
+                return ResourceManager.GetString("Preferred_using_directive_placement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Preserve.
         /// </summary>
         internal static string Preserve {
@@ -1416,15 +1425,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Using_Directives {
             get {
                 return ResourceManager.GetString("Using_Directives", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using directives placement.
-        /// </summary>
-        internal static string Using_directives_placement {
-            get {
-                return ResourceManager.GetString("Using_directives_placement", resourceCulture);
             }
         }
         

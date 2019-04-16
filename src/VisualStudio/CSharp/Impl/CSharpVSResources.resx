@@ -588,8 +588,8 @@
     <value>Outside namespace</value>
     <comment>'namespace' is a C# keyword and should not be localized</comment>
   </data>
-  <data name="Using_directives_placement" xml:space="preserve">
-    <value>Using directives placement</value>
+  <data name="Preferred_using_directive_placement" xml:space="preserve">
+    <value>Preferred 'using' directive placement</value>
     <comment>'using' is a C# keyword and should not be localized</comment>
   </data>
   <data name="using_preferences_colon" xml:space="preserve">
