@@ -12355,7 +12355,7 @@ class B : IA
                 );
         }
 
-        [Fact()]
+        [Fact]
         [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
         public void ImplementingNonNullWithNullable_02()
         {
@@ -12744,7 +12744,7 @@ class B : A
                 );
         }
 
-        [Fact()]
+        [Fact]
         public void Overriding_26()
         {
             var source = @"
@@ -12790,7 +12790,7 @@ class B : A
             Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
         }
 
-        [Fact()]
+        [Fact]
         public void Overriding_27()
         {
             var source = @"
@@ -12857,7 +12857,7 @@ class C<T> {}
             Assert.False(((NamedTypeSymbol)m5.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
         }
 
-        [Fact()]
+        [Fact]
         public void Overriding_28()
         {
             var source = @"
@@ -12917,7 +12917,7 @@ class B : A
                 TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
         }
 
-        [Fact()]
+        [Fact]
         [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
         public void Overriding_29()
         {
@@ -12973,7 +12973,7 @@ class B : A
                 );
         }
 
-        [Fact()]
+        [Fact]
         public void Overriding_30()
         {
             var source = @"
@@ -13030,7 +13030,7 @@ class B : A
                 TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
         }
 
-        [Fact()]
+        [Fact]
         [WorkItem(28684, "https://github.com/dotnet/roslyn/issues/28684")]
         public void Overriding_31()
         {
@@ -13074,7 +13074,7 @@ class B : A
                 );
         }
 
-        [Fact()]
+        [Fact]
         [WorkItem(29847, "https://github.com/dotnet/roslyn/issues/29847")]
         public void Overriding_32()
         {
@@ -14385,7 +14385,7 @@ public partial class C3 : I1<A?> {}
 C3.M");
         }
 
-        [Fact()]
+        [Fact]
         public void Implementing_22()
         {
             var source = @"
@@ -14433,7 +14433,7 @@ class B : IA
                 );
         }
 
-        [Fact()]
+        [Fact]
         public void Implementing_23()
         {
 
@@ -14497,7 +14497,7 @@ class B : IA
             }
         }
 
-        [Fact()]
+        [Fact]
         public void Implementing_24()
         {
             var source = @"
@@ -14907,7 +14907,7 @@ class A
             compilation.VerifyDiagnostics();
         }
 
-        [Fact()]
+        [Fact]
         public void Test1()
         {
             CSharpCompilation c = CreateCompilation(
@@ -41014,7 +41014,7 @@ class C : I
             Assert.Empty(implementations);
         }
 
-        [Fact()]
+        [Fact]
         public void ExplicitImplementations_LazyMethodChecks_01()
         {
             var source =
@@ -60134,7 +60134,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(12, 20));
         }
 
-        [Fact()]
+        [Fact]
         public void Constraints_152()
         {
             var source =
@@ -60225,7 +60225,7 @@ class B : A<int>
             }
         }
 
-        [Fact()]
+        [Fact]
         public void Constraints_153()
         {
             var source1 =
@@ -60296,7 +60296,7 @@ class B : A<int>
             }
         }
 
-        [Fact()]
+        [Fact]
         public void Constraints_154()
         {
             var source1 =
@@ -60370,7 +60370,7 @@ class B : A<int>
             }
         }
 
-        [Fact()]
+        [Fact]
         public void Constraints_155()
         {
             var source =
@@ -89022,25 +89022,25 @@ class Derived<T> : Base<T> where T : class
 #nullable enable
 interface I
 {
-    void Foo<T>(T? value) where T : class;
+    void Goo<T>(T? value) where T : class;
 }
 
 class C1 : I
 {
-    public void Foo<T>(T? value) where T : class { }
+    public void Goo<T>(T? value) where T : class { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T? value) where T : class { }
+    void I.Goo<T>(T? value) where T : class { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
 
-            Assert.True(c2Foo.Parameters[0].Type.IsReferenceType);
-            Assert.Equal(NullableAnnotation.Annotated, c2Foo.Parameters[0].TypeWithAnnotations.NullableAnnotation);
+            Assert.True(c2Goo.Parameters[0].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, c2Goo.Parameters[0].TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -89050,25 +89050,25 @@ class C2 : I
 #nullable enable
 interface I
 {
-    void Foo<T>(T?[] value) where T : class;
+    void Goo<T>(T?[] value) where T : class;
 }
 
 class C1 : I
 {
-    public void Foo<T>(T?[] value) where T : class { }
+    public void Goo<T>(T?[] value) where T : class { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>(T?[] value) where T : class { }
+    void I.Goo<T>(T?[] value) where T : class { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
 
-            Assert.True(((ArrayTypeSymbol)c2Foo.Parameters[0].Type).ElementType.IsReferenceType);
-            Assert.Equal(NullableAnnotation.Annotated, ((ArrayTypeSymbol)c2Foo.Parameters[0].Type).ElementTypeWithAnnotations.NullableAnnotation);
+            Assert.True(((ArrayTypeSymbol)c2Goo.Parameters[0].Type).ElementType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, ((ArrayTypeSymbol)c2Goo.Parameters[0].Type).ElementTypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -89078,25 +89078,25 @@ class C2 : I
 #nullable enable
 interface I
 {
-    void Foo<T>((T a, T? b)? value) where T : class;
+    void Goo<T>((T a, T? b)? value) where T : class;
 }
 
 class C1 : I
 {
-    public void Foo<T>((T a, T? b)? value) where T : class { }
+    public void Goo<T>((T a, T? b)? value) where T : class { }
 }
 
 class C2 : I
 {
-    void I.Foo<T>((T a, T? b)? value) where T : class { }
+    void I.Goo<T>((T a, T? b)? value) where T : class { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
 
-            Assert.True(c2Foo.Parameters[0].Type.IsNullableType());
-            var tuple = c2Foo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.True(c2Goo.Parameters[0].Type.IsNullableType());
+            var tuple = c2Goo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
             Assert.True(tuple.TupleElements[0].Type.IsReferenceType);
             Assert.Equal(NullableAnnotation.NotAnnotated, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
             Assert.True(tuple.TupleElements[1].Type.IsReferenceType);
@@ -89110,25 +89110,25 @@ class C2 : I
 #nullable enable
 interface I
 {
-    T? Foo<T>() where T : class;
+    T? Goo<T>() where T : class;
 }
 
 class C1 : I
 {
-    public T? Foo<T>() where T : class => default;
+    public T? Goo<T>() where T : class => default;
 }
 
 class C2 : I
 {
-    T? I.Foo<T>() where T : class => default;
+    T? I.Goo<T>() where T : class => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
 
-            Assert.True(c2Foo.ReturnType.IsReferenceType);
-            Assert.Equal(NullableAnnotation.Annotated, c2Foo.ReturnTypeWithAnnotations.NullableAnnotation);
+            Assert.True(c2Goo.ReturnType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, c2Goo.ReturnTypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -89138,25 +89138,25 @@ class C2 : I
 #nullable enable
 interface I
 {
-    T?[] Foo<T>() where T : class;
+    T?[] Goo<T>() where T : class;
 }
 
 class C1 : I
 {
-    public T?[] Foo<T>() where T : class => default!;
+    public T?[] Goo<T>() where T : class => default!;
 }
 
 class C2 : I
 {
-    T?[] I.Foo<T>() where T : class => default!;
+    T?[] I.Goo<T>() where T : class => default!;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
 
-            Assert.True(((ArrayTypeSymbol)c2Foo.ReturnType).ElementType.IsReferenceType);
-            Assert.Equal(NullableAnnotation.Annotated, ((ArrayTypeSymbol)c2Foo.ReturnType).ElementTypeWithAnnotations.NullableAnnotation);
+            Assert.True(((ArrayTypeSymbol)c2Goo.ReturnType).ElementType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, ((ArrayTypeSymbol)c2Goo.ReturnType).ElementTypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -89166,25 +89166,25 @@ class C2 : I
 #nullable enable
 interface I
 {
-    (T a, T? b)? Foo<T>() where T : class;
+    (T a, T? b)? Goo<T>() where T : class;
 }
 
 class C1 : I
 {
-    public (T a, T? b)? Foo<T>() where T : class => default;
+    public (T a, T? b)? Goo<T>() where T : class => default;
 }
 
 class C2 : I
 {
-    (T a, T? b)? I.Foo<T>() where T : class => default;
+    (T a, T? b)? I.Goo<T>() where T : class => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var c2Foo = (MethodSymbol)comp.GetMember("C2.I.Foo");
+            var c2Goo = (MethodSymbol)comp.GetMember("C2.I.Goo");
 
-            Assert.True(c2Foo.ReturnType.IsNullableType());
-            var tuple = c2Foo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.True(c2Goo.ReturnType.IsNullableType());
+            var tuple = c2Goo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
             Assert.True(tuple.TupleElements[0].Type.IsReferenceType);
             Assert.Equal(NullableAnnotation.NotAnnotated, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
             Assert.True(tuple.TupleElements[1].Type.IsReferenceType);
@@ -89198,20 +89198,20 @@ class C2 : I
 #nullable enable
 abstract class Base
 {
-    public abstract void Foo<T>(T? value) where T : class;
+    public abstract void Goo<T>(T? value) where T : class;
 }
 
 class Derived : Base
 {
-    public override void Foo<T>(T? value) where T : class { }
+    public override void Goo<T>(T? value) where T : class { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(dFoo.Parameters[0].Type.IsReferenceType);
-            Assert.Equal(NullableAnnotation.Annotated, dFoo.Parameters[0].TypeWithAnnotations.NullableAnnotation);
+            Assert.True(dGoo.Parameters[0].Type.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, dGoo.Parameters[0].TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -89221,20 +89221,20 @@ class Derived : Base
 #nullable enable
 abstract class Base
 {
-    public abstract void Foo<T>(T?[] value) where T : class;
+    public abstract void Goo<T>(T?[] value) where T : class;
 }
 
 class Derived : Base
 {
-    public override void Foo<T>(T?[] value) where T : class { }
+    public override void Goo<T>(T?[] value) where T : class { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(((ArrayTypeSymbol)dFoo.Parameters[0].Type).ElementType.IsReferenceType);
-            Assert.Equal(NullableAnnotation.Annotated, ((ArrayTypeSymbol)dFoo.Parameters[0].Type).ElementTypeWithAnnotations.NullableAnnotation);
+            Assert.True(((ArrayTypeSymbol)dGoo.Parameters[0].Type).ElementType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, ((ArrayTypeSymbol)dGoo.Parameters[0].Type).ElementTypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -89244,20 +89244,20 @@ class Derived : Base
 #nullable enable
 abstract class Base
 {
-    public abstract void Foo<T>((T a, T? b)? value) where T : class;
+    public abstract void Goo<T>((T a, T? b)? value) where T : class;
 }
 
 class Derived : Base
 {
-    public override void Foo<T>((T a, T? b)? value) where T : class { }
+    public override void Goo<T>((T a, T? b)? value) where T : class { }
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(dFoo.Parameters[0].Type.IsNullableType());
-            var tuple = dFoo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.True(dGoo.Parameters[0].Type.IsNullableType());
+            var tuple = dGoo.Parameters[0].Type.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
             Assert.True(tuple.TupleElements[0].Type.IsReferenceType);
             Assert.Equal(NullableAnnotation.NotAnnotated, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
             Assert.True(tuple.TupleElements[1].Type.IsReferenceType);
@@ -89271,20 +89271,20 @@ class Derived : Base
 #nullable enable
 abstract class Base
 {
-    public abstract T? Foo<T>() where T : class;
+    public abstract T? Goo<T>() where T : class;
 }
 
 class Derived : Base
 {
-    public override T? Foo<T>() where T : class => default;
+    public override T? Goo<T>() where T : class => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(dFoo.ReturnType.IsReferenceType);
-            Assert.Equal(NullableAnnotation.Annotated, dFoo.ReturnTypeWithAnnotations.NullableAnnotation);
+            Assert.True(dGoo.ReturnType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, dGoo.ReturnTypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -89294,20 +89294,20 @@ class Derived : Base
 #nullable enable
 abstract class Base
 {
-    public abstract T?[] Foo<T>() where T : class;
+    public abstract T?[] Goo<T>() where T : class;
 }
 
 class Derived : Base
 {
-    public override T?[] Foo<T>() where T : class => default!;
+    public override T?[] Goo<T>() where T : class => default!;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(((ArrayTypeSymbol)dFoo.ReturnType).ElementType.IsReferenceType);
-            Assert.Equal(NullableAnnotation.Annotated, ((ArrayTypeSymbol)dFoo.ReturnType).ElementTypeWithAnnotations.NullableAnnotation);
+            Assert.True(((ArrayTypeSymbol)dGoo.ReturnType).ElementType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, ((ArrayTypeSymbol)dGoo.ReturnType).ElementTypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -89317,20 +89317,20 @@ class Derived : Base
 #nullable enable
 abstract class Base
 {
-    public abstract (T a, T? b)? Foo<T>() where T : class;
+    public abstract (T a, T? b)? Goo<T>() where T : class;
 }
 
 class Derived : Base
 {
-    public override (T a, T? b)? Foo<T>() where T : class => default;
+    public override (T a, T? b)? Goo<T>() where T : class => default;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(dFoo.ReturnType.IsNullableType());
-            var tuple = dFoo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
+            Assert.True(dGoo.ReturnType.IsNullableType());
+            var tuple = dGoo.ReturnType.GetMemberTypeArgumentsNoUseSiteDiagnostics()[0];
             Assert.True(tuple.TupleElements[0].Type.IsReferenceType);
             Assert.Equal(NullableAnnotation.NotAnnotated, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
             Assert.True(tuple.TupleElements[1].Type.IsReferenceType);
@@ -89346,24 +89346,24 @@ using System.IO;
 #nullable enable
 abstract class Base
 {
-    public abstract T? Foo<T, U, V>(U? u, (V?, U?) vu) where T : Stream where U : struct where V : class;
+    public abstract T? Goo<T, U, V>(U? u, (V?, U?) vu) where T : Stream where U : struct where V : class;
 }
 
 class Derived : Base
 {
-    public override T? Foo<T, U, V>(U? u, (V?, U?) vu) where T : class where U : struct where V : class => default!;
+    public override T? Goo<T, U, V>(U? u, (V?, U?) vu) where T : class where U : struct where V : class => default!;
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            var dFoo = (MethodSymbol)comp.GetMember("Derived.Foo");
+            var dGoo = (MethodSymbol)comp.GetMember("Derived.Goo");
 
-            Assert.True(dFoo.ReturnType.IsReferenceType);
-            Assert.Equal(NullableAnnotation.Annotated, dFoo.ReturnTypeWithAnnotations.NullableAnnotation);
+            Assert.True(dGoo.ReturnType.IsReferenceType);
+            Assert.Equal(NullableAnnotation.Annotated, dGoo.ReturnTypeWithAnnotations.NullableAnnotation);
 
-            Assert.True(dFoo.Parameters[0].Type.IsNullableType());
+            Assert.True(dGoo.Parameters[0].Type.IsNullableType());
 
-            var tuple = dFoo.Parameters[1].Type;
+            var tuple = dGoo.Parameters[1].Type;
             Assert.True(tuple.TupleElements[0].Type.IsReferenceType);
             Assert.Equal(NullableAnnotation.Annotated, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
             Assert.True(tuple.TupleElements[1].Type.IsNullableType());
