@@ -1548,7 +1548,6 @@ class C2
 
             var usingDirectivePlacementPreferences = new List<CodeStylePreference>
             {
-                new CodeStylePreference(CSharpVSResources.Preserve, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.Inside_namespace, isChecked: false),
                 new CodeStylePreference(CSharpVSResources.Outside_namespace, isChecked: false),
             };

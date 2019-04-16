@@ -67,11 +67,6 @@
         <target state="new">Preferred 'using' directive placement</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Preserve">
-        <source>Preserve</source>
-        <target state="new">Preserve</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">Eliminar instrucciones Using innecesarias</target>

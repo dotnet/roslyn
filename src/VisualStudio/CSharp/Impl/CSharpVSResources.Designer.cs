@@ -1105,15 +1105,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Preserve.
-        /// </summary>
-        internal static string Preserve {
-            get {
-                return ResourceManager.GetString("Preserve", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Qualify event access with &apos;this&apos;.
         /// </summary>
         internal static string Qualify_event_access_with_this {

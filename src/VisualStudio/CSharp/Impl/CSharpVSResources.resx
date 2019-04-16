@@ -581,9 +581,6 @@
     <value>Inside namespace</value>
     <comment>'namespace' is a C# keyword and should not be localized</comment>
   </data>
-  <data name="Preserve" xml:space="preserve">
-    <value>Preserve</value>
-  </data>
   <data name="Outside_namespace" xml:space="preserve">
     <value>Outside namespace</value>
     <comment>'namespace' is a C# keyword and should not be localized</comment>
