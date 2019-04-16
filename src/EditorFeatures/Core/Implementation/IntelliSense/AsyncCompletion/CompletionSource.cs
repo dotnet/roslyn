@@ -48,7 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private static readonly ConditionalWeakTable<RoslynCompletionItem, VSCompletionItem> s_roslynItemToVsItem =
             new ConditionalWeakTable<RoslynCompletionItem, VSCompletionItem>();
 
-        private readonly Dictionary<string, AsyncCompletionData.CompletionFilter> _filterCache =
+        // Cache all the VS completion filters which essentially make them singletons.
+        // Because all items that should be filtered using the same filter button must 
+        // use the same reference to the instance of CompletionFilter.
+        private static readonly Dictionary<string, AsyncCompletionData.CompletionFilter> s_filterCache =
             new Dictionary<string, AsyncCompletionData.CompletionFilter>();
 
         private readonly ITextView _textView;
@@ -359,14 +362,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 if (filter.Matches(item))
                 {
-                    if (!_filterCache.TryGetValue(filter.DisplayText, out var itemFilter))
+                    if (!s_filterCache.TryGetValue(filter.DisplayText, out var itemFilter))
                     {
                         var imageId = filter.Tags.GetFirstGlyph().GetImageId();
                         itemFilter = new AsyncCompletionData.CompletionFilter(
                             filter.DisplayText,
                             filter.AccessKey.ToString(),
                             new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
-                        _filterCache[filter.DisplayText] = itemFilter;
+                        s_filterCache[filter.DisplayText] = itemFilter;
                     }
 
                     listBuilder.Add(itemFilter);
