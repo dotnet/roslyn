@@ -1745,7 +1745,7 @@ public struct S
 {{
     public readonly void [|M|]();
 }}");
-            // TODO: method attribute formatting is wrong in VB
+
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
                 expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
@@ -1779,7 +1779,15 @@ public struct S
 {{
     public readonly int [|P|] {{ get; }}
 }}");
-            // TODO: VB
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Structure S
+    Public ReadOnly Property [|P|] As Integer
+End Structure");
         }
 
         [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
@@ -1803,7 +1811,15 @@ public struct S
 {{
     public readonly int [|P|] {{ get; }}
 }}");
-            // TODO: VB
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Structure S
+    Public ReadOnly Property [|P|] As Integer
+End Structure");
         }
 
         [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
@@ -1827,7 +1843,15 @@ public struct S
 {{
     public int [|P|] {{ readonly get; set; }}
 }}");
-            // TODO: VB
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Structure S
+    Public Property [|P|] As Integer
+End Structure");
         }
 
         [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
@@ -1851,7 +1875,15 @@ public struct S
 {{
     public int [|P|] {{ get; readonly set; }}
 }}");
-            // TODO: VB
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Structure S
+    Public Property [|P|] As Integer
+End Structure");
         }
 
         [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
@@ -1875,7 +1907,15 @@ public struct S
 {{
     public readonly int [|P|] {{ get; set; }}
 }}");
-            // TODO: VB
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Structure S
+    Public Property [|P|] As Integer
+End Structure");
         }
 
         [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
@@ -1902,7 +1942,18 @@ public struct S
 {{
     public readonly int [|this|][int i] {{ get; }}
 }}");
-            // TODO: VB
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System.Reflection
+
+<DefaultMember(""Item"")>
+Public Structure S
+    Default Public ReadOnly Property [|Item|](i As Integer) As Integer
+End Structure");
         }
 
         [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
@@ -1929,7 +1980,18 @@ public struct S
 {{
     public int [|this|][int i] {{ readonly get; set; }}
 }}");
-            // TODO: VB
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System.Reflection
+
+<DefaultMember(""Item"")>
+Public Structure S
+    Default Public Property [|Item|](i As Integer) As Integer
+End Structure");
         }
 
         [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
@@ -1955,7 +2017,17 @@ public struct S
 {{
     public readonly event Action [|E|];
 }}");
-            // TODO: VB
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System
+
+Public Structure S
+    Public Event [|E|] As Action
+End Structure");
         }
     }
 }
