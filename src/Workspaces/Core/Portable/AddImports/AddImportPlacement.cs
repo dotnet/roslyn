@@ -8,11 +8,6 @@ namespace Microsoft.CodeAnalysis.AddImports
     internal enum AddImportPlacement
     {
         /// <summary>
-        /// Allow imports inside or outside the namespace definition.
-        /// </summary>
-        Preserve,
-
-        /// <summary>
         /// Place imports inside the namespace definition.
         /// </summary>
         InsideNamespace,

@@ -67,13 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var usingDirectivesPlacement = DeterminePlacement(compilationUnit, options);
 
             // There should only be a diagnostic when there are usings directives that need moving.
-            Debug.Assert(usingDirectivesPlacement != AddImportPlacement.Preserve);
+            Debug.Assert(!usingDirectivesPlacement.preferPreservation);
 
             var compilationUnitWithExpandedUsings = await ExpandUsingDirectivesAsync(document, compilationUnit, cancellationToken).ConfigureAwait(false);
 
             var (compilationUnitWithoutHeader, fileHeader) = RemoveFileHeader(compilationUnitWithExpandedUsings);
 
-            var newCompilationUnit = usingDirectivesPlacement switch
+            var newCompilationUnit = usingDirectivesPlacement.placement switch
             {
                 AddImportPlacement.InsideNamespace => MoveUsingsInsideNamespace(compilationUnitWithoutHeader),
                 AddImportPlacement.OutsideNamespace => MoveUsingsOutsideNamespace(compilationUnitWithoutHeader),
@@ -233,38 +233,34 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             return node.ReplaceNode(firstMember, newFirstMember);
         }
 
-        private static AddImportPlacement DeterminePlacement(CompilationUnitSyntax compilationUnit, OptionSet options)
+        private static (AddImportPlacement placement, bool preferPreservation) DeterminePlacement(CompilationUnitSyntax compilationUnit, OptionSet options)
         {
-            switch (options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement).Value)
+            var codeStyleOption = options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement);
+            var preferPreservation = codeStyleOption.Notification == NotificationOption.None;
+
+            switch (codeStyleOption.Value)
             {
                 case AddImportPlacement.InsideNamespace:
                     var namespaceCount = CountNamespaces(compilationUnit.Members);
 
                     // Only move using declarations inside the namespace when
                     // - There are no global attributes
+                    // - There are no type definitions outside of the single top level namespace
                     // - There is only a single namespace declared at the top level
-                    // - There are type definitions outside of the single top level namespace
                     if (compilationUnit.AttributeLists.Any()
                         || compilationUnit.Members.Count > 1
-                        || namespaceCount > 1)
+                        || namespaceCount != 1)
                     {
                         // Override the user's setting with a more conservative one
-                        return AddImportPlacement.Preserve;
+                        return (AddImportPlacement.OutsideNamespace, preferPreservation: true);
                     }
 
-                    if (namespaceCount == 0)
-                    {
-                        return AddImportPlacement.OutsideNamespace;
-                    }
-
-                    return AddImportPlacement.InsideNamespace;
+                    return (AddImportPlacement.InsideNamespace, preferPreservation);
 
                 case AddImportPlacement.OutsideNamespace:
-                    return AddImportPlacement.OutsideNamespace;
-
-                case AddImportPlacement.Preserve:
+                    return (AddImportPlacement.OutsideNamespace, preferPreservation);
                 default:
-                    return AddImportPlacement.Preserve;
+                    throw ExceptionUtilities.UnexpectedValue(codeStyleOption.Value);
             }
         }
 

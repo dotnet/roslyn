@@ -228,16 +228,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_local_over_anonymous_function"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}")});
 
-        public static readonly CodeStyleOption<AddImportPlacement> PreservePlacementWithSilentEnforcement =
-           new CodeStyleOption<AddImportPlacement>(AddImportPlacement.Preserve, NotificationOption.Silent);
+        public static readonly CodeStyleOption<AddImportPlacement> PreferOutsidePlacementWithSilentEnforcement =
+           new CodeStyleOption<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption.Silent);
 
         public static readonly Option<CodeStyleOption<AddImportPlacement>> PreferredUsingDirectivePlacement = CreateOption(
             CSharpCodeStyleOptionGroups.UsingDirectivePreferences, nameof(PreferredUsingDirectivePlacement),
-            defaultValue: PreservePlacementWithSilentEnforcement,
+            defaultValue: PreferOutsidePlacementWithSilentEnforcement,
             storageLocations: new OptionStorageLocation[]{
                 new EditorConfigStorageLocation<CodeStyleOption<AddImportPlacement>>(
                     "csharp_using_directive_placement",
-                    s => ParseUsingDirectivesPlacement(s, PreservePlacementWithSilentEnforcement),
+                    s => ParseUsingDirectivesPlacement(s, PreferOutsidePlacementWithSilentEnforcement),
                     GetUsingDirectivesPlacementEditorConfigString),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredUsingDirectivePlacement)}") });
 

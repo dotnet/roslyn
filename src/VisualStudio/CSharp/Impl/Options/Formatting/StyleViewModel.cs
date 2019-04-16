@@ -1167,19 +1167,6 @@ class Customer2
 
         private static readonly string[] s_usingDirectivePlacement = new[] { $@"
 //[
-    // {CSharpVSResources.Preserve}
-    using System;
-
-    namespace Namespace
-    {{
-        using Linq;
-
-        class Customer
-        {{
-        }}
-    }}
-//]", $@"
-//[
     namespace Namespace
     {{
         // {CSharpVSResources.Inside_namespace}
@@ -1638,7 +1625,7 @@ class C2
             // Using directive preferences.
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<AddImportPlacement>(
                 CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CSharpVSResources.Preferred_using_directive_placement,
-                new[] { AddImportPlacement.Preserve, AddImportPlacement.InsideNamespace, AddImportPlacement.OutsideNamespace },
+                new[] { AddImportPlacement.InsideNamespace, AddImportPlacement.OutsideNamespace },
                 s_usingDirectivePlacement, this, optionStore, usingsGroupTitle, usingDirectivePlacementPreferences));
 
             // Modifier preferences.

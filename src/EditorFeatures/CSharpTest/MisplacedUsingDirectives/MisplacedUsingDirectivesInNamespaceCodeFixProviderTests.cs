@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, PreservePlacementOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, OutsidePreferPreservationOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace TestNamespace
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, PreservePlacementOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, OutsidePreferPreservationOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         #endregion

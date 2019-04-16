@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
 {typeDefinition}
 ";
 
-            return VerifyAnalyzerAsync(testCode, PreservePlacementOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, InsidePreferPreservationOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace TestNamespace
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, PreservePlacementOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, InsidePreferPreservationOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace TestNamespace
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, PreservePlacementOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, InsidePreferPreservationOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace TestNamespace
 }
 ";
 
-            return VerifyAnalyzerAsync(testCode, PreservePlacementOption, DiagnosticResult.EmptyDiagnosticResults);
+            return VerifyAnalyzerAsync(testCode, InsidePreferPreservationOption, DiagnosticResult.EmptyDiagnosticResults);
         }
 
         #endregion

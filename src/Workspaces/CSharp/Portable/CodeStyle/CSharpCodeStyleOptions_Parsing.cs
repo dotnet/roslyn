@@ -64,8 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 {
                     switch (value)
                     {
-                        case "preserve":
-                            return new CodeStyleOption<AddImportPlacement>(AddImportPlacement.Preserve, notificationOpt);
                         case "inside_namespace":
                             return new CodeStyleOption<AddImportPlacement>(AddImportPlacement.InsideNamespace, notificationOpt);
                         case "outside_namespace":
@@ -86,7 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             var notificationString = value.Notification.ToEditorConfigString();
             switch (value.Value)
             {
-                case AddImportPlacement.Preserve: return $"preserve:{notificationString}";
                 case AddImportPlacement.InsideNamespace: return $"inside_namespace:{notificationString}";
                 case AddImportPlacement.OutsideNamespace: return $"outside_namespace:{notificationString}";
                 default:

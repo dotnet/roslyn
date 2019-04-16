@@ -20,8 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirective
     /// </summary>
     public abstract class AbstractMisplacedUsingDirectivesCodeFixProviderTests
     {
-        internal static readonly CodeStyleOption<AddImportPlacement> PreservePlacementOption =
-           new CodeStyleOption<AddImportPlacement>(AddImportPlacement.Preserve, NotificationOption.None);
+        internal static readonly CodeStyleOption<AddImportPlacement> OutsidePreferPreservationOption =
+           new CodeStyleOption<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption.None);
+
+        internal static readonly CodeStyleOption<AddImportPlacement> InsidePreferPreservationOption =
+            new CodeStyleOption<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption.None);
 
         internal static readonly CodeStyleOption<AddImportPlacement> InsideNamespaceOption =
             new CodeStyleOption<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption.Error);
