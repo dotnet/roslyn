@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -43,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element));
 
         private static readonly EditorOptionKey<bool> NonBlockingCompletionEditorOption = new EditorOptionKey<bool>(NonBlockingCompletion);
+
+        private static readonly ConditionalWeakTable<RoslynCompletionItem, VSCompletionItem> s_roslynItemToVsItem =
+            new ConditionalWeakTable<RoslynCompletionItem, VSCompletionItem>();
 
         private readonly Dictionary<string, AsyncCompletionData.CompletionFilter> _filterCache =
             new Dictionary<string, AsyncCompletionData.CompletionFilter>();
@@ -293,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             Document document,
             RoslynCompletionItem roslynItem)
         {
-            if (roslynItem.CachedEditorCompletionItem is VSCompletionItem vsItem)
+            if (s_roslynItemToVsItem.TryGetValue(roslynItem, out var vsItem))
             {
                 return vsItem;
             }
@@ -323,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 attributeIcons: attributeImages);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
-            roslynItem.CachedEditorCompletionItem = item;
+            s_roslynItemToVsItem.Add(roslynItem, item);
 
             return item;
         }

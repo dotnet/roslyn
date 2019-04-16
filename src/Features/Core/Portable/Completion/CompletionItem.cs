@@ -84,14 +84,6 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         internal string ProviderName { get; set; }
 
-        /// <summary>
-        /// Storing converted completion item for target editor. If a completion provider decide to cache items
-        /// then the editor item will be cached and reused too. Otherwise, both items will be GC'd together so it
-        /// would make no difference. 
-        /// Not available to clients. Only used to improve perf by Completion subsystem.
-        /// </summary>
-        internal object CachedEditorCompletionItem { get; set; }
-
         private CompletionItem(
             string displayText,
             string filterText,
@@ -238,7 +230,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 return this;
             }
 
-            // We don't keep CachedEditorCompletionItem around if any of the properies has changed.
             return new CompletionItem(
                 displayText: newDisplayText,
                 filterText: newFilterText,
