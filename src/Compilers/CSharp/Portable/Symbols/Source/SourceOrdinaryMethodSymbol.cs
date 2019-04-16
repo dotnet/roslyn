@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // implemented
             if (syntax.ConstraintClauses.Count > 0)
             {
-                if (syntax.ExplicitInterfaceSpecifier != null || IsOverride)
+                if (syntax.ExplicitInterfaceSpecifier != null || IsOverride && syntax.ConstraintClauses.Any())
                 {
                     declaredConstraints = new SmallDictionary<TypeParameterSymbol, DeclaredConstraintType>();
                     var typeParameterNameDic = new SmallDictionary<string, TypeParameterSymbol>();
@@ -162,7 +162,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (!typeParameterNameDic.ContainsKey(typeParameter.Name))
                             typeParameterNameDic.Add(typeParameter.Name, typeParameter);
-                        declaredConstraints.Add(typeParameter, DeclaredConstraintType.None);
                     }
 
                     bool anyInvalidConstraints = false;
@@ -432,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (declaredConstraints is { })
             {
-                var overriddenOrImplementedMethod = _lazyExplicitInterfaceImplementations.IsEmpty ? this.OverriddenMethod : _lazyExplicitInterfaceImplementations[0];
+                var overriddenOrImplementedMethod = _lazyExplicitInterfaceImplementations.IsEmpty ? OverriddenMethod : _lazyExplicitInterfaceImplementations[0];
                 if (overriddenOrImplementedMethod is { })
                 {
                     foreach (var (typeParam, constraint) in declaredConstraints)
@@ -459,7 +458,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (type.DefaultType is TypeParameterSymbol typeParameterSymbol && typeParameterSymbol.DeclaringMethod == (object)args.method)
                     {
-                        if ((args.declaredConstraints?[typeParameterSymbol] ?? DeclaredConstraintType.None) == DeclaredConstraintType.Class)
+                        if (args.declaredConstraints is { }
+                            && args.declaredConstraints.TryGetValue(typeParameterSymbol, out var declaredConstraintType)
+                            && declaredConstraintType == DeclaredConstraintType.Class)
                         {
                             type.TryForceResolveAsNullableReferenceType();
                         }
@@ -1270,7 +1271,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Overrides and Explicit Interface Implementations can only declare struct and class constraints.
         private enum DeclaredConstraintType
         {
-            None,
             Struct,
             Class,
         }
