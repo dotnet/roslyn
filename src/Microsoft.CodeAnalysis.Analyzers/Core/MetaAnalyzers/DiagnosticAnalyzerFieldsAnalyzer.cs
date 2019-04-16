@@ -34,6 +34,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotStorePerCompilationDataOntoFieldsRule);
 
+#pragma warning disable RS1025 // Configure generated code analysis
+        public override void Initialize(AnalysisContext context)
+#pragma warning restore RS1025 // Configure generated code analysis
+        {
+            context.EnableConcurrentExecution();
+
+            base.Initialize(context);
+        }
+
         [SuppressMessage("AnalyzerPerformance", "RS1012:Start action has no registered actions.", Justification = "Method returns an analyzer that is registered by the caller.")]
         protected override DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
