@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _isExpressionBodied;
         private readonly bool _hasAnyBody;
         private readonly RefKind _refKind;
-        private SmallDictionary<TypeParameterSymbol, DeclaredConstraintType> _declaredConstraints;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
@@ -129,6 +128,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(info, location);
             }
 
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+        }
+
+        public override bool ReturnsVoid
+        {
+            get
+            {
+                LazyMethodChecks();
+                return base.ReturnsVoid;
+            }
+        }
+
+        private void MethodChecks(MethodDeclarationSyntax syntax, Binder withTypeParamsBinder, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(this.MethodKind != MethodKind.UserDefinedOperator, "SourceUserDefinedOperatorSymbolBase overrides this");
+
+            SmallDictionary<TypeParameterSymbol, DeclaredConstraintType> declaredConstraints = null;
+
             // When a generic method overrides a generic method declared in a base class, or is an 
             // explicit interface member implementation of a method in a base interface, the method
             // shall not specify any type-parameter-constraints-clauses, except for a struct constraint, or a class constraint.
@@ -136,16 +154,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // implemented
             if (syntax.ConstraintClauses.Count > 0)
             {
-                if (syntax.ExplicitInterfaceSpecifier != null ||
-                    syntax.Modifiers.Any(SyntaxKind.OverrideKeyword))
+                if (syntax.ExplicitInterfaceSpecifier != null || IsOverride)
                 {
-                    _declaredConstraints = new SmallDictionary<TypeParameterSymbol, DeclaredConstraintType>();
+                    declaredConstraints = new SmallDictionary<TypeParameterSymbol, DeclaredConstraintType>();
                     var typeParameterNameDic = new SmallDictionary<string, TypeParameterSymbol>();
                     foreach (var typeParameter in _typeParameters)
                     {
                         if (!typeParameterNameDic.ContainsKey(typeParameter.Name))
                             typeParameterNameDic.Add(typeParameter.Name, typeParameter);
-                        _declaredConstraints.Add(typeParameter, DeclaredConstraintType.None);
+                        declaredConstraints.Add(typeParameter, DeclaredConstraintType.None);
                     }
 
                     bool anyInvalidConstraints = false;
@@ -173,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (typeParameterNameDic.TryGetValue(typeParamName, out var typeParameter))
                         {
-                            _declaredConstraints[typeParameter] = constraint.Kind() == SyntaxKind.ClassConstraint ? DeclaredConstraintType.Class : DeclaredConstraintType.Struct;
+                            declaredConstraints[typeParameter] = constraint.Kind() == SyntaxKind.ClassConstraint ? DeclaredConstraintType.Class : DeclaredConstraintType.Struct;
                         }
                         else
                         {
@@ -189,23 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-
-            CheckForBlockAndExpressionBody(
-                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
-        }
-
-        public override bool ReturnsVoid
-        {
-            get
-            {
-                LazyMethodChecks();
-                return base.ReturnsVoid;
-            }
-        }
-
-        private void MethodChecks(MethodDeclarationSyntax syntax, Binder withTypeParamsBinder, DiagnosticBag diagnostics)
-        {
-            Debug.Assert(this.MethodKind != MethodKind.UserDefinedOperator, "SourceUserDefinedOperatorSymbolBase overrides this");
 
             SyntaxToken arglistToken;
 
@@ -266,19 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var param in _lazyParameters)
                 {
-                    forceMethodTypeParametersAsNullable(param.TypeWithAnnotations);
+                    forceMethodTypeParameters(param.TypeWithAnnotations);
                 }
-                forceMethodTypeParametersAsNullable(_lazyReturnType);
-            }
-
-            // Any nullable typeParameter declared by the method in the signature of an override or explicit interface implementation is considered a Nullable<T>
-            if (syntax.ExplicitInterfaceSpecifier != null || IsOverride)
-            {
-                foreach (var param in _lazyParameters)
-                {
-                    forceMethodTypeParametersAsNullable(param.TypeWithAnnotations);
-                }
-                forceMethodTypeParametersAsNullable(_lazyReturnType);
+                forceMethodTypeParameters(_lazyReturnType);
             }
 
             // errors relevant for extension methods
@@ -440,12 +430,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (_declaredConstraints is { })
+            if (declaredConstraints is { })
             {
                 var overriddenOrImplementedMethod = _lazyExplicitInterfaceImplementations.IsEmpty ? this.OverriddenMethod : _lazyExplicitInterfaceImplementations[0];
                 if (overriddenOrImplementedMethod is { })
                 {
-                    foreach (var (typeParam, constraint) in _declaredConstraints)
+                    foreach (var (typeParam, constraint) in declaredConstraints)
                     {
                         if (constraint == DeclaredConstraintType.Class && !typeParam.IsReferenceType)
                         {
@@ -463,13 +453,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return;
 
-            void forceMethodTypeParametersAsNullable(TypeWithAnnotations type)
+            void forceMethodTypeParameters(TypeWithAnnotations type)
             {
-                type.VisitType(null, (type, method, unused2) =>
+                type.VisitType(null, (type, args, unused2) =>
                 {
-                    if (type.DefaultType is TypeParameterSymbol typeParameterSymbol && typeParameterSymbol.DeclaringMethod == (object)method)
+                    if (type.DefaultType is TypeParameterSymbol typeParameterSymbol && typeParameterSymbol.DeclaringMethod == (object)args.method)
                     {
-                        if ((method._declaredConstraints?[typeParameterSymbol] ?? DeclaredConstraintType.None) == DeclaredConstraintType.Class)
+                        if ((args.declaredConstraints?[typeParameterSymbol] ?? DeclaredConstraintType.None) == DeclaredConstraintType.Class)
                         {
                             type.TryForceResolveAsNullableReferenceType();
                         }
@@ -479,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                     return false;
-                }, typePredicateOpt: null, arg: this, canDigThroughNullable: false, useDefaultType: true);
+                }, typePredicateOpt: null, arg: (method : this, declaredConstraints: declaredConstraints), canDigThroughNullable: false, useDefaultType: true);
             }
         }
 
