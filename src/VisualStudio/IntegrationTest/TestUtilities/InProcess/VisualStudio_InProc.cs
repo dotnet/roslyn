@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void ActivateMainWindow()
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var dte = GetDTE();
 

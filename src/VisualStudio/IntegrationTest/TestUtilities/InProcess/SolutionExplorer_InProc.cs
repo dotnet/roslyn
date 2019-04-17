@@ -371,7 +371,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var directoriesToDelete = new List<string>();
             var dte = GetDTE();
 
-            InvokeOnUIThread(() =>
+            InvokeOnUIThread(cancellationToken =>
             {
                 if (dte.Solution != null)
                 {
@@ -489,7 +489,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             public void Dispose()
             {
-                InvokeOnUIThread(() =>
+                InvokeOnUIThread(cancellationToken =>
                 {
                     ErrorHandler.ThrowOnFailure(_solution.UnadviseSolutionEvents(_cookie));
                 });
@@ -583,7 +583,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             void SetText(string text)
             {
-                InvokeOnUIThread(() =>
+                InvokeOnUIThread(cancellationToken =>
                 {
                     // The active text view might not have finished composing yet, waiting for the application to 'idle'
                     // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
@@ -891,7 +891,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void OpenFileWithDesigner(string projectName, string relativeFilePath)
         {
-            InvokeOnUIThread(() =>
+            InvokeOnUIThread(cancellationToken =>
             {
                 var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
                 VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath, VSConstants.LOGVIEWID.Designer_guid, out _, out _, out var windowFrame, out _);
@@ -923,7 +923,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private void CloseFile(string projectName, string relativeFilePath, Guid logicalView, bool saveFile)
         {
-            InvokeOnUIThread(() =>
+            InvokeOnUIThread(cancellationToken =>
             {
                 var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
                 if (!VsShellUtilities.IsDocumentOpen(ServiceProvider.GlobalProvider, filePath, logicalView, out _, out _, out var windowFrame))
@@ -1009,7 +1009,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
 
-            var solutionRestoreService = InvokeOnUIThread(() => GetComponentModel().GetExtensions<IVsSolutionRestoreService2>().Single());
+            var solutionRestoreService = InvokeOnUIThread(cancellationToken => GetComponentModel().GetExtensions<IVsSolutionRestoreService2>().Single());
             var nominateProjectTask = solutionRestoreService.NominateProjectAsync(GetProject(projectName).FullName, cancellationTokenSource.Token);
             nominateProjectTask.Wait(cancellationTokenSource.Token);
             return nominateProjectTask.Result;
