@@ -179,6 +179,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return HandleInstanceCreation(operation, instanceLocation, value);
         }
 
+        public override TAbstractAnalysisValue VisitAwait(IAwaitOperation operation, object argument)
+        {
+            var value = base.VisitAwait(operation, argument);
+            PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
+            return HandleInstanceCreation(operation, instanceLocation, value);
+        }
         #endregion
     }
 }
