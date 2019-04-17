@@ -1007,8 +1007,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public bool RestoreNuGetPackages(string projectName)
         {
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+
             var solutionRestoreService = InvokeOnUIThread(() => GetComponentModel().GetExtensions<IVsSolutionRestoreService2>().Single());
-            return solutionRestoreService.NominateProjectAsync(GetProject(projectName).FullName, CancellationToken.None).Result;
+            var nominateProjectTask = solutionRestoreService.NominateProjectAsync(GetProject(projectName).FullName, cancellationTokenSource.Token);
+            nominateProjectTask.Wait(cancellationTokenSource.Token);
+            return nominateProjectTask.Result;
         }
 
         public void SaveAll()
