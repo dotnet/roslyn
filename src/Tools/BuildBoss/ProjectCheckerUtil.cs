@@ -260,9 +260,7 @@ namespace BuildBoss
                     continue;
                 }
 
-                var builtByThisRepository = _solutionMap.Keys.Any(projectKey =>
-                    projectKey.FileName == $"{internalsVisibleTo.TargetAssembly}.csproj"
-                    || projectKey.FileName == $"{internalsVisibleTo.TargetAssembly}.vbproj");
+                var builtByThisRepository = _solutionMap.Values.Any(projectData => GetAssemblyName(projectData) == internalsVisibleTo.TargetAssembly);
                 if (!builtByThisRepository)
                 {
                     textWriter.WriteLine($"InternalsVisibleTo not allowed for external assembly '{internalsVisibleTo.TargetAssembly}' that may load within Visual Studio.");
@@ -271,6 +269,13 @@ namespace BuildBoss
             }
 
             return allGood;
+
+            // Local functions
+            static string GetAssemblyName(ProjectData projectData)
+            {
+                return projectData.ProjectUtil.FindSingleProperty("AssemblyName")?.Value.Trim()
+                    ?? Path.GetFileNameWithoutExtension(projectData.FileName);
+            }
         }
 
         private bool CheckDeploymentSettings(TextWriter textWriter)
