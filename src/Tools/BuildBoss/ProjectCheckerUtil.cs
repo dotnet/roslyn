@@ -254,6 +254,12 @@ namespace BuildBoss
                     continue;
                 }
 
+                if (Uri.TryCreate(internalsVisibleTo.WorkItem, UriKind.Absolute, out _))
+                {
+                    // A work item is tracking elimination of this IVT
+                    continue;
+                }
+
                 var builtByThisRepository = _solutionMap.Keys.Any(projectKey =>
                     projectKey.FileName == $"{internalsVisibleTo.TargetAssembly}.csproj"
                     || projectKey.FileName == $"{internalsVisibleTo.TargetAssembly}.vbproj");

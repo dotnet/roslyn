@@ -254,7 +254,8 @@ namespace BuildBoss
             var targetAssembly = element.Attribute("Include")?.Value.Trim();
             var key = element.Attribute("Key")?.Value.Trim();
             var loadsWithinVisualStudio = element.Attribute("LoadsWithinVisualStudio")?.Value.Trim();
-            return new InternalsVisibleTo(targetAssembly, key, loadsWithinVisualStudio);
+            var workItem = element.Attribute("WorkItem")?.Value.Trim();
+            return new InternalsVisibleTo(targetAssembly, key, loadsWithinVisualStudio, workItem);
         }
 
         internal XElement FindSingleProperty(string localName) => GetAllPropertyGroupElements().SingleOrDefault(x => x.Name.LocalName == localName);
