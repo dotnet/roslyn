@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
@@ -119,7 +118,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
                 project.SetOutputFileName(initialPath);
                 Assert.Equal(initialPath, project.GetOutputFileName());
 
-                var outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.VisualStudioProject.Id);
+                var outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
                 Assert.Equal(initialPath, outputs.AssemblyFilePath);
 
                 // Change output folder from command line arguments - verify that objOutputPath changes.
@@ -127,7 +126,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
                 project.SetOutputFileName(newPath);
                 Assert.Equal(newPath, project.GetOutputFileName());
 
-                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.VisualStudioProject.Id);
+                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
                 Assert.Equal(newPath, outputs.AssemblyFilePath);
 
                 // Change output file name - verify that outputPath changes.
@@ -135,7 +134,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
                 project.SetOutputFileName(newPath);
                 Assert.Equal(newPath, project.GetOutputFileName());
 
-                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.VisualStudioProject.Id);
+                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
                 Assert.Equal(newPath, outputs.AssemblyFilePath);
 
                 // Change output file name and folder - verify that outputPath changes.
@@ -143,7 +142,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
                 project.SetOutputFileName(newPath);
                 Assert.Equal(newPath, project.GetOutputFileName());
 
-                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.VisualStudioProject.Id);
+                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
                 Assert.Equal(newPath, outputs.AssemblyFilePath);
             }
         }
@@ -155,28 +154,28 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             {
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                var outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.VisualStudioProject.Id);
+                var outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
                 Assert.Equal(null, outputs.AssemblyFilePath);
 
                 Assert.Equal(0, ((ICompilerOptionsHostObject)project).SetCompilerOptions(@"/pdb:C:\a\1.pdb /debug+", out _));
 
                 // Compilation doesn't have output file, so we don't expect any build outputs either.
-                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.VisualStudioProject.Id);
+                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
                 Assert.Equal(null, outputs.AssemblyFilePath);
 
                 Assert.Equal(0, ((ICompilerOptionsHostObject)project).SetCompilerOptions(@"/out:C:\a\2.dll /debug+", out _));
 
-                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.VisualStudioProject.Id);
+                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
                 Assert.Equal(@"C:\a\2.dll", outputs.AssemblyFilePath);
 
                 project.SetOutputFileName(@"C:\a\3.dll");
 
-                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.VisualStudioProject.Id);
+                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
                 Assert.Equal(@"C:\a\3.dll", outputs.AssemblyFilePath);
 
                 Assert.Equal(0, ((ICompilerOptionsHostObject)project).SetCompilerOptions(@"/pdb:C:\a\4.pdb /debug+", out _));
 
-                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.VisualStudioProject.Id);
+                outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
                 Assert.Equal(@"C:\a\3.dll", outputs.AssemblyFilePath);
             }
         }
