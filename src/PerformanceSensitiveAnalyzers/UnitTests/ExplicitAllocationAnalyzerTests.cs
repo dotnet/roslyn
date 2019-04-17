@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers;
+using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests.CSharpPerformanceCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.ExplicitAllocationAnalyzer,
+    Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.ExplicitAllocationAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
@@ -13,10 +13,35 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
     public class ExplicitAllocationAnalyzerTests
     {
         [Fact]
-        public async Task ExplicitAllocation_InitializerExpressionSyntax()
+        public async Task ExplicitAllocation_ObjectInitializer()
         {
             var sampleProgram =
-@"using System;
+    @"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        var @class = new TestClass { Name = ""Bob"" };
+    }
+}
+
+public class TestClass
+{
+    public string Name { get; set; }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 22));
+        }
+
+
+        [Fact]
+        public async Task ExplicitAllocation_ObjectInitializerStruct_NoWarning()
+        {
+            var sampleProgram =
+    @"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -25,31 +50,21 @@ public class MyClass
     public void Testing()
     {
         var @struct = new TestStruct { Name = ""Bob"" };
-        var @class = new TestClass { Name = ""Bob"" };
     }
 }
 
 public struct TestStruct
 {
     public string Name { get; set; }
-}
-
-public class TestClass
-{
-    public string Name { get; set; }
 }";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
-                // Test0.cs(10,13): info HAA0505: Initializer reference type allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.InitializerCreationRule).WithLocation(10, 13),
-                // Test0.cs(10,22): info HAA0502: Explicit new reference type allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.NewObjectRule).WithLocation(10, 22));
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ImplicitArrayCreationExpressionSyntax()
+        public async Task ExplicitAllocation_ImplicitArrayCreation()
         {
             var sampleProgram =
-@"using System.Collections.Generic;
+    @"using System.Collections.Generic;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -61,12 +76,11 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
-                // Test0.cs(9,25): info HAA0504: Implicit new array creation allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ImplicitArrayCreationRule).WithLocation(9, 25));
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(9, 25));
         }
 
         [Fact]
-        public async Task ExplicitAllocation_AnonymousObjectCreationExpressionSyntax()
+        public async Task ExplicitAllocation_AnonymousObjectCreation()
         {
             var sampleProgram =
 @"using System;
@@ -81,12 +95,11 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
-                // Test0.cs(9,20): info HAA0503: Explicit new anonymous object allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.AnonymousNewObjectRule).WithLocation(9, 20));
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.AnonymousObjectCreationRule).WithLocation(9, 20));
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ArrayCreationExpressionSyntax()
+        public async Task ExplicitAllocation_ArrayCreation()
         {
             var sampleProgram =
 @"using System.Collections.Generic;
@@ -101,12 +114,11 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
-                // Test0.cs(9,25): info HAA0501: Explicit new array type allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.NewArrayRule).WithLocation(9, 25));
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(9, 25));
         }
 
         [Fact]
-        public async Task ExplicitAllocation_ObjectCreationExpressionSyntax()
+        public async Task ExplicitAllocation_ObjectCreation()
         {
             var sampleProgram =
 @"using System;
@@ -118,16 +130,14 @@ public class MyClass
     public void Testing()
     {
         var allocation = new String('a', 10);
-        var noAllocation = new DateTime();
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
-                // Test0.cs(9,26): info HAA0502: Explicit new reference type allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.NewObjectRule).WithLocation(9, 26));
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 26));
         }
 
         [Fact]
-        public async Task ExplicitAllocation_LetClauseSyntax()
+        public async Task ExplicitAllocation_LetClause()
         {
             var sampleProgram =
 @"using System.Collections.Generic;
@@ -146,71 +156,8 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
-                // Test0.cs(10,25): info HAA0504: Implicit new array creation allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ImplicitArrayCreationRule).WithLocation(10, 25),
-                // Test0.cs(12,23): info HAA0506: Let clause induced allocation
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(10, 25),
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.LetCauseRule).WithLocation(12, 23));
-        }
-
-        [Fact]
-        public async Task ExplicitAllocation_AllSyntax()
-        {
-            var sampleProgram =
-@"using System;
-using System.Collections.Generic;
-using System.Linq;
-using Roslyn.Utilities;
-
-public class MyClass
-{
-    [PerformanceSensitive(""uri"")]
-    public void Testing()
-    {
-        var @struct = new TestStruct { Name = ""Bob"" };
-        var @class = new TestClass { Name = ""Bob"" };
-
-        int[] intDataImplicit = new[] { 123, 32, 4 };
-
-        var temp = new { A = 123, Name = ""Test"", };
-
-        int[] intDataExplicit = new int[] { 123, 32, 4 };
-
-        var allocation = new String('a', 10);
-        var noAllocation = new DateTime();
-
-        int[] intDataLinq = new int[] { 123, 32, 4 };
-        var result = (from a in intDataLinq
-                      let b = a * 3
-                      select b).ToList();
-    }
-}
-
-public struct TestStruct
-{
-    public string Name { get; set; }
-}
-
-public class TestClass
-{
-    public string Name { get; set; }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
-                // Test0.cs(12,13): info HAA0505: Initializer reference type allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.InitializerCreationRule).WithLocation(12, 13),
-                // Test0.cs(12,22): info HAA0502: Explicit new reference type allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.NewObjectRule).WithLocation(12, 22),
-                // Test0.cs(14,33): info HAA0504: Implicit new array creation allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ImplicitArrayCreationRule).WithLocation(14, 33),
-                // Test0.cs(16,20): info HAA0503: Explicit new anonymous object allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.AnonymousNewObjectRule).WithLocation(16, 20),
-                // Test0.cs(18,33): info HAA0501: Explicit new array type allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.NewArrayRule).WithLocation(18, 33),
-                // Test0.cs(20,26): info HAA0502: Explicit new reference type allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.NewObjectRule).WithLocation(20, 26),
-                // Test0.cs(23,29): info HAA0501: Explicit new array type allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.NewArrayRule).WithLocation(23, 29),
-                // Test0.cs(25,23): info HAA0506: Let clause induced allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.LetCauseRule).WithLocation(25, 23));
         }
 
         [Fact]
@@ -231,8 +178,7 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
-                // Test0.cs(11,22): info HAA0502: Explicit new reference type allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.NewObjectRule).WithLocation(11, 22));
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(11, 22));
         }
 
         [Fact]
@@ -253,8 +199,7 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
-                // Test0.cs(11,32): info HAA0502: Explicit new reference type allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.NewObjectRule).WithLocation(11, 32));
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(11, 32));
         }
 
         [Fact]
@@ -277,8 +222,210 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
-                // Test0.cs(13,17): info HAA0502: Explicit new reference type allocation
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.NewObjectRule).WithLocation(13, 17));
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(13, 17));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_StructCreation_NoWarning()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public struct S { }
+
+public class MyClass
+{
+
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        var noBox1 = new DateTime();
+        S noBox2 = new S();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_PrimitiveTypeConversion_NoWarning()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        double x = new int();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_ImplicitValueTypeConversion_NoWarning()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+struct A
+{
+    public static implicit operator A(B other)
+    {
+        return new A();
+    }
+}
+
+struct B
+{
+}
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        A a = new B();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_NoParamsArrayCreation()
+        {
+            var sampleProgram =
+@"using System.Collections.Generic;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing(params int[] values)
+    {
+        Testing();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_ExplicitDelegateCreation()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing(object sender, EventArgs e)
+    {
+        var handler = new EventHandler(Testing);
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 23));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_ImplicitDelegateCreation()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing(object sender, EventArgs e)
+    {
+        EventHandler handler = Testing;
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_ListInitializerCreation()
+        {
+            var sampleProgram =
+@"using System.Collections.Generic;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        var intData = new List<int> { 3, 4 };
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 23));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_GenericObjectCreation()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing<T>()
+        where T : class, new()
+    {
+        var allocation = new T();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 26));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_GenericObjectCreation2()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing<T>()
+        where T : struct
+    {
+        object allocation = new T();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 29));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_GenericObjectCreation3()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing<T>()
+        where T : struct
+    {
+        T value = new T();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
         }
     }
 }

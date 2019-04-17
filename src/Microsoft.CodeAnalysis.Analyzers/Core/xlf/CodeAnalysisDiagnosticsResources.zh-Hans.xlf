@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
-        <source>Compare symbols correctly</source>
-        <target state="new">Compare symbols correctly</target>
+        <source>Symbols should be compared for equality, not identity.</source>
+        <target state="new">Symbols should be compared for equality, not identity.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
