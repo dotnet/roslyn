@@ -648,6 +648,45 @@ baz]]></f>"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestXmlEmbeddedExpressionAsElementContentNestedCommentsAfterLineContinuation() As Task
+            Dim code =
+"Dim doc = _ ' Test
+    <goo>
+        <%= <bug141>
+                <a>hello</a>
+            </bug141> %>
+    </goo>"
+
+            Await TestInMethodAsync(code,
+                Keyword("Dim"),
+                Local("doc"),
+                Operators.Equals,
+                LineContinuation,
+                Comment("' Test"),
+                VBXmlDelimiter("<"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"),
+                VBXmlEmbeddedExpression("<%="),
+                VBXmlDelimiter("<"),
+                VBXmlName("bug141"),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("<"),
+                VBXmlName("a"),
+                VBXmlDelimiter(">"),
+                VBXmlText("hello"),
+                VBXmlDelimiter("</"),
+                VBXmlName("a"),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("</"),
+                VBXmlName("bug141"),
+                VBXmlDelimiter(">"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlDelimiter("</"),
+                VBXmlName("goo"),
+                VBXmlDelimiter(">"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlLiteralsInLambdas() As Task
             Dim code =
 "Dim x = Function() _
@@ -662,6 +701,46 @@ Dim y = Function() <element val=""something""/>"
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 LineContinuation,
+                VBXmlDelimiter("<"),
+                VBXmlName("element"),
+                VBXmlAttributeName("val"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("something"),
+                VBXmlAttributeQuotes(""""),
+                VBXmlDelimiter("/>"),
+                Keyword("Dim"),
+                Field("y"),
+                Operators.Equals,
+                Keyword("Function"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                VBXmlDelimiter("<"),
+                VBXmlName("element"),
+                VBXmlAttributeName("val"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("something"),
+                VBXmlAttributeQuotes(""""),
+                VBXmlDelimiter("/>"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestXmlLiteralsInLambdasCommentsAfterLineContinuation() As Task
+            Dim code =
+"Dim x = Function() _ 'Test
+                    <element val=""something""/>
+Dim y = Function() <element val=""something""/>"
+
+            Await TestAsync(code,
+                Keyword("Dim"),
+                Field("x"),
+                Operators.Equals,
+                Keyword("Function"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                LineContinuation,
+                Comment("'Test"),
                 VBXmlDelimiter("<"),
                 VBXmlName("element"),
                 VBXmlAttributeName("val"),
@@ -986,6 +1065,32 @@ Dim y = Function() <element val=""something""/>"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestXmlLiterals4CommentsAfterLineContinuation() As Task
+            Dim code =
+"Dim d = _ ' Test
+        <?xml version=""1.0""?>
+        <a/>"
+
+            Await TestInMethodAsync(code,
+                Keyword("Dim"),
+                Local("d"),
+                Operators.Equals,
+                LineContinuation,
+                Comment("' Test"),
+                VBXmlDelimiter("<?"),
+                VBXmlName("xml"),
+                VBXmlAttributeName("version"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeValue("1.0"),
+                VBXmlAttributeQuotes(""""),
+                VBXmlDelimiter("?>"),
+                VBXmlDelimiter("<"),
+                VBXmlName("a"),
+                VBXmlDelimiter("/>"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestXmlLiterals5() As Task
             Dim code =
 "Dim i = 100
@@ -1001,6 +1106,43 @@ Dim y = Function() <element val=""something""/>"
                 Identifier("Process"),
                 Punctuation.OpenParen,
                 LineContinuation,
+                VBXmlDelimiter("<"),
+                VBXmlName("Customer"),
+                VBXmlAttributeName("ID"),
+                VBXmlDelimiter("="),
+                VBXmlEmbeddedExpression("<%="),
+                Identifier("i"),
+                Operators.Plus,
+                Number("1000"),
+                VBXmlEmbeddedExpression("%>"),
+                VBXmlAttributeName("a"),
+                VBXmlDelimiter("="),
+                VBXmlAttributeQuotes(""""),
+                VBXmlAttributeQuotes(""""),
+                VBXmlDelimiter(">"),
+                VBXmlDelimiter("</"),
+                VBXmlName("Customer"),
+                VBXmlDelimiter(">"),
+                Punctuation.CloseParen)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestXmlLiterals5CommentsAfterLineContinuation() As Task
+            Dim code =
+"Dim i = 100
+        Process( _ '    Test
+                <Customer ID=<%= i + 1000 %> a="""">
+                </Customer>)"
+
+            Await TestInMethodAsync(code,
+                Keyword("Dim"),
+                Local("i"),
+                Operators.Equals,
+                Number("100"),
+                Identifier("Process"),
+                Punctuation.OpenParen,
+                LineContinuation,
+                Comment("'    Test"),
                 VBXmlDelimiter("<"),
                 VBXmlName("Customer"),
                 VBXmlAttributeName("ID"),
@@ -1451,6 +1593,121 @@ Dim q = From var1 In src Where var1 And True _
                 Punctuation.CloseParen)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestLinqQuery1CommentsAfterLineContinuation() As Task
+            Dim code =
+"Dim src = New List(Of Boolean)
+Dim var3 = 1
+Dim q = From var1 In src Where var1 And True _ ' Test 1 space
+        Order By var1 Ascending Order By var1 Descending _  ' Test 2 space
+        Select var1 Distinct _   ' Test 3 space
+        Join var2 In src On var1 Equals var2 _   ' Test 4 space
+        Skip var3 Skip While var3 Take var3 Take While var3 _ ' Test 1 space
+        Aggregate var4 In src _ ' Test 1 space
+        Group var4 By var4 Into var5 = Count() _ ' Test 1 space
+        Group Join var6 In src On var6 Equals var5 Into var7 Into var8 = Count()"
+
+            Await TestInMethodAsync(code,
+                Keyword("Dim"),
+                Local("src"),
+                Operators.Equals,
+                Keyword("New"),
+                Identifier("List"),
+                Punctuation.OpenParen,
+                Keyword("Of"),
+                Keyword("Boolean"),
+                Punctuation.CloseParen,
+                Keyword("Dim"),
+                Local("var3"),
+                Operators.Equals,
+                Number("1"),
+                Keyword("Dim"),
+                Local("q"),
+                Operators.Equals,
+                Keyword("From"),
+                Identifier("var1"),
+                Keyword("In"),
+                Identifier("src"),
+                Keyword("Where"),
+                Identifier("var1"),
+                Keyword("And"),
+                Keyword("True"),
+                LineContinuation,
+                Comment("' Test 1 space"),
+                Keyword("Order"),
+                Keyword("By"),
+                Identifier("var1"),
+                Keyword("Ascending"),
+                Keyword("Order"),
+                Keyword("By"),
+                Identifier("var1"),
+                Keyword("Descending"),
+                LineContinuation,
+                Comment("' Test 2 space"),
+                Keyword("Select"),
+                Identifier("var1"),
+                Keyword("Distinct"),
+                LineContinuation,
+                Comment("' Test 3 space"),
+                Keyword("Join"),
+                Identifier("var2"),
+                Keyword("In"),
+                Identifier("src"),
+                Keyword("On"),
+                Identifier("var1"),
+                Keyword("Equals"),
+                Identifier("var2"),
+                LineContinuation,
+                Comment("' Test 4 space"),
+                Keyword("Skip"),
+                Identifier("var3"),
+                Keyword("Skip"),
+                Keyword("While"),
+                Identifier("var3"),
+                Keyword("Take"),
+                Identifier("var3"),
+                Keyword("Take"),
+                Keyword("While"),
+                Identifier("var3"),
+                LineContinuation,
+                Comment("' Test 1 space"),
+                Keyword("Aggregate"),
+                Identifier("var4"),
+                Keyword("In"),
+                Identifier("src"),
+                LineContinuation,
+                Comment("' Test 1 space"),
+                Keyword("Group"),
+                Identifier("var4"),
+                Keyword("By"),
+                Identifier("var4"),
+                Keyword("Into"),
+                Identifier("var5"),
+                Operators.Equals,
+                Identifier("Count"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                LineContinuation,
+                Comment("' Test 1 space"),
+                Keyword("Group"),
+                Keyword("Join"),
+                Identifier("var6"),
+                Keyword("In"),
+                Identifier("src"),
+                Keyword("On"),
+                Identifier("var6"),
+                Keyword("Equals"),
+                Identifier("var5"),
+                Keyword("Into"),
+                Identifier("var7"),
+                Keyword("Into"),
+                Identifier("var8"),
+                Operators.Equals,
+                Identifier("Count"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen)
+        End Function
+
         <WorkItem(542387, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542387")>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestFromInQuery() As Task
@@ -1594,6 +1851,134 @@ o = New With {Key _
                 LineContinuation,
                 Identifier("Empty"),
                 LineContinuation,
+                Punctuation.CloseCurly)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestKeyKeyword1CommentsAfterLineContinuation() As Task
+            Dim code =
+"Dim Value = ""Test""
+Dim Key As String = Key.Length & (Key.Length)
+Dim Array As String() = { Key, Key.Length }
+Dim o = New With {Key Key.Length, Key .Id = 1, Key Key, Key Value, Key.Empty}
+o = New With {Key _ ' Test
+                Key.Length, _ ' Test
+                Key _ ' Test
+                .Id = 1, _ ' Test
+                Key _ ' Test
+                Key, _ ' Test
+                Key _ ' Test
+                Value, _ ' Test
+                Key Key. _ ' Test
+                Empty _ ' Test
+                }"
+
+            Await TestInMethodAsync(code,
+                Keyword("Dim"),
+                Local("Value"),
+                Operators.Equals,
+                [String]("""Test"""),
+                Keyword("Dim"),
+                Local("Key"),
+                Keyword("As"),
+                Keyword("String"),
+                Operators.Equals,
+                Identifier("Key"),
+                Operators.Dot,
+                Identifier("Length"),
+                Operators.Ampersand,
+                Punctuation.OpenParen,
+                Identifier("Key"),
+                Operators.Dot,
+                Identifier("Length"),
+                Punctuation.CloseParen,
+                Keyword("Dim"),
+                Local("Array"),
+                Keyword("As"),
+                Keyword("String"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Operators.Equals,
+                Punctuation.OpenCurly,
+                Identifier("Key"),
+                Punctuation.Comma,
+                Identifier("Key"),
+                Operators.Dot,
+                Identifier("Length"),
+                Punctuation.CloseCurly,
+                Keyword("Dim"),
+                Local("o"),
+                Operators.Equals,
+                Keyword("New"),
+                Keyword("With"),
+                Punctuation.OpenCurly,
+                Keyword("Key"),
+                Identifier("Key"),
+                Operators.Dot,
+                Identifier("Length"),
+                Punctuation.Comma,
+                Keyword("Key"),
+                Operators.Dot,
+                Identifier("Id"),
+                Operators.Equals,
+                Number("1"),
+                Punctuation.Comma,
+                Keyword("Key"),
+                Identifier("Key"),
+                Punctuation.Comma,
+                Keyword("Key"),
+                Identifier("Value"),
+                Punctuation.Comma,
+                Keyword("Key"),
+                Operators.Dot,
+                Identifier("Empty"),
+                Punctuation.CloseCurly,
+                Identifier("o"),
+                Operators.Equals,
+                Keyword("New"),
+                Keyword("With"),
+                Punctuation.OpenCurly,
+                Keyword("Key"),
+                LineContinuation,
+                Comment("' Test"),
+                Identifier("Key"),
+                Operators.Dot,
+                Identifier("Length"),
+                Punctuation.Comma,
+                LineContinuation,
+                Comment("' Test"),
+                Keyword("Key"),
+                LineContinuation,
+                Comment("' Test"),
+                Operators.Dot,
+                Identifier("Id"),
+                Operators.Equals,
+                Number("1"),
+                Punctuation.Comma,
+                LineContinuation,
+                Comment("' Test"),
+                Keyword("Key"),
+                LineContinuation,
+                Comment("' Test"),
+                Identifier("Key"),
+                Punctuation.Comma,
+                LineContinuation,
+                Comment("' Test"),
+                Keyword("Key"),
+                LineContinuation,
+                Comment("' Test"),
+                Identifier("Value"),
+                Punctuation.Comma,
+                LineContinuation,
+                Comment("' Test"),
+                Keyword("Key"),
+                Identifier("Key"),
+                Operators.Dot,
+                LineContinuation,
+                Comment("' Test"),
+                Identifier("Empty"),
+                LineContinuation,
+                Comment("' Test"),
                 Punctuation.CloseCurly)
         End Function
 
@@ -2722,6 +3107,29 @@ Imports Bar=Quux"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestPreprocessorExternalChecksum1CommentsAfterLineContinuation() As Task
+            Dim code =
+"#ExternalChecksum(""c:\wwwroot\inetpub\test.aspx"", _ ' Test
+""{12345678-1234-1234-1234-123456789abc}"", _ ' Test
+""1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"")"
+
+            Await TestInNamespaceAsync(code,
+                PPKeyword("#"),
+                PPKeyword("ExternalChecksum"),
+                Punctuation.OpenParen,
+                [String]("""c:\wwwroot\inetpub\test.aspx"""),
+                Punctuation.Comma,
+                LineContinuation,
+                Comment("' Test"),
+                [String]("""{12345678-1234-1234-1234-123456789abc}"""),
+                Punctuation.Comma,
+                LineContinuation,
+                Comment("' Test"),
+                [String]("""1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"""),
+                Punctuation.CloseParen)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreprocessorExternalChecksum2() As Task
             Dim code =
 "#ExternalChecksum(""c:\wwwroot\inetpub\test.aspx"", _
@@ -2745,6 +3153,62 @@ End Module"
                 [String]("""{12345678-1234-1234-1234-123456789abc}"""),
                 Punctuation.Comma,
                 LineContinuation,
+                [String]("""1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"""),
+                Punctuation.CloseParen,
+                Keyword("Module"),
+                [Module]("Test"),
+                Keyword("Sub"),
+                Method("Main"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                PPKeyword("#"),
+                PPKeyword("ExternalSource"),
+                Punctuation.OpenParen,
+                [String]("""c:\wwwroot\inetpub\test.aspx"""),
+                Punctuation.Comma,
+                Number("30"),
+                Punctuation.CloseParen,
+                Identifier("Console"),
+                Operators.Dot,
+                Identifier("WriteLine"),
+                Punctuation.OpenParen,
+                [String]("""In test.aspx"""),
+                Punctuation.CloseParen,
+                PPKeyword("#"),
+                PPKeyword("End"),
+                PPKeyword("ExternalSource"),
+                Keyword("End"),
+                Keyword("Sub"),
+                Keyword("End"),
+                Keyword("Module"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestPreprocessorExternalChecksum2CommentsAfterLineContinuation() As Task
+            Dim code =
+"#ExternalChecksum(""c:\wwwroot\inetpub\test.aspx"", _ ' Test 1
+""{12345678-1234-1234-1234-123456789abc}"", _ ' Test 2
+""1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"")
+Module Test
+    Sub Main()
+#ExternalSource(""c:\wwwroot\inetpub\test.aspx"", 30)
+        Console.WriteLine(""In test.aspx"")
+#End ExternalSource
+    End Sub
+End Module"
+
+            Await TestInNamespaceAsync(code,
+                PPKeyword("#"),
+                PPKeyword("ExternalChecksum"),
+                Punctuation.OpenParen,
+                [String]("""c:\wwwroot\inetpub\test.aspx"""),
+                Punctuation.Comma,
+                LineContinuation,
+                Comment("' Test 1"),
+                [String]("""{12345678-1234-1234-1234-123456789abc}"""),
+                Punctuation.Comma,
+                LineContinuation,
+                Comment("' Test 2"),
                 [String]("""1a2b3c4e5f617239a49b9a9c0391849d34950f923fab9484"""),
                 Punctuation.CloseParen,
                 Keyword("Module"),
@@ -2847,6 +3311,87 @@ Region"
                 LineContinuation,
                 PPKeyword("End"),
                 LineContinuation,
+                PPKeyword("Region"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestBug2641_1CommentsAfterLineContinuation() As Task
+            Dim code =
+"Class PreprocessorNoContext
+Dim Region
+Dim ExternalSource
+End Class
+#Region ""Test""
+#End Region
+#Region ""Test"" ' comment
+#End Region ' comment
+#Region ""Test"" REM comment
+#End Region REM comment
+# _ ' Test 1
+Region ""Test""
+# _ ' Test 2
+End Region
+# _ ' Test 3
+Region _ ' Test 4
+""Test""
+# _ ' Test 5
+End _ ' Test 6
+Region"
+
+            Await TestAsync(code,
+                Keyword("Class"),
+                [Class]("PreprocessorNoContext"),
+                Keyword("Dim"),
+                Field("Region"),
+                Keyword("Dim"),
+                Field("ExternalSource"),
+                Keyword("End"),
+                Keyword("Class"),
+                PPKeyword("#"),
+                PPKeyword("Region"),
+                [String]("""Test"""),
+                PPKeyword("#"),
+                PPKeyword("End"),
+                PPKeyword("Region"),
+                PPKeyword("#"),
+                PPKeyword("Region"),
+                [String]("""Test"""),
+                Comment("' comment"),
+                PPKeyword("#"),
+                PPKeyword("End"),
+                PPKeyword("Region"),
+                Comment("' comment"),
+                PPKeyword("#"),
+                PPKeyword("Region"),
+                [String]("""Test"""),
+                Comment("REM comment"),
+                PPKeyword("#"),
+                PPKeyword("End"),
+                PPKeyword("Region"),
+                Comment("REM comment"),
+                PPKeyword("#"),
+                LineContinuation,
+                Comment("' Test 1"),
+                PPKeyword("Region"),
+                [String]("""Test"""),
+                PPKeyword("#"),
+                LineContinuation,
+                 Comment("' Test 2"),
+               PPKeyword("End"),
+                PPKeyword("Region"),
+                PPKeyword("#"),
+                LineContinuation,
+                Comment("' Test 3"),
+                PPKeyword("Region"),
+                LineContinuation,
+                Comment("' Test 4"),
+                [String]("""Test"""),
+                PPKeyword("#"),
+                LineContinuation,
+                Comment("' Test 5"),
+                PPKeyword("End"),
+                LineContinuation,
+                Comment("' Test 6"),
                 PPKeyword("Region"))
         End Function
 
@@ -3072,9 +3617,9 @@ End Module"
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestBug927678() As Task
             Dim code =
-"'This is not usually a 
-'collapsible comment block
-x = 2"
+            "'This is not usually a " & vbCrLf &
+            "'collapsible comment block" & vbCrLf &
+            "x = 2"
 
             Await TestInMethodAsync(code,
                          Comment("'This is not usually a "),
@@ -3164,6 +3709,50 @@ Dim [Class] As Integer"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestIntegerAsContextualKeywordCommentsAfterLineContinuation() As Task
+            Dim code =
+"Sub CallMeInteger(ByVal [Integer] As Integer)
+    CallMeInteger(Integer:=1)
+    CallMeInteger(Integer _ ' Test 1
+                    := _ ' Test 2
+                    1)
+End Sub
+Dim [Class] As Integer"
+
+            Await TestInClassAsync(code,
+                Keyword("Sub"),
+                Method("CallMeInteger"),
+                Punctuation.OpenParen,
+                Keyword("ByVal"),
+                Parameter("[Integer]"),
+                Keyword("As"),
+                Keyword("Integer"),
+                Punctuation.CloseParen,
+                Identifier("CallMeInteger"),
+                Punctuation.OpenParen,
+                Identifier("Integer"),
+                Operators.ColonEquals,
+                Number("1"),
+                Punctuation.CloseParen,
+                Identifier("CallMeInteger"),
+                Punctuation.OpenParen,
+                Identifier("Integer"),
+                LineContinuation,
+                Comment("' Test 1"),
+                Operators.ColonEquals,
+                LineContinuation,
+                 Comment("' Test 2"),
+               Number("1"),
+                Punctuation.CloseParen,
+                Keyword("End"),
+                Keyword("Sub"),
+                Keyword("Dim"),
+                Field("[Class]"),
+                Keyword("As"),
+                Keyword("Integer"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIndexStrings() As Task
             Dim code =
 "Default ReadOnly Property IndexMe(ByVal arg As String) As Integer
@@ -3213,6 +3802,67 @@ End Property"
                 Operators.Equals,
                 Operators.Dot,
                 LineContinuation,
+                Identifier("Class"),
+                Keyword("End"),
+                Keyword("With"),
+                Keyword("End"),
+                Keyword("Get"),
+                Keyword("End"),
+                Keyword("Property"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestIndexStringsCommentsAfterLineContinuation() As Task
+            Dim code =
+"Default ReadOnly Property IndexMe(ByVal arg As String) As Integer
+    Get
+        With Me
+            Dim t = !String
+            t = ! _ ' Test 1
+                String
+            t = .Class
+            t = . _ ' Test 2
+                Class
+        End With
+    End Get
+End Property"
+
+            Await TestAsync(code,
+                Keyword("Default"),
+                Keyword("ReadOnly"),
+                Keyword("Property"),
+                [Property]("IndexMe"),
+                Punctuation.OpenParen,
+                Keyword("ByVal"),
+                Parameter("arg"),
+                Keyword("As"),
+                Keyword("String"),
+                Punctuation.CloseParen,
+                Keyword("As"),
+                Keyword("Integer"),
+                Keyword("Get"),
+                Keyword("With"),
+                Keyword("Me"),
+                Keyword("Dim"),
+                Local("t"),
+                Operators.Equals,
+                Operators.Exclamation,
+                Identifier("String"),
+                Identifier("t"),
+                Operators.Equals,
+                Operators.Exclamation,
+                LineContinuation,
+                Comment("' Test 1"),
+                Identifier("String"),
+                Identifier("t"),
+                Operators.Equals,
+                Operators.Dot,
+                Identifier("Class"),
+                Identifier("t"),
+                Operators.Equals,
+                Operators.Dot,
+                LineContinuation,
+                Comment("' Test 2"),
                 Identifier("Class"),
                 Keyword("End"),
                 Keyword("With"),
@@ -3347,6 +3997,138 @@ End Sub"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestMyIsIdentifierOnSyntaxLevelCommentsAfterLineContinuation() As Task
+            Dim code =
+"Dim My
+Dim var = My.Application.GetEnvironmentVariable(""test"")
+Sub CallMeMy(ByVal My As Integer)
+    CallMeMy(My:=1)
+    CallMeMy(My _ ' Test 1
+                := _ ' Test 2
+                1)
+    My.ToString()
+    With Me
+        .My = 1
+        . _ ' Test 3
+        My _ ' Test 4
+        = 1
+        !My = Nothing
+        ! _ ' Test 5
+        My _ ' Test 6
+        = Nothing
+    End With
+    Me.My.ToString()
+    Me. _ ' Test 7
+    My.ToString()
+    Me.My = 1
+    Me. _ ' Test 8
+    My = 1
+End Sub"
+
+            Await TestInClassAsync(code,
+                Keyword("Dim"),
+                Field("My"),
+                Keyword("Dim"),
+                Field("var"),
+                Operators.Equals,
+                Identifier("My"),
+                Operators.Dot,
+                Identifier("Application"),
+                Operators.Dot,
+                Identifier("GetEnvironmentVariable"),
+                Punctuation.OpenParen,
+                [String]("""test"""),
+                Punctuation.CloseParen,
+                Keyword("Sub"),
+                Method("CallMeMy"),
+                Punctuation.OpenParen,
+                Keyword("ByVal"),
+                Parameter("My"),
+                Keyword("As"),
+                Keyword("Integer"),
+                Punctuation.CloseParen,
+                Identifier("CallMeMy"),
+                Punctuation.OpenParen,
+                Identifier("My"),
+                Operators.ColonEquals,
+                Number("1"),
+                Punctuation.CloseParen,
+                Identifier("CallMeMy"),
+                Punctuation.OpenParen,
+                Identifier("My"),
+                LineContinuation,
+                Comment("' Test 1"),
+                Operators.ColonEquals,
+                LineContinuation,
+                Comment("' Test 2"),
+                Number("1"),
+                Punctuation.CloseParen,
+                Identifier("My"),
+                Operators.Dot,
+                Identifier("ToString"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("With"),
+                Keyword("Me"),
+                Operators.Dot,
+                Identifier("My"),
+                Operators.Equals,
+                Number("1"),
+                Operators.Dot,
+                LineContinuation,
+                Comment("' Test 3"),
+                Identifier("My"),
+                LineContinuation,
+                Comment("' Test 4"),
+                Operators.Equals,
+                Number("1"),
+                Operators.Exclamation,
+                Identifier("My"),
+                Operators.Equals,
+                Keyword("Nothing"),
+                Operators.Exclamation,
+                LineContinuation,
+                Comment("' Test 5"),
+                Identifier("My"),
+                LineContinuation,
+                Comment("' Test 6"),
+                Operators.Equals,
+                Keyword("Nothing"),
+                Keyword("End"),
+                Keyword("With"),
+                Keyword("Me"),
+                Operators.Dot,
+                Identifier("My"),
+                Operators.Dot,
+                Identifier("ToString"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("Me"),
+                Operators.Dot,
+                LineContinuation,
+                Comment("' Test 7"),
+                Identifier("My"),
+                Operators.Dot,
+                Identifier("ToString"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("Me"),
+                Operators.Dot,
+                Identifier("My"),
+                Operators.Equals,
+                Number("1"),
+                Keyword("Me"),
+                Operators.Dot,
+                LineContinuation,
+                Comment("' Test 8"),
+                Identifier("My"),
+                Operators.Equals,
+                Number("1"),
+                Keyword("End"),
+                Keyword("Sub"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestIsTrueIsFalse() As Task
             Dim code =
 "Class IsTrueIsFalseTests
@@ -3471,6 +4253,86 @@ End Class"
                 Punctuation.CloseParen)
         End Function
 
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestDeclareAnsiAutoUnicodeCommentsAfterLineContinuation() As Task
+            Dim code =
+"    Dim Ansi
+    Dim Unicode
+    Dim Auto
+    Declare Ansi Sub AnsiTest Lib ""Test.dll"" ()
+    Declare Auto Sub AutoTest Lib ""Test.dll"" ()
+    Declare Unicode Sub UnicodeTest Lib ""Test.dll"" ()
+    Declare _ ' Test 1
+        Ansi Sub AnsiTest2 Lib ""Test.dll"" ()
+    Declare _ ' Test 2
+        Auto Sub AutoTest2 Lib ""Test.dll"" ()
+    Declare _ ' Test 3
+        Unicode Sub UnicodeTest2 Lib ""Test.dll"" ()"
+
+            Await TestInClassAsync(code,
+                Keyword("Dim"),
+                Field("Ansi"),
+                Keyword("Dim"),
+                Field("Unicode"),
+                Keyword("Dim"),
+                Field("Auto"),
+                Keyword("Declare"),
+                Keyword("Ansi"),
+                Keyword("Sub"),
+                Method("AnsiTest"),
+                Keyword("Lib"),
+                [String]("""Test.dll"""),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("Declare"),
+                Keyword("Auto"),
+                Keyword("Sub"),
+                Method("AutoTest"),
+                Keyword("Lib"),
+                [String]("""Test.dll"""),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("Declare"),
+                Keyword("Unicode"),
+                Keyword("Sub"),
+                Method("UnicodeTest"),
+                Keyword("Lib"),
+                [String]("""Test.dll"""),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("Declare"),
+                LineContinuation,
+                Comment("' Test 1"),
+                Keyword("Ansi"),
+                Keyword("Sub"),
+                Method("AnsiTest2"),
+                Keyword("Lib"),
+                [String]("""Test.dll"""),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("Declare"),
+                LineContinuation,
+                Comment("' Test 2"),
+                Keyword("Auto"),
+                Keyword("Sub"),
+                Method("AutoTest2"),
+                Keyword("Lib"),
+                [String]("""Test.dll"""),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("Declare"),
+                LineContinuation,
+                Comment("' Test 3"),
+                Keyword("Unicode"),
+                Keyword("Sub"),
+                Method("UnicodeTest2"),
+                Keyword("Lib"),
+                [String]("""Test.dll"""),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestUntil() As Task
             Dim code =
@@ -3518,6 +4380,54 @@ End Class"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestUntilCommentsAfterLineContinuation() As Task
+            Dim code =
+"    Dim Until
+    Sub TestSub()
+        Do
+        Loop Until True
+        Do
+        Loop _ ' Test 1
+        Until True
+        Do Until True
+        Loop
+        Do _ ' Test 2
+        Until True
+        Loop
+    End Sub"
+
+            Await TestInClassAsync(code,
+                Keyword("Dim"),
+                Field("Until"),
+                Keyword("Sub"),
+                Method("TestSub"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                ControlKeyword("Do"),
+                ControlKeyword("Loop"),
+                ControlKeyword("Until"),
+                Keyword("True"),
+                ControlKeyword("Do"),
+                ControlKeyword("Loop"),
+                LineContinuation,
+                Comment("' Test 1"),
+                ControlKeyword("Until"),
+                Keyword("True"),
+                ControlKeyword("Do"),
+                ControlKeyword("Until"),
+                Keyword("True"),
+                ControlKeyword("Loop"),
+                ControlKeyword("Do"),
+                LineContinuation,
+                Comment("' Test 2"),
+                ControlKeyword("Until"),
+                Keyword("True"),
+                ControlKeyword("Loop"),
+                Keyword("End"),
+                Keyword("Sub"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestPreserve() As Task
             Dim code =
 "    Dim Preserve
@@ -3551,6 +4461,51 @@ End Class"
                 Punctuation.CloseParen,
                 Keyword("ReDim"),
                 LineContinuation,
+                Keyword("Preserve"),
+                Identifier("arr"),
+                Punctuation.OpenParen,
+                Number("0"),
+                Punctuation.CloseParen,
+                Keyword("End"),
+                Keyword("Sub"))
+        End Function
+
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestPreserveCommentsAfterLineContinuation() As Task
+            Dim code =
+"    Dim Preserve
+    Sub TestSub()
+        Dim arr As Integer() = Nothing
+        ReDim Preserve arr(0)
+        ReDim _ ' Test
+        Preserve arr(0)
+    End Sub"
+
+            Await TestInClassAsync(code,
+                Keyword("Dim"),
+                Field("Preserve"),
+                Keyword("Sub"),
+                Method("TestSub"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("Dim"),
+                Local("arr"),
+                Keyword("As"),
+                Keyword("Integer"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Operators.Equals,
+                Keyword("Nothing"),
+                Keyword("ReDim"),
+                Keyword("Preserve"),
+                Identifier("arr"),
+                Punctuation.OpenParen,
+                Number("0"),
+                Punctuation.CloseParen,
+                Keyword("ReDim"),
+                LineContinuation,
+                Comment("' Test"),
                 Keyword("Preserve"),
                 Identifier("arr"),
                 Punctuation.OpenParen,
@@ -4266,5 +5221,23 @@ End Sub"
                 Keyword("Sub"))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestCatchStatement() As Task
+            Dim code =
+"Try
+
+Catch ex As Exception
+
+End Try"
+
+            Await TestInMethodAsync(code,
+                ControlKeyword("Try"),
+                ControlKeyword("Catch"),
+                Local("ex"),
+                Keyword("As"),
+                Identifier("Exception"),
+                ControlKeyword("End"),
+                ControlKeyword("Try"))
+        End Function
     End Class
 End Namespace

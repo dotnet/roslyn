@@ -7283,15 +7283,21 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         public abstract IVariableInitializerOperation Initializer { get; }
 
+        public abstract ImmutableArray<IOperation> IgnoredDimensions { get; }
+
         public override IEnumerable<IOperation> Children
         {
             get
             {
+                foreach (var dimension in IgnoredDimensions)
+                {
+                    yield return dimension;
+                }
+
                 foreach (var declaration in Declarators)
                 {
                     yield return declaration;
                 }
-
                 if (Initializer != null)
                 {
                     yield return Initializer;
@@ -7312,22 +7318,24 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class VariableDeclarationOperation : BaseVariableDeclarationOperation
     {
-        public VariableDeclarationOperation(ImmutableArray<IVariableDeclaratorOperation> declarations, IVariableInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public VariableDeclarationOperation(ImmutableArray<IVariableDeclaratorOperation> declarations, IVariableInitializerOperation initializer, ImmutableArray<IOperation> ignoredDimensions, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
             Declarators = SetParentOperation(declarations, this);
             Initializer = SetParentOperation(initializer, this);
+            IgnoredDimensions = SetParentOperation(ignoredDimensions, this);
         }
 
         public override ImmutableArray<IVariableDeclaratorOperation> Declarators { get; }
         public override IVariableInitializerOperation Initializer { get; }
+        public override ImmutableArray<IOperation> IgnoredDimensions { get; }
     }
 
     internal abstract class LazyVariableDeclarationOperation : BaseVariableDeclarationOperation
     {
         private ImmutableArray<IVariableDeclaratorOperation> _lazyDeclaratorsInterlocked;
         private IVariableInitializerOperation _lazyInitializerInterlocked = s_unsetVariableInitializer;
-
+        private ImmutableArray<IOperation> _lazyIgnoredDimensionsInterlocked;
         public LazyVariableDeclarationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(semanticModel, syntax, type, constantValue, isImplicit)
         {
@@ -7335,6 +7343,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected abstract ImmutableArray<IVariableDeclaratorOperation> CreateDeclarators();
         protected abstract IVariableInitializerOperation CreateInitializer();
+        protected abstract ImmutableArray<IOperation> CreateIgnoredDimensions();
 
         public override ImmutableArray<IVariableDeclaratorOperation> Declarators
         {
@@ -7363,6 +7372,21 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 return _lazyInitializerInterlocked;
+            }
+        }
+
+        public override ImmutableArray<IOperation> IgnoredDimensions
+        {
+            get
+            {
+                if (_lazyIgnoredDimensionsInterlocked.IsDefault)
+                {
+                    ImmutableArray<IOperation> ignoredDimensions = CreateIgnoredDimensions();
+                    SetParentOperation(ignoredDimensions, this);
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyIgnoredDimensionsInterlocked, ignoredDimensions, default);
+                }
+
+                return _lazyIgnoredDimensionsInterlocked;
             }
         }
     }
@@ -9487,80 +9511,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 return _lazyInitializerInterlocked;
-            }
-        }
-    }
-
-    internal abstract class BaseFromEndIndexOperation : Operation, IFromEndIndexOperation
-    {
-        protected BaseFromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
-                    base(OperationKind.None, semanticModel, syntax, type, constantValue: default, isImplicit: isImplicit)
-        {
-            IsLifted = isLifted;
-            Symbol = symbol;
-        }
-
-        public abstract IOperation Operand { get; }
-        public bool IsLifted { get; }
-        public IMethodSymbol Symbol { get; }
-
-        public sealed override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                IOperation operand = Operand;
-                if (operand != null)
-                {
-                    yield return operand;
-                }
-            }
-        }
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitFromEndIndexOperation(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitFromEndIndexOperation(this, argument);
-        }
-    }
-
-    internal sealed class FromEndIndexOperation : BaseFromEndIndexOperation
-    {
-        public FromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IOperation operand, IMethodSymbol symbol, bool isImplicit) :
-                    base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
-        {
-            Operand = Operation.SetParentOperation(operand, this);
-        }
-
-        public override IOperation Operand { get; }
-    }
-
-    internal abstract class LazyFromEndIndexOperation : BaseFromEndIndexOperation
-    {
-        private IOperation _operandInterlocked = s_unset;
-
-        public LazyFromEndIndexOperation(bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
-            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
-        {
-        }
-
-        protected abstract IOperation CreateOperand();
-
-        public override IOperation Operand
-        {
-            get
-            {
-                if (_operandInterlocked == s_unset)
-                {
-                    IOperation operand = CreateOperand();
-                    SetParentOperation(operand, this);
-                    Interlocked.CompareExchange(ref _operandInterlocked, operand, s_unset);
-                }
-
-                return _operandInterlocked;
             }
         }
     }

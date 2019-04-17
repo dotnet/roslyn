@@ -169,6 +169,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsRefLikeType => throw new NotImplementedException();
 
             public bool IsUnmanagedType => throw new NotImplementedException();
+
+            public bool IsReadOnly => throw new NotImplementedException();
         }
     }
 }

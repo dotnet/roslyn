@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
 
@@ -28,27 +30,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public void SetOption(OptionKey optionKey, object value)
         {
-            var oldOptions = _optionSet;
             _optionSet = _optionSet.WithChangedOption(optionKey, value);
-            OptionLogger.Log(oldOptions, _optionSet);
 
             OnOptionChanged(optionKey);
         }
 
         public void SetOption<T>(Option<T> option, T value)
         {
-            var oldOptions = _optionSet;
             _optionSet = _optionSet.WithChangedOption(option, value);
-            OptionLogger.Log(oldOptions, _optionSet);
 
             OnOptionChanged(new OptionKey(option));
         }
 
         public void SetOption<T>(PerLanguageOption<T> option, string language, T value)
         {
-            var oldOptionSet = _optionSet;
             _optionSet = _optionSet.WithChangedOption(option, language, value);
-            OptionLogger.Log(oldOptionSet, _optionSet);
 
             OnOptionChanged(new OptionKey(option, language));
         }

@@ -2902,6 +2902,7 @@ public class C
                     case SpecialType.None:
                     case SpecialType.System_Void:
                     case SpecialType.System_Runtime_CompilerServices_IsVolatile: // static
+                    case SpecialType.System_Runtime_CompilerServices_RuntimeFeature: // static and not available
                         continue;
                 }
 

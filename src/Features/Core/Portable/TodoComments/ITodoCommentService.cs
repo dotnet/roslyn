@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// <summary>
     /// Description of a TODO comment type to find in a user's comments.
     /// </summary>
-    internal struct TodoCommentDescriptor
+    internal readonly struct TodoCommentDescriptor
     {
         public string Text { get; }
         public int Priority { get; }
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// <summary>
     /// A TODO comment that has been found within the user's code.
     /// </summary>
-    internal struct TodoComment
+    internal readonly struct TodoComment
     {
         public TodoCommentDescriptor Descriptor { get; }
         public string Message { get; }

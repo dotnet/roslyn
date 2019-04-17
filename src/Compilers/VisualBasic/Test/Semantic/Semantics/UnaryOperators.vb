@@ -16,7 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class UnaryOperators
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
+        <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         Public Sub Test1()
 
             Dim source =

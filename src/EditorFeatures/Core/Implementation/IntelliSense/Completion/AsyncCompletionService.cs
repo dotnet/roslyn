@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     internal class AsyncCompletionService : ForegroundThreadAffinitizedObject, IAsyncCompletionService
     {
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IFeatureServiceFactory _featureServiceFactory;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> _completionPresenter;
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         public AsyncCompletionService(
             IThreadingContext threadingContext,
             IEditorOperationsFactoryService editorOperationsFactoryService,
+            IFeatureServiceFactory featureServiceFactory,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -53,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             : base(threadingContext)
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _featureServiceFactory = featureServiceFactory;
             _undoHistoryRegistry = undoHistoryRegistry;
             _inlineRenameService = inlineRenameService;
             _completionPresenter = ExtensionOrderer.Order(completionPresenters).Select(lazy => lazy.Value).FirstOrDefault();
@@ -67,6 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             AssertIsForeground();
 
             if (!UseLegacyCompletion(textView, subjectBuffer))
+            {
+                controller = null;
+                return false;
+            }
+
+            if (!_featureServiceFactory.GetOrCreate(textView).IsEnabled(PredefinedEditorFeatureNames.Completion))
             {
                 controller = null;
                 return false;

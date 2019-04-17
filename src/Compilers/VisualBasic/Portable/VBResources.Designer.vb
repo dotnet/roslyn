@@ -2377,6 +2377,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Please use language version {0} or greater to use comments after line continuation character..
+        '''</summary>
+        Friend ReadOnly Property ERR_CommentsAfterLineContinuationNotAvailable1() As String
+            Get
+                Return ResourceManager.GetString("ERR_CommentsAfterLineContinuationNotAvailable1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Conditional compilation constant &apos;{1}&apos; is not valid: {0}.
         '''</summary>
         Friend ReadOnly Property ERR_ConditionalCompilationConstantNotValid() As String
@@ -6810,7 +6819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Line continuation character &apos;_&apos; must be preceded by at least one white space and must be the last character on the line..
+        '''  Looks up a localized string similar to The line continuation character &apos;_&apos; must be preceded by at least one white space and it must be followed by a comment or the &apos;_&apos; must be the last character on the line..
         '''</summary>
         Friend ReadOnly Property ERR_LineContWithCommentOrNoPrecSpace() As String
             Get
@@ -12041,6 +12050,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_CollectionInitializers() As String
             Get
                 Return ResourceManager.GetString("FEATURE_CollectionInitializers", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to comments after line continuation.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_CommentsAfterLineContinuation() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_CommentsAfterLineContinuation", resourceCulture)
             End Get
         End Property
         

@@ -113,6 +113,11 @@ namespace Microsoft.CodeAnalysis
         bool IsUnmanagedType { get; }
 
         /// <summary>
+        /// True if the type is readonly.
+        /// </summary>
+        bool IsReadOnly { get; }
+
+        /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.
         /// </summary>
         /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>

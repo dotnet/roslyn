@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -149,7 +148,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionModeItem, string displayTextSuffix)
         {
-            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out var code, out int position);
+            WorkspaceFixture.GetWorkspace(markup);
+            var code = WorkspaceFixture.Code;
+            var position = WorkspaceFixture.Position;
 
             return VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
@@ -159,9 +160,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         protected async Task VerifyCustomCommitProviderAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind? sourceCodeKind = null, char? commitChar = null)
         {
-            using (WorkspaceFixture.GetWorkspace())
+            using (WorkspaceFixture.GetWorkspace(markupBeforeCommit))
             {
-                MarkupTestFile.GetPosition(markupBeforeCommit.NormalizeLineEndings(), out var code, out int position);
+                var code = WorkspaceFixture.Code;
+                var position = WorkspaceFixture.Position;
 
                 if (sourceCodeKind.HasValue)
                 {
@@ -178,7 +180,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task VerifyProviderCommitAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit,
             char? commitChar, string textTypedSoFar, SourceCodeKind? sourceCodeKind = null)
         {
-            MarkupTestFile.GetPosition(markupBeforeCommit.NormalizeLineEndings(), out var code, out int position);
+            WorkspaceFixture.GetWorkspace(markupBeforeCommit);
+
+            var code = WorkspaceFixture.Code;
+            var position = WorkspaceFixture.Position;
 
             expectedCodeAfterCommit = expectedCodeAfterCommit.NormalizeLineEndings();
             if (sourceCodeKind.HasValue)
@@ -322,16 +327,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             var workspace = WorkspaceFixture.GetWorkspace();
             SetWorkspaceOptions(workspace);
-            var textBuffer = workspace.Documents.Single().TextBuffer;
+            var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
 
             var service = GetCompletionService(workspace);
             var items = (await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
-            if (service.ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
+            if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
                 var completionRules = GetCompletionHelper(document);
-                var textView = (WorkspaceFixture.GetWorkspace()).Documents.Single().GetTextView();
+                var textView = WorkspaceFixture.CurrentDocument.GetTextView();
                 VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
             else
@@ -368,8 +373,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var newDoc = document.WithText(newText);
             document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
-            var textBuffer = (WorkspaceFixture.GetWorkspace()).Documents.Single().TextBuffer;
-            var textView = (WorkspaceFixture.GetWorkspace()).Documents.Single().GetTextView();
+            var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
+            var textView = WorkspaceFixture.CurrentDocument.GetTextView();
 
             string actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = commit.NewPosition != null ? commit.NewPosition.Value : textView.Caret.Position.BufferPosition.Position;
@@ -431,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt, string textTypedSoFar)
         {
             var workspace = WorkspaceFixture.GetWorkspace();
-            var textBuffer = workspace.Documents.Single().TextBuffer;
+            var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
             var textSnapshot = textBuffer.CurrentSnapshot.AsText();
 
             var service = GetCompletionService(workspace);
@@ -834,7 +839,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task<ImmutableArray<CompletionItem>> GetCompletionItemsAsync(
             string markup, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger = false)
         {
-            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out var code, out int position);
+            WorkspaceFixture.GetWorkspace(markup);
+            var code = WorkspaceFixture.Code;
+            var position = WorkspaceFixture.Position;
             var document = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
 
             var trigger = usePreviousCharAsTrigger

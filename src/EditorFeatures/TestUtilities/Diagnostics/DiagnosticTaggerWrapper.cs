@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(_workspace, _incrementalAnalyzers);
             }
 
-            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask();
-            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask();
+            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask();
+            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateExpeditedWaitTask();
         }
 
         private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService
