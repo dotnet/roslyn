@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol ElementType { get; }
 
-        // PROTOTYPE(nullable-api): Document
+        /// <summary>
+        /// Gets the top-level nullability of the elements stored in the array. 
+        /// </summary>
         NullableAnnotation ElementNullableAnnotation { get; }
 
         /// <summary>

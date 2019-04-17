@@ -2835,8 +2835,8 @@ class Program
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
-        // PROTOTYPE(nullable-api): Handle switch expressions correctly
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        // https://github.com/dotnet/roslyn/issues/35032: Handle switch expressions correctly
+        [Fact]
         public void PointerAsInput_02()
         {
             var source =

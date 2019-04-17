@@ -6526,7 +6526,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void VariousDiscardsInCSharp6()
         {
             var source =

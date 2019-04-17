@@ -1074,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // PROTOTYPE(nullable-api): Implement
+        // https://github.com/dotnet/roslyn/issues/35034: Implement
         CodeAnalysis.NullableAnnotation IMethodSymbol.ReceiverNullableAnnotation => default;
 
         IMethodSymbol IMethodSymbol.ReducedFrom

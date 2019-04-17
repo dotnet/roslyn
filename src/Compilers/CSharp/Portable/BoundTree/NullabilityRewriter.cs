@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = foundInfo ? infoAndType.Type : currentBinary.Type;
 
 #pragma warning disable IDE0055 // Fix formatting
-                // PROTOTYPE(nullable-api): We'll need to update the symbols for the internal methods/operators used in the binary operators
+                // https://github.com/dotnet/roslyn/issues/35031: We'll need to update the symbols for the internal methods/operators used in the binary operators
                 currentBinary = currentBinary switch
                     {
                         BoundBinaryOperator binary => (BoundBinaryOperatorBase)binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, leftChild, right, type),

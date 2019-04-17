@@ -51,7 +51,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol Type { get; }
 
-        // PROTOTYPE(nullable-api): Document
+        /// <summary>
+        /// Gets the top-level nullability of this field.
+        /// </summary>
         NullableAnnotation NullableAnnotation { get; }
 
         /// <summary>

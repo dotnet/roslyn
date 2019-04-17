@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -356,7 +358,7 @@ public class C
                 PublicNullableAnnotation.Annotated);
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api): Unimplemented")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35034")]
         public void MethodDeclarationReceiver()
         {
             var source = @"
@@ -657,7 +659,7 @@ class C
             var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
             var typeInfo = model.GetTypeInfo(((MemberAccessExpressionSyntax)invocation.Expression).Expression);
             Assert.Equal(PublicNullableFlowState.NotNull, typeInfo.Nullability.FlowState);
-            // PROTOTYPE(nullable-api): This is incorrect. o should be Annotated, as you can assign
+            // https://github.com/dotnet/roslyn/issues/34993: This is incorrect. o should be Annotated, as you can assign
             // null without a warning.
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, typeInfo.Nullability.Annotation);
         }
@@ -682,6 +684,47 @@ enum E2
             var model = comp.GetSemanticModel(syntaxTree);
 
             _ = model.GetTypeInfo(root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value);
+        }
+
+        [Fact]
+        public void AnalyzerTest()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        object? o = null;
+        _ = o;
+        if (o == null) return;
+        _ = o;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+
+            comp.VerifyDiagnostics(
+                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated").WithLocation(7, 13),
+                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated").WithLocation(8, 13),
+                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "NotNull", "NotAnnotated").WithLocation(9, 13));
+            comp.VerifyAnalyzerDiagnostics(new[] { new NullabilityPrinter() });
+        }
+
+        private class NullabilityPrinter : DiagnosticAnalyzer
+        {
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+
+            private static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(id: "CA9999_NullabilityPrinter", title: "CA9999_NullabilityPrinter", messageFormat: "Nullability of '{0}' is '{1}':'{2}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(syntaxContext =>
+                {
+                    if (syntaxContext.Node.ToString() == "_") return;
+                    var info = syntaxContext.SemanticModel.GetTypeInfo(syntaxContext.Node);
+                    syntaxContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor, syntaxContext.Node.GetLocation(), syntaxContext.Node, info.Nullability.FlowState, info.Nullability.Annotation));
+                }, SyntaxKind.IdentifierName);
+            }
         }
     }
 }

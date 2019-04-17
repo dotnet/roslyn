@@ -6,11 +6,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    // PROTOTYPE(nullable-api): Doc Comment
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public readonly struct NullabilityInfo : IEquatable<NullabilityInfo>
     {
+        /// <summary>
+        /// The nullable annotation of the expression represented by the syntax node. This represents
+        /// the types of expressions that can be assigned to this expression, if this expression
+        /// can be used as an lvalue.
+        /// </summary>
         public NullableAnnotation Annotation { get; }
+
+        /// <summary>
+        /// The nullable flow state of the expression represented by the syntax node. This represents
+        /// the compiler's understanding of whether this expression can currently contain null, if
+        /// this expression can be used as an rvalue.
+        /// </summary>
         public NullableFlowState FlowState { get; }
 
         internal NullabilityInfo(NullableAnnotation annotation, NullableFlowState flowState)

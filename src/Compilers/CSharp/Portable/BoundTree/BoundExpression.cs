@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE(nullable-api): Make this non-virtual
-        public virtual new NullabilityInfo TopLevelNullability
+        public new NullabilityInfo TopLevelNullability
         {
             get => base.TopLevelNullability;
             set => base.TopLevelNullability = value;
@@ -388,13 +387,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return this.ConstantValueOpt; }
         }
-
-        public override NullabilityInfo TopLevelNullability
-        {
-            // PROTOTYPE(nullable-api): handle null! and lower-language versions
-            get => ConstantValue.IsNull ? new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.MaybeNull) : base.TopLevelNullability;
-            set => base.TopLevelNullability = value;
-        }
     }
 
     internal partial class BoundConversion
@@ -543,14 +535,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ConstantValue ConstantValue
         {
             get { return this.ConstantValueOpt; }
-        }
-
-        public override NullabilityInfo TopLevelNullability
-        {
-            // PROTOTYPE(nullable-api): handle default! and lower-language versions
-            get => Type?.IsValueType == true && !Type.IsNullableType() ? new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.NotNull) :
-                                                                         new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.MaybeNull);
-            set { }
         }
     }
 

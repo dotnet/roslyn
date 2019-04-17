@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
             {
-                // PROTOTYPE(nullable-api): handle
+                // https://github.com/dotnet/roslyn/issues/35010: handle
                 return null;
             }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Visit(node.IterationVariableType);
                 Visit(node.Expression);
-                // PROTOTYPE(nullable-api): handle the deconstruction
+                // https://github.com/dotnet/roslyn/issues/35010: handle the deconstruction
                 //this.Visit(node.DeconstructionOpt);
                 Visit(node.Body);
                 return null;
@@ -145,7 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void VisitBinaryOperatorChildren(BoundBinaryOperatorBase node)
             {
                 // There can be deep recursion on the left side, so verify iteratively to avoid blowing the stack
-                // PROTOTYPE(nullable-api): Handle in rewriter as well
                 while (true)
                 {
                     VerifyExpression(node);

@@ -4248,7 +4248,7 @@ public class C
             Assert.Equal("System.Collections.Generic.IEnumerable<System.String>", model.GetTypeInfo(x2Ref).Type.ToTestDisplayString());
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void DiscardInPattern()
         {
             var source =
@@ -4381,7 +4381,7 @@ public class C
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void UnderscoreInPattern()
         {
             var source =
@@ -6333,7 +6333,7 @@ internal class Program
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
+        [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
         public void TestArrayOfPointer()
         {
             var source =

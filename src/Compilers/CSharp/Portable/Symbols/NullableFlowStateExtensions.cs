@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => throw ExceptionUtilities.UnexpectedValue(nullableFlowState)
             };
 
-        // PROTOTYPE(nullable-api): remove if possible
+        // https://github.com/dotnet/roslyn/issues/35035: remove if possible
         public static CSharp.NullableFlowState ToInternalFlowState(this CodeAnalysis.NullableFlowState flowState) =>
             flowState switch
             {

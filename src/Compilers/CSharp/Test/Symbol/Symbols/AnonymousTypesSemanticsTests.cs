@@ -1765,7 +1765,7 @@ public class Program
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(22588, "https://github.com/dotnet/roslyn/issues/22588")]
+        [Fact, WorkItem(22588, "https://github.com/dotnet/roslyn/issues/22588")]
         public void AnonymousTypeSymbols_ErrorCases()
         {
             string source = @"

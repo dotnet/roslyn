@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol Type { get; }
 
-        // PROTOTYPE(nullable-api): Document
+        /// <summary>
+        /// The top-level nullability of the discarded value.
+        /// </summary>
         NullableAnnotation NullableAnnotation { get; }
     }
 }

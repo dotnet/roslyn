@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 RValueType = rValueType;
                 LValueType = lValueType;
-                // PROTOTYPE(nullable-api): Doesn't hold true for Tuple_Assignment_10. See if we can make it hold true
+                // https://github.com/dotnet/roslyn/issues/34993: Doesn't hold true for Tuple_Assignment_10. See if we can make it hold true
                 //Debug.Assert((RValueType.Type is null && LValueType.TypeSymbol is null) ||
                 //             RValueType.Type.Equals(LValueType.TypeSymbol, TypeCompareKind.ConsiderEverything | TypeCompareKind.AllIgnoreOptions));
             }
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly Dictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _analyzedNullabilityMapOpt;
 
-        // PROTOTYPE(nullable-api): remove this when all expression are supported
+        // https://github.com/dotnet/roslyn/issues/35043: remove this when all expression are supported
         private bool _disableNullabilityAnalysis;
 
 #if DEBUG
@@ -205,17 +205,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expr == null || _disableNullabilityAnalysis) return;
 
 #if DEBUG
-            // PROTOTYPE(nullable-api): detect when coming in from a bad expression and don't assert for those
-            //Debug.Assert(!s_skippedExpressions.Contains(expr.Kind), $"Should not be analyzing {expr}");
-            // PROTOTYPE(nullable-api): Does always seem to be holding true: this assert is essential for ensuring that we aren't
-            // changing the observable results of GetTypeInfo.
+            // https://github.com/dotnet/roslyn/issues/34993: This assert is essential for ensuring that we aren't
+            // changing the observable results of GetTypeInfo beyond nullability information.
             //Debug.Assert(AreCloseEnough(expr.Type, result.RValueType.Type),
             //             $"Cannot change the type of {expr} from {expr.Type} to {result.RValueType.Type}");
 #endif
 
             if (_analyzedNullabilityMapOpt != null)
             {
-                // PROTOTYPE(nullable-api): enable and verify these assertions
+                // https://github.com/dotnet/roslyn/issues/34993: enable and verify these assertions
 #if false
                 if (_analyzedNullabilityMapOpt.TryGetValue(expr, out var existing))
                 {
@@ -243,7 +241,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                 _analyzedNullabilityMapOpt[expr] = (new NullabilityInfo(result.LValueType.NullableAnnotation.ToPublicAnnotation(),
                                                                         result.RValueType.State.ToPublicFlowState()),
-                                                    result.RValueType.Type);
+                                                    // https://github.com/dotnet/roslyn/issues/35046 We're dropping the result if the type doesn't match up completely
+                                                    // with the existing type
+                                                    expr.Type?.Equals(result.RValueType.Type, TypeCompareKind.AllIgnoreOptions) == true ? result.RValueType.Type : expr.Type);
             }
         }
 
@@ -277,8 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
             BoundNode node,
-            // PROTOTYPE(nullable-api): Can we make callers of analyze stricter about the type of `Conversions` that they take in? Most of them take in
-            // a `ConversionsBase` currently, but `NullableWalker` needs a `Conversions` specifically. Perhaps tie it to `ConversionsBase.IncludeNullability`?
             Conversions conversions,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
             VariableState initialState,
@@ -395,7 +393,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutableDictionaryAndFree();
 
 #if DEBUG
-            DebugVerifier.Verify(analyzedNullabilitiesMap, node);
+            // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
+            if (compilation.EnableNullableAnalysis)
+            {
+                DebugVerifier.Verify(analyzedNullabilitiesMap, node);
+            }
 #endif
             return new NullabilityRewriter(analyzedNullabilitiesMap).Visit(node);
         }
@@ -1007,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void TrackInferredTypesThroughConversions(BoundExpression topLevelExpr, BoundExpression analyzedExpr, VisitResult result)
         {
-            // PROTOTYPE(nullable-api): Need to ensure that we're setting the correct nullability and types on each level of bound conversion
+            // https://github.com/dotnet/roslyn/issues/35039: Need to ensure that we're setting the correct nullability and types on each level of bound conversion
             while (topLevelExpr is BoundConversion conversion)
             {
                 if (analyzedExpr == conversion)
@@ -1409,7 +1411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // Visit the pattern value so it has an inferred nullability
-                    // PROTOTYPE(nullable-api): should we have a way of skipping these "only for api" calls when there will be no rewriting of the nodes?
+                    // https://github.com/dotnet/roslyn/issues/35041: should we have a way of skipping these "only for api" calls when there will be no rewriting of the nodes?
                     VisitWithoutDiagnostics(constantPattern.Value);
 
                     break;
@@ -1617,7 +1619,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var local = node.LocalSymbol;
             int slot = GetOrCreateSlot(local);
 
+            // We need visit the optional arguments so that we can return nullability information
+            // about them, but we don't want to communciate any information about anything underneath.
+            // Additionally, tests like Scope_DeclaratorArguments_06 can have conditional expressions
+            // in the optional arguments that can leave us in a split state, so we want to make sure
+            // we are not in a conditional state after.
+            Debug.Assert(!IsConditionalState);
+            var oldDisable = _disableDiagnostics;
+            _disableDiagnostics = true;
+            var currentState = State;
             VisitAll(node.ArgumentsOpt);
+            _disableDiagnostics = oldDisable;
+            SetState(currentState);
             VisitTypeExpression(node.DeclaredType);
 
             var initializer = node.InitializerOpt;
@@ -1679,7 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // For asserts only.
         private static bool AreCloseEnough(TypeSymbol typeA, TypeSymbol typeB)
         {
-            // PROTOTYPE(nullable-api): We should be able to tighten this to ensure that we're actually always returning the same type,
+            // https://github.com/dotnet/roslyn/issues/34993: We should be able to tighten this to ensure that we're actually always returning the same type,
             // not error if one is null or ignoring certain types
             if ((object)typeA == typeB)
             {
@@ -1865,7 +1878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(symbol, containingSlot);
                             VisitObjectCreationInitializer(symbol, slot, node.Right);
-                            // PROTOTYPE(nullable-api): Should likely be setting _resultType in VisitObjectCreationInitializer
+                            // https://github.com/dotnet/roslyn/issues/35040: Should likely be setting _resultType in VisitObjectCreationInitializer
                             // and using that value instead of reconstructing here
                         }
 
@@ -1964,7 +1977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var currentDeclaration = node.Declarations[currentDeclarationIndex];
 
-                // PROTOTYPE(nullable-api): This works for simple success cases, but does not work for failures. Likely will have to do something more complicated here involving rebinding the
+                // https://github.com/dotnet/roslyn/issues/35044: This works for simple success cases, but does not work for failures. Likely will have to do something more complicated here involving rebinding the
                 // declarators based on the newly constructed anonymous type symbol above and matching them to the existing symbol
                 if (currentDeclaration.Property.Name == currentProperty.Name &&
                     currentDeclaration.Property.Type.Equals(currentProperty.Type, TypeCompareKind.ConsiderEverything | TypeCompareKind.AllNullableIgnoreOptions))
@@ -4664,7 +4677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // any diagnostics from this analysis, as scenarios we want to have diagnostics for will have had
             // them reported through other analysis steps.
 
-            // PROTOTYPE(nullable-api): Can we make this conditional on whether or not we've already seen the node
+            // https://github.com/dotnet/roslyn/issues/35041: Can we make this conditional on whether or not we've already seen the node
             // or will that have no effect because this is always called first? It is for at least one lambda
             // conversion case, need to investigate others
             if (!_disableNullabilityAnalysis)
@@ -5433,7 +5446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // PROTOTYPE(nullable-api): if the iteration variable is a tuple deconstruction, we need to put something in the tree
+            // https://github.com/dotnet/roslyn/issues/35010: if the iteration variable is a tuple deconstruction, we need to put something in the tree
             Visit(node.IterationVariableType);
         }
 
@@ -5901,7 +5914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitObjectInitializerExpression(BoundObjectInitializerExpression node)
         {
             // Only reachable from bad expression. Otherwise handled in VisitObjectCreationExpression().
-            // PROTOTYPE(nullable-api): Do we need to analyze child expressions anyway for the public API?
+            // https://github.com/dotnet/roslyn/issues/35042: Do we need to analyze child expressions anyway for the public API?
             SetNotNullResult(node);
             return null;
         }
@@ -5909,7 +5922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node)
         {
             // Only reachable from bad expression. Otherwise handled in VisitObjectCreationExpression().
-            // PROTOTYPE(nullable-api): Do we need to analyze child expressions anyway for the public API?
+            // https://github.com/dotnet/roslyn/issues/35042: Do we need to analyze child expressions anyway for the public API?
             SetNotNullResult(node);
             return null;
         }
@@ -5917,7 +5930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
         {
             // Only reachable from bad expression. Otherwise handled in VisitObjectCreationExpression().
-            // PROTOTYPE(nullable-api): Do we need to analyze child expressions anyway for the public API?
+            // https://github.com/dotnet/roslyn/issues/35042: Do we need to analyze child expressions anyway for the public API?
             SetNotNullResult(node);
             return null;
         }

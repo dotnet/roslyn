@@ -45,7 +45,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool HasReferenceTypeConstraint { get; }
 
-        // PROTOTYPE(nullable-api): Document
+        /// <summary>
+        /// If <see cref="HasReferenceTypeConstraint"/> is true, returns the top-level nullability of the
+        /// <c>class</c> constraint that was specified for the type parameter.
+        /// </summary>
         NullableAnnotation ReferenceTypeConstraintNullableAnnotation { get; }
 
         /// <summary>
@@ -68,7 +71,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ImmutableArray<ITypeSymbol> ConstraintTypes { get; }
 
-        // PROTOTYPE(nullable-api): Document
+        /// <summary>
+        /// The top-level nullabilities that were directly specified as constraints on the
+        /// type parameter.
+        /// </summary>
         ImmutableArray<NullableAnnotation> ConstraintNullableAnnotations { get; }
 
         /// <summary>

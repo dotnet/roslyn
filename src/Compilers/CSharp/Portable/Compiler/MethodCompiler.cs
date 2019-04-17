@@ -1625,6 +1625,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyBinder.ValidateIteratorMethods(diagnostics);
 
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
+                    if (bodyBinder.Compilation.EnableNullableAnalysis)
+                    {
+                        methodBody = NullableWalker.AnalyzeAndRewrite(bodyBinder.Compilation, method, methodBody, bodyBinder.Conversions, diagnostics);
+                    }
                     forSemanticModel = (syntaxNode, methodBody, bodyBinder);
 
                     switch (methodBody.Kind)
