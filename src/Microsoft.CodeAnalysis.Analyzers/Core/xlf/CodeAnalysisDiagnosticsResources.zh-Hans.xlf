@@ -22,6 +22,46 @@
         <target state="new">Compare symbols correctly</target>
         <note />
       </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisDescription">
+        <source>Configure generated code analysis</source>
+        <target state="new">Configure generated code analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
+        <source>Configure generated code analysis</source>
+        <target state="new">Configure generated code analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisMessage">
+        <source>Configure generated code analysis</source>
+        <target state="new">Configure generated code analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisTitle">
+        <source>Configure generated code analysis</source>
+        <target state="new">Configure generated code analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionDescription">
+        <source>Enable concurrent execution</source>
+        <target state="new">Enable concurrent execution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionFix">
+        <source>Enable concurrent execution</source>
+        <target state="new">Enable concurrent execution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionMessage">
+        <source>Enable concurrent execution</source>
+        <target state="new">Enable concurrent execution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionTitle">
+        <source>Enable concurrent execution</source>
+        <target state="new">Enable concurrent execution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MissingAttributeMessage">
         <source>Missing '{0}' attribute.</source>
         <target state="translated">缺少“{0}”特性。</target>
