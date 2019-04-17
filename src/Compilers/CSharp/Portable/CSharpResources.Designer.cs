@@ -8044,11 +8044,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type parameter &apos;{0}&apos; of method &apos;{1}&apos; declares a &apos;{2}&apos; constraint, but type parameter &apos;{3}&apos; of overridden or explicitly implemented method &apos;{4}&apos; is not constrained to a &apos;{2}&apos;..
+        ///   Looks up a localized string similar to Method &apos;{0}&apos; specifies a &apos;class&apos; constraint for type parameter &apos;{1}&apos;, but corresponding type parameter &apos;{2}&apos; of overridden or explicitly implemented method &apos;{3}&apos; is not a reference type..
         /// </summary>
-        internal static string ERR_OverrideOrExpImplBadConstraints {
+        internal static string ERR_OverrideRefConstraintNotSatisfied {
             get {
-                return ResourceManager.GetString("ERR_OverrideOrExpImplBadConstraints", resourceCulture);
+                return ResourceManager.GetString("ERR_OverrideRefConstraintNotSatisfied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method &apos;{0}&apos; specifies a &apos;struct&apos; constraint for type parameter &apos;{1}&apos;, but corresponding type parameter &apos;{2}&apos; of overridden or explicitly implemented method &apos;{3}&apos; is not a non-nullable value type..
+        /// </summary>
+        internal static string ERR_OverrideValConstraintNotSatisfied {
+            get {
+                return ResourceManager.GetString("ERR_OverrideValConstraintNotSatisfied", resourceCulture);
             }
         }
         
@@ -11960,6 +11969,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to constraints for override and explicit interface implementation methods.
+        /// </summary>
+        internal static string IDS_OverrideWithConstraints {
+            get {
+                return ResourceManager.GetString("IDS_OverrideWithConstraints", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;path list&gt;.
         /// </summary>
         internal static string IDS_PathList {
@@ -15679,6 +15697,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NullReferenceAssignment_Title {
             get {
                 return ResourceManager.GetString("WRN_NullReferenceAssignment_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
+        /// </summary>
+        internal static string WRN_NullReferenceIterationVariable {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceIterationVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
+        /// </summary>
+        internal static string WRN_NullReferenceIterationVariable_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceIterationVariable_Title", resourceCulture);
             }
         }
         

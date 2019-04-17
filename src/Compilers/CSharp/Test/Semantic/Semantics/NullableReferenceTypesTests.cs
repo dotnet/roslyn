@@ -10484,8 +10484,6 @@ class D : C
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            // https://github.com/dotnet/roslyn/issues/29847: The overriding is ambiguous.
-            // We simply matched the first candidate. Should this be an error?
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -13092,7 +13090,7 @@ class A
 
 class B : A
 {
-    public override void M1<T>(T? x)
+    public override void M1<T>(T? x) where T : class
     {
     }
 } 
@@ -13117,8 +13115,62 @@ class D : C
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            // https://github.com/dotnet/roslyn/issues/29847: The overriding is ambiguous.
-            // We simply matched the first candidate. Should this be an error?
+            compilation.VerifyDiagnostics();
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.False(m1.Parameters[0].Type.IsNullableType());
+            Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+
+            var d = compilation.GetTypeByMetadataName("D");
+            var m2 = d.GetMember<MethodSymbol>("M2");
+            Assert.False(m2.Parameters[0].Type.IsNullableType());
+            Assert.False(m2.OverriddenMethod.Parameters[0].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(29847, "https://github.com/dotnet/roslyn/issues/29847")]
+        public void Overriding_33()
+        {
+            var source = @"
+class A
+{
+    public virtual void M1<T>(T? x) where T : struct 
+    { 
+    }
+
+    public virtual void M1<T>(T? x) where T : class 
+    { 
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x) where T : struct
+    {
+    }
+} 
+
+class C
+{
+    public virtual void M2<T>(T? x) where T : class 
+    { 
+    }
+
+    public virtual void M2<T>(T? x) where T : struct 
+    { 
+    }
+}
+
+class D : C
+{
+    public override void M2<T>(T? x) where T : struct
+    {
+    }
+} 
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -13128,8 +13180,8 @@ class D : C
 
             var d = compilation.GetTypeByMetadataName("D");
             var m2 = d.GetMember<MethodSymbol>("M2");
-            Assert.False(m2.Parameters[0].Type.IsNullableType());
-            Assert.False(m2.OverriddenMethod.Parameters[0].Type.IsNullableType());
+            Assert.True(m2.Parameters[0].Type.IsNullableType());
+            Assert.True(m2.OverriddenMethod.Parameters[0].Type.IsNullableType());
         }
 
         [Fact]
@@ -14383,54 +14435,6 @@ public partial class C3 : I1<A?> {}
             CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput:
 @"C3.M
 C3.M");
-        }
-
-        [Fact]
-        public void Implementing_22()
-        {
-            var source = @"
-class C
-{
-    public static void Main()
-    { 
-    }
-}
-
-interface IA
-{
-    string[] M1(); 
-    T[] M2<T>() where T : class; 
-    T?[]? M3<T>() where T : class; 
-}
-
-class B : IA
-{
-    string?[] IA.M1()
-    {
-        return new string?[] {};
-    } 
-
-    S?[] IA.M2<S>() where S : class
-    {
-        return new S?[] {};
-    } 
-
-    S?[]? IA.M3<S>() where S : class
-    {
-        return new S?[] {};
-    } 
-}
-";
-            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-
-            compilation.VerifyDiagnostics(
-                // (23,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
-                //     S?[] IA.M2<S>() where S : class
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M2").WithArguments("T[] IA.M2<T>()").WithLocation(23, 13),
-                // (18,18): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'string[] IA.M1()'.
-                //     string?[] IA.M1()
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "M1").WithArguments("string[] IA.M1()").WithLocation(18, 18)
-                );
         }
 
         [Fact]
@@ -57302,23 +57306,14 @@ class B : IA
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (8,11): error CS0535: 'B' does not implement interface member 'IA.F1<T1>(T1?)'
-                // class B : IA
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.F1<T1>(T1?)").WithLocation(8, 11),
-                // (10,13): error CS0539: 'B.F1<T11>(T11?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (10,42): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     void IA.F1<T11>(T11? t1) where T11 : class?
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "F1").WithArguments("B.F1<T11>(T11?)").WithLocation(10, 13),
-                // (10,26): error CS0453: The type 'T11' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     void IA.F1<T11>(T11? t1) where T11 : class?
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t1").WithArguments("System.Nullable<T>", "T", "T11").WithLocation(10, 26),
-                // (10,30): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
-                //     void IA.F1<T11>(T11? t1) where T11 : class?
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(10, 30));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "class?").WithLocation(10, 42));
 
             var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.IA.F1");
-            Assert.Equal("void B.F1<T11>(T11? t1)", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+            Assert.Equal("void B.IA.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
             TypeParameterSymbol t11 = bf1.TypeParameters[0];
-            Assert.False(t11.IsReferenceType);
+            Assert.True(t11.IsReferenceType);
 
             var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.IA.F2");
             Assert.Equal("void B.IA.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
@@ -63116,59 +63111,6 @@ class B : A<int>
                     Assert.NotEqual(m, nullableAttribute.AttributeClass.ContainingModule);
                 }
             }
-        }
-
-        [Fact]
-        public void Constraints_155()
-        {
-            var source =
-@"
-class A<T>
-{
-    public virtual void F1<T1>(T1? t1) where T1 : class
-    {
-    }
-
-    public virtual void F2<T2>(T2 t2) where T2 : class?
-    {
-    }
-}
-
-class B : A<int>
-{
-    public override void F1<T11>(T11? t1) where T11 : class
-    {
-    }
-
-    public override void F2<T22>(T22 t2)
-    {
-    }
-}
-";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
-
-            var bf1 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F1");
-            Assert.Equal("void B.F1<T11>(T11? t1) where T11 : class", bf1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-            TypeParameterSymbol t11 = bf1.TypeParameters[0];
-            Assert.False(t11.ReferenceTypeConstraintIsNullable);
-
-            var af1 = bf1.OverriddenMethod;
-            Assert.Equal("void A<System.Int32>.F1<T1>(T1? t1) where T1 : class", af1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-            TypeParameterSymbol t1 = af1.TypeParameters[0];
-            Assert.False(t1.ReferenceTypeConstraintIsNullable);
-
-            var bf2 = (MethodSymbol)comp.GlobalNamespace.GetMember("B.F2");
-            Assert.Equal("void B.F2<T22>(T22 t2) where T22 : class?", bf2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-
-            TypeParameterSymbol t22 = bf2.TypeParameters[0];
-            Assert.True(t22.ReferenceTypeConstraintIsNullable);
-
-            var af2 = bf2.OverriddenMethod;
-            Assert.Equal("void A<System.Int32>.F2<T2>(T2 t2) where T2 : class?", af2.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
-
-            TypeParameterSymbol t2 = af2.TypeParameters[0];
-            Assert.True(t2.ReferenceTypeConstraintIsNullable);
         }
 
         [Fact]

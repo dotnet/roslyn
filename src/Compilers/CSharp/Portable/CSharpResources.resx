@@ -5883,7 +5883,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullReferenceIterationVariable_Title" xml:space="preserve">
 	<value>Possible null reference assignment to iteration variable</value>
   </data>
-  <data name="ERR_OverrideOrExpImplBadConstraints" xml:space="preserve">
-    <value>Type parameter '{0}' of method '{1}' declares a '{2}' constraint, but type parameter '{3}' of overridden or explicitly implemented method '{4}' is not constrained to a '{2}'.</value>
+  <data name="ERR_OverrideRefConstraintNotSatisfied" xml:space="preserve">
+    <value>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</value>
+  </data>
+  <data name="ERR_OverrideValConstraintNotSatisfied" xml:space="preserve">
+    <value>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</value>
+  </data>
+  <data name="IDS_OverrideWithConstraints" xml:space="preserve">
+    <value>constraints for override and explicit interface implementation methods</value>
   </data>
 </root>

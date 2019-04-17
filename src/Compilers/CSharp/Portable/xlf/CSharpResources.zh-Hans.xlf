@@ -322,9 +322,14 @@
         <target state="translated">out 变量无法声明为 ref 局部变量</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_OverrideOrExpImplBadConstraints">
-        <source>Type parameter '{0}' of method '{1}' declares a '{2}' constraint, but type parameter '{3}' of overridden or explicitly implemented method '{4}' is not constrained to a '{2}'.</source>
-        <target state="new">Type parameter '{0}' of method '{1}' declares a '{2}' constraint, but type parameter '{3}' of overridden or explicitly implemented method '{4}' is not constrained to a '{2}'.</target>
+      <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
+        <target state="new">Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
+        <target state="new">Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
@@ -921,6 +926,11 @@
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;null&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_OverrideWithConstraints">
+        <source>constraints for override and explicit interface implementation methods</source>
+        <target state="new">constraints for override and explicit interface implementation methods</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
