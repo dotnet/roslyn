@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 project = await UpdateDocumentsAsync(project, oldProjectChecksums.Documents, newProjectChecksums.Documents, additionalText: false).ConfigureAwait(false);
             }
 
-            // changed analyzer references
+            // changed additional documents
             if (oldProjectChecksums.AdditionalDocuments.Checksum != newProjectChecksums.AdditionalDocuments.Checksum)
             {
                 project = await UpdateDocumentsAsync(project, oldProjectChecksums.AdditionalDocuments, newProjectChecksums.AdditionalDocuments, additionalText: true).ConfigureAwait(false);
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 olds.Object.UnionWith(oldChecksums);
                 news.Object.UnionWith(newChecksums);
 
-                // remove projects that exist in both side
+                // remove documents that exist in both side
                 olds.Object.ExceptWith(newChecksums);
                 news.Object.ExceptWith(oldChecksums);
 
