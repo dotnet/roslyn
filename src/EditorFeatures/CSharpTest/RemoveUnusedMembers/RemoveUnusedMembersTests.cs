@@ -928,6 +928,19 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(33765, "https://github.com/dotnet/roslyn/issues/33765")]
+        public async Task GenericFieldInNameOf()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass<T>
+{
+    private T [|_goo|];
+    private string _goo2 = nameof(MyClass<int>._goo);
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
         public async Task MethodInNameOf()
         {
@@ -937,6 +950,19 @@ class MyClass
     private void [|M|]() { }
     private string _goo = nameof(M);
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(33765, "https://github.com/dotnet/roslyn/issues/33765")]
+        public async Task GenericMethodInNameOf()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass<T>
+{
+    private void [|M|]() { }
+    private string _goo2 = nameof(MyClass<int>.M);
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
