@@ -23,8 +23,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
             => _treeDict.TryGetValue(textFile, out var options) ? options : CompilerAnalyzerConfigOptions.Empty;
-
-        /// <summary>Used for testing</summary>
-        internal bool IsEmpty => _treeDict.IsEmpty;
     }
 }

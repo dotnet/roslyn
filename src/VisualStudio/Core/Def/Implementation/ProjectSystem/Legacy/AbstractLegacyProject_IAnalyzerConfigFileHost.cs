@@ -8,12 +8,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
     {
         void IAnalyzerConfigFileHost.AddAnalyzerConfigFile(string filePath)
         {
-            // TODO (tomescht): delegate to VisualStudioProject.
+            VisualStudioProject.AddAnalyzerConfigFile(filePath);
         }
 
         void IAnalyzerConfigFileHost.RemoveAnalyzerConfigFile(string filePath)
         {
-            // TODO (tomescht): delegate to VisualStudioProject.
+            VisualStudioProject.RemoveAnalyzerConfigFile(filePath);
         }
     }
 }

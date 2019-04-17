@@ -36,11 +36,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _parseOptionsWithLatestLanguageVersion
             End Function
 
-            Public Overloads Overrides Function ParseSyntaxTree(fileName As String, options As ParseOptions, text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
+            Public Overrides Function ParseSyntaxTree(filePath As String, options As ParseOptions, text As SourceText, treeDiagnosticReportingOptionsOpt As ImmutableDictionary(Of String, ReportDiagnostic), cancellationToken As CancellationToken) As SyntaxTree
                 If options Is Nothing Then
                     options = GetDefaultParseOptions()
                 End If
-                Return SyntaxFactory.ParseSyntaxTree(text, options, fileName, cancellationToken)
+
+                Return SyntaxFactory.ParseSyntaxTree(text, options, filePath, treeDiagnosticReportingOptionsOpt, cancellationToken)
             End Function
 
             Public Overloads Overrides Function CreateSyntaxTree(fileName As String, options As ParseOptions, encoding As Encoding, root As SyntaxNode) As SyntaxTree
