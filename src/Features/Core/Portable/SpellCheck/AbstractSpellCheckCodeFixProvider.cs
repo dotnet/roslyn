@@ -15,12 +15,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SpellCheck
 {
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractSpellCheckCodeFixProvider<TSimpleName> : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
         where TSimpleName : SyntaxNode
     {
         private const int MinTokenLength = 3;
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix 
+            // https://github.com/dotnet/roslyn/issues/34462
+            return null;
+        }
 
         protected abstract bool IsGeneric(SyntaxToken nameToken);
         protected abstract bool IsGeneric(TSimpleName nameNode);
