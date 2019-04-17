@@ -56,36 +56,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            var change = Collapse(newText, changes.ToList());
+            var change = Utilities.Collapse(newText, changes.ToImmutableArray());
 
             return CompletionChange.Create(change, newPosition, includesCommitCharacter: true);
-        }
-
-        private TextChange Collapse(SourceText newText, List<TextChange> changes)
-        {
-            if (changes.Count == 0)
-            {
-                return new TextChange(new TextSpan(0, 0), "");
-            }
-            else if (changes.Count == 1)
-            {
-                return changes[0];
-            }
-
-            // The span we want to replace goes from the start of the first span to the end of
-            // the  last span.
-            var totalOldSpan = TextSpan.FromBounds(changes.First().Span.Start, changes.Last().Span.End);
-
-            // We figure out the text we're replacing with by actually just figuring out the
-            // new span in the newText and grabbing the text out of that.  The newSpan will
-            // start from the same position as the oldSpan, but it's length will be the old
-            // span's length + all the deltas we accumulate through each text change.  i.e.
-            // if the first change adds 2 characters and the second change adds 4, then 
-            // the newSpan will be 2+4=6 characters longer than the old span.
-            var sumOfDeltas = changes.Sum(c => c.NewText.Length - c.Span.Length);
-            var totalNewSpan = new TextSpan(totalOldSpan.Start, totalOldSpan.Length + sumOfDeltas);
-
-            return new TextChange(totalOldSpan, newText.ToString(totalNewSpan));
         }
 
         private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)

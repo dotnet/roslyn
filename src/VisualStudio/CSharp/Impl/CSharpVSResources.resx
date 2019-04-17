@@ -574,4 +574,7 @@
   <data name="When_on_multiple_lines" xml:space="preserve">
     <value>When on multiple lines</value>
   </data>
+  <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
+    <value>Show items from unimported namespaces (experimental)</value>
+  </data>
 </root>

@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         protected override Task VerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix)
+            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix, string inlineDescription)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem, displayTextSuffix);
+                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -345,17 +345,17 @@ class C
 
                 var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
                 var service = CompletionService.GetService(document);
-                var completions = await service.GetCompletionsAndSetItemDocumentAsync(document, position);
+                var completions = await service.GetCompletionsAsync(document, position);
 
                 var item = completions.Items.First(i => i.DisplayText == "Beep");
                 var edit = testDocument.GetTextBuffer().CreateEdit();
                 edit.Delete(Span.FromBounds(position - 10, position));
                 edit.Apply();
 
-                document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+                var currentDocument = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-                Assert.NotEqual(document, item.Document);
-                var description = service.GetDescriptionAsync(item.Document, item);
+                Assert.NotEqual(currentDocument, document);
+                var description = service.GetDescriptionAsync(document, item);
             }
         }
     }
