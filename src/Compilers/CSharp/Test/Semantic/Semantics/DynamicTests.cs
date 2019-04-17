@@ -2668,7 +2668,7 @@ class C : List<int>
             TestTypes(source);
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(578404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578404")]
+        [Fact, WorkItem(578404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578404")]
         public void ExpressionTrees()
         {
             string source = @"

@@ -2829,8 +2829,7 @@ class C
                 );
         }
 
-        // PROTOTYPE(nullable-api): wants to change the type of the literal 2 to error type from int
-        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
         public void CS0023ERR_BadUnaryOp_lambdaExpression()
         {
             var text = @"
@@ -4451,7 +4450,7 @@ class C
             comp.VerifyTypes();
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api): Nullable Context")]
+        [Fact]
         public void Directive_NullableDefault()
         {
             var source =
@@ -4497,7 +4496,7 @@ class B
             comp.VerifyTypes();
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api): Nullable Context")]
+        [Fact]
         public void Directive_NullableFalse()
         {
             var source =
@@ -23576,10 +23575,10 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(IOut<object?>)x7").WithLocation(42, 15));
         }
 
-        // PROTOTYPE(nullable-api): The IIn test is getting converted to IIn<object?>? in ApplyArgumentConversion
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void IdentityConversion_NullCoalescingOperator_02()
         {
+            // F1's types are incorrect. See https://github.com/dotnet/roslyn/issues/35012
             var source =
 @"interface IIn<in T> { }
 interface IOut<out T> { }
@@ -23602,8 +23601,8 @@ class C
     }
     static void F1(IIn<object>? x1, IIn<object?>? y1)
     {
-        FIn((x1 ?? y1)/*T:IIn<object!>?*/);
-        FIn((y1 ?? x1)/*T:IIn<object!>?*/);
+        FIn((x1 ?? y1)/*T:IIn<object?>?*/);
+        FIn((y1 ?? x1)/*T:IIn<object?>?*/);
     }
     static void F2(IOut<object>? x2, IOut<object?>? y2)
     {
@@ -23614,10 +23613,10 @@ class C
     {
         FIn((FIn(x3) ?? FIn(y3))/*T:IIn<object?>?*/); // A
         if (x3 == null) return;
-        FIn((FIn(x3) ?? FIn(y3))/*T:IIn<object!>?*/); // B
-        FIn((FIn(y3) ?? FIn(x3))/*T:IIn<object!>?*/); // C
+        FIn((FIn(x3) ?? FIn(y3))/*T:IIn<object?>?*/); // B
+        FIn((FIn(y3) ?? FIn(x3))/*T:IIn<object?>?*/); // C
         if (y3 == null) return;
-        FIn((FIn(x3) ?? FIn(y3))/*T:IIn<object!>?*/); // D
+        FIn((FIn(x3) ?? FIn(y3))/*T:IIn<object?>?*/); // D
     }
     static void F4(object? x4, object? y4)
     {
@@ -24551,8 +24550,8 @@ class CL1
             Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
-        // PROTOTYPE(nullable-api): wants to change the type of the null literal from null to error type
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        // https://github.com/dotnet/roslyn/issues/35039: wants to change the type of the null literal from null to error type
+        [Fact]
         public void Var_FlowAnalysis_02()
         {
             var source =
@@ -45321,16 +45320,18 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item2").WithLocation(11, 13));
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
+        [Fact]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_01()
         {
+            // Type of (default, default) should not be <null>!. Was (object?, string?)
+            // https://github.com/dotnet/roslyn/issues/35010
             var source =
 @"class Program
 {
     static void F()
     {
-        (object? a, string) t = (default, default)/*T:(object?, string?)*/; // 1
+        (object? a, string) t = (default, default)/*T:<null>!*/; // 1
         (object, string? b) u = t; // 2
         _ = t/*T:(object? a, string!)*/;
         _ = u/*T:(object!, string? b)*/;
@@ -45363,22 +45364,25 @@ class C
             comp.VerifyTypes();
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
+        [Fact]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_02()
         {
+            // Type of (null, x, y) should not be <null>!. Was (object?, object? x, object! y)
+            // Type of (x, default) should not be <null>!. Was (object! x, object?)
+            // https://github.com/dotnet/roslyn/issues/35010
             var source =
 @"class Program
 {
     static void F(object? x, object y)
     {
-        (object x, object? y, object? z) t = (null, x, y)/*T:(object?, object? x, object! y)*/; // 1
+        (object x, object? y, object? z) t = (null, x, y)/*T:<null>!*/; // 1
         _ = t/*T:(object! x, object? y, object? z)*/;
         t.x.ToString(); // 2
         t.y.ToString(); // 3
         t.z.ToString();
         if (x == null) return;
-        (object x, object y) u = (x, default)/*T:(object! x, object?)*/; // 4
+        (object x, object y) u = (x, default)/*T:<null>!*/; // 4
         _ = u/*T:(object! x, object! y)*/;
         u.x.ToString();
         u.y.ToString(); // 5
@@ -45387,7 +45391,7 @@ class C
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,46): warning CS8619: Nullability of reference types in value of type '(object?, object? x, object y)' doesn't match target type '(object x, object? y, object? z)'.
-                //         (object x, object? y, object? z) t = (null, x, y)/*T:(object?, object? x, object! y)*/; // 1
+                //         (object x, object? y, object? z) t = (null, x, y)/*T:<null>!*/; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(null, x, y)").WithArguments("(object?, object? x, object y)", "(object x, object? y, object? z)").WithLocation(5, 46),
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         t.x.ToString(); // 2
@@ -45396,7 +45400,7 @@ class C
                 //         t.y.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.y").WithLocation(8, 9),
                 // (11,34): warning CS8619: Nullability of reference types in value of type '(object x, object?)' doesn't match target type '(object x, object y)'.
-                //         (object x, object y) u = (x, default)/*T:(object! x, object?)*/; // 4
+                //         (object x, object y) u = (x, default)/*T:<null>!*/; // 4
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, default)").WithArguments("(object x, object?)", "(object x, object y)").WithLocation(11, 34),
                 // (14,9): warning CS8602: Possible dereference of a null reference.
                 //         u.y.ToString(); // 5
@@ -45452,16 +45456,18 @@ class Program
             comp.VerifyTypes();
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
+        [Fact]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_04()
         {
+            // Type of (x, y) should not be (object x, string y), was (object? x, string? y)
+            // https://github.com/dotnet/roslyn/issues/35010
             var source =
 @"class Program
 {
     static void F(object? x, string? y)
     {
-        (object?, string) t = (x, y)/*T:(object? x, string? y)*/; // 1
+        (object?, string) t = (x, y)/*T:(object x, string y)*/; // 1
         (object, string?) u = t; // 2
         t.Item1.ToString(); // 3
         t.Item2.ToString(); // 4
@@ -45472,7 +45478,7 @@ class Program
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,31): warning CS8619: Nullability of reference types in value of type '(object? x, string? y)' doesn't match target type '(object?, string)'.
-                //         (object?, string) t = (x, y)/*T:(object? x, string? y)*/; // 1
+                //         (object?, string) t = (x, y)/*T:(object x, string y)*/; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(object? x, string? y)", "(object?, string)").WithLocation(5, 31),
                 // (6,31): warning CS8619: Nullability of reference types in value of type '(object?, string)' doesn't match target type '(object, string?)'.
                 //         (object, string?) u = t; // 2
@@ -45492,16 +45498,17 @@ class Program
             comp.VerifyTypes();
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
+        [Fact]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_05()
         {
+            // Type of (x, y) should not be (object x, string y). Was (object! x, string? y)
             var source =
 @"class Program
 {
     static void F(object x, string? y)
     {
-        (object?, string) t = (x, y)/*T:(object! x, string? y)*/; // 1
+        (object?, string) t = (x, y)/*T:(object x, string y)*/; // 1
         (object a, string? b) u = t; // 2
         t.Item1.ToString();
         t.Item2.ToString(); // 3
@@ -45512,7 +45519,7 @@ class Program
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,31): warning CS8619: Nullability of reference types in value of type '(object x, string? y)' doesn't match target type '(object?, string)'.
-                //         (object?, string) t = (x, y)/*T:(object! x, string? y)*/; // 1
+                //         (object?, string) t = (x, y)/*T:(object x, string y)*/; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(object x, string? y)", "(object?, string)").WithLocation(5, 31),
                 // (6,35): warning CS8619: Nullability of reference types in value of type '(object?, string)' doesn't match target type '(object a, string? b)'.
                 //         (object a, string? b) u = t; // 2
@@ -45526,16 +45533,18 @@ class Program
             comp.VerifyTypes();
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
+        [Fact]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_06()
         {
+            // Types for the first assignment are incorrect because the BoundTupleLiteral.NaturalTypeOpt isn't being updated correctly.
+            // https://github.com/dotnet/roslyn/issues/35010
             var source =
 @"class Program
 {
     static void F(string x, string? y)
     {
-        (object, string) t = ((object, string))(x, y)/*T:(object! x, string? y)*/; // 1
+        (object, string) t = ((object, string))(x, y)/*T:(string x, string y)*/; // 1
         (object a, string?) u = ((string, string?))t;
         (object?, object b) v = ((object?, object))t;
         t.Item1.ToString();
@@ -45609,17 +45618,20 @@ class Program
             comp.VerifyTypes();
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
+        [Fact]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_08()
         {
+            // Type of (x, x, x, y, y, (y, x), x, x, y, y) should not be (object, object, object, object, object, (object y, object x), object, object, object, object).
+            // Was (object!, object!, object!, object?, object?, (object? y, object! x), object!, object!, object?, object?)
+            // https://github.com/dotnet/roslyn/issues/35010
             var source =
 @"class Program
 {
     static void F(bool b, object x, object? y)
     {
         (object?, object, object?, object, object?, (object, object?), object, object, object?, object) t =
-            (x, x, x, y, y, (y, x), x, x, y, y)/*T:(object!, object!, object!, object?, object?, (object? y, object! x), object!, object!, object?, object?)*/; // 1
+            (x, x, x, y, y, (y, x), x, x, y, y)/*T:(object, object, object, object, object, (object y, object x), object, object, object, object)*/; // 1
         t.Item1.ToString();
         t.Item2.ToString();
         t.Item3.ToString();
@@ -45645,7 +45657,7 @@ class Program
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8619: Nullability of reference types in value of type '(object, object, object, object?, object?, (object? y, object x), object, object, object?, object?)' doesn't match target type '(object?, object, object?, object, object?, (object, object?), object, object, object?, object)'.
-                //             (x, x, x, y, y, (y, x), x, x, y, y)/*T:(object!, object!, object!, object?, object?, (object? y, object! x), object!, object!, object?, object?)*/; // 1
+                //             (x, x, x, y, y, (y, x), x, x, y, y)/*T:(object, object, object, object, object, (object y, object x), object, object, object, object)*/; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, x, x, y, y, (y, x), x, x, y, y)").WithArguments("(object, object, object, object?, object?, (object? y, object x), object, object, object?, object?)", "(object?, object, object?, object, object?, (object, object?), object, object, object?, object)").WithLocation(6, 13),
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         t.Item4.ToString(); // 2
@@ -45671,17 +45683,19 @@ class Program
             comp.VerifyTypes();
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
+        [Fact]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_09()
         {
+            // Type of (x, x, x, default, default, default, x, x, default, default) should not be <null>!. Was (object!, object!, object!, object?, object?, (object!, object?), object!, object!, object?, object?)
+            // https://github.com/dotnet/roslyn/issues/35010
             var source =
 @"class Program
 {
     static void F(bool b, object x)
     {
         (object?, object, object?, object, object?, (object, object?), object, object, object?, object) t =
-            (x, x, x, default, default, default, x, x, default, default)/*T:(object!, object!, object!, object?, object?, (object!, object?), object!, object!, object?, object?)*/; // 1
+            (x, x, x, default, default, default, x, x, default, default)/*T:<null>!*/; // 1
         t.Item1.ToString();
         t.Item2.ToString();
         t.Item3.ToString();
@@ -45707,7 +45721,7 @@ class Program
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8619: Nullability of reference types in value of type '(object, object, object, object?, object?, (object, object?), object, object, object?, object?)' doesn't match target type '(object?, object, object?, object, object?, (object, object?), object, object, object?, object)'.
-                //             (x, x, x, default, default, default, x, x, default, default)/*T:(object!, object!, object!, object?, object?, (object!, object?), object!, object!, object?, object?)*/; // 1
+                //             (x, x, x, default, default, default, x, x, default, default)/*T:<null>!*/; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, x, x, default, default, default, x, x, default, default)").WithArguments("(object, object, object, object?, object?, (object, object?), object, object, object?, object?)", "(object?, object, object?, object, object?, (object, object?), object, object, object?, object)").WithLocation(6, 13),
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         t.Item4.ToString(); // 2
@@ -45736,11 +45750,11 @@ class Program
             comp.VerifyTypes();
         }
 
-        // PROTOTYPE(nullable-api): LValueType.TypeSymbol and RValueType.Type do not agree for the null literal
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_10()
         {
+            // https://github.com/dotnet/roslyn/issues/35010: LValueType.TypeSymbol and RValueType.Type do not agree for the null literal
             var source =
 @"using System;
 class Program
@@ -47558,7 +47572,7 @@ class Program
             comp.VerifyTypes();
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void StructField_Default_NoType()
         {
             var source =
@@ -75758,9 +75772,6 @@ class B<[Nullable(0)]T01,
         [WorkItem(31395, "https://github.com/dotnet/roslyn/issues/31395")]
         public void InheritNullabilityOfNonNullableClassMember()
         {
-            // PROTOTYPE(nullable-api): The types reported here should be string? and T?. They're not because
-            // ApplyConversion sets the type of underlying BoundFieldAccess instead of the BoundConversion on
-            // top.
             var source =
 @"#pragma warning disable 8618
 class C<T>
@@ -75772,16 +75783,16 @@ class Program
     static void F1(string? s)
     {
         var a1 = new C<string>() { F = s };
-        F(a1.F/*T:object?*/); // 1
+        F(a1.F/*T:string?*/); // 1
         var b1 = a1;
-        F(b1.F/*T:object!*/); // 2
+        F(b1.F/*T:string!*/); // 2
     }
     static void F2<T>(T? t) where T : class
     {
         var a2 = new C<T>() { F = t };
-        F(a2.F/*T:object?*/); // 3
+        F(a2.F/*T:T?*/); // 3
         var b2 = a2;
-        F(b2.F/*T:object!*/); // 4
+        F(b2.F/*T:T!*/); // 4
     }
     static void F(object o)
     {
@@ -75808,9 +75819,6 @@ class Program
         [Fact]
         public void InheritNullabilityOfNonNullableStructMember()
         {
-            // PROTOTYPE(nullable-api): The types reported here should be string? and T?. They're not because
-            // ApplyConversion sets the type of underlying BoundFieldAccess instead of the BoundConversion on
-            // top.
             var source =
 @"#pragma warning disable 8618
 struct S<T>
@@ -75822,16 +75830,16 @@ class Program
     static void F1(string? s)
     {
         var a1 = new S<string>() { F = s };
-        F(a1.F/*T:object?*/); // 1
+        F(a1.F/*T:string?*/); // 1
         var b1 = a1;
-        F(b1.F/*T:object?*/); // 2
+        F(b1.F/*T:string?*/); // 2
     }
     static void F2<T>(T? t) where T : class
     {
         var a2 = new S<T>() { F = t };
-        F(a2.F/*T:object?*/); // 3
+        F(a2.F/*T:T?*/); // 3
         var b2 = a2;
-        F(b2.F/*T:object?*/); // 4
+        F(b2.F/*T:T?*/); // 4
     }
     static void F(object o)
     {

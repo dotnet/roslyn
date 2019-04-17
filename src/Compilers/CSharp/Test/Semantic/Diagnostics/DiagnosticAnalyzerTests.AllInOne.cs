@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class DiagnosticAnalyzerTests
     {
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void DiagnosticAnalyzerAllInOne()
         {
             var source = TestResource.AllInOneCSharpCode;
@@ -83,7 +83,7 @@ public class C
 
         #endregion
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         [WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
@@ -92,7 +92,7 @@ public class C
                 compilation.GetAnalyzerDiagnostics(new[] { analyzer }, null, logAnalyzerExceptionAsDiagnostics: true));
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void AnalyzerOptionsArePassedToAllAnalyzers()
         {
             var text = new StringText(string.Empty, encodingOpt: null);

@@ -90,7 +90,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol ReturnType { get; }
 
-        // PROTOTYPE(nullable-api): Document
+        /// <summary>
+        /// Gets the top-level nullability of the return of the method.
+        /// </summary>
         NullableAnnotation ReturnNullableAnnotation { get; }
 
         /// <summary>
@@ -100,7 +102,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
-        // PROTOTYPE(nullable-api): Document
+        /// <summary>
+        /// Returns the top-level nullability of the type arguments that have been substituted
+        /// for the type parameters. If nothing has been substituted for a given type parameter,
+        /// then <code>default</code> of <see cref="NullableAnnotation"/> is returned.
+        /// </summary>
         ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations { get; }
 
         /// <summary>
@@ -141,7 +147,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol ReceiverType { get; }
 
-        // PROTOTYPE(nullable-api): Document
+        /// <summary>
+        /// If this method can be applied to an object, returns the top-level nullability of the object it is applied to.
+        /// </summary>
         NullableAnnotation ReceiverNullableAnnotation { get; }
 
         /// <summary>

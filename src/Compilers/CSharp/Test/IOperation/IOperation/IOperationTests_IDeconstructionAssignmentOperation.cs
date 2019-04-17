@@ -605,7 +605,7 @@ Block[B9] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void DeconstructionFlow_07()
         {
             string source = @"

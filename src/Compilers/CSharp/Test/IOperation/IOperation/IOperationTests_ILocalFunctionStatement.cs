@@ -500,7 +500,7 @@ ILocalFunctionOperation (Symbol: System.Object F()) (OperationKind.LocalFunction
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
+        [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
         public void TestInvalidLocalFunction_BlockAndExpressionBody()
         {
             string source = @"
@@ -900,7 +900,7 @@ Block[B2] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void LocalFunctionFlow_04()
         {
             string source = @"

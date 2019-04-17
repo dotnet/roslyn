@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         ITypeSymbol IDiscardSymbol.Type => Type;
-        // PROTOTYPE(nullable-api): Implement
+        // https://github.com/dotnet/roslyn/issues/35036: Implement
         CodeAnalysis.NullableAnnotation IDiscardSymbol.NullableAnnotation => default;
         public TypeSymbol Type { get; }
 

@@ -693,7 +693,7 @@ unsafe class Test
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void NestedInit()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"

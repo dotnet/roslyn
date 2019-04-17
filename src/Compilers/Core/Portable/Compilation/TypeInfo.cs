@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ITypeSymbol Type { get; }
 
-        // PROTOTYPE(nullable-api): Doc Comment
+        /// <summary>
+        /// The top-level nullability information of the expression represented by the syntax node.
+        /// </summary>
         public NullabilityInfo Nullability { get; }
 
         /// <summary>
@@ -25,7 +27,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ITypeSymbol ConvertedType { get; }
 
-        // PROTOTYPE(nullable-api): Doc Comment
+        /// <summary>
+        /// The top-level nullability of the expression after it has undergone an implicit conversion.
+        /// For most expressions, this will be the same as the type. It can change in situations such
+        /// as implicit user-defined conversions that have a nullable return type.
+        /// </summary>
         public NullabilityInfo ConvertedNullability { get; }
 
         internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType, NullabilityInfo nullability, NullabilityInfo convertedNullability)

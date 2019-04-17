@@ -1384,7 +1384,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void UnguardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound)
         {
-            // PROTOTYPE(nullable-api): Audit consumers to add rewriting. It seems that the only consumer is MethodCompiler.CompileMethod
             using (_nodeMapLock.DisposableWrite())
             {
                 GuardedAddBoundTreeForStandaloneSyntax(syntax, bound);
@@ -1591,7 +1590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
 
-                // PROTOTYPE(nullable-api): Rewrite the above node and add a test that hits this path with nullable
+                // https://github.com/dotnet/roslyn/issues/35038: Rewrite the above node and add a test that hits this path with nullable
                 // enabled
 
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
@@ -1623,7 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, lambdaOrQuery, _ignoredDiagnostics);
 
-                // PROTOTYPE(nullable-api): We need to do a rewrite here, and create a test that can hit this.
+                // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
 #if DEBUG
                 var diagnostics = new DiagnosticBag();
                 _ = RewriteNullableBoundNodes(boundOuterExpression, incrementalBinder.Conversions, diagnostics);
@@ -1815,8 +1814,8 @@ done:
             DiagnosticBag diagnostics = _ignoredDiagnostics;
 
             // If we're in DEBUG mode, always enable the analysis, but throw away the results
-            // PROTOTYPE(nullable-api): Disable speculative semantic models for now.
-            if (!EnableNullableAnalysis || IsSpeculativeSemanticModel)
+            // https://github.com/dotnet/roslyn/issues/35037: Disable speculative semantic models for now.
+            if (!Compilation.EnableNullableAnalysis || IsSpeculativeSemanticModel)
             {
 #if DEBUG
                 diagnostics = new DiagnosticBag();
@@ -1833,7 +1832,7 @@ done:
                 // In DEBUG mode, we don't want to increase test run times, so if
                 // nullable analysis isn't enabled and some node has already been bound
                 // we assume we've already done this test binding and just return
-                || (!EnableNullableAnalysis && _guardedNodeMap.Count > 0)
+                || (!Compilation.EnableNullableAnalysis && _guardedNodeMap.Count > 0)
 #endif
                 )
             {
@@ -1844,7 +1843,7 @@ done:
 
             Debug.Assert(Root == GetBindableSyntaxNode(Root));
 
-            // PROTOTYPE(nullable-api): Speculative models are going to have to do something more advanced
+            // https://github.com/dotnet/roslyn/issues/35037: Speculative models are going to have to do something more advanced
             // here. They will need to run nullable analysis up to the point that is being speculated on, and
             // then take that state and run analysis on the statement or expression being speculated on.
             // Currently, it will return incorrect info because it's just running analysis on the speculated
@@ -1853,7 +1852,7 @@ done:
             var boundRoot = Bind(binder, bindableRoot, diagnostics);
             boundRoot = RewriteNullableBoundNodes(boundRoot, binder.Conversions, diagnostics);
 
-            if (EnableNullableAnalysis && !IsSpeculativeSemanticModel)
+            if (Compilation.EnableNullableAnalysis && !IsSpeculativeSemanticModel)
             {
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot);
             }
@@ -1935,7 +1934,7 @@ done:
 
             if (results.IsDefaultOrEmpty)
             {
-                // PROTOTYPE(nullable-api): We have to run analysis on this node in some manner
+                // https://github.com/dotnet/roslyn/issues/35038: We have to run analysis on this node in some manner
                 using (_nodeMapLock.DisposableWrite())
                 {
                     var boundNode = this.Bind(binder, node, _ignoredDiagnostics);

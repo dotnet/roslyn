@@ -12169,7 +12169,7 @@ var y, y1(Dummy(3 is var x1, x1));
             Assert.True(((LocalSymbol)y1).Type.IsErrorType());
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void Scope_DeclaratorArguments_06()
         {
             var source =

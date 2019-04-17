@@ -917,7 +917,7 @@ public class C
             }
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void BlockBodyAndExpressionBody_15()
         {
             var comp = CreateCompilation(@"

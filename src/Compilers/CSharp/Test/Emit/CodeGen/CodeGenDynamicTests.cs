@@ -14099,7 +14099,7 @@ class C
         /// <summary>
         /// We can shared dynamic sites for GetMembers of level n-1 on level n for n >= 3.
         /// </summary>
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void DynamicObjectInitializer_Level3()
         {
             string source = @"
@@ -14414,7 +14414,7 @@ class C : IEnumerable
 ");
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void ObjectAndCollectionInitializer()
         {
             string source = @"

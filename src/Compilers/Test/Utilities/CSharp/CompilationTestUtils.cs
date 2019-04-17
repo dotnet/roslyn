@@ -286,6 +286,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
         {
+            // When nullable analysis does not require a feature flag, this can be removed so that we
+            // don't need to create an extra compilation
+            if (compilation.Feature("run-nullable-analysis") != "true")
+            {
+                compilation = compilation.WithAdditionalFeatures(("run-nullable-analysis", "true"));
+            }
+
             if (tree == null)
             {
                 foreach (var syntaxTree in compilation.SyntaxTrees)
@@ -315,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         var typeInfo = model.GetTypeInfo(annotation.Expression);
                         Assert.NotEqual(CodeAnalysis.NullableAnnotation.NotApplicable, typeInfo.Nullability.Annotation);
                         Assert.NotEqual(CodeAnalysis.NullableFlowState.NotApplicable, typeInfo.Nullability.FlowState);
-                        // PROTOTYPE(nullable-api): After refactoring symboldisplay, we should be able to just call something like typeInfo.Type.ToDisplayString(typeInfo.Nullability.FlowState, TypeWithState.TestDisplayFormat)
+                        // https://github.com/dotnet/roslyn/issues/35035: After refactoring symboldisplay, we should be able to just call something like typeInfo.Type.ToDisplayString(typeInfo.Nullability.FlowState, TypeWithState.TestDisplayFormat)
                         return new TypeWithState((TypeSymbol)typeInfo.Type, typeInfo.Nullability.FlowState.ToInternalFlowState()).ToTypeWithAnnotations().ToDisplayString(TypeWithAnnotations.TestDisplayFormat);
                     });
                 // Consider reporting the correct source with annotations on mismatch.
