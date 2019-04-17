@@ -4896,6 +4896,41 @@ namespace ThenIncludeIntellisenseBug
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCompletionInsideMethodsWithDelegatesAsArguments(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                                <Document><![CDATA[
+using System;
+class c
+{
+    void M()
+    {
+        Goo(builder =>
+        {
+            builder$$
+        });
+    }
+
+    void Goo(Action<Builder> configure)
+    {
+        var builder = new Builder();
+        configure(builder);
+    }
+}
+class Builder
+{
+    public int Something { get; set; }
+}
+            ]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll(displayText:={"Something"})
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"BeginInvoke", "Clone", "Method", "Target"})
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitIfUniqueFiltersIfNotUnique(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>

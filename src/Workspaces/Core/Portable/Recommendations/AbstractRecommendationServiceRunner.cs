@@ -92,10 +92,9 @@ namespace Microsoft.CodeAnalysis.Recommendations
         private ImmutableArray<ITypeSymbol> GetTypeSymbols(ImmutableArray<ISymbol> candidateSymbols, int ordinalInInvocation, int ordinalInLambda)
         {
             var expressionSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
-            var funcSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Func<>).FullName);
             // We cannot help if semantic model is corrupted or incomplete (e.g. during solution loading) and those symbols are not loaded. 
             // Just bail out.
-            if (expressionSymbol == null || funcSymbol == null)
+            if (expressionSymbol == null)
             {
                 return default;
             }
@@ -108,8 +107,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 {
                     if (method.Parameters.Length > ordinalInInvocation)
                     {
-                        var methodParameterSymbool = method.Parameters[ordinalInInvocation];
-                        var type = methodParameterSymbool.Type;
+                        var type = method.Parameters[ordinalInInvocation].Type;
                         // If type is <see cref="Expression{TDelegate}"/>, ignore <see cref="Expression"/> and use TDelegate.
                         if (type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
                             Equals(expressionSymbolNamedTypeCandidate.OriginalDefinition, expressionSymbol))
@@ -123,13 +121,10 @@ namespace Microsoft.CodeAnalysis.Recommendations
                             type = allTypeArguments[0];
                         }
 
-                        // If type is <see cref="Func{TSomeArguments, TResult}"/>, extract TSomeArguments 
-                        // and find the type of thee argument corresponding to the ordinal.
-                        if (type is INamedTypeSymbol funcSymbolNamedTypeCandidate &&
-                            Equals(funcSymbolNamedTypeCandidate.Name, funcSymbol.Name) &&
-                            Equals(funcSymbolNamedTypeCandidate.ContainingNamespace, funcSymbol.ContainingNamespace))
+                        if (type.IsDelegateType())
                         {
                             var allTypeArguments = type.GetAllTypeArguments();
+                            // Find the type of the argument corresponding to the ordinal.
                             if (allTypeArguments.Length < ordinalInLambda)
                             {
                                 continue;

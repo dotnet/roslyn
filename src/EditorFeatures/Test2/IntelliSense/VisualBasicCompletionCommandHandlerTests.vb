@@ -3368,6 +3368,33 @@ End Namespace
             End Using
         End Function
 
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCompletionInsideMethodsWithDelegatesAsArguments(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+                                <Document><![CDATA[
+Class C
+    Sub M()
+        Goo(Sub(Builder) Builder$$
+    End Sub
+
+    Sub Goo(configure As Action(Of Builder))
+        Dim builder = New Builder()
+        configure(builder)
+    End Sub
+End Class
+Class Builder
+    Public Property Something As Integer
+End Class
+            ]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll(displayText:={"Something"})
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"BeginInvoke", "Clone", "Method", "Target"})
+            End Using
+        End Function
+
         <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
         Friend Class MockSnippetInfoService
             Implements ISnippetInfoService
