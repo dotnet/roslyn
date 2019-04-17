@@ -6,12 +6,38 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal static class ProtocolConversions
     {
+        public static LinePosition PositionToLinePosition(LSP.Position position)
+        {
+            return new LinePosition(position.Line, position.Character);
+        }
+
+        public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
+        {
+            return new LinePositionSpan(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
+        }
+
+        public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
+        {
+            var linePositionSpan = RangeToLinePositionSpan(range);
+            return text.Lines.GetTextSpan(linePositionSpan);
+        }
+
+        public static LSP.TextEdit TextChangeToTextEdit(TextChange textChange, SourceText text)
+        {
+            return new LSP.TextEdit
+            {
+                NewText = textChange.NewText,
+                Range = TextSpanToRange(textChange.Span, text)
+            };
+        }
+
         public static LSP.Position LinePositionToPosition(LinePosition linePosition)
         {
             return new LSP.Position { Line = linePosition.Line, Character = linePosition.Character };
@@ -28,14 +54,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return LinePositionToRange(linePosSpan);
         }
 
-        public static LinePosition PositionToLinePosition(LSP.Position position)
-        {
-            return new LinePosition(position.Line, position.Character);
-        }
-
         public static Task<LSP.Location> DocumentSpanToLocationAsync(DocumentSpan documentSpan, CancellationToken cancellationToken)
         {
             return TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, cancellationToken);
+        }
+
+        public static async Task<LSP.LocationWithText> DocumentSpanToLocationWithTextAsync(DocumentSpan documentSpan, ClassifiedTextElement text, CancellationToken cancellationToken)
+        {
+            var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var locationWithText = new LSP.LocationWithText
+            {
+                Uri = documentSpan.Document.GetURI(),
+                Range = TextSpanToRange(documentSpan.SourceSpan, sourceText),
+                Text = text
+            };
+
+            return locationWithText;
         }
 
         public static LSP.Location RangeToLocation(LSP.Range range, string uriString)
@@ -63,6 +98,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
 
             return location;
+        }
+
+        public static LSP.Location TextSpanToLocationWithText(TextSpan span, SourceText text, Uri documentUri)
+        {
+            var location = new LSP.LocationWithText
+            {
+                Uri = documentUri,
+                Range = TextSpanToRange(span, text),
+                Text = text
+            };
+
+            return location;
+        }
+
+        public static LSP.DiagnosticSeverity DiagnosticSeverityToLspDiagnositcSeverity(DiagnosticSeverity severity)
+        {
+            switch (severity)
+            {
+                case DiagnosticSeverity.Hidden:
+                    return LSP.DiagnosticSeverity.Hint;
+                case DiagnosticSeverity.Info:
+                    return LSP.DiagnosticSeverity.Information;
+                case DiagnosticSeverity.Warning:
+                    return LSP.DiagnosticSeverity.Warning;
+                case DiagnosticSeverity.Error:
+                    return LSP.DiagnosticSeverity.Error;
+                default:
+                    return LSP.DiagnosticSeverity.Hint;
+            }
         }
 
         public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)

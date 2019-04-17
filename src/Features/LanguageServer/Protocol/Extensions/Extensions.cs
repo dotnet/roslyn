@@ -4,7 +4,10 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
@@ -26,10 +29,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return solution.GetDocument(documentId);
         }
 
-        public static async Task<int> GetPositionFromLinePosition(this Document document, LinePosition linePosition, CancellationToken cancellationToken)
+        public static async Task<int> GetPositionFromLinePositionAsync(this Document document, LinePosition linePosition, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return text.Lines.GetPosition(linePosition);
+        }
+
+        public static bool HasVisualStudioLspCapability(this ClientCapabilities clientCapabilities)
+        {
+            if (clientCapabilities is VSClientCapabilities vsClientCapabilities)
+            {
+                return vsClientCapabilities.SupportsVisualStudioExtensions;
+            }
+
+            return false;
         }
 
         public static string GetMarkdownLanguageName(this Document document)
@@ -47,6 +60,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 default:
                     throw new ArgumentException(string.Format("Document project language {0} is not valid", document.Project.Language));
             }
+        }
+
+        public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
+        {
+            return new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
         }
     }
 }
