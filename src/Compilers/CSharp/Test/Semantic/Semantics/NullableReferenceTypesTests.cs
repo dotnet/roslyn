@@ -47580,13 +47580,13 @@ class Program
 {
     static void F()
     {
-        _ = default/*T:<null>?*/.ToString();
+        _ = default/*T:<null>!*/.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,33): error CS0023: Operator '.' cannot be applied to operand of type 'default'
-                //         _ = default/*T:<null>?*/.ToString();
+                //         _ = default/*T:<null>!*/.ToString();
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(5, 33));
             comp.VerifyTypes();
         }

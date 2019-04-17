@@ -32,7 +32,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp.VerifyDiagnostics(
                 // (6,20): warning CS8619: Nullability of reference types in value of type 'C?[]' doesn't match target type 'C[]'.
                 //         C[] arr2 = (C[])arr1;
@@ -70,7 +70,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -384,14 +384,14 @@ public static class CExt
 }
 ";
 
-            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp1.VerifyDiagnostics(
                 // (20,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public static void M8(this C? c) {}
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 33));
             verifyCompilation(comp1);
 
-            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp2.VerifyDiagnostics(
                 // (20,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public static void M8(this C? c) {}
@@ -421,12 +421,12 @@ public static class CExt
             verifyCompilation(comp3);
 
             var comp1Emit = comp1.EmitToImageReference();
-            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue());
+            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp4.VerifyDiagnostics();
             verifyCompilation(comp4);
 
             var comp2Emit = comp2.EmitToImageReference();
-            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse());
+            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp5.VerifyDiagnostics();
             verifyCompilation(comp5);
 
@@ -595,11 +595,11 @@ public class C
                                                  params PublicNullableAnnotation[] expectedNullabilities)
         {
 
-            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp1.VerifyDiagnostics(nullableEnabledErrors);
             verifyCompilation(comp1);
 
-            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp2.VerifyDiagnostics(nullableEnabledErrors);
             verifyCompilation(comp2);
 
@@ -610,12 +610,12 @@ public class C
             if (!testMetadata) return;
 
             var comp1Emit = comp1.EmitToImageReference();
-            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue());
+            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp4.VerifyDiagnostics();
             verifyCompilation(comp4);
 
             var comp2Emit = comp2.EmitToImageReference();
-            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse());
+            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp5.VerifyDiagnostics();
             verifyCompilation(comp5);
 
@@ -649,7 +649,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -677,7 +677,7 @@ enum E2
     A2 = E1.A1
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -703,11 +703,11 @@ class C
 
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
 
-            comp.VerifyDiagnostics(
+            comp.VerifyDiagnostics();
+            comp.VerifyAnalyzerDiagnostics(new[] { new NullabilityPrinter() }, null, null, true,
                 Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated").WithLocation(7, 13),
                 Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated").WithLocation(8, 13),
                 Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "NotNull", "NotAnnotated").WithLocation(9, 13));
-            comp.VerifyAnalyzerDiagnostics(new[] { new NullabilityPrinter() });
         }
 
         private class NullabilityPrinter : DiagnosticAnalyzer
