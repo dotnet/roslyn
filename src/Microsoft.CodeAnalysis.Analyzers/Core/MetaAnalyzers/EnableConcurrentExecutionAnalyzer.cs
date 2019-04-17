@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
 
                 var method = (IMethodSymbol)context.OwningSymbol;
+                if (method.Name != nameof(DiagnosticAnalyzer.Initialize))
+                {
+                    return;
+                }
+
                 IParameterSymbol analysisContextParameter = null;
                 foreach (var parameter in method.Parameters)
                 {

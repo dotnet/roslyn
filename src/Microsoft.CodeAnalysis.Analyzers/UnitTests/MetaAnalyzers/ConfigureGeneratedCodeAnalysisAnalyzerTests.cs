@@ -88,5 +88,58 @@ End Class
 
             await VerifyVB.VerifyCodeFixAsync(code, fixedCode);
         }
+
+        [Fact]
+        public async Task RenamedMethod_CSharp()
+        {
+            var code = @"
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+class Analyzer : DiagnosticAnalyzer {
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw null;
+    public override void Initialize(AnalysisContext context)
+    {
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+    }
+
+    public void NotInitialize(AnalysisContext context)
+    {
+    }
+}
+";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
+
+        [Fact]
+        public async Task RenamedMethod_VisualBasic()
+        {
+            var code = @"
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+Class Analyzer
+    Inherits DiagnosticAnalyzer
+
+    Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+        Get
+            Throw New System.Exception
+        End Get
+    End Property
+
+    Public Overrides Sub Initialize(context As AnalysisContext)
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze Or GeneratedCodeAnalysisFlags.ReportDiagnostics)
+    End Sub
+
+    Public Sub NotInitialize(context As AnalysisContext)
+    End Sub
+End Class
+";
+
+            await VerifyVB.VerifyAnalyzerAsync(code);
+        }
     }
 }
