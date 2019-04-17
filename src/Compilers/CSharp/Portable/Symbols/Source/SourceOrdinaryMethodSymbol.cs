@@ -215,6 +215,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_FinalizeMethod, location);
             }
 
+            // Any nullable typeParameter declared by the method in the signature of an override or explicit interface implementation is considered a Nullable<T>
+            if (syntax.ExplicitInterfaceSpecifier != null || IsOverride)
+            {
+                foreach (var param in _lazyParameters)
+                {
+                    forceMethodTypeParametersAsNullable(param.TypeWithAnnotations);
+                }
+                forceMethodTypeParametersAsNullable(_lazyReturnType);
+            }
+
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
@@ -375,6 +385,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckModifiers(_hasAnyBody, location, diagnostics);
+
+            return;
+
+            void forceMethodTypeParametersAsNullable(TypeWithAnnotations type)
+            {
+                type.VisitType<object>(null, (type, unused1, unused2) =>
+                {
+                    if ((type.DefaultType as TypeParameterSymbol)?.DeclaringMethod == (object)this)
+                    {
+                        type.TryForceResolveAsNullableValueType();
+                    }
+                    return false;
+                }, typePredicateOpt: null, arg: null, canDigThroughNullable: false, useDefaultType: true);
+            }
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
@@ -499,6 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constraints = this.MakeTypeParameterConstraintsEarly(
                     withTypeParametersBinder,
                     TypeParameters,
+                    syntax.TypeParameterList,
                     syntax.ConstraintClauses,
                     syntax.Identifier.GetLocation(),
                     diagnostics);
@@ -1156,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
             var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
 
-            return MemberSignatureComparer.HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2);
+            return MemberSignatureComparer.HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2, includingNullability: true);
         }
 
         internal override bool CallsAreOmitted(SyntaxTree syntaxTree)

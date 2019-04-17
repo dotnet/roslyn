@@ -121,6 +121,8 @@ while [[ $# > 0 ]]; do
       ;;
     --bootstrap)
       bootstrap=true
+      # Bootstrap requires restore
+      restore=true
       ;;
     --skipanalyzers)
       skip_analyzers=true
@@ -226,11 +228,6 @@ function BuildSolution {
     disable_parallel_restore=true
   fi
 
-  local quiet_restore=""
-  if [[ "$ci" != true ]]; then
-    quiet_restore=true
-  fi
-
   local test=false
   local test_runtime=""
   local mono_tool=""
@@ -271,8 +268,6 @@ function BuildSolution {
     /p:UseRoslynAnalyzers=$enable_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
-    /p:QuietRestore=$quiet_restore \
-    /p:QuietRestoreBinaryLog="$binary_log" \
     /p:TreatWarningsAsErrors=true \
     /p:RestoreDisableParallel=$disable_parallel_restore \
     $test_runtime \
