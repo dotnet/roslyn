@@ -91877,5 +91877,123 @@ class Derived<T> : Base<T> where T : class
             Assert.False(dGoo.Parameters[0].Type.IsNullableType());
             Assert.True(dGoo.Parameters[0].TypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated);
         }
+
+        [Fact, WorkItem(34299, "https://github.com/dotnet/roslyn/issues/34299")]
+        public void CheckLambdaInArrayInitializer()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static void G(object? o, string s)
+    {
+        Func<object> f = () => o; // 1
+        _ = f /*T:System.Func<object!>!*/;
+        var fa3 = new[] {
+            f,
+            () => o, // 2
+            () => {
+                    s = null; // 3
+                    return null; // 4
+                },
+            };
+        _ = fa3 /*T:System.Func<object!>![]!*/;
+        fa3[0]().ToString();
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (7,32): warning CS8603: Possible null reference return.
+                //         Func<object> f = () => o; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(7, 32),
+                // (11,19): warning CS8603: Possible null reference return.
+                //             () => o, // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(11, 19),
+                // (13,25): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //                     s = null; // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 25),
+                // (14,28): warning CS8603: Possible null reference return.
+                //                     return null; // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(14, 28));
+        }
+
+        [Fact, WorkItem(34299, "https://github.com/dotnet/roslyn/issues/34299")]
+        public void CheckLambdaInSwitchExpression()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static void G(int i, object? o, string s)
+    {
+        Func<object> f = () => o; // 1
+        _ = f /*T:System.Func<object!>!*/;
+        var f2 = i switch {
+            1 => f,
+            2 => () => o, // 2
+            _ => () => {
+                    s = null; // 3
+                    return null; // 4
+                },
+            };
+        _ = f2 /*T:System.Func<object!>!*/;
+        f2().ToString();
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (7,32): warning CS8603: Possible null reference return.
+                //         Func<object> f = () => o; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(7, 32),
+                // (11,24): warning CS8603: Possible null reference return.
+                //             2 => () => o, // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(11, 24),
+                // (13,25): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //                     s = null; // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 25),
+                // (14,28): warning CS8603: Possible null reference return.
+                //                     return null; // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(14, 28));
+        }
+
+        [Fact, WorkItem(34299, "https://github.com/dotnet/roslyn/issues/34299")]
+        public void CheckLambdaInLambdaInference()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static Func<T> M<T>(Func<T> f) => f;
+    static void G(int i, object? o, string? s)
+    {
+        if (o == null) return;
+        var f = M(() => o);
+        var f2 = M(() => {
+                if (i == 1) return f;
+                if (i == 2) return () => s; // 1
+                return () => {
+                        return s; // 2
+                    };
+            });
+        f2().ToString();
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,42): warning CS8603: Possible null reference return.
+                //                 if (i == 2) return () => s; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "s").WithLocation(12, 42),
+                // (14,32): warning CS8603: Possible null reference return.
+                //                         return s; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "s").WithLocation(14, 32));
+        }
     }
 }
