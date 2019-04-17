@@ -1841,12 +1841,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < n; i++)
                 {
                     // collect expressions, conversions and result types
-                    (BoundExpression expression, Conversion conversion) = RemoveConversion(expressions[i], includeExplicitConversions: false);
+                    var expressionWithConversion = expressions[i];
+                    (BoundExpression expression, Conversion conversion) = RemoveConversion(expressionWithConversion, includeExplicitConversions: false);
                     expressions[i] = expression;
                     conversions.Add(conversion);
                     var resultType = VisitRvalueWithState(expression);
                     resultTypes.Add(resultType);
-                    TrackInferredTypesThroughConversions(expressions[i], expression, _visitResult);
+                    TrackInferredTypesThroughConversions(expressionWithConversion, expression, _visitResult);
                 }
 
                 var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
@@ -2643,9 +2644,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetState(state);
                 Debug.Assert(!node.IsRef);
 
-                (operand, conversion) = RemoveConversion(operand, includeExplicitConversions: false);
-                Visit(operand);
-                return (operand, conversion, ResultType);
+                BoundExpression operandNoConversion;
+                (operandNoConversion, conversion) = RemoveConversion(operand, includeExplicitConversions: false);
+                Visit(operandNoConversion);
+                TrackInferredTypesThroughConversions(operand, operandNoConversion, _visitResult);
+                return (operandNoConversion, conversion, ResultType);
             }
 
             (TypeWithAnnotations LValueType, TypeWithState RValueType) visitConditionalRefOperand(LocalState state, BoundExpression operand)

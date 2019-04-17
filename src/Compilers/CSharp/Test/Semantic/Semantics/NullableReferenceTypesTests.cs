@@ -23979,6 +23979,14 @@ class C<T>
         [Fact]
         public void ConditionalOperator_15()
         {
+            // We likely shouldn't be warning on the x[0] access, as code is an error. However, we currently do
+            // because of fallout from https://github.com/dotnet/roslyn/issues/34158: when we calculate the
+            // type of new[] { x }, the type of the BoundLocal x is ErrorType var, but the type of the local
+            // symbol is ErrorType var[]. VisitLocal prefers the type of the BoundLocal, and so the
+            // new[] { x } expression is calculcated to have a final type of ErrorType var[]. The default is
+            // target typed to ErrorType var[] as well, and the logic in VisitConditionalOperator therefore
+            // uses that type as the final type of the expression. This calculation succeeded, so that result
+            // is stored as the current nullability of x, causing us to warn on the subsequent line.
             var source =
 @"class Program
 {
@@ -23995,7 +24003,10 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(5, 29),
                 // (5,29): error CS0165: Use of unassigned local variable 'x'
                 //         var x = b ? new[] { x } : default;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(5, 29));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(5, 29),
+                // (6,9): warning CS8602: Dereference of a possibly null reference.
+                //         x[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 9));
         }
 
         [Fact]
@@ -48529,13 +48540,13 @@ class Program
 {
     static void F()
     {
-        _ = default/*T:<null>!*/.ToString();
+        _ = default/*T:<null>?*/.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,33): error CS0023: Operator '.' cannot be applied to operand of type 'default'
-                //         _ = default/*T:<null>!*/.ToString();
+                //         _ = default/*T:<null>?*/.ToString();
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(5, 33));
             comp.VerifyTypes();
         }
