@@ -111,7 +111,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleTo Include="RoslynETAHost" WorkItem="https://github.com/dotnet/roslyn/issues/35072" />
     <InternalsVisibleTo Include="RoslynTaoActions" WorkItem="https://github.com/dotnet/roslyn/issues/35072" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ErrorList.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
