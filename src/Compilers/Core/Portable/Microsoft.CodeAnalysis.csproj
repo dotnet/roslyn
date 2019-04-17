@@ -83,7 +83,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Test.Utilities" />
-    <InternalsVisibleTo Include="Roslyn.Compilers.CSharp.Test.Utilities.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests" />
@@ -104,9 +103,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Test.Utilities.CoreClr" />
-    <InternalsVisibleTo Include="Roslyn.Test.Utilities.Desktop" />
-    <InternalsVisibleTo Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleTo Include="Roslyn.Test.Utilities" />
     <InternalsVisibleTo Include="Roslyn.Test.PdbUtilities" />
     <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
