@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
             var newCompilationUnit = placement == AddImportPlacement.InsideNamespace
                 ? MoveUsingsInsideNamespace(compilationUnitWithoutHeader, warningAnnotation)
-                : MoveUsingsOutsideNamespace(compilationUnitWithoutHeader, warningAnnotation);
+                : MoveUsingsOutsideNamespaces(compilationUnitWithoutHeader, warningAnnotation);
 
             // Re-attach the header now that using have been moved and LeadingTrivia is no longer being altered.
             var newCompilationUnitWithHeader = AddFileHeader(newCompilationUnit, fileHeader);
@@ -148,25 +148,46 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             return compilationUnitWithoutBlankLine.ReplaceNode(namespaceDeclaration, namespaceDeclarationWithUsings);
         }
 
-        private static CompilationUnitSyntax MoveUsingsOutsideNamespace(CompilationUnitSyntax compilationUnit, SyntaxAnnotation warningAnnotation)
+        private static CompilationUnitSyntax MoveUsingsOutsideNamespaces(CompilationUnitSyntax compilationUnit, SyntaxAnnotation warningAnnotation)
         {
-            var namespaceDeclaration = compilationUnit.Members.OfType<NamespaceDeclarationSyntax>().First();
+            var namespaceDeclarations = compilationUnit.Members.OfType<NamespaceDeclarationSyntax>();
+            var namespaceDeclarationMap = namespaceDeclarations.ToDictionary(
+                namespaceDeclaration => namespaceDeclaration, namespaceDeclaration => RemoveUsingsFromNamespace(namespaceDeclaration));
 
-            // Get the namespace declaration usings and set them up to format when moved.
-            var usingsToAdd = namespaceDeclaration.Usings.Select(
-                directive => directive.WithAdditionalAnnotations(Formatter.Annotation, warningAnnotation));
+            // Replace the namespace declarations in the compilation with the ones without using directives.
+            var compilationUnitWithReplacedNamespaces = compilationUnit.ReplaceNodes(
+                namespaceDeclarations, (node, _) => namespaceDeclarationMap[node].namespaceWithoutUsings);
 
-            // Remove usings and fix leading trivia for namespace declaration.
-            var namespaceDeclarationWithoutUsings = namespaceDeclaration.WithUsings(default);
-            var namespaceDeclarationWithoutBlankLine = RemoveLeadingBlankLinesFromFirstMember(namespaceDeclarationWithoutUsings);
-            var compilationUnitWithReplacedNamespace = compilationUnit.ReplaceNode(namespaceDeclaration, namespaceDeclarationWithoutBlankLine);
+            // Get the using directives from the namespaces and set them up to format when moved.
+            var usingsToAdd = namespaceDeclarationMap.Values.SelectMany(result => result.usingsFromNamespace)
+                .Select(directive => directive.WithAdditionalAnnotations(Formatter.Annotation, warningAnnotation));
 
             // Update the compilation unit with the usings from the namespace declaration.
-            var newUsings = compilationUnitWithReplacedNamespace.Usings.AddRange(usingsToAdd);
-            var compilationUnitWithUsings = compilationUnitWithReplacedNamespace.WithUsings(newUsings);
+            var newUsings = compilationUnitWithReplacedNamespaces.Usings.AddRange(usingsToAdd);
+            var compilationUnitWithUsings = compilationUnitWithReplacedNamespaces.WithUsings(newUsings);
 
             // Fix the leading trivia for the compilation unit. 
             return EnsureLeadingBlankLineBeforeFirstMember(compilationUnitWithUsings);
+        }
+
+        private static (NamespaceDeclarationSyntax namespaceWithoutUsings, IEnumerable<UsingDirectiveSyntax> usingsFromNamespace) RemoveUsingsFromNamespace(NamespaceDeclarationSyntax usingContainer)
+        {
+            var namespaceDeclarations = usingContainer.Members.OfType<NamespaceDeclarationSyntax>();
+            var namespaceDeclarationMap = namespaceDeclarations.ToDictionary(
+                namespaceDeclaration => namespaceDeclaration, namespaceDeclaration => RemoveUsingsFromNamespace(namespaceDeclaration));
+
+            // Get the using directives from the namespaces.
+            var usingsFromNamespaces = namespaceDeclarationMap.Values.SelectMany(result => result.usingsFromNamespace);
+            var allUsings = usingContainer.Usings.AsEnumerable().Concat(usingsFromNamespaces);
+
+            // Replace the namespace declarations in the compilation with the ones without using directives.
+            var namespaceDeclarationWithReplacedNamespaces = usingContainer.ReplaceNodes(
+                namespaceDeclarations, (node, _) => namespaceDeclarationMap[node].namespaceWithoutUsings);
+
+            // Remove usings and fix leading trivia for namespace declaration.
+            var namespaceDeclarationWithoutUsings = namespaceDeclarationWithReplacedNamespaces.WithUsings(default);
+            var namespaceDeclarationWithoutBlankLine = RemoveLeadingBlankLinesFromFirstMember(namespaceDeclarationWithoutUsings);
+            return (namespaceDeclarationWithoutBlankLine, allUsings);
         }
 
         private static SyntaxList<MemberDeclarationSyntax> GetMembers(SyntaxNode node)
