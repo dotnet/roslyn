@@ -142,12 +142,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Warning: Moving using directives may produce invalid code and change code meaning..
+        ///   Looks up a localized string similar to Warning: Moving using directives may change code meaning..
         /// </summary>
-        internal static string Warning_colon_Moving_using_directives_may_produce_invalid_code_and_change_code_meaning {
+        internal static string Warning_colon_Moving_using_directives_may_change_code_meaning {
             get {
-                return ResourceManager.GetString("Warning_colon_Moving_using_directives_may_produce_invalid_code_and_change_code_me" +
-                        "aning", resourceCulture);
+                return ResourceManager.GetString("Warning_colon_Moving_using_directives_may_change_code_meaning", resourceCulture);
             }
         }
     }
