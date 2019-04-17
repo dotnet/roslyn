@@ -870,8 +870,8 @@ namespace Microsoft.CodeAnalysis
             cancellationToken.ThrowIfCancellationRequested();
 
             string outputName = GetOutputFileName(compilation, cancellationToken);
-            var finalPeFilePath = Path.Combine(Arguments.OutputDirectory, outputName);
-            var finalPdbFilePath = Arguments.PdbPath ?? Path.ChangeExtension(finalPeFilePath, ".pdb");
+            var finalPeFilePath = Arguments.GetOutputFilePath(outputName);
+            var finalPdbFilePath = Arguments.GetPdbFilePath(outputName);
             var finalXmlFilePath = Arguments.DocumentationPath;
 
             NoThrowStreamDisposer sourceLinkStreamDisposerOpt = null;
@@ -1023,10 +1023,8 @@ namespace Microsoft.CodeAnalysis
 
                     if (success)
                     {
-                        bool emitPdbFile = Arguments.EmitPdb && emitOptions.DebugInformationFormat != Emit.DebugInformationFormat.Embedded;
-
                         var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath);
-                        var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
+                        var pdbStreamProviderOpt = Arguments.EmitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
 
                         string finalRefPeFilePath = Arguments.OutputRefFilePath;
                         var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;
