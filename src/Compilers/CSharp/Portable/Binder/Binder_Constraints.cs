@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal ImmutableArray<TypeParameterConstraintClause> BindTypeParameterConstraintClauses(
             Symbol containingSymbol,
             ImmutableArray<TypeParameterSymbol> typeParameters,
+            TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> clauses,
             DiagnosticBag diagnostics)
         {
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(ordinal >= 0);
                     Debug.Assert(ordinal < n);
 
-                    var constraintClause = this.BindTypeParameterConstraints(name, clause, diagnostics);
+                    var constraintClause = this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, diagnostics);
                     if (results[ordinal] == null)
                     {
                         results[ordinal] = constraintClause;
@@ -81,12 +82,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Add empty values for type parameters without constraint clauses.
+            // Add default values for type parameters without constraint clauses.
             for (int i = 0; i < n; i++)
             {
                 if (results[i] == null)
                 {
-                    results[i] = TypeParameterConstraintClause.Empty;
+                    results[i] = GetDefaultTypeParameterConstraintClause(typeParameterList.Parameters[i]);
                 }
             }
 
@@ -96,14 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind and return a single type parameter constraint clause.
         /// </summary>
-        private TypeParameterConstraintClause BindTypeParameterConstraints(
-            string name, TypeParameterConstraintClauseSyntax constraintClauseSyntax, DiagnosticBag diagnostics)
+        private TypeParameterConstraintClause BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, DiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
             var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             var syntaxBuilder = ArrayBuilder<TypeConstraintSyntax>.GetInstance();
             SeparatedSyntaxList<TypeParameterConstraintSyntax> constraintsSyntax = constraintClauseSyntax.Constraints;
             Debug.Assert(!InExecutableBinder); // Cannot eagerly report diagnostics handled by LazyMissingNonNullTypesContextDiagnosticInfo 
+            bool hasTypeLikeConstraint = false;
 
             for (int i = 0, n = constraintsSyntax.Count; i < n; i++)
             {
@@ -111,6 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (syntax.Kind())
                 {
                     case SyntaxKind.ClassConstraint:
+                        hasTypeLikeConstraint = true;
+
                         if (i != 0)
                         {
                             diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
@@ -135,6 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         continue;
                     case SyntaxKind.StructConstraint:
+                        hasTypeLikeConstraint = true;
+
                         if (i != 0)
                         {
                             diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
@@ -161,6 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     case SyntaxKind.TypeConstraint:
                         {
+                            hasTypeLikeConstraint = true;
+
                             var typeConstraintSyntax = (TypeConstraintSyntax)syntax;
                             var typeSyntax = typeConstraintSyntax.Type;
                             var typeSyntaxKind = typeSyntax.Kind();
@@ -207,7 +214,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (!hasTypeLikeConstraint && !IsNullableEnabled(typeParameterSyntax.Identifier))
+            {
+                constraints |= TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType;
+            }
+
             return TypeParameterConstraintClause.Create(constraints, constraintTypes.ToImmutableAndFree(), syntaxBuilder.ToImmutableAndFree());
+        }
+
+        internal ImmutableArray<TypeParameterConstraintClause> GetDefaultTypeParameterConstraintClauses(TypeParameterListSyntax typeParameterList)
+        {
+            var builder = ArrayBuilder<TypeParameterConstraintClause>.GetInstance(typeParameterList.Parameters.Count);
+
+            foreach (TypeParameterSyntax typeParameterSyntax in typeParameterList.Parameters)
+            {
+                builder.Add(GetDefaultTypeParameterConstraintClause(typeParameterSyntax));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        private TypeParameterConstraintClause GetDefaultTypeParameterConstraintClause(TypeParameterSyntax typeParameterSyntax)
+        {
+            return IsNullableEnabled(typeParameterSyntax.Identifier) ? TypeParameterConstraintClause.Empty : TypeParameterConstraintClause.ObliviousNullabilityIfReferenceType;
         }
 
         /// <summary>

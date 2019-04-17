@@ -7538,19 +7538,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!candidate.IsStatic &&
                             candidate is PropertySymbol property &&
-                            property.GetOwnOrInheritedGetMethod() is MethodSymbol getMethod &&
-                            IsAccessible(getMethod, ref useSiteDiagnostics) &&
-                            getMethod.OriginalDefinition is var original &&
-                            original.ParameterCount == 1 &&
+                            IsAccessible(property, ref useSiteDiagnostics) &&
+                            property.OriginalDefinition is { ParameterCount: 1 } original &&
                             isIntNotByRef(original.Parameters[0]))
                         {
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,
                                 lengthOrCountProperty,
-                                getMethod,
+                                property,
                                 arguments[0],
-                                getMethod.ReturnType);
+                                property.Type);
                             cleanup(lookupResult, ref useSiteDiagnostics);
                             return true;
                         }
