@@ -52,9 +52,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
             }
 
-            using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
+            var telemetryCounter = new TelemetryCounter();
+            using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, KeyValueLogMessage.Create(telemetryCounter.SetProperty), cancellationToken))
             {
-                await AddCompletionItemsAsync(completionContext, syntaxContext, cancellationToken).ConfigureAwait(false);
+                await AddCompletionItemsAsync(completionContext, syntaxContext, telemetryCounter, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isTypeImportCompletionExperimentEnabled == true;
         }
 
-        private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, CancellationToken cancellationToken)
+        private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
         {
             var document = completionContext.Document;
             var project = document.Project;
@@ -86,7 +87,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .ConfigureAwait(false);
 
             // Get declarations from directly referenced projects and PEs
-            foreach (var assembly in compilation.GetReferencedAssemblySymbols())
+            var referencedAssemblySymbols = compilation.GetReferencedAssemblySymbols();
+            foreach (var assembly in referencedAssemblySymbols)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -115,6 +117,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
+            telemetryCounter.ReferenceCount = referencedAssemblySymbols.Length;
+
             return;
 
             // Decide which item handler to use based on IVT
@@ -125,13 +129,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Add only public types to completion list
             void HandlePublicItem(TypeImportCompletionItemInfo itemInfo)
-                => AddItems(itemInfo, isInternalsVisible: false, completionContext, namespacesInScope);
+                => AddItems(itemInfo, isInternalsVisible: false, completionContext, namespacesInScope, telemetryCounter);
 
             // Add both public and internal types to completion list
             void HandlePublicAndInternalItem(TypeImportCompletionItemInfo itemInfo)
-                => AddItems(itemInfo, isInternalsVisible: true, completionContext, namespacesInScope);
+                => AddItems(itemInfo, isInternalsVisible: true, completionContext, namespacesInScope, telemetryCounter);
 
-            static void AddItems(TypeImportCompletionItemInfo itemInfo, bool isInternalsVisible, CompletionContext completionContext, HashSet<string> namespacesInScope)
+            static void AddItems(TypeImportCompletionItemInfo itemInfo, bool isInternalsVisible, CompletionContext completionContext, HashSet<string> namespacesInScope, TelemetryCounter counter)
             {
                 if (itemInfo.IsPublic || isInternalsVisible)
                 {
@@ -144,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         // the provider can not be used as a service by components that might be run in parallel 
                         // with completion, which would be a race.
                         completionContext.AddItem(itemInfo.Item);
+                        counter.ItemsCount++; ;
                     }
                 }
             }
@@ -237,5 +242,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => TypeImportCompletionItem.GetCompletionDescriptionAsync(document, item, cancellationToken);
+
+        private class TelemetryCounter
+        {
+            public int ReferenceCount { get; set; }
+            public int ItemsCount { get; set; }
+
+            public void SetProperty(Dictionary<string, object> map)
+            {
+                map[nameof(ItemsCount)] = ItemsCount;
+                map[nameof(ReferenceCount)] = ReferenceCount;
+            }
+        }
     }
 }

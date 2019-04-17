@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string PotentialCommitCharacters = nameof(PotentialCommitCharacters);
         internal const string ExcludedCommitCharacters = nameof(ExcludedCommitCharacters);
         internal const string NonBlockingCompletion = nameof(NonBlockingCompletion);
+        internal const string TypeImportCompletionEnabled = nameof(TypeImportCompletionEnabled);
 
         private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray =
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element));
@@ -101,6 +103,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
             _textView.Properties[PotentialCommitCharacters] = service.GetRules().DefaultCommitCharacters;
 
+            // For telemetry reporting during the completion session
+            var isTypeImportEnababled = IsTypeImportCompletionEnabled(document);
+            _textView.Properties[TypeImportCompletionEnabled] = isTypeImportEnababled;
+            if (isTypeImportEnababled)
+            {
+                AsyncCompletionLogger.LogSessionWithTypeImportCompletionEnabled();
+            }
+
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
             return ShouldTriggerCompletion(trigger, triggerLocation, sourceText, document, service)
@@ -110,6 +120,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         triggerLocation.Snapshot,
                         service.GetDefaultCompletionListSpan(sourceText, triggerLocation.Position).ToSpan()))
                 : AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
+
+            static bool IsTypeImportCompletionEnabled(Document document)
+            {
+                var workspace = document.Project.Solution.Workspace;
+                var importCompletionOptionValue = workspace.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
+                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                var importCompletionExperimentValue = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion);
+
+                return importCompletionOptionValue == true || (importCompletionOptionValue == null && importCompletionExperimentValue);
+            }
         }
 
         private bool ShouldTriggerCompletion(

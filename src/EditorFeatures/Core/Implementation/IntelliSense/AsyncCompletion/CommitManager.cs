@@ -141,6 +141,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
+            // Telemetry
+            if (session.TextView.Properties.TryGetProperty(CompletionSource.TypeImportCompletionEnabled, out bool isTyperImportCompletionEnabled) && isTyperImportCompletionEnabled)
+            {
+                AsyncCompletionLogger.LogCommitWithTypeImportCompletionEnabled();
+
+                if (roslynItem.ProviderName == "TypeImportCompletionProvider")
+                {
+                    AsyncCompletionLogger.LogCommitTypeImportCompletionItem();
+                }
+            }
+
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
