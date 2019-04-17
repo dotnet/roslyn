@@ -2744,7 +2744,7 @@ public class SomeClass : Base
                 var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
                 var completionItem = completionList.Items.Where(c => c.DisplayText == "M(in int x)").Single();
 
-                var commit = await service.GetChangeAsync(document, completionItem, commitKey: null, CancellationToken.None);
+                var commit = await service.GetChangeAsync(document, completionItem, completionList.Span, commitKey: null, CancellationToken.None);
 
                 var text = await document.GetTextAsync();
                 var newText = text.WithChanges(commit.TextChange);

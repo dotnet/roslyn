@@ -1249,6 +1249,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show items from unimported namespaces (experimental).
+        /// </summary>
+        internal static string Show_items_from_unimported_namespaces {
+            get {
+                return ResourceManager.GetString("Show_items_from_unimported_namespaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show name s_uggestions.
         /// </summary>
         internal static string Show_name_suggestions {
