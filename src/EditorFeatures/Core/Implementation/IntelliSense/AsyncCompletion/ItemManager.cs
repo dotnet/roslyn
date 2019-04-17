@@ -243,18 +243,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             //     have just typed the character to get completion.  Filtering out items
             //     here is not desirable.
             //
-            //  2. They brough up completion with ctrl-j or through deletion.  In these
+            //  2. They brought up completion with ctrl-j or through deletion.  In these
             //     cases we just always keep all the items in the list.
             if (matchesFilterText ||
                 initialRoslynTriggerKind == CompletionTriggerKind.Deletion ||
                 initialRoslynTriggerKind == CompletionTriggerKind.Invoke ||
                 filterText.Length <= 1)
             {
-                if (matchedSpans.IsEmpty && highlightMatchingPortions)
-                {
-                    matchedSpans = completionHelper.GetHighlightedSpans(item.FilterText, filterText, CultureInfo.CurrentCulture);
-                }
-
                 extendedFilterResult = new ExtendedFilterResult(
                     new CompletionItemWithHighlight(item, matchedSpans.Select(s => s.ToSpan()).ToImmutableArray()),
                     new FilterResult(roslynItem, matchedFilterText: matchesFilterText));
@@ -579,6 +574,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (filterReason == CompletionFilterReason.Deletion &&
                 initialTriggerKind == CompletionTriggerKind.Deletion)
             {
+                if (includeMatchSpans)
+                {
+                    matchedSpans = helper.GetHighlightedSpans(item.FilterText, filterText, CultureInfo.CurrentCulture);
+                }
+
                 return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
             }
 
