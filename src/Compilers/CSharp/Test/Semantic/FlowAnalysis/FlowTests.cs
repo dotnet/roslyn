@@ -132,7 +132,7 @@ class C
         switch (S)
         {
             case ""def"":
-                return S;
+                return S; // 1
             default:
                 return S;
         }
@@ -143,7 +143,7 @@ class C
         switch (S)
         {
             case ""def"":
-                return S;
+                return S; // 2
         }
         // error
     }
@@ -152,24 +152,24 @@ class C
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (40,17): warning CS0162: Unreachable code detected
-                //                 return S;
+                //                 return S; // 1
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(40, 17),
                 // (46,26): error CS0161: 'C.M5()': not all code paths return a value
                 //     public static string M5()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M5").WithArguments("C.M5()").WithLocation(46, 26),
                 // (51,17): warning CS0162: Unreachable code detected
-                //                 return S;
+                //                 return S; // 2
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(51, 17));
             comp = CreateCompilation(src, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
                 // (40,17): warning CS0162: Unreachable code detected
-                //                 return S;
+                //                 return S; // 1
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(40, 17),
                 // (46,26): error CS0161: 'C.M5()': not all code paths return a value
                 //     public static string M5()
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "M5").WithArguments("C.M5()").WithLocation(46, 26),
                 // (51,17): warning CS0162: Unreachable code detected
-                //                 return S;
+                //                 return S; // 2
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(51, 17));
         }
 
