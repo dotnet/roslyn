@@ -61,6 +61,7 @@ namespace BuildBoss
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
                 allGood &= CheckPackageReferences(textWriter);
+                allGood &= CheckInternalsVisibleTo(textWriter);
                 allGood &= CheckDeploymentSettings(textWriter);
             }
             else if (ProjectType == ProjectFileType.Tool)
@@ -229,6 +230,36 @@ namespace BuildBoss
                 {
                     textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
                     textWriter.WriteLine($"Allowed values are {floatingName} or {fixedName}");
+                    allGood = false;
+                }
+            }
+
+            return allGood;
+        }
+
+        private bool CheckInternalsVisibleTo(TextWriter textWriter)
+        {
+            var allGood = true;
+            foreach (var internalsVisibleTo in _projectUtil.GetInternalsVisibleTo())
+            {
+                if (string.Equals(internalsVisibleTo.LoadsWithinVisualStudio, "false", StringComparison.OrdinalIgnoreCase))
+                {
+                    // IVTs explicitly declared with LoadsWithinVisualStudio="false" are allowed
+                    continue;
+                }
+
+                if (_projectUtil.Key.FileName.StartsWith("Microsoft.CodeAnalysis.ExternalAccess."))
+                {
+                    // External access layer may have external IVTs
+                    continue;
+                }
+
+                var builtByThisRepository = _solutionMap.Keys.Any(projectKey =>
+                    projectKey.FileName == $"{internalsVisibleTo.TargetAssembly}.csproj"
+                    || projectKey.FileName == $"{internalsVisibleTo.TargetAssembly}.vbproj");
+                if (!builtByThisRepository)
+                {
+                    textWriter.WriteLine($"InternalsVisibleTo not allowed for external assembly '{internalsVisibleTo.TargetAssembly}' that may load within Visual Studio.");
                     allGood = false;
                 }
             }
