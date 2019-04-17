@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp;
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class MisplacedUsingDirectivesInCompilationDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal sealed class MisplacedUsingDirectivesInCompilationDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
             nameof(CSharpEditorResources.Using_directives_must_be_placed_inside_of_a_namespace_declaration), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));

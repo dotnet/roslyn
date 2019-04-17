@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp;
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal sealed class MisplacedUsingDirectivesInNamespaceDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         private static readonly LocalizableResourceString s_localizableOutsideMessage = new LocalizableResourceString(
             nameof(CSharpEditorResources.Using_directives_must_be_placed_outside_of_a_namespace_declaration), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));

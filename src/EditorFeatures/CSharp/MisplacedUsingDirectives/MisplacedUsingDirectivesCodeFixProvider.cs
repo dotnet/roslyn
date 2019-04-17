@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            // Read the preffered placement option and verify if it can be applied to this code file.
+            // Read the preferred placement option and verify if it can be applied to this code file.
             // There are cases where we will not be able to fix the diagnostic and the user will need to resolve
             // it manually.
             var (placement, preferPreservation) = DeterminePlacement(compilationUnit, options);
@@ -99,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private static async Task<SyntaxNode> ExpandUsingDirectivesAsync(Document document, CompilationUnitSyntax containerNode, CancellationToken cancellationToken)
         {
             // Get all using directives so they can be expanded at one time.
-            var namespaceDeclarations = GetMembers(containerNode).OfType<NamespaceDeclarationSyntax>();
-            var allUsingDirectives = namespaceDeclarations.SelectMany(GetUsingDirectives).Concat(containerNode.Usings);
+            var allUsingDirectives = containerNode.DescendantNodes(
+                node => node.IsKind(SyntaxKind.CompilationUnit, SyntaxKind.NamespaceDeclaration)).OfType<UsingDirectiveSyntax>();
 
             // Create a map between the original node and the future expanded node.
             var expandUsingDirectiveTasks = allUsingDirectives.ToDictionary(
@@ -114,12 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             return ((SyntaxNode)containerNode).ReplaceNodes(
                 expandUsingDirectiveTasks.Keys,
                 (node, _) => expandUsingDirectiveTasks[node].Result);
-        }
-
-        private static IEnumerable<UsingDirectiveSyntax> GetUsingDirectives(NamespaceDeclarationSyntax namespaceDeclaration)
-        {
-            var namespaceDeclarations = namespaceDeclaration.Members.OfType<NamespaceDeclarationSyntax>();
-            return namespaceDeclarations.SelectMany(GetUsingDirectives).Concat(namespaceDeclaration.Usings);
         }
 
         private static async Task<SyntaxNode> ExpandUsingDirectiveAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
@@ -253,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
             if (preferPreservation || placement == AddImportPlacement.OutsideNamespace)
             {
-                return (codeStyleOption.Value, preferPreservation);
+                return (placement, preferPreservation);
             }
 
             // Determine if we can safely apply the InsideNamespace preference.
@@ -269,21 +263,18 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             // - There is only a single namespace declared at the top level
             var forcePreservation = compilationUnit.AttributeLists.Any()
                 || compilationUnit.Members.Count > 1
-                || CountNamespaces(compilationUnit.Members) != 1;
+                || !HasOneNamespace(compilationUnit);
 
             return (AddImportPlacement.InsideNamespace, forcePreservation);
         }
 
-        private static int CountNamespaces(SyntaxList<MemberDeclarationSyntax> members)
+        private static bool HasOneNamespace(CompilationUnitSyntax compilationUnit)
         {
-            var result = 0;
+            // Find all the NamespaceDeclarations
+            var allNamespaces = compilationUnit.DescendantNodes(
+                node => node.IsKind(SyntaxKind.CompilationUnit, SyntaxKind.NamespaceDeclaration)).OfType<NamespaceDeclarationSyntax>();
 
-            foreach (var namespaceDeclaration in members.OfType<NamespaceDeclarationSyntax>())
-            {
-                result += 1 + CountNamespaces(namespaceDeclaration.Members);
-            }
-
-            return result;
+            return allNamespaces.Take(2).Count() == 1;
         }
 
         private static (CompilationUnitSyntax compilationUnitWithoutHeader, ImmutableArray<SyntaxTrivia> header) RemoveFileHeader(
