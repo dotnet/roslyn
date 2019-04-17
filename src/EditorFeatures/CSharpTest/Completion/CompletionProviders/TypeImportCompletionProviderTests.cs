@@ -1,15 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [UseExportProvider]
     public class TypeImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         public TypeImportCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
@@ -29,10 +35,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue);
         }
 
+        ExportProvider _exportProvider = null;
+        protected override ExportProvider ExportProvider
+        {
+            get
+            {
+                if (_exportProvider == null)
+                {
+                    _exportProvider = ExportProviderCache
+                        .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(MockTypeImportCompletionExperimentationService)))
+                        .CreateExportProvider();
+                }
+                return _exportProvider;
+            }
+        }
+
         #region "Option tests"
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToNull()
+        public async Task OptionSetToNull_ExpEnabled()
+        {
+            var mockExperimentService = ExportProvider.GetExportedValue<MockTypeImportCompletionExperimentationService>();
+            mockExperimentService.ExperimentEnabled = true;
+
+            ShowImportCompletionItemsOptionValue = null;
+
+            var markup = @"
+class Bar
+{
+     $$
+}";
+
+            await VerifyAnyItemExistsAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task OptionSetToNull_ExpDisabled()
         {
             ShowImportCompletionItemsOptionValue = null;
             var markup = @"
@@ -44,10 +82,16 @@ class Bar
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToFalse()
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task OptionSetToFalse(bool isExperimentEnabled)
         {
+            var mockExperimentService = ExportProvider.GetExportedValue<MockTypeImportCompletionExperimentationService>();
+            mockExperimentService.ExperimentEnabled = isExperimentEnabled;
+
             ShowImportCompletionItemsOptionValue = false;
+
             var markup = @"
 class Bar
 {
@@ -57,10 +101,16 @@ class Bar
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToTrue()
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task OptionSetToTrue(bool isExperimentEnabled)
         {
+            var mockExperimentService = ExportProvider.GetExportedValue<MockTypeImportCompletionExperimentationService>();
+            mockExperimentService.ExperimentEnabled = isExperimentEnabled;
+
             ShowImportCompletionItemsOptionValue = true;
+
             var markup = @"
 class Bar
 {
@@ -815,6 +865,19 @@ namespace Baz
         private Task VerifyTypeImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
         {
             return VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
+        }
+
+        [Shared]
+        [Export(typeof(MockTypeImportCompletionExperimentationService))]
+        [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test)]
+        private class MockTypeImportCompletionExperimentationService : IExperimentationService
+        {
+            public bool ExperimentEnabled { get; set; } = false;
+
+            public bool IsExperimentEnabled(string experimentName)
+            {
+                return ExperimentEnabled && WellKnownExperimentNames.TypeImportCompletion.Equals(experimentName);
+            }
         }
     }
 }

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -149,12 +150,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
+        protected virtual ExportProvider ExportProvider => null;
+
         private Task VerifyAsync(
             string markup, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionModeItem, string displayTextSuffix, string inlineDescription)
         {
-            var workspace = WorkspaceFixture.GetWorkspace(markup);
+            var workspace = WorkspaceFixture.GetWorkspace(markup, ExportProvider);
             var code = WorkspaceFixture.Code;
             var position = WorkspaceFixture.Position;
             SetWorkspaceOptions(workspace);
