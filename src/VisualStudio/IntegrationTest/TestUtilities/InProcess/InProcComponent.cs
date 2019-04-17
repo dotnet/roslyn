@@ -47,11 +47,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        protected static void BeginInvokeOnUIThread(Action action)
-#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.BeginInvoke(action, DispatcherPriority.Background);
-#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
-
         protected static void InvokeOnUIThread(Action<CancellationToken> action)
         {
             using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);

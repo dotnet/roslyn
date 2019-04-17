@@ -346,12 +346,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        /// <summary>
-        /// Non-blocking version of <see cref="ExecuteOnActiveView"/>
-        /// </summary>
-        private void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
-            => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
-
         private Func<IWpfTextView, Task> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
         {
             return async view =>
