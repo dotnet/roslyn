@@ -587,7 +587,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     // The active text view might not have finished composing yet, waiting for the application to 'idle'
                     // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
-                    WaitForApplicationIdle();
+                    WaitForApplicationIdle(Helper.HangMitigatingTimeout);
 
                     var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
                     var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);

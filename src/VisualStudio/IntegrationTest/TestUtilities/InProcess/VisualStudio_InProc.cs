@@ -15,8 +15,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static VisualStudio_InProc Create()
             => new VisualStudio_InProc();
 
-        new public void WaitForApplicationIdle()
-            => InProcComponent.WaitForApplicationIdle();
+        public new void WaitForApplicationIdle(TimeSpan timeout)
+            => InProcComponent.WaitForApplicationIdle(timeout);
 
         new public void WaitForSystemIdle()
             => InProcComponent.WaitForSystemIdle();

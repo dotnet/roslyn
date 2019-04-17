@@ -89,9 +89,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// <summary>
         /// Waiting for the application to 'idle' means that it is done pumping messages (including WM_PAINT).
         /// </summary>
-        protected static void WaitForApplicationIdle()
+        protected static void WaitForApplicationIdle(TimeSpan timeout)
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+            => CurrentApplicationDispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle).Wait(timeout);
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         protected static void WaitForSystemIdle()
