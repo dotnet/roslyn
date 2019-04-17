@@ -84,9 +84,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             // Remove the file header from the compilation unit so that we do not lose it when making changes to usings.
             var (compilationUnitWithoutHeader, fileHeader) = RemoveFileHeader(compilationUnitWithExpandedUsings, syntaxFactsService);
 
+            // A blanket warning that this codefix may change code so that it does not compile.
+            var warningAnnotation = WarningAnnotation.Create(CSharpEditorResources.Warning_colon_Moving_using_directives_may_produce_invalid_code_and_change_code_meaning);
+
             var newCompilationUnit = placement == AddImportPlacement.InsideNamespace
-                ? MoveUsingsInsideNamespace(compilationUnitWithoutHeader)
-                : MoveUsingsOutsideNamespace(compilationUnitWithoutHeader);
+                ? MoveUsingsInsideNamespace(compilationUnitWithoutHeader, warningAnnotation)
+                : MoveUsingsOutsideNamespace(compilationUnitWithoutHeader, warningAnnotation);
 
             // Re-attach the header now that using have been moved and LeadingTrivia is no longer being altered.
             var newCompilationUnitWithHeader = AddFileHeader(newCompilationUnit, fileHeader);
@@ -123,11 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             return usingDirective.WithName(newName);
         }
 
-        private static CompilationUnitSyntax MoveUsingsInsideNamespace(CompilationUnitSyntax compilationUnit)
+        private static CompilationUnitSyntax MoveUsingsInsideNamespace(CompilationUnitSyntax compilationUnit, SyntaxAnnotation warningAnnotation)
         {
             // Get the compilation unit usings and set them up to format when moved.
             var usingsToAdd = compilationUnit.Usings.Select(
-                directive => directive.WithAdditionalAnnotations(Formatter.Annotation));
+                directive => directive.WithAdditionalAnnotations(Formatter.Annotation, warningAnnotation));
 
             // Remove usings and fix leading trivia for compilation unit.
             var compilationUnitWithoutUsings = compilationUnit.WithUsings(default);
@@ -145,13 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             return compilationUnitWithoutBlankLine.ReplaceNode(namespaceDeclaration, namespaceDeclarationWithUsings);
         }
 
-        private static CompilationUnitSyntax MoveUsingsOutsideNamespace(CompilationUnitSyntax compilationUnit)
+        private static CompilationUnitSyntax MoveUsingsOutsideNamespace(CompilationUnitSyntax compilationUnit, SyntaxAnnotation warningAnnotation)
         {
             var namespaceDeclaration = compilationUnit.Members.OfType<NamespaceDeclarationSyntax>().First();
 
             // Get the namespace declaration usings and set them up to format when moved.
             var usingsToAdd = namespaceDeclaration.Usings.Select(
-                directive => directive.WithAdditionalAnnotations(Formatter.Annotation));
+                directive => directive.WithAdditionalAnnotations(Formatter.Annotation, warningAnnotation));
 
             // Remove usings and fix leading trivia for namespace declaration.
             var namespaceDeclarationWithoutUsings = namespaceDeclaration.WithUsings(default);

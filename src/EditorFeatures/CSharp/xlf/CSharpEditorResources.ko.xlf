@@ -47,6 +47,11 @@
         <target state="new">Using directives must be placed outside of a namespace declaration</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Warning_colon_Moving_using_directives_may_produce_invalid_code_and_change_code_meaning">
+        <source>Warning: Moving using directives may produce invalid code and change code meaning.</source>
+        <target state="new">Warning: Moving using directives may produce invalid code and change code meaning.</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
     </body>
   </file>
 </xliff>

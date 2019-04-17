@@ -140,5 +140,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
                 return ResourceManager.GetString("Using_directives_must_be_placed_outside_of_a_namespace_declaration", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Moving using directives may produce invalid code and change code meaning..
+        /// </summary>
+        internal static string Warning_colon_Moving_using_directives_may_produce_invalid_code_and_change_code_meaning {
+            get {
+                return ResourceManager.GetString("Warning_colon_Moving_using_directives_may_produce_invalid_code_and_change_code_me" +
+                        "aning", resourceCulture);
+            }
+        }
     }
 }

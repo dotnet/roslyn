@@ -148,4 +148,8 @@
     <value>Using directives must be placed outside of a namespace declaration</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Warning_colon_Moving_using_directives_may_produce_invalid_code_and_change_code_meaning" xml:space="preserve">
+    <value>Warning: Moving using directives may produce invalid code and change code meaning.</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>
