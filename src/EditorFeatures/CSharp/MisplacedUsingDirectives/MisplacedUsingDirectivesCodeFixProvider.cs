@@ -162,15 +162,27 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var usingsToAdd = namespaceDeclarationMap.Values.SelectMany(result => result.usingsFromNamespace)
                 .Select(directive => directive.WithAdditionalAnnotations(Formatter.Annotation, warningAnnotation));
 
+            var (deduplicatedUsings, orphanedTrivia) = RemoveDuplicateUsings(compilationUnit.Usings, usingsToAdd.ToImmutableArray());
+
             // Update the compilation unit with the usings from the namespace declaration.
-            var newUsings = compilationUnitWithReplacedNamespaces.Usings.AddRange(usingsToAdd);
+            var newUsings = compilationUnitWithReplacedNamespaces.Usings.AddRange(deduplicatedUsings);
             var compilationUnitWithUsings = compilationUnitWithReplacedNamespaces.WithUsings(newUsings);
 
             // Fix the leading trivia for the compilation unit. 
-            return EnsureLeadingBlankLineBeforeFirstMember(compilationUnitWithUsings);
+            var compilationUnitWithSeparatorLine = EnsureLeadingBlankLineBeforeFirstMember(compilationUnitWithUsings);
+
+            if (!orphanedTrivia.Any())
+            {
+                return compilationUnitWithSeparatorLine;
+            }
+
+            // Add leading trivia that was orphaned from removing duplicate using directives to the first member in the compilation unit.
+            var firstMember = compilationUnitWithSeparatorLine.Members[0];
+            return compilationUnitWithSeparatorLine.ReplaceNode(firstMember, firstMember.WithPrependedLeadingTrivia(orphanedTrivia));
         }
 
-        private static (NamespaceDeclarationSyntax namespaceWithoutUsings, IEnumerable<UsingDirectiveSyntax> usingsFromNamespace) RemoveUsingsFromNamespace(NamespaceDeclarationSyntax usingContainer)
+        private static (NamespaceDeclarationSyntax namespaceWithoutUsings, IEnumerable<UsingDirectiveSyntax> usingsFromNamespace) RemoveUsingsFromNamespace(
+            NamespaceDeclarationSyntax usingContainer)
         {
             var namespaceDeclarations = usingContainer.Members.OfType<NamespaceDeclarationSyntax>();
             var namespaceDeclarationMap = namespaceDeclarations.ToDictionary(
@@ -187,7 +199,43 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             // Remove usings and fix leading trivia for namespace declaration.
             var namespaceDeclarationWithoutUsings = namespaceDeclarationWithReplacedNamespaces.WithUsings(default);
             var namespaceDeclarationWithoutBlankLine = RemoveLeadingBlankLinesFromFirstMember(namespaceDeclarationWithoutUsings);
+
             return (namespaceDeclarationWithoutBlankLine, allUsings);
+        }
+
+        private static (IEnumerable<UsingDirectiveSyntax> deduplicatedUsings, IEnumerable<SyntaxTrivia> orphanedTrivia) RemoveDuplicateUsings(
+            IEnumerable<UsingDirectiveSyntax> existingUsings,
+            ImmutableArray<UsingDirectiveSyntax> usingsToAdd)
+        {
+            var seenUsings = existingUsings.ToList();
+
+            var deduplicatedUsingsBuilder = ImmutableArray.CreateBuilder<UsingDirectiveSyntax>();
+            var orphanedTrivia = Enumerable.Empty<SyntaxTrivia>();
+
+            foreach (var usingDirective in usingsToAdd)
+            {
+                // Check is the node is a duplicate.
+                if (seenUsings.Any(seenUsingDirective => seenUsingDirective.IsEquivalentTo(usingDirective, topLevel: false)))
+                {
+                    // If there was trivia from the duplicate node, check if any of the trivia is necessary to keep.
+                    var leadingTrivia = usingDirective.GetLeadingTrivia();
+                    if (leadingTrivia.Any(trivia => !trivia.IsWhitespaceOrEndOfLine()))
+                    {
+                        // Capture the meaningful trivia so we can prepend it to the next kept node.
+                        orphanedTrivia = orphanedTrivia.Concat(leadingTrivia);
+                    }
+                }
+                else
+                {
+                    seenUsings.Add(usingDirective);
+
+                    // Add any orphaned trivia to this node.
+                    deduplicatedUsingsBuilder.Add(usingDirective.WithPrependedLeadingTrivia(orphanedTrivia));
+                    orphanedTrivia = Enumerable.Empty<SyntaxTrivia>();
+                }
+            }
+
+            return (deduplicatedUsingsBuilder.ToImmutable(), orphanedTrivia);
         }
 
         private static SyntaxList<MemberDeclarationSyntax> GetMembers(SyntaxNode node)
@@ -221,23 +269,23 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
             var newFirstMember = firstMember.WithLeadingTrivia(newTrivia);
             return node.ReplaceNode(firstMember, newFirstMember);
+        }
 
-            IEnumerable<IEnumerable<SyntaxTrivia>> SplitIntoLines(SyntaxTriviaList triviaList)
+        private static IEnumerable<IEnumerable<SyntaxTrivia>> SplitIntoLines(SyntaxTriviaList triviaList)
+        {
+            var index = 0;
+            for (var i = 0; i < triviaList.Count; i++)
             {
-                var index = 0;
-                for (var i = 0; i < triviaList.Count; i++)
+                if (triviaList[i].IsEndOfLine())
                 {
-                    if (triviaList[i].IsEndOfLine())
-                    {
-                        yield return triviaList.TakeRange(index, i);
-                        index = i + 1;
-                    }
+                    yield return triviaList.TakeRange(index, i);
+                    index = i + 1;
                 }
+            }
 
-                if (index < triviaList.Count)
-                {
-                    yield return triviaList.TakeRange(index, triviaList.Count - 1);
-                }
+            if (index < triviaList.Count)
+            {
+                yield return triviaList.TakeRange(index, triviaList.Count - 1);
             }
         }
 
@@ -298,6 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             var allNamespaces = compilationUnit.DescendantNodes(
                 node => node.IsKind(SyntaxKind.CompilationUnit, SyntaxKind.NamespaceDeclaration)).OfType<NamespaceDeclarationSyntax>();
 
+            // To determine if there are multiple namespaces we only need to look for at least two.
             return allNamespaces.Take(2).Count() == 1;
         }
 
