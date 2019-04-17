@@ -2191,7 +2191,7 @@ namespace PushUpTest
 
     public class Testclass2 : Base2
     {
-        private static event EventHandler Event1, Eve[||]nt3, Event4;
+        private event EventHandler Event1, Eve[||]nt3, Event4;
     }
 }";
             var expected = @"
@@ -2200,12 +2200,12 @@ namespace PushUpTest
 {
     public abstract class Base2
     {
-        private static abstract event EventHandler Event3;
+        private abstract event EventHandler Event3;
     }
 
     public class Testclass2 : Base2
     {
-        private static event EventHandler Event1, Eve[||]nt3, Event4;
+        private event EventHandler Event1, Eve[||]nt3, Event4;
     }
 }";
             await TestWithPullMemberDialogAsync(testText, expected, selection: new[] { ("Event3", true) }, index: 1);
