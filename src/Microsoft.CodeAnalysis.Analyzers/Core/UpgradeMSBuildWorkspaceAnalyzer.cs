@@ -38,7 +38,9 @@ namespace Microsoft.CodeAnalysis.Analyzers
             _performAssemblyChecks = performAssemblyChecks;
         }
 
+#pragma warning disable RS1025 // Configure generated code analysis
         public override void Initialize(AnalysisContext context)
+#pragma warning restore RS1025 // Configure generated code analysis
         {
             if (_performAssemblyChecks)
             {

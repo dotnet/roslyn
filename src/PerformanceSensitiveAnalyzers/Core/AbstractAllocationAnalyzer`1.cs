@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
         protected override void AnalyzeNode(OperationAnalysisContext context, in PerformanceSensitiveInfo info) { }
 
+#pragma warning disable RS1025 // Configure generated code analysis
         public override void Initialize(AnalysisContext context)
+#pragma warning restore RS1025 // Configure generated code analysis
         {
             context.RegisterCompilationStartAction(compilationStartContext =>
             {
