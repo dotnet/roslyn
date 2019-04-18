@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <_DependentAssemblyVersionsFile>$(DevDivPackagesDir)DependentAssemblyVersions.csv</_DependentAssemblyVersionsFile>
+    <_DependentAssemblyVersionsFile>$(VisualStudioBuildPackagesDir)DependentAssemblyVersions.csv</_DependentAssemblyVersionsFile>
     <_OptimizedDependenciesDir>$(ArtifactsTmpDir)OptimizedDependencies\</_OptimizedDependenciesDir>
     <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' != 'true'">vs-ci</_OptimizedNuGetPackageVersionSuffix>
     <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' == 'true'">vs-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_OptimizedNuGetPackageVersionSuffix>
@@ -196,7 +196,7 @@
           Inputs="$(MSBuildAllProjects)"
           Outputs="$(_DependentAssemblyVersionsFile)">
 
-    <MakeDir Directories="$(DevDivPackagesDir)"/>
+    <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
     <WriteLinesToFile Lines="@(_Dependency->'%(_AssemblyName),%(_AssemblyVersion)')" File="$(_DependentAssemblyVersionsFile)" Overwrite="true"/>
 
     <ItemGroup>
@@ -219,14 +219,14 @@
           Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true'"
           DependsOnTargets="_CalculateDependenciesToInsert;_UnpackDependencies;ApplyOptimizations">
 
-    <MakeDir Directories="$(DevDivPackagesDir)"/>
+    <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
 
     <!-- Unsign assemblies that need to be unsigned but not optimized. -->
     <Microsoft.DotNet.Arcade.Sdk.Unsign FilePath="%(_UnsignAssembly.Identity)" />
 
     <!-- Repack optimized dependencies -->
     <Roslyn.Tools.ReplacePackageParts SourcePackage="%(_PackageToRepack.Identity)"
-                                      DestinationFolder="$(DevDivPackagesDir)"
+                                      DestinationFolder="$(VisualStudioBuildPackagesDir)"
                                       NewVersionSuffix="$(_OptimizedNuGetPackageVersionSuffix)"
                                       Parts="%(_PackageToRepack.Parts)"
                                       ReplacementFiles="%(_PackageToRepack.ReplacementFiles)">
@@ -234,7 +234,7 @@
     </Roslyn.Tools.ReplacePackageParts>
 
     <!-- Copy unoptimized dependencies -->
-    <Copy SourceFiles="@(_PackageToCopy)" DestinationFolder="$(DevDivPackagesDir)">
+    <Copy SourceFiles="@(_PackageToCopy)" DestinationFolder="$(VisualStudioBuildPackagesDir)">
       <Output TaskParameter="CopiedFiles" ItemName="FileWrites"/>
     </Copy>
   </Target>
