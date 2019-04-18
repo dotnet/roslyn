@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
-using System.Xml.XPath;
 
 namespace BuildBoss
 {
@@ -17,15 +11,17 @@ namespace BuildBoss
         private readonly ProjectData _data;
         private readonly ProjectUtil _projectUtil;
         private readonly Dictionary<ProjectKey, ProjectData> _solutionMap;
+        private readonly bool _isPrimarySolution;
 
         internal ProjectFileType ProjectType => _data.ProjectFileType;
         internal string ProjectFilePath => _data.FilePath;
 
-        internal ProjectCheckerUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap)
+        internal ProjectCheckerUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap, bool isPrimarySolution)
         {
             _data = data;
             _projectUtil = data.ProjectUtil;
             _solutionMap = solutionMap;
+            _isPrimarySolution = isPrimarySolution;
         }
 
         public bool Check(TextWriter textWriter)
@@ -61,7 +57,12 @@ namespace BuildBoss
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
                 allGood &= CheckPackageReferences(textWriter);
-                allGood &= CheckInternalsVisibleTo(textWriter);
+
+                if (_isPrimarySolution)
+                {
+                    allGood &= CheckInternalsVisibleTo(textWriter);
+                }
+
                 allGood &= CheckDeploymentSettings(textWriter);
             }
             else if (ProjectType == ProjectFileType.Tool)
