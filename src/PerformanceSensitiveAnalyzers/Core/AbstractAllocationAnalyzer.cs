@@ -11,12 +11,13 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
         protected abstract void AnalyzeNode(OperationAnalysisContext context, in PerformanceSensitiveInfo info);
 
-#pragma warning disable RS1025 // Configure generated code analysis
-#pragma warning disable RS1026 // Enable concurrent execution
         public override void Initialize(AnalysisContext context)
-#pragma warning restore RS1026 // Enable concurrent execution
-#pragma warning restore RS1025 // Configure generated code analysis
         {
+            context.EnableConcurrentExecution();
+
+            // This analyzer is triggered by an attribute, even if it appears in generated code
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+
             if (Operations.IsEmpty)
             {
                 return;
