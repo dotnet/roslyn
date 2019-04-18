@@ -9984,6 +9984,54 @@ namespace ThenIncludeIntellisenseBug
             await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35100"), Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeGenericAndNoGenericOverloads()
+        {
+            var markup = CreateThenIncludeTestCode("c => c.$$",
+@"
+        public static IIncludableQueryable<Registration, Task> ThenInclude(
+                   this IIncludableQueryable<Registration, ICollection<Activity>> source,
+                   Func<Activity, Task> navigationPropertyPath)
+        {
+            return default(IIncludableQueryable<Registration, Task>);
+        }
+
+        public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+            this IIncludableQueryable<TEntity, TPreviousProperty> source,
+            Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeNoGenericOverloads()
+        {
+            var markup = CreateThenIncludeTestCode("c => c.$$",
+@"
+        public static IIncludableQueryable<Registration, Task> ThenInclude(
+            this IIncludableQueryable<Registration, ICollection<Activity>> source,
+            Func<Activity, Task> navigationPropertyPath)
+        {
+            return default(IIncludableQueryable<Registration, Task>);
+        }
+
+        public static IIncludableQueryable<Registration, Activity> ThenInclude(
+            this IIncludableQueryable<Registration, ICollection<Activity>> source,
+            Func<ICollection<Activity>, Activity> navigationPropertyPath) 
+        {
+            return default(IIncludableQueryable<Registration, Activity>);
+        }
+");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionInsideMethodsWithDelegatesAsArguments()
         {

@@ -8009,6 +8009,50 @@ End Namespace"
             Await VerifyItemExistsAsync(source, "FirstOrDefault")
         End Function
 
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35100"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ThenIncludeGenericAndNoGenericOverloads() As Task
+            Dim source = CreateThenIncludeTestCode("Function(c) c.$$",
+"       <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(
+                                    source As IIncludableQueryable(Of Registration, ICollection(Of Activity)), 
+                                    navigationPropertyPath As Func(Of Activity, Task)) As IIncludableQueryable(Of Registration, Task)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+")
+
+            Await VerifyItemExistsAsync(source, "Task")
+            Await VerifyItemExistsAsync(source, "FirstOrDefault")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ThenIncludeNoGenericOverloads() As Task
+            Dim source = CreateThenIncludeTestCode("Function(c) c.$$",
+"       <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(
+                                    source As IIncludableQueryable(Of Registration, ICollection(Of Activity)), 
+                                    navigationPropertyPath As Func(Of Activity, Task)) As IIncludableQueryable(Of Registration, Task)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(
+                                    source As IIncludableQueryable(Of Registration, ICollection(Of Activity)), 
+                                    navigationPropertyPath As Expression(Of Func(Of ICollection(Of Activity), Activity))) As IIncludableQueryable(Of Registration, Activity)
+            Return Nothing
+        End Function
+")
+
+            Await VerifyItemExistsAsync(source, "Task")
+            Await VerifyItemExistsAsync(source, "FirstOrDefault")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionInsideMethodsWithDelegatesAsArguments() As Task
             Dim source =

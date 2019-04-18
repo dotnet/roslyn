@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
                         var type = method.Parameters[ordinalInInvocation].Type;
                         // If type is <see cref="Expression{TDelegate}"/>, ignore <see cref="Expression"/> and use TDelegate.
                         if (type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
-                            Equals(expressionSymbolNamedTypeCandidate.OriginalDefinition, expressionSymbol))
+                            expressionSymbolNamedTypeCandidate.OriginalDefinition.Equals(expressionSymbol))
                         {
                             var allTypeArguments = type.GetAllTypeArguments();
                             if (allTypeArguments.Length != 1)
