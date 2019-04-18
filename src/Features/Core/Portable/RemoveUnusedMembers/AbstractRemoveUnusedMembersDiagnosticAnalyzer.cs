@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                 if (nameofArgument is IMemberReferenceOperation memberReference)
                 {
-                    OnSymbolUsage(memberReference.Member, ValueUsageInfo.ReadWrite);
+                    OnSymbolUsage(memberReference.Member.OriginalDefinition, ValueUsageInfo.ReadWrite);
                     return;
                 }
 
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // for method group/property group.
                         case SymbolKind.Method:
                         case SymbolKind.Property:
-                            OnSymbolUsage(symbol, ValueUsageInfo.ReadWrite);
+                            OnSymbolUsage(symbol.OriginalDefinition, ValueUsageInfo.ReadWrite);
                             break;
                     }
                 }
