@@ -646,6 +646,43 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Barr", inlineDescription: "Foo.Bar");
         }
 
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypesWithIdenticalNameButDifferentNamespaces(bool isProjectReference)
+        {
+            var file1 = $@"
+namespace Foo
+{{
+    public class Bar
+    {{}}
+
+    public class Bar<T>
+    {{}}
+}}
+namespace Baz
+{{
+    public class Bar<T>
+    {{}} 
+
+    public class Bar
+    {{}}
+}}";
+            var file2 = @"
+namespace NS
+{
+    class C
+    {
+         $$
+    }
+}";
+            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Baz");
+            await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Baz");
+        }
+
         #endregion
 
         #region "Commit Change Tests"
