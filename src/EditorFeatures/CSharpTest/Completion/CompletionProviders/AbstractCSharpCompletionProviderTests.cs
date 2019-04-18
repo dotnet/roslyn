@@ -32,14 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix, 
-            string inlineDescription = null, List<CompletionItemFilter> matchingFilters,
-             bool targetTypedExperimentEnabled)
+            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+            string inlineDescription = null, List<CompletionItemFilter> matchingFilters = null,
+            bool targetTypedExperimentEnabled = false)
         {
             return base.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, 
+                glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
                 inlineDescription, matchingFilters, targetTypedExperimentEnabled);
         }
 
@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger,
             bool checkForAbsence, int? glyph, int? matchPriority,
             bool? hasSuggestionItem, string displayTextSuffix, string inlineDescription = null,
-            bool? hasSuggestionItem, string displayTextSuffix,
-            List<CompletionItemFilter> matchingFilters, bool targetTypedExperimentEnabled)
+            List<CompletionItemFilter> matchingFilters = null, bool targetTypedExperimentEnabled = false)
         {
             await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription, matchingFilters, targetTypedExperimentEnabled);
             await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription, matchingFilters, targetTypedExperimentEnabled);
@@ -93,8 +92,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
-            int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix, 
-            string inlineDescription, List<CompletionItemFilter> matchingFilters, 
+            int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+            string inlineDescription, List<CompletionItemFilter> matchingFilters,
             bool targetTypedExperimentEnabled)
         {
             return VerifyInFrontOfCommentAsync(
@@ -108,19 +107,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
-            int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix, 
-            string inlineDescription, List<CompletionItemFilter> matchingFilters, 
-            bool targetTypedExperimentEnabled)
             int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            List<CompletionItemFilter> matchingFilters, bool targetTypedExperimentEnabled)
+            string inlineDescription, List<CompletionItemFilter> matchingFilters,
+            bool targetTypedExperimentEnabled)
         {
             return VerifyInFrontOfCommentAsync(
                 code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, 
-                inlineDescription, matchingFilters, targetTypedExperimentEnabled);
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                matchingFilters, targetTypedExperimentEnabled);
+                inlineDescription, matchingFilters, targetTypedExperimentEnabled);
         }
 
         protected string AddInsideMethod(string text)

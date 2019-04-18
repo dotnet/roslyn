@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionItemFilter> matchingFilters,
-            bool targetTypedExperimentEnabled)
+            string inlineDescription = null, List<CompletionItemFilter> matchingFilters = null,
+            bool targetTypedExperimentEnabled = false)
         {
             // We don't need to try writing comments in from of items in doc comments.
             await VerifyAtPositionAsync(
@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                     sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
                     inlineDescription, matchingFilters, targetTypedExperimentEnabled);
-                    matchingFilters, targetTypedExperimentEnabled);
 
                 await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,

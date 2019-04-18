@@ -31,12 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
             string inlineDescription, List<CompletionItemFilter> matchingFilters,
             bool targetTypedExperimentEnabled)
-            List<CompletionItemFilter> matchingFilters, bool targetTypedExperimentEnabled)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, 
+                glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
                 inlineDescription, matchingFilters, targetTypedExperimentEnabled);
         }
 
