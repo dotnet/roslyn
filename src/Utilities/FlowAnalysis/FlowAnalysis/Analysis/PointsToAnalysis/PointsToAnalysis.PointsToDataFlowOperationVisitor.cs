@@ -319,6 +319,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         AnalysisEntityFactory.TryCreate(operation, out var analysisEntity))
                     {
                         CacheAbstractValue(operation, GetAbstractValue(analysisEntity));
+
+                        if (analysisEntity.SymbolOpt?.Kind == SymbolKind.Field)
+                        {
+                            // Ref/Out field argument is considered escaped.
+                            HandleEscapingOperation(operation, operation.Value);
+                        }
                     }
                 }
                 else if (operation.Parameter.RefKind == RefKind.Ref)
@@ -568,8 +574,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 Debug.Assert(escapingOperation != null);
                 Debug.Assert(escapedInstance != null);
 
-                var escapedInstancePointsToValue = GetPointsToAbstractValue(escapedInstance);
-                AnalysisEntityFactory.TryCreate(escapedInstance, out var escapedEntityOpt);
+                PointsToAbstractValue escapedInstancePointsToValue;
+                if (AnalysisEntityFactory.TryCreate(escapedInstance, out var escapedEntityOpt))
+                {
+                    escapedInstancePointsToValue = GetAbstractValue(escapedEntityOpt);
+                }
+                else
+                {
+                    escapedInstancePointsToValue = GetPointsToAbstractValue(escapedInstance);
+                }
+
                 HandleEscapingLocations(escapingOperation, builder, escapedEntityOpt, escapedInstancePointsToValue);
             }
 
