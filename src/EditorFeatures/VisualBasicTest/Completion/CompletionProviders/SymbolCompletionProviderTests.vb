@@ -8119,5 +8119,44 @@ End Module
             Await VerifyItemIsAbsentAsync(source, "Method")
             Await VerifyItemIsAbsentAsync(source, "Target")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInsideMethodsWithDelegatesAndReversingArguments() As Task
+            Dim source =
+<code><![CDATA[
+Imports System
+
+Module Module2
+    Class Program
+        Public Delegate Sub Delegate1(Of T1, T2)(t2 As T2, t1 As T1)
+        Public Delegate Sub Delegate2(Of T1, T2)(t2 As T2, a As Integer, t1 As T1)
+
+        Public Sub M(d As Delegate1(Of Uri, Guid))
+        End Sub
+
+        Public Sub M(d As Delegate2(Of Uri, Guid))
+        End Sub
+
+        Public Sub Test()
+            M(Sub(d) d.$$)
+        End Sub
+    End Class
+End Module
+]]></code>.Value
+
+            ' Guid
+            Await VerifyItemExistsAsync(source, "ToByteArray")
+
+            ' Should Not appear for Delegate
+            Await VerifyItemIsAbsentAsync(source, "AbsoluteUri")
+            Await VerifyItemIsAbsentAsync(source, "Fragment")
+            Await VerifyItemIsAbsentAsync(source, "Query")
+
+            ' Should Not appear for Delegate
+            Await VerifyItemIsAbsentAsync(source, "BeginInvoke")
+            Await VerifyItemIsAbsentAsync(source, "Clone")
+            Await VerifyItemIsAbsentAsync(source, "Method")
+            Await VerifyItemIsAbsentAsync(source, "Target")
+        End Function
     End Class
 End Namespace

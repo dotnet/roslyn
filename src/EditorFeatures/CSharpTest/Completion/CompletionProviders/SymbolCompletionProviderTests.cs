@@ -10099,5 +10099,40 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "Method");
             await VerifyItemIsAbsentAsync(markup, "Target");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionInsideMethodsWithDelegatesAndReversingArguments()
+        {
+            var markup = @"
+using System;
+
+class Program
+{
+    public delegate void Delegate1<T1,T2>(T2 t2, T1 t1);
+    public delegate void Delegate2<T1,T2>(T2 t2, int g, T1 t1);
+
+    public void M(Delegate1<Uri,Guid> d) { }
+    public void M(Delegate2<Uri,Guid> d) { }
+
+    public void Test()
+    {
+        M(d => d.$$)
+    }
+}";
+
+            // Guid
+            await VerifyItemExistsAsync(markup, "ToByteArray");
+
+            // Should not appear for  Uri
+            await VerifyItemIsAbsentAsync(markup, "AbsoluteUri");
+            await VerifyItemIsAbsentAsync(markup, "Fragment");
+            await VerifyItemIsAbsentAsync(markup, "Query");
+
+            // Should not appear for Delegate
+            await VerifyItemIsAbsentAsync(markup, "BeginInvoke");
+            await VerifyItemIsAbsentAsync(markup, "Clone");
+            await VerifyItemIsAbsentAsync(markup, "Method");
+            await VerifyItemIsAbsentAsync(markup, "Target");
+        }
     }
 }
