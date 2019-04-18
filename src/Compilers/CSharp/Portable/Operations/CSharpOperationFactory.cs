@@ -304,6 +304,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
+                case BoundKind.IndexOrRangePatternIndexerAccess:
 
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     bool isImplicit = boundNode.WasCompilerGenerated;
@@ -416,6 +417,28 @@ namespace Microsoft.CodeAnalysis.Operations
 
             bool isVirtual = IsCallVirtual(targetMethod, boundCall.ReceiverOpt);
             return new CSharpLazyInvocationOperation(this, boundCall, targetMethod, isVirtual, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        internal ImmutableArray<IOperation> CreateIgnoredDimensions(BoundNode declaration, SyntaxNode declarationSyntax)
+        {
+            switch (declaration.Kind)
+            {
+                case BoundKind.LocalDeclaration:
+                    {
+                        return CreateFromArray<BoundExpression, IOperation>(((BoundLocalDeclaration)declaration).DeclaredTypeOpt.BoundDimensionsOpt);
+                    }
+                case BoundKind.MultipleLocalDeclarations:
+                case BoundKind.UsingLocalDeclarations:
+                    {
+                        var declarations = ((BoundMultipleLocalDeclarations)declaration).LocalDeclarations;
+                        var dimensions = declarations.Length > 0
+                            ? declarations[0].DeclaredTypeOpt.BoundDimensionsOpt
+                            : ImmutableArray<BoundExpression>.Empty;
+                        return CreateFromArray<BoundExpression, IOperation>(dimensions);
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(declaration.Kind);
+            }
         }
 
         internal IOperation CreateBoundLocalOperation(BoundLocal boundLocal, bool createDeclaration = true)
@@ -1964,14 +1987,17 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateFromEndIndexExpressionOperation(BoundFromEndIndexExpression boundIndex)
         {
-            return new CSharpLazyFromEndIndexOperation(
+            return new CSharpLazyUnaryOperation(
                 operationFactory: this,
                 boundIndex.Operand,
+                UnaryOperatorKind.Hat,
                 isLifted: boundIndex.Type.IsNullableType(),
+                isChecked: false,
+                operatorMethod: null,
                 _semanticModel,
                 boundIndex.Syntax,
                 boundIndex.Type,
-                boundIndex.MethodOpt,
+                constantValue: default,
                 isImplicit: boundIndex.WasCompilerGenerated);
         }
 

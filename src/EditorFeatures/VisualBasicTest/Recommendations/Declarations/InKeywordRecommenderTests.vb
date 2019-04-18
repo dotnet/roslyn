@@ -44,5 +44,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 <MethodBody>For Each x _
 |</MethodBody>, "In")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>For Each x _ ' Test
+|</MethodBody>, "In")
+        End Function
     End Class
 End Namespace

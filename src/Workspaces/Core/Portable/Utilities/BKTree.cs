@@ -123,8 +123,8 @@ namespace Roslyn.Utilities
             // in the tree.
             var characterSpan = currentNode.WordSpan;
             var editDistance = EditDistance.GetEditDistance(
-                new ArraySlice<char>(_concatenatedLowerCaseWords, characterSpan),
-                new ArraySlice<char>(queryCharacters, 0, queryLength));
+                _concatenatedLowerCaseWords.AsSpan(characterSpan.Start, characterSpan.Length),
+                queryCharacters.AsSpan(0, queryLength));
 
             if (editDistance <= threshold)
             {

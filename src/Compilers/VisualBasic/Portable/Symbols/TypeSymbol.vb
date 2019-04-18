@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the kind of this type.
         ''' </summary>
-        Public MustOverride ReadOnly Property TypeKind As TypeKind
+        Public MustOverride ReadOnly Property TypeKind As TYPEKIND
 
         ''' <summary>
         ''' Gets corresponding special TypeId of this type.
@@ -552,7 +552,7 @@ Done:
             End Get
         End Property
 
-        Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind
+        Private ReadOnly Property ITypeSymbol_TypeKind As TYPEKIND Implements ITypeSymbol.TypeKind
             Get
                 Return Me.TypeKind
             End Get
@@ -568,6 +568,13 @@ Done:
         Private ReadOnly Property ITypeSymbol_IsUnmanagedType As Boolean Implements ITypeSymbol.IsUnmanagedType
             Get
                 ' VB has no concept of unmanaged types
+                Return False
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeSymbol_IsReadOnly As Boolean Implements ITypeSymbol.IsReadOnly
+            Get
+                ' VB does not have readonly structures
                 Return False
             End Get
         End Property

@@ -18,7 +18,7 @@
       Note SkipGetTargetFrameworkProperties makes it possible to reference project with incompatible TFM.
       GlobalPropertiesToRemove makes sure TargetFramework isn't set as a global property for the target project.
     -->
-    <ProjectReference Include="..\..\..\Tools\ILAsm\IlAsmDeploy.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" GlobalPropertiesToRemove="TargetFramework" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+    <ProjectReference Include="..\..\..\Tools\ILTools\ILTools.proj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" GlobalPropertiesToRemove="TargetFramework" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
 
   </ItemGroup>
   <ItemGroup>
@@ -92,6 +92,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="DiffPlex" Version="$(DiffPlexVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" Version="$(MicrosoftCodeAnalysisTestResourcesProprietaryVersion)" />
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" Version="$(MicrosoftDiaSymReaderConverterXmlVersion)" />

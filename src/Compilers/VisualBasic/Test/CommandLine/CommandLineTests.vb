@@ -57,6 +57,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         End Function
 
         <Fact>
+        <WorkItem(34101, "https://github.com/dotnet/roslyn/issues/34101")>
+        Public Sub SuppressedWarnAsErrorsStillEmit()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb").WriteAllText("
+#Disable Warning BC42302
+Module Module1
+    Sub Main()
+        Dim x = 42 ''' <test />
+    End Sub
+End Module")
+            Const docName As String = "doc.xml"
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {"/nologo", "/errorlog:errorlog", $"/doc:{docName}", "/warnaserror", src.Path})
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal("", outWriter.ToString())
+            Assert.Equal(0, exitCode)
+
+            Dim exePath = Path.Combine(dir.Path, "temp.exe")
+            Assert.True(File.Exists(exePath))
+        End Sub
+
+        <Fact>
         Public Sub XmlMemoryMapped()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("temp.cs").WriteAllText("

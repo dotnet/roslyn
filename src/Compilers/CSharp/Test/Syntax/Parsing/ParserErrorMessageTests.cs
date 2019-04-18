@@ -948,20 +948,21 @@ abstract class B : A, I
     internal override abstract void M4<T>() where T : struct;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (14,20): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(14, 20),
-                // (15,22): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(15, 22),
-                // (16,37): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(16, 37),
-                // (17,36): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(17, 36),
-                // (18,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(18, 45),
+                // (14,30): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.M1<T>() where T : I { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "I").WithLocation(14, 30),
+                // (15,32): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     void I.M2<T,U>() where U : T { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "T").WithLocation(15, 32),
+                // (17,46): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     internal override void M2<T>() where T : new() { }
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "new()").WithLocation(17, 46),
+                // (18,55): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
+                //     internal override abstract void M3<U>() where U : A;
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "A").WithLocation(18, 55),
                 // (19,37): error CS0115: 'B.M4<T>()': no suitable method found to override
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("B.M4<T>()").WithLocation(19, 37),
-                // (19,45): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(19, 45));
+                //     internal override abstract void M4<T>() where T : struct;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("B.M4<T>()").WithLocation(19, 37));
         }
 
         [WorkItem(862094, "DevDiv/Personal")]
@@ -6331,6 +6332,20 @@ class C { }
                 // (3,2): error CS8022: Feature '#pragma' is not available in C# 1. Please use language version 2 or greater.
                 // #pragma checksum "file.txt" "{00000000-0000-0000-0000-000000000000}" "2453"
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion1, "pragma").WithArguments("#pragma", "2"));
+        }
+
+        [Fact]
+        public void PragmaBeforeCSharp2_InDisabledCode()
+        {
+            var text = @"
+#if UNDEF
+#pragma warning disable 1584
+#pragma checksum ""file.txt"" ""{00000000-0000-0000-0000-000000000000}"" ""2453""
+#endif
+class C { }
+";
+            SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify();
         }
 
         [Fact]

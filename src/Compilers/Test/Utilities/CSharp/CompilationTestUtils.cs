@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         Assert.NotEqual(CodeAnalysis.NullableAnnotation.NotApplicable, typeInfo.Nullability.Annotation);
                         Assert.NotEqual(CodeAnalysis.NullableFlowState.NotApplicable, typeInfo.Nullability.FlowState);
                         // https://github.com/dotnet/roslyn/issues/35035: After refactoring symboldisplay, we should be able to just call something like typeInfo.Type.ToDisplayString(typeInfo.Nullability.FlowState, TypeWithState.TestDisplayFormat)
-                        return new TypeWithState((TypeSymbol)typeInfo.Type, typeInfo.Nullability.FlowState.ToInternalFlowState()).ToTypeWithAnnotations().ToDisplayString(TypeWithAnnotations.TestDisplayFormat);
+                        return TypeWithState.Create((TypeSymbol)typeInfo.Type, typeInfo.Nullability.FlowState.ToInternalFlowState()).ToTypeWithAnnotations().ToDisplayString(TypeWithAnnotations.TestDisplayFormat);
                     });
                 // Consider reporting the correct source with annotations on mismatch.
                 AssertEx.Equal(expectedTypes, actualTypes, message: method.ToTestDisplayString());

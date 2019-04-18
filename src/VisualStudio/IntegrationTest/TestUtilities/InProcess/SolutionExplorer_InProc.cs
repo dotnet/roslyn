@@ -7,11 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.CodingConventions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
@@ -21,6 +23,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using NuGet.SolutionRestoreManager;
 using Roslyn.Hosting.Diagnostics.Waiters;
 using VSLangProj;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -368,7 +371,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var directoriesToDelete = new List<string>();
             var dte = GetDTE();
 
-            InvokeOnUIThread(() =>
+            InvokeOnUIThread(cancellationToken =>
             {
                 if (dte.Solution != null)
                 {
@@ -486,7 +489,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             public void Dispose()
             {
-                InvokeOnUIThread(() =>
+                InvokeOnUIThread(cancellationToken =>
                 {
                     ErrorHandler.ThrowOnFailure(_solution.UnadviseSolutionEvents(_cookie));
                 });
@@ -580,11 +583,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             void SetText(string text)
             {
-                InvokeOnUIThread(() =>
+                InvokeOnUIThread(cancellationToken =>
                 {
                     // The active text view might not have finished composing yet, waiting for the application to 'idle'
                     // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
-                    WaitForApplicationIdle();
+                    WaitForApplicationIdle(Helper.HangMitigatingTimeout);
 
                     var vsTextManager = GetGlobalService<SVsTextManager, IVsTextManager>();
                     var hresult = vsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out var vsTextView);
@@ -888,7 +891,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void OpenFileWithDesigner(string projectName, string relativeFilePath)
         {
-            InvokeOnUIThread(() =>
+            InvokeOnUIThread(cancellationToken =>
             {
                 var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
                 VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath, VSConstants.LOGVIEWID.Designer_guid, out _, out _, out var windowFrame, out _);
@@ -920,7 +923,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private void CloseFile(string projectName, string relativeFilePath, Guid logicalView, bool saveFile)
         {
-            InvokeOnUIThread(() =>
+            InvokeOnUIThread(cancellationToken =>
             {
                 var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
                 if (!VsShellUtilities.IsDocumentOpen(ServiceProvider.GlobalProvider, filePath, logicalView, out _, out _, out var windowFrame))
@@ -1004,8 +1007,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public bool RestoreNuGetPackages(string projectName)
         {
-            var solutionRestoreService = InvokeOnUIThread(() => GetComponentModel().GetExtensions<IVsSolutionRestoreService2>().Single());
-            return solutionRestoreService.NominateProjectAsync(GetProject(projectName).FullName, CancellationToken.None).Result;
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+
+            var solutionRestoreService = InvokeOnUIThread(cancellationToken => GetComponentModel().GetExtensions<IVsSolutionRestoreService2>().Single());
+            var nominateProjectTask = solutionRestoreService.NominateProjectAsync(GetProject(projectName).FullName, cancellationTokenSource.Token);
+            nominateProjectTask.Wait(cancellationTokenSource.Token);
+            return nominateProjectTask.Result;
         }
 
         public void SaveAll()
@@ -1123,6 +1130,44 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             return null;
+        }
+
+        private CodingConventionsChangedWatcher _codingConventionsChangedWatcher;
+
+        public void BeginWatchForCodingConventionsChange(string projectName, string relativeFilePath)
+        {
+            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+            _codingConventionsChangedWatcher = new CodingConventionsChangedWatcher(filePath);
+        }
+
+        public void EndWaitForCodingConventionsChange(TimeSpan timeout)
+        {
+            var watcher = Interlocked.Exchange(ref _codingConventionsChangedWatcher, null);
+            if (watcher is null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            watcher.Changed.Wait(timeout);
+        }
+
+        private class CodingConventionsChangedWatcher
+        {
+            private readonly TaskCompletionSource<object> _taskCompletionSource = new TaskCompletionSource<object>();
+            private readonly ICodingConventionContext _codingConventionContext;
+
+            public CodingConventionsChangedWatcher(string filePath)
+            {
+                var codingConventionsManager = GetComponentModelService<ICodingConventionsManager>();
+                _codingConventionContext = codingConventionsManager.GetConventionContextAsync(filePath, CancellationToken.None).Result;
+                _codingConventionContext.CodingConventionsChangedAsync += (sender, e) =>
+                {
+                    _taskCompletionSource.SetResult(null);
+                    return Task.CompletedTask;
+                };
+            }
+
+            public Task Changed => _taskCompletionSource.Task;
         }
     }
 }

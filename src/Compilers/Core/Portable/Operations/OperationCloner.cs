@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, object argument)
         {
-            return new VariableDeclarationOperation(VisitArray(operation.Declarators), Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new VariableDeclarationOperation(VisitArray(operation.Declarators), Visit(operation.Initializer), VisitArray(operation.IgnoredDimensions), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitConversion(IConversionOperation operation, object argument)
@@ -633,11 +633,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, object argument)
         {
             throw ExceptionUtilities.Unreachable;
-        }
-
-        internal override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, object argument)
-        {
-            return new FromEndIndexOperation(operation.IsLifted, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol, operation.IsImplicit);
         }
 
         public override IOperation VisitRangeOperation(IRangeOperation operation, object argument)

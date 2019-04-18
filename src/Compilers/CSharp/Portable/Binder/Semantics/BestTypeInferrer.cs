@@ -24,15 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithState> types)
+        public static NullableFlowState GetNullableState(ArrayBuilder<TypeWithState> types)
         {
-            ArrayBuilder<TypeWithAnnotations> builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+            NullableFlowState result = NullableFlowState.NotNull;
             foreach (var type in types)
             {
-                builder.Add(type.ToTypeWithAnnotations());
+                result = result.Join(type.State);
             }
-            var result = GetNullableAnnotation(builder);
-            builder.Free();
+
             return result;
         }
 

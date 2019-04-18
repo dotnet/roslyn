@@ -55,15 +55,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _runtimeDirectories = GetRuntimeDirectories();
 
             XmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
+            Assumes.Present(XmlMemberIndexService);
+
             SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
+            Assumes.Present(SmartOpenScopeServiceOpt);
 
             FileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
-            _temporaryStorageService = temporaryStorageService;
+            Assumes.Present(FileChangeService);
 
-            Debug.Assert(XmlMemberIndexService != null);
-            Debug.Assert(SmartOpenScopeServiceOpt != null);
-            Debug.Assert(FileChangeService != null);
-            Debug.Assert(temporaryStorageService != null);
+            _temporaryStorageService = temporaryStorageService;
+            Assumes.Present(_temporaryStorageService);
         }
 
         internal IEnumerable<ITemporaryStreamStorage> GetStorages(string fullPath, DateTime snapshotTimestamp)

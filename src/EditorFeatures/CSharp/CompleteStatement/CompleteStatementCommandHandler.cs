@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private void BeforeExecuteCommand(TypeCharCommandArgs args, CommandExecutionContext executionContext)
         {
-            if (args.TypedChar != ';')
+            if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
             {
                 return;
             }
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 // ArrayRankSpecifier: covers new Type[dim]
                 // ElementAccessExpression: covers indexer invocations like array[index]
                 // ParenthesizedExpression: covers (3*(x+y))
-                if (currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.ElementAccessExpression, SyntaxKind.ParenthesizedExpression))
+                if (currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.ParenthesizedExpression))
                 {
                     nodeFound = true;
                 }
@@ -242,9 +242,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             => syntaxFacts.IsStatement(currentNode) || currentNode.IsKind(SyntaxKind.FieldDeclaration);
 
         private static bool IsInAString(SyntaxNode currentNode, SnapshotPoint caret)
-            // If caret is at the end of the line, it is outside the string	
+            // Check to see if caret is before or after string
             => currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
-                && caret.Position != caret.GetContainingLine().End;
+                && caret.Position < currentNode.Span.End
+                && caret.Position > currentNode.SpanStart;
 
         private static bool StatementIsACandidate(SyntaxNode currentNode, int caretPosition)
         {
