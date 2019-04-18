@@ -5,9 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
@@ -23,25 +21,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             private readonly object[] _options = new object[(int)CompilerOptions.LARGEST_OPTION_ID];
             private string _mainTypeName;
             private OutputKind _outputKind;
-            private IOptionService _optionService;
 
             public OptionsProcessor(VisualStudioProject visualStudioProject, HostWorkspaceServices workspaceServices)
                 : base(visualStudioProject, workspaceServices)
             {
                 _visualStudioProject = visualStudioProject;
-                _optionService = workspaceServices.GetRequiredService<IOptionService>();
-
-                // For C#, we need to listen to the options for NRT analysis 
-                // that can change in VS through tools > options
-                _optionService.OptionChanged += OptionService_OptionChanged;
-            }
-
-            private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                if (e.Option.Feature == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Feature)
-                {
-                    UpdateProjectForNewHostValues();
-                }
             }
 
             public object this[CompilerOptions compilerOption]
@@ -232,17 +216,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             protected override ParseOptions ComputeParseOptionsWithHostValues(ParseOptions parseOptions)
             {
-                var useNullableReferenceAnalysisOption = _optionService.GetOption(FeatureOnOffOptions.UseNullableReferenceTypeAnalysis);
-
-                if (useNullableReferenceAnalysisOption == -1)
-                {
-                    parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "false") });
-                }
-                else if (useNullableReferenceAnalysisOption == 1)
-                {
-                    parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "true") });
-                }
-
                 var symbols = GetStringOption(CompilerOptions.OPTID_CCSYMBOLS, defaultValue: "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
                 // The base implementation of OptionsProcessor already tried this, but it didn't have the real documentation
