@@ -21,13 +21,24 @@ namespace BuildBoss
         {
             var element = new XElement("InternalsVisibleTo");
             if (TargetAssembly is object)
+            {
                 element.Add(new XAttribute("Include", TargetAssembly));
+            }
+
             if (PublicKey is object)
+            {
                 element.Add(new XAttribute("Key", PublicKey));
+            }
+
             if (LoadsWithinVisualStudio is object)
+            {
                 element.Add(new XAttribute("LoadsWithinVisualStudio", LoadsWithinVisualStudio));
+            }
+
             if (WorkItem is object)
+            {
                 element.Add(new XAttribute("WorkItem", WorkItem));
+            }
 
             return element.ToString();
         }

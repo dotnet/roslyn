@@ -255,8 +255,14 @@ namespace BuildBoss
                     continue;
                 }
 
-                if (Uri.TryCreate(internalsVisibleTo.WorkItem, UriKind.Absolute, out _))
+                if (!string.IsNullOrEmpty(internalsVisibleTo.WorkItem))
                 {
+                    if (!Uri.TryCreate(internalsVisibleTo.WorkItem, UriKind.Absolute, out _))
+                    {
+                        textWriter.WriteLine($"InternalsVisibleTo for external assembly '{internalsVisibleTo.TargetAssembly}' does not have a valid URI specified for {nameof(InternalsVisibleTo.WorkItem)}.");
+                        allGood = false;
+                    }
+
                     // A work item is tracking elimination of this IVT
                     continue;
                 }
