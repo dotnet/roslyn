@@ -9,7 +9,8 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 function FirstMatchingSymbolDescriptionOrDefault {
   param( 
     [string] $FullPath,                  # Full path to the module that has to be checked
-    [string] $TargetServerParam          # Parameter to pass to `Symbol Tool` indicating the server to lookup for symbols
+    [string] $TargetServerParam,         # Parameter to pass to `Symbol Tool` indicating the server to lookup for symbols
+    [string] $SymbolsPath
   )
 
   $FileName = [System.IO.Path]::GetFileName($FullPath)
@@ -33,9 +34,9 @@ function FirstMatchingSymbolDescriptionOrDefault {
 
   # DWARF file for a .dylib
   $DylibDwarf = $SymbolPath.Replace($Extension, ".dylib.dwarf")
-  
-  .\dotnet-symbol.exe --symbols --modules $TargetServerParam $FullPath -o $SymbolsPath -d | Out-Null
-  
+ 
+  .\dotnet-symbol.exe --symbols --modules --windows-pdbs $TargetServerParam $FullPath -o $SymbolsPath | Out-Null
+
   if (Test-Path $PdbPath) {
     return "PDB"
   }
@@ -73,8 +74,9 @@ function CountMissingSymbols {
   $MissingSymbols = 0
 
   $PackageId = [System.IO.Path]::GetFileNameWithoutExtension($PackagePath)
-  $ExtractPath = $ExtractPath + $PackageId;
-  $SymbolsPath = $ExtractPath + $PackageId + ".Symbols";
+  $PackageGuid = New-Guid
+  $ExtractPath = Join-Path -Path $ExtractPath -ChildPath $PackageGuid
+  $SymbolsPath = Join-Path -Path $ExtractPath -ChildPath "Symbols"
   
   [System.IO.Compression.ZipFile]::ExtractToDirectory($PackagePath, $ExtractPath)
 
@@ -84,10 +86,15 @@ function CountMissingSymbols {
   Get-ChildItem -Recurse $ExtractPath |
     Where-Object {$RelevantExtensions -contains $_.Extension} |
     ForEach-Object {
-      Write-Host -NoNewLine "`t Checking file" $_.FullName "... "
+      if ($_.FullName -Match "\\ref\\") {
+        Write-Host "`t Ignoring reference assembly file" $_.FullName
+        return
+      }
 
-      $SymbolsOnMSDL = FirstMatchingSymbolDescriptionOrDefault $_.FullName "--microsoft-symbol-server"
-      $SymbolsOnSymWeb = FirstMatchingSymbolDescriptionOrDefault $_.FullName "--internal-server"
+      $SymbolsOnMSDL = FirstMatchingSymbolDescriptionOrDefault $_.FullName "--microsoft-symbol-server" $SymbolsPath
+      $SymbolsOnSymWeb = FirstMatchingSymbolDescriptionOrDefault $_.FullName "--internal-server" $SymbolsPath
+
+      Write-Host -NoNewLine "`t Checking file" $_.FullName "... "
   
       if ($SymbolsOnMSDL -ne $null -and $SymbolsOnSymWeb -ne $null) {
         Write-Host "Symbols found on MSDL (" $SymbolsOnMSDL ") and SymWeb (" $SymbolsOnSymWeb ")"
@@ -116,18 +123,35 @@ function CountMissingSymbols {
 
 function CheckSymbolsAvailable {
   if (Test-Path $ExtractPath) {
-    Remove-Item -recurse $ExtractPath
+    Remove-Item $ExtractPath -Force  -Recurse -ErrorAction SilentlyContinue
   }
 
   Get-ChildItem "$InputPath\*.nupkg" |
     ForEach-Object {
       $FileName = $_.Name
+	  
+      # These packages from Arcade-Services include some native libraries that
+      # our current symbol uploader can't handle. Below is a workaround until
+      # we get issue: https://github.com/dotnet/arcade/issues/2457 sorted.
+      if ($FileName -Match "Microsoft\.DotNet\.Darc\.") {
+        Write-Host "Ignoring Arcade-services file: $FileName"
+        Write-Host
+        return
+      }
+      elseif ($FileName -Match "Microsoft\.DotNet\.Maestro\.Tasks\.") {
+        Write-Host "Ignoring Arcade-services file: $FileName"
+        Write-Host
+        return
+      }
+	  
       Write-Host "Validating $FileName "
       $Status = CountMissingSymbols "$InputPath\$FileName"
   
       if ($Status -ne 0) {
         Write-Error "Missing symbols for $Status modules in the package $FileName"
       }
+
+      Write-Host
     }
 }
 
