@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 {
                     newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName)
                         .WithLeadingTrivia(nameToken.LeadingTrivia)
-                        .WithTrailingTrivia(invocation.ArgumentList?.CloseParenToken.TrailingTrivia));
+                        .WithTrailingTrivia(invocation.ArgumentList.CloseParenToken.TrailingTrivia));
                 }
             }
 
