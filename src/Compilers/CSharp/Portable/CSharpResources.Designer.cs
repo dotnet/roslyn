@@ -16216,6 +16216,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The DefaultCancellationAttribute applied to parameter &apos;{0}&apos; will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method.
+        /// </summary>
+        internal static string WRN_UnconsumedDefaultCancellationAttributeUsage {
+            get {
+                return ResourceManager.GetString("WRN_UnconsumedDefaultCancellationAttributeUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The DefaultCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method.
+        /// </summary>
+        internal static string WRN_UnconsumedDefaultCancellationAttributeUsage_Title {
+            get {
+                return ResourceManager.GetString("WRN_UnconsumedDefaultCancellationAttributeUsage_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Assuming assembly reference &apos;{0}&apos; used by &apos;{1}&apos; matches identity &apos;{2}&apos; of &apos;{3}&apos;, you may need to supply runtime policy.
         /// </summary>
         internal static string WRN_UnifyReferenceBldRev {

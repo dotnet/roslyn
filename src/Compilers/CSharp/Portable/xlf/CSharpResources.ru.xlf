@@ -1737,6 +1737,16 @@
         <target state="new">Unboxing a possibly null value.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnconsumedDefaultCancellationAttributeUsage">
+        <source>The DefaultCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method</source>
+        <target state="new">The DefaultCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnconsumedDefaultCancellationAttributeUsage_Title">
+        <source>The DefaultCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method</source>
+        <target state="new">The DefaultCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized.</source>
         <target state="translated">Не инициализировано {0} "{1}", не допускающее значение NULL.</target>

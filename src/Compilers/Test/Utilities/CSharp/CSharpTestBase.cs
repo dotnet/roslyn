@@ -409,6 +409,17 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
+        protected const string DefaultCancellationAttributeType = @"
+namespace System.Runtime.CompilerServices
+{
+    [System.AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public class DefaultCancellationAttribute : Attribute
+    {
+        public DefaultCancellationAttribute() { }
+    }
+}
+";
+
         protected static CSharpCompilationOptions WithNonNullTypesTrue(CSharpCompilationOptions options = null)
         {
             return WithNonNullTypes(options, NullableContextOptions.Enable);
