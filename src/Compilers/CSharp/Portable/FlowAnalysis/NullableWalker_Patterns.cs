@@ -30,10 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitPatternForRewriting(BoundPattern pattern)
         {
-            var previousDisable = _disableDiagnostics;
-            _disableDiagnostics = true;
-            Visit(pattern);
-            _disableDiagnostics = previousDisable;
+            // Don't let anything under the pattern actually affect current state,
+            // as we're only visiting for nullable information.
+            Debug.Assert(!IsConditionalState);
+            var currentState = State;
+            VisitWithoutDiagnostics(pattern);
+            SetState(currentState);
         }
 
         public override BoundNode VisitSubpattern(BoundSubpattern node)
