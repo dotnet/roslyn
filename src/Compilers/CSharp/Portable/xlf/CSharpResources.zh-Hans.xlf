@@ -322,6 +322,16 @@
         <target state="translated">out 变量无法声明为 ref 局部变量</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
+        <target state="new">Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
+        <target state="new">Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="new">Both partial method declarations must be readonly or neither may be readonly</target>
@@ -918,6 +928,11 @@
         <target state="translated">&lt;null&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_OverrideWithConstraints">
+        <source>constraints for override and explicit interface implementation methods</source>
+        <target state="new">constraints for override and explicit interface implementation methods</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
         <source>&lt;throw expression&gt;</source>
         <target state="translated">&lt;throw 表达式&gt;</target>
@@ -1463,6 +1478,16 @@
         <target state="translated">可能的 null 引用赋值。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullReferenceIterationVariable">
+        <source>Possible null reference assignment to iteration variable</source>
+        <target state="new">Possible null reference assignment to iteration variable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceIterationVariable_Title">
+        <source>Possible null reference assignment to iteration variable</source>
+        <target state="new">Possible null reference assignment to iteration variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
         <source>Dereference of a possibly null reference.</source>
         <target state="needs-review-translation">null 引用可能的取消引用。</target>
@@ -1693,16 +1718,6 @@
         <target state="translated">可为 null 的值类型可为 null。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PossibleNull">
-        <source>Possible null value.</source>
-        <target state="new">Possible null value.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PossibleNull_Title">
-        <source>Possible null value.</source>
-        <target state="new">Possible null value.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="translated">Switch 表达式不会处理所有可能的输入（它并非详尽无遗）。</target>
@@ -1723,6 +1738,16 @@
         <target state="translated">Switch 表达式不会处理所有可能的输入（它并非详尽无遗）。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull">
+        <source>Thrown value may be null.</source>
+        <target state="new">Thrown value may be null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull_Title">
+        <source>Thrown value may be null.</source>
+        <target state="new">Thrown value may be null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
         <source>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
         <target state="translated">由于元组 == 或 != 运算符的另一侧指定了其他名称或未指定名称，因此元组元素名称“{0}”被忽略。</target>
@@ -1741,6 +1766,16 @@
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
         <target state="translated">类型参数与外部方法中的类型参数有相同的类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull">
+        <source>Unboxing a possibly null value.</source>
+        <target state="new">Unboxing a possibly null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull_Title">
+        <source>Unboxing a possibly null value.</source>
+        <target state="new">Unboxing a possibly null value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -3449,8 +3484,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
-        <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</source>
-        <target state="translated">重写和显式接口实现方法的约束是从基方法继承的，因此不能直接指定这些约束</target>
+        <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</source>
+        <target state="needs-review-translation">重写和显式接口实现方法的约束是从基方法继承的，因此不能直接指定这些约束</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigOverride">

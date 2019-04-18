@@ -3649,6 +3649,15 @@ class D
             return workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
         }
 
+        [WorkItem(32337, "https://github.com/dotnet/roslyn/issues/32337")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_MultipleCharsSelected()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM([|x[0]|], x[1])");
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }

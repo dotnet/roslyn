@@ -297,6 +297,16 @@
         <target state="translated">출력 변수는 참조 로컬로 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
+        <target state="new">Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
+        <target state="new">Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="new">Both partial method declarations must be readonly or neither may be readonly</target>
@@ -877,6 +887,11 @@
         <target state="translated">&lt;null&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_OverrideWithConstraints">
+        <source>constraints for override and explicit interface implementation methods</source>
+        <target state="new">constraints for override and explicit interface implementation methods</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
         <source>&lt;throw expression&gt;</source>
         <target state="translated">&lt;Throw 식&gt;</target>
@@ -1422,6 +1437,16 @@
         <target state="translated">가능한 null 참조 할당입니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullReferenceIterationVariable">
+        <source>Possible null reference assignment to iteration variable</source>
+        <target state="new">Possible null reference assignment to iteration variable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceIterationVariable_Title">
+        <source>Possible null reference assignment to iteration variable</source>
+        <target state="new">Possible null reference assignment to iteration variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
         <source>Dereference of a possibly null reference.</source>
         <target state="needs-review-translation">가능한 null 참조의 역참조입니다.</target>
@@ -1652,16 +1677,6 @@
         <target state="translated">Nullable 값 형식이 null일 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PossibleNull">
-        <source>Possible null value.</source>
-        <target state="new">Possible null value.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_PossibleNull_Title">
-        <source>Possible null value.</source>
-        <target state="new">Possible null value.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="translated">switch 식은 가능한 입력을 모두 처리하지는 않습니다(전체 아님).</target>
@@ -1682,6 +1697,16 @@
         <target state="translated">switch 식은 가능한 입력을 모두 처리하지는 않습니다(전체 아님).</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull">
+        <source>Thrown value may be null.</source>
+        <target state="new">Thrown value may be null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ThrowPossibleNull_Title">
+        <source>Thrown value may be null.</source>
+        <target state="new">Thrown value may be null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
         <source>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
         <target state="translated">튜플 요소 이름 '{0}'은(는) 튜플 == 또는 != 연산자의 반대쪽에서 다른 이름이 지정되었거나 이름이 지정되지 않았기 때문에 무시됩니다.</target>
@@ -1700,6 +1725,16 @@
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
         <target state="translated">형식 매개 변수가 외부 메서드의 형식 매개 변수와 형식이 같습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull">
+        <source>Unboxing a possibly null value.</source>
+        <target state="new">Unboxing a possibly null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnboxPossibleNull_Title">
+        <source>Unboxing a possibly null value.</source>
+        <target state="new">Unboxing a possibly null value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -3408,8 +3443,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
-        <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</source>
-        <target state="translated">재정의 및 명시적 인터페이스 구현 메서드에 대한 제약 조건은 기본 메서드에서 상속되므로 직접 지정할 수 없습니다.</target>
+        <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</source>
+        <target state="needs-review-translation">재정의 및 명시적 인터페이스 구현 메서드에 대한 제약 조건은 기본 메서드에서 상속되므로 직접 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigOverride">

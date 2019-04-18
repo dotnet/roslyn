@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -46,10 +47,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
             await TestAsync(initialMarkup, initialMarkup, parseOptions); // no change to markup
         }
 
+        private async Task TestLanguageVersionNotUpgradedAsync(string initialMarkup,
+#pragma warning disable IDE0060 // Remove unused parameter
+            LanguageVersion expected,
+#pragma warning restore IDE0060 // Remove unused parameter
+            ParseOptions parseOptions,
+            int index = 0)
+        {
+            var parameters = new TestParameters(parseOptions: parseOptions, index: index);
+            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            {
+                var (actions, actionsToInvoke) = await GetCodeActionsAsync(workspace, parameters);
+
+                Assert.Empty(actions);
+                Assert.Null(actionsToInvoke);
+            }
+        }
+
         [Fact]
         public async Task UpgradeProjectFromCSharp7_2ToCSharp8()
         {
-            await TestLanguageVersionUpgradedAsync(
+            await TestLanguageVersionNotUpgradedAsync(
 @"class C
 {
     object F = [|null!|];
@@ -61,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
         [Fact]
         public async Task UpgradeProjectFromCSharp7ToCSharp8()
         {
-            await TestLanguageVersionUpgradedAsync(
+            await TestLanguageVersionNotUpgradedAsync(
 @"class C
 {
     object F = [|null!|];
@@ -321,7 +339,7 @@ class Program
         [Fact]
         public async Task UpgradeProjectForVerbatimInterpolatedString()
         {
-            await TestLanguageVersionUpgradedAsync(
+            await TestLanguageVersionNotUpgradedAsync(
 @"
 class Program
 {
@@ -366,7 +384,7 @@ class C
         [Fact]
         public async Task UpgradeAllProjectsToCSharp8()
         {
-            await TestLanguageVersionUpgradedAsync(
+            await TestLanguageVersionNotUpgradedAsync(
 @"<Workspace>
     <Project Language=""C#"" LanguageVersion=""6"">
         <Document>
@@ -471,10 +489,8 @@ class C
     <Project Language=""C#"" LanguageVersion=""800"">
     </Project>
 </Workspace>",
-                new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, versionPreview),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, versionPreview)
-    });
+                new string[0]
+    );
         }
 
         [Fact]
@@ -578,10 +594,7 @@ class C
     <Project Language=""Visual Basic"">
     </Project>
 </Workspace>",
-                new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, previewVersion),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, previewVersion)
-                    });
+                new string[0]);
         }
 
         [Fact]
@@ -737,7 +750,7 @@ class Test
         [Fact]
         public async Task UpgradeProjectForDefaultInterfaceImplementation_CS8703()
         {
-            await TestLanguageVersionUpgradedAsync(
+            await TestLanguageVersionNotUpgradedAsync(
 @"
 public interface I1
 {
@@ -751,7 +764,7 @@ public interface I1
         [Fact]
         public async Task UpgradeProjectForDefaultInterfaceImplementation_CS8706()
         {
-            await TestLanguageVersionUpgradedAsync(
+            await TestLanguageVersionNotUpgradedAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -780,7 +793,7 @@ public interface I1
         [Fact]
         public async Task UpgradeProjectWithOpenTypeMatchingConstantPattern_01()
         {
-            await TestLanguageVersionUpgradedAsync(
+            await TestLanguageVersionNotUpgradedAsync(
 @"
 class Test
 {
@@ -793,7 +806,7 @@ class Test
         [Fact]
         public async Task UpgradeProjectWithOpenTypeMatchingConstantPattern_02()
         {
-            await TestLanguageVersionUpgradedAsync(
+            await TestLanguageVersionNotUpgradedAsync(
 @"
 class Test
 {
@@ -806,7 +819,7 @@ class Test
         [Fact]
         public async Task UpgradeProjectWithOpenTypeMatchingConstantPattern_03()
         {
-            await TestLanguageVersionUpgradedAsync(
+            await TestLanguageVersionNotUpgradedAsync(
 @"
 class Test
 {

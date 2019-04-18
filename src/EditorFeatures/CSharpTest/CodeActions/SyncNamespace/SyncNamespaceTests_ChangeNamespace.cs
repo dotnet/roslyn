@@ -322,8 +322,7 @@ namespace Foo
 </Workspace>";
 
             var expectedSourceOriginal =
-@"
-using Foo;
+@"using Foo;
 using Foo.Bar;
 using Foo.Bar.Baz;
 
@@ -380,8 +379,7 @@ namespace Foo
 </Workspace>";
 
             var expectedSourceOriginal =
-@"
-using Foo;
+@"using Foo;
 using Foo.Bar;
 using Foo.Bar.Baz;
 
@@ -695,8 +693,7 @@ namespace [||]{declaredNamespace}
 </Workspace>";
 
             var expectedSourceOriginal =
-@"
-using System;
+@"using System;
 
 // Comments before declaration.
 // Comments after opening brace
@@ -973,8 +970,7 @@ namespace Foo
 </Workspace>";
 
             var expectedSourceOriginal =
-@"
-using Foo;
+@"using Foo;
 using Foo.Bar;
 using Foo.Bar.Baz;
 
