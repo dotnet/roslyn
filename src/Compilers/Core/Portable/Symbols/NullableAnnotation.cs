@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents the types of values that can be assigned
+    /// Represents the nullability of values that can be assigned
     /// to an expression used as an lvalue.
     /// </summary>
     // Review docs: https://github.com/dotnet/roslyn/issues/35046
@@ -15,17 +15,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         NotApplicable = 0,
         /// <summary>
-        /// The expression comes from a library not updated to C# 8,
-        /// and has no nullability information. Analysis is disabled.
+        /// The expression comes from a library not updated to C# 8
+        /// or nullable was disabled for the definition, and has no
+        /// nullability information. Analysis is disabled.
         /// </summary>
-        Disabled,      // No information. Think oblivious.
+        Disabled,
         /// <summary>
         /// The expression is not annotated (does not have a ?).
         /// </summary>
-        NotAnnotated, // Type is not annotated - string, int, T (including the case when T is unconstrained).
+        NotAnnotated,
         /// <summary>
         /// The expression is annotated (does have a ?).
         /// </summary>
-        Annotated,    // Type is annotated - string?, T? where T : class; and for int?, T? where T : struct.
+        Annotated,
     }
 }

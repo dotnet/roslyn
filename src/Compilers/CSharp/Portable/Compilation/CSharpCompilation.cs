@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// True if we should enable nullable analysis in this compilation.
         /// </summary>
-        internal bool EnableNullableAnalysis => Feature("run-nullable-analysis") is "true";
+        internal bool NullableAnalysisEnabled => Feature("run-nullable-analysis") is "true";
 
         /// <summary>
         /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.

@@ -1815,7 +1815,7 @@ done:
 
             // If we're in DEBUG mode, always enable the analysis, but throw away the results
             // https://github.com/dotnet/roslyn/issues/35037: Disable speculative semantic models for now.
-            if (!Compilation.EnableNullableAnalysis || IsSpeculativeSemanticModel)
+            if (!Compilation.NullableAnalysisEnabled || IsSpeculativeSemanticModel)
             {
 #if DEBUG
                 diagnostics = new DiagnosticBag();
@@ -1832,7 +1832,7 @@ done:
                 // In DEBUG mode, we don't want to increase test run times, so if
                 // nullable analysis isn't enabled and some node has already been bound
                 // we assume we've already done this test binding and just return
-                || (!Compilation.EnableNullableAnalysis && _guardedNodeMap.Count > 0)
+                || (!Compilation.NullableAnalysisEnabled && _guardedNodeMap.Count > 0)
 #endif
                 )
             {
@@ -1852,7 +1852,7 @@ done:
             var boundRoot = Bind(binder, bindableRoot, diagnostics);
             boundRoot = RewriteNullableBoundNodes(boundRoot, binder.Conversions, diagnostics);
 
-            if (Compilation.EnableNullableAnalysis && !IsSpeculativeSemanticModel)
+            if (Compilation.NullableAnalysisEnabled && !IsSpeculativeSemanticModel)
             {
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot);
             }

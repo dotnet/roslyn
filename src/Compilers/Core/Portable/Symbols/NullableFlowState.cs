@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents the compiler's analysis of whether an expression can be null.
+    /// Represents the compiler's analysis of whether an expression may be null
     /// </summary>
     // Review docs: https://github.com/dotnet/roslyn/issues/35046
     public enum NullableFlowState : byte
@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         NotApplicable = 0,
         /// <summary>
-        /// Expression cannot contain null.
+        /// Expression is not null.
         /// </summary>
         NotNull,
         /// <summary>
-        /// Expression can contain null.
+        /// Expression may be null.
         /// </summary>
         MaybeNull
     }
