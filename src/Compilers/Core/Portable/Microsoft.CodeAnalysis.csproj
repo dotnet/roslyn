@@ -94,9 +94,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Syntax.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Test.Utilities" />
     <InternalsVisibleTo Include="Roslyn.DebuggerVisualizers" />
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.FxCop.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Diagnostics.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.Utilities" />
