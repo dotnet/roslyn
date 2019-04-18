@@ -183,16 +183,16 @@ namespace Foo
 
             var fixedTestCode = @"namespace Foo
 {
-    using Microsoft.CodeAnalysis;
-    using SystemAction = System.Action;
-    using static System.Math;
-    using System;
+    {|Warning:using Microsoft.CodeAnalysis;|}
+    {|Warning:using SystemAction = System.Action;|}
+    {|Warning:using static System.Math;|}
+    {|Warning:using System;|}
 
-    using static System.String;
-    using MyFunc = System.Func<int, bool>;
+    {|Warning:using static System.String;|}
+    {|Warning:using MyFunc = System.Func<int, bool>;|}
 
-    using System.Collections.Generic;
-    using System.Collections;
+    {|Warning:using System.Collections.Generic;|}
+    {|Warning:using System.Collections;|}
 
     public class Bar
     {
@@ -230,16 +230,16 @@ namespace NamespaceName
 
             var fixedTestCode = @"namespace NamespaceName
 {
-    using Microsoft.CodeAnalysis;
-    using SystemAction = System.Action;
-    using static System.Math;
-    using System;
+    {|Warning:using Microsoft.CodeAnalysis;|}
+    {|Warning:using SystemAction = System.Action;|}
+    {|Warning:using static System.Math;|}
+    {|Warning:using System;|}
 
-    using static System.String;
-    using MyFunc = System.Func<int, bool>;
+    {|Warning:using static System.String;|}
+    {|Warning:using MyFunc = System.Func<int, bool>;|}
 
-    using System.Collections.Generic;
-    using System.Collections;
+    {|Warning:using System.Collections.Generic;|}
+    {|Warning:using System.Collections;|}
 
     public class Bar
     {
@@ -268,8 +268,8 @@ namespace TestNamespace
             var fixedTestCode = @"// This is a file header.
 namespace TestNamespace
 {
-    using Microsoft.CodeAnalysis;
-    using System;
+    {|Warning:using Microsoft.CodeAnalysis;|}
+    {|Warning:using System;|}
 }
 ";
 
@@ -300,8 +300,8 @@ namespace TestNamespace
 {
     // Leading Comment
 
-    using Microsoft.CodeAnalysis;
-    using System;
+    {|Warning:using Microsoft.CodeAnalysis;|}
+    {|Warning:using System;|}
 }
 ";
 
@@ -349,8 +349,8 @@ namespace TestNamespace
             var fixedTestCode = @"namespace TestNamespace
 {
 #pragma warning disable 1573 // Comment
-    using System;
-    using System.Threading;
+    {|Warning:using System;|}
+    {|Warning:using System.Threading;|}
 }
 ";
 
@@ -377,8 +377,8 @@ namespace TestNamespace
 {
     #region Comment
     #endregion Comment
-    using System;
-    using System.Threading;
+    {|Warning:using System;|}
+    {|Warning:using System.Threading;|}
 }
 ";
 
@@ -405,8 +405,8 @@ namespace TestNamespace
 {
 
     // Some comment
-    using System;
-    using System.Threading;
+    {|Warning:using System;|}
+    {|Warning:using System.Threading;|}
 }
 ";
 

@@ -108,8 +108,8 @@ namespace TestNamespace
     using System.Threading;|]
 }
 ";
-            var fixedTestCode = @"using System;
-using System.Threading;
+            var fixedTestCode = @"{|Warning:using System;|}
+{|Warning:using System.Threading;|}
 
 namespace TestNamespace
 {
@@ -133,9 +133,9 @@ namespace TestNamespace
     using Reflection;|]
 }
 ";
-            var fixedTestCode = @"using System;
-using System.Threading;
-using System.Reflection;
+            var fixedTestCode = @"{|Warning:using System;|}
+{|Warning:using System.Threading;|}
+{|Warning:using System.Reflection;|}
 
 namespace System
 {
@@ -159,10 +159,10 @@ namespace System
     using List = Collections.Generic.IList<int>;|]
 }
 ";
-            var fixedTestCode = @"using System.Threading;
-using System.Reflection;
-using Assembly = System.Reflection.Assembly;
-using List = System.Collections.Generic.IList<int>;
+            var fixedTestCode = @"{|Warning:using System.Threading;|}
+{|Warning:using System.Reflection;|}
+{|Warning:using Assembly = System.Reflection.Assembly;|}
+{|Warning:using List = System.Collections.Generic.IList<int>;|}
 
 namespace System.MyExtension
 {
@@ -190,8 +190,8 @@ namespace TestNamespace
 }
 ";
             var fixedTestCode = @"using System.Reflection;
-using System;
-using System.Threading;
+{|Warning:using System;|}
+{|Warning:using System.Threading;|}
 
 [assembly: AssemblyVersion(""1.0.0.0"")]
 
@@ -222,7 +222,7 @@ namespace TestNamespace
             var fixedTestCode = @"// Copyright (c) Tunnel Vision Laboratories, LLC. All Rights Reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
-using System;
+{|Warning:using System;|}
 
 namespace TestNamespace
 {
@@ -252,9 +252,9 @@ namespace TestNamespace
 
 // Separated Comment
 
-using System.Collections;
+{|Warning:using System.Collections;|}
 // Comment
-using System;
+{|Warning:using System;|}
 
 namespace TestNamespace
 {
@@ -286,16 +286,16 @@ namespace TestNamespace
 }
 ";
 
-            var fixedTestCode = @"using Microsoft.CodeAnalysis;
-using SystemAction = System.Action;
-using static System.Math;
-using System;
+            var fixedTestCode = @"{|Warning:using Microsoft.CodeAnalysis;|}
+{|Warning:using SystemAction = System.Action;|}
+{|Warning:using static System.Math;|}
+{|Warning:using System;|}
 
-using static System.String;
-using MyFunc = System.Func<int, bool>;
+{|Warning:using static System.String;|}
+{|Warning:using MyFunc = System.Func<int, bool>;|}
 
-using System.Collections.Generic;
-using System.Collections;
+{|Warning:using System.Collections.Generic;|}
+{|Warning:using System.Collections;|}
 
 namespace Foo
 {
@@ -330,16 +330,16 @@ namespace Foo
 }
 ";
 
-            var fixedTestCode = @"using Microsoft.CodeAnalysis;
-using SystemAction = System.Action;
-using static System.Math;
-using System;
+            var fixedTestCode = @"{|Warning:using Microsoft.CodeAnalysis;|}
+{|Warning:using SystemAction = System.Action;|}
+{|Warning:using static System.Math;|}
+{|Warning:using System;|}
 
-using static System.String;
-using MyFunc = System.Func<int, bool>;
+{|Warning:using static System.String;|}
+{|Warning:using MyFunc = System.Func<int, bool>;|}
 
-using System.Collections.Generic;
-using System.Collections;
+{|Warning:using System.Collections.Generic;|}
+{|Warning:using System.Collections;|}
 
 namespace Foo
 {
@@ -350,6 +350,124 @@ namespace Foo
 ";
 
             return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: false);
+        }
+
+        /// <summary>
+        /// Verifies that simplified using statements in nested namespace are expanded during the code fix operation.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        [Fact]
+        public Task WhenOutsidePreferred_UsingsInNestedNamespaces_UsingsMovedAndExpanded()
+        {
+            var testCode = @"using System;
+
+namespace System.Namespace
+{
+    // Outer Comment
+    [|using Threading;
+
+    namespace OtherNamespace
+    {
+        // Inner Comment
+        using Reflection;|]
+    }
+}
+";
+            var fixedTestCode = @"using System;
+// Outer Comment
+{|Warning:using System.Threading;|}
+// Inner Comment
+{|Warning:using System.Reflection;|}
+
+namespace System.Namespace
+{
+    namespace OtherNamespace
+    {
+    }
+}
+";
+
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+        }
+
+        /// <summary>
+        /// Verifies that simplified using statements in multiple namespaces are expanded during the code fix operation.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        [Fact]
+        public Task WhenOutsidePreferred_UsingsInMultipleNamespaces_UsingsMovedAndExpanded()
+        {
+            var testCode = @"using System;
+
+namespace System.Namespace
+{
+    // A Comment
+    [|using Threading;
+}
+
+namespace System.OtherNamespace
+{
+    // Another Comment
+    using Reflection;|]
+}
+";
+            var fixedTestCode = @"using System;
+// A Comment
+{|Warning:using System.Threading;|}
+// Another Comment
+{|Warning:using System.Reflection;|}
+
+namespace System.Namespace
+{
+}
+
+namespace System.OtherNamespace
+{
+}
+";
+
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+        }
+
+        /// <summary>
+        /// Verifies that simplified using statements in multiple namespaces are deduplicated during the code fix operation.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
+        [Fact]
+        public Task WhenOutsidePreferred_UsingsInMultipleNamespaces_UsingsMovedAndDeduplicated()
+        {
+            var testCode = @"using System;
+
+namespace System.Namespace
+{
+    // Orphaned Comment 1
+    [|using System;
+    // A Comment
+    using Threading;
+}
+
+namespace B
+{
+    // Orphaned Comment 2
+    using System.Threading;|]
+}
+";
+            var fixedTestCode = @"using System;
+// Orphaned Comment 1
+// A Comment
+{|Warning:using System.Threading;|}
+// Orphaned Comment 2
+
+namespace System.Namespace
+{
+}
+
+namespace B
+{
+}
+";
+
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
 
         #endregion
