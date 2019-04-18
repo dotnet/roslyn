@@ -157,6 +157,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Completion_SymbolCompletionProvider_GetItemsWorker,
         Completion_KeywordCompletionProvider_GetItemsWorker,
         Completion_SnippetCompletionProvider_GetItemsWorker_CSharp,
+        Completion_TypeImportCompletionProvider_GetCompletionItemsAsync,
 
         SignatureHelp_ModelComputation_ComputeModelInBackground,
         SignatureHelp_ModelComputation_UpdateModelInBackground,
