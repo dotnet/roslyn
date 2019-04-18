@@ -2,12 +2,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <!-- 
-      Currently the tests depend on compiler having InternalsVisibleTo("Roslyn.Test.Utilities").
-      See https://github.com/dotnet/roslyn-analyzers/issues/1225
-    -->
-    <AssemblyName>Roslyn.Test.Utilities</AssemblyName>
-    
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>

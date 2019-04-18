@@ -76,7 +76,7 @@ namespace Test.Utilities
                     break;
                 }
 
-                var orderedMatches = matches.OrderBy((t1, t2) => t1.index - t2.index).ToList();
+                var orderedMatches = matches.OrderBy(match => match.index).ToList();
                 if (orderedMatches.Count >= 2 &&
                     spanStartStack.Count > 0 &&
                     matches[0].index == matches[1].index - 1)

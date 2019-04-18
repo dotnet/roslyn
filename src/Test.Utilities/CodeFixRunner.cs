@@ -31,9 +31,9 @@ namespace Test.Utilities
             _analyzerOpt = analyzerOpt;
             _codeFixProvider = codeFixProvider;
             _validationMode = validationMode;
-            _fixableDiagnosticIds = _codeFixProvider.FixableDiagnosticIds.ToSet();
+            _fixableDiagnosticIds = new HashSet<string>(_codeFixProvider.FixableDiagnosticIds);
             _getFixableDiagnostics = diags =>
-                diags.Where(d => _fixableDiagnosticIds.Contains(d.Id)).ToImmutableArrayOrEmpty();
+                diags.Where(d => _fixableDiagnosticIds.Contains(d.Id)).ToImmutableArray();
         }
 
         public Solution ApplySingleFix(Project project, IEnumerable<TestAdditionalDocument> additionalFiles, int codeFixIndex)
@@ -110,7 +110,8 @@ namespace Test.Utilities
                     }
 
                     var newFixableDiagnostics = _getFixableDiagnostics(analyzerDiagnostics.Concat(updatedCompilerDiagnostics));
-                    if (fixableDiagnostics.SetEquals(newFixableDiagnostics, DiagnosticComparer.Instance))
+                    if (!fixableDiagnostics.Except(newFixableDiagnostics, DiagnosticComparer.Instance).Any()
+                        && !newFixableDiagnostics.Except(fixableDiagnostics, DiagnosticComparer.Instance).Any())
                     {
                         diagnosticIndexToFix++;
                     }
@@ -158,8 +159,8 @@ namespace Test.Utilities
 
                 Assert.True(false,
                     string.Format("Fix introduced new compiler diagnostics:\r\n{0}\r\n\r\nNew documents:\r\n{1}\r\n",
-                        newCompilerDiagnostics.Select(d => d.ToString()).Join("\r\n"),
-                        project.Documents.Select(doc => doc.GetSyntaxRootAsync().Result.ToFullString()).Join("\r\n")));
+                        string.Join("\r\n", newCompilerDiagnostics.Select(d => d.ToString())),
+                        string.Join("\r\n", project.Documents.Select(doc => doc.GetSyntaxRootAsync().Result.ToFullString()))));
             }
         }
 
@@ -193,7 +194,6 @@ namespace Test.Utilities
             }
 
             var analyzerOptions = additionalFiles != null ? new AnalyzerOptions(additionalFiles.ToImmutableArray<AdditionalText>()) : null;
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             compilation = EnableAnalyzer(_analyzerOpt, compilation);
 
             return compilation.GetAnalyzerDiagnostics(new[] { _analyzerOpt }, _validationMode, analyzerOptions).OrderBy(d => d.Location.SourceSpan.Start).ToArray();
@@ -207,8 +207,8 @@ namespace Test.Utilities
                     .WithSpecificDiagnosticOptions(
                         analyzer
                             .SupportedDiagnostics
-                            .Select(x => KeyValuePairUtil.Create(x.Id, ReportDiagnostic.Default))
-                            .ToImmutableDictionaryOrEmpty()));
+                            .Select(x => new KeyValuePair<string, ReportDiagnostic>(x.Id, ReportDiagnostic.Default))
+                            .ToImmutableDictionary()));
         }
 
         private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic>
@@ -226,12 +226,18 @@ namespace Test.Utilities
 
             public int GetHashCode(Diagnostic obj)
             {
-                return Hash.CombineValues(new[] {
-                    obj.Id.GetHashCode(),
-                    obj.GetMessage().GetHashCode(),
-                    obj.Location.IsInSource ? 1 : 0,
-                    obj.Location.SourceSpan.GetHashCode(),
-                    obj.Location.SourceTree?.ToString().GetHashCode() });
+                var hash = 5;
+
+                unchecked
+                {
+                    hash = (7 * hash) ^ obj.Id.GetHashCode();
+                    hash = (7 * hash) ^ obj.GetMessage().GetHashCode();
+                    hash = (7 * hash) ^ (obj.Location.IsInSource ? 1 : 0);
+                    hash = (7 * hash) ^ obj.Location.SourceSpan.GetHashCode();
+                    hash = (7 * hash) ^ (obj.Location.SourceTree?.ToString().GetHashCode() ?? 0);
+                }
+
+                return hash;
             }
         }
     }
