@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal readonly int index;
             internal readonly CodeActionPriority? priority;
             internal readonly bool retainNonFixableDiagnostics;
+            internal readonly string title;
 
             internal TestParameters(
                 ParseOptions parseOptions = null,
@@ -45,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 object fixProviderData = null,
                 int index = 0,
                 CodeActionPriority? priority = null,
-                bool retainNonFixableDiagnostics = false)
+                bool retainNonFixableDiagnostics = false,
+                string title = null)
             {
                 this.parseOptions = parseOptions;
                 this.compilationOptions = compilationOptions;
@@ -54,16 +56,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 this.index = index;
                 this.priority = priority;
                 this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
+                this.title = title;
             }
 
             public TestParameters WithParseOptions(ParseOptions parseOptions)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
 
             public TestParameters WithFixProviderData(object fixProviderData)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
 
             public TestParameters WithIndex(int index)
-                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority);
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
         }
 
         protected abstract string GetLanguage();
@@ -323,11 +326,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CompilationOptions compilationOptions = null,
             IDictionary<OptionKey, object> options = null,
             object fixProviderData = null,
-            ParseOptions parseOptions = null)
+            ParseOptions parseOptions = null,
+            string title = null)
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index, priority,
-                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index));
+                new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, title: title));
         }
 
         internal async Task TestInRegularAndScript1Async(
@@ -522,6 +526,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (parameters.priority != null)
             {
                 Assert.Equal(parameters.priority.Value, action.Priority);
+            }
+
+            if (parameters.title != null)
+            {
+                Assert.Equal(parameters.title, action.Title);
             }
 
             return action.GetOperationsAsync(CancellationToken.None);

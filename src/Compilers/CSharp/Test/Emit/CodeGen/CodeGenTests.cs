@@ -16,6 +16,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenTests : CSharpTestBase
     {
+        [Fact]
+        public void EmitWithSuppressedWarnAsError()
+        {
+            var src = @"
+#pragma warning disable 1591
+
+public class P {
+    public static void Main() {}
+}";
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var options = TestOptions.ReleaseDll
+                .WithXmlReferenceResolver(XmlFileResolver.Default)
+                .WithGeneralDiagnosticOption(ReportDiagnostic.Error);
+
+            var comp = CreateCompilation(src, parseOptions: parseOptions, options: options);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp);
+        }
+
         [Fact()]
         [WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")]
         public void Bug776642a()
@@ -9798,7 +9817,9 @@ class MyClass
 ");
         }
 
-        [Fact, WorkItem(538246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538246"), WorkItem(543655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543655")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(538246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538246"), WorkItem(543655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543655")]
         public void FloatDoubleInfinity()
         {
             string source = @"
@@ -10651,7 +10672,8 @@ public class MyClass {
         // digits < 1e-49 when rounding.
         [WorkItem(529827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529827")]
         [WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")]
-        [Fact]
+        [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/32576")]
         public void DecimalLiteral_BreakingChange()
         {
             string source =
@@ -11317,10 +11339,13 @@ class C
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34198")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/32576")]
+        [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
+        [WorkItem(34198, "https://github.com/dotnet/roslyn/issues/34198")]
         public void DecimalBinaryOp_03()
         {
-            // Test temporarily disabled as it fails CI on Linux in master branch
+            // Test temporarily disabled on Mono as it fails on nightlies due to System.Decimal changes
+            // We'll need to update / disable for CoreCLR 3.0 too as it has the same change
             // Tracked by https://github.com/dotnet/roslyn/issues/34198
 
             string source = @"
@@ -12881,7 +12906,8 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)-4e30f").WithArguments("-4E+30", "decimal"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void Bug14064()
         {
             string source = @"

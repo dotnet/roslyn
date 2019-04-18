@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (constraintType.TypeKind == TypeKind.TypeParameter)
             {
-                bool? isNotNullableIfReferenceType = ((TypeParameterSymbol)constraintType.Type).GetIsNotNullableIfReferenceType();
+                bool? isNotNullableIfReferenceType = ((TypeParameterSymbol)constraintType.Type).IsNotNullableIfReferenceType;
 
                 if (isNotNullableIfReferenceType == false)
                 {
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsReferenceType => GetIsReferenceType(ConsList<TypeParameterSymbol>.Empty);
 
-        internal bool? GetIsNotNullableIfReferenceType()
+        protected bool? CalculateIsNotNullableIfReferenceType()
         {
             bool? fromReferenceTypeConstraint = false;
 
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // https://github.com/dotnet/roslyn/issues/26198 Should this API be exposed through ITypeParameterSymbol?
-        internal bool? IsNotNullableIfReferenceType => GetIsNotNullableIfReferenceType();
+        internal abstract bool? IsNotNullableIfReferenceType { get; }
 
         internal bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress)
         {
@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsReadOnly
+        public sealed override bool IsReadOnly
         {
             get
             {

@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        // PROTOTYPE(nullable-api): Add tests
+        // https://github.com/dotnet/roslyn/issues/35035: Add tests
         public static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ITypeSymbol symbol,
             CodeAnalysis.NullableFlowState nullableFlowState,
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        // PROTOTYPE(nullable-api): Add tests
+        // https://github.com/dotnet/roslyn/issues/35035: Add tests
         public static ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
             ITypeSymbol symbol,
             CodeAnalysis.NullableFlowState nullableFlowState,
@@ -194,8 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format,
             bool minimal)
         {
-            // PROTOTYPE(nullable-api): Refactor this. We need to be able to handle non-TypeSymbol inputs
-            var annotation = (CodeAnalysis.NullableAnnotation?)new TypeWithState((TypeSymbol)symbol, nullableFlowState.ToInternalFlowState()).ToTypeWithAnnotations().NullableAnnotation.ToPublicAnnotation();
+            // https://github.com/dotnet/roslyn/issues/35035: Refactor this. We need to be able to handle non-TypeSymbol inputs
+            var annotation = (CodeAnalysis.NullableAnnotation?)TypeWithState.Create((TypeSymbol)symbol, nullableFlowState.ToInternalFlowState()).ToTypeWithAnnotations().NullableAnnotation.ToPublicAnnotation();
             return ToDisplayParts(symbol, annotation, semanticModelOpt, positionOpt, format, minimal);
         }
 

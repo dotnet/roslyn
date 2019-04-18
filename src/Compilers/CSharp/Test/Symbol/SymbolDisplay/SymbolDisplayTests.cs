@@ -4819,6 +4819,8 @@ class C
 
             public bool IsAnonymousType => false;
 
+            public bool IsReadOnly => false;
+
             #region FakeTupleTypeSymbol generated
             public ImmutableArray<INamedTypeSymbol> AllInterfaces
             {

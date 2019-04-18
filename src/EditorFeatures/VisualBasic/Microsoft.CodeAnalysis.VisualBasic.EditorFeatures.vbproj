@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net472</TargetFramework>
     <RootNamespace></RootNamespace>
-    <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>

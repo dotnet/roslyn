@@ -7054,7 +7054,7 @@ unsafe class C
             }
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void FixedSemanticModelSymbolInfo()
         {
             var text = @"
@@ -7129,7 +7129,7 @@ unsafe class C
             }
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void FixedSemanticModelSymbolInfoConversions()
         {
             var text = @"
@@ -9192,6 +9192,27 @@ unsafe class C
                 // (17,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* f = &(s_f.Buf[0]);
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&(s_f.Buf[0])").WithLocation(17, 18));
+        }
+
+        [Fact, WorkItem(34693, "https://github.com/dotnet/roslyn/issues/34693")]
+        public void Repro_34693()
+        {
+            var csharp = @"
+namespace Interop
+{
+    public unsafe struct PROPVARIANT
+    {
+        public CAPROPVARIANT ca;
+    }
+
+    public unsafe struct CAPROPVARIANT
+    {
+        public uint cElems;
+        public PROPVARIANT* pElems;
+    }
+}";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
     }
 }

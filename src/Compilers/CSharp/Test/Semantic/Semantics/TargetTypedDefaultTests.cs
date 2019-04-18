@@ -712,7 +712,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "1 0");
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void MiscDefaultErrors()
         {
             string source = @"

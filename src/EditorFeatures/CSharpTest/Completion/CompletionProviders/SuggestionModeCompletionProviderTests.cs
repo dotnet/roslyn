@@ -1139,8 +1139,8 @@ public static class Repro
 
             foreach (var triggerInfo in triggerInfos)
             {
-                var completionList = await service.GetContextAsync(
-                    service.ExclusiveProviders?[0], document, position, triggerInfo,
+                var completionList = await service.GetTestAccessor().GetContextAsync(
+                    service.GetTestAccessor().ExclusiveProviders?[0], document, position, triggerInfo,
                     options: null, cancellationToken: CancellationToken.None);
 
                 if (isBuilder)

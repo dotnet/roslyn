@@ -166,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        internal virtual void LoadSettings()
+        internal virtual void OnLoad()
         {
             foreach (var bindingExpression in _bindingExpressions)
             {
@@ -174,17 +174,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        internal virtual void SaveSettings()
+        internal virtual void OnSave()
         {
-            foreach (var bindingExpression in _bindingExpressions)
-            {
-                if (!bindingExpression.IsDirty)
-                {
-                    continue;
-                }
-
-                bindingExpression.UpdateSource();
-            }
         }
 
         internal virtual void Close()

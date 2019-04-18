@@ -1831,7 +1831,7 @@ class UsePia
             VerifyEmitDiagnostics(compilation, true, expected);
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void NewCoClassWithoutGiud()
         {
             string pia = @"
@@ -4396,7 +4396,7 @@ class UsePia
             CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void DynamicCollectionInitializer()
         {
             string pia = @"

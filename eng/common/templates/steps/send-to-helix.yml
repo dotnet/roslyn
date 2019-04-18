@@ -11,6 +11,7 @@ parameters:
   WorkItemTimeout: ''                    # optional -- a timeout in seconds for the work item command; requires WorkItemDirectory; incompatible with XUnitProjects
   CorrelationPayloadDirectory: ''        # optional -- a directory to zip up and send to Helix as a correlation payload
   XUnitProjects: ''                      # optional -- semicolon delimited list of XUnitProjects to parse and send to Helix; requires XUnitRuntimeTargetFramework, XUnitPublishTargetFramework, XUnitRunnerVersion, and IncludeDotNetCli=true
+  XUnitWorkItemTimeout: ''               # optional -- the workitem timeout in seconds for all workitems created from the xUnit projects specified by XUnitProjects
   XUnitPublishTargetFramework: ''        # optional -- framework to use to publish your xUnit projects
   XUnitRuntimeTargetFramework: ''        # optional -- framework to use for the xUnit console runner
   XUnitRunnerVersion: ''                 # optional -- version of the xUnit nuget package you wish to use on Helix; required for XUnitProjects
@@ -42,6 +43,7 @@ steps:
       WorkItemTimeout: ${{ parameters.WorkItemTimeout }}
       CorrelationPayloadDirectory: ${{ parameters.CorrelationPayloadDirectory }}
       XUnitProjects: ${{ parameters.XUnitProjects }}
+      XUnitWorkItemTimeout: ${{ parameters.XUnitWorkItemTimeout }}
       XUnitPublishTargetFramework: ${{ parameters.XUnitPublishTargetFramework }}
       XUnitRuntimeTargetFramework: ${{ parameters.XUnitRuntimeTargetFramework }}
       XUnitRunnerVersion: ${{ parameters.XUnitRunnerVersion }}
@@ -70,6 +72,7 @@ steps:
       WorkItemTimeout: ${{ parameters.WorkItemTimeout }}
       CorrelationPayloadDirectory: ${{ parameters.CorrelationPayloadDirectory }}
       XUnitProjects: ${{ parameters.XUnitProjects }}
+      XUnitWorkItemTimeout: ${{ parameters.XUnitWorkItemTimeout }}
       XUnitPublishTargetFramework: ${{ parameters.XUnitPublishTargetFramework }}
       XUnitRuntimeTargetFramework: ${{ parameters.XUnitRuntimeTargetFramework }}
       XUnitRunnerVersion: ${{ parameters.XUnitRunnerVersion }}

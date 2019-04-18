@@ -123,11 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// True if we should enable nullable analysis on information returned from this semantic model.
-        /// </summary>
-        internal bool EnableNullableAnalysis => Compilation.Options.NullableContextOptions != NullableContextOptions.Disable;
-
         #region Abstract worker methods
 
         /// <summary>
@@ -1911,7 +1906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (pattern != null)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                // PROTOTYPE(nullable-api): support patterns
+                // https://github.com/dotnet/roslyn/issues/35032: support patterns
                 return new CSharpTypeInfo(
                     pattern.InputType, pattern.ConvertedType, nullability: default, convertedNullability: default,
                     Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.ConvertedType, ref useSiteDiagnostics));
@@ -2167,7 +2162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Determine type. Dig through aliases if necessary.
             TypeSymbol type = UnwrapAlias(symbol) as TypeSymbol;
-            // PROTOTYPE(nullable-api): Examine this and make sure that we're using the correct nullabilities
+            // https://github.com/dotnet/roslyn/issues/35033: Examine this and make sure that we're using the correct nullabilities
             return new CSharpTypeInfo(type, type, default, default, Conversion.Identity);
         }
 

@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             CSharpVSResources.Using_Directives;
 
         public static string Option_Suggest_usings_for_types_in_reference_assemblies =>
-            CSharpVSResources.Suggest_usings_for_types_in_reference_assemblies;
+            CSharpVSResources.Suggest_usings_for_types_in_dotnet_framework_assemblies;
 
         public static string Option_Suggest_usings_for_types_in_NuGet_packages =>
             CSharpVSResources.Suggest_usings_for_types_in_NuGet_packages;

@@ -7294,23 +7294,20 @@ switch (e)
         public void ChainedSwitchExpression_02()
         {
             UsingExpression("a < b switch { 1 => 2 } < c switch { 2 => 3 }");
-            N(SyntaxKind.SwitchExpression);
+            N(SyntaxKind.LessThanExpression);
             {
                 N(SyntaxKind.LessThanExpression);
                 {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.LessThanToken);
                     N(SyntaxKind.SwitchExpression);
                     {
-                        N(SyntaxKind.LessThanExpression);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "a");
-                            }
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "b");
-                            }
+                            N(SyntaxKind.IdentifierToken, "b");
                         }
                         N(SyntaxKind.SwitchKeyword);
                         N(SyntaxKind.OpenBraceToken);
@@ -7331,30 +7328,33 @@ switch (e)
                         }
                         N(SyntaxKind.CloseBraceToken);
                     }
-                    N(SyntaxKind.LessThanToken);
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.SwitchExpression);
+                {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "c");
                     }
-                }
-                N(SyntaxKind.SwitchKeyword);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.SwitchExpressionArm);
-                {
-                    N(SyntaxKind.ConstantPattern);
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SwitchExpressionArm);
                     {
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "2");
+                            }
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
                         N(SyntaxKind.NumericLiteralExpression);
                         {
-                            N(SyntaxKind.NumericLiteralToken, "2");
+                            N(SyntaxKind.NumericLiteralToken, "3");
                         }
                     }
-                    N(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.NumericLiteralExpression);
-                    {
-                        N(SyntaxKind.NumericLiteralToken, "3");
-                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }
@@ -7362,40 +7362,39 @@ switch (e)
         [Fact]
         public void SwitchExpressionPrecedence_01()
         {
-            // The left-hand-side of a switch is a relational, so `a < b` ends up on the left of the switch expression.
             UsingExpression("a < b switch { true => 1 }");
-            N(SyntaxKind.SwitchExpression);
+            N(SyntaxKind.LessThanExpression);
             {
-                N(SyntaxKind.LessThanExpression);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "a");
-                    }
-                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.SwitchExpression);
+                {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "b");
                     }
-                }
-                N(SyntaxKind.SwitchKeyword);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.SwitchExpressionArm);
-                {
-                    N(SyntaxKind.ConstantPattern);
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.SwitchExpressionArm);
                     {
-                        N(SyntaxKind.TrueLiteralExpression);
+                        N(SyntaxKind.ConstantPattern);
                         {
-                            N(SyntaxKind.TrueKeyword);
+                            N(SyntaxKind.TrueLiteralExpression);
+                            {
+                                N(SyntaxKind.TrueKeyword);
+                            }
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
                         }
                     }
-                    N(SyntaxKind.EqualsGreaterThanToken);
-                    N(SyntaxKind.NumericLiteralExpression);
-                    {
-                        N(SyntaxKind.NumericLiteralToken, "1");
-                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }
@@ -7403,7 +7402,7 @@ switch (e)
         [Fact]
         public void SwitchExpressionPrecedence_02()
         {
-            // The left-hand-side of a switch is equality, which binds more loosely than the relational `switch`,
+            // The left-hand-side of a switch is equality, which binds more loosely than the `switch`,
             // so `b` ends up on the left of the `switch` and the `a ==` expression has a switch on the right.
             UsingExpression("a == b switch { true => 1 }");
             N(SyntaxKind.EqualsExpression);
@@ -7438,6 +7437,234 @@ switch (e)
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_03()
+        {
+            UsingExpression("a * b switch {}");
+            N(SyntaxKind.MultiplyExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.AsteriskToken);
+                N(SyntaxKind.SwitchExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_04()
+        {
+            UsingExpression("a + b switch {}");
+            N(SyntaxKind.AddExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.PlusToken);
+                N(SyntaxKind.SwitchExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.SwitchKeyword);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_05()
+        {
+            UsingExpression("-a switch {}");
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.UnaryMinusExpression);
+                {
+                    N(SyntaxKind.MinusToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_06()
+        {
+            UsingExpression("(Type)a switch {}");
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.CastExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Type");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_07()
+        {
+            UsingExpression("(Type)a++ switch {}");
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.CastExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Type");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.PostIncrementExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.PlusPlusToken);
+                    }
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_08()
+        {
+            UsingExpression("+a switch {}");
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.UnaryPlusExpression);
+                {
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_09()
+        {
+            UsingExpression("a switch {}.X",
+                // (1,1): error CS1073: Unexpected token '.'
+                // a switch {}.X
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "a switch {}").WithArguments(".").WithLocation(1, 1));
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_10()
+        {
+            UsingExpression("a switch {}[i]",
+                // (1,1): error CS1073: Unexpected token '['
+                // a switch {}[i]
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "a switch {}").WithArguments("[").WithLocation(1, 1));
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_11()
+        {
+            UsingExpression("a switch {}(b)",
+                // (1,1): error CS1073: Unexpected token '('
+                // a switch {}(b)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "a switch {}").WithArguments("(").WithLocation(1, 1));
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpressionPrecedence_12()
+        {
+            UsingExpression("a switch {}!",
+                // (1,1): error CS1073: Unexpected token '!'
+                // a switch {}!
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "a switch {}").WithArguments("!").WithLocation(1, 1));
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }

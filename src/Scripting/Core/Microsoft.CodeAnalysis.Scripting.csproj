@@ -64,11 +64,12 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="vbi" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveHost" />
     <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
     <!-- /TODO -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />

@@ -1244,7 +1244,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b").WithArguments("b"));
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void TestArrayCreationErrors()
         {
             string source = @"

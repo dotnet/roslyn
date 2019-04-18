@@ -376,14 +376,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected ImmutableArray<PendingBranch> Analyze(ref bool badRegion)
+        protected ImmutableArray<PendingBranch> Analyze(ref bool badRegion, Optional<TLocalState> initialState = default)
         {
             ImmutableArray<PendingBranch> returns;
             do
             {
                 // the entry point of a method is assumed reachable
                 regionPlace = RegionPlace.Before;
-                this.State = TopState();
+                this.State = initialState.HasValue ? initialState.Value : TopState();
                 PendingBranches.Clear();
                 this.stateChangedAfterUse = false;
                 this.Diagnostics.Clear();
@@ -1184,6 +1184,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitReceiverAfterCall(node.ReceiverOpt, method);
             }
+
+            return null;
+        }
+
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        {
+            // Index or Range pattern indexers evaluate the following in order:
+            // 1. The receiver
+            // 1. The Count or Length method off the receiver
+            // 2. The argument to the access
+            // 3. The pattern method
+            VisitRvalue(node.Receiver);
+            var method = GetReadMethod(node.LengthOrCountProperty);
+            VisitReceiverAfterCall(node.Receiver, method);
+            VisitRvalue(node.Argument);
+            method = node.PatternSymbol switch
+            {
+                PropertySymbol p => GetReadMethod(p),
+                MethodSymbol m => m,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.PatternSymbol)
+            };
+            VisitReceiverAfterCall(node.Receiver, method);
 
             return null;
         }

@@ -107,7 +107,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void ObjectInitializerTest_TypeParameterType()
         {
             string source = @"
@@ -3737,7 +3737,7 @@ class Test2
         }
 
         [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_03()
         {
             var source = @"

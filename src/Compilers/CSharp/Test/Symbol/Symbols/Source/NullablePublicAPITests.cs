@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -30,7 +32,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp.VerifyDiagnostics(
                 // (6,20): warning CS8619: Nullability of reference types in value of type 'C?[]' doesn't match target type 'C[]'.
                 //         C[] arr2 = (C[])arr1;
@@ -68,7 +70,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -356,7 +358,7 @@ public class C
                 PublicNullableAnnotation.Annotated);
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api): Unimplemented")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35034")]
         public void MethodDeclarationReceiver()
         {
             var source = @"
@@ -382,14 +384,14 @@ public static class CExt
 }
 ";
 
-            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp1.VerifyDiagnostics(
                 // (20,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public static void M8(this C? c) {}
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(20, 33));
             verifyCompilation(comp1);
 
-            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp2.VerifyDiagnostics(
                 // (20,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public static void M8(this C? c) {}
@@ -419,12 +421,12 @@ public static class CExt
             verifyCompilation(comp3);
 
             var comp1Emit = comp1.EmitToImageReference();
-            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue());
+            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp4.VerifyDiagnostics();
             verifyCompilation(comp4);
 
             var comp2Emit = comp2.EmitToImageReference();
-            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse());
+            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp5.VerifyDiagnostics();
             verifyCompilation(comp5);
 
@@ -593,11 +595,11 @@ public class C
                                                  params PublicNullableAnnotation[] expectedNullabilities)
         {
 
-            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp1 = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp1.VerifyDiagnostics(nullableEnabledErrors);
             verifyCompilation(comp1);
 
-            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse());
+            var comp2 = CreateCompilation(source, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp2.VerifyDiagnostics(nullableEnabledErrors);
             verifyCompilation(comp2);
 
@@ -608,12 +610,12 @@ public class C
             if (!testMetadata) return;
 
             var comp1Emit = comp1.EmitToImageReference();
-            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue());
+            var comp4 = CreateCompilation("", references: new[] { comp1Emit }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp4.VerifyDiagnostics();
             verifyCompilation(comp4);
 
             var comp2Emit = comp2.EmitToImageReference();
-            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse());
+            var comp5 = CreateCompilation("", references: new[] { comp2Emit }, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp5.VerifyDiagnostics();
             verifyCompilation(comp5);
 
@@ -647,7 +649,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
             comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
@@ -657,7 +659,7 @@ class C
             var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
             var typeInfo = model.GetTypeInfo(((MemberAccessExpressionSyntax)invocation.Expression).Expression);
             Assert.Equal(PublicNullableFlowState.NotNull, typeInfo.Nullability.FlowState);
-            // PROTOTYPE(nullable-api): This is incorrect. o should be Annotated, as you can assign
+            // https://github.com/dotnet/roslyn/issues/34993: This is incorrect. o should be Annotated, as you can assign
             // null without a warning.
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, typeInfo.Nullability.Annotation);
         }
@@ -675,13 +677,54 @@ enum E2
     A2 = E1.A1
 }";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
 
             _ = model.GetTypeInfo(root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value);
+        }
+
+        [Fact]
+        public void AnalyzerTest()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        object? o = null;
+        _ = o;
+        if (o == null) return;
+        _ = o;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+
+            comp.VerifyDiagnostics();
+            comp.VerifyAnalyzerDiagnostics(new[] { new NullabilityPrinter() }, null, null, true,
+                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated").WithLocation(7, 13),
+                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated").WithLocation(8, 13),
+                Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "NotNull", "NotAnnotated").WithLocation(9, 13));
+        }
+
+        private class NullabilityPrinter : DiagnosticAnalyzer
+        {
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+
+            private static DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(id: "CA9999_NullabilityPrinter", title: "CA9999_NullabilityPrinter", messageFormat: "Nullability of '{0}' is '{1}':'{2}'", category: "Test", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(syntaxContext =>
+                {
+                    if (syntaxContext.Node.ToString() == "_") return;
+                    var info = syntaxContext.SemanticModel.GetTypeInfo(syntaxContext.Node);
+                    syntaxContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor, syntaxContext.Node.GetLocation(), syntaxContext.Node, info.Nullability.FlowState, info.Nullability.Annotation));
+                }, SyntaxKind.IdentifierName);
+            }
         }
     }
 }

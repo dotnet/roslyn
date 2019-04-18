@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public void VisitWithNullability(TypeSymbol symbol, NullableFlowState topLevelNullability)
         {
-            VisitWithAnnotation(new TypeWithState(symbol, topLevelNullability).ToTypeWithAnnotations());
+            VisitWithAnnotation(TypeWithState.Create(symbol, topLevelNullability).ToTypeWithAnnotations());
         }
 
         public void VisitWithNullableAnnotation(TypeSymbol symbol, NullableAnnotation topLevelAnnotation)

@@ -78,5 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         bool ITypeSymbol.IsRefLikeType => throw new System.NotImplementedException();
 
         bool ITypeSymbol.IsUnmanagedType => throw new System.NotImplementedException();
+
+        bool ITypeSymbol.IsReadOnly => throw new System.NotImplementedException();
     }
 }

@@ -61,6 +61,25 @@ End Class
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
+        Public Sub TestNoCommitAfterExplicitLineContinuationCommentsAfterLineContinuation()
+            Dim test = <Workspace>
+                           <Project Language="Visual Basic" CommonReferences="true">
+                               <Document>
+Class C
+    Sub M()
+        M() _ ' Test$$
+    End Sub
+End Class
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            AssertCommitsStatement(test, expectCommit:=False)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.LineCommit)>
+        <WorkItem(531421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531421")>
         Public Sub TestCommitAfterBlankLineFollowingExplicitLineContinuation()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">

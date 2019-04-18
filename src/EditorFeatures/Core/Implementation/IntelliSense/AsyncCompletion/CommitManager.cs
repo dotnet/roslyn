@@ -130,6 +130,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
+            if (!session.Properties.TryGetProperty(CompletionSource.CompletionListSpan, out TextSpan completionListSpan))
+            {
+                return CommitResultUnhandled;
+            }
+
             var triggerDocument = triggerSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (triggerDocument == null)
             {
@@ -139,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
-                triggerDocument, completionService, session.TextView, subjectBuffer,
-                roslynItem, commitChar, triggerSnapshot, serviceRules, filterText, cancellationToken);
+                triggerDocument, completionService, session.TextView, subjectBuffer, roslynItem,
+                completionListSpan, commitChar, triggerSnapshot, serviceRules, filterText, cancellationToken);
 
             _recentItemsManager.MakeMostRecentItem(roslynItem.DisplayText);
             return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
@@ -152,6 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ITextView view,
             ITextBuffer subjectBuffer,
             RoslynCompletionItem roslynItem,
+            TextSpan completionListSpan,
             char? commitCharacter,
             ITextSnapshot triggerSnapshot,
             CompletionRules rules,
@@ -174,7 +180,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CommitBehavior.None;
             }
 
-            var change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
+            var change = completionService.GetChangeAsync(
+                document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             var textChange = change.TextChange;
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);

@@ -2192,7 +2192,7 @@ Operator '!=' cannot be applied to operands of type 'System.ValueTuple<int,int,i
         }
 
         // PROTOPTYPE(nullable-api): Support deconstruction assignment
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void TestComparisonWithDeconstructionResult()
         {
             var source = @"

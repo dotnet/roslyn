@@ -1010,6 +1010,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
+            CheckImplicitThisCopyInReadOnlyMember(receiver, method, diagnostics);
+
             if (invokedAsExtensionMethod)
             {
                 BoundExpression receiverArgument = analyzedArguments.Argument(0);
@@ -1114,12 +1116,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDelegateCall = (object)delegateTypeOpt != null;
             if (!isDelegateCall)
             {
-                if ((object)receiver != null && receiver.Kind == BoundKind.BaseReference && method.IsAbstract)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, method);
-                    gotError = true;
-                }
-
                 if (!method.IsStatic)
                 {
                     WarnOnAccessOfOffDefault(node.Kind() == SyntaxKind.InvocationExpression ?
@@ -1135,30 +1131,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
         }
 
-        private bool IsBindingModuleLevelAttribute()
+        /// <summary>
+        /// Returns false if an implicit 'this' copy will occur due to an instance member invocation in a readonly member.
+        /// </summary>
+        internal bool CheckImplicitThisCopyInReadOnlyMember(BoundExpression receiver, MethodSymbol method, DiagnosticBag diagnostics)
         {
-            if ((this.Flags & BinderFlags.InContextualAttributeBinder) == 0)
+            // For now we are warning only in implicit copy scenarios that are only possible with readonly members.
+            // Eventually we will warn on implicit value copies in more scenarios. See https://github.com/dotnet/roslyn/issues/33968.
+            if (receiver is BoundThisReference &&
+                receiver.Type.IsValueType &&
+                ContainingMemberOrLambda is MethodSymbol containingMethod &&
+                containingMethod.IsEffectivelyReadOnly &&
+                // Ignore calls to base members.
+                TypeSymbol.Equals(containingMethod.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything) &&
+                !method.IsEffectivelyReadOnly &&
+                !method.IsStatic)
             {
+                Error(diagnostics, ErrorCode.WRN_ImplicitCopyInReadOnlyMember, receiver.Syntax, method, ThisParameterSymbol.SymbolName);
                 return false;
             }
 
-            var current = this;
-
-            do
-            {
-                var contextualAttributeBinder = current as ContextualAttributeBinder;
-
-                if (contextualAttributeBinder != null)
-                {
-                    return (object)contextualAttributeBinder.AttributeTarget != null &&
-                           contextualAttributeBinder.AttributeTarget.Kind == SymbolKind.NetModule;
-                }
-
-                current = current.Next;
-            }
-            while (current != null);
-
-            throw ExceptionUtilities.Unreachable;
+            return true;
         }
 
         /// <param name="node">Invocation syntax node.</param>

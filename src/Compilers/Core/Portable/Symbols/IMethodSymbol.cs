@@ -90,7 +90,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol ReturnType { get; }
 
-        // PROTOTYPE(nullable-api): Document
+        /// <summary>
+        /// Gets the top-level nullability of the return of the method.
+        /// </summary>
         NullableAnnotation ReturnNullableAnnotation { get; }
 
         /// <summary>
@@ -100,7 +102,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
-        // PROTOTYPE(nullable-api): Document
+        /// <summary>
+        /// Returns the top-level nullability of the type arguments that have been substituted
+        /// for the type parameters. If nothing has been substituted for a given type parameter,
+        /// then <code>default</code> of <see cref="NullableAnnotation"/> is returned.
+        /// </summary>
         ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations { get; }
 
         /// <summary>
@@ -124,6 +130,14 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol ConstructedFrom { get; }
 
         /// <summary>
+        /// Indicates whether the method is readonly, i.e.
+        /// i.e. whether the 'this' receiver parameter is 'ref readonly'.
+        /// Returns true for readonly instance methods and accessors
+        /// and for reduced extension methods with a 'this in' parameter.
+        /// </summary>
+        bool IsReadOnly { get; }
+
+        /// <summary>
         /// Get the original definition of this symbol. If this symbol is derived from another
         /// symbol by (say) type substitution, this gets the original symbol, as it was defined in
         /// source or metadata.
@@ -141,7 +155,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol ReceiverType { get; }
 
-        // PROTOTYPE(nullable-api): Document
+        /// <summary>
+        /// If this method can be applied to an object, returns the top-level nullability of the object it is applied to.
+        /// </summary>
         NullableAnnotation ReceiverNullableAnnotation { get; }
 
         /// <summary>

@@ -18,12 +18,21 @@
             "vsBranch": "rel/d16.0",
             "vsMajorVersion": 16
         },
+        "dev16.1-preview2-vs-deps": {
+          "nugetKind": ["Shipping", "NonShipping"],
+          "version": "3.1.*",
+          "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+          "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+          "channels": [ "dev16.1", "dev16.1p2" ],
+          "vsBranch": "rel/d16.1",
+          "vsMajorVersion": 16
+        },
         "master-vs-deps": {
             "nugetKind": ["Shipping", "NonShipping"],
             "version": "3.1.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev16.1", "dev16.1p1" ],
+            "channels": [ "dev16.1", "dev16.1p3" ],
             "vsBranch": "lab/d16.1stg",
             "vsMajorVersion": 16
         },
@@ -53,6 +62,26 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "editorconfig" ],
+            "vsBranch": "lab/d16.1stg",
+            "vsMajorVersion": 16,
+            "ibcSourceBranch": "master-vs-deps"
+        },
+        "features/lspSupport": {
+            "nugetKind": [ "Shipping", "NonShipping" ],
+            "version": "3.1.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "lspSupport" ],
+            "vsBranch": "lab/d16.1stg",
+            "vsMajorVersion": 16,
+            "ibcSourceBranch": "master-vs-deps"
+        },
+        "features/razorSupport2": {
+            "nugetKind": [ "Shipping", "NonShipping" ],
+            "version": "3.1.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "razorSupport2" ],
             "vsBranch": "lab/d16.1stg",
             "vsMajorVersion": 16,
             "ibcSourceBranch": "master-vs-deps"

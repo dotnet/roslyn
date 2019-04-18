@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="A_new_namespace_will_be_created">
+        <source>A new namespace will be created</source>
+        <target state="new">A new namespace will be created</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
         <target state="translated">Geçerli _dosyaya ekle</target>
@@ -132,6 +137,16 @@
         <target state="new">Modifier preferences:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_to_namespace">
+        <source>Move to Namespace</source>
+        <target state="new">Move to Namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace">
+        <source>Namespace</source>
+        <target state="new">Namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
         <target state="translated">Ad alanı: '{0}'</target>
@@ -197,6 +212,11 @@
         <target state="translated">Normal İfadeler</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename {0} to {1}</source>
+        <target state="new">Rename {0} to {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">Geçersiz normal ifadeleri bildir</target>
@@ -223,13 +243,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Select_Dependents">
-        <source>_Select Dependents</source>
-        <target state="translated">_Bağımlıları seçin</target>
+        <source>Select _Dependents</source>
+        <target state="needs-review-translation">_Bağımlıları seçin</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
-        <source>_Select Public</source>
-        <target state="translated">_Ortak seçin</target>
+        <source>Select _Public</source>
+        <target state="needs-review-translation">_Ortak seçin</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
@@ -255,6 +275,16 @@
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="new">Show completion list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Target_Namespace_colon">
+        <source>Target Namespace:</source>
+        <target state="new">Target Namespace:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_is_an_invalid_namespace">
+        <source>This is an invalid namespace</source>
+        <target state="new">This is an invalid namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">

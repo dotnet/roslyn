@@ -647,7 +647,7 @@ class C
                                 "System.String <anonymous type: System.Int32 a, System.String b>.b { get; }");
         }
 
-        [Fact(Skip = "PROTOTYPE(nullable-api)")]
+        [Fact]
         public void TestGetDeclaredSymbolFromAnonymousTypePropertyInitializer_WithErrors()
         {
             var compilation = CreateCompilation(@"
@@ -1276,7 +1276,7 @@ namespace System
             var someMemberInC = (MemberDeclarationSyntax)typeDeclC.Members[0];
 
             var namesInC = model.LookupNames(someMemberInC.SpanStart);
-            Assert.Equal(15, namesInC.Count); // everything in System.Object is included, with an uncertain count
+            Assert.Equal(13, namesInC.Count); // everything with exception of protected members in System.Object is included, with an uncertain count
             Assert.Contains("A", namesInC);
             Assert.Contains("B", namesInC);
             Assert.Contains("C", namesInC);

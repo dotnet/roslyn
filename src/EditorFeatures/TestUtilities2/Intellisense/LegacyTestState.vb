@@ -110,9 +110,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return CurrentCompletionPresenterSession.SelectedItem
         End Function
 
-        Public Overrides Function GetSelectedItemOpt() As CompletionItem
-            Return CurrentCompletionPresenterSession?.SelectedItem
-        End Function
+        Public Overrides Sub CalculateItemsIfSessionExists()
+            Throw ExceptionUtilities.Unreachable
+        End Sub
 
         Public Overrides Function GetCompletionItems() As IList(Of CompletionItem)
             Return CurrentCompletionPresenterSession.CompletionItems
@@ -167,18 +167,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             ' projectionsView is not used in this implementation
             Await WaitForAsynchronousOperationsAsync()
             Assert.NotNull(Me.CurrentCompletionPresenterSession)
-        End Function
-
-        Public Overrides Function CompletionItemsContainsAll(displayText As String()) As Boolean
-            AssertNoAsynchronousOperationsRunning()
-            Return displayText.All(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
-                                       Function(i) i.DisplayText = v))
-        End Function
-
-        Public Overrides Function CompletionItemsContainsAny(displayText As String()) As Boolean
-            AssertNoAsynchronousOperationsRunning()
-            Return displayText.Any(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
-                                       Function(i) i.DisplayText = v))
         End Function
 
         Public Overrides Sub AssertItemsInOrder(expectedOrder As String())
@@ -237,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Overrides Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
             If Not CurrentCompletionPresenterSession Is Nothing Then
-                Assert.False(CompletionItemsContainsAny({"ClassLibrary1"}))
+                AssertCompletionItemsDoNotContainAny({text})
             End If
 
             Return Task.CompletedTask
