@@ -242,7 +242,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     {
                         PropertySetAbstractValue locationAbstractValue = this.GetAbstractValue(location);
 
-                        HazardousUsageEvaluationResult evaluationResult = hazardousUsageEvaluator.Evaluator(method, locationAbstractValue);
+                        HazardousUsageEvaluationResult evaluationResult = hazardousUsageEvaluator.InvocationEvaluator(method, locationAbstractValue);
                         result = MergeHazardousUsageEvaluationResult(result, evaluationResult);
                     }
 
@@ -310,6 +310,40 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 PropertySetAbstractValue baseValue = base.VisitInvocation_Lambda(lambda, visitedArguments, originalOperation, defaultValue);
                 this.MergeInterproceduralResults(originalOperation);
                 return baseValue;
+            }
+
+            protected override void ProcessReturnValue(IOperation returnValue)
+            {
+                base.ProcessReturnValue(returnValue);
+
+                if (returnValue != null
+                    && this.TrackedTypeSymbol.Equals(returnValue.Type)
+                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetReturnHazardousUsageEvaluator(
+                        out HazardousUsageEvaluator hazardousUsageEvaluator))
+                {
+                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(returnValue);
+                    HazardousUsageEvaluationResult result = HazardousUsageEvaluationResult.Unflagged;
+                    foreach (AbstractLocation location in pointsToAbstractValue.Locations)
+                    {
+                        PropertySetAbstractValue locationAbstractValue = this.GetAbstractValue(location);
+
+                        HazardousUsageEvaluationResult evaluationResult = hazardousUsageEvaluator.ReturnEvaluator(locationAbstractValue);
+                        result = MergeHazardousUsageEvaluationResult(result, evaluationResult);
+                    }
+
+                    if (result != HazardousUsageEvaluationResult.Unflagged)
+                    {
+                        (Location, IMethodSymbol) key = (returnValue.Syntax.GetLocation(), null);
+                        if (this._hazardousUsageBuilder.TryGetValue(key, out HazardousUsageEvaluationResult existingResult))
+                        {
+                            this._hazardousUsageBuilder[key] = MergeHazardousUsageEvaluationResult(result, existingResult);
+                        }
+                        else
+                        {
+                            this._hazardousUsageBuilder.Add(key, result);
+                        }
+                    }
+                }
             }
 
             private void MergeInterproceduralResults(IOperation originalOperation)

@@ -18,17 +18,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="methodSymbol">Invoked method.</param>
         /// <param name="propertySetAbstractValue">Abstract value of the type being tracked by PropertySetAnalysis.</param>
         /// <returns>Evaluation result of whether the usage is hazardous.</returns>
-        public delegate HazardousUsageEvaluationResult EvaluationCallback(IMethodSymbol methodSymbol, PropertySetAbstractValue propertySetAbstractValue);
+        public delegate HazardousUsageEvaluationResult InvocationEvaluationCallback(IMethodSymbol methodSymbol, PropertySetAbstractValue propertySetAbstractValue);
+
+        /// <summary>
+        /// Evaluates if the return statement with a given <see cref="PropertySetAbstractValue"/> is hazardous or not.
+        /// </summary>
+        /// <param name="propertySetAbstractValue">Abstract value of the type being tracked by PropertySetAnalysis.</param>
+        /// <returns>Evaluation result of whether the usage is hazardous.</returns>
+        public delegate HazardousUsageEvaluationResult ReturnEvaluationCallback(PropertySetAbstractValue propertySetAbstractValue);
 
         /// <summary>
         /// Initializes a <see cref="HazardousUsageEvaluator"/> that evaluates a method invocation on the type being tracked by PropertySetAnalysis.
         /// </summary>
         /// <param name="trackedTypeMethodName">Name of the method within the tracked type.</param>
         /// <param name="evaluator">Evaluation callback.</param>
-        public HazardousUsageEvaluator(string trackedTypeMethodName, EvaluationCallback evaluator)
+        public HazardousUsageEvaluator(string trackedTypeMethodName, InvocationEvaluationCallback evaluator)
         {
             MethodName = trackedTypeMethodName ?? throw new ArgumentNullException(nameof(trackedTypeMethodName));
-            Evaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
+            InvocationEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
         }
 
         /// <summary>
@@ -38,12 +45,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="methodName">Name of the method within <see cref="instanceTypeName"/>.</param>
         /// <param name="parameterNameOfPropertySetObject">Name of the method parameter containing the type being tracked by PropertySetAnalysis.</param>
         /// <param name="evaluator">Evaluation callback.</param>
-        public HazardousUsageEvaluator(string instanceTypeName, string methodName, string parameterNameOfPropertySetObject, EvaluationCallback evaluator)
+        public HazardousUsageEvaluator(string instanceTypeName, string methodName, string parameterNameOfPropertySetObject, InvocationEvaluationCallback evaluator)
         {
             InstanceTypeName = instanceTypeName ?? throw new ArgumentNullException(nameof(instanceTypeName));
             MethodName = methodName ?? throw new ArgumentNullException(nameof(methodName));
             ParameterNameOfPropertySetObject = parameterNameOfPropertySetObject ?? throw new ArgumentNullException(nameof(parameterNameOfPropertySetObject));
-            Evaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
+            InvocationEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
+        }
+
+        /// <summary>
+        /// Initializes a <see cref="HazardousUsageEvaluator"/> that evaluates a return statement with a return value of the tracked type.
+        /// </summary>
+        /// <param name="evaluator">Evaluation callback.</param>
+        public HazardousUsageEvaluator(ReturnEvaluationCallback evaluator)
+        {
+            ReturnEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
         }
 
         private HazardousUsageEvaluator()
@@ -51,12 +67,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         }
 
         /// <summary>
-        /// Name of the type containing the method, or null if method is part of the type being tracked by PropertySetAnalysis.
+        /// Name of the type containing the method, or null if method is part of the type being tracked by PropertySetAnalysis or this is for a return statement.
         /// </summary>
         public string InstanceTypeName { get; }
 
         /// <summary>
-        /// Name of the method being invoked.
+        /// Name of the method being invoked, or null if this is for a return statement.
         /// </summary>
         public string MethodName { get; }
 
@@ -68,7 +84,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Evaluates if the method invocation with a given <see cref="PropertySetAbstractValue"/> is hazardous or not.
         /// </summary>
-        public EvaluationCallback Evaluator { get; }
+        public InvocationEvaluationCallback InvocationEvaluator { get; }
+
+        /// <summary>
+        /// Evaluates if the return statement with a given <see cref="PropertySetAbstractValue"/> is hazardous or not.
+        /// </summary>
+        public ReturnEvaluationCallback ReturnEvaluator { get; }
 
         public override int GetHashCode()
         {
@@ -76,7 +97,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 this.InstanceTypeName.GetHashCodeOrDefault(),
                 HashUtilities.Combine(this.MethodName.GetHashCodeOrDefault(),
                 HashUtilities.Combine(this.ParameterNameOfPropertySetObject.GetHashCodeOrDefault(),
-                this.Evaluator.GetHashCodeOrDefault())));
+                this.InvocationEvaluator.GetHashCodeOrDefault())));
         }
 
         public override bool Equals(object obj)
@@ -90,7 +111,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 && this.InstanceTypeName == other.InstanceTypeName
                 && this.MethodName == other.MethodName
                 && this.ParameterNameOfPropertySetObject == other.ParameterNameOfPropertySetObject
-                && this.Evaluator == other.Evaluator;
+                && this.InvocationEvaluator == other.InvocationEvaluator;
         }
     }
 }

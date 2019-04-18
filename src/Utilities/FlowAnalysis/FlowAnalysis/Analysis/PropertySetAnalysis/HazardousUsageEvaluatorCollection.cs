@@ -55,6 +55,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             return this.HazardousUsageEvaluators.TryGetValue((containingType, methodName, parameterName), out hazardousUsageEvaluator);
         }
 
+        internal bool TryGetReturnHazardousUsageEvaluator(out HazardousUsageEvaluator hazardousUsageEvaluator)
+        {
+            return this.HazardousUsageEvaluators.TryGetValue((null, null, null), out hazardousUsageEvaluator);
+        }
+
         internal ImmutableDictionary<INamedTypeSymbol, string> GetTypeToNameMapping(WellKnownTypeProvider wellKnownTypeProvider)
         {
             PooledDictionary<INamedTypeSymbol, string> pooledDictionary = PooledDictionary<INamedTypeSymbol, string>.GetInstance();
