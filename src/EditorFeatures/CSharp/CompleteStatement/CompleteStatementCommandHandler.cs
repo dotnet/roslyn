@@ -76,17 +76,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
 
             var currentNode = GetStartingNode(document, root, caret);
-            var isInsideDelimiters = false;
-
-            MoveCaretToSemicolonPosition(args, document, root, caret, syntaxFacts, currentNode, isInsideDelimiters);
+            MoveCaretToSemicolonPosition(args, document, root, caret, syntaxFacts, currentNode, isInsideDelimiters: false);
         }
 
         private void MoveCaretToSemicolonPosition(TypeCharCommandArgs args, Document document, SyntaxNode root, SnapshotPoint caret, ISyntaxFactsService syntaxFacts, SyntaxNode currentNode, bool isInsideDelimiters)
         {
             if (currentNode == null ||
-                IsInAString(currentNode, caret))
+                IsInAStringOrCharacter(currentNode, caret))
             {
-                // return without moving the caret
+                // Don't complete statement.  Return without moving the caret.
                 return;
             }
 
@@ -106,73 +104,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
             else if (syntaxFacts.IsStatement(currentNode) || currentNode.IsKind(SyntaxKind.FieldDeclaration))
             {
-                MoveCaretToFinalPosition(currentNode, args, caret, isInsideDelimiters);
+                MoveCaretToFinalPositionInStatement(currentNode, args, caret, isInsideDelimiters);
                 return;
             }
             else
             {
-                // 
+                // keep caret the same, but continue analyzing with the parent of the current node
                 currentNode = currentNode.Parent;
                 MoveCaretToSemicolonPosition(args, document, root, caret, syntaxFacts, currentNode, isInsideDelimiters);
                 return;
-            }
-        }
-
-        private void MoveCaretToFinalPosition(SyntaxNode statementNode, TypeCharCommandArgs args, SnapshotPoint caret, bool isInsideDelimiters)
-        {
-            if (StatementClosingDelimiterIsMissing(statementNode))
-            {
-                // leave caret where it is and return
-                return;
-            }
-
-            switch (statementNode.Kind())
-            {
-                case SyntaxKind.DoStatement:
-                    // Move caret after the do statment's closing paren
-                    var doStatementCaret = args.SubjectBuffer.CurrentSnapshot.GetPoint(((DoStatementSyntax)statementNode).CloseParenToken.Span.End);
-                    args.TextView.TryMoveCaretToAndEnsureVisible(doStatementCaret);
-                    return;
-                case SyntaxKind.ForStatement:
-                    // `For` statements can have semicolon after initializer/declaration or after condition, 
-                    // Move caret after the initializer or declaration or condition node, depending on where caret is when Complete Statement invoked
-                    var forStatementSyntax = (ForStatementSyntax)statementNode;
-                    SnapshotPoint forStatementCaret = default;
-                    if (CaretIsInForStatementCondition(caret, forStatementSyntax))
-                    {
-                        forStatementCaret = args.SubjectBuffer.CurrentSnapshot.GetPoint(forStatementSyntax.Condition.Span.End);
-                    }
-                    else if (CaretIsInForStatementDeclaration(caret, forStatementSyntax))
-                    {
-                        forStatementCaret = args.SubjectBuffer.CurrentSnapshot.GetPoint(forStatementSyntax.Declaration.Span.End);
-                    }
-                    else if (CaretIsInForStatementInitializers(caret, forStatementSyntax))
-                    {
-                        forStatementCaret = args.SubjectBuffer.CurrentSnapshot.GetPoint(forStatementSyntax.Initializers.Span.End);
-                    }
-                    else
-                    {
-                        // leave caret where it is and return
-                        return;
-                    }
-                    args.TextView.TryMoveCaretToAndEnsureVisible(forStatementCaret);
-                    return;
-                case SyntaxKind.ExpressionStatement:
-                case SyntaxKind.GotoCaseStatement:
-                case SyntaxKind.LocalDeclarationStatement:
-                case SyntaxKind.ReturnStatement:
-                case SyntaxKind.ThrowStatement:
-                case SyntaxKind.FieldDeclaration:
-                    // These statement types end in a semicolon. 
-                    // if the original caret was inside any delimiters, `caret` will be after the outermost delimiter
-                    if (isInsideDelimiters)
-                    {
-                        args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(caret));
-                    }
-                    return;
-                default:
-                    // For all other statement types, return without moving the caret
-                    return;
             }
         }
 
@@ -199,6 +139,78 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             return startingNode;
         }
 
+        private void MoveCaretToFinalPositionInStatement(SyntaxNode statementNode, TypeCharCommandArgs args, SnapshotPoint caret, bool isInsideDelimiters)
+        {
+            if (StatementClosingDelimiterIsMissing(statementNode))
+            {
+                // Don't complete statement.  Return without moving the caret.
+                return;
+            }
+
+            switch (statementNode.Kind())
+            {
+                case SyntaxKind.DoStatement:
+                    // Special case for Do statements. Don't have to be inside other delimiters in order to complete this kind of statement.
+                    // Move caret after the do statment's closing paren.
+                    var doStatementCaret = args.SubjectBuffer.CurrentSnapshot.GetPoint(((DoStatementSyntax)statementNode).CloseParenToken.Span.End);
+                    args.TextView.TryMoveCaretToAndEnsureVisible(doStatementCaret);
+                    return;
+                case SyntaxKind.ForStatement:
+                    // `For` statements can have semicolon after initializer/declaration or after condition.
+                    // If caret is in initialer/declaration or condition, AND is inside other delimiters, complete statement
+                    // Otherwise, return without moving the caret.
+                    if (TryGetForStatementCaret(caret, statementNode, args, out var forStatementCaret) && isInsideDelimiters)
+                    {
+                        args.TextView.TryMoveCaretToAndEnsureVisible(forStatementCaret);
+                    }
+                    return;
+                case SyntaxKind.ExpressionStatement:
+                case SyntaxKind.GotoCaseStatement:
+                case SyntaxKind.LocalDeclarationStatement:
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.ThrowStatement:
+                case SyntaxKind.FieldDeclaration:
+                    // These statement types end in a semicolon. 
+                    // if the original caret was inside any delimiters, `caret` will be after the outermost delimiter
+                    if (isInsideDelimiters)
+                    {
+                        args.TextView.TryMoveCaretToAndEnsureVisible(args.SubjectBuffer.CurrentSnapshot.GetPoint(caret));
+                    }
+                    return;
+                default:
+                    // For all other statement types, don't complete statement.  Return without moving the caret.
+                    return;
+            }
+        }
+
+        private bool TryGetForStatementCaret(SnapshotPoint originalCaret, SyntaxNode statementNode, TypeCharCommandArgs args, out SnapshotPoint forStatementCaret)
+        {
+            var forStatementSyntax = (ForStatementSyntax)statementNode;
+            if (CaretIsInForStatementCondition(originalCaret, forStatementSyntax))
+            {
+                forStatementCaret = GetCaretAtPosition(forStatementSyntax.Condition.Span.End);
+            }
+            else if (CaretIsInForStatementDeclaration(originalCaret, forStatementSyntax))
+            {
+                forStatementCaret = GetCaretAtPosition(forStatementSyntax.Declaration.Span.End);
+            }
+            else if (CaretIsInForStatementInitializers(originalCaret, forStatementSyntax))
+            {
+                forStatementCaret = GetCaretAtPosition(forStatementSyntax.Initializers.Span.End);
+            }
+            else
+            {
+                // set caret to default, we will return false
+                forStatementCaret = default;
+            }
+
+            return (forStatementCaret != default);
+
+            // Locals
+            SnapshotPoint GetCaretAtPosition(int position)
+                => args.SubjectBuffer.CurrentSnapshot.GetPoint(position);
+        }
+
         private static bool CaretIsInForStatementCondition(int caretPosition, ForStatementSyntax forStatementSyntax)
             // If condition is null and caret is in the condition section, as in `for ( ; $$; )`, 
             // we will have bailed earlier due to not being inside supported delimiters
@@ -217,12 +229,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 caretPosition > forStatementSyntax.Initializers.Span.Start &&
                 caretPosition <= forStatementSyntax.Initializers.Span.End;
 
-        private static bool IsStatementOrFieldDeclaration(SyntaxNode currentNode, ISyntaxFactsService syntaxFacts)
-            => syntaxFacts.IsStatement(currentNode) || currentNode.IsKind(SyntaxKind.FieldDeclaration);
+        private static bool CaretIsInForStatementIterator(int caretPosition, ForStatementSyntax forStatementSyntax)
+           => caretPosition > forStatementSyntax.Incrementors.Span.Start &&
+               caretPosition <= forStatementSyntax.Incrementors.Span.End;
 
-        private static bool IsInAString(SyntaxNode currentNode, SnapshotPoint caret)
+        private static bool IsInAStringOrCharacter(SyntaxNode currentNode, SnapshotPoint caret)
             // Check to see if caret is before or after string
-            => currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
+            => currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression, SyntaxKind.CharacterLiteralExpression)
                 && caret.Position < currentNode.Span.End
                 && caret.Position > currentNode.SpanStart;
 

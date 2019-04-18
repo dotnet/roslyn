@@ -3294,6 +3294,7 @@ class C
         }
 
         [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WorkItem(34983, "https://github.com/dotnet/roslyn/issues/34983")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ImplicitElementAccessSyntax()
         {
@@ -3315,8 +3316,8 @@ class C
     {
         var d = new Dictionary<int, int>
         {
-            [1] = 4,
-        };$$
+            [1];$$ = 4,
+        }
     }
 }";
             VerifyTypingSemicolon(code, expected);
