@@ -7824,5 +7824,217 @@ End Module
 ]]></code>.Value
             Await VerifyItemExistsAsync(text, "System")
         End Function
+
+        Private Shared Function CreateThenIncludeTestCode(lambdaExpressionString As String, methodDeclarationString As String) As String
+            Dim template = "
+Imports System                       
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Linq.Expressions
+
+Namespace ThenIncludeIntellisenseBug
+
+    Class Program
+        Shared Sub Main(args As String())
+            Dim registrations = New List(Of Registration)().AsQueryable()
+            Dim reg = registrations.Include(Function(r) r.Activities).ThenInclude([1])
+        End Sub
+    End Class
+
+    Friend Class Registration
+        Public Property Activities As ICollection(Of Activity)
+    End Class
+
+    Public Class Activity
+        Public Property Task As Task
+    End Class
+
+    Public Class Task
+        Public Property Name As String
+    End Class
+
+    Public Interface IIncludableQueryable(Of Out TEntity, Out TProperty)
+        Inherits IQueryable(Of TEntity)
+    End Interface
+
+    Public Module EntityFrameworkQuerybleExtensions
+        <System.Runtime.CompilerServices.Extension>
+        Public Function Include(Of TEntity, TProperty)(
+                                                      source As IQueryable(Of TEntity), 
+                                                      navigationPropertyPath As Expression(Of Func(Of TEntity, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+[2]
+
+    End Module
+End Namespace"
+
+            Return template.Replace("[1]", lambdaExpressionString).Replace("[2]", methodDeclarationString)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ThenInclude() As Task
+            Dim source = CreateThenIncludeTestCode("Function(b) b.$$",
+"       <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+")
+
+            Await VerifyItemExistsAsync(source, "Task")
+            Await VerifyItemExistsAsync(source, "FirstOrDefault")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ThenIncludeNoExpression() As Task
+            Dim source = CreateThenIncludeTestCode("Function(b) b.$$",
+"       <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                                                                             navigationPropertyPath As Func(Of TPreviousProperty, TProperty)) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
+                                                                             navigationPropertyPath As Func(Of TPreviousProperty, TProperty)) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function")
+
+            Await VerifyItemExistsAsync(source, "Task")
+            Await VerifyItemExistsAsync(source, "FirstOrDefault")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ThenIncludeSecondArgument() As Task
+            Dim source = CreateThenIncludeTestCode("0, Function(b) b.$$",
+"       <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                                                                             a as Integer,
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                                                                             a as Integer,
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+")
+
+            Await VerifyItemExistsAsync(source, "Task")
+            Await VerifyItemExistsAsync(source, "FirstOrDefault")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ThenIncludeSecondArgumentAndMultiArgumentLambda() As Task
+            Dim source = CreateThenIncludeTestCode("0, Function(a, b, c) c.$$",
+"       <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                                                                             a as Integer,
+                                                                             navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
+                                                                             a as Integer,
+                                                                             navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function")
+
+            Await VerifyItemExistsAsync(source, "Task")
+            Await VerifyItemExistsAsync(source, "FirstOrDefault")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ThenIncludeSecondArgumentNoOverlap() As Task
+            Dim source = CreateThenIncludeTestCode("Function(b) b.Task, Function(b) b.$$",
+"       <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty)),
+                                                                             anotherNavigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function")
+
+            Await VerifyItemExistsAsync(source, "Task")
+            Await VerifyItemIsAbsentAsync(source, "FirstOrDefault")
+        End Function
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35096"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ThenIncludeSecondArgumentAndMultiArgumentLambdaWithNoLambdaOverlap() As Task
+            Dim source = CreateThenIncludeTestCode("0, Function(a, b, c) c.$$",
+"       <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                                                                             a as Integer,
+                                                                             navigationPropertyPath As Expression(Of Func(Of string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                                                                             a as Integer,
+                                                                             navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+")
+
+            Await VerifyItemIsAbsentAsync(source, "Task")
+            Await VerifyItemExistsAsync(source, "FirstOrDefault")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInsideMethodsWithDelegatesAsArguments() As Task
+            Dim source =
+<code><![CDATA[
+Imports System
+Class C
+    Sub M()
+        Goo(Sub(b) b.$$
+    End Sub
+
+    Sub Goo(configure As Action(Of Builder))
+        Dim builder = New Builder()
+        configure(builder)
+    End Sub
+End Class
+
+Class Builder
+    Public Property Something As Integer
+End Class
+]]></code>.Value
+
+            Await VerifyItemExistsAsync(source, "Something")
+            Await VerifyItemIsAbsentAsync(source, "BeginInvoke")
+            Await VerifyItemIsAbsentAsync(source, "Clone")
+            Await VerifyItemIsAbsentAsync(source, "Method")
+            Await VerifyItemIsAbsentAsync(source, "Target")
+        End Function
     End Class
 End Namespace
