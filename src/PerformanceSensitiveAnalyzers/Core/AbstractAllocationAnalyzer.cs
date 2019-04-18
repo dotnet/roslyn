@@ -5,16 +5,19 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 {
-    internal abstract class AbstractAllocationAnalyzer<TLanguageKindEnum>
-        : DiagnosticAnalyzer
-        where TLanguageKindEnum : struct
+    internal abstract class AbstractAllocationAnalyzer : DiagnosticAnalyzer
     {
-        protected abstract ImmutableArray<TLanguageKindEnum> Expressions { get; }
+        protected abstract ImmutableArray<OperationKind> Operations { get; }
 
-        protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context, in PerformanceSensitiveInfo info);
+        protected abstract void AnalyzeNode(OperationAnalysisContext context, in PerformanceSensitiveInfo info);
 
         public override void Initialize(AnalysisContext context)
         {
+            if (Operations.IsEmpty)
+            {
+                return;
+            }
+
             context.RegisterCompilationStartAction(compilationStartContext =>
             {
                 var compilation = compilationStartContext.Compilation;
@@ -26,28 +29,28 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                     return;
                 }
 
-                compilationStartContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(blockStartContext =>
+                compilationStartContext.RegisterOperationBlockStartAction(blockStartContext =>
                 {
                     var checker = new AttributeChecker(attributeSymbol);
-                    RegisterSyntaxAnalysis(blockStartContext, checker);
+                    RegisterOperationAnalysis(blockStartContext, checker);
                 });
             });
         }
 
-        private void RegisterSyntaxAnalysis(CodeBlockStartAnalysisContext<TLanguageKindEnum> codeBlockStartAnalysisContext, AttributeChecker performanceSensitiveAttributeChecker)
+        private void RegisterOperationAnalysis(OperationBlockStartAnalysisContext operationBlockStartAnalysisContext, AttributeChecker performanceSensitiveAttributeChecker)
         {
-            var owningSymbol = codeBlockStartAnalysisContext.OwningSymbol;
+            var owningSymbol = operationBlockStartAnalysisContext.OwningSymbol;
             if (!performanceSensitiveAttributeChecker.TryGetContainsPerformanceSensitiveInfo(owningSymbol, out var info))
             {
                 return;
             }
 
-            codeBlockStartAnalysisContext.RegisterSyntaxNodeAction(
+            operationBlockStartAnalysisContext.RegisterOperationAction(
                 syntaxNodeContext =>
                 {
                     AnalyzeNode(syntaxNodeContext, in info);
                 },
-                Expressions);
+                Operations);
         }
 
         protected sealed class AttributeChecker
