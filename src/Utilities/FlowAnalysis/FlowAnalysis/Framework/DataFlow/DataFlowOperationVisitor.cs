@@ -3053,6 +3053,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             var value = Visit(operation.ReturnedValue, argument);
             ProcessReturnValue(operation.ReturnedValue);
+
+            if (OwningSymbol is IMethodSymbol method && method.IsAsync)
+            {
+                // Returned value is wrapped in a task in an async method.
+                // We conservatively assume task has an unknown/maybe value.
+                return ValueDomain.UnknownOrMayBeValue;
+            }
+
             return value;
         }
 
