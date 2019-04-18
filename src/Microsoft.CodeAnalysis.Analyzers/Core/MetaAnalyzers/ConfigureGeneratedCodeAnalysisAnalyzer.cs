@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
+#pragma warning disable RS1025 // Configure generated code analysis
         public override void Initialize(AnalysisContext context)
+#pragma warning restore RS1025 // Configure generated code analysis
         {
             context.EnableConcurrentExecution();
 

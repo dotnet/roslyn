@@ -112,7 +112,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public override PropertySetAbstractValue VisitObjectCreation(IObjectCreationOperation operation, object argument)
             {
                 PropertySetAbstractValue abstractValue = base.VisitObjectCreation(operation, argument);
-                if (operation.Type != this.TrackedTypeSymbol)
+                if (!Equals(operation.Type, this.TrackedTypeSymbol))
                 {
                     return abstractValue;
                 }
@@ -175,7 +175,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
                 PropertySetAbstractValue baseValue = base.VisitAssignmentOperation(operation, argument);
                 if (operation.Target is IPropertyReferenceOperation propertyReferenceOperation
-                    && propertyReferenceOperation.Instance?.Type == this.TrackedTypeSymbol
+                    && Equals(propertyReferenceOperation.Instance?.Type, this.TrackedTypeSymbol)
                     && this.DataFlowAnalysisContext.PropertyMappers.TryGetPropertyMapper(
                         propertyReferenceOperation.Property.Name,
                         out PropertyMapper propertyMapper,
@@ -232,7 +232,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 // If we have a HazardousUsageEvaluator for a method within the tracked type,
                 // or for a method within a different type.
                 IOperation propertySetInstance = visitedInstance;
-                if ((visitedInstance?.Type == this.TrackedTypeSymbol
+                if ((Equals(visitedInstance?.Type, this.TrackedTypeSymbol)
                     && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out var hazardousUsageEvaluator))
                     || TryFindNonTrackedTypeHazardousUsageEvaluator(out hazardousUsageEvaluator, out propertySetInstance))
                 {
@@ -284,7 +284,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     // If that's needed one day, will need to extend this.
                     foreach (IArgumentOperation argumentOperation in visitedArguments)
                     {
-                        if (argumentOperation.Value?.Type == this.TrackedTypeSymbol
+                        if (Equals(argumentOperation.Value?.Type, this.TrackedTypeSymbol)
                             && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(
                                     containingTypeName,
                                     method.MetadataName,
