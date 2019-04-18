@@ -32,7 +32,9 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(SymbolDeclaredEventRule);
 
+#pragma warning disable RS1026 // Enable concurrent execution
         public sealed override void Initialize(AnalysisContext context)
+#pragma warning restore RS1026 // Enable concurrent execution
         {
             // TODO: Make the analyzer thread-safe
             //context.EnableConcurrentExecution();
