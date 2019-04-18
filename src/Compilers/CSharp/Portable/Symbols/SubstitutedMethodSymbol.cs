@@ -416,8 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int arity = this.Arity;
             for (int i = 0; i < arity; i++)
             {
-                // TODO: what about annotations
-                if (!TypeSymbol.Equals(this.TypeArgumentsWithAnnotations[i].Type, other.TypeArgumentsWithAnnotations[i].Type, TypeCompareKind.ConsiderEverything2))
+                if (!this.TypeArgumentsWithAnnotations[i].Equals(other.TypeArgumentsWithAnnotations[i], TypeCompareKind.ConsiderEverything2))
                 {
                     return false;
                 }
