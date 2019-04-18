@@ -811,6 +811,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             => ParseText(text, options, path, diagnosticOptions: null, cancellationToken);
 
         // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
+        public static SyntaxTree ParseText(
+            string text,
+            CSharpParseOptions options,
+            string path,
+            Encoding encoding,
+            CancellationToken cancellationToken)
+            => ParseText(text, options, path, encoding, diagnosticOptions: null, cancellationToken);
+
+        // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions options, string path, Encoding encoding)
             => Create(root, options, path, encoding, diagnosticOptions: null);
