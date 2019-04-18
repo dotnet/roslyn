@@ -147,7 +147,11 @@
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Width="*">
                             <DataGridTemplateColumn.Header>
-                                <StackPanel Orientation="Horizontal" Width="Auto">
+                                <StackPanel 
+                                    Orientation="Horizontal" 
+                                    Width="Auto"
+                                    AutomationProperties.Name="{Binding RelativeSource={RelativeSource AncestorType=vs:DialogWindow}, Path=MembersHeader}"
+                                    Name="Members>
                                     <self:SelectAllCheckBox
                                         AutomationProperties.Name="{Binding SelectAllCheckBoxAutomationText}"
                                         Margin="0, 0, 4, 0"
@@ -226,7 +230,7 @@
                     HorizontalAlignment="Center"
                     Margin="0, 4, 0, 0"
                     Width="Auto">
-                    <vs:DialogButton
+                    <Button
                         x:Name="SelecDependentsButton"
                         x:Uid="SelecDependentsButton"
                         Padding="{StaticResource ResourceKey=SelectDependantsAndSelectPublicButtonPadding}"
@@ -235,7 +239,7 @@
                         Margin="2, 2, 2, 7"
                         Width="Auto"
                         Height="Auto"/>
-                    <vs:DialogButton
+                    <Button
                         x:Name="SelectPublicButton"
                         x:Uid="SelectPublicButton"
                         Content="{Binding ElementName=dialog, Path=SelectPublic}"
@@ -252,7 +256,7 @@
             Margin="0, 5, 8, 0"
             HorizontalAlignment="Right"
             Orientation="Horizontal">
-            <vs:DialogButton
+            <Button
                 x:Name="OKButton"
                 x:Uid="OKButton"
                 Click="OKButton_Click"
@@ -263,7 +267,7 @@
                 Content="{Binding OK, ElementName=dialog}"
                 MinWidth="{StaticResource ResourceKey=ButtonWidth}"
                 MinHeight="{StaticResource ResourceKey=ButtonHeight}"/>
-            <vs:DialogButton
+            <Button
                 x:Name="CancelButton"
                 x:Uid="CancelButton"
                 Click="CancelButton_Click"
