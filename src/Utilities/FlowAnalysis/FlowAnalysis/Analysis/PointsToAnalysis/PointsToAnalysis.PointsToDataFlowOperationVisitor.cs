@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         if (analysisEntity.SymbolOpt?.Kind == SymbolKind.Field)
                         {
                             // Ref/Out field argument is considered escaped.
-                            HandleEscapingOperation(operation, operation.Value);
+                            HandleEscapingOperation(operation, operation);
                         }
                     }
                 }
@@ -574,16 +574,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 Debug.Assert(escapingOperation != null);
                 Debug.Assert(escapedInstance != null);
 
-                PointsToAbstractValue escapedInstancePointsToValue;
-                if (AnalysisEntityFactory.TryCreate(escapedInstance, out var escapedEntityOpt))
-                {
-                    escapedInstancePointsToValue = GetAbstractValue(escapedEntityOpt);
-                }
-                else
-                {
-                    escapedInstancePointsToValue = GetPointsToAbstractValue(escapedInstance);
-                }
-
+                PointsToAbstractValue escapedInstancePointsToValue = GetPointsToAbstractValue(escapedInstance);
+                AnalysisEntityFactory.TryCreate(escapedInstance, out var escapedEntityOpt);
                 HandleEscapingLocations(escapingOperation, builder, escapedEntityOpt, escapedInstancePointsToValue);
             }
 
