@@ -290,7 +290,6 @@ namespace Analyzer.Utilities
         public const string SystemXmlXPathXPathDocument = "System.Xml.XPath.XPathDocument";
         public const string SystemIODirectoryInfo = "System.IO.DirectoryInfo";
         public const string SystemIOLogLogStore = "System.IO.Log.LogStore";
-        public const string SystemSecurityCryptographyPasswordDeriveBytes = "System.Security.Cryptography.PasswordDeriveBytes";
-        public const string SystemSecurityCryptographyRfc2898DeriveBytes = "System.Security.Cryptography.Rfc2898DeriveBytes";
+        public const string SystemXmlXslXslTransform = "System.Xml.Xsl.XslTransform";
     }
 }
