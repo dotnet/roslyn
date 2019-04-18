@@ -21,7 +21,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
                     <CheckBox x:Name="Enable_use_nullable_reference_types"
                               IsThreeState="True"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_nullable_reference_type_analysis}" />
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="UsingDirectivesGroupBox"
