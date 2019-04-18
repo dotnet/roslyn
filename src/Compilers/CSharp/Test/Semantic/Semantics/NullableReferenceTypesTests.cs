@@ -51268,6 +51268,31 @@ interface I<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(19, 13));
         }
 
+        [Fact]
+        [WorkItem(34667, "https://github.com/dotnet/roslyn/issues/34667")]
+        public void ForEach_18()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main() { }
+
+    static void Foo(IEnumerable<object[]?[]> source)
+    {
+        foreach (object[][] item in source) { }
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,29): warning CS8619: Nullability of reference types in value of type 'object[]?[]' doesn't match target type 'object[][]'.
+                //         foreach (object[][] item in source) { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "item").WithArguments("object[]?[]", "object[][]").WithLocation(10, 29));
+        }
+
 
         [Fact]
         public void ForEach_UnconstrainedTypeParameter()
