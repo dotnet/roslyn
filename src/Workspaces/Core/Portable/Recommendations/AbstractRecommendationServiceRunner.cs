@@ -120,13 +120,35 @@ namespace Microsoft.CodeAnalysis.Recommendations
                         if (type.IsDelegateType())
                         {
                             var allTypeArguments = type.GetAllTypeArguments();
-                            // Find the type of the argument corresponding to the ordinal.
-                            if (allTypeArguments.Length < ordinalInLambda)
-                            {
-                                continue;
-                            }
 
-                            type = allTypeArguments[ordinalInLambda];
+                            // Actual <see cref="Delegate"/>
+                            if (allTypeArguments.Length == 0)
+                            {
+                                var methods = type.GetMembers(WellKnownMemberNames.DelegateInvokeName);
+                                if (methods.Length != 1)
+                                {
+                                    continue;
+                                }
+
+                                var parameters = methods[0].GetParameters();
+                                if (parameters.Length < ordinalInLambda)
+                                {
+                                    continue;
+                                }
+
+                                type = parameters[ordinalInLambda].Type;
+                            }
+                            // Functions, Actions and other delegates with TypeArguments.
+                            else
+                            {
+                                // Find the type of the argument corresponding to the ordinal.
+                                if (allTypeArguments.Length < ordinalInLambda)
+                                {
+                                    continue;
+                                }
+
+                                type = allTypeArguments[ordinalInLambda];
+                            }
                         }
 
                         builder.Add(type);

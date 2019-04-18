@@ -8054,7 +8054,7 @@ End Namespace"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CompletionInsideMethodsWithDelegatesAsArguments() As Task
+        Public Async Function CompletionInsideMethodsWithNonFunctionsAsArguments() As Task
             Dim source =
 <code><![CDATA[
 Imports System
@@ -8075,6 +8075,45 @@ End Class
 ]]></code>.Value
 
             Await VerifyItemExistsAsync(source, "Something")
+            Await VerifyItemIsAbsentAsync(source, "BeginInvoke")
+            Await VerifyItemIsAbsentAsync(source, "Clone")
+            Await VerifyItemIsAbsentAsync(source, "Method")
+            Await VerifyItemIsAbsentAsync(source, "Target")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInsideMethodsWithDelegatesAsArguments() As Task
+            Dim source =
+<code><![CDATA[
+Imports System
+
+Module Module2
+    Class Program
+        Public Delegate Sub Delegate1(u As Uri)
+        Public Delegate Sub Delegate2(g As Guid)
+
+        Public Sub M(d As Delegate1)
+        End Sub
+
+        Public Sub M(d As Delegate2)
+        End Sub
+
+        Public Sub Test()
+            M(Sub(d) d.$$)
+        End Sub
+    End Class
+End Module
+]]></code>.Value
+
+            ' Guid
+            Await VerifyItemExistsAsync(source, "ToByteArray")
+
+            ' Uri
+            Await VerifyItemExistsAsync(source, "AbsoluteUri")
+            Await VerifyItemExistsAsync(source, "Fragment")
+            Await VerifyItemExistsAsync(source, "Query")
+
+            ' Should Not appear for Delegate
             Await VerifyItemIsAbsentAsync(source, "BeginInvoke")
             Await VerifyItemIsAbsentAsync(source, "Clone")
             Await VerifyItemIsAbsentAsync(source, "Method")

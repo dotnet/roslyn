@@ -10033,7 +10033,7 @@ namespace ThenIncludeIntellisenseBug
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionInsideMethodsWithDelegatesAsArguments()
+        public async Task CompletionInsideMethodsWithNonFunctionsAsArguments()
         {
             var markup = @"
 using System;
@@ -10059,6 +10059,41 @@ class Builder
 }";
 
             await VerifyItemExistsAsync(markup, "Something");
+            await VerifyItemIsAbsentAsync(markup, "BeginInvoke");
+            await VerifyItemIsAbsentAsync(markup, "Clone");
+            await VerifyItemIsAbsentAsync(markup, "Method");
+            await VerifyItemIsAbsentAsync(markup, "Target");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionInsideMethodsWithDelegatesAsArguments()
+        {
+            var markup = @"
+using System;
+
+class Program
+{
+    public delegate void Delegate1(Uri u);
+    public delegate void Delegate2(Guid g);
+
+    public void M(Delegate1 d) { }
+    public void M(Delegate2 d) { }
+
+    public void Test()
+    {
+        M(d => d.$$)
+    }
+}";
+
+            // Guid
+            await VerifyItemExistsAsync(markup, "ToByteArray");
+
+            // Uri
+            await VerifyItemExistsAsync(markup, "AbsoluteUri");
+            await VerifyItemExistsAsync(markup, "Fragment");
+            await VerifyItemExistsAsync(markup, "Query");
+
+            // Should not appear for Delegate
             await VerifyItemIsAbsentAsync(markup, "BeginInvoke");
             await VerifyItemIsAbsentAsync(markup, "Clone");
             await VerifyItemIsAbsentAsync(markup, "Method");
