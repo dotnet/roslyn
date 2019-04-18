@@ -387,29 +387,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Evaluate toString at the last possible moment, to avoid spurious diagnostics if it's missing.
             // All code paths below here use it.
-            var toString = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
+            var objectToStringMethod = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
 
-            // If it's a special value type, we know that it has its own ToString method. Assume that this won't
-            // be removed, and emit a direct call rather than a constrained virtual call. 
-            // This keeps in the spirit of #7079, but expands the range of types to all special value types.
-            if (expr.Type.IsValueType && expr.Type.SpecialType != SpecialType.None)
+            // If it's a struct which has overridden ToString, find that method. Note that we might fail to
+            // find it, e.g. if object.ToString is missing
+            MethodSymbol structToStringMethod = null;
+            if (expr.Type.IsValueType && !expr.Type.IsTypeParameter())
             {
                 var type = (NamedTypeSymbol)expr.Type;
-                var toStringMembers = type.GetMembers(toString.Name);
-                foreach (var member in toStringMembers)
+                var typeToStringMembers = type.GetMembers(objectToStringMethod.Name);
+                foreach (var member in typeToStringMembers)
                 {
                     var toStringMethod = (MethodSymbol)member;
-                    if (toStringMethod.GetLeastOverriddenMethod(type) == (object)toString)
+                    if (toStringMethod.GetLeastOverriddenMethod(type) == (object)objectToStringMethod)
                     {
-                        return BoundCall.Synthesized(expr.Syntax, expr, toStringMethod);
+                        structToStringMethod = toStringMethod;
+                        break;
                     }
                 }
             }
 
-            // If it's a value type (or unconstrained generic), and it's not constant and not readonly,
-            // then we need a copy. This is to mimic the old behaviour, where ToString was called on a box
-            // of the value type, and so any side-effects of ToString weren't made to the original.
-            if (!expr.Type.IsReferenceType && !expr.Type.IsReadOnly && expr.ConstantValue == null)
+            // If it's a special value type, it should have its own ToString method (but we might fail to find
+            // it if object.ToString is missing).  Assume that this won't be removed, and emit a direct call rather
+            // than a constrained virtual call. This keeps in the spirit of #7079, but expands the range of
+            // types to all special value types.
+            if (structToStringMethod != null && expr.Type.SpecialType != SpecialType.None)
+            {
+                return BoundCall.Synthesized(expr.Syntax, expr, structToStringMethod);
+            }
+
+            // - It's a reference type (excluding unconstrained generics): no copy
+            // - It's a constant: no copy
+            // - The type definitely doesn't have its own ToString method (i.e. we're definitely calling 
+            //   object.ToString on a struct type, not a generic type): no copy (yes this is a versioning issue,
+            //   but that doesn't matter)
+            // - We're calling the type's own ToString method, and it's effectively readonly (the method or the whole
+            //   type is readonly): no copy
+            // - Otherwise: copy
+            // This is to minic the old behaviour, where value types would be boxed before ToString was called on them,
+            // but with optimizations for readonly methods.
+            bool callWithoutCopy = expr.Type.IsReferenceType ||
+                expr.ConstantValue != null ||
+                (structToStringMethod == null && !expr.Type.IsTypeParameter()) ||
+                structToStringMethod?.IsEffectivelyReadOnly == true;
+            if (!callWithoutCopy)
             {
                 expr = new BoundPassByCopy(expr.Syntax, expr, expr.Type);
             }
@@ -417,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // No need for a conditional access if it's a value type - we know it's not null.
             if (expr.Type.IsValueType)
             {
-                return BoundCall.Synthesized(expr.Syntax, expr, toString);
+                return BoundCall.Synthesized(expr.Syntax, expr, objectToStringMethod);
             }
 
             int currentConditionalAccessID = ++_currentConditionalAccessID;
@@ -429,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 whenNotNull: BoundCall.Synthesized(
                     syntax,
                     new BoundConditionalReceiver(syntax, currentConditionalAccessID, expr.Type),
-                    toString),
+                    objectToStringMethod),
                 whenNullOpt: null,
                 id: currentConditionalAccessID,
                 type: _compilation.GetSpecialType(SpecialType.System_String));

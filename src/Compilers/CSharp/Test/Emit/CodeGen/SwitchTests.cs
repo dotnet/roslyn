@@ -8924,15 +8924,14 @@ None
 Generic<object>.Color.Red");
             compVerifier.VerifyIL("Program.M2",
 @"{
-  // Code size      118 (0x76)
+  // Code size      115 (0x73)
   .maxstack  2
   .locals init (Generic<long>.Color V_0, //c
                 object V_1,
                 Generic<object>.Color V_2,
                 Generic<dynamic>.Color V_3,
                 object V_4,
-                Generic<long>.Color V_5,
-                string V_6)
+                string V_5)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.s    V_4
@@ -8947,41 +8946,39 @@ Generic<object>.Color.Red");
   IL_0016:  br.s       IL_0038
   IL_0018:  ldloc.1
   IL_0019:  isinst     ""Generic<object>.Color""
-  IL_001e:  brfalse.s  IL_006a
+  IL_001e:  brfalse.s  IL_0067
   IL_0020:  ldloc.1
   IL_0021:  unbox.any  ""Generic<object>.Color""
   IL_0026:  stloc.2
   IL_0027:  ldloc.2
   IL_0028:  ldc.i4.5
-  IL_0029:  beq.s      IL_0058
+  IL_0029:  beq.s      IL_0055
   IL_002b:  ldloc.1
   IL_002c:  unbox.any  ""Generic<dynamic>.Color""
   IL_0031:  stloc.3
   IL_0032:  ldloc.3
   IL_0033:  ldc.i4.4
-  IL_0034:  beq.s      IL_0061
-  IL_0036:  br.s       IL_006a
+  IL_0034:  beq.s      IL_005e
+  IL_0036:  br.s       IL_0067
   IL_0038:  br.s       IL_003a
   IL_003a:  ldstr      ""Generic<long>.Color.""
-  IL_003f:  ldloc.0
-  IL_0040:  stloc.s    V_5
-  IL_0042:  ldloca.s   V_5
-  IL_0044:  constrained. ""Generic<long>.Color""
-  IL_004a:  callvirt   ""string object.ToString()""
-  IL_004f:  call       ""string string.Concat(string, string)""
-  IL_0054:  stloc.s    V_6
-  IL_0056:  br.s       IL_0073
-  IL_0058:  ldstr      ""Generic<object>.Color.Red""
-  IL_005d:  stloc.s    V_6
-  IL_005f:  br.s       IL_0073
-  IL_0061:  ldstr      ""Generic<dynamic>.Color.Blue""
-  IL_0066:  stloc.s    V_6
-  IL_0068:  br.s       IL_0073
-  IL_006a:  ldstr      ""None""
-  IL_006f:  stloc.s    V_6
-  IL_0071:  br.s       IL_0073
-  IL_0073:  ldloc.s    V_6
-  IL_0075:  ret
+  IL_003f:  ldloca.s   V_0
+  IL_0041:  constrained. ""Generic<long>.Color""
+  IL_0047:  callvirt   ""string object.ToString()""
+  IL_004c:  call       ""string string.Concat(string, string)""
+  IL_0051:  stloc.s    V_5
+  IL_0053:  br.s       IL_0070
+  IL_0055:  ldstr      ""Generic<object>.Color.Red""
+  IL_005a:  stloc.s    V_5
+  IL_005c:  br.s       IL_0070
+  IL_005e:  ldstr      ""Generic<dynamic>.Color.Blue""
+  IL_0063:  stloc.s    V_5
+  IL_0065:  br.s       IL_0070
+  IL_0067:  ldstr      ""None""
+  IL_006c:  stloc.s    V_5
+  IL_006e:  br.s       IL_0070
+  IL_0070:  ldloc.s    V_5
+  IL_0072:  ret
 }"
             );
         }

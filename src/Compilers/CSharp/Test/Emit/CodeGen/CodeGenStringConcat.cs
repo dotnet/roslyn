@@ -1531,6 +1531,107 @@ readonly struct ReadonlyStruct
         }
 
         [Fact]
+        public void ConcatStructWithReadonlyToString()
+        {
+            var source = @"
+using System;
+class Test
+{
+    static StructWithReadonlyToString f = new StructWithReadonlyToString();
+
+    static void Main()
+    {
+        StructWithReadonlyToString l = new StructWithReadonlyToString();
+
+        Console.WriteLine("""" + l + l + f + f);
+    }
+}
+
+struct StructWithReadonlyToString
+{
+    public readonly override string ToString() => ""R"";
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: @"RRRR");
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Main", @"
+{
+  // Code size       77 (0x4d)
+  .maxstack  4
+  .locals init (StructWithReadonlyToString V_0) //l
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""StructWithReadonlyToString""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  constrained. ""StructWithReadonlyToString""
+  IL_0010:  callvirt   ""string object.ToString()""
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  constrained. ""StructWithReadonlyToString""
+  IL_001d:  callvirt   ""string object.ToString()""
+  IL_0022:  ldsflda    ""StructWithReadonlyToString Test.f""
+  IL_0027:  constrained. ""StructWithReadonlyToString""
+  IL_002d:  callvirt   ""string object.ToString()""
+  IL_0032:  ldsflda    ""StructWithReadonlyToString Test.f""
+  IL_0037:  constrained. ""StructWithReadonlyToString""
+  IL_003d:  callvirt   ""string object.ToString()""
+  IL_0042:  call       ""string string.Concat(string, string, string, string)""
+  IL_0047:  call       ""void System.Console.WriteLine(string)""
+  IL_004c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConcatStructWithNoToString()
+        {
+            var source = @"
+using System;
+class Test
+{
+    static S f = new S();
+
+    static void Main()
+    {
+        S l = new S();
+
+        Console.WriteLine("""" + l + l + f + f);
+    }
+}
+
+struct S { }
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: @"SSSS");
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Main", @"
+{
+  // Code size       77 (0x4d)
+  .maxstack  4
+  .locals init (S V_0) //l
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  constrained. ""S""
+  IL_0010:  callvirt   ""string object.ToString()""
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  constrained. ""S""
+  IL_001d:  callvirt   ""string object.ToString()""
+  IL_0022:  ldsflda    ""S Test.f""
+  IL_0027:  constrained. ""S""
+  IL_002d:  callvirt   ""string object.ToString()""
+  IL_0032:  ldsflda    ""S Test.f""
+  IL_0037:  constrained. ""S""
+  IL_003d:  callvirt   ""string object.ToString()""
+  IL_0042:  call       ""string string.Concat(string, string, string, string)""
+  IL_0047:  call       ""void System.Console.WriteLine(string)""
+  IL_004c:  ret
+}
+");
+        }
+
+        [Fact]
         public void ConcatWithImplicitOperator()
         {
             var source = @"
