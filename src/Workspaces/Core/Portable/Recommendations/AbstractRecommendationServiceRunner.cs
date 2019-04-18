@@ -92,12 +92,6 @@ namespace Microsoft.CodeAnalysis.Recommendations
         private ImmutableArray<ITypeSymbol> GetTypeSymbols(ImmutableArray<ISymbol> candidateSymbols, int ordinalInInvocation, int ordinalInLambda)
         {
             var expressionSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
-            // We cannot help if semantic model is corrupted or incomplete (e.g. during solution loading) and those symbols are not loaded. 
-            // Just bail out.
-            if (expressionSymbol == null)
-            {
-                return default;
-            }
 
             var builder = ArrayBuilder<ITypeSymbol>.GetInstance();
 
@@ -109,7 +103,9 @@ namespace Microsoft.CodeAnalysis.Recommendations
                     {
                         var type = method.Parameters[ordinalInInvocation].Type;
                         // If type is <see cref="Expression{TDelegate}"/>, ignore <see cref="Expression"/> and use TDelegate.
-                        if (type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
+                        // Ignore this check if expressionSymbol is null, e.g. semantic model is broken or incomplet or if the framework does not contain <see cref="Expression"/>.
+                        if (expressionSymbol != null &&
+                            type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
                             expressionSymbolNamedTypeCandidate.OriginalDefinition.Equals(expressionSymbol))
                         {
                             var allTypeArguments = type.GetAllTypeArguments();

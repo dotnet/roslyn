@@ -7860,8 +7860,8 @@ Namespace ThenIncludeIntellisenseBug
     Public Module EntityFrameworkQuerybleExtensions
         <System.Runtime.CompilerServices.Extension>
         Public Function Include(Of TEntity, TProperty)(
-                                                      source As IQueryable(Of TEntity), 
-                                                      navigationPropertyPath As Expression(Of Func(Of TEntity, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IQueryable(Of TEntity), 
+                navigationPropertyPath As Expression(Of Func(Of TEntity, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
 
@@ -7878,15 +7878,15 @@ End Namespace"
             Dim source = CreateThenIncludeTestCode("Function(b) b.$$",
 "       <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
-                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
 
         <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
-                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
 ")
@@ -7900,15 +7900,15 @@ End Namespace"
             Dim source = CreateThenIncludeTestCode("Function(b) b.$$",
 "       <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
-                                                                             navigationPropertyPath As Func(Of TPreviousProperty, TProperty)) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)),
+                navigationPropertyPath As Func(Of TPreviousProperty, TProperty)) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
 
         <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
-                                                                             navigationPropertyPath As Func(Of TPreviousProperty, TProperty)) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                navigationPropertyPath As Func(Of TPreviousProperty, TProperty)) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function")
 
@@ -7921,17 +7921,17 @@ End Namespace"
             Dim source = CreateThenIncludeTestCode("0, Function(b) b.$$",
 "       <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
-                                                                             a as Integer,
-                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)),
+                a as Integer,
+                navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
 
         <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty),
-                                                                             a as Integer,
-                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                a as Integer,
+                navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
 ")
@@ -7945,17 +7945,17 @@ End Namespace"
             Dim source = CreateThenIncludeTestCode("0, Function(a, b, c) c.$$",
 "       <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
-                                                                             a as Integer,
-                                                                             navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                a as Integer,                                                                             
+                navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
 
         <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
-                                                                             a as Integer,
-                                                                             navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                a as Integer,
+                navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function")
 
@@ -7968,16 +7968,16 @@ End Namespace"
             Dim source = CreateThenIncludeTestCode("Function(b) b.Task, Function(b) b.$$",
 "       <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
-                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty)),
-                                                                             anotherNavigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)),
+                navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty)),
+                anotherNavigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
 
         <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
-                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function")
 
@@ -7990,17 +7990,17 @@ End Namespace"
             Dim source = CreateThenIncludeTestCode("0, Function(a, b, c) c.$$",
 "       <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
-                                                                             a as Integer,
-                                                                             navigationPropertyPath As Expression(Of Func(Of string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)),
+                a as Integer,
+                navigationPropertyPath As Expression(Of Func(Of string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
 
         <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty),
-                                                                             a as Integer,
-                                                                             navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                a as Integer,
+                navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
 ")
@@ -8014,15 +8014,15 @@ End Namespace"
             Dim source = CreateThenIncludeTestCode("Function(c) c.$$",
 "       <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(
-                                    source As IIncludableQueryable(Of Registration, ICollection(Of Activity)), 
-                                    navigationPropertyPath As Func(Of Activity, Task)) As IIncludableQueryable(Of Registration, Task)
+                source As IIncludableQueryable(Of Registration, ICollection(Of Activity)),
+                navigationPropertyPath As Func(Of Activity, Task)) As IIncludableQueryable(Of Registration, Task)
             Return Nothing
         End Function
 
         <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
-                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty),
-                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
 ")
@@ -8036,15 +8036,15 @@ End Namespace"
             Dim source = CreateThenIncludeTestCode("Function(c) c.$$",
 "       <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(
-                                    source As IIncludableQueryable(Of Registration, ICollection(Of Activity)), 
-                                    navigationPropertyPath As Func(Of Activity, Task)) As IIncludableQueryable(Of Registration, Task)
+                source As IIncludableQueryable(Of Registration, ICollection(Of Activity)),
+                navigationPropertyPath As Func(Of Activity, Task)) As IIncludableQueryable(Of Registration, Task)
             Return Nothing
         End Function
 
         <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(
-                                    source As IIncludableQueryable(Of Registration, ICollection(Of Activity)), 
-                                    navigationPropertyPath As Expression(Of Func(Of ICollection(Of Activity), Activity))) As IIncludableQueryable(Of Registration, Activity)
+                source As IIncludableQueryable(Of Registration, ICollection(Of Activity)),
+                navigationPropertyPath As Expression(Of Func(Of ICollection(Of Activity), Activity))) As IIncludableQueryable(Of Registration, Activity)
             Return Nothing
         End Function
 ")
