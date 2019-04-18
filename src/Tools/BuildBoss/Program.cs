@@ -33,7 +33,7 @@ namespace BuildBoss
             {
                 { "r|root=", "The repository root", value => repositoryDirectory = value },
                 { "c|configuration=", "Build configuration", value => configuration = value },
-                { "p|primary=", "Primary solution file name", value => primarySolution = value },
+                { "p|primary=", "Primary solution file name (which contains all projects)", value => primarySolution = value },
             };
 
             if (configuration != "Debug" && configuration != "Release")
