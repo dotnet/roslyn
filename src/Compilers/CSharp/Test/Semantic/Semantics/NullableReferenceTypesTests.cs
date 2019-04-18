@@ -13185,6 +13185,121 @@ class D : C
         }
 
         [Fact]
+        [WorkItem(33276, "https://github.com/dotnet/roslyn/issues/33276")]
+        public void Overriding_34()
+        {
+            var source1 =
+@"
+public class MyEntity
+{
+}
+
+public abstract class BaseController<T>
+    where T : MyEntity
+{
+    public abstract void SomeMethod<R>(R? lite)
+        where R : MyEntity;
+}
+";
+
+            var source2 =
+@"
+class DerivedController<T> : BaseController<T>
+    where T : MyEntity
+{
+    Table<T> table = null!;
+    public override void SomeMethod<R>(R? lite) where R : class
+    {
+        table.OtherMethod(lite);
+    }
+}
+
+class Table<T>
+    where T : MyEntity
+{
+    public void OtherMethod<R>(R? lite) where R : MyEntity
+    {
+        lite?.ToString();
+    }
+}
+";
+            var compilation1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue());
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(),
+                                                     references: new[] { reference });
+                compilation2.VerifyDiagnostics();
+                CompileAndVerify(compilation2);
+            }
+        }
+
+        [Fact]
+        [WorkItem(31676, "https://github.com/dotnet/roslyn/issues/31676")]
+        public void Overriding_35()
+        {
+            var source1 =
+@"
+using System;
+
+namespace Microsoft.EntityFrameworkCore.TestUtilities
+{
+    public abstract class QueryAsserterBase
+    {
+        public abstract void AssertQueryScalar<TItem1, TResult>(
+            Func<IQueryable<TItem1>, IQueryable<Nullable<TResult>>> actualQuery)
+            where TResult : struct;
+    }
+}
+
+public interface IQueryable<out T>
+{
+}
+";
+
+            var source2 =
+@"
+using System;
+
+namespace Microsoft.EntityFrameworkCore.TestUtilities
+{
+    public class QueryAsserter<TContext> : QueryAsserterBase
+    {
+        public override void AssertQueryScalar<TItem1, TResult>(
+            Func<IQueryable<TItem1>, IQueryable<TResult?>> actualQuery)
+        {          
+        }
+    }
+}
+";
+            foreach (var options1 in new[] { WithNonNullTypesTrue(), WithNonNullTypesFalse() })
+            {
+                var compilation1 = CreateCompilation(new[] { source1 }, options: options1);
+                compilation1.VerifyDiagnostics();
+
+                foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+                {
+                    foreach (var options2 in new[] { WithNonNullTypesTrue(), WithNonNullTypesFalse() })
+                    {
+                        var compilation2 = CreateCompilation(new[] { source2 }, options: options2,
+                                                         references: new[] { reference });
+                        compilation2.VerifyDiagnostics();
+                        CompileAndVerify(compilation2);
+                    }
+                }
+
+                var compilation3 = CreateCompilation(new[] { source1, source2 }, options: options1);
+                compilation3.VerifyDiagnostics();
+                CompileAndVerify(compilation3);
+
+                var compilation4 = CreateCompilation(new[] { source2, source1 }, options: options1);
+                compilation4.VerifyDiagnostics();
+                CompileAndVerify(compilation4);
+            }
+        }
+
+        [Fact]
         public void Implementing_07()
         {
             var source = @"
