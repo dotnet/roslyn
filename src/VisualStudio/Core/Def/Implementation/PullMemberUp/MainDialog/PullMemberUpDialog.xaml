@@ -149,9 +149,7 @@
                             <DataGridTemplateColumn.Header>
                                 <StackPanel 
                                     Orientation="Horizontal" 
-                                    Width="Auto"
-                                    AutomationProperties.Name="{Binding RelativeSource={RelativeSource AncestorType=vs:DialogWindow}, Path=MembersHeader}"
-                                    Name="Members>
+                                    Width="Auto">
                                     <self:SelectAllCheckBox
                                         AutomationProperties.Name="{Binding SelectAllCheckBoxAutomationText}"
                                         Margin="0, 0, 4, 0"
