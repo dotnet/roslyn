@@ -16,8 +16,7 @@
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GenerateServiceHubConfigurationFiles</GetVsixSourceItemsDependsOn>
   </PropertyGroup>
 
-  <Target Name="CalculateServiceHubConfigurationFiles"
-          DependsOnTargets="GetAssemblyVersion">
+  <Target Name="CalculateServiceHubConfigurationFiles">
     <ItemGroup>
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="" HostSuffix=".x86" HostIdSuffix="32" />
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" />
