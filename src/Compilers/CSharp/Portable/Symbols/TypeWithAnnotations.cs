@@ -241,12 +241,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If this is a lazy nullable type which has not yet been resolved, forces this to be resolved as a nullable value type, and return true.
-        /// Otherwise, return false.
+        /// If this is a lazy nullable type pending resolution, forces this to be resolved as a nullable value type.
         /// </summary>
-        public bool TryForceResolveAsNullableValueType()
+        public void TryForceResolveAsNullableValueType()
         {
-            return _extensions.TryForceResolveAsNullableValueType();
+            _extensions.TryForceResolveAsNullableValueType();
+        }
+
+        /// <summary>
+        /// If this is a lazy nullable type pending resolution, forces this to be resolved as a nullable reference type.
+        /// </summary>
+        public void TryForceResolveAsNullableReferenceType()
+        {
+            _extensions.TryForceResolveAsNullableReferenceType();
         }
 
         private TypeWithAnnotations AsNullableReferenceType() => _extensions.AsNullableReferenceType(this);
@@ -267,6 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithModifiers(this, customModifiers);
 
+        public bool IsResolved => _extensions?.IsResolved != false;
         public TypeSymbol Type => _extensions?.GetResolvedType(DefaultType);
         public TypeSymbol NullableUnderlyingTypeOrSelf => _extensions.GetNullableUnderlyingTypeOrSelf(DefaultType);
 
@@ -299,24 +307,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public string ToDisplayString(SymbolDisplayFormat format = null)
         {
+            if (!IsResolved)
+            {
+                if (!IsSafeToResolve())
+                {
+                    if (NullableAnnotation.IsAnnotated() &&
+                        format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))
+                    {
+                        return DefaultType.ToDisplayString(format) + "?";
+                    }
+
+                    return DefaultType.ToDisplayString(format);
+                }
+            }
+
             var str = !HasType ? "<null>" : Type.ToDisplayString(format);
             if (format != null)
             {
-                if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                    (!HasType || (!IsNullableType() && !Type.IsValueType)) &&
-                    NullableAnnotation.IsAnnotated())
+                if (NullableAnnotation.IsAnnotated() &&
+                    format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
+                    (!HasType || (!IsNullableType() && !Type.IsValueType)))
                 {
                     return str + "?";
                 }
-                else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
-                    (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotation())) &&
-                    NullableAnnotation.IsNotAnnotated())
+                else if (NullableAnnotation.IsNotAnnotated() &&
+                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
+                    (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotation())))
                 {
                     return str + "!";
                 }
             }
 
             return str;
+        }
+
+        private bool IsSafeToResolve()
+        {
+            var declaringMethod = (DefaultType as TypeParameterSymbol)?.DeclaringMethod as SourceOrdinaryMethodSymbol;
+            return !((object)declaringMethod != null && !declaringMethod.HasComplete(CompletionPart.FinishMethodChecks) &&
+                   (declaringMethod.IsOverride || declaringMethod.IsExplicitInterfaceImplementation));
         }
 
         internal string GetDebuggerDisplay() => !this.HasType ? "<null>" : ToDisplayString(DebuggerDisplayFormat);
@@ -744,6 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new LazyNullableTypeParameter(compilation, underlying);
             }
 
+            internal abstract bool IsResolved { get; }
             internal abstract TypeSymbol GetResolvedType(TypeSymbol defaultType);
             internal abstract ImmutableArray<CustomModifier> CustomModifiers { get; }
 
@@ -772,7 +802,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal abstract TypeWithAnnotations TransformToTupleIfCompatible(TypeWithAnnotations type);
             internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics);
 
-            internal abstract bool TryForceResolveAsNullableValueType();
+            internal abstract void TryForceResolveAsNullableValueType();
+
+            internal abstract void TryForceResolveAsNullableReferenceType();
         }
 
         private sealed class NonLazyType : Extensions
@@ -785,6 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _customModifiers = customModifiers;
             }
 
+            internal override bool IsResolved => true;
             internal override TypeSymbol GetResolvedType(TypeSymbol defaultType) => defaultType;
             internal override ImmutableArray<CustomModifier> CustomModifiers => _customModifiers;
 
@@ -863,9 +896,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type.ReportDiagnosticsIfObsoleteCore(binder, syntax, diagnostics);
             }
 
-            internal override bool TryForceResolveAsNullableValueType()
+            internal override void TryForceResolveAsNullableValueType()
             {
-                return false;
+            }
+
+            internal override void TryForceResolveAsNullableReferenceType()
+            {
             }
         }
 
@@ -896,9 +932,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_resolved == null)
                 {
+                    Debug.Assert(_underlying.IsSafeToResolve());
+
                     if (!_underlying.Type.IsValueType)
                     {
-                        _resolved = _underlying.Type;
+                        TryForceResolveAsNullableReferenceType();
                     }
                     else
                     {
@@ -936,6 +974,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return resolvedType;
             }
 
+            internal override bool IsResolved => (object)_resolved != null;
             internal override TypeSymbol GetResolvedType(TypeSymbol defaultType) => GetResolvedType();
             internal override ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
@@ -1032,11 +1071,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return type.TypeSymbolEqualsCore(other, comparison);
             }
 
-            internal override bool TryForceResolveAsNullableValueType()
+            internal override void TryForceResolveAsNullableValueType()
             {
-                return Interlocked.CompareExchange(ref _resolved,
+                Interlocked.CompareExchange(ref _resolved,
                     _compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(_underlying)),
-                    null) is null;
+                    null);
+            }
+
+            internal override void TryForceResolveAsNullableReferenceType()
+            {
+                Interlocked.CompareExchange(ref _resolved, _underlying.Type, null);
             }
         }
     }

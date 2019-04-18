@@ -12,7 +12,9 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
@@ -50,7 +52,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return null;
             }
 
-            return new CancellableContentControl(this, item);
+            var textSnapshot = context.Properties.GetProperty<ITextSnapshot>(CompletionPresenterSession.TextSnapshotKey);
+            var document = textSnapshot?.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return null;
+            }
+
+            return new CancellableContentControl(this, item, document);
         }
 
         private class CancellableContentControl : ContentControl
@@ -58,7 +67,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
             private readonly ToolTipProvider _toolTipProvider;
 
-            public CancellableContentControl(ToolTipProvider toolTipProvider, CustomCommitCompletion item)
+            public CancellableContentControl(
+                ToolTipProvider toolTipProvider,
+                CustomCommitCompletion item,
+                Document document)
             {
                 Debug.Assert(toolTipProvider._threadingContext.JoinableTaskContext.IsOnMainThread);
                 _toolTipProvider = toolTipProvider;
@@ -69,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // Kick off the task to produce the new content.  When it completes, call back on 
                 // the UI thread to update the display.
                 var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-                item.GetDescriptionAsync(_cancellationTokenSource.Token)
+                item.GetDescriptionAsync(document, _cancellationTokenSource.Token)
                               .ContinueWith(ProcessDescription, _cancellationTokenSource.Token,
                                             TaskContinuationOptions.OnlyOnRanToCompletion, scheduler);
 

@@ -9,10 +9,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Iterator
 {
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractIteratorCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix
+            return null;
+        }
+
         protected abstract Task<CodeAction> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
