@@ -355,6 +355,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "ITypeParameterSymbol"
 
+        Private ReadOnly Property ITypeParameterSymbol_ReferenceTypeConstraintNullableAnnotation As NullableAnnotation Implements ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation
+            Get
+                Return NullableAnnotation.NotApplicable
+            End Get
+        End Property
+
         Private ReadOnly Property ITypeParameterSymbol_DeclaringMethod As IMethodSymbol Implements ITypeParameterSymbol.DeclaringMethod
             Get
                 Return Me.DeclaringMethod
@@ -376,6 +382,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property ITypeParameterSymbol_ConstraintTypes As ImmutableArray(Of ITypeSymbol) Implements ITypeParameterSymbol.ConstraintTypes
             Get
                 Return StaticCast(Of ITypeSymbol).From(Me.ConstraintTypesNoUseSiteDiagnostics)
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeParameterSymbol_ConstraintNullableAnnotations As ImmutableArray(Of NullableAnnotation) Implements ITypeParameterSymbol.ConstraintNullableAnnotations
+            Get
+                Return Me.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(Function(t) NullableAnnotation.NotApplicable)
             End Get
         End Property
 
