@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private void BeforeExecuteCommand(TypeCharCommandArgs args, CommandExecutionContext executionContext)
         {
-            if (args.TypedChar != ';')
+            if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
             {
                 return;
             }
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 // ArrayRankSpecifier: covers new Type[dim]
                 // ElementAccessExpression: covers indexer invocations like array[index]
                 // ParenthesizedExpression: covers (3*(x+y))
-                if (currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.ElementAccessExpression, SyntaxKind.ParenthesizedExpression))
+                if (currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.ParenthesizedExpression))
                 {
                     nodeFound = true;
                 }

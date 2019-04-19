@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
                 Return Nothing
             End If
 
-            ' we don't support colon seperated statements
+            ' we don't support colon separated statements
             If forEachBlock.DescendantTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia)) Then
                 Return Nothing
             End If

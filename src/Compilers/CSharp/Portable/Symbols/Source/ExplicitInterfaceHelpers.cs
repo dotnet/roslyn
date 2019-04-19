@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                if (MemberSignatureComparer.ExplicitImplementationLookupComparer.Equals(implementingMember, interfaceMember))
+                if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
                 {
                     foundMatchingMember = true;
                     // Cannot implement accessor directly unless

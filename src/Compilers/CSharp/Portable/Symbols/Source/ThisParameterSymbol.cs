@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return RefKind.Out;
                 }
 
-                if (ContainingType.IsReadOnly)
+                if (_containingMethod?.IsEffectivelyReadOnly == true)
                 {
                     return RefKind.In;
                 }
