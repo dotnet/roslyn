@@ -1970,7 +1970,7 @@ static class Program
 }");
         }
 
-        // PROTOPTYPE(nullable-api): Support deconstruction assignment
+        // https://github.com/dotnet/roslyn/issues/35010 Support deconstruction assignment
         [Fact]
         public void DoNotShareInputForMutatingWhenClause()
         {
