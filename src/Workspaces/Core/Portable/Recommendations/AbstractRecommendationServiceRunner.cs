@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
                     {
                         var type = method.Parameters[ordinalInInvocation].Type;
                         // If type is <see cref="Expression{TDelegate}"/>, ignore <see cref="Expression"/> and use TDelegate.
-                        // Ignore this check if expressionSymbol is null, e.g. semantic model is broken or incomplet or if the framework does not contain <see cref="Expression"/>.
+                        // Ignore this check if expressionSymbol is null, e.g. semantic model is broken or incomplete or if the framework does not contain <see cref="Expression"/>.
                         if (expressionSymbol != null &&
                             type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
                             expressionSymbolNamedTypeCandidate.OriginalDefinition.Equals(expressionSymbol))
