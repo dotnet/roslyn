@@ -675,14 +675,14 @@ namespace Microsoft.CodeAnalysis
                 documentStates: _documentStates.AddRange(documents.Select(d => KeyValuePairUtil.Create(d.Id, d))));
         }
 
-        public ProjectState AddAdditionalDocument(TextDocumentState document)
+        public ProjectState AddAdditionalDocuments(ImmutableArray<TextDocumentState> documents)
         {
-            Debug.Assert(!this.AdditionalDocumentStates.ContainsKey(document.Id));
+            Debug.Assert(!documents.Any(d => this.AdditionalDocumentStates.ContainsKey(d.Id)));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                additionalDocumentIds: _additionalDocumentIds.Add(document.Id),
-                additionalDocumentStates: _additionalDocumentStates.Add(document.Id, document));
+                additionalDocumentIds: _additionalDocumentIds.AddRange(documents.Select(d => d.Id)),
+                additionalDocumentStates: _additionalDocumentStates.AddRange(documents.Select(d => KeyValuePairUtil.Create(d.Id, d))));
         }
 
         public ProjectState AddAnalyzerConfigDocuments(ImmutableArray<AnalyzerConfigDocumentState> documents)

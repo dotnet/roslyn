@@ -1196,27 +1196,11 @@ namespace Microsoft.CodeAnalysis
             return newSolutionState;
         }
 
-        public SolutionState AddAdditionalDocument(DocumentInfo documentInfo)
+        public SolutionState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
-            if (documentInfo == null)
-            {
-                throw new ArgumentNullException(nameof(documentInfo));
-            }
-
-            CheckContainsProject(documentInfo.Id.ProjectId);
-            CheckNotContainsAdditionalDocument(documentInfo.Id);
-
-            var oldProject = this.GetProjectState(documentInfo.Id.ProjectId);
-
-            var state = new TextDocumentState(
-                documentInfo,
-                _solutionServices);
-
-            var newProject = oldProject.AddAdditionalDocument(state);
-            var documentStates = SpecializedCollections.SingletonEnumerable(newProject.GetAdditionalDocumentState(documentInfo.Id));
-
-            return this.ForkProject(newProject,
-                    newFilePathToDocumentIdsMap: CreateFilePathToDocumentIdsMapWithAddedDocuments(documentStates));
+            return AddDocumentsToMultipleProjects(documentInfos,
+                (documentInfo, project) => new TextDocumentState(documentInfo, _solutionServices),
+                (projectState, documents) => (projectState.AddAdditionalDocuments(documents), translationAction: null));
         }
 
         public SolutionState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)

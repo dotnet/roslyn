@@ -776,7 +776,12 @@ namespace Microsoft.CodeAnalysis
 
         public Solution AddAdditionalDocument(DocumentInfo documentInfo)
         {
-            var newState = _state.AddAdditionalDocument(documentInfo);
+            return AddAdditionalDocuments(ImmutableArray.Create(documentInfo));
+        }
+
+        public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            var newState = _state.AddAdditionalDocuments(documentInfos);
             if (newState == _state)
             {
                 return this;
