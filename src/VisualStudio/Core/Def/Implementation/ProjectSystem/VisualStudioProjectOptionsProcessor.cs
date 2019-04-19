@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private CommandLineArguments _commandLineArgumentsForCommandLine;
         private string _explicitRuleSetFilePath;
         private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>> _ruleSetFile = null;
-        private IOptionService _optionService;
+        private readonly IOptionService _optionService;
 
         public VisualStudioProjectOptionsProcessor(VisualStudioProject project, HostWorkspaceServices workspaceServices)
         {
@@ -42,14 +42,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (_project.Language == LanguageNames.CSharp)
             {
                 _optionService.OptionChanged += OptionService_OptionChanged;
-            }
-        }
-
-        private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
-        {
-            if (e.Option.Feature == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Feature)
-            {
-                UpdateProjectForNewHostValues();
             }
         }
 
@@ -115,6 +107,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     return _ruleSetFile?.Target.Value.FilePath;
                 }
+            }
+        }
+
+        private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
+        {
+            if (e.Option.Name == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Name
+                && e.Option.Feature == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Feature)
+            {
+                UpdateProjectForNewHostValues();
             }
         }
 
@@ -266,6 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 DisposeOfRuleSetFile_NoLock();
+                _optionService.OptionChanged -= OptionService_OptionChanged;
             }
         }
     }
