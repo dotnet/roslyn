@@ -416,11 +416,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            if (searchSymbol.Kind == SymbolKind.NamedType && symbolToMatch.IsConstructor())
-            {
-                return OriginalSymbolsMatch(searchSymbol, symbolToMatch.ContainingType, solution, searchSymbolCompilation, symbolToMatchCompilation, cancellationToken);
-            }
-
             return false;
         }
 
