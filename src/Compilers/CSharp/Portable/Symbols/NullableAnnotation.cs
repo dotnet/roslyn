@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// The nullable annotations that can apply in source.
@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal enum NullableAnnotation : byte
     {
         /// <summary>
+        /// Type is not annotated - string, int, T (including the case when T is unconstrained).
+        /// </summary>
+        NotAnnotated,
+
+        /// <summary>
         /// The type is not annotated in a context where the nullable feature is not enabled.
         /// Used for interoperation with existing pre-nullable code.
         /// </summary>
         Oblivious,
-
-        /// <summary>
-        /// Type is not annotated - string, int, T (including the case when T is unconstrained).
-        /// </summary>
-        NotAnnotated,
 
         /// <summary>
         /// Type is annotated with '?' - string?, T? where T : class; and for int?, T? where T : struct.

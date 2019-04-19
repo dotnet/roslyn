@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (constraintType.TypeKind == TypeKind.TypeParameter)
             {
-                bool? isNotNullableIfReferenceType = ((TypeParameterSymbol)constraintType.Type).GetIsNotNullableIfReferenceType();
+                bool? isNotNullableIfReferenceType = ((TypeParameterSymbol)constraintType.Type).IsNotNullableIfReferenceType;
 
                 if (isNotNullableIfReferenceType == false)
                 {
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsReferenceType => GetIsReferenceType(ConsList<TypeParameterSymbol>.Empty);
 
-        internal bool? GetIsNotNullableIfReferenceType()
+        protected bool? CalculateIsNotNullableIfReferenceType()
         {
             bool? fromReferenceTypeConstraint = false;
 
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // https://github.com/dotnet/roslyn/issues/26198 Should this API be exposed through ITypeParameterSymbol?
-        internal bool? IsNotNullableIfReferenceType => GetIsNotNullableIfReferenceType();
+        internal abstract bool? IsNotNullableIfReferenceType { get; }
 
         internal bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress)
         {
@@ -690,6 +690,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region ITypeParameterTypeSymbol Members
 
+#pragma warning disable IDE0055 // Fix formatting. This formatting is correct, need 16.1 for the updated formatter to not flag
+        CodeAnalysis.NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation =>
+            ReferenceTypeConstraintIsNullable switch
+            {
+                false when !HasReferenceTypeConstraint => CodeAnalysis.NullableAnnotation.NotApplicable,
+                false => CodeAnalysis.NullableAnnotation.NotAnnotated,
+                true => CodeAnalysis.NullableAnnotation.Annotated,
+                null => CodeAnalysis.NullableAnnotation.Disabled,
+            };
+#pragma warning restore IDE0055 // Fix formatting
+
         TypeParameterKind ITypeParameterSymbol.TypeParameterKind
         {
             get
@@ -714,6 +725,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => (ITypeSymbol)c.Type);
             }
+        }
+
+        ImmutableArray<CodeAnalysis.NullableAnnotation> ITypeParameterSymbol.ConstraintNullableAnnotations
+        {
+            get => this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => c.NullableAnnotation.ToPublicAnnotation());
         }
 
         ITypeParameterSymbol ITypeParameterSymbol.OriginalDefinition

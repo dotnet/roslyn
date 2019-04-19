@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 
         protected override void WaitForApplicationIdle(CancellationToken cancellationToken)
         {
-            _visualStudioInstance.WaitForApplicationIdle();
+            _visualStudioInstance.WaitForApplicationIdle(Helper.HangMitigatingTimeout);
         }
     }
 }

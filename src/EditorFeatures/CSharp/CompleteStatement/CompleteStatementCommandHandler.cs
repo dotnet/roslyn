@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private void BeforeExecuteCommand(TypeCharCommandArgs args, CommandExecutionContext executionContext)
         {
-            if (args.TypedChar != ';')
+            if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
             {
                 return;
             }
