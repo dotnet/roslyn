@@ -88,6 +88,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Indicate whether this <see cref="CompletionItem"/> is cached and reused across completion sessions. 
         /// This might be used by completion system for things like deciding whether it can safaly cache and reuse
         /// other data correspodning to this item.
+        ///
+        /// TODO: Revisit the approach we used for caching VS items.
+        ///       https://github.com/dotnet/roslyn/issues/35160
         /// </summary>
         internal bool IsCached { get; set; }
 
