@@ -1381,7 +1381,7 @@
     <value>Cannot use attribute constructor '{0}' because it is has 'in' parameters.</value>
   </data>
   <data name="ERR_OverrideWithConstraints" xml:space="preserve">
-    <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</value>
+    <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</value>
   </data>
   <data name="ERR_AmbigOverride" xml:space="preserve">
     <value>The inherited members '{0}' and '{1}' have the same signature in type '{2}', so they cannot be overridden</value>
@@ -5882,5 +5882,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_NullReferenceIterationVariable_Title" xml:space="preserve">
 	<value>Possible null reference assignment to iteration variable</value>
+  </data>
+  <data name="ERR_OverrideRefConstraintNotSatisfied" xml:space="preserve">
+    <value>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</value>
+  </data>
+  <data name="ERR_OverrideValConstraintNotSatisfied" xml:space="preserve">
+    <value>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</value>
+  </data>
+  <data name="IDS_OverrideWithConstraints" xml:space="preserve">
+    <value>constraints for override and explicit interface implementation methods</value>
   </data>
 </root>

@@ -1,12 +1,8 @@
-﻿using Mono.Options;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+using Mono.Options;
 
 namespace BuildBoss
 {
@@ -30,12 +26,14 @@ namespace BuildBoss
         {
             string repositoryDirectory = null;
             string configuration = "Debug";
+            string primarySolution = null;
             List<string> solutionFiles;
 
             var options = new OptionSet
             {
                 { "r|root=", "The repository root", value => repositoryDirectory = value },
-                { "c|configuration=", "Build configuration", value => configuration = value }
+                { "c|configuration=", "Build configuration", value => configuration = value },
+                { "p|primary=", "Primary solution file name (which contains all projects)", value => primarySolution = value },
             };
 
             if (configuration != "Debug" && configuration != "Release")
@@ -72,7 +70,7 @@ namespace BuildBoss
                 solutionFiles = Directory.EnumerateFiles(repositoryDirectory, "*.sln").ToList();
             }
 
-            return Go(repositoryDirectory, configuration, solutionFiles);
+            return Go(repositoryDirectory, configuration, primarySolution, solutionFiles);
         }
 
         private static string FindRepositoryRoot(string startDirectory)
@@ -86,12 +84,12 @@ namespace BuildBoss
             return dir;
         }
 
-        private static bool Go(string repositoryDirectory, string configuration, List<string> solutionFileNames)
+        private static bool Go(string repositoryDirectory, string configuration, string primarySolution, List<string> solutionFileNames)
         {
             var allGood = true;
             foreach (var solutionFileName in solutionFileNames)
             {
-                allGood &= ProcessSolution(Path.Combine(repositoryDirectory, solutionFileName));
+                allGood &= ProcessSolution(Path.Combine(repositoryDirectory, solutionFileName), isPrimarySolution: solutionFileName == primarySolution);
             }
 
             var artifactsDirectory = Path.Combine(repositoryDirectory, "artifacts");
@@ -125,9 +123,9 @@ namespace BuildBoss
             }
         }
 
-        private static bool ProcessSolution(string solutionFilePath)
+        private static bool ProcessSolution(string solutionFilePath, bool isPrimarySolution)
         {
-            var util = new SolutionCheckerUtil(solutionFilePath);
+            var util = new SolutionCheckerUtil(solutionFilePath, isPrimarySolution);
             return CheckCore(util, $"Solution {solutionFilePath}");
         }
 

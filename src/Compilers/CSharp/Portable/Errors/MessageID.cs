@@ -177,9 +177,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnmanagedConstructedTypes = MessageBase + 12757,
         IDS_FeatureObsoleteOnPropertyAccessor = MessageBase + 12758,
         IDS_FeatureReadOnlyMembers = MessageBase + 12759,
-
-        IDS_DefaultInterfaceImplementation = MessageBase + 12800,
-        IDS_BaseTypeInBaseExpression = MessageBase + 12801,
+        IDS_DefaultInterfaceImplementation = MessageBase + 12760,
+        IDS_BaseTypeInBaseExpression = MessageBase + 12761,
+        IDS_OverrideWithConstraints = MessageBase + 12762,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -288,6 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureReadOnlyMembers:
                 case MessageID.IDS_DefaultInterfaceImplementation: // semantic check
                 case MessageID.IDS_BaseTypeInBaseExpression:
+                case MessageID.IDS_OverrideWithConstraints: // semantic check
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

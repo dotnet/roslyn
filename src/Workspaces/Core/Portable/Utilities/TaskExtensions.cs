@@ -478,5 +478,15 @@ namespace Roslyn.Utilities
             // > !dso     // dump stack objects
             FatalError.Report(exception);
         }
+
+        public static Task ReportNonFatalErrorAsync(this Task task)
+        {
+            task.ContinueWith(p => FatalError.ReportWithoutCrashUnlessCanceled(p.Exception),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+
+            return task;
+        }
     }
 }
