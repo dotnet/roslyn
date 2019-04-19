@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// The nullable annotation of the expression represented by the syntax node. This represents
-        /// the types of expressions that can be assigned to this expression, if this expression
+        /// the nullability of expressions that can be assigned to this expression, if this expression
         /// can be used as an lvalue.
         /// </summary>
         public NullableAnnotation Annotation { get; }

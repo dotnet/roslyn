@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
         /// Converts a symbol to a string that can be displayed to the user. May be tailored to a
         /// specific location in the source code.
         /// </summary>
-        /// <param name="semanticModel">Bidning information (for determining names appropriate to
+        /// <param name="semanticModel">Binding information (for determining names appropriate to
         /// the context).</param>
         /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
         /// <param name="position">A position in the source code (context).</param>

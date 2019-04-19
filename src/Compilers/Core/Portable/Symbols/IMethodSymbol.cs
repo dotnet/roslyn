@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol ReturnType { get; }
 
         /// <summary>
-        /// Gets the top-level nullability of the return of the method.
+        /// Gets the top-level nullability of the return type of the method.
         /// </summary>
         NullableAnnotation ReturnNullableAnnotation { get; }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns the top-level nullability of the type arguments that have been substituted
         /// for the type parameters. If nothing has been substituted for a given type parameter,
-        /// then <code>default</code> of <see cref="NullableAnnotation"/> is returned.
+        /// then <see cref="NullableAnnotation.NotApplicable"/> is returned.
         /// </summary>
         ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations { get; }
 

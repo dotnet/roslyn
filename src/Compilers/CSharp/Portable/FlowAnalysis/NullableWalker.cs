@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
-            if (compilation.EnableNullableAnalysis)
+            if (compilation.NullableAnalysisEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, node);
             }
