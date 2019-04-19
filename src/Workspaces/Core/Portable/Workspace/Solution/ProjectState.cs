@@ -99,7 +99,9 @@ namespace Microsoft.CodeAnalysis
             var projectInfoFixed = FixProjectInfo(projectInfo);
 
             // We need to compute our AnalyerConfigDocumentStates first, since we use those to produce our DocumentStates
-            _analyzerConfigDocumentStates = ImmutableSortedDictionary.Create<DocumentId, AnalyzerConfigDocumentState>(DocumentIdComparer.Instance);
+            _analyzerConfigDocumentStates = ImmutableSortedDictionary.CreateRange(DocumentIdComparer.Instance,
+                projectInfoFixed.AnalyzerConfigDocuments.Select(d =>
+                    KeyValuePairUtil.Create(d.Id, new AnalyzerConfigDocumentState(d, solutionServices))));
             _lazyAnalyzerConfigSet = ComputeAnalyzerConfigSetValueSource(_analyzerConfigDocumentStates.Values);
 
             _documentIds = projectInfoFixed.Documents.Select(d => d.Id).ToImmutableList();
@@ -132,7 +134,10 @@ namespace Microsoft.CodeAnalysis
 
         private static ProjectInfo ClearAllDocumentsFromProjectInfo(ProjectInfo projectInfo)
         {
-            return projectInfo.WithDocuments(ImmutableArray<DocumentInfo>.Empty).WithAdditionalDocuments(ImmutableArray<DocumentInfo>.Empty);
+            return projectInfo
+                .WithDocuments(ImmutableArray<DocumentInfo>.Empty)
+                .WithAdditionalDocuments(ImmutableArray<DocumentInfo>.Empty)
+                .WithAnalyzerConfigDocuments(ImmutableArray<DocumentInfo>.Empty);
         }
 
         private ProjectInfo FixProjectInfo(ProjectInfo projectInfo)
