@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         internal const string SupportedDiagnosticsName = nameof(SupportedDiagnostics);
         internal const string TLanguageKindEnumName = @"TLanguageKindEnum";
 
+#pragma warning disable RS1026 // Enable concurrent execution
         public override void Initialize(AnalysisContext context)
+#pragma warning restore RS1026 // Enable concurrent execution
         {
             // CONSIDER: Make all the subtypes thread safe to enable concurrent analyzer callbacks.
             //context.EnableConcurrentExecution();

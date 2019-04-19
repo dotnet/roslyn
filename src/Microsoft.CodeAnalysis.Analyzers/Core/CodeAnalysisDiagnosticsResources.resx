@@ -338,4 +338,40 @@
   <data name="UpgradeMSBuildWorkspaceTitle" xml:space="preserve">
     <value>Upgrade MSBuildWorkspace</value>
   </data>
+  <data name="CompareSymbolsCorrectlyDescription" xml:space="preserve">
+    <value>Symbols should be compared for equality, not identity.</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyMessage" xml:space="preserve">
+    <value>Compare symbols correctly</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyTitle" xml:space="preserve">
+    <value>Compare symbols correctly</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyCodeFix" xml:space="preserve">
+    <value>Compare symbols correctly</value>
+  </data>
+  <data name="ConfigureGeneratedCodeAnalysisDescription" xml:space="preserve">
+    <value>Configure generated code analysis</value>
+  </data>
+  <data name="ConfigureGeneratedCodeAnalysisMessage" xml:space="preserve">
+    <value>Configure generated code analysis</value>
+  </data>
+  <data name="ConfigureGeneratedCodeAnalysisTitle" xml:space="preserve">
+    <value>Configure generated code analysis</value>
+  </data>
+  <data name="EnableConcurrentExecutionDescription" xml:space="preserve">
+    <value>Enable concurrent execution</value>
+  </data>
+  <data name="EnableConcurrentExecutionMessage" xml:space="preserve">
+    <value>Enable concurrent execution</value>
+  </data>
+  <data name="EnableConcurrentExecutionTitle" xml:space="preserve">
+    <value>Enable concurrent execution</value>
+  </data>
+  <data name="ConfigureGeneratedCodeAnalysisFix" xml:space="preserve">
+    <value>Configure generated code analysis</value>
+  </data>
+  <data name="EnableConcurrentExecutionFix" xml:space="preserve">
+    <value>Enable concurrent execution</value>
+  </data>
 </root>

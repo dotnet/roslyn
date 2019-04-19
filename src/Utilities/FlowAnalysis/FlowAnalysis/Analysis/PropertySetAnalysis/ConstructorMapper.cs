@@ -60,7 +60,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Initializes a <see cref="ConstructorMapper"/> that maps a constructor invocation's arguments' <see cref="NullAbstractValue"/>s to <see cref="PropertySetAbstractValueKind"/>s for the properties being tracked by PropertySetAnalysis.
         /// </summary>
-        /// <param name="mapFromNullAbstractValueCallback">Callback that implements the mapping.</param>
+        /// <param name="mapFromPointsToAbstractValueCallback">Callback that implements the mapping.</param>
         public ConstructorMapper(PointsToAbstractValueCallback mapFromPointsToAbstractValueCallback)
         {
             this.MapFromPointsToAbstractValue = mapFromPointsToAbstractValueCallback ?? throw new ArgumentNullException(nameof(mapFromPointsToAbstractValueCallback));

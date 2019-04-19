@@ -1,22 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 {
-    internal abstract class AbstractAllocationAnalyzer<TLanguageKindEnum>
-        : DiagnosticAnalyzer
-        where TLanguageKindEnum : struct
+    internal abstract class AbstractAllocationAnalyzer : DiagnosticAnalyzer
     {
-        protected abstract ImmutableArray<TLanguageKindEnum> Expressions { get; }
+        protected abstract ImmutableArray<OperationKind> Operations { get; }
 
-        protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context, in PerformanceSensitiveInfo info);
+        protected abstract void AnalyzeNode(OperationAnalysisContext context, in PerformanceSensitiveInfo info);
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+
+            // This analyzer is triggered by an attribute, even if it appears in generated code
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+
+            if (Operations.IsEmpty)
+            {
+                return;
+            }
+
             context.RegisterCompilationStartAction(compilationStartContext =>
             {
                 var compilation = compilationStartContext.Compilation;
@@ -28,39 +34,28 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                     return;
                 }
 
-                compilationStartContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(blockStartContext =>
+                compilationStartContext.RegisterOperationBlockStartAction(blockStartContext =>
                 {
                     var checker = new AttributeChecker(attributeSymbol);
-                    RegisterSyntaxAnalysis(blockStartContext, checker);
+                    RegisterOperationAnalysis(blockStartContext, checker);
                 });
             });
         }
 
-        private void RegisterSyntaxAnalysis(CodeBlockStartAnalysisContext<TLanguageKindEnum> codeBlockStartAnalysisContext, AttributeChecker performanceSensitiveAttributeChecker)
+        private void RegisterOperationAnalysis(OperationBlockStartAnalysisContext operationBlockStartAnalysisContext, AttributeChecker performanceSensitiveAttributeChecker)
         {
-            if (AllocationRules.IsIgnoredFile(codeBlockStartAnalysisContext.CodeBlock.SyntaxTree.FilePath))
-            {
-                return;
-            }
-
-            var owningSymbol = codeBlockStartAnalysisContext.OwningSymbol;
-
-            if (owningSymbol.GetAttributes().Any(AllocationRules.IsIgnoredAttribute))
-            {
-                return;
-            }
-
+            var owningSymbol = operationBlockStartAnalysisContext.OwningSymbol;
             if (!performanceSensitiveAttributeChecker.TryGetContainsPerformanceSensitiveInfo(owningSymbol, out var info))
             {
                 return;
             }
 
-            codeBlockStartAnalysisContext.RegisterSyntaxNodeAction(
+            operationBlockStartAnalysisContext.RegisterOperationAction(
                 syntaxNodeContext =>
                 {
                     AnalyzeNode(syntaxNodeContext, in info);
                 },
-                Expressions);
+                Operations);
         }
 
         protected sealed class AttributeChecker

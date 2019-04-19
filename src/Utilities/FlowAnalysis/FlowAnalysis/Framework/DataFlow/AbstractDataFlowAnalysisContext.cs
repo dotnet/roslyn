@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 owningSymbol.Kind == SymbolKind.Field ||
                 owningSymbol.Kind == SymbolKind.Property ||
                 owningSymbol.Kind == SymbolKind.Event);
-            Debug.Assert(owningSymbol.OriginalDefinition == owningSymbol);
+            Debug.Assert(Equals(owningSymbol.OriginalDefinition, owningSymbol));
             Debug.Assert(wellKnownTypeProvider != null);
             Debug.Assert(getOrComputeAnalysisResult != null);
 

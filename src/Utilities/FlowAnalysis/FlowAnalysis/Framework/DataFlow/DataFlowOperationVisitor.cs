@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             if (WellKnownTypeProvider.Contract != null &&
                 operation.Parent is IInvocationOperation invocation &&
-                invocation.TargetMethod.ContainingType == WellKnownTypeProvider.Contract &&
+                Equals(invocation.TargetMethod.ContainingType, WellKnownTypeProvider.Contract) &&
                 invocation.TargetMethod.IsStatic &&
                 invocation.Arguments[0] == operation)
             {
@@ -2989,7 +2989,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 foreach (ThrownExceptionInfo pendingThrow in AnalysisDataForUnhandledThrowOperations.Keys.ToArray())
                 {
-                    if (caughtExceptionTypeOpt == null || pendingThrow.HandlingCatchRegionOpt == CurrentBasicBlock.EnclosingRegion)
+                    if (ShouldHandlePendingThrow(pendingThrow))
                     {
                         var previousCurrentAnalysisData = CurrentAnalysisData;
                         var exceptionData = AnalysisDataForUnhandledThrowOperations[pendingThrow];
@@ -3003,6 +3003,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
                     }
                 }
+            }
+
+            bool ShouldHandlePendingThrow(ThrownExceptionInfo pendingThrow)
+            {
+                if (pendingThrow.HandlingCatchRegionOpt == CurrentBasicBlock.EnclosingRegion)
+                {
+                    // Catch region explicitly handling the thrown exception.
+                    return true;
+                }
+
+                if (caughtExceptionTypeOpt == null)
+                {
+                    // Check if finally region is executed for pending throw.
+                    Debug.Assert(CurrentBasicBlock.IsFirstBlockOfFinally(out _));
+                    var tryFinallyRegion = CurrentBasicBlock.GetContainingRegionOfKind(ControlFlowRegionKind.TryAndFinally);
+                    var tryRegion = tryFinallyRegion.NestedRegions[0];
+                    return tryRegion.FirstBlockOrdinal <= pendingThrow.BasicBlockOrdinal && tryRegion.LastBlockOrdinal >= pendingThrow.BasicBlockOrdinal;
+                }
+
+                return false;
             }
         }
 
@@ -3033,6 +3053,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             var value = Visit(operation.ReturnedValue, argument);
             ProcessReturnValue(operation.ReturnedValue);
+
+            if (OwningSymbol is IMethodSymbol method && method.IsAsync)
+            {
+                // Returned value is wrapped in a task in an async method.
+                // We conservatively assume task has an unknown/maybe value.
+                return ValueDomain.UnknownOrMayBeValue;
+            }
+
             return value;
         }
 
