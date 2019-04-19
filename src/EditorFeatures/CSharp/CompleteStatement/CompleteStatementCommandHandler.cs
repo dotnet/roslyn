@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             nextCommandHandler();
         }
 
-        private void BeforeExecuteCommand(TypeCharCommandArgs args, CommandExecutionContext executionContext)
+        private static void BeforeExecuteCommand(TypeCharCommandArgs args, CommandExecutionContext executionContext)
         {
             if (args.TypedChar != ';' || !args.TextView.Selection.IsEmpty)
             {
@@ -79,7 +79,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             MoveCaretToSemicolonPosition(args, document, root, caret, syntaxFacts, currentNode, isInsideDelimiters: false);
         }
 
-        private void MoveCaretToSemicolonPosition(TypeCharCommandArgs args, Document document, SyntaxNode root, SnapshotPoint caret, ISyntaxFactsService syntaxFacts, SyntaxNode currentNode, bool isInsideDelimiters)
+        /// <summary>
+        /// Determines which node the caret is in.  
+        /// Must be called on the UI thread.
+        /// </summary>
+        /// <param name="document"></param>
+        /// <param name="root"></param>
+        /// <param name="caret"></param>
+        /// <returns></returns>
+        private static SyntaxNode GetStartingNode(Document document, SyntaxNode root, SnapshotPoint caret)
+        {
+            // on the UI thread
+            var caretPosition = caret.Position;
+
+            var token = root.FindToken(caretPosition);
+
+            var startingNode = token.Parent;
+
+            // If the caret is right before an opening delimiter or right after a closing delimeter,
+            // start analysis with node outside of delimiters.
+            // Examples, 
+            //    `obj.ToString$()` where `token` references `(` but the caret isn't actually inside the argument list.
+            //    `obj.ToString()$` or `obj.method()$ .method()` where `token` references `)` but the caret isn't inside the argument list.
+            if (token.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.OpenBracketToken, SyntaxKind.OpenParenToken) && token.Span.Start >= caretPosition
+                || token.IsKind(SyntaxKind.CloseBraceToken, SyntaxKind.CloseBracketToken, SyntaxKind.CloseParenToken) && token.Span.End <= caretPosition)
+            {
+                startingNode = startingNode.Parent;
+            }
+
+            return startingNode;
+        }
+
+        private static void MoveCaretToSemicolonPosition(TypeCharCommandArgs args, Document document, SyntaxNode root, SnapshotPoint caret, ISyntaxFactsService syntaxFacts, SyntaxNode currentNode, bool isInsideDelimiters)
         {
             if (currentNode == null ||
                 IsInAStringOrCharacter(currentNode, caret))
@@ -109,37 +140,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
             else
             {
-                // keep caret the same, but continue analyzing with the parent of the current node
+                // keep caret tbeyhe same, but continue analyzing with the parent of the current node
                 currentNode = currentNode.Parent;
                 MoveCaretToSemicolonPosition(args, document, root, caret, syntaxFacts, currentNode, isInsideDelimiters);
                 return;
             }
         }
 
-        private SyntaxNode GetStartingNode(Document document, SyntaxNode root, SnapshotPoint caret)
-        {
-            // on the UI thread
-            var caretPosition = caret.Position;
-
-            var token = root.FindToken(caretPosition);
-
-            var startingNode = token.Parent;
-
-            // If the caret is right before an opening delimiter or right after a closing delimeter,
-            // start analysis with node outside of delimiters.
-            // Examples, 
-            //    `obj.ToString$()` where `token` references `(` but the caret isn't actually inside the argument list.
-            //    `obj.ToString()$` or `obj.method()$ .method()` where `token` references `)` but the caret isn't inside the argument list.
-            if (token.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.OpenBracketToken, SyntaxKind.OpenParenToken) && token.Span.Start >= caretPosition
-                || token.IsKind(SyntaxKind.CloseBraceToken, SyntaxKind.CloseBracketToken, SyntaxKind.CloseParenToken) && token.Span.End <= caretPosition)
-            {
-                startingNode = startingNode.Parent;
-            }
-
-            return startingNode;
-        }
-
-        private void MoveCaretToFinalPositionInStatement(SyntaxNode statementNode, TypeCharCommandArgs args, SnapshotPoint caret, bool isInsideDelimiters)
+        private static void MoveCaretToFinalPositionInStatement(SyntaxNode statementNode, TypeCharCommandArgs args, SnapshotPoint caret, bool isInsideDelimiters)
         {
             if (StatementClosingDelimiterIsMissing(statementNode))
             {
@@ -159,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                     // `For` statements can have semicolon after initializer/declaration or after condition.
                     // If caret is in initialer/declaration or condition, AND is inside other delimiters, complete statement
                     // Otherwise, return without moving the caret.
-                    if (TryGetForStatementCaret(caret, statementNode, args, out var forStatementCaret) && isInsideDelimiters)
+                    if (TryGetForStatementCaret(caret, (ForStatementSyntax)statementNode, args, out var forStatementCaret) && isInsideDelimiters)
                     {
                         args.TextView.TryMoveCaretToAndEnsureVisible(forStatementCaret);
                     }
@@ -183,20 +191,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
         }
 
-        private bool TryGetForStatementCaret(SnapshotPoint originalCaret, SyntaxNode statementNode, TypeCharCommandArgs args, out SnapshotPoint forStatementCaret)
+        private static bool TryGetForStatementCaret(SnapshotPoint originalCaret, ForStatementSyntax forStatement, TypeCharCommandArgs args, out SnapshotPoint forStatementCaret)
         {
-            var forStatementSyntax = (ForStatementSyntax)statementNode;
-            if (CaretIsInForStatementCondition(originalCaret, forStatementSyntax))
+            if (CaretIsInForStatementCondition(originalCaret, forStatement))
             {
-                forStatementCaret = GetCaretAtPosition(forStatementSyntax.Condition.Span.End);
+                forStatementCaret = GetCaretAtPosition(forStatement.Condition.Span.End);
             }
-            else if (CaretIsInForStatementDeclaration(originalCaret, forStatementSyntax))
+            else if (CaretIsInForStatementDeclaration(originalCaret, forStatement))
             {
-                forStatementCaret = GetCaretAtPosition(forStatementSyntax.Declaration.Span.End);
+                forStatementCaret = GetCaretAtPosition(forStatement.Declaration.Span.End);
             }
-            else if (CaretIsInForStatementInitializers(originalCaret, forStatementSyntax))
+            else if (CaretIsInForStatementInitializers(originalCaret, forStatement))
             {
-                forStatementCaret = GetCaretAtPosition(forStatementSyntax.Initializers.Span.End);
+                forStatementCaret = GetCaretAtPosition(forStatement.Initializers.Span.End);
             }
             else
             {
