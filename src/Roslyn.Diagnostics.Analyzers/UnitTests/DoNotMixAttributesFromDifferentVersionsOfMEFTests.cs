@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
@@ -572,7 +573,7 @@ End Class
 
         private static DiagnosticResult GetCSharpResultAt(int line, int column, string attributeName, string typeName)
         {
-            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticSeverity.Warning)
+            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
                 .WithLocation(line, column)
                 .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage)
                 .WithArguments(attributeName, typeName);
@@ -580,7 +581,7 @@ End Class
 
         private static DiagnosticResult GetBasicResultAt(int line, int column, string attributeName, string typeName)
         {
-            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticSeverity.Warning)
+            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
                 .WithLocation(line, column)
                 .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage)
                 .WithArguments(attributeName, typeName);

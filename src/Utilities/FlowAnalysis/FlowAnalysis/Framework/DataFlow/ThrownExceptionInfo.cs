@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             bool isDefaultExceptionForExceptionsPathAnalysis)
         {
             block = block ?? throw new ArgumentNullException(nameof(block));
+            BasicBlockOrdinal = block.Ordinal;
             HandlingCatchRegionOpt = GetHandlerRegion(block, exceptionType);
             ContainingFinallyRegionOpt = block.GetContainingRegionOfKind(ControlFlowRegionKind.Finally);
             ExceptionType = exceptionType ?? throw new ArgumentNullException(nameof(exceptionType));
@@ -69,6 +70,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         /// <summary>
+        /// Ordinal of the basic block where this exception is thrown.
+        /// </summary>
+        internal int BasicBlockOrdinal { get; }
+
+        /// <summary>
         /// Optional catch handler that handles this exception.
         /// </summary>
         internal ControlFlowRegion HandlingCatchRegionOpt { get; }
@@ -85,9 +91,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public bool Equals(ThrownExceptionInfo other)
         {
             return other != null &&
+                BasicBlockOrdinal == other.BasicBlockOrdinal &&
                 HandlingCatchRegionOpt == other.HandlingCatchRegionOpt &&
                 ContainingFinallyRegionOpt == other.ContainingFinallyRegionOpt &&
-                ExceptionType == other.ExceptionType &&
+                Equals(ExceptionType, other.ExceptionType) &&
                 InterproceduralCallStack.SequenceEqual(other.InterproceduralCallStack) &&
                 IsDefaultExceptionForExceptionsPathAnalysis == other.IsDefaultExceptionForExceptionsPathAnalysis;
         }
@@ -96,8 +103,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             => Equals(obj as ThrownExceptionInfo);
         public override int GetHashCode()
             => HashUtilities.Combine(InterproceduralCallStack,
+                HashUtilities.Combine(BasicBlockOrdinal.GetHashCodeOrDefault(),
                 HashUtilities.Combine(HandlingCatchRegionOpt.GetHashCodeOrDefault(),
                 HashUtilities.Combine(ContainingFinallyRegionOpt.GetHashCodeOrDefault(),
-                HashUtilities.Combine(ExceptionType.GetHashCode(), IsDefaultExceptionForExceptionsPathAnalysis.GetHashCode()))));
+                HashUtilities.Combine(ExceptionType.GetHashCode(), IsDefaultExceptionForExceptionsPathAnalysis.GetHashCode())))));
     }
 }
