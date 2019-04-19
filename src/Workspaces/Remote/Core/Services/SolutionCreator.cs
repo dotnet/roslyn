@@ -292,58 +292,53 @@ namespace Microsoft.CodeAnalysis.Remote
                 olds.Object.ExceptWith(newChecksums);
                 news.Object.ExceptWith(oldChecksums);
 
-                return await UpdateDocumentsAsync(project, olds.Object, news.Object, additionalText).ConfigureAwait(false);
-            }
-        }
+                var oldMap = await GetDocumentMapAsync(project, olds.Object, additionalText).ConfigureAwait(false);
+                var newMap = await GetDocumentMapAsync(_assetService, news.Object).ConfigureAwait(false);
 
-        private async Task<Project> UpdateDocumentsAsync(Project project, HashSet<Checksum> oldChecksums, HashSet<Checksum> newChecksums, bool additionalText)
-        {
-            var oldMap = await GetDocumentMapAsync(project, oldChecksums, additionalText).ConfigureAwait(false);
-            var newMap = await GetDocumentMapAsync(_assetService, newChecksums).ConfigureAwait(false);
-
-            // added document
-            foreach (var kv in newMap)
-            {
-                if (!oldMap.ContainsKey(kv.Key))
+                // added document
+                foreach (var kv in newMap)
                 {
-                    // we have new document added
-                    project = AddDocument(project, await CreateDocumentInfoAsync(kv.Value.Checksum).ConfigureAwait(false), additionalText);
-                }
-            }
-
-            // changed document
-            foreach (var kv in newMap)
-            {
-                if (!oldMap.TryGetValue(kv.Key, out var oldDocumentChecksums))
-                {
-                    continue;
-                }
-
-                var newDocumentChecksums = kv.Value;
-                Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
-
-                var document = additionalText ? project.GetAdditionalDocument(kv.Key) : project.GetDocument(kv.Key);
-                project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums, additionalText).ConfigureAwait(false);
-            }
-
-            // removed document
-            foreach (var kv in oldMap)
-            {
-                if (!newMap.ContainsKey(kv.Key))
-                {
-                    // we have a document removed
-                    if (additionalText)
+                    if (!oldMap.ContainsKey(kv.Key))
                     {
-                        project = project.RemoveAdditionalDocument(kv.Key);
-                    }
-                    else
-                    {
-                        project = project.RemoveDocument(kv.Key);
+                        // we have new document added
+                        project = AddDocument(project, await CreateDocumentInfoAsync(kv.Value.Checksum).ConfigureAwait(false), additionalText);
                     }
                 }
-            }
 
-            return project;
+                // changed document
+                foreach (var kv in newMap)
+                {
+                    if (!oldMap.TryGetValue(kv.Key, out var oldDocumentChecksums))
+                    {
+                        continue;
+                    }
+
+                    var newDocumentChecksums = kv.Value;
+                    Contract.ThrowIfTrue(oldDocumentChecksums.Checksum == newDocumentChecksums.Checksum);
+
+                    var document = additionalText ? project.GetAdditionalDocument(kv.Key) : project.GetDocument(kv.Key);
+                    project = await UpdateDocumentAsync(document, oldDocumentChecksums, newDocumentChecksums, additionalText).ConfigureAwait(false);
+                }
+
+                // removed document
+                foreach (var kv in oldMap)
+                {
+                    if (!newMap.ContainsKey(kv.Key))
+                    {
+                        // we have a document removed
+                        if (additionalText)
+                        {
+                            project = project.RemoveAdditionalDocument(kv.Key);
+                        }
+                        else
+                        {
+                            project = project.RemoveDocument(kv.Key);
+                        }
+                    }
+                }
+
+                return project;
+            }
         }
 
         private async Task<Project> UpdateDocumentAsync(TextDocument document, DocumentStateChecksums oldDocumentChecksums, DocumentStateChecksums newDocumentChecksums, bool additionalText)
