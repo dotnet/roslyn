@@ -326,14 +326,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (NullableAnnotation.IsAnnotated() &&
                     format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                    !IsNullableType() && !Type.IsValueType)
+                    (!HasType || (!IsNullableType() && !Type.IsValueType)))
                 {
                     return str + "?";
                 }
                 else if (NullableAnnotation.IsNotAnnotated() &&
                     format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
-                    !Type.IsValueType &&
-                    !Type.IsTypeParameterDisallowingAnnotation())
+                    (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotation())))
                 {
                     return str + "!";
                 }

@@ -185,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
                 boundNamedArguments, resultKind, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
         }
+
         private CSharpAttributeData GetAttribute(BoundAttribute boundAttribute, DiagnosticBag diagnostics)
         {
             var attributeType = (NamedTypeSymbol)boundAttribute.Type;
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)attributeType != null);
 
-            NullableWalker.AnalyzeIfNeeded(Compilation, boundAttribute, diagnostics);
+            NullableWalker.AnalyzeIfNeeded(Compilation, boundAttribute, Conversions, diagnostics);
 
             bool hasErrors = boundAttribute.HasAnyErrors;
 

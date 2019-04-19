@@ -9549,7 +9549,7 @@ void NewMethod()
         }
 
         [WorkItem(604389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604389")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact(Skip = "PROTOTYPE(nullable-api)"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestExtractLiteralExpression()
         {
             var code =
@@ -9587,7 +9587,7 @@ class C
         }
 
         [WorkItem(604389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604389")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Fact(Skip = "PROTOTYPE(nullable-api)"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task TestExtractCollectionInitializer()
         {
             var code =
