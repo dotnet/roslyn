@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal string ProviderName { get; set; }
 
         /// <summary>
-        /// Indicate whether this <see cref="CompletionItem"/> is cached and resused acress completion sessions. 
+        /// Indicate whether this <see cref="CompletionItem"/> is cached and reused across completion sessions. 
         /// This might be used by completion system for things like deciding whether it can safaly cache and reuse
         /// other data correspodning to this item.
         /// </summary>
