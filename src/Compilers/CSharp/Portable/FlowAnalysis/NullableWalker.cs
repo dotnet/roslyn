@@ -1740,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!node.Expression.Type.IsValueType);
             // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
             // after indices have been visited, and only if the receiver has not changed.
-            CheckPossibleNullReceiver(node.Expression, out _);
+            _ = CheckPossibleNullReceiver(node.Expression);
 
             var type = ResultType.Type as ArrayTypeSymbol;
 
@@ -2517,7 +2517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
                 // after arguments have been visited, and only if the receiver has not changed.
-                CheckPossibleNullReceiver(receiverOpt, out _, checkNullableValueType);
+                _ = CheckPossibleNullReceiver(receiverOpt, checkNullableValueType);
             }
 
             return receiverType;
@@ -4346,7 +4346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // That check should be handled when applying the method group conversion,
                 // when we have a specific method, to avoid reporting null receiver warnings
                 // for extension method delegates.
-                CheckPossibleNullReceiver(receiverOpt, out _);
+                _ = CheckPossibleNullReceiver(receiverOpt);
             }
 
             SetNotNullResult(node);
@@ -4505,7 +4505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!invocation.InvokedAsExtensionMethod)
                     {
-                        CheckPossibleNullReceiver(right, out _);
+                        _ = CheckPossibleNullReceiver(right);
                     }
                     else
                     {
@@ -4947,7 +4947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = VisitRvalueWithState(receiverOpt);
             // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
             // after indices have been visited, and only if the receiver has not changed.
-            CheckPossibleNullReceiver(receiverOpt, out _);
+            _ = CheckPossibleNullReceiver(receiverOpt);
 
             var indexer = node.Indexer;
             if (!receiverType.HasNullType)
@@ -4996,7 +4996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/30598: For l-values, mark receiver as not null
                 // after RHS has been visited, and only if the receiver has not changed.
                 bool skipReceiverNullCheck = nullableOfTMember != SpecialMember.System_Nullable_T_get_Value;
-                CheckPossibleNullReceiver(receiverOpt, out _, checkNullableValueType: !skipReceiverNullCheck);
+                _ = CheckPossibleNullReceiver(receiverOpt, checkNullableValueType: !skipReceiverNullCheck);
             }
 
             var type = member.GetTypeOrReturnType();
@@ -5061,16 +5061,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void VisitForEachExpression(BoundForEachStatement node)
         {
             var expr = node.Expression;
+            // Need to remove any implicit conversions from this expression and call ApplyConversion
+            // ourselves. https://github.com/dotnet/roslyn/issues/35151
             VisitRvalue(expr);
-            CheckPossibleNullReceiver(expr, out bool reportedDiagnostic);
+            bool reportedDiagnostic = CheckPossibleNullReceiver(expr);
 
             if (reportedDiagnostic || node.EnumeratorInfoOpt == null)
             {
                 return;
             }
 
+            // Reinfer enumerator type based on the return type of visiting expr
+            // https://github.com/dotnet/roslyn/issues/35151
             var enumeratorReturnType = node.EnumeratorInfoOpt.GetEnumeratorMethod.ReturnTypeWithAnnotations.ToTypeWithState();
-
             if (enumeratorReturnType.State == NullableFlowState.MaybeNull)
             {
                 ReportSafetyDiagnostic(ErrorCode.WRN_NullReferenceReceiver, expr.Syntax.GetLocation());
@@ -5347,7 +5350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             var result = base.VisitAwaitExpression(node);
-            CheckPossibleNullReceiver(node.Expression, out _);
+            _ = CheckPossibleNullReceiver(node.Expression);
             if (node.Type.IsValueType || node.HasErrors || node.AwaitableInfo.GetResult is null)
             {
                 SetNotNullResult(node);
@@ -5549,7 +5552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var receiver = node.Receiver;
             VisitRvalue(receiver);
-            CheckPossibleNullReceiver(receiver, out _);
+            _ = CheckPossibleNullReceiver(receiver);
 
             Debug.Assert(node.Type.IsDynamic());
             var result = TypeWithAnnotations.Create(node.Type);
@@ -5579,7 +5582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @event = (EventSymbol)AsMemberOfType(ResultType.Type, @event);
                 // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
                 // after arguments have been visited, and only if the receiver has not changed.
-                CheckPossibleNullReceiver(receiverOpt, out _);
+                _ = CheckPossibleNullReceiver(receiverOpt);
             }
             VisitRvalue(node.Argument);
             // https://github.com/dotnet/roslyn/issues/31018: Check for delegate mismatch.
@@ -5668,7 +5671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(receiver);
             // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
             // after indices have been visited, and only if the receiver has not changed.
-            CheckPossibleNullReceiver(receiver, out _);
+            _ = CheckPossibleNullReceiver(receiver);
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
             Debug.Assert(node.Type.IsDynamic());
             var result = TypeWithAnnotations.Create(node.Type, NullableAnnotation.Oblivious);
@@ -5676,27 +5679,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void CheckPossibleNullReceiver(BoundExpression receiverOpt, out bool reportedDiagnostic, bool checkNullableValueType = false)
+        private bool CheckPossibleNullReceiver(BoundExpression receiverOpt, bool checkNullableValueType = false)
         {
             Debug.Assert(!this.IsConditionalState);
-            reportedDiagnostic = false;
+            bool reportedDiagnostic = false;
             if (receiverOpt != null && this.State.Reachable)
             {
                 var resultTypeSymbol = ResultType.Type;
                 if (resultTypeSymbol is null)
                 {
-                    return;
+                    return false;
                 }
 #if DEBUG
                 Debug.Assert(receiverOpt.Type is null || AreCloseEnough(receiverOpt.Type, resultTypeSymbol));
 #endif
                 if (!ReportPossibleNullReceiverIfNeeded(resultTypeSymbol, ResultType.State, checkNullableValueType, receiverOpt.Syntax, out reportedDiagnostic))
                 {
-                    return;
+                    return reportedDiagnostic;
                 }
 
                 LearnFromNonNullTest(receiverOpt, ref this.State);
             }
+
+            return reportedDiagnostic;
         }
 
         // Returns false if the type wasn't interesting
@@ -5848,7 +5853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLockStatement(BoundLockStatement node)
         {
             VisitRvalue(node.Argument);
-            CheckPossibleNullReceiver(node.Argument, out _);
+            _ = CheckPossibleNullReceiver(node.Argument);
             VisitStatement(node.Body);
             return null;
         }

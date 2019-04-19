@@ -51280,7 +51280,7 @@ class Program
 {
     static void Main() { }
 
-    static void Foo(IEnumerable<object[]?[]> source)
+    static void F(IEnumerable<object[]?[]> source)
     {
         foreach (object[][] item in source) { }
     }
@@ -51293,6 +51293,56 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "item").WithArguments("object[]?[]", "object[][]").WithLocation(10, 29));
         }
 
+        [Fact]
+        public void ForEach_19()
+        {
+            var source =
+@"
+using System.Collections;
+class C
+{
+    void M1(IEnumerator e)
+    {
+        var enumerable1 = Create(e);
+        foreach (var i in enumerable1)
+        {
+        }
+
+        e = null; // 1
+        var enumerable2 = Create(e);
+        foreach (var i in enumerable2) // 2
+        {
+        }
+    }
+
+    void M2(IEnumerator? e)
+    {
+        var enumerable1 = Create(e);
+        foreach (var i in enumerable1) // 3
+        {
+        }
+
+        if (e == null) return;
+        var enumerable2 = Create(e);
+        foreach (var i in enumerable2)
+        {
+        }
+    }
+    static Enumerable<T> Create<T>(T t) where T : IEnumerator? => throw null!;
+}
+
+class Enumerable<T> where T : IEnumerator?
+{
+    public T GetEnumerator() => throw null!;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/35151 Report diagnostics on 2 and 3
+            comp.VerifyDiagnostics(
+                // (12,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         e = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 13));
+        }
 
         [Fact]
         public void ForEach_UnconstrainedTypeParameter()
