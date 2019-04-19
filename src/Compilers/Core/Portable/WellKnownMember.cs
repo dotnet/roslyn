@@ -451,6 +451,8 @@ namespace Microsoft.CodeAnalysis
         System_Range__StartAt,
         System_Range__EndAt,
         System_Range__get_All,
+        System_Range__get_Start,
+        System_Range__get_End,
 
         System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
 

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
@@ -95,6 +96,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 default:
                     capitalization = default;
                     return false;
+            }
+        }
+
+        public static string ToEditorConfigString(this Capitalization capitalization)
+        {
+            switch (capitalization)
+            {
+                case Capitalization.PascalCase:
+                    return "pascal_case";
+
+                case Capitalization.CamelCase:
+                    return "camel_case";
+
+                case Capitalization.FirstUpper:
+                    return "first_word_upper";
+
+                case Capitalization.AllUpper:
+                    return "all_upper";
+
+                case Capitalization.AllLower:
+                    return "all_lower";
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(capitalization);
             }
         }
     }

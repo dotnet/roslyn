@@ -2544,7 +2544,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move items to namespace....
+        ///   Looks up a localized string similar to Move contents to namespace....
         /// </summary>
         internal static string Move_contents_to_namespace {
             get {
@@ -2580,7 +2580,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move contents namespace....
+        ///   Looks up a localized string similar to Move to namespace....
         /// </summary>
         internal static string Move_to_namespace {
             get {
@@ -2875,6 +2875,16 @@ namespace Microsoft.CodeAnalysis {
         internal static string Private_method_0_can_be_removed_as_it_is_never_invoked {
             get {
                 return ResourceManager.GetString("Private_method_0_can_be_removed_as_it_is_never_invoked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private property &apos;{0}&apos; can be converted to a method as its get accessor is never invoked..
+        /// </summary>
+        internal static string Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked {
+            get {
+                return ResourceManager.GetString("Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invo" +
+                        "ked", resourceCulture);
             }
         }
         

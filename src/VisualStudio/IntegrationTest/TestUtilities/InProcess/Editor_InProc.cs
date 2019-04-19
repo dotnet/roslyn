@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             // The active text view might not have finished composing yet, waiting for the application to 'idle'
             // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
-            WaitForApplicationIdle();
+            WaitForApplicationIdle(Helper.HangMitigatingTimeout);
 
             var activeVsTextView = (IVsUserData)GetActiveVsTextView();
 
@@ -536,7 +536,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 try
                 {
                     var mainForm = (Form)designerHost.RootComponent;
-                    InvokeOnUIThread(() =>
+                    InvokeOnUIThread(cancellationToken =>
                     {
                         var newControl = (System.Windows.Forms.Button)designerHost.CreateComponent(typeof(System.Windows.Forms.Button), buttonName);
                         newControl.Parent = mainForm;
@@ -569,7 +569,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 try
                 {
-                    InvokeOnUIThread(() =>
+                    InvokeOnUIThread(cancellationToken =>
                     {
                         designerHost.DestroyComponent(designerHost.Container.Components[buttonName]);
                     });
@@ -621,7 +621,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 try
                 {
-                    InvokeOnUIThread(() =>
+                    InvokeOnUIThread(cancellationToken =>
                     {
                         var button = designerHost.Container.Components[buttonName];
                         var properties = TypeDescriptor.GetProperties(button);
@@ -663,7 +663,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 try
                 {
-                    InvokeOnUIThread(() =>
+                    InvokeOnUIThread(cancellationToken =>
                     {
                         var button = designerHost.Container.Components[buttonName];
                         var eventBindingService = (IEventBindingService)button.Site.GetService(typeof(IEventBindingService));
@@ -721,7 +721,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public List<string> GetF1Keywords()
         {
-            return InvokeOnUIThread(() =>
+            return InvokeOnUIThread(cancellationToken =>
             {
                 var results = new List<string>();
                 GetActiveVsTextView().GetBuffer(out var textLines);
@@ -766,7 +766,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         ///     [s1.Start, s1.Length, s2.Start, s2.Length, ...]
         /// </returns>
         public int[] GetTagSpans(string tagId)
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var view = GetActiveTextView();
                 var tagAggregatorFactory = GetComponentModel().GetService<IViewTagAggregatorFactoryService>();
@@ -777,7 +777,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
 
         public void SendExplicitFocus()
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var view = GetActiveVsTextView();
                 view.SendExplicitFocus();

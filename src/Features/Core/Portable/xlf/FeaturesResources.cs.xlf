@@ -252,6 +252,11 @@
         <target state="translated">Soukromá metoda {0} se může odebrat, protože se nikdy nevolá.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
+        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
+        <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pull_0_up">
         <source>Pull '{0}' up</source>
         <target state="translated">Povýšit {0}</target>

@@ -128,22 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(info, location);
             }
 
-            // When a generic method overrides a generic method declared in a base class, or is an 
-            // explicit interface member implementation of a method in a base interface, the method
-            // shall not specify any type-parameter-constraints-clauses. In these cases, the type 
-            // parameters of the method inherit constraints from the method being overridden or 
-            // implemented
-            if (syntax.ConstraintClauses.Count > 0)
-            {
-                if (syntax.ExplicitInterfaceSpecifier != null ||
-                    syntax.Modifiers.Any(SyntaxKind.OverrideKeyword))
-                {
-                    diagnostics.Add(
-                        ErrorCode.ERR_OverrideWithConstraints,
-                        syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
-                }
-            }
-
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
@@ -213,6 +197,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.Name == WellKnownMemberNames.DestructorName && this.ParameterCount == 0 && this.Arity == 0 && this.ReturnsVoid)
             {
                 diagnostics.Add(ErrorCode.WRN_FinalizeMethod, location);
+            }
+
+            ImmutableArray<TypeParameterConstraintClause> declaredConstraints = default;
+
+            if (this.Arity != 0 && (syntax.ExplicitInterfaceSpecifier != null || IsOverride))
+            {
+                // When a generic method overrides a generic method declared in a base class, or is an 
+                // explicit interface member implementation of a method in a base interface, the method
+                // shall not specify any type-parameter-constraints-clauses, except for a struct constraint, or a class constraint.
+                // In these cases, the type parameters of the method inherit constraints from the method being overridden or 
+                // implemented
+                if (syntax.ConstraintClauses.Count > 0)
+                {
+                    Binder.CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_OverrideWithConstraints, diagnostics,
+                                                    syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
+
+                    declaredConstraints = signatureBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks).
+                                              BindTypeParameterConstraintClauses(this, _typeParameters, syntax.TypeParameterList, syntax.ConstraintClauses,
+                                                                                 diagnostics, isForOverride: true);
+                }
+
+                // Force resolution of nullable type parameter used in the signature of an override or explicit interface implementation
+                // based on constraints specified by the declaration.
+                foreach (var param in _lazyParameters)
+                {
+                    forceMethodTypeParameters(param.TypeWithAnnotations, this, declaredConstraints);
+                }
+
+                forceMethodTypeParameters(_lazyReturnType, this, declaredConstraints);
             }
 
             // errors relevant for extension methods
@@ -313,6 +326,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty);
             _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
+            MethodSymbol overriddenOrExplicitlyImplementedMethod = null;
+
             // Note: we're checking if the syntax indicates explicit implementation rather,
             // than if explicitInterfaceType is null because we don't want to look for an
             // overridden property if this is supposed to be an explicit implementation.
@@ -333,11 +348,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // this method overrides.  To accommodate this, MethodSymbol.OverriddenOrHiddenMembers
                     // is written to allow relaxed matching of custom modifiers for source methods,
                     // on the assumption that they will be updated appropriately.
-                    MethodSymbol overriddenMethod = this.OverriddenMethod;
+                    overriddenOrExplicitlyImplementedMethod = this.OverriddenMethod;
 
-                    if ((object)overriddenMethod != null)
+                    if ((object)overriddenOrExplicitlyImplementedMethod != null)
                     {
-                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType,
+                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenOrExplicitlyImplementedMethod, this, out _lazyReturnType,
                                                                       out _lazyRefCustomModifiers,
                                                                       out _lazyParameters, alsoCopyParamsModifier: true);
                     }
@@ -352,18 +367,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if ((object)_explicitInterfaceType != null)
             {
                 //do this last so that it can assume the method symbol is constructed (except for ExplicitInterfaceImplementation)
-                MethodSymbol implementedMethod = this.FindExplicitlyImplementedMethod(_explicitInterfaceType, syntax.Identifier.ValueText, syntax.ExplicitInterfaceSpecifier, diagnostics);
+                overriddenOrExplicitlyImplementedMethod = this.FindExplicitlyImplementedMethod(_explicitInterfaceType, syntax.Identifier.ValueText, syntax.ExplicitInterfaceSpecifier, diagnostics);
 
-                if ((object)implementedMethod != null)
+                if ((object)overriddenOrExplicitlyImplementedMethod != null)
                 {
                     Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
-                    _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(implementedMethod);
+                    _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(overriddenOrExplicitlyImplementedMethod);
 
-                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType,
+                    CustomModifierUtils.CopyMethodCustomModifiers(overriddenOrExplicitlyImplementedMethod, this, out _lazyReturnType,
                                                                   out _lazyRefCustomModifiers,
                                                                   out _lazyParameters, alsoCopyParamsModifier: false);
-                    this.FindExplicitlyImplementedMemberVerification(implementedMethod, diagnostics);
-                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, implementedMethod, true, diagnostics);
+                    this.FindExplicitlyImplementedMemberVerification(overriddenOrExplicitlyImplementedMethod, diagnostics);
+                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this, overriddenOrExplicitlyImplementedMethod, true, diagnostics);
                 }
                 else
                 {
@@ -374,7 +389,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (!declaredConstraints.IsDefault && overriddenOrExplicitlyImplementedMethod is object)
+            {
+                for (int i = 0; i < declaredConstraints.Length; i++)
+                {
+                    ErrorCode report;
+
+                    switch (declaredConstraints[i].Constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType))
+                    {
+                        case TypeParameterConstraintKind.ReferenceType:
+                            if (!_typeParameters[i].IsReferenceType)
+                            {
+                                report = ErrorCode.ERR_OverrideRefConstraintNotSatisfied;
+                                break;
+                            }
+                            continue;
+                        case TypeParameterConstraintKind.ValueType:
+                            if (!_typeParameters[i].IsNonNullableValueType())
+                            {
+                                report = ErrorCode.ERR_OverrideValConstraintNotSatisfied;
+                                break;
+                            }
+                            continue;
+                        default:
+                            continue;
+                    }
+
+                    diagnostics.Add(report, _typeParameters[i].Locations[0], this, _typeParameters[i],
+                                    overriddenOrExplicitlyImplementedMethod.TypeParameters[i], overriddenOrExplicitlyImplementedMethod);
+                }
+            }
+
             CheckModifiers(_hasAnyBody, location, diagnostics);
+
+            return;
+
+            static void forceMethodTypeParameters(TypeWithAnnotations type, SourceOrdinaryMethodSymbol method, ImmutableArray<TypeParameterConstraintClause> declaredConstraints)
+            {
+                type.VisitType(null, (type, args, unused2) =>
+                {
+                    if (type.DefaultType is TypeParameterSymbol typeParameterSymbol && typeParameterSymbol.DeclaringMethod == (object)args.method)
+                    {
+                        if (!args.declaredConstraints.IsDefault &&
+                            (args.declaredConstraints[typeParameterSymbol.Ordinal].Constraints & TypeParameterConstraintKind.ReferenceType) != 0)
+                        {
+                            type.TryForceResolveAsNullableReferenceType();
+                        }
+                        else
+                        {
+                            type.TryForceResolveAsNullableValueType();
+                        }
+                    }
+                    return false;
+                }, typePredicateOpt: null, arg: (method, declaredConstraints), canDigThroughNullable: false, useDefaultType: true);
+            }
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
@@ -499,6 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constraints = this.MakeTypeParameterConstraintsEarly(
                     withTypeParametersBinder,
                     TypeParameters,
+                    syntax.TypeParameterList,
                     syntax.ConstraintClauses,
                     syntax.Identifier.GetLocation(),
                     diagnostics);
@@ -1156,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
             var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
 
-            return MemberSignatureComparer.HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2);
+            return MemberSignatureComparer.HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2, includingNullability: true);
         }
 
         internal override bool CallsAreOmitted(SyntaxTree syntaxTree)

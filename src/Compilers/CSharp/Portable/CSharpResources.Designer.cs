@@ -8053,7 +8053,25 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly.
+        ///   Looks up a localized string similar to Method &apos;{0}&apos; specifies a &apos;class&apos; constraint for type parameter &apos;{1}&apos;, but corresponding type parameter &apos;{2}&apos; of overridden or explicitly implemented method &apos;{3}&apos; is not a reference type..
+        /// </summary>
+        internal static string ERR_OverrideRefConstraintNotSatisfied {
+            get {
+                return ResourceManager.GetString("ERR_OverrideRefConstraintNotSatisfied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method &apos;{0}&apos; specifies a &apos;struct&apos; constraint for type parameter &apos;{1}&apos;, but corresponding type parameter &apos;{2}&apos; of overridden or explicitly implemented method &apos;{3}&apos; is not a non-nullable value type..
+        /// </summary>
+        internal static string ERR_OverrideValConstraintNotSatisfied {
+            get {
+                return ResourceManager.GetString("ERR_OverrideValConstraintNotSatisfied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a &apos;class&apos;, or a &apos;struct&apos; constraint..
         /// </summary>
         internal static string ERR_OverrideWithConstraints {
             get {
@@ -11960,6 +11978,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to constraints for override and explicit interface implementation methods.
+        /// </summary>
+        internal static string IDS_OverrideWithConstraints {
+            get {
+                return ResourceManager.GetString("IDS_OverrideWithConstraints", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;path list&gt;.
         /// </summary>
         internal static string IDS_PathList {
@@ -15683,6 +15710,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
+        /// </summary>
+        internal static string WRN_NullReferenceIterationVariable {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceIterationVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
+        /// </summary>
+        internal static string WRN_NullReferenceIterationVariable_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceIterationVariable_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Dereference of a possibly null reference..
         /// </summary>
         internal static string WRN_NullReferenceReceiver {
@@ -15823,24 +15868,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_PossibleMistakenNullStatement_Title {
             get {
                 return ResourceManager.GetString("WRN_PossibleMistakenNullStatement_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Possible null value..
-        /// </summary>
-        internal static string WRN_PossibleNull {
-            get {
-                return ResourceManager.GetString("WRN_PossibleNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Possible null value..
-        /// </summary>
-        internal static string WRN_PossibleNull_Title {
-            get {
-                return ResourceManager.GetString("WRN_PossibleNull_Title", resourceCulture);
             }
         }
         
@@ -16036,6 +16063,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Thrown value may be null..
+        /// </summary>
+        internal static string WRN_ThrowPossibleNull {
+            get {
+                return ResourceManager.GetString("WRN_ThrowPossibleNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Thrown value may be null..
+        /// </summary>
+        internal static string WRN_ThrowPossibleNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_ThrowPossibleNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Source file has exceeded the limit of 16,707,565 lines representable in the PDB; debug information will be incorrect.
         /// </summary>
         internal static string WRN_TooManyLinesForDebugger {
@@ -16158,6 +16203,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_UnassignedInternalField_Title {
             get {
                 return ResourceManager.GetString("WRN_UnassignedInternalField_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unboxing a possibly null value..
+        /// </summary>
+        internal static string WRN_UnboxPossibleNull {
+            get {
+                return ResourceManager.GetString("WRN_UnboxPossibleNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unboxing a possibly null value..
+        /// </summary>
+        internal static string WRN_UnboxPossibleNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_UnboxPossibleNull_Title", resourceCulture);
             }
         }
         
