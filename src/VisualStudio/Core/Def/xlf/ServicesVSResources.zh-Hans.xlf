@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Classifications">
         <source>Classifications</source>
-        <target state="new">Classifications</target>
+        <target state="translated">分类</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="new">Modifier preferences:</target>
+        <target state="translated">修饰符首选项:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -184,17 +184,17 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="new">Prefer readonly fields</target>
+        <target state="translated">首选只读字段</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
-        <target state="new">Prefer simple 'using' statement</target>
+        <target state="translated">首选简单的 “using” 语句</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
-        <target state="new">Prefer static local functions</target>
+        <target state="translated">首选静态本地函数</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -209,7 +209,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
-        <target state="new">Rename {0} to {1}</target>
+        <target state="translated">将 {0} 重命名为 {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -239,12 +239,12 @@
       </trans-unit>
       <trans-unit id="Select_Dependents">
         <source>Select _Dependents</source>
-        <target state="needs-review-translation">选择依赖项(_S)</target>
+        <target state="translated">选择依赖项(_D)</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
         <source>Select _Public</source>
-        <target state="needs-review-translation">选择公共(_S)</target>
+        <target state="translated">选择公共(_P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
-        <target state="new">Show completion list</target>
+        <target state="translated">显示完成列表</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
-        <target state="new">Use enhanced colors for C# and Basic</target>
+        <target state="translated">对 C# 和 Basic 使用增强色</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
-        <target state="new">This workspace does not support updating Visual Basic compilation options.</target>
+        <target state="translated">此工作区不支持更新 Visual Basic 完成选项。</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
