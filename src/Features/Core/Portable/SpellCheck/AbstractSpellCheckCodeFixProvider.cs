@@ -100,11 +100,14 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var document = context.Document;
             var service = CompletionService.GetService(document);
 
-            // Disable snippets from ever appearing in the completion items. It's
-            // very unlikely the user would ever misspell a snippet, then use spell-
-            // checking to fix it, then try to invoke the snippet.
+            // Disable snippets and unimported types from ever appearing in the completion items. 
+            // -    It's very unlikely the user would ever misspell a snippet, then use spell-checking to fix it, 
+            //      then try to invoke the snippet.
+            // -    We believe spell-check should only compare what you have typed to what symbol would be offered here.
             var originalOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var options = originalOptions.WithChangedOption(CompletionOptions.SnippetsBehavior, document.Project.Language, SnippetsRule.NeverInclude);
+            var options = originalOptions
+                .WithChangedOption(CompletionOptions.SnippetsBehavior, document.Project.Language, SnippetsRule.NeverInclude)
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language, false);
 
             var completionList = await service.GetCompletionsAsync(
                 document, nameToken.SpanStart, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                     continue;
                 }
 
-                var insertionText = await GetInsertionTextAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var insertionText = await GetInsertionTextAsync(document, item, completionList.Span, cancellationToken: cancellationToken).ConfigureAwait(false);
                 results.Add(matchCost, insertionText);
             }
 
@@ -175,10 +178,10 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             }
         }
 
-        private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        private async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
         {
             var service = CompletionService.GetService(document);
-            var change = await service.GetChangeAsync(document, item, null, cancellationToken).ConfigureAwait(false);
+            var change = await service.GetChangeAsync(document, item, completionListSpan, commitCharacter: null, cancellationToken).ConfigureAwait(false);
 
             return change.TextChange.NewText;
         }

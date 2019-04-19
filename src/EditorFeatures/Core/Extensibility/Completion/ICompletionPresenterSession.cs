@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.Editor
     internal interface ICompletionPresenterSession : IIntelliSensePresenterSession
     {
         void PresentItems(
-            ITrackingSpan triggerSpan, IList<CompletionItem> items, CompletionItem selectedItem,
+            ITextSnapshot textSnapshot, ITrackingSpan triggerSpan,
+            IList<CompletionItem> items, CompletionItem selectedItem,
             CompletionItem suggestionModeItem, bool suggestionMode, bool isSoftSelected,
-            ImmutableArray<CompletionItemFilter> completionItemFilters,
-            string filterText);
+            ImmutableArray<CompletionItemFilter> completionItemFilters, string filterText);
 
         void SelectPreviousItem();
         void SelectNextItem();
