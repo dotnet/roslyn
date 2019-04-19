@@ -1970,6 +1970,7 @@ static class Program
 }");
         }
 
+        // PROTOPTYPE(nullable-api): Support deconstruction assignment
         [Fact]
         public void DoNotShareInputForMutatingWhenClause()
         {
