@@ -7470,7 +7470,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to this indexer that has an Index or Range type and that there is
             // a real receiver with a known type
 
-            if (arguments.Count != 1)
+            if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureIndexOperator) ||
+                arguments.Count != 1)
             {
                 patternIndexerAccess = null;
                 return false;

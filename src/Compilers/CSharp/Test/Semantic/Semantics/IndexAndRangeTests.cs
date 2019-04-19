@@ -16,6 +16,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private const string RangeAllSignature = "System.Range System.Range.All.get";
 
         [Fact]
+        public void PatternIndexRangeLangVer()
+        {
+            var src = @"
+using System;
+class C
+{
+    void M(string s, Index i, Range r)
+    {
+        _ = s[i];
+        _ = s[r];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                //         _ = s[i];
+                Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "System.Index", "int").WithLocation(7, 15),
+                // (8,15): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         _ = s[r];
+                Diagnostic(ErrorCode.ERR_BadArgType, "r").WithArguments("1", "System.Range", "int").WithLocation(8, 15));
+        }
+
+        [Fact]
         public void SpanPatternRangeDelegate()
         {
             var src = @"
