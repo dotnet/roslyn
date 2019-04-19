@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -25,10 +27,12 @@ namespace Test.Utilities
                 CompilationUtils.ValidateNoCompileErrors(diagnostics);
             }
 
-            var analyzerDiagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
+            var diagnosticDescriptors = analyzers.SelectMany(analyzer => analyzer.SupportedDiagnostics);
+            var analyzerDiagnosticIds = diagnosticDescriptors.Select(diagnosticDescriptor => diagnosticDescriptor.Id);
+            var allDiagnosticIds = new HashSet<string>(analyzerDiagnosticIds, StringComparer.Ordinal);
+            allDiagnosticIds.Add("AD0001");    // Failures caught by the Analyzer Driver.
             var allDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;
-            var failureDiagnostics = allDiagnostics.Where(diagnostic => diagnostic.Id == "AD0001");
-            var resultDiagnostics = analyzerDiagnostics.Concat(failureDiagnostics);
+            var resultDiagnostics = allDiagnostics.Where(diagnostic => allDiagnosticIds.Contains(diagnostic.Id));
             return resultDiagnostics.ToImmutableArray();
         }
     }

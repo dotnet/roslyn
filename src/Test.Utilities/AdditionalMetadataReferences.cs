@@ -25,6 +25,7 @@ namespace Test.Utilities
         internal static readonly MetadataReference SystemDirectoryServices = MetadataReference.CreateFromFile(typeof(System.DirectoryServices.DirectoryEntry).Assembly.Location);
         internal static readonly MetadataReference SystemXaml = MetadataReference.CreateFromFile(typeof(System.Xaml.XamlReader).Assembly.Location);
         internal static readonly MetadataReference PresentationFramework = MetadataReference.CreateFromFile(typeof(System.Windows.Markup.XamlReader).Assembly.Location);
+        internal static readonly MetadataReference SystemWebExtensions = MetadataReference.CreateFromFile(typeof(System.Web.Script.Serialization.JavaScriptSerializer).Assembly.Location);
         internal static readonly MetadataReference SystemGlobalization = MetadataReference.CreateFromFile(Assembly.Load("System.Globalization, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location);
 
         private static MetadataReference s_systemRuntimeFacadeRef;

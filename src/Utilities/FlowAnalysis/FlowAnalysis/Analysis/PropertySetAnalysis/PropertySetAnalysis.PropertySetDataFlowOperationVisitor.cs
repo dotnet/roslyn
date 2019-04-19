@@ -122,17 +122,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     abstractValue = PropertySetAbstractValue.GetInstance(constructorMapper.PropertyAbstractValues);
                 }
-                else if (constructorMapper.MapFromNullAbstractValue != null)
+                else if (constructorMapper.MapFromPointsToAbstractValue != null)
                 {
-                    ArrayBuilder<NullAbstractValue> builder = ArrayBuilder<NullAbstractValue>.GetInstance();
+                    ArrayBuilder<PointsToAbstractValue> builder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
                     try
                     {
                         foreach (IArgumentOperation argumentOperation in operation.Arguments)
                         {
-                            builder.Add(this.GetNullAbstractValue(argumentOperation));
+                            builder.Add(this.GetPointsToAbstractValue(argumentOperation));
                         }
 
-                        abstractValue = constructorMapper.MapFromNullAbstractValue(operation.Constructor, builder);
+                        abstractValue = constructorMapper.MapFromPointsToAbstractValue(operation.Constructor, builder);
                     }
                     finally
                     {
@@ -142,21 +142,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 else if (constructorMapper.MapFromValueContentAbstractValue != null)
                 {
                     Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
-                    ArrayBuilder<NullAbstractValue> nullBuilder = ArrayBuilder<NullAbstractValue>.GetInstance();
+                    ArrayBuilder<PointsToAbstractValue> pointsToBuilder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
                     ArrayBuilder<ValueContentAbstractValue> valueContentBuilder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
                     try
                     {
                         foreach (IArgumentOperation argumentOperation in operation.Arguments)
                         {
-                            nullBuilder.Add(this.GetNullAbstractValue(argumentOperation));
+                            pointsToBuilder.Add(this.GetPointsToAbstractValue(argumentOperation));
                             valueContentBuilder.Add(this.GetValueContentAbstractValue(argumentOperation));
                         }
 
-                        abstractValue = constructorMapper.MapFromValueContentAbstractValue(operation.Constructor, valueContentBuilder, nullBuilder);
+                        abstractValue = constructorMapper.MapFromValueContentAbstractValue(operation.Constructor, valueContentBuilder, pointsToBuilder);
                     }
                     finally
                     {
-                        nullBuilder.Free();
+                        pointsToBuilder.Free();
                         valueContentBuilder.Free();
                     }
                 }
@@ -183,10 +183,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     PropertySetAbstractValueKind propertySetAbstractValueKind;
 
-                    if (propertyMapper.MapFromNullAbstractValue != null)
+                    if (propertyMapper.MapFromPointsToAbstractValue != null)
                     {
-                        propertySetAbstractValueKind = propertyMapper.MapFromNullAbstractValue(
-                            this.GetNullAbstractValue(operation.Value));
+                        propertySetAbstractValueKind = propertyMapper.MapFromPointsToAbstractValue(
+                            this.GetPointsToAbstractValue(operation.Value));
                     }
                     else if (propertyMapper.MapFromValueContentAbstractValue != null)
                     {
@@ -237,33 +237,31 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     || TryFindNonTrackedTypeHazardousUsageEvaluator(out hazardousUsageEvaluator, out propertySetInstance))
                 {
                     PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertySetInstance);
-                    bool hasFlagged = false;
-                    bool hasMaybeFlagged = false;
+                    HazardousUsageEvaluationResult result = HazardousUsageEvaluationResult.Unflagged;
                     foreach (AbstractLocation location in pointsToAbstractValue.Locations)
                     {
                         PropertySetAbstractValue locationAbstractValue = this.GetAbstractValue(location);
 
                         HazardousUsageEvaluationResult evaluationResult = hazardousUsageEvaluator.Evaluator(method, locationAbstractValue);
-                        if (evaluationResult == HazardousUsageEvaluationResult.Flagged)
-                        {
-                            hasFlagged = true;
-                        }
-                        else if (evaluationResult == HazardousUsageEvaluationResult.MaybeFlagged)
-                        {
-                            hasMaybeFlagged = true;
-                        }
+                        result = MergeHazardousUsageEvaluationResult(result, evaluationResult);
                     }
 
-                    (Location, IMethodSymbol) key = (originalOperation.Syntax.GetLocation(), method);
-                    if (hasFlagged && !hasMaybeFlagged)
+                    if (result != HazardousUsageEvaluationResult.Unflagged)
                     {
-                        this._hazardousUsageBuilder.Add(key, HazardousUsageEvaluationResult.Flagged);
+                        (Location, IMethodSymbol) key = (originalOperation.Syntax.GetLocation(), method);
+                        if (this._hazardousUsageBuilder.TryGetValue(key, out HazardousUsageEvaluationResult existingResult))
+                        {
+                            this._hazardousUsageBuilder[key] = MergeHazardousUsageEvaluationResult(result, existingResult);
+                        }
+                        else
+                        {
+                            this._hazardousUsageBuilder.Add(key, result);
+                        }
                     }
-                    else if ((hasFlagged || hasMaybeFlagged)
-                        && !this._hazardousUsageBuilder.ContainsKey(key))   // Keep existing value, if there is one.
-                    {
-                        this._hazardousUsageBuilder.Add(key, HazardousUsageEvaluationResult.MaybeFlagged);
-                    }
+                }
+                else
+                {
+                    this.MergeInterproceduralResults(originalOperation);
                 }
 
                 return baseValue;
@@ -297,6 +295,41 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
 
                     return false;
+                }
+            }
+
+            public override PropertySetAbstractValue VisitInvocation_LocalFunction(IMethodSymbol localFunction, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, PropertySetAbstractValue defaultValue)
+            {
+                PropertySetAbstractValue baseValue = base.VisitInvocation_LocalFunction(localFunction, visitedArguments, originalOperation, defaultValue);
+                this.MergeInterproceduralResults(originalOperation);
+                return baseValue;
+            }
+
+            public override PropertySetAbstractValue VisitInvocation_Lambda(IFlowAnonymousFunctionOperation lambda, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, PropertySetAbstractValue defaultValue)
+            {
+                PropertySetAbstractValue baseValue = base.VisitInvocation_Lambda(lambda, visitedArguments, originalOperation, defaultValue);
+                this.MergeInterproceduralResults(originalOperation);
+                return baseValue;
+            }
+
+            private void MergeInterproceduralResults(IOperation originalOperation)
+            {
+                if (!this.TryGetInterproceduralAnalysisResult(originalOperation, out PropertySetAnalysisResult subResult)
+                    || subResult.HazardousUsages.IsEmpty)
+                {
+                    return;
+                }
+
+                foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in subResult.HazardousUsages)
+                {
+                    if (this._hazardousUsageBuilder.TryGetValue(kvp.Key, out HazardousUsageEvaluationResult existingValue))
+                    {
+                        this._hazardousUsageBuilder[kvp.Key] = MergeHazardousUsageEvaluationResult(kvp.Value, existingValue);
+                    }
+                    else
+                    {
+                        this._hazardousUsageBuilder.Add(kvp.Key, kvp.Value);
+                    }
                 }
             }
 
