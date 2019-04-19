@@ -68610,6 +68610,65 @@ class A<T1, T2> where T1 : class where T2 : class
         }
 
         [Fact]
+        [WorkItem(35083, "https://github.com/dotnet/roslyn/issues/35083")]
+        public void GenericSubstitution_07()
+        {
+            var source =
+@"
+class A
+{
+    void M1<T>()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics();
+
+            var a = comp.GetTypeByMetadataName("A");
+            var m1 = a.GetMember<MethodSymbol>("M1");
+
+            var m11 = new[]
+                {
+                    m1.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(a, NullableAnnotation.Annotated))),
+                    m1.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(a, NullableAnnotation.NotAnnotated))),
+                    m1.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(a, NullableAnnotation.Oblivious)))
+                };
+
+            var m12 = new[]
+                {
+                    m1.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(a, NullableAnnotation.Annotated))),
+                    m1.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(a, NullableAnnotation.NotAnnotated))),
+                    m1.Construct(ImmutableArray.Create(TypeWithAnnotations.Create(a, NullableAnnotation.Oblivious)))
+                };
+
+            for (int i = 0; i < m11.Length; i++)
+            {
+                var method1 = m11[i];
+
+                Assert.True(method1.Equals(method1));
+
+                for (int j = 0; j < m12.Length; j++)
+                {
+                    var method2 = m12[j];
+
+                    if (i == j)
+                    {
+                        Assert.True(method1.Equals(method2));
+                        Assert.True(method2.Equals(method1));
+                    }
+                    else
+                    {
+                        Assert.False(method1.Equals(method2));
+                        Assert.False(method2.Equals(method1));
+                    }
+
+                    Assert.Equal(method1.GetHashCode(), method2.GetHashCode());
+                }
+            }
+        }
+
+        [Fact]
         [WorkItem(30171, "https://github.com/dotnet/roslyn/issues/30171")]
         public void NonNullTypesContext_01()
         {
