@@ -499,29 +499,14 @@ namespace Microsoft.CodeAnalysis.Remote
             var metadata = await CreateCollectionAsync<MetadataReference>(projectSnapshot.MetadataReferences).ConfigureAwait(false);
             var analyzers = await CreateCollectionAsync<AnalyzerReference>(projectSnapshot.AnalyzerReferences).ConfigureAwait(false);
 
-            var documents = new List<DocumentInfo>();
-            foreach (var documentChecksum in projectSnapshot.Documents)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                var documentInfo = await CreateDocumentInfoAsync(documentChecksum).ConfigureAwait(false);
-                documents.Add(documentInfo);
-            }
-
-            var additionals = new List<DocumentInfo>();
-            foreach (var documentChecksum in projectSnapshot.AdditionalDocuments)
-            {
-                _cancellationToken.ThrowIfCancellationRequested();
-
-                var documentInfo = await CreateDocumentInfoAsync(documentChecksum).ConfigureAwait(false);
-                additionals.Add(documentInfo);
-            }
+            var documentInfos = await CreateDocumentInfosAsync(projectSnapshot.Documents).ConfigureAwait(false);
+            var additionalDocumentInfos = await CreateDocumentInfosAsync(projectSnapshot.AdditionalDocuments).ConfigureAwait(false);
 
             return ProjectInfo.Create(
                 projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
                 projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
                 compilationOptions, parseOptions,
-                documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission)
+                documentInfos, p2p, metadata, analyzers, additionalDocumentInfos, projectInfo.IsSubmission)
                 .WithOutputRefFilePath(projectInfo.OutputRefFilePath)
                 .WithHasAllInformation(projectInfo.HasAllInformation)
                 .WithDefaultNamespace(projectInfo.DefaultNamespace);
@@ -540,6 +525,19 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return assets;
+        }
+
+        private async Task<IEnumerable<DocumentInfo>> CreateDocumentInfosAsync(ChecksumCollection documentChecksums)
+        {
+            var documentInfos = new List<DocumentInfo>();
+
+            foreach (var documentChecksum in documentChecksums)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
+                documentInfos.Add(await CreateDocumentInfoAsync(documentChecksum).ConfigureAwait(false));
+            }
+
+            return documentInfos;
         }
 
         private async Task<DocumentInfo> CreateDocumentInfoAsync(Checksum documentChecksum)
