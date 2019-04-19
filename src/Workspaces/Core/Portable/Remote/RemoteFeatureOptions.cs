@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     return true;
 
                 case WorkspaceKind.Host:
+                case WorkspaceKind.MSBuild:
                     // Compute indices in the host workspace when OOP is disabled.
                     var remoteHostClientService = workspace.Services.GetService<IRemoteHostClientService>();
                     if (remoteHostClientService is null)
