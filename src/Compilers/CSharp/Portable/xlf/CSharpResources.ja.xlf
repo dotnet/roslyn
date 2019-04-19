@@ -297,6 +297,16 @@
         <target state="translated">out 変数を ref ローカルと宣言することはできません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
+        <target state="new">Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
+        <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
+        <target state="new">Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
         <target state="new">Both partial method declarations must be readonly or neither may be readonly</target>
@@ -875,6 +885,11 @@
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;null&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_OverrideWithConstraints">
+        <source>constraints for override and explicit interface implementation methods</source>
+        <target state="new">constraints for override and explicit interface implementation methods</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -3428,8 +3443,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
-        <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly</source>
-        <target state="translated">オーバーライドおよび明示的なインターフェイスの実装メソッドの制約は、基本メソッドから継承されるので、直接指定できません</target>
+        <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</source>
+        <target state="needs-review-translation">オーバーライドおよび明示的なインターフェイスの実装メソッドの制約は、基本メソッドから継承されるので、直接指定できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigOverride">
