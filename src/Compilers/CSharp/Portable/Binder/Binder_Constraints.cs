@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeParameterSymbol> typeParameters,
             TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> clauses,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool isForOverride = false)
         {
             Debug.Assert(this.Flags.Includes(BinderFlags.GenericConstraintsClause));
             Debug.Assert((object)containingSymbol != null);
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(ordinal >= 0);
                     Debug.Assert(ordinal < n);
 
-                    var constraintClause = this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, diagnostics);
+                    var constraintClause = this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, isForOverride, diagnostics);
                     if (results[ordinal] == null)
                     {
                         results[ordinal] = constraintClause;
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (results[i] == null)
                 {
-                    results[i] = GetDefaultTypeParameterConstraintClause(typeParameterList.Parameters[i]);
+                    results[i] = GetDefaultTypeParameterConstraintClause(typeParameterList.Parameters[i], isForOverride);
                 }
             }
 
@@ -97,14 +98,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind and return a single type parameter constraint clause.
         /// </summary>
-        private TypeParameterConstraintClause BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, DiagnosticBag diagnostics)
+        private TypeParameterConstraintClause BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, DiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
-            var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            var syntaxBuilder = ArrayBuilder<TypeConstraintSyntax>.GetInstance();
+            ArrayBuilder<TypeWithAnnotations> constraintTypes = null;
+            ArrayBuilder<TypeConstraintSyntax> syntaxBuilder = null;
             SeparatedSyntaxList<TypeParameterConstraintSyntax> constraintsSyntax = constraintClauseSyntax.Constraints;
             Debug.Assert(!InExecutableBinder); // Cannot eagerly report diagnostics handled by LazyMissingNonNullTypesContextDiagnosticInfo 
             bool hasTypeLikeConstraint = false;
+            bool reportedOverrideWithConstraints = false;
+
+            if (!isForOverride)
+            {
+                constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                syntaxBuilder = ArrayBuilder<TypeConstraintSyntax>.GetInstance();
+            }
 
             for (int i = 0, n = constraintsSyntax.Count; i < n; i++)
             {
@@ -117,6 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (i != 0)
                         {
                             diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
+
+                            if (isForOverride && (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.ReferenceType)) != 0)
+                            {
+                                continue;
+                            }
                         }
 
                         var constraintSyntax = (ClassOrStructConstraintSyntax)syntax;
@@ -125,9 +138,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             constraints |= TypeParameterConstraintKind.NullableReferenceType;
 
-                            LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(IsNullableEnabled(questionToken), questionToken.GetLocation(), diagnostics);
+                            if (isForOverride)
+                            {
+                                reportOverrideWithConstraints(ref reportedOverrideWithConstraints, syntax, diagnostics);
+                            }
+                            else
+                            {
+                                LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(IsNullableEnabled(questionToken), questionToken.GetLocation(), diagnostics);
+                            }
                         }
-                        else if (IsNullableEnabled(constraintSyntax.ClassOrStructKeyword))
+                        else if (isForOverride || IsNullableEnabled(constraintSyntax.ClassOrStructKeyword))
                         {
                             constraints |= TypeParameterConstraintKind.NotNullableReferenceType;
                         }
@@ -143,11 +163,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (i != 0)
                         {
                             diagnostics.Add(ErrorCode.ERR_RefValBoundMustBeFirst, syntax.GetFirstToken().GetLocation());
+
+                            if (isForOverride && (constraints & (TypeParameterConstraintKind.ValueType | TypeParameterConstraintKind.ReferenceType)) != 0)
+                            {
+                                continue;
+                            }
                         }
 
                         constraints |= TypeParameterConstraintKind.ValueType;
                         continue;
                     case SyntaxKind.ConstructorConstraint:
+                        if (isForOverride)
+                        {
+                            reportOverrideWithConstraints(ref reportedOverrideWithConstraints, syntax, diagnostics);
+                            continue;
+                        }
+
                         if ((constraints & TypeParameterConstraintKind.ValueType) != 0)
                         {
                             diagnostics.Add(ErrorCode.ERR_NewBoundWithVal, syntax.GetFirstToken().GetLocation());
@@ -165,6 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         constraints |= TypeParameterConstraintKind.Constructor;
                         continue;
                     case SyntaxKind.TypeConstraint:
+                        if (isForOverride)
+                        {
+                            reportOverrideWithConstraints(ref reportedOverrideWithConstraints, syntax, diagnostics);
+                        }
+                        else
                         {
                             hasTypeLikeConstraint = true;
 
@@ -214,12 +250,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!hasTypeLikeConstraint && !IsNullableEnabled(typeParameterSyntax.Identifier))
+            if (!isForOverride && !hasTypeLikeConstraint && !IsNullableEnabled(typeParameterSyntax.Identifier))
             {
                 constraints |= TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType;
             }
 
-            return TypeParameterConstraintClause.Create(constraints, constraintTypes.ToImmutableAndFree(), syntaxBuilder.ToImmutableAndFree());
+            Debug.Assert(!isForOverride ||
+                         (constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType)) != (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType));
+
+            return TypeParameterConstraintClause.Create(constraints,
+                                                        constraintTypes?.ToImmutableAndFree() ?? ImmutableArray<TypeWithAnnotations>.Empty,
+                                                        syntaxBuilder?.ToImmutableAndFree() ?? default);
+
+            static void reportOverrideWithConstraints(ref bool reportedOverrideWithConstraints, TypeParameterConstraintSyntax syntax, DiagnosticBag diagnostics)
+            {
+                if (!reportedOverrideWithConstraints)
+                {
+                    diagnostics.Add(ErrorCode.ERR_OverrideWithConstraints, syntax.GetLocation());
+                    reportedOverrideWithConstraints = true;
+                }
+            }
         }
 
         internal ImmutableArray<TypeParameterConstraintClause> GetDefaultTypeParameterConstraintClauses(TypeParameterListSyntax typeParameterList)
@@ -234,9 +284,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        private TypeParameterConstraintClause GetDefaultTypeParameterConstraintClause(TypeParameterSyntax typeParameterSyntax)
+        private TypeParameterConstraintClause GetDefaultTypeParameterConstraintClause(TypeParameterSyntax typeParameterSyntax, bool isForOverride = false)
         {
-            return IsNullableEnabled(typeParameterSyntax.Identifier) ? TypeParameterConstraintClause.Empty : TypeParameterConstraintClause.ObliviousNullabilityIfReferenceType;
+            return isForOverride || IsNullableEnabled(typeParameterSyntax.Identifier) ? TypeParameterConstraintClause.Empty : TypeParameterConstraintClause.ObliviousNullabilityIfReferenceType;
         }
 
         /// <summary>

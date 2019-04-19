@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public void WaitForApplicationIdle(CancellationToken cancellationToken)
         {
-            var task = Task.Factory.StartNew(() => _inProc.WaitForApplicationIdle(), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            var task = Task.Factory.StartNew(() => _inProc.WaitForApplicationIdle(Helper.HangMitigatingTimeout), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             task.Wait(cancellationToken);
         }
 

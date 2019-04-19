@@ -5,9 +5,7 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
-#Disable Warning RS1016 ' Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     Partial Friend Class MoveToTopOfFileCodeFixProvider
-#Enable Warning RS1016
         Private Class MoveToLineCodeAction
             Inherits CodeAction
 
