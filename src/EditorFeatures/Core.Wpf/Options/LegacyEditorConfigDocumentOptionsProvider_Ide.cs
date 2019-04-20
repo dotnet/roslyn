@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
-    internal sealed partial class EditorConfigDocumentOptionsProvider
+    internal sealed partial class LegacyEditorConfigDocumentOptionsProvider
     {
         /// <summary>
         /// This maps <see cref="CodingConventionsChangedEventArgs"/> instances to sets of projects which were updated
