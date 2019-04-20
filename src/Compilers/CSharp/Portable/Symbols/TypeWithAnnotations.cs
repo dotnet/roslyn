@@ -326,14 +326,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (NullableAnnotation.IsAnnotated() &&
                     format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                    !IsNullableType() && !Type.IsValueType)
+                    (!HasType || (!IsNullableType() && !Type.IsValueType)))
                 {
                     return str + "?";
                 }
                 else if (NullableAnnotation.IsNotAnnotated() &&
                     format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
-                    !Type.IsValueType &&
-                    !Type.IsTypeParameterDisallowingAnnotation())
+                    (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotation())))
                 {
                     return str + "!";
                 }
@@ -588,15 +587,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (NullableAnnotation.IsOblivious() || typeSymbol.IsValueType)
             {
-                flag = NullableAnnotationExtensions.ObliviousAttributeValue;
+                flag = (byte)NullableAnnotation.Oblivious;
             }
             else if (NullableAnnotation.IsAnnotated())
             {
-                flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
+                flag = (byte)NullableAnnotation.Annotated;
             }
             else
             {
-                flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                flag = (byte)NullableAnnotation.NotAnnotated;
             }
 
             transforms.Add(flag);
@@ -634,17 +633,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = result.WithTypeAndModifiers(newTypeSymbol, result.CustomModifiers);
             }
 
-            switch (transformFlag)
+            switch ((NullableAnnotation)transformFlag)
             {
-                case NullableAnnotationExtensions.AnnotatedAttributeValue:
+                case NullableAnnotation.Annotated:
                     result = result.AsNullableReferenceType();
                     break;
 
-                case NullableAnnotationExtensions.NotAnnotatedAttributeValue:
+                case NullableAnnotation.NotAnnotated:
                     result = result.AsNotNullableReferenceType();
                     break;
 
-                case NullableAnnotationExtensions.ObliviousAttributeValue:
+                case NullableAnnotation.Oblivious:
                     if (result.NullableAnnotation != NullableAnnotation.Oblivious &&
                         !(result.NullableAnnotation.IsAnnotated() && oldTypeSymbol.IsNullableType())) // Preserve nullable annotation on Nullable<T>.
                     {

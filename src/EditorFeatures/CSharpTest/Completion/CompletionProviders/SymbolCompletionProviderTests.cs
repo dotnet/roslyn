@@ -9781,5 +9781,358 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "MulticastDelegate");
         }
+
+        private static string CreateThenIncludeTestCode(string lambdaExpressionString, string methodDeclarationString)
+        {
+            var template = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+
+namespace ThenIncludeIntellisenseBug
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var registrations = new List<Registration>().AsQueryable();
+            var reg = registrations.Include(r => r.Activities).ThenInclude([1]);
+        }
+    }
+
+    internal class Registration
+    {
+        public ICollection<Activity> Activities { get; set; }
+    }
+
+    public class Activity
+    {
+        public Task Task { get; set; }
+    }
+
+    public class Task
+    {
+        public string Name { get; set; }
+    }
+
+    public interface IIncludableQueryable<out TEntity, out TProperty> : IQueryable<TEntity>
+    {
+    }
+
+    public static class EntityFrameworkQuerybleExtensions
+    {
+        public static IIncludableQueryable<TEntity, TProperty> Include<TEntity, TProperty>(
+            this IQueryable<TEntity> source,
+            Expression<Func<TEntity, TProperty>> navigationPropertyPath)
+            where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+
+        [2]
+    }
+}";
+
+            return template.Replace("[1]", lambdaExpressionString).Replace("[2]", methodDeclarationString);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenInclude()
+        {
+            var markup = CreateThenIncludeTestCode("b => b.$$",
+@"
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }
+
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, TPreviousProperty> source,
+        Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeNoExpression()
+        {
+            var markup = CreateThenIncludeTestCode("b => b.$$",
+@"
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        Func<TPreviousProperty, TProperty> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }
+
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, TPreviousProperty> source,
+        Func<TPreviousProperty, TProperty> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeSecondArgument()
+        {
+            var markup = CreateThenIncludeTestCode("0, b => b.$$",
+@"
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        int a,
+        Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }
+
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, TPreviousProperty> source,
+        int a,
+        Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeSecondArgumentAndMultiArgumentLambda()
+        {
+            var markup = CreateThenIncludeTestCode("0, (a,b,c) => c.$$)",
+@"
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        int a,
+        Expression<Func<string, string, TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }
+
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, TPreviousProperty> source,
+        int a,
+        Expression<Func<string, string, TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeSecondArgumentNoOverlap()
+        {
+            var markup = CreateThenIncludeTestCode("b => b.Task, b =>b.$$",
+@"
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath,
+        Expression<Func<TPreviousProperty, TProperty>> anotherNavigationPropertyPath) where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+
+        public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+           this IIncludableQueryable<TEntity, TPreviousProperty> source,
+           Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemIsAbsentAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeSecondArgumentAndMultiArgumentLambdaWithNoLambdaOverlap()
+        {
+            var markup = CreateThenIncludeTestCode("0, (a,b,c) => c.$$",
+@"
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        int a,
+        Expression<Func<string, TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }
+
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, TPreviousProperty> source,
+        int a,
+        Expression<Func<string, string, TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    {
+        return default(IIncludableQueryable<TEntity, TProperty>);
+    }
+");
+
+            await VerifyItemIsAbsentAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35100"), Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeGenericAndNoGenericOverloads()
+        {
+            var markup = CreateThenIncludeTestCode("c => c.$$",
+@"
+        public static IIncludableQueryable<Registration, Task> ThenInclude(
+                   this IIncludableQueryable<Registration, ICollection<Activity>> source,
+                   Func<Activity, Task> navigationPropertyPath)
+        {
+            return default(IIncludableQueryable<Registration, Task>);
+        }
+
+        public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+            this IIncludableQueryable<TEntity, TPreviousProperty> source,
+            Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ThenIncludeNoGenericOverloads()
+        {
+            var markup = CreateThenIncludeTestCode("c => c.$$",
+@"
+        public static IIncludableQueryable<Registration, Task> ThenInclude(
+            this IIncludableQueryable<Registration, ICollection<Activity>> source,
+            Func<Activity, Task> navigationPropertyPath)
+        {
+            return default(IIncludableQueryable<Registration, Task>);
+        }
+
+        public static IIncludableQueryable<Registration, Activity> ThenInclude(
+            this IIncludableQueryable<Registration, ICollection<Activity>> source,
+            Func<ICollection<Activity>, Activity> navigationPropertyPath) 
+        {
+            return default(IIncludableQueryable<Registration, Activity>);
+        }
+");
+
+            await VerifyItemExistsAsync(markup, "Task");
+            await VerifyItemExistsAsync(markup, "FirstOrDefault", displayTextSuffix: "<>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionInsideMethodsWithNonFunctionsAsArguments()
+        {
+            var markup = @"
+using System;
+class c
+{
+    void M()
+    {
+        Goo(builder =>
+        {
+            builder.$$
+        });
+    }
+
+    void Goo(Action<Builder> configure)
+    {
+        var builder = new Builder();
+        configure(builder);
+    }
+}
+class Builder
+{
+    public int Something { get; set; }
+}";
+
+            await VerifyItemExistsAsync(markup, "Something");
+            await VerifyItemIsAbsentAsync(markup, "BeginInvoke");
+            await VerifyItemIsAbsentAsync(markup, "Clone");
+            await VerifyItemIsAbsentAsync(markup, "Method");
+            await VerifyItemIsAbsentAsync(markup, "Target");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionInsideMethodsWithDelegatesAsArguments()
+        {
+            var markup = @"
+using System;
+
+class Program
+{
+    public delegate void Delegate1(Uri u);
+    public delegate void Delegate2(Guid g);
+
+    public void M(Delegate1 d) { }
+    public void M(Delegate2 d) { }
+
+    public void Test()
+    {
+        M(d => d.$$)
+    }
+}";
+
+            // Guid
+            await VerifyItemExistsAsync(markup, "ToByteArray");
+
+            // Uri
+            await VerifyItemExistsAsync(markup, "AbsoluteUri");
+            await VerifyItemExistsAsync(markup, "Fragment");
+            await VerifyItemExistsAsync(markup, "Query");
+
+            // Should not appear for Delegate
+            await VerifyItemIsAbsentAsync(markup, "BeginInvoke");
+            await VerifyItemIsAbsentAsync(markup, "Clone");
+            await VerifyItemIsAbsentAsync(markup, "Method");
+            await VerifyItemIsAbsentAsync(markup, "Target");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionInsideMethodsWithDelegatesAndReversingArguments()
+        {
+            var markup = @"
+using System;
+
+class Program
+{
+    public delegate void Delegate1<T1,T2>(T2 t2, T1 t1);
+    public delegate void Delegate2<T1,T2>(T2 t2, int g, T1 t1);
+
+    public void M(Delegate1<Uri,Guid> d) { }
+    public void M(Delegate2<Uri,Guid> d) { }
+
+    public void Test()
+    {
+        M(d => d.$$)
+    }
+}";
+
+            // Guid
+            await VerifyItemExistsAsync(markup, "ToByteArray");
+
+            // Should not appear for  Uri
+            await VerifyItemIsAbsentAsync(markup, "AbsoluteUri");
+            await VerifyItemIsAbsentAsync(markup, "Fragment");
+            await VerifyItemIsAbsentAsync(markup, "Query");
+
+            // Should not appear for Delegate
+            await VerifyItemIsAbsentAsync(markup, "BeginInvoke");
+            await VerifyItemIsAbsentAsync(markup, "Clone");
+            await VerifyItemIsAbsentAsync(markup, "Method");
+            await VerifyItemIsAbsentAsync(markup, "Target");
+        }
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
@@ -302,7 +303,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new syntax tree from a syntax node.
         /// </summary>
-        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions options = null, string path = "", Encoding encoding = null)
+        public static SyntaxTree Create(
+            CSharpSyntaxNode root,
+            CSharpParseOptions options = null,
+            string path = "",
+            Encoding encoding = null,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null)
         {
             if (root == null)
             {
@@ -320,7 +326,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 path: path,
                 options: options ?? CSharpParseOptions.Default,
                 root: root,
-                directives: directives);
+                directives: directives,
+                diagnosticOptions);
         }
 
         /// <summary>
@@ -354,6 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options: CSharpParseOptions.Default,
                 root: root,
                 directives: InternalSyntax.DirectiveStack.Empty,
+                diagnosticOptions: null,
                 cloneRoot: false);
         }
 
@@ -365,9 +373,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpParseOptions options = null,
             string path = "",
             Encoding encoding = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
+            CancellationToken cancellationToken = default)
         {
-            return ParseText(SourceText.From(text, encoding), options, path, cancellationToken);
+            return ParseText(SourceText.From(text, encoding), options, path, diagnosticOptions, cancellationToken);
         }
 
         /// <summary>
@@ -377,7 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceText text,
             CSharpParseOptions options = null,
             string path = "",
-            CancellationToken cancellationToken = default(CancellationToken))
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
+            CancellationToken cancellationToken = default)
         {
             if (text == null)
             {
@@ -391,7 +401,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, cancellationToken: cancellationToken))
                 {
                     var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
-                    var tree = new ParsedSyntaxTree(text, text.Encoding, text.ChecksumAlgorithm, path, options, compilationUnit, parser.Directives);
+                    var tree = new ParsedSyntaxTree(
+                        text,
+                        text.Encoding,
+                        text.ChecksumAlgorithm,
+                        path,
+                        options,
+                        compilationUnit,
+                        parser.Directives,
+                        diagnosticOptions: diagnosticOptions);
                     tree.VerifySource();
                     return tree;
                 }
@@ -451,7 +469,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree?.GetRoot(), changes))
             {
                 var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
-                var tree = new ParsedSyntaxTree(newText, newText.Encoding, newText.ChecksumAlgorithm, this.FilePath, this.Options, compilationUnit, parser.Directives);
+                var tree = new ParsedSyntaxTree(
+                    newText,
+                    newText.Encoding,
+                    newText.ChecksumAlgorithm,
+                    FilePath,
+                    Options,
+                    compilationUnit,
+                    parser.Directives,
+                    DiagnosticOptions);
                 tree.VerifySource(changes);
                 return tree;
             }
@@ -775,5 +801,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #endregion
+
+        // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
+        public static SyntaxTree ParseText(
+            SourceText text,
+            CSharpParseOptions options,
+            string path,
+            CancellationToken cancellationToken)
+            => ParseText(text, options, path, diagnosticOptions: null, cancellationToken);
+
+        // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
+        public static SyntaxTree ParseText(
+            string text,
+            CSharpParseOptions options,
+            string path,
+            Encoding encoding,
+            CancellationToken cancellationToken)
+            => ParseText(text, options, path, encoding, diagnosticOptions: null, cancellationToken);
+
+        // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions options, string path, Encoding encoding)
+            => Create(root, options, path, encoding, diagnosticOptions: null);
     }
 }

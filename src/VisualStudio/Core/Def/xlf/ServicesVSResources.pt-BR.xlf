@@ -77,6 +77,11 @@
         <target state="translated">O elemento é inválido.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
+        <source>Enable nullable reference analysis IDE features</source>
+        <target state="new">Enable nullable reference analysis IDE features</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Concluir</target>
@@ -129,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="new">Modifier preferences:</target>
+        <target state="translated">Preferências de modificador:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -184,17 +189,17 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="new">Prefer readonly fields</target>
+        <target state="translated">Preferir campos somente leitura</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
-        <target state="new">Prefer simple 'using' statement</target>
+        <target state="translated">Preferir instrução 'using' simples</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
-        <target state="new">Prefer static local functions</target>
+        <target state="translated">Preferir funções locais estáticas</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -209,7 +214,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
-        <target state="new">Rename {0} to {1}</target>
+        <target state="translated">Renomear {0} para {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -239,12 +244,12 @@
       </trans-unit>
       <trans-unit id="Select_Dependents">
         <source>Select _Dependents</source>
-        <target state="needs-review-translation">_Selecionar dependentes</target>
+        <target state="translated">Selecionar _Dependentes</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
         <source>Select _Public</source>
-        <target state="needs-review-translation">_Selecionar público</target>
+        <target state="translated">Selecionar _Público</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
@@ -269,7 +274,7 @@
       </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
-        <target state="new">Show completion list</target>
+        <target state="translated">Mostrar lista de conclusão</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -324,7 +329,7 @@
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
-        <target state="new">This workspace does not support updating Visual Basic compilation options.</target>
+        <target state="translated">Este workspace não é compatível com a atualização das opções de compilação do Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">

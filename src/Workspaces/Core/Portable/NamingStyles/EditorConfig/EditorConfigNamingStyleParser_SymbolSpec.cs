@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     {
         private static bool TryGetSymbolSpec(
             string namingRuleTitle,
-            IReadOnlyDictionary<string, object> conventionsDictionary,
+            IReadOnlyDictionary<string, string> conventionsDictionary,
             out SymbolSpecification symbolSpec)
         {
             symbolSpec = null;
@@ -37,13 +37,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static bool TryGetSymbolSpecNameForNamingRule(
             string namingRuleName,
-            IReadOnlyDictionary<string, object> conventionsDictionary,
+            IReadOnlyDictionary<string, string> conventionsDictionary,
             out string symbolSpecName)
         {
             symbolSpecName = null;
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.symbols", out object result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.symbols", out symbolSpecName))
             {
-                symbolSpecName = result as string;
                 return symbolSpecName != null;
             }
 
@@ -52,11 +51,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static ImmutableArray<SymbolKindOrTypeKind> GetSymbolsApplicableKinds(
             string symbolSpecName,
-            IReadOnlyDictionary<string, object> conventionsDictionary)
+            IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_kinds", out object result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_kinds", out string result))
             {
-                return ParseSymbolKindList(result as string ?? string.Empty);
+                return ParseSymbolKindList(result ?? string.Empty);
             }
 
             return _all;
@@ -162,11 +161,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static ImmutableArray<Accessibility> GetSymbolsApplicableAccessibilities(
             string symbolSpecName,
-            IReadOnlyDictionary<string, object> conventionsDictionary)
+            IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_accessibilities", out object result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.applicable_accessibilities", out string result))
             {
-                return ParseAccessibilityKindList(result as string ?? string.Empty);
+                return ParseAccessibilityKindList(result ?? string.Empty);
             }
 
             return _allAccessibility;
@@ -224,11 +223,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static ImmutableArray<ModifierKind> GetSymbolsRequiredModifiers(
             string symbolSpecName,
-            IReadOnlyDictionary<string, object> conventionsDictionary)
+            IReadOnlyDictionary<string, string> conventionsDictionary)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.required_modifiers", out object result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_symbols.{symbolSpecName}.required_modifiers", out string result))
             {
-                return ParseModifiers(result as string ?? string.Empty);
+                return ParseModifiers(result ?? string.Empty);
             }
 
             return ImmutableArray<ModifierKind>.Empty;
