@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens {
+namespace Microsoft.VisualStudio.LanguageServices.CodeLens {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.CodeAnalysis.CodeLens.CodeLensVSResources", typeof(CodeLensVSResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.LanguageServices.CodeLens.CodeLensVSResources", typeof(CodeLensVSResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

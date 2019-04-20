@@ -5,7 +5,7 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.VisualStudio.CodeAnalysis.CodeLens</RootNamespace>
+    <RootNamespace>Microsoft.VisualStudio.LanguageServices.CodeLens</RootNamespace>
     <TargetFramework>net472</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- Removing until training data includes data for this assembly.

@@ -18,14 +18,13 @@ using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.LanguageServices.CodeLens;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
-namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
+namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 {
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(Id)]
