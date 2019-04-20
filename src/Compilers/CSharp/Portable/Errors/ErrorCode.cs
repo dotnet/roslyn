@@ -1599,7 +1599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticLocalFunctionCannotCaptureVariable = 8421,
         ERR_StaticLocalFunctionCannotCaptureThis = 8422,
         ERR_AttributeNotOnEventAccessor = 8423,
-        WRN_UnconsumedDefaultCancellationAttributeUsage = 8424,
+        WRN_UnconsumedEnumeratorCancellationAttributeUsage = 8424,
         // available range
 
         #region diagnostics introduced for recursive patterns

@@ -16216,20 +16216,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The DefaultCancellationAttribute applied to parameter &apos;{0}&apos; will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method.
+        ///   Looks up a localized string similar to The EnumeratorCancellationAttribute applied to parameter &apos;{0}&apos; will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable.
         /// </summary>
-        internal static string WRN_UnconsumedDefaultCancellationAttributeUsage {
+        internal static string WRN_UnconsumedEnumeratorCancellationAttributeUsage {
             get {
-                return ResourceManager.GetString("WRN_UnconsumedDefaultCancellationAttributeUsage", resourceCulture);
+                return ResourceManager.GetString("WRN_UnconsumedEnumeratorCancellationAttributeUsage", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The DefaultCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method.
+        ///   Looks up a localized string similar to The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable.
         /// </summary>
-        internal static string WRN_UnconsumedDefaultCancellationAttributeUsage_Title {
+        internal static string WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title {
             get {
-                return ResourceManager.GetString("WRN_UnconsumedDefaultCancellationAttributeUsage_Title", resourceCulture);
+                return ResourceManager.GetString("WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title", resourceCulture);
             }
         }
         

@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasAssertsFalseAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.DefaultCancellationAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.EnumeratorCancellationAttribute))
             {
                 ValidateCancellationTokenAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
             }
@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (needsReporting())
             {
-                diagnostics.Add(ErrorCode.WRN_UnconsumedDefaultCancellationAttributeUsage, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+                diagnostics.Add(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
 
             bool needsReporting()

@@ -375,14 +375,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             //        result = new {StateMachineType}({initialState});
             //    }
             //
-            //    // copy each parameter proxy
+            //    // Initialize each parameter fields
             //    result.parameter = this.parameterProxy;
-            //
-            //    // Or, in async-iterators, for any parameter marked with [DefaultCancellation] attribute, conditionally copy GetAsyncEnumerator's cancellation token parameter instead
-            //    if (token.Equals(default))
-            //        result.parameter = this.parameterProxy;
-            //    else
-            //        result.parameter = token;
+            //      OR
+            //    if (token.Equals(default)) { result.parameter = this.parameterProxy; } else { result.parameter = token; } // for async-enumerable parameters marked with [EnumeratorCancellation]
 
             // The implementation doesn't depend on the method body of the iterator method.
             // Only on its parameters and staticness.
@@ -468,9 +464,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (this.method.IsAsync)
                     {
                         ParameterSymbol tokenParameter = getEnumeratorMethod.Parameters[0];
-                        if (hasDefaultCancellationAttribute(parameter))
+                        if (hasEnumeratorCancellationAttribute(parameter))
                         {
-                            // For any parameter marked with [DefaultCancellation] attribute, conditionally copy GetAsyncEnumerator's cancellation token parameter instead
+                            // For any async-enumerable parameter marked with [EnumeratorCancellation] attribute, conditionally copy GetAsyncEnumerator's cancellation token parameter instead
                             // if (token.Equals(default))
                             //     result.parameter = this.parameterProxy;
                             // else
@@ -494,11 +490,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), bodyBuilder.ToImmutableAndFree()));
             return getEnumerator;
 
-            static bool hasDefaultCancellationAttribute(ParameterSymbol parameter)
+            static bool hasEnumeratorCancellationAttribute(ParameterSymbol parameter)
             {
                 foreach (var attribute in parameter.GetAttributes())
                 {
-                    if (attribute.IsTargetAttribute(parameter, AttributeDescription.DefaultCancellationAttribute))
+                    if (attribute.IsTargetAttribute(parameter, AttributeDescription.EnumeratorCancellationAttribute))
                     {
                         return true;
                     }

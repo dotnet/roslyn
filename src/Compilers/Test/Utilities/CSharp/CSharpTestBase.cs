@@ -409,13 +409,13 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected const string DefaultCancellationAttributeType = @"
+        protected const string EnumeratorCancellationAttributeType = @"
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-    public class DefaultCancellationAttribute : Attribute
+    public class EnumeratorCancellationAttribute : Attribute
     {
-        public DefaultCancellationAttribute() { }
+        public EnumeratorCancellationAttribute() { }
     }
 }
 ";

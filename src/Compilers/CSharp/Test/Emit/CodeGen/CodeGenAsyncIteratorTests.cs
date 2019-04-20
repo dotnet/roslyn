@@ -253,7 +253,7 @@ class C
 }";
             var expected = new[]
             {
-                
+
                 // (4,45): error CS0234: The type or namespace name 'IAsyncEnumerable<>' does not exist in the namespace 'System.Collections.Generic' (are you missing an assembly reference?)
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IAsyncEnumerable<int>").WithArguments("IAsyncEnumerable<>", "System.Collections.Generic").WithLocation(4, 45),
@@ -5046,7 +5046,7 @@ class C
             Write(""Cancelled"");
         }
     }
-    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [DefaultCancellation] CancellationToken token)
+    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token)
     {
         yield return value++;
         await Task.Yield();
@@ -5056,7 +5056,7 @@ class C
         yield return value++;
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
 
@@ -5096,7 +5096,7 @@ class C
             Write(""Cancelled"");
         }
     }
-    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [DefaultCancellation] CancellationToken token)
+    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token)
     {
         yield return value++;
         await Task.Yield();
@@ -5106,7 +5106,7 @@ class C
         yield return value++;
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
         }
@@ -5144,7 +5144,7 @@ class C
             Write(""Cancelled"");
         }
     }
-    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [DefaultCancellation] CancellationToken token1)
+    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token1)
     {
         yield return value++;
         await Task.Yield();
@@ -5156,7 +5156,108 @@ class C
 }";
             foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
             {
-                var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType }, options: options);
+                var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: options);
+                comp.VerifyDiagnostics();
+                var verifier = CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
+
+                // field for token1 gets overridden with value from GetAsyncEnumerator's token parameter
+                verifier.VerifyIL("C.<Iter>d__1.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
+{
+  // Code size      103 (0x67)
+  .maxstack  2
+  .locals init (C.<Iter>d__1 V_0,
+                System.Threading.CancellationToken V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Iter>d__1.<>1__state""
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_002a
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      ""int C.<Iter>d__1.<>l__initialThreadId""
+  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_0015:  bne.un.s   IL_002a
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.s   -3
+  IL_001a:  stfld      ""int C.<Iter>d__1.<>1__state""
+  IL_001f:  ldarg.0
+  IL_0020:  stloc.0
+  IL_0021:  ldarg.0
+  IL_0022:  ldc.i4.0
+  IL_0023:  stfld      ""bool C.<Iter>d__1.<>w__disposeMode""
+  IL_0028:  br.s       IL_0032
+  IL_002a:  ldc.i4.s   -3
+  IL_002c:  newobj     ""C.<Iter>d__1..ctor(int)""
+  IL_0031:  stloc.0
+  IL_0032:  ldloc.0
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      ""int C.<Iter>d__1.<>3__value""
+  IL_0039:  stfld      ""int C.<Iter>d__1.value""
+  IL_003e:  ldarga.s   V_1
+  IL_0040:  ldloca.s   V_1
+  IL_0042:  initobj    ""System.Threading.CancellationToken""
+  IL_0048:  ldloc.1
+  IL_0049:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+  IL_004e:  brfalse.s  IL_005e
+  IL_0050:  ldloc.0
+  IL_0051:  ldarg.0
+  IL_0052:  ldfld      ""System.Threading.CancellationToken C.<Iter>d__1.<>3__token1""
+  IL_0057:  stfld      ""System.Threading.CancellationToken C.<Iter>d__1.token1""
+  IL_005c:  br.s       IL_0065
+  IL_005e:  ldloc.0
+  IL_005f:  ldarg.1
+  IL_0060:  stfld      ""System.Threading.CancellationToken C.<Iter>d__1.token1""
+  IL_0065:  ldloc.0
+  IL_0066:  ret
+}
+");
+            }
+        }
+
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenParameter_SomeTokenPassedInGetAsyncEnumerator_OptionalParameter()
+        {
+            string source = @"
+using static System.Console;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        using CancellationTokenSource source = new CancellationTokenSource();
+        CancellationToken token = source.Token;
+        var enumerable = Iter(42); // default value from optional parameter
+        await using var enumerator = enumerable.GetAsyncEnumerator(token); // some token passed
+
+        if (!await enumerator.MoveNextAsync()) throw null;
+        System.Console.Write($""{enumerator.Current} ""); // 42
+
+        if (!await enumerator.MoveNextAsync()) throw null;
+        System.Console.Write($""{enumerator.Current} ""); // 43
+
+        source.Cancel();
+        try
+        {
+            await enumerator.MoveNextAsync();
+        }
+        catch (System.OperationCanceledException)
+        {
+            Write(""Cancelled"");
+        }
+    }
+    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token1 = default)
+    {
+        yield return value++;
+        await Task.Yield();
+        yield return value++;
+        token1.ThrowIfCancellationRequested();
+        Write(""SKIPPED"");
+        yield return value++;
+    }
+}";
+            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
+            {
+                var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: options);
                 comp.VerifyDiagnostics();
                 var verifier = CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
 
@@ -5248,7 +5349,7 @@ class C
         yield return value++;
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "42 43 REACHED 44");
         }
@@ -5290,7 +5391,7 @@ class C
             Write(""Cancelled"");
         }
     }
-    static async System.Collections.Generic.IAsyncEnumerable<int> Iter([DefaultCancellation] CancellationToken token1, int value) // note: token is in first position
+    static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] CancellationToken token1, int value) // note: token is in first position
     {
         yield return value++;
         await Task.Yield();
@@ -5302,7 +5403,7 @@ class C
 }";
             foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
             {
-                var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType }, options: options);
+                var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: options);
                 comp.VerifyDiagnostics();
                 var verifier = CompileAndVerify(comp, expectedOutput: "42 43 Cancelled");
 
@@ -5366,17 +5467,17 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 class C
 {
-    static async System.Collections.Generic.IAsyncEnumerable<int> Iter([DefaultCancellation] int value)
+    static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] int value)
     {
         yield return value++;
         await Task.Yield();
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType });
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
             comp.VerifyDiagnostics(
-                // (6,73): warning CS8424: The DefaultCancellationAttribute applied to parameter 'value' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
-                //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter([DefaultCancellation] int value)
-                Diagnostic(ErrorCode.WRN_UnconsumedDefaultCancellationAttributeUsage, "DefaultCancellation").WithArguments("value").WithLocation(6, 73)
+                // (6,73): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'value' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
+                //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] int value)
+                Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("value").WithLocation(6, 73)
                 );
         }
 
@@ -5389,17 +5490,17 @@ using System.Threading;
 using System.Threading.Tasks;
 class C
 {
-    static async System.Collections.Generic.IAsyncEnumerator<int> Iter([DefaultCancellation] CancellationToken value)
+    static async System.Collections.Generic.IAsyncEnumerator<int> Iter([EnumeratorCancellation] CancellationToken value)
     {
         yield return 1;
         await Task.Yield();
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType });
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
             comp.VerifyDiagnostics(
-                // (7,73): warning CS8424: The DefaultCancellationAttribute applied to parameter 'value' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
-                //     static async System.Collections.Generic.IAsyncEnumerator<int> Iter([DefaultCancellation] CancellationToken value)
-                Diagnostic(ErrorCode.WRN_UnconsumedDefaultCancellationAttributeUsage, "DefaultCancellation").WithArguments("value").WithLocation(7, 73)
+                // (7,73): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'value' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
+                //     static async System.Collections.Generic.IAsyncEnumerator<int> Iter([EnumeratorCancellation] CancellationToken value)
+                Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("value").WithLocation(7, 73)
                 );
         }
 
@@ -5411,16 +5512,16 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 class C
 {
-    static System.Collections.Generic.IEnumerable<int> Iter([DefaultCancellation] CancellationToken token)
+    static System.Collections.Generic.IEnumerable<int> Iter([EnumeratorCancellation] CancellationToken token)
     {
         yield return 1;
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType });
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
             comp.VerifyDiagnostics(
-                // (6,62): warning CS8424: The DefaultCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
-                //     static System.Collections.Generic.IEnumerable<int> Iter([DefaultCancellation] CancellationToken token)
-                Diagnostic(ErrorCode.WRN_UnconsumedDefaultCancellationAttributeUsage, "DefaultCancellation").WithArguments("token").WithLocation(6, 62)
+                // (6,62): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
+                //     static System.Collections.Generic.IEnumerable<int> Iter([EnumeratorCancellation] CancellationToken token)
+                Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("token").WithLocation(6, 62)
                 );
         }
 
@@ -5433,16 +5534,16 @@ using System.Threading;
 using System.Threading.Tasks;
 class C
 {
-    static async Task Async([DefaultCancellation] CancellationToken token)
+    static async Task Async([EnumeratorCancellation] CancellationToken token)
     {
         await Task.Yield();
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType });
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
             comp.VerifyDiagnostics(
-                // (7,30): warning CS8424: The DefaultCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
-                //     static async Task Async([DefaultCancellation] CancellationToken token)
-                Diagnostic(ErrorCode.WRN_UnconsumedDefaultCancellationAttributeUsage, "DefaultCancellation").WithArguments("token").WithLocation(7, 30)
+                // (7,30): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
+                //     static async Task Async([EnumeratorCancellation] CancellationToken token)
+                Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("token").WithLocation(7, 30)
                 );
         }
 
@@ -5454,15 +5555,15 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 class C
 {
-    static void M([DefaultCancellation] CancellationToken token)
+    static void M([EnumeratorCancellation] CancellationToken token)
     {
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType });
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
             comp.VerifyDiagnostics(
-                // (6,20): warning CS8424: The DefaultCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
-                //     static void M([DefaultCancellation] CancellationToken token)
-                Diagnostic(ErrorCode.WRN_UnconsumedDefaultCancellationAttributeUsage, "DefaultCancellation").WithArguments("token").WithLocation(6, 20)
+                // (6,20): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
+                //     static void M([EnumeratorCancellation] CancellationToken token)
+                Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("token").WithLocation(6, 20)
                 );
         }
 
@@ -5474,13 +5575,13 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 class C
 {
-    int this[[DefaultCancellation] CancellationToken key] => 0;
+    int this[[EnumeratorCancellation] CancellationToken key] => 0;
 }";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType });
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
             comp.VerifyDiagnostics(
-                // (6,15): warning CS8424: The DefaultCancellationAttribute applied to parameter 'key' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
-                //     int this[[DefaultCancellation] CancellationToken key] => 0;
-                Diagnostic(ErrorCode.WRN_UnconsumedDefaultCancellationAttributeUsage, "DefaultCancellation").WithArguments("key").WithLocation(6, 15)
+                // (6,15): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'key' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-enumerable method
+                //     int this[[EnumeratorCancellation] CancellationToken key] => 0;
+                Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("key").WithLocation(6, 15)
                 );
         }
 
@@ -5517,7 +5618,7 @@ class C
             Write(""Cancelled"");
         }
     }
-    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [DefaultCancellation] CancellationToken token1, [DefaultCancellation] CancellationToken token2)
+    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token1, [EnumeratorCancellation] CancellationToken token2)
     {
         yield return value++;
         await Task.Yield();
@@ -5529,10 +5630,11 @@ class C
         yield return value++;
     }
 }";
-            // TODO2 should we produce a warning here?
+            // Should we produce a warning here (attribute specified on two parameters)?
+            // Tracked by https://github.com/dotnet/roslyn/issues/35159
             foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
             {
-                var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType }, options: options);
+                var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: options);
                 comp.VerifyDiagnostics();
                 var verifier = CompileAndVerify(comp, expectedOutput: "42 43 token1 cancelled token2 cancelled Cancelled");
 
@@ -5611,7 +5713,7 @@ using System.Threading;
 using System.Threading.Tasks;
 class C
 {
-    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [DefaultCancellation] CancellationToken token1)
+    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token1)
     {
         yield return value++;
         await Task.Yield();
@@ -5622,12 +5724,12 @@ class C
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using System.Runtime.CompilerServices;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Runtime.CompilerServices;").WithLocation(2, 1),
-                // (7,84): error CS0246: The type or namespace name 'DefaultCancellationAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [DefaultCancellation] CancellationToken token1)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "DefaultCancellation").WithArguments("DefaultCancellationAttribute").WithLocation(7, 84),
-                // (7,84): error CS0246: The type or namespace name 'DefaultCancellation' could not be found (are you missing a using directive or an assembly reference?)
-                //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [DefaultCancellation] CancellationToken token1)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "DefaultCancellation").WithArguments("DefaultCancellation").WithLocation(7, 84)
+                // (7,84): error CS0246: The type or namespace name 'EnumeratorCancellationAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token1)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "EnumeratorCancellation").WithArguments("EnumeratorCancellationAttribute").WithLocation(7, 84),
+                // (7,84): error CS0246: The type or namespace name 'EnumeratorCancellation' could not be found (are you missing a using directive or an assembly reference?)
+                //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token1)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "EnumeratorCancellation").WithArguments("EnumeratorCancellation").WithLocation(7, 84)
                 );
         }
 
@@ -5675,7 +5777,7 @@ class C
             Write(""Cancelled "");
         }
     }
-    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [DefaultCancellation] CancellationToken token1)
+    static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token1)
     {
         yield return value++;
         await Task.Yield();
@@ -5687,7 +5789,7 @@ class C
 }";
 
             // The parameter proxy is left untouched by our copying the token parameter of GetAsyncEnumerator
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "42 43 Cancelled 42 43 Reached 44");
         }
@@ -5702,7 +5804,7 @@ using System.Threading;
 using System.Threading.Tasks;
 public class Base
 {
-    public virtual async System.Collections.Generic.IAsyncEnumerable<int> Iter([DefaultCancellation] CancellationToken token1, int value)
+    public virtual async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] CancellationToken token1, int value)
     {
         yield return value++;
         await Task.Yield();
@@ -5717,7 +5819,7 @@ public class C : Base
         using CancellationTokenSource source = new CancellationTokenSource();
         CancellationToken token = source.Token;
         source.Cancel();
-        await using var enumerator = enumerable.GetAsyncEnumerator(token); // some token passed but unconsumed 
+        await using var enumerator = enumerable.GetAsyncEnumerator(token); // some token passed but unconsumed
 
         if (!await enumerator.MoveNextAsync()) throw null;
         System.Console.Write($""{enumerator.Current}""); // 42
@@ -5730,8 +5832,8 @@ public class C : Base
         yield return value;
     }
 }";
-            // The overridden method lacks the DefaultCancellation attribute
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType }, options: TestOptions.DebugExe);
+            // The overridden method lacks the EnumeratorCancellation attribute
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Reached 42");
         }
@@ -5775,7 +5877,7 @@ public class C : Base
             Write(""Cancelled"");
         }
     }
-    public override async System.Collections.Generic.IAsyncEnumerable<int> Iter([DefaultCancellation] CancellationToken token1, int value)
+    public override async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] CancellationToken token1, int value)
     {
         yield return value++;
         await Task.Yield();
@@ -5784,8 +5886,8 @@ public class C : Base
         yield return value;
     }
 }";
-            // The overridden method has the DefaultCancellation attribute
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, DefaultCancellationAttributeType }, options: TestOptions.DebugExe);
+            // The overridden method has the EnumeratorCancellation attribute
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "42 Cancelled");
         }
