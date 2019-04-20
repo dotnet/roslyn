@@ -4,8 +4,10 @@ using System;
 using System.Composition;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.EditorConfig;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.CodingConventions;
 using Roslyn.Utilities;
@@ -13,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
     [Export(typeof(IDocumentOptionsProviderFactory)), Shared]
-    class EditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
+    class LegacyEditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
         private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IFileWatcher _fileWatcher;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorConfigDocumentOptionsProviderFactory(
+        public LegacyEditorConfigDocumentOptionsProviderFactory(
             ICodingConventionsManager codingConventionsManager,
             IFileWatcher fileWatcher,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
@@ -31,8 +33,14 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             _asynchronousOperationListenerProvider = asynchronousOperationListenerProvider;
         }
 
-        public IDocumentOptionsProvider Create(Workspace workspace)
+        public IDocumentOptionsProvider TryCreate(Workspace workspace)
         {
+            if (EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport)
+            {
+                // If the native support exists, then we'll simply disable this one
+                return null;
+            }
+
             ICodingConventionsManager codingConventionsManager;
 
             if (workspace.Kind == WorkspaceKind.RemoteWorkspace)
@@ -51,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager(deferredFileWatcher);
             }
 
-            return new EditorConfigDocumentOptionsProvider(workspace, codingConventionsManager, _asynchronousOperationListenerProvider);
+            return new LegacyEditorConfigDocumentOptionsProvider(workspace, codingConventionsManager, _asynchronousOperationListenerProvider);
         }
 
         /// <summary>

@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
     // This class is currently linked into both EditorFeatures.Wpf (VS in-process) and RemoteWorkspaces (Roslyn out-of-process).
-    internal sealed partial class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
+    internal sealed partial class LegacyEditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
     {
         private readonly object _gate = new object();
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IErrorLoggerService _errorLogger;
 
-        internal EditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager, IAsynchronousOperationListenerProvider listenerProvider)
+        internal LegacyEditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager, IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workspace = workspace;
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         }
 
         /// <summary>
-        /// This partial method allows implementations of <see cref="EditorConfigDocumentOptionsProvider"/> (which are
+        /// This partial method allows implementations of <see cref="LegacyEditorConfigDocumentOptionsProvider"/> (which are
         /// linked into both the in-process and out-of-process implementations as source files) to handle the creation
         /// of <see cref="ICodingConventionContext"/> in different ways.
         /// </summary>
