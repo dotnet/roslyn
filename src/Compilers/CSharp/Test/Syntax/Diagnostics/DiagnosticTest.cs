@@ -251,6 +251,7 @@ class X
                         case ErrorCode.WRN_IsTypeNamedUnderscore:
                         case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                        case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:

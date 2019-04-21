@@ -42,7 +42,12 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             foreach (var providerFactory in documentOptionsProviderFactories)
             {
-                Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(providerFactory.Create(this));
+                var optionsProvider = providerFactory.TryCreate(this);
+
+                if (optionsProvider != null)
+                {
+                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
+                }
             }
         }
 

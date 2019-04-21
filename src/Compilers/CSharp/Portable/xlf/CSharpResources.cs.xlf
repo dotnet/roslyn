@@ -247,6 +247,11 @@
         <target state="translated">Chybějící vzor</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
+        <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
+        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Omezení new() nejde používat s omezením unmanaged.</target>
@@ -1735,6 +1740,16 @@
       <trans-unit id="WRN_UnboxPossibleNull_Title">
         <source>Unboxing a possibly null value.</source>
         <target state="new">Unboxing a possibly null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage">
+        <source>The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
+        <target state="new">The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title">
+        <source>The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
+        <target state="new">The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">

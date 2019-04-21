@@ -294,9 +294,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var bestOrFirstCompletionItem = bestItem ?? itemsInList.First().FilterResult.CompletionItem;
 
             // Check that it is a filter symbol. We can be called for a non-filter symbol.
+            // If inserting a non-filter character (neither IsPotentialFilterCharacter, nor Helpers.IsFilterCharacter), we should dismiss completion  
+            // except cases where this is the first symbol typed for the completion session (string.IsNullOrEmpty(filterText) or string.Equals(filterText, typeChar.ToString(), StringComparison.OrdinalIgnoreCase)).
+            // In the latter case, we should keep the completion because it was confirmed just before in InitializeCompletion.
             if (filterReason == CompletionFilterReason.Insertion &&
-                !IsPotentialFilterCharacter(typeChar) &&
                 !string.IsNullOrEmpty(filterText) &&
+                !string.Equals(filterText, typeChar.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                !IsPotentialFilterCharacter(typeChar) &&
                 !Helpers.IsFilterCharacter(bestOrFirstCompletionItem, typeChar, filterText))
             {
                 return null;
@@ -626,7 +630,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // can hard select this.
             return true;
         }
-
 
         /// <summary>
         /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"

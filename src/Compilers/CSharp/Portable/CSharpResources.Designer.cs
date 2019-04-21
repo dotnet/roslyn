@@ -6964,6 +6964,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Multiple analyzer config files cannot be in the same directory (&apos;{0}&apos;)..
+        /// </summary>
+        internal static string ERR_MultipleAnalyzerConfigsInSameDir {
+            get {
+                return ResourceManager.GetString("ERR_MultipleAnalyzerConfigsInSameDir", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point..
         /// </summary>
         internal static string ERR_MultipleEntryPoints {
@@ -16212,6 +16221,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_UnboxPossibleNull_Title {
             get {
                 return ResourceManager.GetString("WRN_UnboxPossibleNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The EnumeratorCancellationAttribute applied to parameter &apos;{0}&apos; will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable.
+        /// </summary>
+        internal static string WRN_UnconsumedEnumeratorCancellationAttributeUsage {
+            get {
+                return ResourceManager.GetString("WRN_UnconsumedEnumeratorCancellationAttributeUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable.
+        /// </summary>
+        internal static string WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title {
+            get {
+                return ResourceManager.GetString("WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title", resourceCulture);
             }
         }
         
