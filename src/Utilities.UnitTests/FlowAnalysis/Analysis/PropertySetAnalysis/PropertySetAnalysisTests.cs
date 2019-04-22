@@ -48,7 +48,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </summary>
         /// <param name="source">C# source code, with /*&lt;bind&gt;*/ and /*&lt;/bind&gt;*/ around the method block to be analyzed.</param>
         /// <param name="propertySetAnalysisParameters">PropertySetAnalysis parameters.</param>
-        /// <param name="expectedResults">Expected hazardous usages.</param>
+        /// <param name="expectedResults">Expected hazardous usages (MethodName = null => return statement).</param>
         private void VerifyCSharp(
             string source,
             PropertySetAnalysisParameters propertySetAnalysisParameters,
@@ -104,7 +104,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                             if (span.StartLinePosition.Line + 1 == Line
                                 && span.StartLinePosition.Character + 1 == Column
-                                && kvp.Key.Method.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) == Method)
+                                && kvp.Key.Method?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) == Method)
                             {
                                 actualResult = kvp.Value;
                                 break;
@@ -113,10 +113,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                         Assert.True(
                             actualResult.HasValue,
-                            $"Could not find expected result Line {Line} Column {Column} Method {Method} Result {Result}");
+                            $"Could not find expected result Line {Line} Column {Column} {MethodOrReturnString(Method)} Result {Result}");
                         Assert.True(
                             actualResult == Result,
-                            $"Expected {Result}, Actual {actualResult}, for Line {Line} Column {Column} Method {Method}");
+                            $"Expected {Result}, Actual {actualResult}, for Line {Line} Column {Column} {MethodOrReturnString(Method)}");
                     }
                 }
                 catch (XunitException)
@@ -134,12 +134,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         int lineNumber = linePosition.Line + 1;
                         int columnNumber = linePosition.Character + 1;
                         TestOutput.WriteLine(
-                            $"Line {lineNumber}, Column {columnNumber}, Method {kvp.Key.Method.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}: {kvp.Value}");
+                            $"Line {lineNumber}, Column {columnNumber}, {MethodSymbolOrReturnString(kvp.Key.Method)}: {kvp.Value}");
                     }
                     TestOutput.WriteLine("============================");
 
                     throw;
                 }
+            }
+
+            string MethodSymbolOrReturnString(IMethodSymbol methodSymbol)
+            {
+                return methodSymbol != null ? $"Method {methodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}" : "Return";
+            }
+
+            string MethodOrReturnString(string method)
+            {
+                return method != null ? $"Method {method}" : "Return";
             }
         }
 
@@ -1064,55 +1074,55 @@ class TestClass
                         })));
 
         [Fact]
-        public void TestTypeToTrack_HazardousIfStringIsNonNull_Flagged()
+        public void TestTypeToTrack_HazardousIfStringIsNonNullOnReturn_Flagged()
         {
             VerifyCSharp(@"
 class TestClass
 {
-    void TestMethod()
+    TestTypeToTrack TestMethod()
     /*<bind>*/{
         TestTypeToTrack t = new TestTypeToTrack();
         t.AString = ""A non-null string"";
-        t.Method();
+        return t;
     }/*</bind>*/
 }",
-                TestTypeToTrack_HazardousIfStringIsNonNull,
-                (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
+                TestTypeToTrack_HazardousIfStringIsNonNullOnReturn,
+                (8, 16, null, HazardousUsageEvaluationResult.Flagged));
         }
 
         [Fact]
-        public void TestTypeToTrack_HazardousIfStringIsNonNull_StringEmpty_MaybeFlagged()
+        public void TestTypeToTrack_HazardousIfStringIsNonNullOnReturn_StringEmpty_MaybeFlagged()
         {
             VerifyCSharp(@"
 using System;
 
 class TestClass
 {
-    void TestMethod()
+    TestTypeToTrack TestMethod()
     /*<bind>*/{
         TestTypeToTrack t = new TestTypeToTrack();
         t.AString = String.Empty;   // Ideally String.Empty would be NullAbstractValue.NonNull.
-        t.Method();
+        return t;
     }/*</bind>*/
 }",
-                TestTypeToTrack_HazardousIfStringIsNonNull,
-                (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
+                TestTypeToTrack_HazardousIfStringIsNonNullOnReturn,
+                (10, 16, null, HazardousUsageEvaluationResult.MaybeFlagged));
         }
 
         [Fact]
-        public void TestTypeToTrack_HazardousIfStringIsNonNull_Unflagged()
+        public void TestTypeToTrack_HazardousIfStringIsNonNullOnReturns_Unflagged()
         {
             VerifyCSharp(@"
 class TestClass
 {
-    void TestMethod()
+    TestTypeToTrack TestMethod()
     /*<bind>*/{
         TestTypeToTrack t = new TestTypeToTrack();
         t.AString = null;
-        t.Method();
+        return t;
     }/*</bind>*/
 }",
-                TestTypeToTrack_HazardousIfStringIsNonNull);
+                TestTypeToTrack_HazardousIfStringIsNonNullOnReturn);
         }
 
         #region Infrastructure
