@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -841,6 +844,42 @@ namespace Baz
 }";
             var markup = CreateMarkupForProjecWithAliasedProjectReference(file2, "alias1", file1, LanguageNames.CSharp, LanguageNames.CSharp);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ShorterTypeNameShouldShowBeforeLongerTypeName()
+        {
+            var file1 = $@"
+namespace Foo
+{{
+    public class SomeType
+    {{}} 
+    public class SomeTypeWithLongerName
+    {{}}
+}}";
+            var file2 = @"
+namespace Baz
+{
+    class Bat
+    {
+         $$
+    }
+}";
+            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+            var completionList = await GetCompletionListAsync(markup).ConfigureAwait(false);
+            AssertRelativeOrder(new List<string>() { "SomeType", "SomeTypeWithLongerName" }, completionList.Items);
+        }
+
+        private static void AssertRelativeOrder(List<string> expectedTypesInRelativeOrder, ImmutableArray<CompletionItem> allCompletionItems)
+        {
+            var hashset = new HashSet<string>(expectedTypesInRelativeOrder);
+            var actualTypesInRelativeOrder = allCompletionItems.Where(item => hashset.Contains(item.DisplayText)).Select(item => item.DisplayText).ToImmutableArray();
+
+            Assert.Equal(expectedTypesInRelativeOrder.Count, actualTypesInRelativeOrder.Length);
+            for (var i = 0; i < expectedTypesInRelativeOrder.Count; ++i)
+            {
+                Assert.Equal(expectedTypesInRelativeOrder[i], actualTypesInRelativeOrder[i]);
+            }
         }
 
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null)
