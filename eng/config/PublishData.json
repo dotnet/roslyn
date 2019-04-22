@@ -32,7 +32,7 @@
             "version": "3.1.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev16.1" ],
+            "channels": [ "dev16.1", "dev16.1p3" ],
             "vsBranch": "lab/d16.1stg",
             "vsMajorVersion": 16
           },
