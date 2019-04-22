@@ -182,6 +182,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(sourceExpression != null);
             Debug.Assert((object)destination != null);
 
+            if (sourceExpression.Type?.SpecialType == SpecialType.System_Void || destination.SpecialType == SpecialType.System_Void)
+            {
+                return Conversion.NoConversion;
+            }
+
             if (forCast)
             {
                 return ClassifyConversionFromExpressionForCast(sourceExpression, destination, ref useSiteDiagnostics);
