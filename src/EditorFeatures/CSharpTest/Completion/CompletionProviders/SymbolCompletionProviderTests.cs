@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -10133,6 +10134,82 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "Clone");
             await VerifyItemIsAbsentAsync(markup, "Method");
             await VerifyItemIsAbsentAsync(markup, "Target");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
+        public async Task TestTargetTypeFilterWithExperimentEnabled()
+        {
+            var markup =
+@"public class C
+{
+    int intField;
+    void M(int x)
+    {
+        M($$);
+    }
+}";
+            await VerifyItemExistsAsync(
+                markup, "intField",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter },
+                targetTypedFilterExperimentEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
+        public async Task TestNoTargetTypeFilterWithExperimentDisabled()
+        {
+            var markup =
+@"public class C
+{
+    int intField;
+    void M(int x)
+    {
+        M($$);
+    }
+}";
+            await VerifyItemExistsAsync(
+                markup, "intField",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter },
+                targetTypedFilterExperimentEnabled: false);
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
+        public async Task TestTargetTypeFilter_NotOnObjectMembers()
+        {
+            var markup =
+@"public class C
+{
+    void M(int x)
+    {
+        M($$);
+    }
+}";
+            await VerifyItemExistsAsync(
+                markup, "GetHashCode",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.MethodFilter },
+                targetTypedFilterExperimentEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
+        public async Task TestTargetTypeFilter_NotNamedTypes()
+        {
+            var markup =
+@"public class C
+{
+    void M(C c)
+    {
+        M($$);
+    }
+}";
+            await VerifyItemExistsAsync(
+                markup, "c",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.LocalAndParameterFilter, CompletionItemFilter.TargetTypedFilter },
+                targetTypedFilterExperimentEnabled: true);
+
+            await VerifyItemExistsAsync(
+                markup, "C",
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.ClassFilter },
+                targetTypedFilterExperimentEnabled: true);
         }
     }
 }

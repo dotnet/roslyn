@@ -4682,6 +4682,28 @@ class C
             End Using
         End Function
 
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestDismissCompletionOnBacktick(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+using System;
+class C
+{
+    void Method()
+    {
+        Con$$
+    }
+}
+                              </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                state.SendTypeChars("`")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 

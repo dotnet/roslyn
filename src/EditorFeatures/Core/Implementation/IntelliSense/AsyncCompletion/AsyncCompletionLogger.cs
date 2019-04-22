@@ -2,9 +2,9 @@
 
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
+namespace Microsoft.CodeAnalysis
 {
-    internal static class AsyncCompletionLogger
+    internal class AsyncCompletionLogger
     {
         private static readonly LogAggregator s_logAggregator = new LogAggregator();
 
@@ -14,6 +14,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SessionWithTypeImportCompletionEnabled,
             CommitWithTypeImportCompletionEnabled,
             CommitTypeImportCompletionItem,
+
+            // For targeted type completion
+            SessionHasTargetTypeFilterEnabled,
+
+            // TargetTypeFilterChosenInSession / SessionContainsTargetTypeFilter indicates % of the time 
+            // the Target Type Completion Filter is chosen of the sessions offering it.
+            SessionContainsTargetTypeFilter,
+            TargetTypeFilterChosenInSession,
+
+            // CommitItemWithTargetTypeFilter / CommitWithTargetTypeCompletionExperimentEnabled indicates 
+            // % of the time a completion item is committed that could have been picked via the Target Type 
+            // Completion Filter.
+            CommitWithTargetTypeCompletionExperimentEnabled,
+            CommitItemWithTargetTypeFilter,
         }
 
         internal static void LogSessionWithTypeImportCompletionEnabled() =>
@@ -24,6 +38,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         internal static void LogCommitTypeImportCompletionItem() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitTypeImportCompletionItem);
+
+        internal static void LogCommitWithTargetTypeCompletionExperimentEnabled() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitWithTargetTypeCompletionExperimentEnabled);
+
+        internal static void LogCommitItemWithTargetTypeFilter() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitItemWithTargetTypeFilter);
+
+        internal static void LogSessionContainsTargetTypeFilter() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.SessionContainsTargetTypeFilter);
+
+        internal static void LogTargetTypeFilterChosenInSession() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.TargetTypeFilterChosenInSession);
+
+        internal static void LogSessionHasTargetTypeFilterEnabled() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.SessionHasTargetTypeFilterEnabled);
 
         internal static void ReportTelemetry()
         {

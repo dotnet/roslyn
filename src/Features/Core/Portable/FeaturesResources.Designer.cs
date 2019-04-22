@@ -3544,6 +3544,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Target type matches.
+        /// </summary>
+        internal static string Target_type_matches {
+            get {
+                return ResourceManager.GetString("Target_type_matches", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The address of a variable is used inside the selected code..
         /// </summary>
         internal static string The_address_of_a_variable_is_used_inside_the_selected_code {

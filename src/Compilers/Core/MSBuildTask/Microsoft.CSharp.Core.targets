@@ -18,7 +18,8 @@
                   @(CustomAdditionalCompileInputs);
                   $(ResolvedCodeAnalysisRuleSet);
                   @(AdditionalFiles);
-                  @(EmbeddedFiles)"
+                  @(EmbeddedFiles);
+                  @(EditorConfigFiles)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
                    @(IntermediateRefAssembly);
@@ -60,6 +61,7 @@
          AddModules="@(AddModules)"
          AdditionalFiles="@(AdditionalFiles)"
          AllowUnsafeBlocks="$(AllowUnsafeBlocks)"
+         AnalyzerConfigFiles="@(EditorConfigFiles)"
          Analyzers="@(Analyzer)"
          ApplicationConfiguration="$(AppConfigForCompiler)"
          BaseAddress="$(BaseAddress)"
@@ -103,6 +105,7 @@
          OutputRefAssembly="@(IntermediateRefAssembly)"
          PdbFile="$(PdbFile)"
          Platform="$(PlatformTarget)"
+         PotentialAnalyzerConfigFiles="@(PotentialEditorConfigFiles)"
          Prefer32Bit="$(Prefer32Bit)"
          PreferredUILang="$(PreferredUILang)"
          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"

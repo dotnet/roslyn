@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string ExcludedCommitCharacters = nameof(ExcludedCommitCharacters);
         internal const string NonBlockingCompletion = nameof(NonBlockingCompletion);
         internal const string TypeImportCompletionEnabled = nameof(TypeImportCompletionEnabled);
+        internal const string TargetTypeFilterExperimentEnabled = nameof(TargetTypeFilterExperimentEnabled);
 
         private static readonly ImmutableArray<ImageElement> s_WarningImageAttributeImagesArray =
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element));
@@ -103,13 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
             _textView.Properties[PotentialCommitCharacters] = service.GetRules().DefaultCommitCharacters;
 
-            // For telemetry reporting during the completion session
-            var isTypeImportEnababled = IsTypeImportCompletionEnabled(document);
-            _textView.Properties[TypeImportCompletionEnabled] = isTypeImportEnababled;
-            if (isTypeImportEnababled)
-            {
-                AsyncCompletionLogger.LogSessionWithTypeImportCompletionEnabled();
-            }
+            CheckForExperimentStatus(_textView, document);
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
@@ -121,14 +116,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         service.GetDefaultCompletionListSpan(sourceText, triggerLocation.Position).ToSpan()))
                 : AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
 
-            static bool IsTypeImportCompletionEnabled(Document document)
+            // For telemetry reporting purpose
+            static void CheckForExperimentStatus(ITextView textView, Document document)
             {
                 var workspace = document.Project.Solution.Workspace;
-                var importCompletionOptionValue = workspace.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
-                var importCompletionExperimentValue = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion);
 
-                return importCompletionOptionValue == true || (importCompletionOptionValue == null && importCompletionExperimentValue);
+                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                textView.Properties[TargetTypeFilterExperimentEnabled] = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
+
+                var importCompletionOptionValue = workspace.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
+                var importCompletionExperimentValue = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion);
+                var isTypeImportEnababled = importCompletionOptionValue == true || (importCompletionOptionValue == null && importCompletionExperimentValue);
+                textView.Properties[TypeImportCompletionEnabled] = isTypeImportEnababled;
             }
         }
 
@@ -320,10 +319,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             Document document,
             RoslynCompletionItem roslynItem)
         {
-            if (s_roslynItemToVsItem.TryGetValue(roslynItem, out var vsItem))
+            if (roslynItem.IsCached && s_roslynItemToVsItem.TryGetValue(roslynItem, out var vsItem))
             {
                 return vsItem;
             }
+
             var imageId = roslynItem.Tags.GetFirstGlyph().GetImageId();
             var filters = GetFilters(roslynItem);
 
@@ -350,7 +350,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 attributeIcons: attributeImages);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
-            s_roslynItemToVsItem.Add(roslynItem, item);
+
+            // It doesn't make sense to cache VS item for those Roslyn items created from scratch for each session,
+            // since CWT uses object identity for comparison.
+            if (roslynItem.IsCached)
+            {
+                s_roslynItemToVsItem.Add(roslynItem, item);
+            }
 
             return item;
         }

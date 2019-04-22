@@ -67,9 +67,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return file;
         }
 
-        internal static void CreateStream(string fullPath)
+        internal static void CreateStream(string fullPath, FileMode mode)
         {
-            using (var file = new FileStream(fullPath, FileMode.CreateNew)) { }
+            using (var file = new FileStream(fullPath, mode)) { }
         }
     }
 }
