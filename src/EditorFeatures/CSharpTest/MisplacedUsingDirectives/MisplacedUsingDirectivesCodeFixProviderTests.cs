@@ -263,6 +263,34 @@ namespace System
             return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
         }
 
+
+        /// <summary>
+        /// Verifies that the code fix will move the using directives when they are present in both the compilation unit and namespace.
+        /// </summary>
+        [Fact]
+        public Task WhenOutsidePreferred_UsingsInBoth_UsingsMoved()
+        {
+            var testCode = @"
+using Microsoft.CodeAnalysis;
+
+namespace TestNamespace
+{
+    [|using System;|]
+}
+";
+
+            var fixedTestCode = @"
+using Microsoft.CodeAnalysis;
+{|Warning:using System;|}
+
+namespace TestNamespace
+{
+}
+";
+
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+        }
+
         /// <summary>
         /// Verifies that simplified using statements in a namespace are expanded during the code fix operation.
         /// </summary>
@@ -323,7 +351,6 @@ namespace TestNamespace
 
         /// <summary>
         /// Verifies that the file header of a file is properly preserved when moving using statements out of a namespace.
-        /// This is a regression test for #1941.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous unit test.</returns>
         [Fact]
@@ -762,6 +789,30 @@ namespace TestNamespace
 {
     {|Warning:using Microsoft.CodeAnalysis;|}
     {|Warning:using System;|}
+}
+";
+
+            return TestInRegularAndScriptAsync(testCode, fixedTestCode, InsideNamespaceOption, placeSystemNamespaceFirst: true);
+        }
+
+        /// <summary>
+        /// Verifies that the code fix will move the using directives when they are present in both the compilation unit and namespace.
+        /// </summary>
+        [Fact]
+        public Task WhenInsidePreferred_UsingsInBoth_UsingsMoved()
+        {
+            var testCode = @"[|using Microsoft.CodeAnalysis;|]
+
+namespace TestNamespace
+{
+    using System;
+}
+";
+
+            var fixedTestCode = @"namespace TestNamespace
+{
+    {|Warning:using Microsoft.CodeAnalysis;|}
+    using System;
 }
 ";
 

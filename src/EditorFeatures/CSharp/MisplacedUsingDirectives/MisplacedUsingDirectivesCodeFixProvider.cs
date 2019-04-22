@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         public override FixAllProvider GetFixAllProvider()
         {
+            // Since we work on an entire document at a time fixing all contained diagnostics, the batch fixer should not have merge conflicts.
             return WellKnownFixAllProviders.BatchFixer;
         }
 
