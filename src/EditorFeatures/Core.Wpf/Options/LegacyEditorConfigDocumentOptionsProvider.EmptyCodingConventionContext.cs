@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
-    internal sealed partial class EditorConfigDocumentOptionsProvider
+    internal sealed partial class LegacyEditorConfigDocumentOptionsProvider
     {
         private class EmptyCodingConventionContext : ICodingConventionContext
         {

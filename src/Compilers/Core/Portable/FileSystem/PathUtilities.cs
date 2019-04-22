@@ -720,6 +720,13 @@ namespace Roslyn.Utilities
             }
         }
 
+        /// <summary>
+        /// If the current environment uses the '\' directory separator, replaces all uses of '\'
+        /// in the given string with '/'. Otherwise, returns the string.
+        /// </summary>
+        public static string NormalizeWithForwardSlash(string p)
+            => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
+
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 
         private class PathComparer : IEqualityComparer<string>

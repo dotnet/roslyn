@@ -182,7 +182,7 @@ IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken token)
     {
         result = new {StateMachineType}(InitialState);
     }
-    /* copy all of the parameter proxies */
+    /* copy each parameter proxy, or copy the token parameter if it's not default for any parameter marked with [EnumeratorCancellation] attribute */
 }
 ```
 For a discussion of the threadID check, see https://github.com/dotnet/corefx/issues/3481

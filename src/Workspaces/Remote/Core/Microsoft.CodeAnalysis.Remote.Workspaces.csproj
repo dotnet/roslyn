@@ -15,10 +15,10 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\EditorConfigDocumentOptionsProvider.cs" Link="Services\Options\EditorConfigDocumentOptionsProvider.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\EditorConfigDocumentOptionsProvider.DocumentOptions.cs" Link="Services\Options\EditorConfigDocumentOptionsProvider.DocumentOptions.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\EditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" Link="Services\Options\EditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\EditorConfigDocumentOptionsProviderFactory.cs" Link="Services\Options\EditorConfigDocumentOptionsProviderFactory.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.cs" Link="Services\Options\LegacyEditorConfigDocumentOptionsProvider.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.DocumentOptions.cs" Link="Services\Options\LegacyEditorConfigDocumentOptionsProvider.DocumentOptions.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" Link="Services\Options\LegacyEditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProviderFactory.cs" Link="Services\Options\LegacyEditorConfigDocumentOptionsProviderFactory.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

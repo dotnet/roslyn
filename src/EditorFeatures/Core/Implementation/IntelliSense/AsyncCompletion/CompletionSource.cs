@@ -300,10 +300,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             Document document,
             RoslynCompletionItem roslynItem)
         {
-            if (s_roslynItemToVsItem.TryGetValue(roslynItem, out var vsItem))
+            if (roslynItem.IsCached && s_roslynItemToVsItem.TryGetValue(roslynItem, out var vsItem))
             {
                 return vsItem;
             }
+
             var imageId = roslynItem.Tags.GetFirstGlyph().GetImageId();
             var filters = GetFilters(roslynItem);
 
@@ -330,7 +331,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 attributeIcons: attributeImages);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
-            s_roslynItemToVsItem.Add(roslynItem, item);
+
+            // It doesn't make sense to cache VS item for those Roslyn items created from scratch for each session,
+            // since CWT uses object identity for comparison.
+            if (roslynItem.IsCached)
+            {
+                s_roslynItemToVsItem.Add(roslynItem, item);
+            }
 
             return item;
         }
