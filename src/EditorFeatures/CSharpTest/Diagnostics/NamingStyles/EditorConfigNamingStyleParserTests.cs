@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact]
         public static void TestPascalCaseRule()
         {
-            var dictionary = new Dictionary<string, object>()
+            var dictionary = new Dictionary<string, string>()
             {
                 ["dotnet_naming_rule.methods_and_properties_must_be_pascal_case.severity"] = "warning",
                 ["dotnet_naming_rule.methods_and_properties_must_be_pascal_case.symbols"] = "method_and_property_symbols",
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact]
         public static void TestAsyncMethodsAndLocalFunctionsRule()
         {
-            var dictionary = new Dictionary<string, object>()
+            var dictionary = new Dictionary<string, string>()
             {
                 ["dotnet_naming_rule.async_methods_must_end_with_async.severity"] = "error",
                 ["dotnet_naming_rule.async_methods_must_end_with_async.symbols"] = "method_symbols",
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact]
         public static void TestRuleWithoutCapitalization()
         {
-            var dictionary = new Dictionary<string, object>()
+            var dictionary = new Dictionary<string, string>()
             {
                 ["dotnet_naming_rule.async_methods_must_end_with_async.symbols"] = "any_async_methods",
                 ["dotnet_naming_rule.async_methods_must_end_with_async.style"] = "end_in_async",
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact]
         public static void TestPublicMembersCapitalizedRule()
         {
-            var dictionary = new Dictionary<string, object>()
+            var dictionary = new Dictionary<string, string>()
             {
                 ["dotnet_naming_rule.public_members_must_be_capitalized.severity"] = "suggestion",
                 ["dotnet_naming_rule.public_members_must_be_capitalized.symbols"] = "public_symbols",
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact]
         public static void TestNonPublicMembersLowerCaseRule()
         {
-            var dictionary = new Dictionary<string, object>()
+            var dictionary = new Dictionary<string, string>()
             {
                 ["dotnet_naming_rule.non_public_members_must_be_lower_case.severity"] = "incorrect",
                 ["dotnet_naming_rule.non_public_members_must_be_lower_case.symbols "] = "non_public_symbols",
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact]
         public static void TestParametersAndLocalsAreCamelCaseRule()
         {
-            var dictionary = new Dictionary<string, object>()
+            var dictionary = new Dictionary<string, string>()
             {
                 ["dotnet_naming_rule.parameters_and_locals_are_camel_case.severity"] = "suggestion",
                 ["dotnet_naming_rule.parameters_and_locals_are_camel_case.symbols"] = "parameters_and_locals",
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact]
         public static void TestLocalFunctionsAreCamelCaseRule()
         {
-            var dictionary = new Dictionary<string, object>()
+            var dictionary = new Dictionary<string, string>()
             {
                 ["dotnet_naming_rule.local_functions_are_camel_case.severity"] = "suggestion",
                 ["dotnet_naming_rule.local_functions_are_camel_case.symbols"] = "local_functions",
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact]
         public static void TestNoRulesAreReturned()
         {
-            var dictionary = new Dictionary<string, object>()
+            var dictionary = new Dictionary<string, string>()
             {
                 ["dotnet_naming_symbols.non_public_symbols.applicable_kinds  "] = "property,method,field,event,delegate",
                 ["dotnet_naming_symbols.non_public_symbols.applicable_accessibilities"] = "private",
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
         public static void TestApplicableKindsParse(string specification, object[] typeOrSymbolKinds)
         {
-            var rule = new Dictionary<string, object>()
+            var rule = new Dictionary<string, string>()
             {
                 ["dotnet_naming_rule.kinds_parse.severity"] = "error",
                 ["dotnet_naming_rule.kinds_parse.symbols"] = "kinds",
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
         public static void TestApplicableAccessibilitiesParse(string specification, Accessibility[] accessibilities)
         {
-            var rule = new Dictionary<string, object>()
+            var rule = new Dictionary<string, string>()
             {
                 ["dotnet_naming_rule.accessibilities_parse.severity"] = "error",
                 ["dotnet_naming_rule.accessibilities_parse.symbols"] = "accessibilities",
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Fact]
         public static void TestRequiredModifiersParse()
         {
-            var charpRule = new Dictionary<string, object>()
+            var charpRule = new Dictionary<string, string>()
             {
                 ["dotnet_naming_rule.modifiers_parse.severity"] = "error",
                 ["dotnet_naming_rule.modifiers_parse.symbols"] = "modifiers",
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 ["dotnet_naming_symbols.modifiers.required_modifiers"] = "abstract,static",
                 ["dotnet_naming_style.pascal_case.capitalization "] = "pascal_case",
             };
-            var vbRule = new Dictionary<string, object>()
+            var vbRule = new Dictionary<string, string>()
             {
                 ["dotnet_naming_rule.modifiers_parse.severity"] = "error",
                 ["dotnet_naming_rule.modifiers_parse.symbols"] = "modifiers",

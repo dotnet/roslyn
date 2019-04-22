@@ -24,38 +24,57 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return New VisualBasicCompletionService(workspace, exclusiveProviders)
         End Function
 
-        Protected Overrides Function BaseVerifyWorkerAsync(
+        Private Protected Overrides Function BaseVerifyWorkerAsync(
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
-                hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String) As Task
+                hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
+                matchingFilters As List(Of CompletionItemFilter),
+                targetTypedExperimentEnabled As Boolean) As Task
             Return MyBase.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription)
+                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                matchingFilters, targetTypedExperimentEnabled)
         End Function
 
-        Protected Overrides Async Function VerifyWorkerAsync(
+        Private Protected Overrides Async Function VerifyWorkerAsync(
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
-                hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String) As Task
+                hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
+                matchingFilters As List(Of CompletionItemFilter),
+                targetTypedExperimentEnabled As Boolean) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> Microsoft.CodeAnalysis.SourceCodeKind.Regular Then
                 Return
             End If
 
-            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix)
-            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix)
+            Await VerifyAtPositionAsync(
+                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                matchingFilters, targetTypedExperimentEnabled)
+
+            Await VerifyAtEndOfFileAsync(
+                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                matchingFilters, targetTypedExperimentEnabled)
 
             ' Items cannot be partially written if we're checking for their absence,
             ' or if we're verifying that the list will show up (without specifying an actual item)
             If Not checkForAbsence AndAlso expectedItemOrNull <> Nothing Then
-                Await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix)
-                Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix)
+                Await VerifyAtPosition_ItemPartiallyWrittenAsync(
+                    code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                    sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+                    inlineDescription, matchingFilters, targetTypedExperimentEnabled)
+
+                Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+                    code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                    sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+                    inlineDescription, matchingFilters, targetTypedExperimentEnabled)
             End If
         End Function
 

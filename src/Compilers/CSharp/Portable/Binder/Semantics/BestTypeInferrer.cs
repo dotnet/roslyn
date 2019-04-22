@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithAnnotations> types)
         {
-            NullableAnnotation result = NullableAnnotation.NotAnnotated;
+            var result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
             {
                 Debug.Assert(type.HasType);

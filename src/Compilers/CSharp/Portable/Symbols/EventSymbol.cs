@@ -346,6 +346,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        CodeAnalysis.NullableAnnotation IEventSymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+
         IMethodSymbol IEventSymbol.AddMethod
         {
             get
