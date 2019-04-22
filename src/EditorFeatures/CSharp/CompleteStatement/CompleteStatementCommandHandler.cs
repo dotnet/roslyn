@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             }
             else
             {
-                // keep caret tbeyhe same, but continue analyzing with the parent of the current node
+                // keep caret the same, but continue analyzing with the parent of the current node
                 currentNode = currentNode.Parent;
                 MoveCaretToSemicolonPosition(args, document, root, caret, syntaxFacts, currentNode, isInsideDelimiters);
                 return;
