@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 
@@ -21,17 +20,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public TestHostDocument CurrentDocument => _currentDocument ?? _workspace.Documents.Single();
 
-        public TestWorkspace GetWorkspace(ExportProvider exportProvider = null)
+        public TestWorkspace GetWorkspace()
         {
-            _workspace = _workspace ?? CreateWorkspace(exportProvider);
+            _workspace = _workspace ?? CreateWorkspace();
             return _workspace;
         }
 
-        public TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider = null)
+        public TestWorkspace GetWorkspace(string markup)
         {
             if (TryParseXElement(markup, out var workspaceElement) && workspaceElement.Name == "Workspace")
             {
-                _workspace = TestWorkspace.CreateWorkspace(workspaceElement, exportProvider: exportProvider);
+                _workspace = TestWorkspace.CreateWorkspace(workspaceElement);
                 _currentDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
                 Position = _currentDocument.CursorPosition.Value;
                 Code = _currentDocument.TextBuffer.CurrentSnapshot.GetText();
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             else
             {
                 MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out Code, out Position);
-                var workspace = GetWorkspace(exportProvider);
+                var workspace = GetWorkspace();
                 _currentDocument = workspace.Documents.Single();
                 return workspace;
             }
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
         }
 
-        protected abstract TestWorkspace CreateWorkspace(ExportProvider exportProvider);
+        protected abstract TestWorkspace CreateWorkspace();
 
         public void Dispose()
         {

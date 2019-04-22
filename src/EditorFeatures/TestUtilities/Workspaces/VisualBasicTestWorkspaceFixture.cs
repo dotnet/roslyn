@@ -6,19 +6,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class VisualBasicTestWorkspaceFixture : TestWorkspaceFixture
     {
-        protected override TestWorkspace CreateWorkspace(ExportProvider exportProvider = null)
+        protected override TestWorkspace CreateWorkspace()
         {
             return TestWorkspace.CreateVisualBasic(
                 new string[] { string.Empty },
                 new VisualBasicParseOptions[] { new VisualBasicParseOptions(kind: SourceCodeKind.Regular) },
-                new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                exportProvider: exportProvider);
+                new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
     }
 }
