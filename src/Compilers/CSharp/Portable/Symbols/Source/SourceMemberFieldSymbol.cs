@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly bool _hasInitializer;
 
-        private TypeSymbolWithAnnotations.Builder _lazyType;
+        private TypeWithAnnotations.Builder _lazyType;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
@@ -297,6 +297,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!modifierErrors)
             {
                 this.ReportModifiersDiagnostics(diagnostics);
+            }
+
+            if (containingType.IsInterface)
+            {
+                if (this.IsStatic)
+                {
+                    Binder.CheckFeatureAvailability(declarator, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, ErrorLocation);
+
+                    if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ErrorLocation);
+                    }
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, ErrorLocation);
+                }
             }
         }
 
@@ -351,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!_lazyType.IsNull)
+                if (!_lazyType.IsDefault)
                 {
                     Debug.Assert(_lazyType.DefaultType.IsPointerType() ==
                         IsPointerFieldSyntactically());
@@ -385,11 +402,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal sealed override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if (!_lazyType.IsNull)
+            if (!_lazyType.IsDefault)
             {
                 return _lazyType.ToType();
             }
@@ -401,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
 
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSymbolWithAnnotations type;
+            TypeWithAnnotations type;
 
             // When we have multiple declarators, we report the type diagnostics on only the first.
             DiagnosticBag diagnosticsForFirstDeclarator = DiagnosticBag.GetInstance();
@@ -417,11 +434,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // CONSIDER: Do we want to guard against the possibility that someone has created their own EventRegistrationTokenTable<T>
                     // type that has additional generic constraints?
-                    type = TypeSymbolWithAnnotations.Create(tokenTableType.Construct(ImmutableArray.Create(@event.Type)));
+                    type = TypeWithAnnotations.Create(tokenTableType.Construct(ImmutableArray.Create(@event.TypeWithAnnotations)));
                 }
                 else
                 {
-                    type = @event.Type;
+                    type = @event.TypeWithAnnotations;
                 }
             }
             else
@@ -439,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     bool isVar;
                     type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
 
-                    Debug.Assert(!type.IsNull || isVar);
+                    Debug.Assert(type.HasType || isVar);
 
                     if (isVar)
                     {
@@ -473,30 +490,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
                                 {
-                                    type = TypeSymbolWithAnnotations.Create(initializerOpt.Type);
+                                    type = TypeWithAnnotations.Create(initializerOpt.Type);
                                 }
 
                                 _lazyFieldTypeInferred = 1;
                             }
                         }
 
-                        if (type.IsNull)
+                        if (!type.HasType)
                         {
-                            type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
+                            type = TypeWithAnnotations.Create(binder.CreateErrorType("var"));
                         }
                     }
                 }
 
                 if (IsFixedSizeBuffer)
                 {
-                    type = TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(type));
+                    type = TypeWithAnnotations.Create(new PointerTypeSymbol(type));
 
                     if (ContainingType.TypeKind != TypeKind.Struct)
                     {
                         diagnostics.Add(ErrorCode.ERR_FixedNotInStruct, ErrorLocation);
                     }
 
-                    var elementType = ((PointerTypeSymbol)type.TypeSymbol).PointedAtType.TypeSymbol;
+                    var elementType = ((PointerTypeSymbol)type.Type).PointedAtType;
                     int elementSize = elementType.FixedBufferElementSizeInBytes();
                     if (elementSize == 0)
                     {
@@ -514,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // update the lazyType only if it contains value last seen by the current thread:
             if (_lazyType.InterlockedInitialize(type.WithModifiers(this.RequiredCustomModifiers)))
             {
-                TypeChecks(type.TypeSymbol, diagnostics);
+                TypeChecks(type.Type, diagnostics);
 
                 // CONSIDER: SourceEventFieldSymbol would like to suppress these diagnostics.
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
@@ -575,8 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
             var options = (CSharpParseOptions)SyntaxTree.Options;
-            bool includeNullability = options.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            Type.CheckAllConstraints(conversions.WithNullability(includeNullability), ErrorLocation, diagnostics);
+            Type.CheckAllConstraints(DeclaringCompilation, conversions, ErrorLocation, diagnostics);
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
     }

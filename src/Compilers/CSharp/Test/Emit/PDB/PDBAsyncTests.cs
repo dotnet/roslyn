@@ -63,7 +63,7 @@ class Driver
 
             v.VerifyIL("TestCase.<Run>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      287 (0x11f)
+  // Code size      289 (0x121)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_1,
@@ -76,111 +76,112 @@ class Driver
   .try
   {
    ~IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0089
-    IL_000a:  br.s       IL_000c
-   -IL_000c:  nop
-   -IL_000d:  ldarg.0
-    IL_000e:  newobj     ""DynamicMembers..ctor()""
-    IL_0013:  stfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
-   -IL_0018:  ldarg.0
-    IL_0019:  ldfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
-    IL_001e:  ldsfld     ""System.Func<System.Threading.Tasks.Task<int>> TestCase.<>c.<>9__1_0""
-    IL_0023:  dup
-    IL_0024:  brtrue.s   IL_003d
-    IL_0026:  pop
-    IL_0027:  ldsfld     ""TestCase.<>c TestCase.<>c.<>9""
-    IL_002c:  ldftn      ""System.Threading.Tasks.Task<int> TestCase.<>c.<Run>b__1_0()""
-    IL_0032:  newobj     ""System.Func<System.Threading.Tasks.Task<int>>..ctor(object, System.IntPtr)""
-    IL_0037:  dup
-    IL_0038:  stsfld     ""System.Func<System.Threading.Tasks.Task<int>> TestCase.<>c.<>9__1_0""
-    IL_003d:  callvirt   ""void DynamicMembers.Prop.set""
-    IL_0042:  nop
-   -IL_0043:  ldarg.0
-    IL_0044:  ldfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
-    IL_0049:  callvirt   ""System.Func<System.Threading.Tasks.Task<int>> DynamicMembers.Prop.get""
-    IL_004e:  callvirt   ""System.Threading.Tasks.Task<int> System.Func<System.Threading.Tasks.Task<int>>.Invoke()""
-    IL_0053:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-    IL_0058:  stloc.1
-   ~IL_0059:  ldloca.s   V_1
-    IL_005b:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_0060:  brtrue.s   IL_00a5
-    IL_0062:  ldarg.0
-    IL_0063:  ldc.i4.0
-    IL_0064:  dup
-    IL_0065:  stloc.0
-    IL_0066:  stfld      ""int TestCase.<Run>d__1.<>1__state""
-   <IL_006b:  ldarg.0
-    IL_006c:  ldloc.1
-    IL_006d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
-    IL_0072:  ldarg.0
-    IL_0073:  stloc.2
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_008b
+   -IL_000e:  nop
+   -IL_000f:  ldarg.0
+    IL_0010:  newobj     ""DynamicMembers..ctor()""
+    IL_0015:  stfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
+   -IL_001a:  ldarg.0
+    IL_001b:  ldfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
+    IL_0020:  ldsfld     ""System.Func<System.Threading.Tasks.Task<int>> TestCase.<>c.<>9__1_0""
+    IL_0025:  dup
+    IL_0026:  brtrue.s   IL_003f
+    IL_0028:  pop
+    IL_0029:  ldsfld     ""TestCase.<>c TestCase.<>c.<>9""
+    IL_002e:  ldftn      ""System.Threading.Tasks.Task<int> TestCase.<>c.<Run>b__1_0()""
+    IL_0034:  newobj     ""System.Func<System.Threading.Tasks.Task<int>>..ctor(object, System.IntPtr)""
+    IL_0039:  dup
+    IL_003a:  stsfld     ""System.Func<System.Threading.Tasks.Task<int>> TestCase.<>c.<>9__1_0""
+    IL_003f:  callvirt   ""void DynamicMembers.Prop.set""
+    IL_0044:  nop
+   -IL_0045:  ldarg.0
+    IL_0046:  ldfld      ""DynamicMembers TestCase.<Run>d__1.<dc2>5__1""
+    IL_004b:  callvirt   ""System.Func<System.Threading.Tasks.Task<int>> DynamicMembers.Prop.get""
+    IL_0050:  callvirt   ""System.Threading.Tasks.Task<int> System.Func<System.Threading.Tasks.Task<int>>.Invoke()""
+    IL_0055:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_005a:  stloc.1
+   ~IL_005b:  ldloca.s   V_1
+    IL_005d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0062:  brtrue.s   IL_00a7
+    IL_0064:  ldarg.0
+    IL_0065:  ldc.i4.0
+    IL_0066:  dup
+    IL_0067:  stloc.0
+    IL_0068:  stfld      ""int TestCase.<Run>d__1.<>1__state""
+   <IL_006d:  ldarg.0
+    IL_006e:  ldloc.1
+    IL_006f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
     IL_0074:  ldarg.0
-    IL_0075:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
-    IL_007a:  ldloca.s   V_1
-    IL_007c:  ldloca.s   V_2
-    IL_007e:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, TestCase.<Run>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref TestCase.<Run>d__1)""
-    IL_0083:  nop
-    IL_0084:  leave      IL_011e
-   >IL_0089:  ldarg.0
-    IL_008a:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
-    IL_008f:  stloc.1
-    IL_0090:  ldarg.0
-    IL_0091:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
-    IL_0096:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_009c:  ldarg.0
-    IL_009d:  ldc.i4.m1
-    IL_009e:  dup
-    IL_009f:  stloc.0
-    IL_00a0:  stfld      ""int TestCase.<Run>d__1.<>1__state""
-    IL_00a5:  ldarg.0
-    IL_00a6:  ldloca.s   V_1
-    IL_00a8:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_00ad:  stfld      ""int TestCase.<Run>d__1.<>s__3""
-    IL_00b2:  ldarg.0
-    IL_00b3:  ldarg.0
-    IL_00b4:  ldfld      ""int TestCase.<Run>d__1.<>s__3""
-    IL_00b9:  stfld      ""int TestCase.<Run>d__1.<rez2>5__2""
-   -IL_00be:  ldarg.0
-    IL_00bf:  ldfld      ""int TestCase.<Run>d__1.<rez2>5__2""
-    IL_00c4:  ldc.i4.3
-    IL_00c5:  ceq
-    IL_00c7:  stloc.3
-   ~IL_00c8:  ldloc.3
-    IL_00c9:  brfalse.s  IL_00d7
-   -IL_00cb:  ldsfld     ""int TestCase.Count""
-    IL_00d0:  ldc.i4.1
-    IL_00d1:  add
-    IL_00d2:  stsfld     ""int TestCase.Count""
-   -IL_00d7:  ldsfld     ""int TestCase.Count""
-    IL_00dc:  ldc.i4.1
-    IL_00dd:  sub
-    IL_00de:  stsfld     ""int Driver.Result""
-   -IL_00e3:  ldsfld     ""System.Threading.AutoResetEvent Driver.CompletedSignal""
-    IL_00e8:  callvirt   ""bool System.Threading.EventWaitHandle.Set()""
-    IL_00ed:  pop
-    IL_00ee:  leave.s    IL_010a
+    IL_0075:  stloc.2
+    IL_0076:  ldarg.0
+    IL_0077:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
+    IL_007c:  ldloca.s   V_1
+    IL_007e:  ldloca.s   V_2
+    IL_0080:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, TestCase.<Run>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref TestCase.<Run>d__1)""
+    IL_0085:  nop
+    IL_0086:  leave      IL_0120
+   >IL_008b:  ldarg.0
+    IL_008c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
+    IL_0091:  stloc.1
+    IL_0092:  ldarg.0
+    IL_0093:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> TestCase.<Run>d__1.<>u__1""
+    IL_0098:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_009e:  ldarg.0
+    IL_009f:  ldc.i4.m1
+    IL_00a0:  dup
+    IL_00a1:  stloc.0
+    IL_00a2:  stfld      ""int TestCase.<Run>d__1.<>1__state""
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldloca.s   V_1
+    IL_00aa:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_00af:  stfld      ""int TestCase.<Run>d__1.<>s__3""
+    IL_00b4:  ldarg.0
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldfld      ""int TestCase.<Run>d__1.<>s__3""
+    IL_00bb:  stfld      ""int TestCase.<Run>d__1.<rez2>5__2""
+   -IL_00c0:  ldarg.0
+    IL_00c1:  ldfld      ""int TestCase.<Run>d__1.<rez2>5__2""
+    IL_00c6:  ldc.i4.3
+    IL_00c7:  ceq
+    IL_00c9:  stloc.3
+   ~IL_00ca:  ldloc.3
+    IL_00cb:  brfalse.s  IL_00d9
+   -IL_00cd:  ldsfld     ""int TestCase.Count""
+    IL_00d2:  ldc.i4.1
+    IL_00d3:  add
+    IL_00d4:  stsfld     ""int TestCase.Count""
+   -IL_00d9:  ldsfld     ""int TestCase.Count""
+    IL_00de:  ldc.i4.1
+    IL_00df:  sub
+    IL_00e0:  stsfld     ""int Driver.Result""
+   -IL_00e5:  ldsfld     ""System.Threading.AutoResetEvent Driver.CompletedSignal""
+    IL_00ea:  callvirt   ""bool System.Threading.EventWaitHandle.Set()""
+    IL_00ef:  pop
+    IL_00f0:  leave.s    IL_010c
   }
   catch System.Exception
   {
-  ~$IL_00f0:  stloc.s    V_4
-    IL_00f2:  ldarg.0
-    IL_00f3:  ldc.i4.s   -2
-    IL_00f5:  stfld      ""int TestCase.<Run>d__1.<>1__state""
-    IL_00fa:  ldarg.0
-    IL_00fb:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
-    IL_0100:  ldloc.s    V_4
-    IL_0102:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
-    IL_0107:  nop
-    IL_0108:  leave.s    IL_011e
+  ~$IL_00f2:  stloc.s    V_4
+    IL_00f4:  ldarg.0
+    IL_00f5:  ldc.i4.s   -2
+    IL_00f7:  stfld      ""int TestCase.<Run>d__1.<>1__state""
+    IL_00fc:  ldarg.0
+    IL_00fd:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
+    IL_0102:  ldloc.s    V_4
+    IL_0104:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
+    IL_0109:  nop
+    IL_010a:  leave.s    IL_0120
   }
- -IL_010a:  ldarg.0
-  IL_010b:  ldc.i4.s   -2
-  IL_010d:  stfld      ""int TestCase.<Run>d__1.<>1__state""
- ~IL_0112:  ldarg.0
-  IL_0113:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
-  IL_0118:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
-  IL_011d:  nop
-  IL_011e:  ret
+ -IL_010c:  ldarg.0
+  IL_010d:  ldc.i4.s   -2
+  IL_010f:  stfld      ""int TestCase.<Run>d__1.<>1__state""
+ ~IL_0114:  ldarg.0
+  IL_0115:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder TestCase.<Run>d__1.<>t__builder""
+  IL_011a:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
+  IL_011f:  nop
+  IL_0120:  ret
 }",
 sequencePoints: "TestCase+<Run>d__1.MoveNext");
 
@@ -267,8 +268,8 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
       <customDebugInfo>
         <forward declaringType=""TestCase"" methodName="".cctor"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x11f"" />
-          <slot startOffset=""0x0"" endOffset=""0x11f"" />
+          <slot startOffset=""0x0"" endOffset=""0x121"" />
+          <slot startOffset=""0x0"" endOffset=""0x121"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -281,24 +282,24 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xc"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xd"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""51"" document=""1"" />
-        <entry offset=""0x18"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""71"" document=""1"" />
-        <entry offset=""0x43"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""37"" document=""1"" />
-        <entry offset=""0x59"" hidden=""true"" document=""1"" />
-        <entry offset=""0xbe"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""23"" document=""1"" />
-        <entry offset=""0xc8"" hidden=""true"" document=""1"" />
-        <entry offset=""0xcb"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""32"" document=""1"" />
-        <entry offset=""0xd7"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""44"" document=""1"" />
-        <entry offset=""0xe3"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""38"" document=""1"" />
-        <entry offset=""0xf0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x10a"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x112"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xf"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""51"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""71"" document=""1"" />
+        <entry offset=""0x45"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""37"" document=""1"" />
+        <entry offset=""0x5b"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc0"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""23"" document=""1"" />
+        <entry offset=""0xca"" hidden=""true"" document=""1"" />
+        <entry offset=""0xcd"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""32"" document=""1"" />
+        <entry offset=""0xd9"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""44"" document=""1"" />
+        <entry offset=""0xe5"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xf2"" hidden=""true"" document=""1"" />
+        <entry offset=""0x10c"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x114"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
-        <catchHandler offset=""0xf0"" />
+        <catchHandler offset=""0xf2"" />
         <kickoffMethod declaringType=""TestCase"" methodName=""Run"" />
-        <await yield=""0x6b"" resume=""0x89"" declaringType=""TestCase+&lt;Run&gt;d__1"" methodName=""MoveNext"" />
+        <await yield=""0x6d"" resume=""0x8b"" declaringType=""TestCase+&lt;Run&gt;d__1"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
     <method containingType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" name=""MoveNext"">
@@ -315,17 +316,17 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xc"" startLine=""16"" startColumn=""32"" endLine=""16"" endColumn=""33"" document=""1"" />
-        <entry offset=""0xd"" startLine=""16"" startColumn=""34"" endLine=""16"" endColumn=""58"" document=""1"" />
-        <entry offset=""0x1d"" hidden=""true"" document=""1"" />
-        <entry offset=""0x6e"" startLine=""16"" startColumn=""59"" endLine=""16"" endColumn=""68"" document=""1"" />
-        <entry offset=""0x72"" hidden=""true"" document=""1"" />
-        <entry offset=""0x8c"" startLine=""16"" startColumn=""69"" endLine=""16"" endColumn=""70"" document=""1"" />
-        <entry offset=""0x94"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""16"" startColumn=""32"" endLine=""16"" endColumn=""33"" document=""1"" />
+        <entry offset=""0xf"" startLine=""16"" startColumn=""34"" endLine=""16"" endColumn=""58"" document=""1"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x70"" startLine=""16"" startColumn=""59"" endLine=""16"" endColumn=""68"" document=""1"" />
+        <entry offset=""0x74"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8e"" startLine=""16"" startColumn=""69"" endLine=""16"" endColumn=""70"" document=""1"" />
+        <entry offset=""0x96"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <kickoffMethod declaringType=""TestCase+&lt;&gt;c"" methodName=""&lt;Run&gt;b__1_0"" />
-        <await yield=""0x2f"" resume=""0x4a"" declaringType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" methodName=""MoveNext"" />
+        <await yield=""0x31"" resume=""0x4c"" declaringType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -447,28 +448,28 @@ namespace ConsoleApplication1
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xc"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xd"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""26"" document=""1"" />
-        <entry offset=""0x1e"" hidden=""true"" document=""1"" />
-        <entry offset=""0x71"" hidden=""true"" document=""1"" />
-        <entry offset=""0x89"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x91"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xf"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x20"" hidden=""true"" document=""1"" />
+        <entry offset=""0x73"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8b"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x93"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
-        <catchHandler offset=""0x71"" />
+        <catchHandler offset=""0x73"" />
         <kickoffMethod declaringType=""ConsoleApplication1.Program"" methodName=""QBar"" />
-        <await yield=""0x30"" resume=""0x4b"" declaringType=""ConsoleApplication1.Program+&lt;QBar&gt;d__2"" methodName=""MoveNext"" />
+        <await yield=""0x32"" resume=""0x4d"" declaringType=""ConsoleApplication1.Program+&lt;QBar&gt;d__2"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
     <method containingType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__3"" name=""MoveNext"">
       <customDebugInfo>
         <forward declaringType=""ConsoleApplication1.Program"" methodName=""Main"" parameterNames=""args"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x142"" />
+          <slot startOffset=""0x0"" endOffset=""0x144"" />
           <slot />
           <slot />
-          <slot startOffset=""0x3f"" endOffset=""0xe1"" />
-          <slot startOffset=""0x52"" endOffset=""0xe1"" />
+          <slot startOffset=""0x41"" endOffset=""0xe3"" />
+          <slot startOffset=""0x54"" endOffset=""0xe3"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -481,27 +482,27 @@ namespace ConsoleApplication1
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xf"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x10"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""45"" document=""1"" />
-        <entry offset=""0x1b"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""20"" document=""1"" />
-        <entry offset=""0x1c"" startLine=""22"" startColumn=""31"" endLine=""22"" endColumn=""46"" document=""1"" />
-        <entry offset=""0x3a"" hidden=""true"" document=""1"" />
-        <entry offset=""0x3f"" startLine=""22"" startColumn=""22"" endLine=""22"" endColumn=""27"" document=""1"" />
-        <entry offset=""0x52"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""14"" document=""1"" />
-        <entry offset=""0x53"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""55"" document=""1"" />
-        <entry offset=""0x69"" hidden=""true"" document=""1"" />
-        <entry offset=""0xce"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""39"" document=""1"" />
-        <entry offset=""0xe0"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""14"" document=""1"" />
-        <entry offset=""0xe1"" hidden=""true"" document=""1"" />
-        <entry offset=""0xef"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""30"" document=""1"" />
-        <entry offset=""0x109"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""30"" document=""1"" />
-        <entry offset=""0x112"" hidden=""true"" document=""1"" />
-        <entry offset=""0x12c"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x134"" hidden=""true"" document=""1"" />
+        <entry offset=""0x11"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x12"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""45"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x1e"" startLine=""22"" startColumn=""31"" endLine=""22"" endColumn=""46"" document=""1"" />
+        <entry offset=""0x3c"" hidden=""true"" document=""1"" />
+        <entry offset=""0x41"" startLine=""22"" startColumn=""22"" endLine=""22"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x54"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x55"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""55"" document=""1"" />
+        <entry offset=""0x6b"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd0"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""39"" document=""1"" />
+        <entry offset=""0xe2"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""14"" document=""1"" />
+        <entry offset=""0xe3"" hidden=""true"" document=""1"" />
+        <entry offset=""0xf1"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x10b"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x114"" hidden=""true"" document=""1"" />
+        <entry offset=""0x12e"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x136"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <kickoffMethod declaringType=""ConsoleApplication1.Program"" methodName=""ZBar"" />
-        <await yield=""0x7b"" resume=""0x99"" declaringType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__3"" methodName=""MoveNext"" />
+        <await yield=""0x7d"" resume=""0x9b"" declaringType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__3"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -550,7 +551,7 @@ class TestCase
           <namespace usingCount=""0"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x25b"" />
+          <slot startOffset=""0x0"" endOffset=""0x25d"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -564,17 +565,17 @@ class TestCase
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xf"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x10"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""27"" document=""1"" />
-        <entry offset=""0xac"" hidden=""true"" document=""1"" />
-        <entry offset=""0x22c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x246"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x24e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x11"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x12"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""27"" document=""1"" />
+        <entry offset=""0xae"" hidden=""true"" document=""1"" />
+        <entry offset=""0x22e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x248"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x250"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
-        <catchHandler offset=""0x22c"" />
+        <catchHandler offset=""0x22e"" />
         <kickoffMethod declaringType=""TestCase"" methodName=""Await"" parameterNames=""d"" />
-        <await yield=""0x146"" resume=""0x18d"" declaringType=""TestCase+&lt;Await&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0x148"" resume=""0x18f"" declaringType=""TestCase+&lt;Await&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -627,7 +628,7 @@ sequencePoints: "C.F");
 
             v.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      158 (0x9e)
+  // Code size      160 (0xa0)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
@@ -640,73 +641,74 @@ sequencePoints: "C.F");
   .try
   {
    ~IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0046
-    IL_000a:  br.s       IL_000c
-   -IL_000c:  nop
-   -IL_000d:  ldc.i4.1
-    IL_000e:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)""
-    IL_0013:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
-    IL_0018:  stloc.2
-   ~IL_0019:  ldloca.s   V_2
-    IL_001b:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
-    IL_0020:  brtrue.s   IL_0062
-    IL_0022:  ldarg.0
-    IL_0023:  ldc.i4.0
-    IL_0024:  dup
-    IL_0025:  stloc.0
-    IL_0026:  stfld      ""int C.<F>d__0.<>1__state""
-   <IL_002b:  ldarg.0
-    IL_002c:  ldloc.2
-    IL_002d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
-    IL_0032:  ldarg.0
-    IL_0033:  stloc.3
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_0048
+   -IL_000e:  nop
+   -IL_000f:  ldc.i4.1
+    IL_0010:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)""
+    IL_0015:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_001a:  stloc.2
+   ~IL_001b:  ldloca.s   V_2
+    IL_001d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_0022:  brtrue.s   IL_0064
+    IL_0024:  ldarg.0
+    IL_0025:  ldc.i4.0
+    IL_0026:  dup
+    IL_0027:  stloc.0
+    IL_0028:  stfld      ""int C.<F>d__0.<>1__state""
+   <IL_002d:  ldarg.0
+    IL_002e:  ldloc.2
+    IL_002f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
     IL_0034:  ldarg.0
-    IL_0035:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_003a:  ldloca.s   V_2
-    IL_003c:  ldloca.s   V_3
-    IL_003e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<F>d__0)""
-    IL_0043:  nop
-    IL_0044:  leave.s    IL_009d
-   >IL_0046:  ldarg.0
-    IL_0047:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
-    IL_004c:  stloc.2
-    IL_004d:  ldarg.0
-    IL_004e:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
-    IL_0053:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0059:  ldarg.0
-    IL_005a:  ldc.i4.m1
-    IL_005b:  dup
-    IL_005c:  stloc.0
-    IL_005d:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_0062:  ldloca.s   V_2
-    IL_0064:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-    IL_0069:  nop
-   -IL_006a:  ldc.i4.1
-    IL_006b:  stloc.1
-    IL_006c:  leave.s    IL_0088
+    IL_0035:  stloc.3
+    IL_0036:  ldarg.0
+    IL_0037:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_003c:  ldloca.s   V_2
+    IL_003e:  ldloca.s   V_3
+    IL_0040:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<F>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<F>d__0)""
+    IL_0045:  nop
+    IL_0046:  leave.s    IL_009f
+   >IL_0048:  ldarg.0
+    IL_0049:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_004e:  stloc.2
+    IL_004f:  ldarg.0
+    IL_0050:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<F>d__0.<>u__1""
+    IL_0055:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_005b:  ldarg.0
+    IL_005c:  ldc.i4.m1
+    IL_005d:  dup
+    IL_005e:  stloc.0
+    IL_005f:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0064:  ldloca.s   V_2
+    IL_0066:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_006b:  nop
+   -IL_006c:  ldc.i4.1
+    IL_006d:  stloc.1
+    IL_006e:  leave.s    IL_008a
   }
   catch System.Exception
   {
-   ~IL_006e:  stloc.s    V_4
-    IL_0070:  ldarg.0
-    IL_0071:  ldc.i4.s   -2
-    IL_0073:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_0078:  ldarg.0
-    IL_0079:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-    IL_007e:  ldloc.s    V_4
-    IL_0080:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_0085:  nop
-    IL_0086:  leave.s    IL_009d
+   ~IL_0070:  stloc.s    V_4
+    IL_0072:  ldarg.0
+    IL_0073:  ldc.i4.s   -2
+    IL_0075:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_007a:  ldarg.0
+    IL_007b:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+    IL_0080:  ldloc.s    V_4
+    IL_0082:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_0087:  nop
+    IL_0088:  leave.s    IL_009f
   }
- -IL_0088:  ldarg.0
-  IL_0089:  ldc.i4.s   -2
-  IL_008b:  stfld      ""int C.<F>d__0.<>1__state""
- ~IL_0090:  ldarg.0
-  IL_0091:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
-  IL_0096:  ldloc.1
-  IL_0097:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_009c:  nop
-  IL_009d:  ret
+ -IL_008a:  ldarg.0
+  IL_008b:  ldc.i4.s   -2
+  IL_008d:  stfld      ""int C.<F>d__0.<>1__state""
+ ~IL_0092:  ldarg.0
+  IL_0093:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<F>d__0.<>t__builder""
+  IL_0098:  ldloc.1
+  IL_0099:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_009e:  nop
+  IL_009f:  ret
 }", sequencePoints: "C+<F>d__0.MoveNext");
         }
 
@@ -846,7 +848,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x104"" />
+          <slot startOffset=""0x0"" endOffset=""0x106"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -858,21 +860,21 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xf"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1a"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x27"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x33"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x3f"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""1"" />
-        <entry offset=""0x56"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x84"" hidden=""true"" document=""1"" />
-        <entry offset=""0xd7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xef"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xf7"" hidden=""true"" document=""1"" />
+        <entry offset=""0x11"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x29"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x35"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x41"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""1"" />
+        <entry offset=""0x58"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x86"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd9"" hidden=""true"" document=""1"" />
+        <entry offset=""0xf1"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xf9"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
-        <await yield=""0x96"" resume=""0xb1"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0x98"" resume=""0xb3"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -1035,7 +1037,7 @@ class C
       <customDebugInfo>
         <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0xf3"" />
+          <slot startOffset=""0x0"" endOffset=""0xf5"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1047,22 +1049,22 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xf"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1a"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x27"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x33"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x3f"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""1"" />
-        <entry offset=""0x56"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""29"" document=""1"" />
-        <entry offset=""0x62"" hidden=""true"" document=""1"" />
-        <entry offset=""0xb3"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""31"" document=""1"" />
-        <entry offset=""0xc6"" hidden=""true"" document=""1"" />
-        <entry offset=""0xde"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xe6"" hidden=""true"" document=""1"" />
+        <entry offset=""0x11"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x29"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x35"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x41"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" document=""1"" />
+        <entry offset=""0x58"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x64"" hidden=""true"" document=""1"" />
+        <entry offset=""0xb5"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""31"" document=""1"" />
+        <entry offset=""0xc8"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe0"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xe8"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
-        <await yield=""0x74"" resume=""0x8f"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0x76"" resume=""0x91"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -1258,11 +1260,11 @@ class C
           <namespace usingCount=""2"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x26"" endOffset=""0xb0"" />
-          <slot startOffset=""0x26"" endOffset=""0xb0"" />
-          <slot startOffset=""0xc2"" endOffset=""0x160"" />
-          <slot startOffset=""0xc2"" endOffset=""0x160"" />
-          <slot startOffset=""0xc2"" endOffset=""0x160"" />
+          <slot startOffset=""0x2a"" endOffset=""0xb4"" />
+          <slot startOffset=""0x2a"" endOffset=""0xb4"" />
+          <slot startOffset=""0xc6"" endOffset=""0x164"" />
+          <slot startOffset=""0xc6"" endOffset=""0x164"" />
+          <slot startOffset=""0xc6"" endOffset=""0x164"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1277,42 +1279,42 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0x15"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x16"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""1"" />
-        <entry offset=""0x20"" hidden=""true"" document=""1"" />
-        <entry offset=""0x26"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x27"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x2f"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x37"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""33"" document=""1"" />
-        <entry offset=""0x43"" hidden=""true"" document=""1"" />
-        <entry offset=""0x97"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""34"" document=""1"" />
-        <entry offset=""0xa3"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""34"" document=""1"" />
-        <entry offset=""0xaf"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xb0"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""19"" document=""1"" />
-        <entry offset=""0xbb"" hidden=""true"" document=""1"" />
-        <entry offset=""0xc2"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xc3"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""24"" document=""1"" />
-        <entry offset=""0xcb"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""25"" document=""1"" />
-        <entry offset=""0xd3"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""24"" document=""1"" />
-        <entry offset=""0xdb"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""33"" document=""1"" />
-        <entry offset=""0xe8"" hidden=""true"" document=""1"" />
-        <entry offset=""0x13b"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""34"" document=""1"" />
-        <entry offset=""0x147"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""35"" document=""1"" />
-        <entry offset=""0x153"" startLine=""28"" startColumn=""13"" endLine=""28"" endColumn=""34"" document=""1"" />
-        <entry offset=""0x15f"" startLine=""29"" startColumn=""9"" endLine=""29"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x160"" hidden=""true"" document=""1"" />
-        <entry offset=""0x162"" hidden=""true"" document=""1"" />
-        <entry offset=""0x17c"" startLine=""30"" startColumn=""5"" endLine=""30"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x184"" hidden=""true"" document=""1"" />
+        <entry offset=""0x19"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x24"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""11"" startColumn=""13"" endLine=""11"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x33"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x3b"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x47"" hidden=""true"" document=""1"" />
+        <entry offset=""0x9b"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""34"" document=""1"" />
+        <entry offset=""0xa7"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""34"" document=""1"" />
+        <entry offset=""0xb3"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb4"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""19"" document=""1"" />
+        <entry offset=""0xbf"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc6"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xc7"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xcf"" startLine=""22"" startColumn=""13"" endLine=""22"" endColumn=""25"" document=""1"" />
+        <entry offset=""0xd7"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""24"" document=""1"" />
+        <entry offset=""0xdf"" startLine=""24"" startColumn=""13"" endLine=""24"" endColumn=""33"" document=""1"" />
+        <entry offset=""0xec"" hidden=""true"" document=""1"" />
+        <entry offset=""0x13f"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x14b"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x157"" startLine=""28"" startColumn=""13"" endLine=""28"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x163"" startLine=""29"" startColumn=""9"" endLine=""29"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x164"" hidden=""true"" document=""1"" />
+        <entry offset=""0x166"" hidden=""true"" document=""1"" />
+        <entry offset=""0x180"" startLine=""30"" startColumn=""5"" endLine=""30"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x188"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x191"">
+      <scope startOffset=""0x0"" endOffset=""0x195"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
       </scope>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" parameterNames=""b"" />
-        <await yield=""0x55"" resume=""0x73"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
-        <await yield=""0xfa"" resume=""0x116"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0x59"" resume=""0x77"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0xfe"" resume=""0x11a"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -1362,7 +1364,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x100"" />
+          <slot startOffset=""0x0"" endOffset=""0x102"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1374,21 +1376,21 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xc"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xd"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x19"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""29"" document=""1"" />
-        <entry offset=""0x25"" hidden=""true"" document=""1"" />
-        <entry offset=""0x79"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""22"" document=""1"" />
-        <entry offset=""0xd3"" hidden=""true"" document=""1"" />
-        <entry offset=""0xeb"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xf3"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x27"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7b"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""22"" document=""1"" />
+        <entry offset=""0xd5"" hidden=""true"" document=""1"" />
+        <entry offset=""0xed"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xf5"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x100"">
+      <scope startOffset=""0x0"" endOffset=""0x102"">
         <namespace name=""System.Threading.Tasks"" />
       </scope>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" />
-        <await yield=""0x37"" resume=""0x55"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0x39"" resume=""0x57"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -1541,7 +1543,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x100"" />
+          <slot startOffset=""0x0"" endOffset=""0x102"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1553,21 +1555,21 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xf"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x10"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x1c"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""22"" document=""1"" />
-        <entry offset=""0x74"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""29"" document=""1"" />
-        <entry offset=""0x80"" hidden=""true"" document=""1"" />
-        <entry offset=""0xd3"" hidden=""true"" document=""1"" />
-        <entry offset=""0xeb"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xf3"" hidden=""true"" document=""1"" />
+        <entry offset=""0x11"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x12"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x1e"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""22"" document=""1"" />
+        <entry offset=""0x76"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x82"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd5"" hidden=""true"" document=""1"" />
+        <entry offset=""0xed"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xf5"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x100"">
+      <scope startOffset=""0x0"" endOffset=""0x102"">
         <namespace name=""System.Threading.Tasks"" />
       </scope>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""M"" />
-        <await yield=""0x92"" resume=""0xad"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0x94"" resume=""0xaf"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -1695,7 +1697,7 @@ class C
 
             v.VerifyIL("C.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      272 (0x110)
+  // Code size      274 (0x112)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
@@ -1709,125 +1711,126 @@ class C
   .try
   {
    ~IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_006e
-    IL_000a:  br.s       IL_000c
-   -IL_000c:  nop
-   -IL_000d:  ldarg.0
-    IL_000e:  ldc.i4.s   42
-    IL_0010:  stfld      ""int C.<G>d__0.<x>5__1""
-   ~IL_0015:  ldarg.0
-    IL_0016:  ldnull
-    IL_0017:  stfld      ""object C.<G>d__0.<>s__2""
-    IL_001c:  ldarg.0
-    IL_001d:  ldc.i4.0
-    IL_001e:  stfld      ""int C.<G>d__0.<>s__3""
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_0070
+   -IL_000e:  nop
+   -IL_000f:  ldarg.0
+    IL_0010:  ldc.i4.s   42
+    IL_0012:  stfld      ""int C.<G>d__0.<x>5__1""
+   ~IL_0017:  ldarg.0
+    IL_0018:  ldnull
+    IL_0019:  stfld      ""object C.<G>d__0.<>s__2""
+    IL_001e:  ldarg.0
+    IL_001f:  ldc.i4.0
+    IL_0020:  stfld      ""int C.<G>d__0.<>s__3""
     .try
     {
-     -IL_0023:  nop
-     -IL_0024:  nop
-     ~IL_0025:  leave.s    IL_0031
+     -IL_0025:  nop
+     -IL_0026:  nop
+     ~IL_0027:  leave.s    IL_0033
     }
     catch object
     {
-     ~IL_0027:  stloc.2
-      IL_0028:  ldarg.0
-      IL_0029:  ldloc.2
-      IL_002a:  stfld      ""object C.<G>d__0.<>s__2""
-      IL_002f:  leave.s    IL_0031
+     ~IL_0029:  stloc.2
+      IL_002a:  ldarg.0
+      IL_002b:  ldloc.2
+      IL_002c:  stfld      ""object C.<G>d__0.<>s__2""
+      IL_0031:  leave.s    IL_0033
     }
-   -IL_0031:  nop
-   -IL_0032:  call       ""System.Threading.Tasks.Task<int> C.G()""
-    IL_0037:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-    IL_003c:  stloc.3
-   ~IL_003d:  ldloca.s   V_3
-    IL_003f:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_0044:  brtrue.s   IL_008a
-    IL_0046:  ldarg.0
-    IL_0047:  ldc.i4.0
-    IL_0048:  dup
-    IL_0049:  stloc.0
-    IL_004a:  stfld      ""int C.<G>d__0.<>1__state""
-   <IL_004f:  ldarg.0
-    IL_0050:  ldloc.3
-    IL_0051:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__0.<>u__1""
-    IL_0056:  ldarg.0
-    IL_0057:  stloc.s    V_4
-    IL_0059:  ldarg.0
-    IL_005a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__0.<>t__builder""
-    IL_005f:  ldloca.s   V_3
-    IL_0061:  ldloca.s   V_4
-    IL_0063:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<G>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<G>d__0)""
-    IL_0068:  nop
-    IL_0069:  leave      IL_010f
-   >IL_006e:  ldarg.0
-    IL_006f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__0.<>u__1""
-    IL_0074:  stloc.3
-    IL_0075:  ldarg.0
-    IL_0076:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__0.<>u__1""
-    IL_007b:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_0081:  ldarg.0
-    IL_0082:  ldc.i4.m1
-    IL_0083:  dup
-    IL_0084:  stloc.0
-    IL_0085:  stfld      ""int C.<G>d__0.<>1__state""
-    IL_008a:  ldarg.0
-    IL_008b:  ldloca.s   V_3
-    IL_008d:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_0092:  stfld      ""int C.<G>d__0.<>s__4""
-    IL_0097:  ldarg.0
-    IL_0098:  ldarg.0
-    IL_0099:  ldfld      ""int C.<G>d__0.<>s__4""
-    IL_009e:  stfld      ""int C.<G>d__0.<x>5__1""
-   -IL_00a3:  nop
-   ~IL_00a4:  ldarg.0
-    IL_00a5:  ldfld      ""object C.<G>d__0.<>s__2""
-    IL_00aa:  stloc.2
-    IL_00ab:  ldloc.2
-    IL_00ac:  brfalse.s  IL_00c9
-    IL_00ae:  ldloc.2
-    IL_00af:  isinst     ""System.Exception""
-    IL_00b4:  stloc.s    V_5
-    IL_00b6:  ldloc.s    V_5
-    IL_00b8:  brtrue.s   IL_00bc
-    IL_00ba:  ldloc.2
-    IL_00bb:  throw
-    IL_00bc:  ldloc.s    V_5
-    IL_00be:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
-    IL_00c3:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
-    IL_00c8:  nop
-    IL_00c9:  ldarg.0
-    IL_00ca:  ldfld      ""int C.<G>d__0.<>s__3""
-    IL_00cf:  pop
-    IL_00d0:  ldarg.0
-    IL_00d1:  ldnull
-    IL_00d2:  stfld      ""object C.<G>d__0.<>s__2""
-   -IL_00d7:  ldarg.0
-    IL_00d8:  ldfld      ""int C.<G>d__0.<x>5__1""
-    IL_00dd:  stloc.1
-    IL_00de:  leave.s    IL_00fa
+   -IL_0033:  nop
+   -IL_0034:  call       ""System.Threading.Tasks.Task<int> C.G()""
+    IL_0039:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_003e:  stloc.3
+   ~IL_003f:  ldloca.s   V_3
+    IL_0041:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0046:  brtrue.s   IL_008c
+    IL_0048:  ldarg.0
+    IL_0049:  ldc.i4.0
+    IL_004a:  dup
+    IL_004b:  stloc.0
+    IL_004c:  stfld      ""int C.<G>d__0.<>1__state""
+   <IL_0051:  ldarg.0
+    IL_0052:  ldloc.3
+    IL_0053:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__0.<>u__1""
+    IL_0058:  ldarg.0
+    IL_0059:  stloc.s    V_4
+    IL_005b:  ldarg.0
+    IL_005c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__0.<>t__builder""
+    IL_0061:  ldloca.s   V_3
+    IL_0063:  ldloca.s   V_4
+    IL_0065:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<G>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<G>d__0)""
+    IL_006a:  nop
+    IL_006b:  leave      IL_0111
+   >IL_0070:  ldarg.0
+    IL_0071:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__0.<>u__1""
+    IL_0076:  stloc.3
+    IL_0077:  ldarg.0
+    IL_0078:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__0.<>u__1""
+    IL_007d:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0083:  ldarg.0
+    IL_0084:  ldc.i4.m1
+    IL_0085:  dup
+    IL_0086:  stloc.0
+    IL_0087:  stfld      ""int C.<G>d__0.<>1__state""
+    IL_008c:  ldarg.0
+    IL_008d:  ldloca.s   V_3
+    IL_008f:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0094:  stfld      ""int C.<G>d__0.<>s__4""
+    IL_0099:  ldarg.0
+    IL_009a:  ldarg.0
+    IL_009b:  ldfld      ""int C.<G>d__0.<>s__4""
+    IL_00a0:  stfld      ""int C.<G>d__0.<x>5__1""
+   -IL_00a5:  nop
+   ~IL_00a6:  ldarg.0
+    IL_00a7:  ldfld      ""object C.<G>d__0.<>s__2""
+    IL_00ac:  stloc.2
+    IL_00ad:  ldloc.2
+    IL_00ae:  brfalse.s  IL_00cb
+    IL_00b0:  ldloc.2
+    IL_00b1:  isinst     ""System.Exception""
+    IL_00b6:  stloc.s    V_5
+    IL_00b8:  ldloc.s    V_5
+    IL_00ba:  brtrue.s   IL_00be
+    IL_00bc:  ldloc.2
+    IL_00bd:  throw
+    IL_00be:  ldloc.s    V_5
+    IL_00c0:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00c5:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00ca:  nop
+    IL_00cb:  ldarg.0
+    IL_00cc:  ldfld      ""int C.<G>d__0.<>s__3""
+    IL_00d1:  pop
+    IL_00d2:  ldarg.0
+    IL_00d3:  ldnull
+    IL_00d4:  stfld      ""object C.<G>d__0.<>s__2""
+   -IL_00d9:  ldarg.0
+    IL_00da:  ldfld      ""int C.<G>d__0.<x>5__1""
+    IL_00df:  stloc.1
+    IL_00e0:  leave.s    IL_00fc
   }
   catch System.Exception
   {
-   ~IL_00e0:  stloc.s    V_5
-    IL_00e2:  ldarg.0
-    IL_00e3:  ldc.i4.s   -2
-    IL_00e5:  stfld      ""int C.<G>d__0.<>1__state""
-    IL_00ea:  ldarg.0
-    IL_00eb:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__0.<>t__builder""
-    IL_00f0:  ldloc.s    V_5
-    IL_00f2:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_00f7:  nop
-    IL_00f8:  leave.s    IL_010f
+   ~IL_00e2:  stloc.s    V_5
+    IL_00e4:  ldarg.0
+    IL_00e5:  ldc.i4.s   -2
+    IL_00e7:  stfld      ""int C.<G>d__0.<>1__state""
+    IL_00ec:  ldarg.0
+    IL_00ed:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__0.<>t__builder""
+    IL_00f2:  ldloc.s    V_5
+    IL_00f4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_00f9:  nop
+    IL_00fa:  leave.s    IL_0111
   }
- -IL_00fa:  ldarg.0
-  IL_00fb:  ldc.i4.s   -2
-  IL_00fd:  stfld      ""int C.<G>d__0.<>1__state""
- ~IL_0102:  ldarg.0
-  IL_0103:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__0.<>t__builder""
-  IL_0108:  ldloc.1
-  IL_0109:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_010e:  nop
-  IL_010f:  ret
+ -IL_00fc:  ldarg.0
+  IL_00fd:  ldc.i4.s   -2
+  IL_00ff:  stfld      ""int C.<G>d__0.<>1__state""
+ ~IL_0104:  ldarg.0
+  IL_0105:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__0.<>t__builder""
+  IL_010a:  ldloc.1
+  IL_010b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_0110:  nop
+  IL_0111:  ret
 }", sequencePoints: "C+<G>d__0.MoveNext");
 
             v.VerifyPdb("C+<G>d__0.MoveNext", @"
@@ -1842,8 +1845,8 @@ class C
           <namespace usingCount=""2"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x110"" />
-          <slot startOffset=""0x27"" endOffset=""0x31"" />
+          <slot startOffset=""0x0"" endOffset=""0x112"" />
+          <slot startOffset=""0x29"" endOffset=""0x33"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -1857,30 +1860,30 @@ class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xc"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xd"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" document=""1"" />
-        <entry offset=""0x15"" hidden=""true"" document=""1"" />
-        <entry offset=""0x23"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x24"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x25"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xf"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x17"" hidden=""true"" document=""1"" />
+        <entry offset=""0x25"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x26"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
         <entry offset=""0x27"" hidden=""true"" document=""1"" />
-        <entry offset=""0x31"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x32"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""27"" document=""1"" />
-        <entry offset=""0x3d"" hidden=""true"" document=""1"" />
-        <entry offset=""0xa3"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xa4"" hidden=""true"" document=""1"" />
-        <entry offset=""0xd7"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""18"" document=""1"" />
-        <entry offset=""0xe0"" hidden=""true"" document=""1"" />
-        <entry offset=""0xfa"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x102"" hidden=""true"" document=""1"" />
+        <entry offset=""0x29"" hidden=""true"" document=""1"" />
+        <entry offset=""0x33"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x34"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x3f"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa5"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xa6"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd9"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""18"" document=""1"" />
+        <entry offset=""0xe2"" hidden=""true"" document=""1"" />
+        <entry offset=""0xfc"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x104"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x110"">
+      <scope startOffset=""0x0"" endOffset=""0x112"">
         <namespace name=""System"" />
         <namespace name=""System.Threading.Tasks"" />
       </scope>
       <asyncInfo>
         <kickoffMethod declaringType=""C"" methodName=""G"" />
-        <await yield=""0x4f"" resume=""0x6e"" declaringType=""C+&lt;G&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0x51"" resume=""0x70"" declaringType=""C+&lt;G&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>

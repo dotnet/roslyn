@@ -181,7 +181,10 @@ class C
                 //     object? F() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 11),
                 // error CS0518: Predefined type 'System.Byte' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Int32' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "").WithArguments("System.Int32").WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -453,10 +456,10 @@ public class B2 : A<object?>
 }";
             var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
-                // (8,14): warning CS8620: Nullability of reference types in argument of type 'B1' doesn't match target type 'A<object?>' for parameter 'y' in 'void C.F(A<object> x, A<object?> y)'.
+                // (8,14): warning CS8620: Argument of type 'B1' cannot be used as an input of type 'A<object?>' for parameter 'y' in 'void C.F(A<object> x, A<object?> y)' due to differences in the nullability of reference types.
                 //         F(x, x);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("B1", "A<object?>", "y", "void C.F(A<object> x, A<object?> y)").WithLocation(8, 14),
-                // (9,11): warning CS8620: Nullability of reference types in argument of type 'B2' doesn't match target type 'A<object>' for parameter 'x' in 'void C.F(A<object> x, A<object?> y)'.
+                // (9,11): warning CS8620: Argument of type 'B2' cannot be used as an input of type 'A<object>' for parameter 'x' in 'void C.F(A<object> x, A<object?> y)' due to differences in the nullability of reference types.
                 //         F(y, y);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("B2", "A<object>", "x", "void C.F(A<object> x, A<object?> y)").WithLocation(9, 11));
         }
@@ -508,10 +511,10 @@ public class B : I<object?>
 }";
             var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
-                // (9,14): warning CS8620: Nullability of reference types in argument of type 'A' doesn't match target type 'I<object?>' for parameter 'y' in 'void C.F(I<object> x, I<object?> y)'.
+                // (9,14): warning CS8620: Argument of type 'A' cannot be used as an input of type 'I<object?>' for parameter 'y' in 'void C.F(I<object> x, I<object?> y)' due to differences in the nullability of reference types.
                 //         F(x, x);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("A", "I<object?>", "y", "void C.F(I<object> x, I<object?> y)").WithLocation(9, 14),
-                // (10,11): warning CS8620: Nullability of reference types in argument of type 'B' doesn't match target type 'I<object>' for parameter 'x' in 'void C.F(I<object> x, I<object?> y)'.
+                // (10,11): warning CS8620: Argument of type 'B' cannot be used as an input of type 'I<object>' for parameter 'x' in 'void C.F(I<object> x, I<object?> y)' due to differences in the nullability of reference types.
                 //         F(y, y);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("B", "I<object>", "x", "void C.F(I<object> x, I<object?> y)").WithLocation(10, 11));
         }
@@ -558,7 +561,7 @@ public class B : I<(object X, object? Y)>
 }";
             var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
-                // (9,11): warning CS8620: Nullability of reference types in argument of type 'B' doesn't match target type 'I<(object, object)>' for parameter 'a' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)'.
+                // (9,11): warning CS8620: Argument of type 'B' cannot be used as an input of type 'I<(object, object)>' for parameter 'a' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)' due to differences in the nullability of reference types.
                 //         F(b, b);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "b").WithArguments("B", "I<(object, object)>", "a", "void C.F(I<(object, object)> a, I<(object, object?)> b)").WithLocation(9, 11));
 
@@ -1113,9 +1116,7 @@ class C
                     var property = module.ContainingAssembly.GetTypeByMetadataName("C").GetTypeMember("<F>d__0").GetProperty("System.Collections.Generic.IEnumerator<System.Object>.Current");
                     AssertNoNullableAttribute(property.GetAttributes());
                     var method = property.GetMethod;
-                    // https://github.com/dotnet/roslyn/issues/30010: No synthesized attributes for this
-                    // case which is inconsistent with IEnumerable<object?[]> in test below.
-                    AssertNoNullableAttribute(method.GetReturnTypeAttributes());
+                    AssertNullableAttribute(method.GetReturnTypeAttributes());
                     AssertAttributes(method.GetAttributes(), "System.Diagnostics.DebuggerHiddenAttribute");
                 });
         }
@@ -1523,41 +1524,41 @@ class C
 }";
             var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
-                // (5,9): warning CS8602: Possible dereference of a null reference.
+                // (5,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Nested._1.Item1.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._1.Item1").WithLocation(5, 9),
-                // (7,9): warning CS8602: Possible dereference of a null reference.
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Nested._2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._2").WithLocation(7, 9),
-                // (10,9): warning CS8602: Possible dereference of a null reference.
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Nested._4.Item1.Item1[0].ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._4.Item1.Item1[0]").WithLocation(10, 9),
-                // (12,9): warning CS8602: Possible dereference of a null reference.
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Nested._4.Item2.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._4.Item2").WithLocation(12, 9),
-                // (13,9): warning CS8602: Possible dereference of a null reference.
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Long._1.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._1").WithLocation(13, 9),
-                // (15,9): warning CS8602: Possible dereference of a null reference.
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Long._3.ToString(); // 6
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._3").WithLocation(15, 9),
-                // (17,9): warning CS8602: Possible dereference of a null reference.
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Long._5.ToString(); // 7
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._5").WithLocation(17, 9),
-                // (19,9): warning CS8602: Possible dereference of a null reference.
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Long._7.ToString(); // 8
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._7").WithLocation(19, 9),
-                // (21,9): warning CS8602: Possible dereference of a null reference.
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Long._9.ToString(); // 9
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._9").WithLocation(21, 9));
 
             var type = comp2.GetMember<NamedTypeSymbol>("A");
             Assert.Equal(
                 "((System.Object?, System.Object) _1, System.Object? _2, System.Object _3, ((System.Object?[], System.Object), System.Object?) _4)",
-                type.GetMember<FieldSymbol>("Nested").Type.ToTestDisplayString());
+                type.GetMember<FieldSymbol>("Nested").TypeWithAnnotations.ToTestDisplayString());
             Assert.Equal(
                 "(System.Object? _1, System.Object _2, System.Object? _3, System.Object _4, System.Object? _5, System.Object _6, System.Object? _7, System.Object _8, System.Object? _9)",
-                type.GetMember<FieldSymbol>("Long").Type.ToTestDisplayString());
+                type.GetMember<FieldSymbol>("Long").TypeWithAnnotations.ToTestDisplayString());
         }
 
         // DynamicAttribute and NullableAttribute formats should be aligned.
@@ -1652,13 +1653,13 @@ public class B<T> :
 }";
             var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
-                // (6,9): warning CS8602: Possible dereference of a null reference.
+                // (6,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.Field._9.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Field._9").WithLocation(6, 9),
-                // (8,9): warning CS8602: Possible dereference of a null reference.
+                // (8,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.Method(default)._9.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Method(default)._9").WithLocation(8, 9),
-                // (10,9): warning CS8602: Possible dereference of a null reference.
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.Property._9.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Property._9").WithLocation(10, 9));
 
@@ -1674,16 +1675,117 @@ public class B<T> :
                 type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString());
             Assert.Equal(
                 "(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9)",
-                type.GetMember<FieldSymbol>("Field").Type.ToTestDisplayString());
+                type.GetMember<FieldSymbol>("Field").TypeWithAnnotations.ToTestDisplayString());
             Assert.Equal(
                 "System.EventHandler<(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9)>",
-                type.GetMember<EventSymbol>("Event").Type.ToTestDisplayString());
+                type.GetMember<EventSymbol>("Event").TypeWithAnnotations.ToTestDisplayString());
             Assert.Equal(
                 "(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9) B<T>.Method((dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9) arg)",
                 type.GetMember<MethodSymbol>("Method").ToTestDisplayString());
             Assert.Equal(
                 "(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9) B<T>.Property { get; set; }",
                 type.GetMember<PropertySymbol>("Property").ToTestDisplayString());
+        }
+
+        [Fact]
+        public void NullableFlags_Field_Exists()
+        {
+            var source =
+@"public class C
+{
+    public void F(object? c) { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                var method = (MethodSymbol)type.GetMembers("F").Single();
+                var attributes = method.Parameters.Single().GetAttributes();
+                AssertNullableAttribute(attributes);
+
+                var nullable = GetNullableAttribute(attributes);
+
+                var field = nullable.AttributeClass.GetField("NullableFlags");
+                Assert.NotNull(field);
+                Assert.Equal("System.Byte[]", field.TypeWithAnnotations.ToTestDisplayString());
+            });
+        }
+
+        [Fact]
+        public void NullableFlags_Field_Contains_ConstructorArguments_SingleByteConstructor()
+        {
+            var source =
+@"
+#nullable enable
+using System;
+using System.Linq;
+public class C
+{
+    public void F(object? c) { }
+
+    public static void Main()
+    {
+        var attribute = typeof(C).GetMethod(""F"").GetParameters()[0].GetCustomAttributes(true).Single(a => a.GetType().Name == ""NullableAttribute"");
+        var field = attribute.GetType().GetField(""NullableFlags"");
+        byte[] flags = (byte[])field.GetValue(attribute);
+
+        Console.Write($""{{ {string.Join("","", flags)} }}"");
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "{ 2 }", symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                var method = (MethodSymbol)type.GetMembers("F").Single();
+                var attributes = method.Parameters.Single().GetAttributes();
+                AssertNullableAttribute(attributes);
+
+                var nullable = GetNullableAttribute(attributes);
+                var args = nullable.ConstructorArguments;
+                Assert.Single(args);
+                Assert.Equal((byte)2, args.First().Value);
+            });
+        }
+
+        [Fact]
+        public void NullableFlags_Field_Contains_ConstructorArguments_ByteArrayConstructor()
+        {
+            var source =
+@"
+#nullable enable
+using System;
+using System.Linq;
+public class C
+{
+    public void F(Action<object?, Action<object, object?>?> c) { }
+
+    public static void Main()
+    {
+        var attribute = typeof(C).GetMethod(""F"").GetParameters()[0].GetCustomAttributes(true).Single(a => a.GetType().Name == ""NullableAttribute"");
+        var field = attribute.GetType().GetField(""NullableFlags"");
+        byte[] flags = (byte[])field.GetValue(attribute);
+
+        System.Console.Write($""{{ {string.Join("","", flags)} }}"");
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "{ 1,2,2,1,2 }", symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                var method = (MethodSymbol)type.GetMembers("F").Single();
+                var attributes = method.Parameters.Single().GetAttributes();
+                AssertNullableAttribute(attributes);
+
+                var nullable = GetNullableAttribute(attributes);
+                var args = nullable.ConstructorArguments;
+                Assert.Single(args);
+                var byteargs = args.First().Values;
+                Assert.Equal((byte)1, byteargs[0].Value);
+                Assert.Equal((byte)2, byteargs[1].Value);
+                Assert.Equal((byte)2, byteargs[2].Value);
+                Assert.Equal((byte)1, byteargs[3].Value);
+                Assert.Equal((byte)2, byteargs[4].Value);
+            });
         }
 
         private static void AssertNoNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)
@@ -1712,6 +1814,11 @@ public class B<T> :
                 var attributes = metadataReader.GetCustomAttributeRows().Select(metadataReader.GetCustomAttributeName).ToArray();
                 Assert.False(attributes.Contains(attributeName));
             }
+        }
+
+        private static CSharpAttributeData GetNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)
+        {
+            return attributes.Single(a => a.AttributeClass.ToTestDisplayString() == "System.Runtime.CompilerServices.NullableAttribute");
         }
 
         private static TypeDefinition GetTypeDefinitionByName(MetadataReader reader, string name)

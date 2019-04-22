@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (BaseTypeSyntax baseTypeSyntax in inheritedTypeDecls)
                 {
                     TypeSyntax t = baseTypeSyntax.Type;
-                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics).TypeSymbol;
+                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics).Type;
 
                     if (TypeSymbol.Equals(bt, @base, TypeCompareKind.ConsiderEverything2))
                     {
@@ -252,7 +252,7 @@ next:;
             {
                 // Late step.
                 var diagnostics = DiagnosticBag.GetInstance();
-                var constraints = ConstraintsHelper.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
+                var constraints = MakeTypeParameterConstraintsLate(clauses, diagnostics);
                 Debug.Assert(!constraints.IsEarly());
                 if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, clauses) == clauses)
                 {
@@ -299,16 +299,6 @@ next:;
                     }
                     else
                     {
-                        // Constraints defined on multiple partial declarations.
-                        // Report any mismatched constraints.
-                        for (int i = 0; i < arity; i++)
-                        {
-                            if (!HaveSameConstraints(results[i], constraints[i]))
-                            {
-                                // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
-                                diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
-                            }
-                        }
                         // Merge in the other partial declaration constraints so all
                         // partial declarations can be checked in late step.
                         results = results.ZipAsArray(constraints, (x, y) => x.AddPartialDeclaration(y));
@@ -317,6 +307,34 @@ next:;
             }
 
             return results;
+        }
+
+        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraintsLate(
+            ImmutableArray<TypeParameterConstraintClause> constraintClauses,
+            DiagnosticBag diagnostics)
+        {
+            var typeParameters = TypeParameters;
+            int arity = typeParameters.Length;
+
+            Debug.Assert(constraintClauses.IsEarly());
+            Debug.Assert(constraintClauses.Length == arity);
+
+            for (int i = 0; i < arity; i++)
+            {
+                var constraint = constraintClauses[i];
+                // Constraints defined on multiple partial declarations.
+                // Report any mismatched constraints.
+                foreach (var other in constraint.OtherPartialDeclarations)
+                {
+                    if (!HaveSameConstraints(constraint, other))
+                    {
+                        // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
+                        diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
+                    }
+                }
+            }
+
+            return ConstraintsHelper.MakeTypeParameterConstraintsLate(typeParameters, constraintClauses, diagnostics);
         }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> GetConstraintClauses(CSharpSyntaxNode node)
@@ -351,7 +369,7 @@ next:;
                 return true;
             }
 
-            var comparer = TypeSymbolWithAnnotations.EqualsComparer.Instance;
+            var comparer = TypeWithAnnotations.EqualsComparer.Instance;
             var constraintTypes1 = clause1.ConstraintTypes.ToImmutableHashSet(comparer);
             var constraintTypes2 = clause2.ConstraintTypes.ToImmutableHashSet(comparer);
 
@@ -374,7 +392,7 @@ next:;
             return true;
         }
 
-        internal sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get
             {
@@ -1213,7 +1231,7 @@ next:;
 
                 if (baseType.NeedsNullableAttribute())
                 {
-                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeSymbolWithAnnotations.Create(baseType)));
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeWithAnnotations.Create(baseType)));
                 }
             }
         }

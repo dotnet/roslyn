@@ -76,6 +76,8 @@ at the end;
 When generating property;
 prefer throwing properties;
 prefer auto properties;
+regex;
+regular expression;
 Use enhanced colors;</source>
         <target state="translated">Zobrazit diagnostiku pro zavřené soubory;
 Vybarvit regulární výraz; 
@@ -369,6 +371,16 @@ Zobrazovat návrhy názvů;</target>
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">Komponenty C# použité v IDE. V závislosti na typu vašeho projektu a nastavení se může použít jiná verze kompilátoru.</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="new">An empty C# script file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="new">Visual C# Script</target>
+        <note />
       </trans-unit>
     </body>
   </file>

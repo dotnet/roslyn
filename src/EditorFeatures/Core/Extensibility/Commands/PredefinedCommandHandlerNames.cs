@@ -142,6 +142,18 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string SignatureHelpAfterCompletion = "Signature Help After Completion Command Handler";
 
         /// <summary>
+        /// Command handler name for Toggle Block Comments.
+        /// </summary>
+        /// <remarks></remarks>
+        public const string ToggleBlockComment = "Toggle Block Comment Command Handler";
+
+        /// <summary>
+        /// Command handler name for Toggle Line Comments.
+        /// </summary>
+        /// <remarks></remarks>
+        public const string ToggleLineComment = "Toggle Line Comment Command Handler";
+
+        /// <summary>
         /// Command handler name for Paste Content in Interactive Format. 
         /// </summary>
         public const string InteractivePaste = "Interactive Paste Command Handler";

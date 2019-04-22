@@ -255,24 +255,6 @@
   <data name="Implement_interface" xml:space="preserve">
     <value>Implement interface</value>
   </data>
-  <data name="Loading_context_from_0" xml:space="preserve">
-    <value>Loading context from '{0}'.</value>
-  </data>
-  <data name="Type_Sharphelp_for_more_information" xml:space="preserve">
-    <value>Type "#help" for more information.</value>
-  </data>
-  <data name="Specified_file_not_found_colon_0" xml:space="preserve">
-    <value>Specified file not found: {0}</value>
-  </data>
-  <data name="Specified_file_not_found" xml:space="preserve">
-    <value>Specified file not found.</value>
-  </data>
-  <data name="Searched_in_directory_colon" xml:space="preserve">
-    <value>Searched in directory:</value>
-  </data>
-  <data name="Searched_in_directories_colon" xml:space="preserve">
-    <value>Searched in directories:</value>
-  </data>
   <data name="Introduce_field_for_0" xml:space="preserve">
     <value>Introduce field for '{0}'</value>
   </data>
@@ -592,35 +574,8 @@
   <data name="Generate_method_1_0" xml:space="preserve">
     <value>Generate method '{1}.{0}'</value>
   </data>
-  <data name="Failed_to_create_a_remote_process_for_interactive_code_execution" xml:space="preserve">
-    <value>Failed to create a remote process for interactive code execution.</value>
-  </data>
-  <data name="Failed_to_initialize_remote_interactive_process" xml:space="preserve">
-    <value>Failed to initialize remote interactive process.</value>
-  </data>
-  <data name="Attempt_to_connect_to_process_Sharp_0_failed_retrying" xml:space="preserve">
-    <value>Attempt to connect to process #{0} failed, retrying ...</value>
-  </data>
-  <data name="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon" xml:space="preserve">
-    <value>Failed to launch '{0}' process (exit code: {1}) with output: </value>
-  </data>
-  <data name="Hosting_process_exited_with_exit_code_0" xml:space="preserve">
-    <value>Hosting process exited with exit code {0}.</value>
-  </data>
-  <data name="Interactive_Host_not_initialized" xml:space="preserve">
-    <value>Interactive Host not initialized.</value>
-  </data>
-  <data name="Cannot_resolve_reference_0" xml:space="preserve">
-    <value>Cannot resolve reference '{0}'.</value>
-  </data>
   <data name="Requested_assembly_already_loaded_from_0" xml:space="preserve">
     <value>Requested assembly already loaded from '{0}'.</value>
-  </data>
-  <data name="plus_additional_0_1" xml:space="preserve">
-    <value> + additional {0} {1}</value>
-  </data>
-  <data name="Unable_to_create_hosting_process" xml:space="preserve">
-    <value>Unable to create hosting process.</value>
   </data>
   <data name="The_symbol_does_not_have_an_icon" xml:space="preserve">
     <value>The symbol does not have an icon.</value>
@@ -1457,6 +1412,9 @@ This version used in: {2}</value>
   <data name="Move_file_to_project_root_folder" xml:space="preserve">
     <value>Move file to project root folder</value>
   </data>
+  <data name="Move_to_namespace" xml:space="preserve">
+    <value>Move to namespace...</value>
+  </data>
   <data name="Change_to_global_namespace" xml:space="preserve">
     <value>Change to global namespace</value>
   </data>
@@ -1562,6 +1520,18 @@ This version used in: {2}</value>
   <data name="Fix_formatting" xml:space="preserve">
     <value>Fix formatting</value>
   </data>
+  <data name="Split_into_nested_0_statements" xml:space="preserve">
+    <value>Split into nested '{0}' statements</value>
+  </data>
+  <data name="Merge_with_outer_0_statement" xml:space="preserve">
+    <value>Merge with outer '{0}' statement</value>
+  </data>
+  <data name="Split_into_consecutive_0_statements" xml:space="preserve">
+    <value>Split into consecutive '{0}' statements</value>
+  </data>
+  <data name="Merge_with_previous_0_statement" xml:space="preserve">
+    <value>Merge with previous '{0}' statement</value>
+  </data>
   <data name="Indexing_can_be_simplified" xml:space="preserve">
     <value>Indexing can be simplified</value>
   </data>
@@ -1592,6 +1562,12 @@ This version used in: {2}</value>
   <data name="Remove_unused_parameter_0_its_initial_value_is_never_used" xml:space="preserve">
     <value>Remove unused parameter '{0}', its initial value is never used</value>
   </data>
+  <data name="Merge_with_nested_0_statement" xml:space="preserve">
+    <value>Merge with nested '{0}' statement</value>
+  </data>
+  <data name="Merge_with_next_0_statement" xml:space="preserve">
+    <value>Merge with next '{0}' statement</value>
+  </data>
   <data name="Pull_0_up" xml:space="preserve">
     <value>Pull '{0}' up</value>
   </data>
@@ -1606,5 +1582,33 @@ This version used in: {2}</value>
   </data>
   <data name="Pull_0_up_to_1" xml:space="preserve">
     <value>Pull '{0}' up to '{1}'</value>
+  </data>
+  <data name="Wrap_and_align_expression" xml:space="preserve">
+    <value>Wrap and align expression</value>
+  </data>
+  <data name="Local_function_can_be_made_static" xml:space="preserve">
+    <value>Local function can be made static</value>
+  </data>
+  <data name="Make_local_function_static" xml:space="preserve">
+    <value>Make local function 'static'</value>
+  </data>
+  <data name="Use_simple_using_statement" xml:space="preserve">
+    <value>Use simple 'using' statement</value>
+  </data>
+  <data name="using_statement_can_be_simplified" xml:space="preserve">
+    <value>'using' statement can be simplified</value>
+  </data>
+  <data name="Make_readonly_fields_writable" xml:space="preserve">
+    <value>Make readonly fields writable</value>
+    <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Move_contents_to_namespace" xml:space="preserve">
+    <value>Move contents to namespace...</value>
+  </data>
+  <data name="Add_optional_parameter_to_constructor" xml:space="preserve">
+    <value>Add optional parameter to constructor</value>
+  </data>
+  <data name="Add_parameter_to_constructor" xml:space="preserve">
+    <value>Add parameter to constructor</value>
   </data>
 </root>

@@ -63,6 +63,10 @@ namespace BuildBoss
                 allGood &= CheckPackageReferences(textWriter);
                 allGood &= CheckDeploymentSettings(textWriter);
             }
+            else if (ProjectType == ProjectFileType.Tool)
+            {
+                allGood &= CheckPackageReferences(textWriter);
+            }
 
             return allGood;
         }
@@ -459,6 +463,7 @@ namespace BuildBoss
                         case "net472":
                         case "netcoreapp1.1":
                         case "netcoreapp2.1":
+                        case "netcoreapp3.0":
                         case "$(RoslynPortableTargetFrameworks)":
                             continue;
                     }

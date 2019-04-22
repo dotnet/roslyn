@@ -32,14 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ArrayType:
                     {
                         var array = (ArrayTypeSymbol)type;
-                        TypeSymbolWithAnnotations elementType = array.ElementType;
-                        return elementType.CustomModifiers.Length + elementType.TypeSymbol.CustomModifierCount();
+                        TypeWithAnnotations elementType = array.ElementTypeWithAnnotations;
+                        return elementType.CustomModifiers.Length + elementType.Type.CustomModifierCount();
                     }
                 case SymbolKind.PointerType:
                     {
                         var pointer = (PointerTypeSymbol)type;
-                        TypeSymbolWithAnnotations pointedAtType = pointer.PointedAtType;
-                        return pointedAtType.CustomModifiers.Length + pointedAtType.TypeSymbol.CustomModifierCount();
+                        TypeWithAnnotations pointedAtType = pointer.PointedAtTypeWithAnnotations;
+                        return pointedAtType.CustomModifiers.Length + pointedAtType.Type.CustomModifierCount();
                     }
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             while ((object)namedType != null)
                             {
-                                ImmutableArray<TypeSymbolWithAnnotations> typeArgs = namedType.TypeArgumentsNoUseSiteDiagnostics;
+                                ImmutableArray<TypeWithAnnotations> typeArgs = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
-                                foreach (TypeSymbolWithAnnotations typeArg in typeArgs)
+                                foreach (TypeWithAnnotations typeArg in typeArgs)
                                 {
-                                    count += typeArg.TypeSymbol.CustomModifierCount() + typeArg.CustomModifiers.Length;
+                                    count += typeArg.Type.CustomModifierCount() + typeArg.CustomModifiers.Length;
                                 }
 
                                 namedType = namedType.ContainingType;
@@ -98,15 +98,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ArrayType:
                     {
                         var array = (ArrayTypeSymbol)type;
-                        TypeSymbolWithAnnotations elementType = array.ElementType;
-                        return elementType.CustomModifiers.Any() || elementType.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds) ||
+                        TypeWithAnnotations elementType = array.ElementTypeWithAnnotations;
+                        return elementType.CustomModifiers.Any() || elementType.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds) ||
                                (flagNonDefaultArraySizesOrLowerBounds && !array.HasDefaultSizesAndLowerBounds);
                     }
                 case SymbolKind.PointerType:
                     {
                         var pointer = (PointerTypeSymbol)type;
-                        TypeSymbolWithAnnotations pointedAtType = pointer.PointedAtType;
-                        return pointedAtType.CustomModifiers.Any() || pointedAtType.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds);
+                        TypeWithAnnotations pointedAtType = pointer.PointedAtTypeWithAnnotations;
+                        return pointedAtType.CustomModifiers.Any() || pointedAtType.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds);
                     }
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
@@ -123,11 +123,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var namedType = (NamedTypeSymbol)type;
                             while ((object)namedType != null)
                             {
-                                ImmutableArray<TypeSymbolWithAnnotations> typeArgs = namedType.TypeArgumentsNoUseSiteDiagnostics;
+                                ImmutableArray<TypeWithAnnotations> typeArgs = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
-                                foreach (TypeSymbolWithAnnotations typeArg in typeArgs)
+                                foreach (TypeWithAnnotations typeArg in typeArgs)
                                 {
-                                    if (!typeArg.CustomModifiers.IsEmpty || typeArg.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds))
+                                    if (!typeArg.CustomModifiers.IsEmpty || typeArg.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds))
                                     {
                                         return true;
                                     }
@@ -252,8 +252,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Error:
-                case TypeKind.Interface:
                     return compilation.Assembly.GetSpecialType(SpecialType.System_Object);
+                case TypeKind.Interface:
+                    return null;
                 case TypeKind.Struct:
                     return compilation.Assembly.GetSpecialType(SpecialType.System_ValueType);
                 default:

@@ -120,13 +120,13 @@ End Class</code>)
         Public Sub TestDim_After_MalformedStatement()
             Test(<code>Class C
     Sub Method()
-        Dim _ ' test
+        Dim _  test
 
         $$
     End Sub
 End Class</code>, <code>Class C
     Sub Method()
-        Dim _ ' test
+        Dim _  test
 $$
     End Sub
 End Class</code>)
@@ -240,17 +240,36 @@ End Module
 </code>)
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        Public Sub TestWithLineContinuationCommentsAfterLineContinuation()
+            Test(
+<code>
+Module M
+    Sub Main()
+        Dim _ ' Test
+            $$
+    End Sub
+End Module
+</code>,
+<code>
+Module M
+    Sub Main()
+        Dim _ ' Test$$
+    End Sub
+End Module
+</code>)
+        End Sub
+
         Private Overloads Sub Test(expected As XElement, code As XElement)
             Test(expected.NormalizedValue(), code.NormalizedValue())
         End Sub
 
         Friend Overrides Function CreateCommandHandler(
             undoRegistry As ITextUndoHistoryRegistry,
-            editorOperations As IEditorOperationsFactoryService,
-            asyncCompletionBroker As IAsyncCompletionBroker
+            editorOperations As IEditorOperationsFactoryService
         ) As IChainedCommandHandler(Of AutomaticLineEnderCommandArgs)
 
-            Return New AutomaticLineEnderCommandHandler(undoRegistry, editorOperations, asyncCompletionBroker)
+            Return New AutomaticLineEnderCommandHandler(undoRegistry, editorOperations)
         End Function
 
         Protected Overrides Function CreateNextHandler(workspace As TestWorkspace) As Action

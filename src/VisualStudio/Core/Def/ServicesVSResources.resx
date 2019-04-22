@@ -507,6 +507,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="This_workspace_only_supports_opening_documents_on_the_UI_thread" xml:space="preserve">
     <value>This workspace only supports opening documents on the UI thread.</value>
   </data>
+  <data name="This_workspace_does_not_support_updating_Visual_Basic_compilation_options" xml:space="preserve">
+    <value>This workspace does not support updating Visual Basic compilation options.</value>
+  </data>
   <data name="This_workspace_does_not_support_updating_Visual_Basic_parse_options" xml:space="preserve">
     <value>This workspace does not support updating Visual Basic parse options.</value>
   </data>
@@ -945,9 +948,6 @@ Additional information: {1}</value>
   <data name="Enable_full_solution_analysis" xml:space="preserve">
     <value>Enable full solution _analysis</value>
   </data>
-  <data name="Perform_editor_feature_analysis_in_external_process" xml:space="preserve">
-    <value>Perform editor _feature analysis in external process (experimental)</value>
-  </data>
   <data name="Fade_out_unreachable_code" xml:space="preserve">
     <value>Fade out unreachable code</value>
   </data>
@@ -1045,11 +1045,11 @@ I agree to all of the foregoing:</value>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
     <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
   </data>
-  <data name="Field_preferences_colon" xml:space="preserve">
-    <value>Field preferences:</value>
+  <data name="Modifier_preferences_colon" xml:space="preserve">
+    <value>Modifier preferences:</value>
   </data>
-  <data name="Prefer_readonly" xml:space="preserve">
-    <value>Prefer readonly</value>
+  <data name="Prefer_readonly_fields" xml:space="preserve">
+    <value>Prefer readonly fields</value>
   </data>
   <data name="Analyzing_0" xml:space="preserve">
     <value>Analyzing '{0}'</value>
@@ -1145,7 +1145,7 @@ I agree to all of the foregoing:</value>
     <value>Additional changes are needed to complete the refactoring. Review changes below.</value>
   </data>
   <data name="Select_Dependents" xml:space="preserve">
-    <value>_Select Dependents</value>
+    <value>Select _Dependents</value>
   </data>
   <data name="Select_destination_and_members_to_pull_up" xml:space="preserve">
     <value>Select destination and members to pull up.</value>
@@ -1154,7 +1154,7 @@ I agree to all of the foregoing:</value>
     <value>Select members:</value>
   </data>
   <data name="Select_Public" xml:space="preserve">
-    <value>_Select Public</value>
+    <value>Select _Public</value>
   </data>
   <data name="_0_will_be_changed_to_abstract" xml:space="preserve">
     <value>'{0}' will be changed to abstract.</value>
@@ -1189,7 +1189,34 @@ I agree to all of the foregoing:</value>
   <data name="Classifications" xml:space="preserve">
     <value>Classifications</value>
   </data>
+  <data name="Prefer_static_local_functions" xml:space="preserve">
+    <value>Prefer static local functions</value>
+  </data>
+  <data name="Prefer_simple_using_statement" xml:space="preserve">
+    <value>Prefer simple 'using' statement</value>
+  </data>
+  <data name="Show_completion_list" xml:space="preserve">
+    <value>Show completion list</value>
+  </data>
   <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
     <value>Use enhanced colors for C# and Basic</value>
+  </data>
+  <data name="Move_to_namespace" xml:space="preserve">
+    <value>Move to Namespace</value>
+  </data>
+  <data name="Namespace" xml:space="preserve">
+    <value>Namespace</value>
+  </data>
+  <data name="Target_Namespace_colon" xml:space="preserve">
+    <value>Target Namespace:</value>
+  </data>
+  <data name="This_is_an_invalid_namespace" xml:space="preserve">
+    <value>This is an invalid namespace</value>
+  </data>
+  <data name="A_new_namespace_will_be_created" xml:space="preserve">
+    <value>A new namespace will be created</value>
+  </data>
+  <data name="Rename_0_to_1" xml:space="preserve">
+    <value>Rename {0} to {1}</value>
   </data>
 </root>

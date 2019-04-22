@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public sealed class CompletionList
     {
+        private readonly bool _isExclusive;
+
         /// <summary>
         /// The completion items to present to the user.
         /// </summary>
@@ -47,11 +49,6 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem SuggestionModeItem { get; }
 
-        /// <summary>
-        /// For testing purposes only.
-        /// </summary>
-        internal bool IsExclusive { get; }
-
         private CompletionList(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
@@ -64,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Items = items.NullToEmpty();
             Rules = rules ?? CompletionRules.Default;
             SuggestionModeItem = suggestionModeItem;
-            IsExclusive = isExclusive;
+            _isExclusive = isExclusive;
 
             foreach (var item in Items)
             {
@@ -167,5 +164,20 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly CompletionList Empty = new CompletionList(
             default, default, CompletionRules.Default,
             suggestionModeItem: null, isExclusive: false);
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly CompletionList _completionList;
+
+            public TestAccessor(CompletionList completionList)
+            {
+                _completionList = completionList;
+            }
+
+            internal bool IsExclusive => _completionList._isExclusive;
+        }
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -16,8 +17,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpIntelliSense(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpIntelliSense))
+        public CSharpIntelliSense(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpIntelliSense))
         {
         }
 
@@ -269,7 +270,23 @@ class Class1
                 'M',
                 Shift(VirtualKey.Enter));
 
-            VisualStudio.Editor.Verify.TextContains(@"
+            if (LegacyCompletionCondition.Instance.ShouldSkip)
+            {
+                // Async completion commits the item and inserts a blank line
+                VisualStudio.Editor.Verify.TextContains(@"
+class Class1
+{
+    void Main(string[] args)
+    {
+        Main
+$$
+    }
+}",
+assertCaretPosition: true);
+            }
+            else
+            {
+                VisualStudio.Editor.Verify.TextContains(@"
 class Class1
 {
     void Main(string[] args)
@@ -278,6 +295,7 @@ class Class1
     }
 }",
 assertCaretPosition: true);
+            }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -298,7 +316,23 @@ class Class1
                 'M',
                 Shift(VirtualKey.Enter));
 
-            VisualStudio.Editor.Verify.TextContains(@"
+            if (LegacyCompletionCondition.Instance.ShouldSkip)
+            {
+                // Async completion commits the item (even in suggestion mode) and inserts a blank line
+                VisualStudio.Editor.Verify.TextContains(@"
+class Class1
+{
+    void Main(string[] args)
+    {
+        Main
+$$
+    }
+}",
+assertCaretPosition: true);
+            }
+            else
+            {
+                VisualStudio.Editor.Verify.TextContains(@"
 class Class1
 {
     void Main(string[] args)
@@ -308,6 +342,7 @@ $$
     }
 }",
 assertCaretPosition: true);
+            }
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

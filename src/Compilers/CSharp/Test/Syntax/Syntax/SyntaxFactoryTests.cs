@@ -15,6 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxFactoryTests : CSharpTestBase
     {
+        [Fact, WorkItem(33713, "https://github.com/dotnet/roslyn/issues/33713")]
+        public void AlternateVerbatimString()
+        {
+            var token = SyntaxFactory.Token(SyntaxKind.InterpolatedVerbatimStringStartToken);
+            Assert.Equal("$@\"", token.Text);
+            Assert.Equal("$@\"", token.ValueText);
+        }
+
         [Fact]
         public void SyntaxTree()
         {
@@ -266,8 +274,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("x,y,z", list2.ToString());
         }
 
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         [WorkItem(720708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720708")]
-        [Fact]
         public void TestLiteralDefaultStringValues()
         {
             // string
@@ -337,8 +346,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CheckLiteralToString(decimal.MaxValue, @"79228162514264337593543950335M");
         }
 
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         [WorkItem(849836, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849836")]
-        [Fact]
         public void TestLiteralToStringDifferentCulture()
         {
             var culture = CultureInfo.CurrentCulture;

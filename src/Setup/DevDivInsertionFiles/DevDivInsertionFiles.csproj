@@ -16,7 +16,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <OutputType>Library</OutputType>
-    <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
   </PropertyGroup>
   
   <ItemGroup>
@@ -107,6 +107,9 @@
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
+      <_Dependency Remove="VSLangProj"/>
+      <_Dependency Remove="VSLangProj2"/>
+      <_Dependency Remove="VSLangProj80"/>
     </ItemGroup>
 
     <!-- Calculate metadata we need -->

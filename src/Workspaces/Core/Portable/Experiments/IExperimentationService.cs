@@ -19,8 +19,11 @@ namespace Microsoft.CodeAnalysis.Experiments
 
     internal static class WellKnownExperimentNames
     {
-        public const string RoslynFeatureOOP = nameof(RoslynFeatureOOP);
         public const string RoslynOOP64bit = nameof(RoslynOOP64bit);
         public const string CompletionAPI = nameof(CompletionAPI);
+        public const string PartialLoadMode = "Roslyn.PartialLoadMode";
+        public const string TypeImportCompletion = "Roslyn.TypeImportCompletion";
+        public const string RoslynToggleBlockComment = "Roslyn.ToggleBlockComment";
+        public const string RoslynToggleLineComment = "Roslyn.ToggleLineComment";
     }
 }

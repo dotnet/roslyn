@@ -18,8 +18,8 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
-        <target state="translated">結束建構的自動插入;變更美化排列設定;變更大綱模式;Interface 和 MustOverride 成員的自動插入;顯示或隱藏程序行分隔符號;開啟或關閉錯誤修正建議;開啟或關閉參考和關鍵字的醒目提式;Regex;將規則運算式標上顏色;醒目提示游標下的相關元件;報告無效的規則運算式</target>
+        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
+        <target state="needs-review-translation">結束建構的自動插入;變更美化排列設定;變更大綱模式;Interface 和 MustOverride 成員的自動插入;顯示或隱藏程序行分隔符號;開啟或關閉錯誤修正建議;開啟或關閉參考和關鍵字的醒目提式;Regex;將規則運算式標上顏色;醒目提示游標下的相關元件;報告無效的規則運算式</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -101,6 +101,16 @@
         <source>Visual Basic Tools</source>
         <target state="translated">Visual Basic 工具</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_Visual_Basic_script_file">
+        <source>An empty Visual Basic script file.</source>
+        <target state="new">An empty Visual Basic script file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_Script">
+        <source>Visual Basic Script</source>
+        <target state="new">Visual Basic Script</target>
+        <note />
       </trans-unit>
     </body>
   </file>

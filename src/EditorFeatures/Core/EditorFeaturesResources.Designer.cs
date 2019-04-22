@@ -1314,6 +1314,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Operation is not ready for &quot;{0}&quot; yet. See bottom left corner for more details..
+        /// </summary>
+        internal static string Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail {
+            get {
+                return ResourceManager.GetString("Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Operator - Overloaded.
         /// </summary>
         internal static string Operator_Overloaded {
@@ -1881,6 +1890,46 @@ namespace Microsoft.CodeAnalysis.Editor {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to Toggle Block Comment.
+        /// </summary>
+        internal static string Toggle_Block_Comment {
+            get {
+                return ResourceManager.GetString("Toggle_Block_Comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toggling block comment....
+        /// </summary>
+        internal static string Toggling_block_comment {
+            get {
+                return ResourceManager.GetString("Toggling_block_comment", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Toggle Line Comment.
+        /// </summary>
+        internal static string Toggle_Line_Comment
+        {
+            get
+            {
+                return ResourceManager.GetString("Toggle_Line_Comment", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Toggling line comment....
+        /// </summary>
+        internal static string Toggling_line_comment
+        {
+            get
+            {
+                return ResourceManager.GetString("Toggling_line_comment", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Type Parts.
         /// </summary>

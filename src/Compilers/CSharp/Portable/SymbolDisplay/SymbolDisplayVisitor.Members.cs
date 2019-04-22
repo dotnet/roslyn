@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitTypeSymbolWithAnnotations(fieldSymbol.Type);
+                VisitTypeWithAnnotations(fieldSymbol.TypeWithAnnotations);
             }
         }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    VisitTypeSymbolWithAnnotations(propertySymbol.Type);
+                    VisitTypeWithAnnotations(propertySymbol.TypeWithAnnotations);
                 }
 
                 AddSpace();
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    VisitTypeSymbolWithAnnotations(eventSymbol.Type);
+                    VisitTypeWithAnnotations(eventSymbol.TypeWithAnnotations);
                 }
 
                 AddSpace();
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitTypeSymbolWithAnnotations(methodSymbol.ReturnType);
+                VisitTypeWithAnnotations(methodSymbol.ReturnTypeWithAnnotations);
             }
         }
 
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameter = symbol as ParameterSymbol;
                 if ((object)parameter != null)
                 {
-                    VisitTypeSymbolWithAnnotations(parameter.Type);
+                    VisitTypeWithAnnotations(parameter.TypeWithAnnotations);
                 }
                 else
                 {

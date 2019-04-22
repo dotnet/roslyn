@@ -86,6 +86,91 @@ class C
         }
 
         [Fact]
+        public void FixedSizeBuffer_GenericStruct_01()
+        {
+            var code = @"
+unsafe struct MyStruct<T>
+{
+    public fixed char buf[16];
+    public static void M()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FixedSizeBuffer_GenericStruct_02()
+        {
+            var code = @"
+unsafe struct MyStruct<T>
+{
+    public fixed T buf[16];
+    public static void M()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed T buf[16];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "T").WithLocation(4, 18)
+            );
+        }
+
+        [Fact]
+        public void FixedSizeBuffer_GenericStruct_03()
+        {
+            var code = @"
+unsafe struct MyStruct<T> where T : unmanaged
+{
+    public fixed T buf[16];
+    public static void M()
+    {
+        var ms = new MyStruct<int>();
+        var ptr = &ms;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed T buf[16];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "T").WithLocation(4, 18)
+            );
+        }
+
+        [Fact]
+        public void FixedSizeBuffer_GenericStruct_04()
+        {
+            var code = @"
+public unsafe struct MyStruct<T>
+{
+    public T field;
+}
+
+unsafe struct OuterStruct
+{
+    public fixed MyStruct<int> buf[16];
+    public static void M()
+    {
+        var os = new OuterStruct();
+        var ptr = &os;
+    }
+}
+";
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed MyStruct<int> buf[16];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "MyStruct<int>").WithLocation(9, 18)
+            );
+        }
+
+        [Fact]
         public void CompilationNotUnsafe1()
         {
             var text = @"
@@ -303,17 +388,17 @@ unsafe class C<T>
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            var fieldTypes = Enumerable.Range(0, 8).Select(i => type.GetMember<FieldSymbol>("f" + i).Type).ToArray();
+            var fieldTypes = Enumerable.Range(0, 8).Select(i => type.GetMember<FieldSymbol>("f" + i).TypeWithAnnotations).ToArray();
 
-            Assert.True(fieldTypes[0].IsUnsafe());
-            Assert.True(fieldTypes[1].IsUnsafe());
-            Assert.True(fieldTypes[2].IsUnsafe());
-            Assert.True(fieldTypes[3].IsUnsafe());
+            Assert.True(fieldTypes[0].Type.IsUnsafe());
+            Assert.True(fieldTypes[1].Type.IsUnsafe());
+            Assert.True(fieldTypes[2].Type.IsUnsafe());
+            Assert.True(fieldTypes[3].Type.IsUnsafe());
 
-            Assert.False(fieldTypes[4].IsUnsafe());
-            Assert.False(fieldTypes[5].IsUnsafe());
-            Assert.False(fieldTypes[6].IsUnsafe());
-            Assert.False(fieldTypes[7].IsUnsafe());
+            Assert.False(fieldTypes[4].Type.IsUnsafe());
+            Assert.False(fieldTypes[5].Type.IsUnsafe());
+            Assert.False(fieldTypes[6].Type.IsUnsafe());
+            Assert.False(fieldTypes[7].Type.IsUnsafe());
         }
 
         [Fact]
@@ -2487,13 +2572,15 @@ class C
     object f1;
     string f2;
     System.Collections.IEnumerable f3;
-    int? f4;
 }
 ";
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            foreach (var field in type.GetMembers().OfType<FieldSymbol>())
+            {
+                Assert.True(field.Type.IsManagedType, field.ToString());
+            }
         }
 
         [Fact]
@@ -2516,13 +2603,15 @@ class C
     float f12;
     double f13;
     System.IntPtr f14;
-    System.UIntPtr f14;
+    System.UIntPtr f15;
+    int? f16;
 }
 ";
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
             Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedType));
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetField("f16").Type.ManagedKind);
         }
 
         [Fact]
@@ -2607,11 +2696,13 @@ struct R<T>
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("P").IsManagedType);
+            Assert.Equal(ManagedKind.Unmanaged, globalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKind);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("P").IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("P").ManagedKind);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("S").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("S").IsManagedType);
             Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("Q").GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("S").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("S").IsManagedType);
         }
 
         [Fact]
@@ -2633,8 +2724,58 @@ struct S<T>
 ";
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.False(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f1").Type.ManagedKind);
+            Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f2").Type.ManagedKind);
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            // these are managed due to S`1.R being ErrorType due to protection level (CS0169)
+            Assert.True(type.GetMember<FieldSymbol>("f3").Type.IsManagedType);
+            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f3").Type.ManagedKind);
+            Assert.True(type.GetMember<FieldSymbol>("f4").Type.IsManagedType);
+            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f4").Type.ManagedKind);
+        }
+
+        [Fact]
+        public void IsManagedType_GenericStruct()
+        {
+            var text = @"
+class C<U>
+{
+    S<object> f1;
+    S<int> f2;
+}
+
+struct S<T>
+{
+    T field;
+}
+";
+            var compilation = CreateCompilation(text);
+            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.True(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
+            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f1").Type.ManagedKind);
+            Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f2").Type.ManagedKind);
+        }
+
+        [Fact]
+        public void IsManagedType_GenericStruct_ErrorTypeArg()
+        {
+            var text = @"
+class C<U>
+{
+    S<Widget> f1;
+}
+
+struct S<T>
+{
+    T field;
+}
+";
+            var compilation = CreateCompilation(text);
+            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.True(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
         }
 
         [Fact]
@@ -2833,7 +2974,8 @@ struct W<T> { X<W<W<T>>> x; }
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
             Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("X").IsManagedType); // because of X.t
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("W").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("W").IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("W").ManagedKind);
         }
 
         [Fact]
@@ -3031,8 +3173,10 @@ class C<T>
         var s1 = new S1();
         var s2 = new S2();
         var s3 = new S3();
-        var s4 = new S4<int>();
-        var s5 = new S4<int>();
+        var s4_0 = new S4<int>();
+        var s4_1 = new S4<object>();
+        var s4_2 = new S4<U>();
+        var s5 = new S5<int>();
         var i0 = 0;
         var e1 = new E1();
         var o1 = new object();
@@ -3052,13 +3196,15 @@ class C<T>
             // sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, or bool.
             // Any enum_type.
             // Any pointer_type.
-            // Any user-defined struct_type that is not a constructed type and contains fields of unmanaged_types only.
+            // Any user-defined struct_type that contains fields of unmanaged_types only.
             // A type parameter with an unmanaged constraint
             Assert.True(getLocalType("s1").IsUnmanagedType);
             Assert.True(getLocalType("s2").IsUnmanagedType);
             Assert.False(getLocalType("s3").IsUnmanagedType);
-            Assert.False(getLocalType("s4").IsUnmanagedType);
-            Assert.False(getLocalType("s5").IsUnmanagedType);
+            Assert.True(getLocalType("s4_0").IsUnmanagedType);
+            Assert.False(getLocalType("s4_1").IsUnmanagedType);
+            Assert.True(getLocalType("s4_2").IsUnmanagedType);
+            Assert.True(getLocalType("s5").IsUnmanagedType);
             Assert.True(getLocalType("i0").IsUnmanagedType);
             Assert.True(getLocalType("e1").IsUnmanagedType);
             Assert.False(getLocalType("o1").IsUnmanagedType);
@@ -3068,7 +3214,66 @@ class C<T>
             Assert.True(getLocalType("p1").IsUnmanagedType);
             Assert.False(getLocalType("a1").IsUnmanagedType);
             Assert.False(getLocalType("a2").IsUnmanagedType);
-            Assert.False(getLocalType("t2").IsUnmanagedType);
+            Assert.True(getLocalType("t2").IsUnmanagedType);
+
+            ITypeSymbol getLocalType(string name)
+            {
+                var decl = root.DescendantNodes()
+                    .OfType<VariableDeclaratorSyntax>()
+                    .Single(n => n.Identifier.ValueText == name);
+                return ((ILocalSymbol)model.GetDeclaredSymbol(decl)).Type;
+            }
+        }
+
+        [Fact]
+        public void GenericStructPrivateFieldInMetadata()
+        {
+            var externalCode = @"
+public struct External<T>
+{
+    private T field;
+}
+";
+            var metadata = CreateCompilation(externalCode).EmitToImageReference();
+
+            var code = @"
+public class C
+{
+    public unsafe void M<T, U>() where T : unmanaged
+    {
+        var good = new External<int>();
+        var goodPtr = &good;
+
+        var good2 = new External<T>();
+        var goodPtr2 = &good2;
+
+        var bad = new External<object>();
+        var badPtr = &bad;
+
+        var bad2 = new External<U>();
+        var badPtr2 = &bad2;
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(code, TestOptions.Regular);
+            var compilation = CreateCompilation(tree, new[] { metadata }, TestOptions.UnsafeReleaseDll);
+
+            compilation.VerifyDiagnostics(
+                // (13,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('External<object>')
+                //         var badPtr = &bad;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&bad").WithArguments("External<object>").WithLocation(13, 22),
+                // (16,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('External<U>')
+                //         var badPtr2 = &bad2;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&bad2").WithArguments("External<U>").WithLocation(16, 23)
+            );
+
+            var model = compilation.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+
+            Assert.True(getLocalType("good").IsUnmanagedType);
+            Assert.True(getLocalType("good2").IsUnmanagedType);
+            Assert.False(getLocalType("bad").IsUnmanagedType);
+            Assert.False(getLocalType("bad2").IsUnmanagedType);
 
             ITypeSymbol getLocalType(string name)
             {
@@ -3959,7 +4164,7 @@ unsafe class C
             Assert.NotNull(declaredSymbol);
             Assert.Equal(SymbolKind.Local, declaredSymbol.Kind);
             Assert.Equal("p", declaredSymbol.Name);
-            Assert.Equal(type, ((LocalSymbol)declaredSymbol).Type.TypeSymbol);
+            Assert.Equal(type, ((LocalSymbol)declaredSymbol).Type);
         }
 
         [Fact]
@@ -4534,14 +4739,14 @@ struct S
             var callSyntax = syntax.Parent;
 
             var structType = compilation.GlobalNamespace.GetMember<TypeSymbol>("S");
-            var structPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(structType));
+            var structPointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(structType));
             var structMethod1 = structType.GetMembers("M").OfType<MethodSymbol>().Single(m => m.ParameterCount == 0);
             var structMethod2 = structType.GetMembers("M").OfType<MethodSymbol>().Single(m => m.ParameterCount == 1);
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Local, receiverSymbol.Kind);
-            Assert.Equal(structPointerType, ((LocalSymbol)receiverSymbol).Type.TypeSymbol);
+            Assert.Equal(structPointerType, ((LocalSymbol)receiverSymbol).Type);
             Assert.Equal("p", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -4608,7 +4813,7 @@ struct S
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Local, receiverSymbol.Kind);
-            Assert.Equal(structType, ((LocalSymbol)receiverSymbol).Type.TypeSymbol);
+            Assert.Equal(structType, ((LocalSymbol)receiverSymbol).Type);
             Assert.Equal("s", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -4847,12 +5052,12 @@ unsafe class C
             var accessSyntax = syntax;
 
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var intPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(intType));
+            var intPointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(intType));
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Local, receiverSymbol.Kind);
-            Assert.Equal(intPointerType, ((LocalSymbol)receiverSymbol).Type.TypeSymbol);
+            Assert.Equal(intPointerType, ((LocalSymbol)receiverSymbol).Type);
             Assert.Equal("p", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -4864,7 +5069,7 @@ unsafe class C
             var indexSummary = model.GetSemanticInfoSummary(indexSyntax);
             var indexSymbol = indexSummary.Symbol;
             Assert.Equal(SymbolKind.Local, indexSymbol.Kind);
-            Assert.Equal(intType, ((LocalSymbol)indexSymbol).Type.TypeSymbol);
+            Assert.Equal(intType, ((LocalSymbol)indexSymbol).Type);
             Assert.Equal("i", indexSymbol.Name);
             Assert.Equal(CandidateReason.None, indexSummary.CandidateReason);
             Assert.Equal(0, indexSummary.CandidateSymbols.Length);
@@ -4914,12 +5119,12 @@ unsafe class C
             var accessSyntax = syntax;
 
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var intPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(intType));
+            var intPointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(intType));
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
-            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type.TypeSymbol);
+            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
             Assert.Equal("f", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -4972,12 +5177,12 @@ unsafe class C
             var accessSyntax = syntax;
 
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var intPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(intType));
+            var intPointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(intType));
 
             var receiverSummary = model.GetSemanticInfoSummary(receiverSyntax);
             var receiverSymbol = receiverSummary.Symbol;
             Assert.Equal(SymbolKind.Field, receiverSymbol.Kind);
-            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type.TypeSymbol);
+            Assert.Equal(intPointerType, ((FieldSymbol)receiverSymbol).Type);
             Assert.Equal("f", receiverSymbol.Name);
             Assert.Equal(CandidateReason.None, receiverSummary.CandidateReason);
             Assert.Equal(0, receiverSummary.CandidateSymbols.Length);
@@ -5539,7 +5744,7 @@ unsafe class C
             compilation.VerifyDiagnostics();
 
             var methodSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
-            var pointerType = methodSymbol.Parameters[0].Type.TypeSymbol;
+            var pointerType = methodSymbol.Parameters[0].Type;
             Assert.Equal(TypeKind.Pointer, pointerType.TypeKind);
 
             foreach (var binOpSyntax in tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>())
@@ -6673,6 +6878,59 @@ class Program
         }
 
         [Fact]
+        public void NormalInitializerType_ArrayOfGenericStruct()
+        {
+            var text = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        var a = new MyStruct<int>[2];
+        a[0].field = 42;
+
+        fixed (MyStruct<int>* p = a)
+        {
+            System.Console.Write(p->field);
+        }
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "42");
+        }
+
+        [Fact]
+        public void NormalInitializerType_ArrayOfGenericStruct_RequiresCSharp8()
+        {
+            var text = @"
+public struct MyStruct<T>
+{
+    public T field;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        var a = new MyStruct<int>[2];
+
+        fixed (void* p = a)
+        {
+        }
+    }
+}
+";
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (13,26): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         fixed (void* p = a)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("unmanaged constructed types").WithLocation(13, 26));
+        }
+
+        [Fact]
         public void NormalInitializerType_Array()
         {
             var text = @"
@@ -6790,7 +7048,7 @@ unsafe class C
                 Assert.NotNull(symbol);
                 Assert.Equal(LocalDeclarationKind.FixedVariable, symbol.DeclarationKind);
                 Assert.True(((ILocalSymbol)symbol).IsFixed);
-                TypeSymbol type = symbol.Type.TypeSymbol;
+                TypeSymbol type = symbol.Type;
                 Assert.Equal(TypeKind.Pointer, type.TypeKind);
                 Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)type).PointedAtType.SpecialType);
             }
@@ -6825,7 +7083,7 @@ unsafe class C
 
             var stringSymbol = compilation.GetSpecialType(SpecialType.System_String);
             var charSymbol = compilation.GetSpecialType(SpecialType.System_Char);
-            var charPointerSymbol = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(charSymbol));
+            var charPointerSymbol = new PointerTypeSymbol(TypeWithAnnotations.Create(charSymbol));
 
             const int numSymbols = 3;
             var declarators = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Reverse().Take(numSymbols).Reverse().ToArray();
@@ -6854,7 +7112,7 @@ unsafe class C
             var summary1 = initializerSummaries[1];
             var arraySymbol = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
             Assert.Equal(arraySymbol, summary1.Symbol);
-            Assert.Equal(arraySymbol.Type.TypeSymbol, summary1.Type);
+            Assert.Equal(arraySymbol.Type, summary1.Type);
 
             var summary2 = initializerSummaries[2];
             Assert.Null(summary2.Symbol);
@@ -6897,9 +7155,9 @@ unsafe class C
 
             var stringSymbol = compilation.GetSpecialType(SpecialType.System_String);
             var charSymbol = compilation.GetSpecialType(SpecialType.System_Char);
-            var charPointerSymbol = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(charSymbol));
+            var charPointerSymbol = new PointerTypeSymbol(TypeWithAnnotations.Create(charSymbol));
             var voidSymbol = compilation.GetSpecialType(SpecialType.System_Void);
-            var voidPointerSymbol = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(voidSymbol));
+            var voidPointerSymbol = new PointerTypeSymbol(TypeWithAnnotations.Create(voidSymbol));
 
             const int numSymbols = 3;
             var declarators = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Reverse().Take(numSymbols).Reverse().ToArray();
@@ -6923,7 +7181,7 @@ unsafe class C
             var summary1 = initializerSummaries[1];
             var arraySymbol = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
             Assert.Equal(arraySymbol, summary1.Symbol);
-            Assert.Equal(arraySymbol.Type.TypeSymbol, summary1.Type);
+            Assert.Equal(arraySymbol.Type, summary1.Type);
             Assert.Equal(voidPointerSymbol, summary1.ConvertedType);
             Assert.Equal(Conversion.PointerToVoid, summary1.ImplicitConversion);
 
@@ -7889,7 +8147,7 @@ class C
             Assert.Equal(SpecialType.System_Int32, countSummary.ConvertedType.SpecialType);
             Assert.Equal(Conversion.ImplicitNumeric, countSummary.ImplicitConversion);
             var countSymbol = (LocalSymbol)countSummary.Symbol;
-            Assert.Equal(countSummary.Type, countSymbol.Type.TypeSymbol);
+            Assert.Equal(countSummary.Type, countSymbol.Type);
             Assert.Equal("count", countSymbol.Name);
             Assert.Equal(0, countSummary.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.None, countSummary.CandidateReason);
@@ -7918,10 +8176,7 @@ class C
   unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Goo3.Struct1<int>**[][,,] ppi) { }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-                // (8,67): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C.Goo3.Struct1<int>')
-                //   unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Goo3.Struct1<int>**[][,,] ppi) { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "Goo3.Struct1<int>*").WithArguments("C.Goo3.Struct1<int>").WithLocation(8, 67));
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
 
@@ -8937,6 +9192,27 @@ unsafe class C
                 // (17,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* f = &(s_f.Buf[0]);
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&(s_f.Buf[0])").WithLocation(17, 18));
+        }
+
+        [Fact, WorkItem(34693, "https://github.com/dotnet/roslyn/issues/34693")]
+        public void Repro_34693()
+        {
+            var csharp = @"
+namespace Interop
+{
+    public unsafe struct PROPVARIANT
+    {
+        public CAPROPVARIANT ca;
+    }
+
+    public unsafe struct CAPROPVARIANT
+    {
+        public uint cElems;
+        public PROPVARIANT* pElems;
+    }
+}";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
     }
 }

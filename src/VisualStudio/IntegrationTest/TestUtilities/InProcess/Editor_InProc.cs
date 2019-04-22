@@ -688,8 +688,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return properties[propertyName].GetValue(button) as string;
         }
 
+        public void FormatDocumentViaCommand()
+            => ExecuteCommand(WellKnownCommandNames.Edit_FormatDocument);
+
+        public void Paste()
+            => ExecuteCommand(WellKnownCommandNames.Edit_Paste);
+
         public void Undo()
-            => GetDTE().ExecuteCommand(WellKnownCommandNames.Edit_Undo);
+            => ExecuteCommand(WellKnownCommandNames.Edit_Undo);
+
+        public void Redo()
+            => GetDTE().ExecuteCommand(WellKnownCommandNames.Edit_Redo);
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
@@ -744,10 +753,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void GoToDefinition()
-            => GetDTE().ExecuteCommand("Edit.GoToDefinition");
+            => ExecuteCommand(WellKnownCommandNames.Edit_GoToDefinition);
 
         public void GoToImplementation()
-            => GetDTE().ExecuteCommand("Edit.GoToImplementation");
+            => ExecuteCommand(WellKnownCommandNames.Edit_GoToImplementation);
 
         /// <summary>
         /// Gets the spans where a particular tag appears in the active text view.

@@ -43,12 +43,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Overrides Sub SendDownKey()
             Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of DownKeyCommandArgs))
-            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub()
+                                                                                                                                                        EditorOperations.MoveLineDown(extendSelection:=False)
+                                                                                                                                                    End Sub)
         End Sub
 
         Public Overrides Sub SendUpKey()
             Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of UpKeyCommandArgs))
-            MyBase.SendUpKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendUpKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub()
+                                                                                                                                                      EditorOperations.MoveLineUp(extendSelection:=False)
+                                                                                                                                                  End Sub)
         End Sub
 
         Public Overrides Sub SendPageUp()
@@ -106,9 +110,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return CurrentCompletionPresenterSession.SelectedItem
         End Function
 
-        Public Overrides Function GetSelectedItemOpt() As CompletionItem
-            Return CurrentCompletionPresenterSession?.SelectedItem
-        End Function
+        Public Overrides Sub CalculateItemsIfSessionExists()
+            Throw ExceptionUtilities.Unreachable
+        End Sub
 
         Public Overrides Function GetCompletionItems() As IList(Of CompletionItem)
             Return CurrentCompletionPresenterSession.CompletionItems
@@ -165,23 +169,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.NotNull(Me.CurrentCompletionPresenterSession)
         End Function
 
-        Public Overrides Function CompletionItemsContainsAll(displayText As String()) As Boolean
-            AssertNoAsynchronousOperationsRunning()
-            Return displayText.All(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
-                                       Function(i) i.DisplayText = v))
-        End Function
-
-        Public Overrides Function CompletionItemsContainsAny(displayText As String()) As Boolean
-            AssertNoAsynchronousOperationsRunning()
-            Return displayText.Any(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
-                                       Function(i) i.DisplayText = v))
-        End Function
-
-        Public Overrides Function CompletionItemsContainsAny(displayText As String, displayTextSuffix As String) As Boolean
-            AssertNoAsynchronousOperationsRunning()
-            Return CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix)
-        End Function
-
         Public Overrides Sub AssertItemsInOrder(expectedOrder As String())
             AssertNoAsynchronousOperationsRunning()
             Dim items = CurrentCompletionPresenterSession.CompletionItems
@@ -198,6 +185,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing,
+                               Optional inlineDescription As String = Nothing,
                                Optional projectionsView As ITextView = Nothing) As Task
             ' projectionsView is not used in this implementation.
 
@@ -218,6 +206,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Assert.Equal(displayTextSuffix, Me.CurrentCompletionPresenterSession.SelectedItem.DisplayTextSuffix)
             End If
 
+            If inlineDescription IsNot Nothing Then
+                Assert.Equal(inlineDescription, Me.CurrentCompletionPresenterSession.SelectedItem.InlineDescription)
+            End If
+
             If shouldFormatOnCommit.HasValue Then
                 Assert.Equal(shouldFormatOnCommit.Value, Me.CurrentCompletionPresenterSession.SelectedItem.Rules.FormatOnCommit)
             End If
@@ -233,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Overrides Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
             If Not CurrentCompletionPresenterSession Is Nothing Then
-                Assert.False(CompletionItemsContainsAny({"ClassLibrary1"}))
+                AssertCompletionItemsDoNotContainAny({text})
             End If
 
             Return Task.CompletedTask

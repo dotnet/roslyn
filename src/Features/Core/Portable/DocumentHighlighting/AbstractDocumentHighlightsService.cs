@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableDocumentHighlights>>(
-                RemoteFeatureOptions.DocumentHighlightingEnabled,
                 nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                 new object[]
                 {

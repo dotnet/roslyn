@@ -368,7 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             {
                 this.ClosedInternal?.Invoke(this, EventArgs.Empty);
             }
-            
+
             _innerTextView.Properties.RemoveProperty(CompletionRoot);
         }
 

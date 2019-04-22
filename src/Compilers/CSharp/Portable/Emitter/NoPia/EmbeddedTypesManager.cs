@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     // classes, and we can't emit a reference to the PIA. We don't actually need
                     // the class name at runtime: we will instead emit a reference to System.Object, as a placeholder.
                     return new SynthesizedAttributeData(ctor,
-                        ImmutableArray.Create(new TypedConstant(ctor.Parameters[0].Type.TypeSymbol, TypedConstantKind.Type, ctor.ContainingAssembly.GetSpecialType(SpecialType.System_Object))),
+                        ImmutableArray.Create(new TypedConstant(ctor.Parameters[0].Type, TypedConstantKind.Type, ctor.ContainingAssembly.GetSpecialType(SpecialType.System_Object))),
                         ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
 
                 default:
@@ -231,6 +231,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             switch (namedType.TypeKind)
             {
                 case TypeKind.Interface:
+                    foreach (Symbol member in namedType.GetMembersUnordered())
+                    {
+                        if (member.Kind != SymbolKind.NamedType && !member.IsAbstract)
+                        {
+                            error = ErrorCode.ERR_DefaultInterfaceImplementationInNoPIAType;
+                            break;
+                        }
+                    }
+
+                    if (error != ErrorCode.Unknown)
+                    {
+                        break;
+                    }
+
+                    goto case TypeKind.Struct;
                 case TypeKind.Struct:
                 case TypeKind.Delegate:
                 case TypeKind.Enum:

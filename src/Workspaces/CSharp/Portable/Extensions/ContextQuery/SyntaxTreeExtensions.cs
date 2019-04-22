@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.IsKind(SyntaxKind.OpenBraceToken))
             {
-                if (token.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration))
+                if (token.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.InterfaceDeclaration))
                 {
                     return true;
                 }
@@ -511,8 +511,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool canBePartial,
             CancellationToken cancellationToken)
         {
-            // We only allow nested types inside a class or struct, not inside a
-            // an interface or enum.
+            // We only allow nested types inside a class, struct, or interface, not inside a
+            // an enum.
             var typeDecl = contextOpt != null
                 ? contextOpt.ContainingTypeDeclaration
                 : syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
@@ -1277,6 +1277,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // e switch { $$
+            // e switch { ..., $$
+            if (leftToken.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CommaToken) && leftToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            {
+                return true;
+            }
+
+            // e is ($$
+            // e is (..., $$
+            if (leftToken.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) && leftToken.Parent.IsKind(SyntaxKind.PositionalPatternClause))
+            {
+                return true;
+            }
+
+            // e is { P: $$
+            // e is { ..., P: $$
+            if (leftToken.IsKind(SyntaxKind.ColonToken) && leftToken.Parent.IsKind(SyntaxKind.NameColon) &&
+                leftToken.Parent.IsParentKind(SyntaxKind.Subpattern))
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -2001,6 +2023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // q |= |
             // q <<= |
             // q >>= |
+            // q ??= |
             if (token.IsKind(SyntaxKind.EqualsToken) ||
                 token.IsKind(SyntaxKind.MinusEqualsToken) ||
                 token.IsKind(SyntaxKind.AsteriskEqualsToken) ||
@@ -2012,7 +2035,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.IsKind(SyntaxKind.BarEqualsToken) ||
                 token.IsKind(SyntaxKind.PercentEqualsToken) ||
                 token.IsKind(SyntaxKind.LessThanLessThanEqualsToken) ||
-                token.IsKind(SyntaxKind.GreaterThanGreaterThanEqualsToken))
+                token.IsKind(SyntaxKind.GreaterThanGreaterThanEqualsToken) ||
+                token.IsKind(SyntaxKind.QuestionQuestionEqualsToken))
             {
                 return true;
             }

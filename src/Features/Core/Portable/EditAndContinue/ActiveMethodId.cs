@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal struct ActiveMethodId : IEquatable<ActiveMethodId>
+    internal readonly struct ActiveMethodId : IEquatable<ActiveMethodId>
     {
         public readonly Guid ModuleId;
         public readonly int Token;

@@ -76,6 +76,8 @@ at the end;
 When generating property;
 prefer throwing properties;
 prefer auto properties;
+regex;
+regular expression;
 Use enhanced colors;</source>
         <target state="translated">顯示已關閉檔案的診斷;
 為規則運算式標示色彩; 
@@ -369,6 +371,16 @@ Show name suggestions;</source>
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">在 IDE 中使用的 C# 元件。根據您的專案類型與設定，可能會使用其他版本的編譯器。</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="new">An empty C# script file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="new">Visual C# Script</target>
+        <note />
       </trans-unit>
     </body>
   </file>

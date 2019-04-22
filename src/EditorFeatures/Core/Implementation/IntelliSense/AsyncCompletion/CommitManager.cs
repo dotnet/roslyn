@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
@@ -29,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             new AsyncCompletionData.CommitResult(isHandled: false, AsyncCompletionData.CommitBehavior.None);
 
         private readonly RecentItemsManager _recentItemsManager;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly ITextView _textView;
 
         public IEnumerable<char> PotentialCommitCharacters
@@ -48,10 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IThreadingContext threadingContext, IEditorOperationsFactoryService editorOperationsFactoryService) : base(threadingContext)
+        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IThreadingContext threadingContext) : base(threadingContext)
         {
             _recentItemsManager = recentItemsManager;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
             _textView = textView;
         }
 
@@ -133,6 +130,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
+            if (!session.Properties.TryGetProperty(CompletionSource.CompletionListSpan, out TextSpan completionListSpan))
+            {
+                return CommitResultUnhandled;
+            }
+
             var triggerDocument = triggerSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (triggerDocument == null)
             {
@@ -142,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
-                triggerDocument, completionService, session.TextView, subjectBuffer,
-                roslynItem, commitChar, triggerSnapshot, serviceRules, filterText, cancellationToken);
+                triggerDocument, completionService, session.TextView, subjectBuffer, roslynItem,
+                completionListSpan, commitChar, triggerSnapshot, serviceRules, filterText, cancellationToken);
 
             _recentItemsManager.MakeMostRecentItem(roslynItem.DisplayText);
             return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
@@ -155,6 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ITextView view,
             ITextBuffer subjectBuffer,
             RoslynCompletionItem roslynItem,
+            TextSpan completionListSpan,
             char? commitCharacter,
             ITextSnapshot triggerSnapshot,
             CompletionRules rules,
@@ -177,12 +180,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CommitBehavior.None;
             }
 
-            var change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
+            var change = completionService.GetChangeAsync(
+                document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             var textChange = change.TextChange;
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-            
-            var adjustedNewText = AdjustForVirtualSpace(textChange, view, _editorOperationsFactoryService);
 
             using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
             {
@@ -191,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // edit.Apply() may trigger changes made by extensions.
                 // updatedCurrentSnapshot will contain changes made by Roslyn but not by other extensions.
                 var updatedCurrentSnapshot = edit.Apply();
-                
+
                 if (change.NewPosition.HasValue)
                 {
                     // Roslyn knows how to positionate the caret in the snapshot we just created.
@@ -211,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     var caretPositionInBuffer = view.GetCaretPoint(subjectBuffer);
                     if (caretPositionInBuffer.HasValue && mappedSpan.IntersectsWith(caretPositionInBuffer.Value))
                     {
-                        view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + adjustedNewText.Length));
+                        view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + textChange.NewText.Length));
                     }
                     else
                     {
@@ -317,28 +319,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 case EnterKeyRule.AfterFullyTypedWord:
                     return item.GetEntireDisplayText() == textTypedSoFar;
             }
-        }
-
-        internal static string AdjustForVirtualSpace(TextChange textChange, ITextView textView, IEditorOperationsFactoryService editorOperationsFactoryService)
-        {
-            var newText = textChange.NewText;
-
-            var caretPoint = textView.Caret.Position.BufferPosition;
-            var virtualCaretPoint = textView.Caret.Position.VirtualBufferPosition;
-
-            if (textChange.Span.IsEmpty &&
-                textChange.Span.Start == caretPoint &&
-                virtualCaretPoint.IsInVirtualSpace)
-            {
-                // They're in virtual space and the text change is specified against the cursor
-                // position that isn't in virtual space.  In this case, add the virtual spaces to the
-                // thing we're adding.
-                var editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
-                var whitespace = editorOperations.GetWhitespaceForVirtualSpace(virtualCaretPoint);
-                return whitespace + newText;
-            }
-
-            return newText;
         }
     }
 }

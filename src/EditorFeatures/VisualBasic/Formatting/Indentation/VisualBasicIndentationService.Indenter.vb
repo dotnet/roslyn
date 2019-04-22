@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
             Public Sub New(syntaxFacts As ISyntaxFactsService,
                            syntaxTree As SyntaxTree,
-                           rules As IEnumerable(Of IFormattingRule),
+                           rules As IEnumerable(Of AbstractFormattingRule),
                            optionSet As OptionSet,
                            line As TextLine,
                            cancellationToken As CancellationToken)
@@ -46,8 +46,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                         Return GetIndentationOfLine(previousLine)
                     End If
 
-                    If trivia.Kind = SyntaxKind.LineContinuationTrivia OrElse trivia.Kind = SyntaxKind.CommentTrivia Then
+                    If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
                         Return GetIndentationBasedOnToken(GetTokenOnLeft(trivia), trivia)
+                    End If
+
+                    ' Line ends in comment
+                    If trivia.Kind = SyntaxKind.CommentTrivia Then ' Two cases a line ending comment or _ comment
+                        Dim firstTrivia As SyntaxTrivia = Tree.GetRoot(CancellationToken).FindTrivia(token.Span.End + 1)
+                        ' firstTrivia contains either an _ or a comment, this is the First trivia after the last Token on the line
+                        If firstTrivia.Kind = SyntaxKind.LineContinuationTrivia Then
+                            Return GetIndentationBasedOnToken(GetTokenOnLeft(firstTrivia), firstTrivia)
+                        Else
+                            ' This is we have just a comment
+                            Return GetIndentationBasedOnToken(GetTokenOnLeft(trivia), trivia)
+                        End If
                     End If
 
                     ' if we are at invalid token (skipped token) at the end of statement, treat it like we are after line continuation

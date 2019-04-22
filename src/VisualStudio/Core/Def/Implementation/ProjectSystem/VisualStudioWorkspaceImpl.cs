@@ -32,6 +32,7 @@ using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
 using VSLangProj;
 using VSLangProj140;
+using VSLangProj80;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
 
@@ -387,7 +388,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (this.TryGetHierarchy(project.Id, out var hierarchy))
             {
-                // Currently renaming files in CPS projects (i.e. .Net Core) doesn't work proprey.
+                // Currently renaming files in CPS projects (i.e. .NET Core) doesn't work proprey.
                 // This is because the remove/add of the documents in CPS is not synchronous
                 // (despite the DTE interfaces being synchronous).  So Roslyn calls the methods
                 // expecting the changes to happen immediately.  Because they are deferred in CPS
@@ -398,19 +399,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return false;
         }
 
+        protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
+        {
+            return project.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
+        }
+
         protected override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
         {
-            var parseOptionsService = project.LanguageServices.GetService<IParseOptionsService>();
-            if (parseOptionsService == null)
-            {
-                return false;
-            }
-
-            // Currently, only changes to the LanguageVersion of parse options are supported.
-            var newLanguageVersion = parseOptionsService.GetLanguageVersion(newOptions);
-            var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
-
-            return newOptions == updated;
+            return project.LanguageServices.GetRequiredService<IParseOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
         }
 
         private void AddTextBufferCloneServiceToBuffer(object sender, TextBufferCreatedEventArgs e)
@@ -434,7 +430,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.AddAdditionalDocument:
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.ChangeAdditionalDocument:
+                case ApplyChangesKind.ChangeCompilationOptions:
                 case ApplyChangesKind.ChangeParseOptions:
+                case ApplyChangesKind.ChangeDocumentInfo:
                     return true;
 
                 default:
@@ -495,6 +493,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return analyzerReference.FullPath;
         }
 
+        protected override void ApplyCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            var compilationOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetRequiredService<ICompilationOptionsChangingService>();
+            var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
+            compilationOptionsService.Apply(options, storage);
+        }
+
         protected override void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)
         {
             if (projectId == null)
@@ -507,30 +522,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<IParseOptionsService>();
-            Contract.ThrowIfNull(parseOptionsService, nameof(parseOptionsService));
-
-            string newVersion = parseOptionsService.GetLanguageVersion(options);
-
-            GetProjectData(projectId, out var hierarchy, out var project);
-            foreach (string configurationName in (object[])project.ConfigurationManager.ConfigurationRowNames)
-            {
-                switch (CurrentSolution.GetProject(projectId).Language)
-                {
-                    case LanguageNames.CSharp:
-                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)project.ConfigurationManager
-                            .ConfigurationRow(configurationName).Item(1).Object;
-
-                        if (newVersion != csharpProperties.LanguageVersion)
-                        {
-                            csharpProperties.LanguageVersion = newVersion;
-                        }
-                        break;
-
-                    case LanguageNames.VisualBasic:
-                        throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
-                }
-            }
+            var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetRequiredService<IParseOptionsChangingService>();
+            var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
+            parseOptionsService.Apply(options, storage);
         }
 
         protected override void ApplyAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
@@ -1093,6 +1087,84 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        protected override void ApplyDocumentInfoChanged(DocumentId documentId, DocumentInfo updatedInfo)
+        {
+            var document = CurrentSolution.GetDocument(documentId);
+
+            FailIfDocumentInfoChangesNotSupported(document, updatedInfo);
+
+            if (document.Name != updatedInfo.Name)
+            {
+                GetProjectData(updatedInfo.Id.ProjectId, out var _, out var dteProject);
+
+                var projectItemForDocument = dteProject.FindItemByPath(document.FilePath, StringComparer.OrdinalIgnoreCase);
+
+                if (projectItemForDocument == null)
+                {
+                    // TODO(https://github.com/dotnet/roslyn/issues/34276):
+                    Debug.Assert(false, "Attempting to change the name of a file in a Shared Project");
+                    return;
+                }
+
+                // Must save the document first for things like Breakpoints to be preserved.
+                projectItemForDocument.Save();
+
+                var uniqueName = projectItemForDocument.Collection.GetUniqueName(
+                    Path.GetFileNameWithoutExtension(updatedInfo.Name),
+                    Path.GetExtension(updatedInfo.Name));
+
+                // Get the current undoManager before any file renames/documentId changes happen
+                var undoManager = TryGetUndoManager();
+
+                // By setting this property, Visual Studio will perform the file rename, which 
+                // will cause the workspace's current solution to update and will fire the 
+                // necessary workspace changed events.
+                projectItemForDocument.Name = uniqueName;
+
+                if (projectItemForDocument.TryGetFullPath(out var newPath))
+                {
+                    undoManager?.Add(new RenameDocumentUndoUnit(this, uniqueName, document.Name, newPath));
+                }
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="VisualStudioWorkspace"/> currently supports only a subset of <see cref="DocumentInfo"/> 
+        /// changes.
+        /// </summary>
+        private void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
+        {
+            if (document.SourceCodeKind != updatedInfo.SourceCodeKind)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.SourceCodeKind)}.");
+            }
+
+            if (document.FilePath != updatedInfo.FilePath)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.FilePath)}.");
+            }
+
+            if (document.Id != updatedInfo.Id)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.Id)}.");
+            }
+
+            if (document.Folders != updatedInfo.Folders)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.Folders)}.");
+            }
+
+            if (document.State.Attributes.IsGenerated != updatedInfo.IsGenerated)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.State.Attributes.IsGenerated)} state.");
+            }
+        }
+
         private string GetPreferredExtension(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
             // No extension was provided.  Pick a good one based on the type of host project.
@@ -1364,22 +1436,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <remarks>This is needed to synchronize with <see cref="ApplyChangeToWorkspace(Action{Workspace})" /> to avoid any races. This
         /// method could be moved down to the core Workspace layer and then could use the synchronization lock there.</remarks>
-        /// <param name="projectId">The <see cref="ProjectId" /> to change.</param>
-        /// <param name="mutation">A function that, given the old <see cref="CodeAnalysis.Project"/> will produce a new one.</param>
-        public void ApplyBatchChangeToProject(ProjectId projectId, Func<CodeAnalysis.Solution, CodeAnalysis.Solution> mutation)
+        public void ApplyBatchChangeToWorkspace(Func<CodeAnalysis.Solution, SolutionChangeAccumulator> mutation)
         {
             lock (_gate)
             {
                 var oldSolution = this.CurrentSolution;
-                var newSolution = mutation(oldSolution);
+                var solutionChangeAccumulator = mutation(oldSolution);
 
-                if (oldSolution == newSolution)
+                if (!solutionChangeAccumulator.HasChange)
                 {
                     return;
                 }
 
-                SetCurrentSolution(newSolution);
-                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+                SetCurrentSolution(solutionChangeAccumulator.Solution);
+                RaiseWorkspaceChangedEventAsync(
+                    solutionChangeAccumulator.WorkspaceChangeKind,
+                    oldSolution,
+                    solutionChangeAccumulator.Solution,
+                    solutionChangeAccumulator.WorkspaceChangeProjectId,
+                    solutionChangeAccumulator.WorkspaceChangeDocumentId);
             }
         }
 

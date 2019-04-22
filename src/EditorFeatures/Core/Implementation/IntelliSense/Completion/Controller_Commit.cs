@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -13,6 +12,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -106,14 +107,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     Contract.ThrowIfNull(completionService, nameof(completionService));
 
                     completionChange = completionService.GetChangeAsync(
-                        triggerDocument, item, commitChar, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        triggerDocument, item, model.OriginalList.Span, commitChar, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                     var textChange = completionChange.TextChange;
 
                     var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
                     var mappedSpan = triggerSnapshotSpan.TranslateTo(
                         this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
-                    var adjustedNewText = CommitManager.AdjustForVirtualSpace(textChange, this.TextView, _editorOperationsFactoryService);
+                    var adjustedNewText = AdjustForVirtualSpace(textChange, this.TextView, _editorOperationsFactoryService);
                     var editOptions = GetEditOptions(mappedSpan, adjustedNewText);
 
                     // The immediate window is always marked read-only and the language service is
@@ -193,6 +194,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // Let the completion rules know that this item was committed.
             this.MakeMostRecentItem(item.DisplayText);
+        }
+
+        private static string AdjustForVirtualSpace(TextChange textChange, ITextView textView, IEditorOperationsFactoryService editorOperationsFactoryService)
+        {
+            var newText = textChange.NewText;
+
+            var caretPoint = textView.Caret.Position.BufferPosition;
+            var virtualCaretPoint = textView.Caret.Position.VirtualBufferPosition;
+
+            if (textChange.Span.IsEmpty &&
+                textChange.Span.Start == caretPoint &&
+                virtualCaretPoint.IsInVirtualSpace)
+            {
+                // They're in virtual space and the text change is specified against the cursor
+                // position that isn't in virtual space.  In this case, add the virtual spaces to the
+                // thing we're adding.
+                var editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
+                var whitespace = editorOperations.GetWhitespaceForVirtualSpace(virtualCaretPoint);
+                return whitespace + newText;
+            }
+
+            return newText;
         }
 
         private void SetCaretPosition(int desiredCaretPosition)

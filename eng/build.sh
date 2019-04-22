@@ -149,7 +149,7 @@ while [[ $# > 0 ]]; do
   shift
 done
 
-if [[ "$test_mono" == true && "$docker" == true ]]
+if [[ "$docker" == true ]]
 then
   echo "Docker exec: $args"
 
@@ -181,10 +181,10 @@ function MakeBootstrapBuild {
   rm -rf $dir
   mkdir -p $dir
 
-  local package_name="Microsoft.NETCore.Compilers"
+  local package_name="Microsoft.Net.Compilers.Toolset"
   local project_path=src/NuGet/$package_name/$package_name.Package.csproj
 
-  dotnet pack -nologo "$project_path" /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath="$dir"
+  dotnet pack -nologo "$project_path" -p:ContinuousIntegrationBuild=$ci -p:DotNetUseShippingVersions=true -p:InitialDefineConstants=BOOTSTRAP -p:PackageOutputPath="$dir"
   unzip "$dir/$package_name.*.nupkg" -d "$dir"
   chmod -R 755 "$dir"
 
@@ -249,7 +249,7 @@ function BuildSolution {
     mono_tool="/p:MonoTool=\"$mono_path\""
   elif [[ "$test_core_clr" == true ]]; then
     test=true
-    test_runtime="/p:TestRuntime=Core"
+    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=netcoreapp3.0%3Bnetcoreapp2.1"
     mono_tool=""
   fi
 
@@ -266,6 +266,7 @@ function BuildSolution {
     /p:Build=$build \
     /p:Rebuild=$rebuild \
     /p:Test=$test \
+    /p:TestRunnerAdditionalArguments="-verbose" \
     /p:Pack=$pack \
     /p:Publish=$publish \
     /p:UseRoslynAnalyzers=$enable_analyzers \
@@ -281,6 +282,9 @@ function BuildSolution {
 }
 
 InitializeDotNetCli $restore
+
+# Make sure we have a 2.1 runtime available for running our tests
+InstallDotNetSdk $_InitializeDotNetCli 2.1.503
 
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then

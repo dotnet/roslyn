@@ -381,7 +381,7 @@ class C
             Assert.False(m.IsIterator);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AttributesSynthesized()
         {
             string source = @"
@@ -408,7 +408,7 @@ public class C
             });
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AttributesSynthesized_Optional()
         {
             string source = @"
@@ -1017,7 +1017,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator()
         {
@@ -1090,7 +1090,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_CSharp73()
         {
@@ -1122,7 +1122,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithReturnOnly()
         {
@@ -1145,7 +1145,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void ReturningIAsyncEnumerator_WithReturn()
         {
@@ -1161,7 +1161,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithReturnAndAwait()
         {
@@ -1185,7 +1185,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         [WorkItem(31113, "https://github.com/dotnet/roslyn/issues/31113")]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
@@ -1213,7 +1213,7 @@ class C
             // This error message is rather poor. Tracked by https://github.com/dotnet/roslyn/issues/31113
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithReturnAfterAwait()
         {
@@ -1367,7 +1367,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void AsyncIterator_WithoutAwait()
         {
@@ -1388,7 +1388,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "1 END DISPOSAL DONE");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void AsyncIterator_WithoutAwait_WithoutAsync()
         {
@@ -1408,7 +1408,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void AsyncIterator_WithoutAwait_WithoutAsync_LocalFunction()
         {
@@ -1432,7 +1432,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void Iterator_WithAsync()
         {
@@ -1477,7 +1477,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithoutAwait()
         {
@@ -1497,7 +1497,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithoutYield()
         {
@@ -1517,7 +1517,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void CallingMoveNextAsyncTwice()
         {
             string source = @"
@@ -1554,7 +1554,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice()
         {
@@ -1630,7 +1630,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice2()
         {
@@ -1673,7 +1673,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "1 2 Stream1:3 4 2 1 2 Stream2:3 4 2 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice3()
         {
@@ -1722,7 +1722,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "Stream1:0 Stream2:0 1 2 Stream1:3 4 2 1 2 Stream2:3 4 2 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice4()
         {
@@ -1767,7 +1767,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "Stream1:0 1 2 Stream1:3 4 42 Await Stream2:0 1 2 Stream2:3 4 42 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void CallingGetEnumeratorTwice_AfterDisposing()
         {
             string source = @"
@@ -2054,9 +2054,9 @@ class C
 }");
                 if (options == TestOptions.DebugExe)
                 {
-                    verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
-{
-  // Code size      289 (0x121)
+                    verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+@"{
+  // Code size      298 (0x12a)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -2073,131 +2073,133 @@ class C
     IL_0008:  ldc.i4.s   -4
     IL_000a:  sub
     IL_000b:  switch    (
-        IL_00c5,
         IL_0026,
-        IL_0026,
-        IL_0026,
-        IL_0083)
-    IL_0024:  br.s       IL_0026
-    IL_0026:  ldarg.0
-    IL_0027:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
-    IL_002c:  brfalse.s  IL_0033
-    IL_002e:  leave      IL_00fd
-    IL_0033:  ldarg.0
-    IL_0034:  ldc.i4.m1
-    IL_0035:  dup
-    IL_0036:  stloc.0
-    IL_0037:  stfld      ""int C.<M>d__0.<>1__state""
+        IL_002b,
+        IL_002f,
+        IL_002f,
+        IL_002d)
+    IL_0024:  br.s       IL_002f
+    IL_0026:  br         IL_00ce
+    IL_002b:  br.s       IL_002f
+    IL_002d:  br.s       IL_008c
+    IL_002f:  ldarg.0
+    IL_0030:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
+    IL_0035:  brfalse.s  IL_003c
+    IL_0037:  leave      IL_0106
+    IL_003c:  ldarg.0
+    IL_003d:  ldc.i4.m1
+    IL_003e:  dup
+    IL_003f:  stloc.0
+    IL_0040:  stfld      ""int C.<M>d__0.<>1__state""
     // sequence point: {
-    IL_003c:  nop
+    IL_0045:  nop
     // sequence point: Write(""1 "");
-    IL_003d:  ldstr      ""1 ""
-    IL_0042:  call       ""void System.Console.Write(string)""
-    IL_0047:  nop
+    IL_0046:  ldstr      ""1 ""
+    IL_004b:  call       ""void System.Console.Write(string)""
+    IL_0050:  nop
     // sequence point: await System.Threading.Tasks.Task.CompletedTask;
-    IL_0048:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get""
-    IL_004d:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
-    IL_0052:  stloc.1
+    IL_0051:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get""
+    IL_0056:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_005b:  stloc.1
     // sequence point: <hidden>
-    IL_0053:  ldloca.s   V_1
-    IL_0055:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
-    IL_005a:  brtrue.s   IL_009f
-    IL_005c:  ldarg.0
-    IL_005d:  ldc.i4.0
-    IL_005e:  dup
-    IL_005f:  stloc.0
-    IL_0060:  stfld      ""int C.<M>d__0.<>1__state""
-    // async: yield
+    IL_005c:  ldloca.s   V_1
+    IL_005e:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_0063:  brtrue.s   IL_00a8
     IL_0065:  ldarg.0
-    IL_0066:  ldloc.1
-    IL_0067:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
-    IL_006c:  ldarg.0
-    IL_006d:  stloc.2
+    IL_0066:  ldc.i4.0
+    IL_0067:  dup
+    IL_0068:  stloc.0
+    IL_0069:  stfld      ""int C.<M>d__0.<>1__state""
+    // async: yield
     IL_006e:  ldarg.0
-    IL_006f:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
-    IL_0074:  ldloca.s   V_1
-    IL_0076:  ldloca.s   V_2
-    IL_0078:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
-    IL_007d:  nop
-    IL_007e:  leave      IL_0120
+    IL_006f:  ldloc.1
+    IL_0070:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+    IL_0075:  ldarg.0
+    IL_0076:  stloc.2
+    IL_0077:  ldarg.0
+    IL_0078:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+    IL_007d:  ldloca.s   V_1
+    IL_007f:  ldloca.s   V_2
+    IL_0081:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
+    IL_0086:  nop
+    IL_0087:  leave      IL_0129
     // async: resume
-    IL_0083:  ldarg.0
-    IL_0084:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
-    IL_0089:  stloc.1
-    IL_008a:  ldarg.0
-    IL_008b:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
-    IL_0090:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0096:  ldarg.0
-    IL_0097:  ldc.i4.m1
-    IL_0098:  dup
-    IL_0099:  stloc.0
-    IL_009a:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_009f:  ldloca.s   V_1
-    IL_00a1:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-    IL_00a6:  nop
+    IL_008c:  ldarg.0
+    IL_008d:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+    IL_0092:  stloc.1
+    IL_0093:  ldarg.0
+    IL_0094:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+    IL_0099:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_009f:  ldarg.0
+    IL_00a0:  ldc.i4.m1
+    IL_00a1:  dup
+    IL_00a2:  stloc.0
+    IL_00a3:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00a8:  ldloca.s   V_1
+    IL_00aa:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_00af:  nop
     // sequence point: Write(""2 "");
-    IL_00a7:  ldstr      ""2 ""
-    IL_00ac:  call       ""void System.Console.Write(string)""
-    IL_00b1:  nop
+    IL_00b0:  ldstr      ""2 ""
+    IL_00b5:  call       ""void System.Console.Write(string)""
+    IL_00ba:  nop
     // sequence point: yield return 3;
-    IL_00b2:  ldarg.0
-    IL_00b3:  ldc.i4.3
-    IL_00b4:  stfld      ""int C.<M>d__0.<>2__current""
-    IL_00b9:  ldarg.0
-    IL_00ba:  ldc.i4.s   -4
-    IL_00bc:  dup
-    IL_00bd:  stloc.0
-    IL_00be:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_00c3:  leave.s    IL_0113
+    IL_00bb:  ldarg.0
+    IL_00bc:  ldc.i4.3
+    IL_00bd:  stfld      ""int C.<M>d__0.<>2__current""
+    IL_00c2:  ldarg.0
+    IL_00c3:  ldc.i4.s   -4
+    IL_00c5:  dup
+    IL_00c6:  stloc.0
+    IL_00c7:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00cc:  leave.s    IL_011c
     // sequence point: <hidden>
-    IL_00c5:  ldarg.0
-    IL_00c6:  ldc.i4.m1
-    IL_00c7:  dup
-    IL_00c8:  stloc.0
-    IL_00c9:  stfld      ""int C.<M>d__0.<>1__state""
     IL_00ce:  ldarg.0
-    IL_00cf:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
-    IL_00d4:  brfalse.s  IL_00d8
-    IL_00d6:  leave.s    IL_00fd
+    IL_00cf:  ldc.i4.m1
+    IL_00d0:  dup
+    IL_00d1:  stloc.0
+    IL_00d2:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00d7:  ldarg.0
+    IL_00d8:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
+    IL_00dd:  brfalse.s  IL_00e1
+    IL_00df:  leave.s    IL_0106
     // sequence point: Write("" 4 "");
-    IL_00d8:  ldstr      "" 4 ""
-    IL_00dd:  call       ""void System.Console.Write(string)""
-    IL_00e2:  nop
-    IL_00e3:  leave.s    IL_00fd
+    IL_00e1:  ldstr      "" 4 ""
+    IL_00e6:  call       ""void System.Console.Write(string)""
+    IL_00eb:  nop
+    IL_00ec:  leave.s    IL_0106
   }
   catch System.Exception
   {
     // sequence point: <hidden>
-    IL_00e5:  stloc.3
-    IL_00e6:  ldarg.0
-    IL_00e7:  ldc.i4.s   -2
-    IL_00e9:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_00ee:  ldarg.0
-    IL_00ef:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00f4:  ldloc.3
-    IL_00f5:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
-    IL_00fa:  nop
-    IL_00fb:  leave.s    IL_0120
+    IL_00ee:  stloc.3
+    IL_00ef:  ldarg.0
+    IL_00f0:  ldc.i4.s   -2
+    IL_00f2:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00f7:  ldarg.0
+    IL_00f8:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00fd:  ldloc.3
+    IL_00fe:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_0103:  nop
+    IL_0104:  leave.s    IL_0129
   }
   // sequence point: }
-  IL_00fd:  ldarg.0
-  IL_00fe:  ldc.i4.s   -2
-  IL_0100:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0106:  ldarg.0
+  IL_0107:  ldc.i4.s   -2
+  IL_0109:  stfld      ""int C.<M>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_0105:  ldarg.0
-  IL_0106:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_010b:  ldc.i4.0
-  IL_010c:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_0111:  nop
-  IL_0112:  ret
-  IL_0113:  ldarg.0
-  IL_0114:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_0119:  ldc.i4.1
-  IL_011a:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_011f:  nop
-  IL_0120:  ret
-}
-", sequencePoints: "C+<M>d__0.MoveNext", source: source);
+  IL_010e:  ldarg.0
+  IL_010f:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0114:  ldc.i4.0
+  IL_0115:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_011a:  nop
+  IL_011b:  ret
+  IL_011c:  ldarg.0
+  IL_011d:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0122:  ldc.i4.1
+  IL_0123:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0128:  nop
+  IL_0129:  ret
+}", sequencePoints: "C+<M>d__0.MoveNext", source: source);
                 }
                 else
                 {
@@ -2337,7 +2339,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithGenericReturn()
         {
             string source = @"
@@ -2367,7 +2369,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithGenericReturnFromContainingType()
         {
             string source = @"
@@ -2400,7 +2402,7 @@ class D
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithParameter()
         {
             string source = @"
@@ -2432,7 +2434,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "Start p:10 p:11 Value p:12 End");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithThis()
         {
             string source = @"
@@ -2486,7 +2488,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndOneYieldAndOneInvocation()
         {
             string source = @"
@@ -2516,7 +2518,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndTwoYields()
         {
             string source = @"
@@ -2547,7 +2549,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithYieldAndAwait()
         {
             string source = @"
@@ -2599,7 +2601,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYieldBreakAndYieldReturn()
         {
             string source = @"
@@ -2633,7 +2635,7 @@ label2:
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithCustomCode()
         {
             verify(new[] { AwaitSlow, Write, Yield, AwaitSlow });
@@ -2747,7 +2749,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitAndYieldAndAwait()
         {
             string source = @"
@@ -4508,7 +4510,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithYieldReturnOnly()
         {
             string source = @"
@@ -4535,7 +4537,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "1");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithYieldBreakOnly()
         {
             string source = @"
@@ -4721,7 +4723,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void DisposeAsyncInBadState()
         {
             string source = @"
@@ -4771,7 +4773,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "DisposeAsync threw. Already cancelled");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void DisposeAsyncBeforeRunning()
         {
             string source = @"
@@ -4793,7 +4795,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void DisposeAsyncTwiceAfterRunning()
         {
             string source = @"
@@ -4947,7 +4949,7 @@ static class M1
             CompileAndVerify(comp, expectedOutput: "B1::F;D::F;B1::F;");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorReturningEnumerator_UsingCancellationToken()
         {
             string source = @"

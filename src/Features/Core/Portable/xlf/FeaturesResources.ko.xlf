@@ -7,9 +7,19 @@
         <target state="translated">멤버 이름 추가</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_optional_parameter_to_constructor">
+        <source>Add optional parameter to constructor</source>
+        <target state="new">Add optional parameter to constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
         <target state="translated">'{0}'(및 재정의/구현)에 매개 변수 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_constructor">
+        <source>Add parameter to constructor</source>
+        <target state="new">Add parameter to constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -162,9 +172,49 @@
         <target state="translated">쿼리 변수 지정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_readonly_fields_writable">
+        <source>Make readonly fields writable</source>
+        <target state="new">Make readonly fields writable</target>
+        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">조건 반전</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_function_can_be_made_static">
+        <source>Local function can be made static</source>
+        <target state="new">Local function can be made static</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_local_function_static">
+        <source>Make local function 'static'</source>
+        <target state="new">Make local function 'static'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_nested_0_statement">
+        <source>Merge with nested '{0}' statement</source>
+        <target state="new">Merge with nested '{0}' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_next_0_statement">
+        <source>Merge with next '{0}' statement</source>
+        <target state="new">Merge with next '{0}' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_outer_0_statement">
+        <source>Merge with outer '{0}' statement</source>
+        <target state="new">Merge with outer '{0}' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_previous_0_statement">
+        <source>Merge with previous '{0}' statement</source>
+        <target state="new">Merge with previous '{0}' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_contents_to_namespace">
+        <source>Move contents to namespace...</source>
+        <target state="new">Move contents to namespace...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -175,6 +225,11 @@
       <trans-unit id="Move_file_to_project_root_folder">
         <source>Move file to project root folder</source>
         <target state="translated">파일을 프로젝트 루트 폴더로 이동</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_to_namespace">
+        <source>Move to namespace...</source>
+        <target state="new">Move to namespace...</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -267,6 +322,16 @@
         <target state="translated">'{0}'을(를) '{1}'(으)로 바꾸기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Split_into_consecutive_0_statements">
+        <source>Split into consecutive '{0}' statements</source>
+        <target state="new">Split into consecutive '{0}' statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_into_nested_0_statements">
+        <source>Split into nested '{0}' statements</source>
+        <target state="new">Split into nested '{0}' statements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
         <target state="translated">모든 인수 줄 바꿈 조정</target>
@@ -352,6 +417,11 @@
         <target state="translated">범위 연산자 사용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_simple_using_statement">
+        <source>Use simple 'using' statement</source>
+        <target state="new">Use simple 'using' statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Value_assigned_to_0_is_never_used">
         <source>Value assigned to '{0}' is never used</source>
         <target state="translated">'{0}'에 할당된 값은 사용되지 않습니다.</target>
@@ -365,6 +435,11 @@
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">경고: 네임스페이스를 변경하면 잘못된 코드가 발생하고 코드 의미가 변경될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_expression">
+        <source>Wrap and align expression</source>
+        <target state="new">Wrap and align expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -615,36 +690,6 @@
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
         <target state="translated">인터페이스 구현</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Loading_context_from_0">
-        <source>Loading context from '{0}'.</source>
-        <target state="translated">{0}'에서 컨텍스트를 로드하는 중입니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Sharphelp_for_more_information">
-        <source>Type "#help" for more information.</source>
-        <target state="translated">자세한 내용을 보려면 "#help"를 입력하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_file_not_found_colon_0">
-        <source>Specified file not found: {0}</source>
-        <target state="translated">지정한 파일을 찾을 수 없음: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_file_not_found">
-        <source>Specified file not found.</source>
-        <target state="translated">지정한 파일을 찾을 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Searched_in_directory_colon">
-        <source>Searched in directory:</source>
-        <target state="translated">디렉터리에서 검색됨:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Searched_in_directories_colon">
-        <source>Searched in directories:</source>
-        <target state="translated">디렉터리에서 검색됨:</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">
@@ -1177,54 +1222,9 @@
         <target state="translated">{1}.{0}' 메서드 생성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
-        <source>Failed to create a remote process for interactive code execution.</source>
-        <target state="translated">대화형 코드 실행에 대한 원격 프로세스를 만들지 못했습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_initialize_remote_interactive_process">
-        <source>Failed to initialize remote interactive process.</source>
-        <target state="translated">원격 대화형 프로세스를 초기화하지 못했습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
-        <source>Attempt to connect to process #{0} failed, retrying ...</source>
-        <target state="translated">#{0} 프로세스에 연결하지 못했습니다. 다시 시도하고 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
-        <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
-        <target state="translated">출력에서 '{0}' 프로세스(종료 코드: {1})를 실행하지 못했습니다. </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Hosting_process_exited_with_exit_code_0">
-        <source>Hosting process exited with exit code {0}.</source>
-        <target state="translated">호스팅 프로세스가 종료되었습니다(종료 코드: {0}).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Host_not_initialized">
-        <source>Interactive Host not initialized.</source>
-        <target state="translated">대화형 호스트가 초기화되지 않았습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_resolve_reference_0">
-        <source>Cannot resolve reference '{0}'.</source>
-        <target state="translated">{0}' 참조를 확인할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
         <source>Requested assembly already loaded from '{0}'.</source>
         <target state="translated">요청한 어셈블리가 이미 '{0}'에서 로드되었습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="plus_additional_0_1">
-        <source> + additional {0} {1}</source>
-        <target state="translated"> + 추가 {0} {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unable_to_create_hosting_process">
-        <source>Unable to create hosting process.</source>
-        <target state="translated">호스팅 프로세스를 만들 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">
@@ -2438,6 +2438,11 @@ This version used in: {2}</source>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
         <target state="translated">종속 프로젝트에서 사용을 업데이트하는 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_statement_can_be_simplified">
+        <source>'using' statement can be simplified</source>
+        <target state="new">'using' statement can be simplified</target>
         <note />
       </trans-unit>
     </body>

@@ -77,7 +77,7 @@ class D
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithIAsyncEnumerator()
         {
             string source = @"
@@ -99,7 +99,7 @@ public class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithUIntToIntConversion()
         {
             string source = @"
@@ -767,7 +767,7 @@ class Element
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithExplicitlyConvertibleElementType()
         {
             string source = @"
@@ -825,7 +825,7 @@ class Element
                 expectedOutput: "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Current(3) Convert(3) Got(3) NextAsync(3) Dispose(4)");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithCaptureOfIterationVariable()
         {
             string source = @"
@@ -867,7 +867,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "Got(1) Got(2) Captured(1)");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithGenericIterationVariable()
         {
             string source = @"
@@ -924,7 +924,7 @@ class C<T> where T : IntContainer, new()
             CompileAndVerify(comp, expectedOutput: "NextAsync(1) Current(1) Got(1) NextAsync(2) Current(2) Got(2) NextAsync(3) Current(3) Got(3) NextAsync(4) Dispose(4)");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithThrowingGetAsyncEnumerator()
         {
             string source = @"
@@ -964,7 +964,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "exception");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithThrowingMoveNextAsync()
         {
             string source = @"
@@ -1007,7 +1007,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "dispose exception");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithThrowingCurrent()
         {
             string source = @"
@@ -1054,7 +1054,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "wait dispose exception");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithThrowingDisposeAsync()
         {
             string source = @"
@@ -1855,7 +1855,7 @@ class D
             Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_RefStruct()
         {
             string source = @"
@@ -1902,7 +1902,7 @@ public ref struct S
             CompileAndVerify(comp, expectedOutput: "1 2 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_RefReturningCurrent()
         {
             string source = @"
@@ -1984,7 +1984,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_WithStruct_MoveNextAsyncReturnsTask()
         {
             string source = @"
@@ -2037,7 +2037,7 @@ class C
                 expectedOutput: "NextAsync(0) Current(0) Got(1) NextAsync(1) Current(1) Got(2) NextAsync(2) Current(2) Got(3) NextAsync(3) Current(3) Got(4) NextAsync(4) DisposeAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_MoveNextAsyncReturnsValueTask()
         {
             string source = @"
@@ -2100,7 +2100,7 @@ class C
             Assert.True(internalInfo.NeedsDisposal);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable()
         {
@@ -2160,7 +2160,7 @@ class C
             Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutGetAwaiter()
         {
@@ -2194,7 +2194,7 @@ class C
             VerifyEmptyForEachStatementInfo(comp);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutIsCompleted()
         {
@@ -2245,7 +2245,7 @@ class C
             Assert.Null(info.ElementType);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutGetResult()
         {
@@ -2285,7 +2285,7 @@ class C
             VerifyEmptyForEachStatementInfo(comp);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutOnCompleted()
         {
@@ -2326,7 +2326,7 @@ class C
             VerifyEmptyForEachStatementInfo(comp);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_MoveNextAsyncReturnsBadType()
         {
             string source = @"
@@ -2362,7 +2362,7 @@ class C
             Assert.Null(info.ElementType);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_WithUnsealed()
         {
             string source = @"
@@ -2481,7 +2481,7 @@ public class C
 
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      260 (0x104)
+  // Code size      262 (0x106)
   .maxstack  3
   .locals init (int V_0,
                 System.Threading.CancellationToken V_1,
@@ -2496,120 +2496,121 @@ public class C
   {
     // sequence point: <hidden>
     IL_0007:  ldloc.0
-    IL_0008:  brfalse    IL_0098
-    IL_000d:  br.s       IL_000f
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_0011
+    IL_000c:  br         IL_009a
     // sequence point: {
-    IL_000f:  nop
+    IL_0011:  nop
     // sequence point: foreach
-    IL_0010:  nop
+    IL_0012:  nop
     // sequence point: new C()
-    IL_0011:  ldarg.0
-    IL_0012:  newobj     ""C..ctor()""
-    IL_0017:  ldloca.s   V_1
-    IL_0019:  initobj    ""System.Threading.CancellationToken""
-    IL_001f:  ldloc.1
-    IL_0020:  call       ""C.Enumerator C.GetAsyncEnumerator(System.Threading.CancellationToken)""
-    IL_0025:  stfld      ""C.Enumerator C.<Main>d__0.<>s__1""
+    IL_0013:  ldarg.0
+    IL_0014:  newobj     ""C..ctor()""
+    IL_0019:  ldloca.s   V_1
+    IL_001b:  initobj    ""System.Threading.CancellationToken""
+    IL_0021:  ldloc.1
+    IL_0022:  call       ""C.Enumerator C.GetAsyncEnumerator(System.Threading.CancellationToken)""
+    IL_0027:  stfld      ""C.Enumerator C.<Main>d__0.<>s__1""
     // sequence point: <hidden>
-    IL_002a:  br.s       IL_005a
+    IL_002c:  br.s       IL_005c
     // sequence point: var i
-    IL_002c:  ldarg.0
-    IL_002d:  ldarg.0
-    IL_002e:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
-    IL_0033:  callvirt   ""int C.Enumerator.Current.get""
-    IL_0038:  stfld      ""int C.<Main>d__0.<i>5__2""
+    IL_002e:  ldarg.0
+    IL_002f:  ldarg.0
+    IL_0030:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
+    IL_0035:  callvirt   ""int C.Enumerator.Current.get""
+    IL_003a:  stfld      ""int C.<Main>d__0.<i>5__2""
     // sequence point: {
-    IL_003d:  nop
+    IL_003f:  nop
     // sequence point: Write($""Got({i}) "");
-    IL_003e:  ldstr      ""Got({0}) ""
-    IL_0043:  ldarg.0
-    IL_0044:  ldfld      ""int C.<Main>d__0.<i>5__2""
-    IL_0049:  box        ""int""
-    IL_004e:  call       ""string string.Format(string, object)""
-    IL_0053:  call       ""void System.Console.Write(string)""
-    IL_0058:  nop
+    IL_0040:  ldstr      ""Got({0}) ""
+    IL_0045:  ldarg.0
+    IL_0046:  ldfld      ""int C.<Main>d__0.<i>5__2""
+    IL_004b:  box        ""int""
+    IL_0050:  call       ""string string.Format(string, object)""
+    IL_0055:  call       ""void System.Console.Write(string)""
+    IL_005a:  nop
     // sequence point: }
-    IL_0059:  nop
+    IL_005b:  nop
     // sequence point: in
-    IL_005a:  ldarg.0
-    IL_005b:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
-    IL_0060:  callvirt   ""System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()""
-    IL_0065:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
-    IL_006a:  stloc.2
+    IL_005c:  ldarg.0
+    IL_005d:  ldfld      ""C.Enumerator C.<Main>d__0.<>s__1""
+    IL_0062:  callvirt   ""System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()""
+    IL_0067:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
+    IL_006c:  stloc.2
     // sequence point: <hidden>
-    IL_006b:  ldloca.s   V_2
-    IL_006d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
-    IL_0072:  brtrue.s   IL_00b4
-    IL_0074:  ldarg.0
-    IL_0075:  ldc.i4.0
-    IL_0076:  dup
-    IL_0077:  stloc.0
-    IL_0078:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_006d:  ldloca.s   V_2
+    IL_006f:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
+    IL_0074:  brtrue.s   IL_00b6
+    IL_0076:  ldarg.0
+    IL_0077:  ldc.i4.0
+    IL_0078:  dup
+    IL_0079:  stloc.0
+    IL_007a:  stfld      ""int C.<Main>d__0.<>1__state""
     // async: yield
-    IL_007d:  ldarg.0
-    IL_007e:  ldloc.2
-    IL_007f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
-    IL_0084:  ldarg.0
-    IL_0085:  stloc.3
+    IL_007f:  ldarg.0
+    IL_0080:  ldloc.2
+    IL_0081:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
     IL_0086:  ldarg.0
-    IL_0087:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_008c:  ldloca.s   V_2
-    IL_008e:  ldloca.s   V_3
-    IL_0090:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<Main>d__0)""
-    IL_0095:  nop
-    IL_0096:  leave.s    IL_0103
+    IL_0087:  stloc.3
+    IL_0088:  ldarg.0
+    IL_0089:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_008e:  ldloca.s   V_2
+    IL_0090:  ldloca.s   V_3
+    IL_0092:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<Main>d__0)""
+    IL_0097:  nop
+    IL_0098:  leave.s    IL_0105
     // async: resume
-    IL_0098:  ldarg.0
-    IL_0099:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
-    IL_009e:  stloc.2
-    IL_009f:  ldarg.0
-    IL_00a0:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
-    IL_00a5:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
-    IL_00ab:  ldarg.0
-    IL_00ac:  ldc.i4.m1
-    IL_00ad:  dup
-    IL_00ae:  stloc.0
-    IL_00af:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_00b4:  ldarg.0
-    IL_00b5:  ldloca.s   V_2
-    IL_00b7:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
-    IL_00bc:  stfld      ""bool C.<Main>d__0.<>s__3""
-    IL_00c1:  ldarg.0
-    IL_00c2:  ldfld      ""bool C.<Main>d__0.<>s__3""
-    IL_00c7:  brtrue     IL_002c
-    IL_00cc:  ldarg.0
-    IL_00cd:  ldnull
-    IL_00ce:  stfld      ""C.Enumerator C.<Main>d__0.<>s__1""
-    IL_00d3:  leave.s    IL_00ef
+    IL_009a:  ldarg.0
+    IL_009b:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+    IL_00a0:  stloc.2
+    IL_00a1:  ldarg.0
+    IL_00a2:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+    IL_00a7:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
+    IL_00ad:  ldarg.0
+    IL_00ae:  ldc.i4.m1
+    IL_00af:  dup
+    IL_00b0:  stloc.0
+    IL_00b1:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldloca.s   V_2
+    IL_00b9:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
+    IL_00be:  stfld      ""bool C.<Main>d__0.<>s__3""
+    IL_00c3:  ldarg.0
+    IL_00c4:  ldfld      ""bool C.<Main>d__0.<>s__3""
+    IL_00c9:  brtrue     IL_002e
+    IL_00ce:  ldarg.0
+    IL_00cf:  ldnull
+    IL_00d0:  stfld      ""C.Enumerator C.<Main>d__0.<>s__1""
+    IL_00d5:  leave.s    IL_00f1
   }
   catch System.Exception
   {
     // sequence point: <hidden>
-    IL_00d5:  stloc.s    V_4
-    IL_00d7:  ldarg.0
-    IL_00d8:  ldc.i4.s   -2
-    IL_00da:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_00df:  ldarg.0
-    IL_00e0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_00e5:  ldloc.s    V_4
-    IL_00e7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_00ec:  nop
-    IL_00ed:  leave.s    IL_0103
+    IL_00d7:  stloc.s    V_4
+    IL_00d9:  ldarg.0
+    IL_00da:  ldc.i4.s   -2
+    IL_00dc:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00e1:  ldarg.0
+    IL_00e2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_00e7:  ldloc.s    V_4
+    IL_00e9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00ee:  nop
+    IL_00ef:  leave.s    IL_0105
   }
   // sequence point: }
-  IL_00ef:  ldarg.0
-  IL_00f0:  ldc.i4.s   -2
-  IL_00f2:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_00f1:  ldarg.0
+  IL_00f2:  ldc.i4.s   -2
+  IL_00f4:  stfld      ""int C.<Main>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_00f7:  ldarg.0
-  IL_00f8:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-  IL_00fd:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_0102:  nop
-  IL_0103:  ret
+  IL_00f9:  ldarg.0
+  IL_00fa:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_00ff:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0104:  nop
+  IL_0105:  ret
 }", sequencePoints: "C+<Main>d__0.MoveNext", source: source + s_IAsyncEnumerable);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_WithIAsyncDisposable()
         {
             string source = @"
@@ -2774,7 +2775,7 @@ class C : Base, IAsyncEnumerable<int>
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterface()
         {
             string source = @"
@@ -2847,7 +2848,7 @@ class C : IAsyncEnumerable<int>
             Assert.True(internalInfo.NeedsDisposal);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterface_OnStruct_ImplicitInterfaceImplementation()
         {
             string source = @"
@@ -2901,7 +2902,7 @@ struct C : IAsyncEnumerable<int>
             // The thing to notice here is that the call to GetAsyncEnumerator is a constrained call (we're not boxing to `IAsyncEnumerable<int>`)
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      490 (0x1ea)
+  // Code size      496 (0x1f0)
   .maxstack  3
   .locals init (int V_0,
                 C V_1,
@@ -2919,202 +2920,205 @@ struct C : IAsyncEnumerable<int>
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0048
+    IL_0008:  brfalse.s  IL_0012
     IL_000a:  br.s       IL_000c
     IL_000c:  ldloc.0
     IL_000d:  ldc.i4.1
-    IL_000e:  beq        IL_0156
-    IL_0013:  br.s       IL_0015
-    IL_0015:  nop
-    IL_0016:  nop
-    IL_0017:  ldarg.0
-    IL_0018:  ldloca.s   V_1
-    IL_001a:  dup
-    IL_001b:  initobj    ""C""
-    IL_0021:  ldloca.s   V_2
-    IL_0023:  initobj    ""System.Threading.CancellationToken""
-    IL_0029:  ldloc.2
-    IL_002a:  constrained. ""C""
-    IL_0030:  callvirt   ""System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)""
-    IL_0035:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
-    IL_003a:  ldarg.0
-    IL_003b:  ldnull
-    IL_003c:  stfld      ""object C.<Main>d__0.<>s__2""
-    IL_0041:  ldarg.0
-    IL_0042:  ldc.i4.0
-    IL_0043:  stfld      ""int C.<Main>d__0.<>s__3""
-    IL_0048:  nop
+    IL_000e:  beq.s      IL_0014
+    IL_0010:  br.s       IL_0019
+    IL_0012:  br.s       IL_004c
+    IL_0014:  br         IL_015c
+    IL_0019:  nop
+    IL_001a:  nop
+    IL_001b:  ldarg.0
+    IL_001c:  ldloca.s   V_1
+    IL_001e:  dup
+    IL_001f:  initobj    ""C""
+    IL_0025:  ldloca.s   V_2
+    IL_0027:  initobj    ""System.Threading.CancellationToken""
+    IL_002d:  ldloc.2
+    IL_002e:  constrained. ""C""
+    IL_0034:  callvirt   ""System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)""
+    IL_0039:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
+    IL_003e:  ldarg.0
+    IL_003f:  ldnull
+    IL_0040:  stfld      ""object C.<Main>d__0.<>s__2""
+    IL_0045:  ldarg.0
+    IL_0046:  ldc.i4.0
+    IL_0047:  stfld      ""int C.<Main>d__0.<>s__3""
+    IL_004c:  nop
     .try
     {
-      IL_0049:  ldloc.0
-      IL_004a:  brfalse.s  IL_00c4
-      IL_004c:  br.s       IL_004e
-      IL_004e:  br.s       IL_007e
-      IL_0050:  ldarg.0
-      IL_0051:  ldarg.0
-      IL_0052:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
-      IL_0057:  callvirt   ""int System.Collections.Generic.IAsyncEnumerator<int>.Current.get""
-      IL_005c:  stfld      ""int C.<Main>d__0.<i>5__4""
-      IL_0061:  nop
-      IL_0062:  ldstr      ""Got({0}) ""
-      IL_0067:  ldarg.0
-      IL_0068:  ldfld      ""int C.<Main>d__0.<i>5__4""
-      IL_006d:  box        ""int""
-      IL_0072:  call       ""string string.Format(string, object)""
-      IL_0077:  call       ""void System.Console.Write(string)""
-      IL_007c:  nop
-      IL_007d:  nop
-      IL_007e:  ldarg.0
-      IL_007f:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
-      IL_0084:  callvirt   ""System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()""
-      IL_0089:  stloc.s    V_4
-      IL_008b:  ldloca.s   V_4
-      IL_008d:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> System.Threading.Tasks.ValueTask<bool>.GetAwaiter()""
-      IL_0092:  stloc.3
-      IL_0093:  ldloca.s   V_3
-      IL_0095:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.IsCompleted.get""
-      IL_009a:  brtrue.s   IL_00e0
-      IL_009c:  ldarg.0
-      IL_009d:  ldc.i4.0
-      IL_009e:  dup
-      IL_009f:  stloc.0
-      IL_00a0:  stfld      ""int C.<Main>d__0.<>1__state""
-      IL_00a5:  ldarg.0
-      IL_00a6:  ldloc.3
-      IL_00a7:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
-      IL_00ac:  ldarg.0
-      IL_00ad:  stloc.s    V_5
-      IL_00af:  ldarg.0
-      IL_00b0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-      IL_00b5:  ldloca.s   V_3
-      IL_00b7:  ldloca.s   V_5
-      IL_00b9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, ref C.<Main>d__0)""
-      IL_00be:  nop
-      IL_00bf:  leave      IL_01e9
-      IL_00c4:  ldarg.0
-      IL_00c5:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
-      IL_00ca:  stloc.3
-      IL_00cb:  ldarg.0
-      IL_00cc:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
-      IL_00d1:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool>""
-      IL_00d7:  ldarg.0
-      IL_00d8:  ldc.i4.m1
-      IL_00d9:  dup
-      IL_00da:  stloc.0
-      IL_00db:  stfld      ""int C.<Main>d__0.<>1__state""
-      IL_00e0:  ldarg.0
-      IL_00e1:  ldloca.s   V_3
-      IL_00e3:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.GetResult()""
-      IL_00e8:  stfld      ""bool C.<Main>d__0.<>s__5""
-      IL_00ed:  ldarg.0
-      IL_00ee:  ldfld      ""bool C.<Main>d__0.<>s__5""
-      IL_00f3:  brtrue     IL_0050
-      IL_00f8:  leave.s    IL_0106
+      IL_004d:  ldloc.0
+      IL_004e:  brfalse.s  IL_0052
+      IL_0050:  br.s       IL_0054
+      IL_0052:  br.s       IL_00ca
+      IL_0054:  br.s       IL_0084
+      IL_0056:  ldarg.0
+      IL_0057:  ldarg.0
+      IL_0058:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
+      IL_005d:  callvirt   ""int System.Collections.Generic.IAsyncEnumerator<int>.Current.get""
+      IL_0062:  stfld      ""int C.<Main>d__0.<i>5__4""
+      IL_0067:  nop
+      IL_0068:  ldstr      ""Got({0}) ""
+      IL_006d:  ldarg.0
+      IL_006e:  ldfld      ""int C.<Main>d__0.<i>5__4""
+      IL_0073:  box        ""int""
+      IL_0078:  call       ""string string.Format(string, object)""
+      IL_007d:  call       ""void System.Console.Write(string)""
+      IL_0082:  nop
+      IL_0083:  nop
+      IL_0084:  ldarg.0
+      IL_0085:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
+      IL_008a:  callvirt   ""System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()""
+      IL_008f:  stloc.s    V_4
+      IL_0091:  ldloca.s   V_4
+      IL_0093:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> System.Threading.Tasks.ValueTask<bool>.GetAwaiter()""
+      IL_0098:  stloc.3
+      IL_0099:  ldloca.s   V_3
+      IL_009b:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.IsCompleted.get""
+      IL_00a0:  brtrue.s   IL_00e6
+      IL_00a2:  ldarg.0
+      IL_00a3:  ldc.i4.0
+      IL_00a4:  dup
+      IL_00a5:  stloc.0
+      IL_00a6:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_00ab:  ldarg.0
+      IL_00ac:  ldloc.3
+      IL_00ad:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00b2:  ldarg.0
+      IL_00b3:  stloc.s    V_5
+      IL_00b5:  ldarg.0
+      IL_00b6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+      IL_00bb:  ldloca.s   V_3
+      IL_00bd:  ldloca.s   V_5
+      IL_00bf:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, ref C.<Main>d__0)""
+      IL_00c4:  nop
+      IL_00c5:  leave      IL_01ef
+      IL_00ca:  ldarg.0
+      IL_00cb:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00d0:  stloc.3
+      IL_00d1:  ldarg.0
+      IL_00d2:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
+      IL_00d7:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool>""
+      IL_00dd:  ldarg.0
+      IL_00de:  ldc.i4.m1
+      IL_00df:  dup
+      IL_00e0:  stloc.0
+      IL_00e1:  stfld      ""int C.<Main>d__0.<>1__state""
+      IL_00e6:  ldarg.0
+      IL_00e7:  ldloca.s   V_3
+      IL_00e9:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter<bool>.GetResult()""
+      IL_00ee:  stfld      ""bool C.<Main>d__0.<>s__5""
+      IL_00f3:  ldarg.0
+      IL_00f4:  ldfld      ""bool C.<Main>d__0.<>s__5""
+      IL_00f9:  brtrue     IL_0056
+      IL_00fe:  leave.s    IL_010c
     }
     catch object
     {
-      IL_00fa:  stloc.s    V_6
-      IL_00fc:  ldarg.0
-      IL_00fd:  ldloc.s    V_6
-      IL_00ff:  stfld      ""object C.<Main>d__0.<>s__2""
-      IL_0104:  leave.s    IL_0106
+      IL_0100:  stloc.s    V_6
+      IL_0102:  ldarg.0
+      IL_0103:  ldloc.s    V_6
+      IL_0105:  stfld      ""object C.<Main>d__0.<>s__2""
+      IL_010a:  leave.s    IL_010c
     }
-    IL_0106:  ldarg.0
-    IL_0107:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
-    IL_010c:  brfalse.s  IL_017b
-    IL_010e:  ldarg.0
-    IL_010f:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
-    IL_0114:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
-    IL_0119:  stloc.s    V_8
-    IL_011b:  ldloca.s   V_8
-    IL_011d:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
-    IL_0122:  stloc.s    V_7
-    IL_0124:  ldloca.s   V_7
-    IL_0126:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
-    IL_012b:  brtrue.s   IL_0173
-    IL_012d:  ldarg.0
-    IL_012e:  ldc.i4.1
-    IL_012f:  dup
-    IL_0130:  stloc.0
-    IL_0131:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_0136:  ldarg.0
-    IL_0137:  ldloc.s    V_7
-    IL_0139:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
-    IL_013e:  ldarg.0
-    IL_013f:  stloc.s    V_5
-    IL_0141:  ldarg.0
-    IL_0142:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_0147:  ldloca.s   V_7
-    IL_0149:  ldloca.s   V_5
-    IL_014b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
-    IL_0150:  nop
-    IL_0151:  leave      IL_01e9
-    IL_0156:  ldarg.0
-    IL_0157:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
-    IL_015c:  stloc.s    V_7
-    IL_015e:  ldarg.0
-    IL_015f:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
-    IL_0164:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
-    IL_016a:  ldarg.0
-    IL_016b:  ldc.i4.m1
-    IL_016c:  dup
-    IL_016d:  stloc.0
-    IL_016e:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_0173:  ldloca.s   V_7
-    IL_0175:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
-    IL_017a:  nop
-    IL_017b:  ldarg.0
-    IL_017c:  ldfld      ""object C.<Main>d__0.<>s__2""
-    IL_0181:  stloc.s    V_6
-    IL_0183:  ldloc.s    V_6
-    IL_0185:  brfalse.s  IL_01a4
-    IL_0187:  ldloc.s    V_6
-    IL_0189:  isinst     ""System.Exception""
-    IL_018e:  stloc.s    V_9
-    IL_0190:  ldloc.s    V_9
-    IL_0192:  brtrue.s   IL_0197
-    IL_0194:  ldloc.s    V_6
-    IL_0196:  throw
-    IL_0197:  ldloc.s    V_9
-    IL_0199:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
-    IL_019e:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
-    IL_01a3:  nop
-    IL_01a4:  ldarg.0
-    IL_01a5:  ldfld      ""int C.<Main>d__0.<>s__3""
-    IL_01aa:  pop
-    IL_01ab:  ldarg.0
-    IL_01ac:  ldnull
-    IL_01ad:  stfld      ""object C.<Main>d__0.<>s__2""
-    IL_01b2:  ldarg.0
-    IL_01b3:  ldnull
-    IL_01b4:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
-    IL_01b9:  leave.s    IL_01d5
+    IL_010c:  ldarg.0
+    IL_010d:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
+    IL_0112:  brfalse.s  IL_0181
+    IL_0114:  ldarg.0
+    IL_0115:  ldfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
+    IL_011a:  callvirt   ""System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()""
+    IL_011f:  stloc.s    V_8
+    IL_0121:  ldloca.s   V_8
+    IL_0123:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_0128:  stloc.s    V_7
+    IL_012a:  ldloca.s   V_7
+    IL_012c:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_0131:  brtrue.s   IL_0179
+    IL_0133:  ldarg.0
+    IL_0134:  ldc.i4.1
+    IL_0135:  dup
+    IL_0136:  stloc.0
+    IL_0137:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_013c:  ldarg.0
+    IL_013d:  ldloc.s    V_7
+    IL_013f:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_0144:  ldarg.0
+    IL_0145:  stloc.s    V_5
+    IL_0147:  ldarg.0
+    IL_0148:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_014d:  ldloca.s   V_7
+    IL_014f:  ldloca.s   V_5
+    IL_0151:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_0156:  nop
+    IL_0157:  leave      IL_01ef
+    IL_015c:  ldarg.0
+    IL_015d:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_0162:  stloc.s    V_7
+    IL_0164:  ldarg.0
+    IL_0165:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
+    IL_016a:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_0170:  ldarg.0
+    IL_0171:  ldc.i4.m1
+    IL_0172:  dup
+    IL_0173:  stloc.0
+    IL_0174:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0179:  ldloca.s   V_7
+    IL_017b:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_0180:  nop
+    IL_0181:  ldarg.0
+    IL_0182:  ldfld      ""object C.<Main>d__0.<>s__2""
+    IL_0187:  stloc.s    V_6
+    IL_0189:  ldloc.s    V_6
+    IL_018b:  brfalse.s  IL_01aa
+    IL_018d:  ldloc.s    V_6
+    IL_018f:  isinst     ""System.Exception""
+    IL_0194:  stloc.s    V_9
+    IL_0196:  ldloc.s    V_9
+    IL_0198:  brtrue.s   IL_019d
+    IL_019a:  ldloc.s    V_6
+    IL_019c:  throw
+    IL_019d:  ldloc.s    V_9
+    IL_019f:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_01a4:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_01a9:  nop
+    IL_01aa:  ldarg.0
+    IL_01ab:  ldfld      ""int C.<Main>d__0.<>s__3""
+    IL_01b0:  pop
+    IL_01b1:  ldarg.0
+    IL_01b2:  ldnull
+    IL_01b3:  stfld      ""object C.<Main>d__0.<>s__2""
+    IL_01b8:  ldarg.0
+    IL_01b9:  ldnull
+    IL_01ba:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
+    IL_01bf:  leave.s    IL_01db
   }
   catch System.Exception
   {
-    IL_01bb:  stloc.s    V_9
-    IL_01bd:  ldarg.0
-    IL_01be:  ldc.i4.s   -2
-    IL_01c0:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_01c5:  ldarg.0
-    IL_01c6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_01cb:  ldloc.s    V_9
-    IL_01cd:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_01d2:  nop
-    IL_01d3:  leave.s    IL_01e9
+    IL_01c1:  stloc.s    V_9
+    IL_01c3:  ldarg.0
+    IL_01c4:  ldc.i4.s   -2
+    IL_01c6:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_01cb:  ldarg.0
+    IL_01cc:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_01d1:  ldloc.s    V_9
+    IL_01d3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_01d8:  nop
+    IL_01d9:  leave.s    IL_01ef
   }
-  IL_01d5:  ldarg.0
-  IL_01d6:  ldc.i4.s   -2
-  IL_01d8:  stfld      ""int C.<Main>d__0.<>1__state""
-  IL_01dd:  ldarg.0
-  IL_01de:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-  IL_01e3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_01e8:  nop
-  IL_01e9:  ret
+  IL_01db:  ldarg.0
+  IL_01dc:  ldc.i4.s   -2
+  IL_01de:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_01e3:  ldarg.0
+  IL_01e4:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_01e9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_01ee:  nop
+  IL_01ef:  ret
 }");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterface_WithEarlyCompletion1()
         {
             string source = @"
@@ -3166,7 +3170,7 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: "NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterface_WithBreakAndContinue()
         {
             string source = @"
@@ -3221,7 +3225,7 @@ class C : IAsyncEnumerable<int>
                 expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Continue(2) NextAsync(2) Current(3) Continue(3) NextAsync(3) Current(4) Break Dispose(4) Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterface_WithGoto()
         {
             string source = @"
@@ -3277,7 +3281,7 @@ class C : IAsyncEnumerable<int>
                 expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Continue(2) NextAsync(2) Current(3) Continue(3) NextAsync(3) Current(4) Goto Dispose(4) Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterface_WithStruct()
         {
             string source = @"
@@ -3381,7 +3385,7 @@ class C : IAsyncEnumerable<int>
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithNullCollection()
         {
             string source = @"
@@ -3421,7 +3425,7 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: "Success");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestInCatch()
         {
             string source = @"
@@ -3511,7 +3515,7 @@ class C : IAsyncEnumerable<int>
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithConversionToElement()
         {
             string source = @"
@@ -3592,7 +3596,7 @@ class Element
             Assert.True(internalInfo.NeedsDisposal);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithNullableCollection()
         {
             string source = @"
@@ -3665,7 +3669,7 @@ struct C : IAsyncEnumerable<int>
             Assert.True(internalInfo.NeedsDisposal);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithNullableCollection2()
         {
             string source = @"
@@ -3699,7 +3703,7 @@ struct C : IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: "Success");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterfaceAndDeconstruction()
         {
             string source = @"
@@ -3803,7 +3807,7 @@ public static class Extensions
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPatternAndDeconstructionOfTuple()
         {
             string source = @"
@@ -3869,7 +3873,7 @@ class C : IAsyncEnumerable<(string, int)>
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterfaceAndDeconstruction_ManualIteration()
         {
             string source = @"
@@ -4027,7 +4031,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithGenericCollection()
         {
             string source = @"
@@ -4183,7 +4187,7 @@ class C
 
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      256 (0x100)
+  // Code size      258 (0x102)
   .maxstack  3
   .locals init (int V_0,
                 System.Threading.CancellationToken V_1,
@@ -4198,117 +4202,118 @@ class C
   {
     // sequence point: <hidden>
     IL_0007:  ldloc.0
-    IL_0008:  brfalse    IL_0094
-    IL_000d:  br.s       IL_000f
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_0011
+    IL_000c:  br         IL_0096
     // sequence point: {
-    IL_000f:  nop
+    IL_0011:  nop
     // sequence point: ICollection<int> c = new Collection<int>();
-    IL_0010:  ldarg.0
-    IL_0011:  newobj     ""Collection<int>..ctor()""
-    IL_0016:  stfld      ""ICollection<int> C.<Main>d__0.<c>5__1""
+    IL_0012:  ldarg.0
+    IL_0013:  newobj     ""Collection<int>..ctor()""
+    IL_0018:  stfld      ""ICollection<int> C.<Main>d__0.<c>5__1""
     // sequence point: foreach
-    IL_001b:  nop
+    IL_001d:  nop
     // sequence point: c
-    IL_001c:  ldarg.0
-    IL_001d:  ldarg.0
-    IL_001e:  ldfld      ""ICollection<int> C.<Main>d__0.<c>5__1""
-    IL_0023:  ldloca.s   V_1
-    IL_0025:  initobj    ""System.Threading.CancellationToken""
-    IL_002b:  ldloc.1
-    IL_002c:  callvirt   ""IMyAsyncEnumerator<int> ICollection<int>.GetAsyncEnumerator(System.Threading.CancellationToken)""
-    IL_0031:  stfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
+    IL_001e:  ldarg.0
+    IL_001f:  ldarg.0
+    IL_0020:  ldfld      ""ICollection<int> C.<Main>d__0.<c>5__1""
+    IL_0025:  ldloca.s   V_1
+    IL_0027:  initobj    ""System.Threading.CancellationToken""
+    IL_002d:  ldloc.1
+    IL_002e:  callvirt   ""IMyAsyncEnumerator<int> ICollection<int>.GetAsyncEnumerator(System.Threading.CancellationToken)""
+    IL_0033:  stfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
     // sequence point: <hidden>
-    IL_0036:  br.s       IL_0056
+    IL_0038:  br.s       IL_0058
     // sequence point: var i
-    IL_0038:  ldarg.0
-    IL_0039:  ldarg.0
-    IL_003a:  ldfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
-    IL_003f:  callvirt   ""int IMyAsyncEnumerator<int>.Current.get""
-    IL_0044:  stfld      ""int C.<Main>d__0.<i>5__3""
+    IL_003a:  ldarg.0
+    IL_003b:  ldarg.0
+    IL_003c:  ldfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
+    IL_0041:  callvirt   ""int IMyAsyncEnumerator<int>.Current.get""
+    IL_0046:  stfld      ""int C.<Main>d__0.<i>5__3""
     // sequence point: {
-    IL_0049:  nop
+    IL_004b:  nop
     // sequence point: Write($""Got "");
-    IL_004a:  ldstr      ""Got ""
-    IL_004f:  call       ""void System.Console.Write(string)""
-    IL_0054:  nop
+    IL_004c:  ldstr      ""Got ""
+    IL_0051:  call       ""void System.Console.Write(string)""
+    IL_0056:  nop
     // sequence point: }
-    IL_0055:  nop
+    IL_0057:  nop
     // sequence point: in
-    IL_0056:  ldarg.0
-    IL_0057:  ldfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
-    IL_005c:  callvirt   ""System.Threading.Tasks.Task<bool> IMyAsyncEnumerator<int>.MoveNextAsync()""
-    IL_0061:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
-    IL_0066:  stloc.2
+    IL_0058:  ldarg.0
+    IL_0059:  ldfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
+    IL_005e:  callvirt   ""System.Threading.Tasks.Task<bool> IMyAsyncEnumerator<int>.MoveNextAsync()""
+    IL_0063:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<bool> System.Threading.Tasks.Task<bool>.GetAwaiter()""
+    IL_0068:  stloc.2
     // sequence point: <hidden>
-    IL_0067:  ldloca.s   V_2
-    IL_0069:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
-    IL_006e:  brtrue.s   IL_00b0
-    IL_0070:  ldarg.0
-    IL_0071:  ldc.i4.0
-    IL_0072:  dup
-    IL_0073:  stloc.0
-    IL_0074:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0069:  ldloca.s   V_2
+    IL_006b:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get""
+    IL_0070:  brtrue.s   IL_00b2
+    IL_0072:  ldarg.0
+    IL_0073:  ldc.i4.0
+    IL_0074:  dup
+    IL_0075:  stloc.0
+    IL_0076:  stfld      ""int C.<Main>d__0.<>1__state""
     // async: yield
-    IL_0079:  ldarg.0
-    IL_007a:  ldloc.2
-    IL_007b:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
-    IL_0080:  ldarg.0
-    IL_0081:  stloc.3
+    IL_007b:  ldarg.0
+    IL_007c:  ldloc.2
+    IL_007d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
     IL_0082:  ldarg.0
-    IL_0083:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_0088:  ldloca.s   V_2
-    IL_008a:  ldloca.s   V_3
-    IL_008c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<Main>d__0)""
-    IL_0091:  nop
-    IL_0092:  leave.s    IL_00ff
+    IL_0083:  stloc.3
+    IL_0084:  ldarg.0
+    IL_0085:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_008a:  ldloca.s   V_2
+    IL_008c:  ldloca.s   V_3
+    IL_008e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<bool>, ref C.<Main>d__0)""
+    IL_0093:  nop
+    IL_0094:  leave.s    IL_0101
     // async: resume
-    IL_0094:  ldarg.0
-    IL_0095:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
-    IL_009a:  stloc.2
-    IL_009b:  ldarg.0
-    IL_009c:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
-    IL_00a1:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
-    IL_00a7:  ldarg.0
-    IL_00a8:  ldc.i4.m1
-    IL_00a9:  dup
-    IL_00aa:  stloc.0
-    IL_00ab:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_00b0:  ldarg.0
-    IL_00b1:  ldloca.s   V_2
-    IL_00b3:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
-    IL_00b8:  stfld      ""bool C.<Main>d__0.<>s__4""
-    IL_00bd:  ldarg.0
-    IL_00be:  ldfld      ""bool C.<Main>d__0.<>s__4""
-    IL_00c3:  brtrue     IL_0038
-    IL_00c8:  ldarg.0
-    IL_00c9:  ldnull
-    IL_00ca:  stfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
-    IL_00cf:  leave.s    IL_00eb
+    IL_0096:  ldarg.0
+    IL_0097:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+    IL_009c:  stloc.2
+    IL_009d:  ldarg.0
+    IL_009e:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<bool> C.<Main>d__0.<>u__1""
+    IL_00a3:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<bool>""
+    IL_00a9:  ldarg.0
+    IL_00aa:  ldc.i4.m1
+    IL_00ab:  dup
+    IL_00ac:  stloc.0
+    IL_00ad:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00b2:  ldarg.0
+    IL_00b3:  ldloca.s   V_2
+    IL_00b5:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()""
+    IL_00ba:  stfld      ""bool C.<Main>d__0.<>s__4""
+    IL_00bf:  ldarg.0
+    IL_00c0:  ldfld      ""bool C.<Main>d__0.<>s__4""
+    IL_00c5:  brtrue     IL_003a
+    IL_00ca:  ldarg.0
+    IL_00cb:  ldnull
+    IL_00cc:  stfld      ""IMyAsyncEnumerator<int> C.<Main>d__0.<>s__2""
+    IL_00d1:  leave.s    IL_00ed
   }
   catch System.Exception
   {
     // sequence point: <hidden>
-    IL_00d1:  stloc.s    V_4
-    IL_00d3:  ldarg.0
-    IL_00d4:  ldc.i4.s   -2
-    IL_00d6:  stfld      ""int C.<Main>d__0.<>1__state""
-    IL_00db:  ldarg.0
-    IL_00dc:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_00e1:  ldloc.s    V_4
-    IL_00e3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_00e8:  nop
-    IL_00e9:  leave.s    IL_00ff
+    IL_00d3:  stloc.s    V_4
+    IL_00d5:  ldarg.0
+    IL_00d6:  ldc.i4.s   -2
+    IL_00d8:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00dd:  ldarg.0
+    IL_00de:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_00e3:  ldloc.s    V_4
+    IL_00e5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00ea:  nop
+    IL_00eb:  leave.s    IL_0101
   }
   // sequence point: }
-  IL_00eb:  ldarg.0
-  IL_00ec:  ldc.i4.s   -2
-  IL_00ee:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_00ed:  ldarg.0
+  IL_00ee:  ldc.i4.s   -2
+  IL_00f0:  stfld      ""int C.<Main>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_00f3:  ldarg.0
-  IL_00f4:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-  IL_00f9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_00fe:  nop
-  IL_00ff:  ret
+  IL_00f5:  ldarg.0
+  IL_00f6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_00fb:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0100:  nop
+  IL_0101:  ret
 }", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
         }
 
@@ -4382,7 +4387,7 @@ class C
             Assert.Null(info.DisposeMethod);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void GetAsyncEnumerator_CancellationTokenMustBeOptional()
         {
             string source = @"
@@ -4409,7 +4414,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void GetAsyncEnumerator_WithOptionalParameter()
         {
             string source = @"
@@ -4432,7 +4437,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void GetAsyncEnumerator_WithParams()
         {
             string source = @"
@@ -4468,7 +4473,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal()
         {
@@ -4511,7 +4516,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_TwoOverloads()
         {
@@ -4556,7 +4561,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_NoExtensions()
         {
@@ -4599,7 +4604,7 @@ public static class Extension
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_NoExtensions_TwoExtensions()
         {
@@ -4647,7 +4652,7 @@ public static class Extension2
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_InterfacePreferredToInstanceMethod()
         {
@@ -4691,7 +4696,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsVoid()
         {
@@ -4727,7 +4732,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsInt()
         {
@@ -4770,7 +4775,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsAwaitable()
         {
@@ -4825,7 +4830,7 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsTask()
         {
@@ -4869,7 +4874,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsTaskOfInt()
         {

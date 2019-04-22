@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             CSharpSyntaxNode syntax,
             SyntaxTokenList modifiers,
+            bool isFieldLike,
             ExplicitInterfaceSpecifierSyntax interfaceSpecifierSyntaxOpt,
             SyntaxToken nameTokenSyntax,
             DiagnosticBag diagnostics)
@@ -51,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var isExplicitInterfaceImplementation = interfaceSpecifierSyntaxOpt != null;
             bool modifierErrors;
-            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, _location, diagnostics, out modifierErrors);
-            this.CheckAccessibility(_location, diagnostics);
+            _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isFieldLike, _location, diagnostics, out modifierErrors);
+            this.CheckAccessibility(_location, diagnostics, isExplicitInterfaceImplementation);
         }
 
         internal sealed override bool RequiresCompletion
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override abstract ImmutableArray<EventSymbol> ExplicitInterfaceImplementations { get; }
 
-        public override abstract TypeSymbolWithAnnotations Type { get; }
+        public override abstract TypeWithAnnotations TypeWithAnnotations { get; }
 
         public sealed override Symbol ContainingSymbol
         {
@@ -306,18 +307,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            var type = this.Type;
+            var type = this.TypeWithAnnotations;
 
-            if (type.TypeSymbol.ContainsDynamic())
+            if (type.Type.ContainsDynamic())
             {
                 var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.TypeSymbol, type.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length));
             }
 
-            if (type.TypeSymbol.ContainsTupleNames())
+            if (type.Type.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
             if (type.NeedsNullableAttribute())
@@ -368,6 +369,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Virtual) != 0; }
         }
 
+        internal bool IsReadOnly
+        {
+            get { return (_modifiers & DeclarationModifiers.ReadOnly) != 0; }
+        }
+
         public sealed override Accessibility DeclaredAccessibility
         {
             get { return ModifierUtils.EffectiveAccessibility(_modifiers); }
@@ -403,36 +409,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _modifiers; }
         }
 
-        private void CheckAccessibility(Location location, DiagnosticBag diagnostics)
+        private void CheckAccessibility(Location location, DiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
         {
-            var info = ModifierUtils.CheckAccessibility(_modifiers);
+            var info = ModifierUtils.CheckAccessibility(_modifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
             {
                 diagnostics.Add(new CSDiagnostic(info, location));
             }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool explicitInterfaceImplementation, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool explicitInterfaceImplementation,
+                                                   bool isFieldLike, Location location,
+                                                   DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
-            var defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            var defaultAccess = isInterface ? (explicitInterfaceImplementation ? DeclarationModifiers.Protected : DeclarationModifiers.Public) : DeclarationModifiers.Private;
+            var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Unsafe;
             if (!explicitInterfaceImplementation)
             {
-                allowedModifiers |= DeclarationModifiers.New;
+                allowedModifiers |= DeclarationModifiers.New |
+                                    DeclarationModifiers.Sealed |
+                                    DeclarationModifiers.Abstract |
+                                    DeclarationModifiers.Static |
+                                    DeclarationModifiers.Virtual |
+                                    DeclarationModifiers.AccessibilityMask;
 
                 if (!isInterface)
                 {
-                    allowedModifiers |=
-                        DeclarationModifiers.AccessibilityMask |
-                        DeclarationModifiers.Sealed |
-                        DeclarationModifiers.Abstract |
-                        DeclarationModifiers.Static |
-                        DeclarationModifiers.Virtual |
-                        DeclarationModifiers.Override;
+                    allowedModifiers |= DeclarationModifiers.Override;
                 }
+                else
+                {
+                    // This is needed to make sure we can detect 'public' modifier specified explicitly and
+                    // check it against language version below.
+                    defaultAccess = DeclarationModifiers.None;
+
+                    allowedModifiers |= DeclarationModifiers.Extern;
+                    defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
+                                                               DeclarationModifiers.Abstract |
+                                                               DeclarationModifiers.Static |
+                                                               DeclarationModifiers.Virtual |
+                                                               DeclarationModifiers.Extern |
+                                                               DeclarationModifiers.AccessibilityMask;
+                }
+            }
+
+            if (this.ContainingType.IsStructType())
+            {
+                allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
 
             if (!isInterface)
@@ -444,11 +471,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
-            // Let's overwrite modifiers for interface methods with what they are supposed to be. 
+            ModifierUtils.ReportDefaultInterfaceImplementationModifiers(!isFieldLike, mods,
+                                                                        defaultInterfaceImplementationModifiers,
+                                                                        location, diagnostics);
+
+            // Let's overwrite modifiers for interface events with what they are supposed to be. 
             // Proper errors must have been reported by now.
             if (isInterface)
             {
-                mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Abstract | DeclarationModifiers.Public;
+                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, !isFieldLike, explicitInterfaceImplementation);
             }
 
             return mods;
@@ -467,6 +498,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // A static member '{0}' cannot be marked as override, virtual, or abstract
                 diagnostics.Add(ErrorCode.ERR_StaticNotVirtual, location, this);
+            }
+            else if (IsReadOnly && IsStatic)
+            {
+                // Static member '{0}' cannot be marked 'readonly'.
+                diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
+            }
+            else if (IsReadOnly && HasAssociatedField)
+            {
+                // Field-like event '{0}' cannot be 'readonly'.
+                diagnostics.Add(ErrorCode.ERR_FieldLikeEventCantBeReadOnly, location, this);
             }
             else if (IsOverride && (IsNew || IsVirtual))
             {
@@ -512,14 +553,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Diagnostic reported by parser.
             }
-            else if (!this.IsNoMoreVisibleThan(this.Type, ref useSiteDiagnostics))
+            else if (!this.IsNoMoreVisibleThan(this.Type, ref useSiteDiagnostics) && (CSharpSyntaxNode as EventDeclarationSyntax)?.ExplicitInterfaceSpecifier == null)
             {
                 // Dev10 reports different errors for field-like events (ERR_BadVisFieldType) and custom events (ERR_BadVisPropertyType).
                 // Both seem odd, so add a new one.
 
-                diagnostics.Add(ErrorCode.ERR_BadVisEventType, location, this, this.Type.TypeSymbol);
+                diagnostics.Add(ErrorCode.ERR_BadVisEventType, location, this, this.Type);
             }
-            else if (!this.Type.TypeSymbol.IsDelegateType() && !this.Type.IsErrorType())
+            else if (!this.Type.IsDelegateType() && !this.Type.IsErrorType())
             {
                 // Suppressed for error types.
                 diagnostics.Add(ErrorCode.ERR_EventNotDelegate, location, this);
@@ -543,19 +584,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
         }
 
-        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbolWithAnnotations type, AssemblySymbol containingAssembly)
+        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeWithAnnotations type, AssemblySymbol containingAssembly)
         {
             Debug.Assert((object)eventWithCustomModifiers != null);
 
-            TypeSymbol overriddenEventType = eventWithCustomModifiers.Type.TypeSymbol;
+            TypeSymbol overriddenEventType = eventWithCustomModifiers.Type;
 
             // We do an extra check before copying the type to handle the case where the overriding
             // event (incorrectly) has a different type than the overridden event.  In such cases,
             // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-            if (type.TypeSymbol.Equals(overriddenEventType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
+            if (type.Type.Equals(overriddenEventType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
             {
-                type = type.WithTypeAndModifiers(CustomModifierUtils.CopyTypeCustomModifiers(overriddenEventType, type.TypeSymbol, containingAssembly),
-                                   eventWithCustomModifiers.Type.CustomModifiers);
+                type = type.WithTypeAndModifiers(CustomModifierUtils.CopyTypeCustomModifiers(overriddenEventType, type.Type, containingAssembly),
+                                   eventWithCustomModifiers.TypeWithAnnotations.CustomModifiers);
             }
         }
 
@@ -655,7 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (isAdder ? "add_" : "remove_") + eventName;
         }
 
-        protected TypeSymbolWithAnnotations BindEventType(Binder binder, TypeSyntax typeSyntax, DiagnosticBag diagnostics)
+        protected TypeWithAnnotations BindEventType(Binder binder, TypeSyntax typeSyntax, DiagnosticBag diagnostics)
         {
             // NOTE: no point in reporting unsafe errors in the return type - anything unsafe will either
             // fail to be a delegate or will be (invalidly) passed as a type argument.
@@ -670,9 +711,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = this.Locations[0];
 
             this.CheckModifiersAndType(diagnostics);
-            this.Type.CheckAllConstraints(conversions, location, diagnostics);
+            this.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
 
-            if (this.Type.NeedsNullableAttribute())
+            if (this.TypeWithAnnotations.NeedsNullableAttribute())
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }

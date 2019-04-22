@@ -315,7 +315,7 @@ CaseLabel2:
             End Set
         End Property
 
-        'vb.net can't support abstract member variable
+        'VB.NET can't support abstract member variable
         Public ReadOnly Property P2() As String
             Get
             End Get

@@ -2606,7 +2606,7 @@ class C1 {
 ";
 
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
-                ((FieldSymbol)global.GetTypeMembers("C1").Single().GetMembers("goo").Single()).Type.TypeSymbol;
+                ((FieldSymbol)global.GetTypeMembers("C1").Single().GetMembers("goo").Single()).Type;
 
             var format = SymbolDisplayFormat.MinimallyQualifiedFormat;
 
@@ -3029,7 +3029,7 @@ class C1 {
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
             {
                 var field = global.GetTypeMembers("Test", 0).Single().GetMembers("field").Single() as FieldSymbol;
-                return field.Type.TypeSymbol;
+                return field.Type;
             };
 
             var format =
@@ -3083,7 +3083,7 @@ class C1 {
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
             {
                 var field = global.GetTypeMembers("Test", 0).Single().GetMembers("field").Single() as FieldSymbol;
-                return field.Type.TypeSymbol;
+                return field.Type;
             };
 
             var format =
@@ -3135,7 +3135,7 @@ class C1 {
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
             {
                 var field = global.GetTypeMembers("Test", 0).Single().GetMembers("field2").Single() as FieldSymbol;
-                return field.Type.TypeSymbol;
+                return field.Type;
             };
 
             var format =
@@ -3978,7 +3978,7 @@ public class C
 }
 ";
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
-                global.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("F").Type.TypeSymbol;
+                global.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("F").Type;
 
             var normalFormat = new SymbolDisplayFormat();
             var reverseFormat = new SymbolDisplayFormat(
@@ -4818,6 +4818,8 @@ class C
             public INamedTypeSymbol OriginalDefinition => this;
 
             public bool IsAnonymousType => false;
+
+            public bool IsReadOnly => false;
 
             #region FakeTupleTypeSymbol generated
             public ImmutableArray<INamedTypeSymbol> AllInterfaces
@@ -6053,6 +6055,106 @@ class C
             Verify(
                 SymbolDisplay.ToDisplayParts(member, formatWithBothModifiers),
                 "static object![]![,]? F3");
+        }
+
+        [Fact]
+        public void AllowDefaultLiteral()
+        {
+            var source =
+@"using System.Threading;
+class C
+{
+    void Method(CancellationToken cancellationToken = default(CancellationToken)) => throw null;
+}
+";
+
+            var compilation = CreateCompilation(source);
+            var formatWithoutAllowDefaultLiteral = SymbolDisplayFormat.MinimallyQualifiedFormat;
+            Assert.False(formatWithoutAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
+            var formatWithAllowDefaultLiteral = formatWithoutAllowDefaultLiteral.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
+            Assert.True(formatWithAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
+
+            var method = compilation.GetMember<MethodSymbol>("C.Method");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutAllowDefaultLiteral),
+                "void C.Method(CancellationToken cancellationToken = default(CancellationToken))");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithAllowDefaultLiteral),
+                "void C.Method(CancellationToken cancellationToken = default)");
+        }
+
+        [Theory]
+        [InlineData("int", "0")]
+        [InlineData("string", "null")]
+        public void AllowDefaultLiteralNotNeeded(string type, string defaultValue)
+        {
+            var source =
+$@"
+class C
+{{
+    void Method1({type} parameter = {defaultValue}) => throw null;
+    void Method2({type} parameter = default({type})) => throw null;
+    void Method3({type} parameter = default) => throw null;
+}}
+";
+
+            var compilation = CreateCompilation(source);
+            var formatWithoutAllowDefaultLiteral = SymbolDisplayFormat.MinimallyQualifiedFormat;
+            Assert.False(formatWithoutAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
+            var formatWithAllowDefaultLiteral = formatWithoutAllowDefaultLiteral.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
+            Assert.True(formatWithAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
+
+            var method1 = compilation.GetMember<MethodSymbol>("C.Method1");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method1, formatWithoutAllowDefaultLiteral),
+                $"void C.Method1({type} parameter = {defaultValue})");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method1, formatWithAllowDefaultLiteral),
+                $"void C.Method1({type} parameter = {defaultValue})");
+
+            var method2 = compilation.GetMember<MethodSymbol>("C.Method2");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method2, formatWithoutAllowDefaultLiteral),
+                $"void C.Method2({type} parameter = {defaultValue})");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method2, formatWithAllowDefaultLiteral),
+                $"void C.Method2({type} parameter = {defaultValue})");
+
+            var method3 = compilation.GetMember<MethodSymbol>("C.Method3");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method3, formatWithoutAllowDefaultLiteral),
+                $"void C.Method3({type} parameter = {defaultValue})");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method3, formatWithAllowDefaultLiteral),
+                $"void C.Method3({type} parameter = {defaultValue})");
+        }
+
+        [Theory]
+        [InlineData("int", "2")]
+        [InlineData("string", "\"value\"")]
+        public void AllowDefaultLiteralNotApplicable(string type, string defaultValue)
+        {
+            var source =
+$@"
+class C
+{{
+    void Method({type} parameter = {defaultValue}) => throw null;
+}}
+";
+
+            var compilation = CreateCompilation(source);
+            var formatWithoutAllowDefaultLiteral = SymbolDisplayFormat.MinimallyQualifiedFormat;
+            Assert.False(formatWithoutAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
+            var formatWithAllowDefaultLiteral = formatWithoutAllowDefaultLiteral.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
+            Assert.True(formatWithAllowDefaultLiteral.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
+
+            var method = compilation.GetMember<MethodSymbol>("C.Method");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithoutAllowDefaultLiteral),
+                $"void C.Method({type} parameter = {defaultValue})");
+            Verify(
+                SymbolDisplay.ToDisplayParts(method, formatWithAllowDefaultLiteral),
+                $"void C.Method({type} parameter = {defaultValue})");
         }
 
         [Fact]

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (HasThisConstructorInitializer(method))
+            if (HasThisConstructorInitializer(method) || method.ContainingType.IsValueType)
             {
                 return;
             }
@@ -67,15 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportUninitializedNonNullableReferenceTypeFields()
         {
             var thisParameter = MethodThisParameter;
-            var location = thisParameter.ContainingSymbol.Locations.FirstOrDefault() ?? Location.None;
-
             int thisSlot = VariableSlot(thisParameter);
-            if (thisSlot == -1)
+            if (thisSlot == -1 || !State.Reachable)
             {
                 return;
             }
 
-            var thisType = thisParameter.Type.TypeSymbol;
+            var thisType = thisParameter.Type;
             Debug.Assert(thisType.IsDefinition);
 
             foreach (var member in thisType.GetMembersUnordered())
@@ -92,12 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                var fieldType = field.Type;
-                if (fieldType.IsValueType || fieldType.IsErrorType())
+                var fieldType = field.TypeWithAnnotations;
+                if (fieldType.Type.IsValueType || fieldType.Type.IsErrorType())
                 {
                     continue;
                 }
-                if (!fieldType.NullableAnnotation.IsAnyNotNullable() && !fieldType.TypeSymbol.IsTypeParameterDisallowingAnnotation())
+                if (!fieldType.NullableAnnotation.IsNotAnnotated() && !fieldType.Type.IsTypeParameterDisallowingAnnotation())
                 {
                     continue;
                 }
@@ -105,6 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
                 {
                     var symbol = (Symbol)(field.AssociatedSymbol as PropertySymbol) ?? field;
+                    var location = (topLevelMethod.DeclaringSyntaxReferences.IsEmpty
+                        ? symbol // default constructor, use the field location
+                        : topLevelMethod).Locations[0];
                     _diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, location, symbol.Kind.Localize(), symbol.Name);
                 }
             }

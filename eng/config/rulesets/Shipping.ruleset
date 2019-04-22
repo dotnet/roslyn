@@ -54,7 +54,6 @@
     <Rule Id="CA1824" Action="None" /> <!-- mark assemblies with NeutralResourcesLanguageAttribute -->
     <Rule Id="CA2000" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25880 -->
     <Rule Id="CA2007" Action="Warning" />
-    <Rule Id="CA2100" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26400: Enable rules CA1062, CA1303, CA1508, CA2100 and CA2215 for Roslyn.sln -->
     <Rule Id="CA2211" Action="None" />
     <Rule Id="CA2213" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25880 -->
     <Rule Id="CA2214" Action="None" /> <!-- do not call overridable methods in constructors: done in various places -->
@@ -164,6 +163,7 @@ collection.
   </Rules>
   <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers">
     <Rule Id="VSTHRD002" Action="None" /> <!-- Avoid problematic synchronous waits -->
+    <Rule Id="VSTHRD003" Action="None" /> <!-- Avoid awaiting foreign Tasks https://github.com/dotnet/roslyn/issues/34331 -->
     <Rule Id="VSTHRD103" Action="None" /> <!-- Call async methods when in an async method -->
     <Rule Id="VSTHRD010" Action="None" /> <!-- Invoke single-threaded types on Main thread https://github.com/dotnet/roslyn/issues/29275 -->
     <Rule Id="VSTHRD110" Action="None" /> <!-- Observe result of async calls -->

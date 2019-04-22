@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 IsCancelled = IsCancelled,
                 UpdatedSignature = new SignatureChange(
                     parameters,
-                    UpdatedSignature == null ? parameters : ParameterConfiguration.Create(UpdatedSignature.Select(i => list[i]).ToList(), parameters.ThisParameter != null))
+                    UpdatedSignature == null ? parameters : ParameterConfiguration.Create(UpdatedSignature.Select(i => list[i]).ToList(), parameters.ThisParameter != null, selectedIndex: 0))
             };
         }
     }

@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -14,8 +15,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpAutomaticBraceCompletion(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpAutomaticBraceCompletion))
+        public CSharpAutomaticBraceCompletion(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpAutomaticBraceCompletion))
         {
         }
 
@@ -221,10 +222,12 @@ class C
 
             // Undo puts them back
             VisualStudio.Editor.Undo();
+            // Incorrect assertion: https://github.com/dotnet/roslyn/issues/33672
             VisualStudio.Editor.Verify.CurrentLineText("var v = $@\"\"$$", assertCaretPosition: true);
 
             // First, the FixInterpolatedVerbatimString action is undone (@$ reordering)
             VisualStudio.Editor.Undo();
+            // Incorrect assertion: https://github.com/dotnet/roslyn/issues/33672
             VisualStudio.Editor.Verify.CurrentLineText("var v = @$\"\"$$", assertCaretPosition: true);
 
             // Then the automatic quote completion is undone
@@ -552,6 +555,27 @@ class C
     int Prop { $$}
 }",
 assertCaretPosition: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WorkItem(18104, "https://github.com/dotnet/roslyn/issues/18104")]
+        public void CompleteStatementTriggersCompletion()
+        {
+            SetUpEditor(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main$$
+    }
+}");
+
+            VisualStudio.Editor.SendKeys("(ar");
+            VisualStudio.Editor.Verify.CurrentLineText("Main(ar$$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(";");
+            VisualStudio.Editor.Verify.CurrentLineText("Main(args);$$", assertCaretPosition: true);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis
@@ -41,13 +40,8 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (editorConfigStorageLocation.TryGetOption(
-                    underlyingOption: null,
-                    allRawConventions: new Dictionary<string, object> { { editorConfigStorageLocation.KeyName, stringValue } },
-                    typeof(T),
-                    out var rawValue))
+                if (editorConfigStorageLocation.TryGetOption(stringValue, typeof(T), out value))
                 {
-                    value = (T)rawValue;
                     return true;
                 }
             }

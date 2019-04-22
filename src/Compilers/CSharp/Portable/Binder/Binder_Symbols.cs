@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -28,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bound type if syntax binds to a type in the current context and
         /// null if syntax binds to "var" keyword in the current context.
         /// </returns>
-        internal TypeSymbolWithAnnotations BindTypeOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar)
+        internal TypeWithAnnotations BindTypeOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar)
         {
             var symbol = BindTypeOrAliasOrVarKeyword(syntax, diagnostics, out isVar);
             Debug.Assert(isVar == symbol.IsDefault);
-            return isVar ? default : UnwrapAlias(symbol, diagnostics, syntax).Type;
+            return isVar ? default : UnwrapAlias(symbol, diagnostics, syntax).TypeWithAnnotations;
         }
 
         /// <summary>
@@ -48,11 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bound type if syntax binds to a type in the current context and
         /// null if syntax binds to "unmanaged" keyword in the current context.
         /// </returns>
-        internal TypeSymbolWithAnnotations BindTypeOrUnmanagedKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isUnmanaged)
+        internal TypeWithAnnotations BindTypeOrUnmanagedKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isUnmanaged)
         {
             var symbol = BindTypeOrAliasOrUnmanagedKeyword(syntax, diagnostics, out isUnmanaged);
             Debug.Assert(isUnmanaged == symbol.IsDefault);
-            return isUnmanaged ? default : UnwrapAlias(symbol, diagnostics, syntax).Type;
+            return isUnmanaged ? default : UnwrapAlias(symbol, diagnostics, syntax).TypeWithAnnotations;
         }
 
         /// <summary>
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bound type if syntax binds to a type in the current context and
         /// null if syntax binds to "var" keyword in the current context.
         /// </returns>
-        internal TypeSymbolWithAnnotations BindTypeOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar, out AliasSymbol alias)
+        internal TypeWithAnnotations BindTypeWithAnnotationsOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar, out AliasSymbol alias)
         {
             var symbol = BindTypeOrAliasOrVarKeyword(syntax, diagnostics, out isVar);
             Debug.Assert(isVar == symbol.IsDefault);
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return UnwrapAlias(symbol, out alias, diagnostics, syntax).Type;
+                return UnwrapAlias(symbol, out alias, diagnostics, syntax).TypeWithAnnotations;
             }
         }
 
@@ -252,19 +253,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Binds the given expression syntax as Type.
         // If the resulting symbol is an Alias to a Type, it unwraps the alias
         // and returns it's target type.
-        internal TypeSymbolWithAnnotations BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
+        internal TypeWithAnnotations BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             var symbol = BindTypeOrAlias(syntax, diagnostics, basesBeingResolved);
-            return UnwrapAlias(symbol, diagnostics, syntax, basesBeingResolved).Type;
+            return UnwrapAlias(symbol, diagnostics, syntax, basesBeingResolved).TypeWithAnnotations;
         }
 
         // Binds the given expression syntax as Type.
         // If the resulting symbol is an Alias to a Type, it stores the AliasSymbol in
         // the alias parameter, unwraps the alias and returns it's target type.
-        internal TypeSymbolWithAnnotations BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, out AliasSymbol alias, ConsList<TypeSymbol> basesBeingResolved = null)
+        internal TypeWithAnnotations BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, out AliasSymbol alias, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             var symbol = BindTypeOrAlias(syntax, diagnostics, basesBeingResolved);
-            return UnwrapAlias(symbol, out alias, diagnostics, syntax, basesBeingResolved).Type;
+            return UnwrapAlias(symbol, out alias, diagnostics, syntax, basesBeingResolved).TypeWithAnnotations;
         }
 
         // Binds the given expression syntax as Type or an Alias to Type
@@ -284,14 +285,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Obsolete alias targets are reported in UnwrapAlias, but if it was a type (not an
                     // alias to a type) we report the obsolete type here.
-                    symbol.Type.ReportDiagnosticsIfObsolete(this, syntax, diagnostics);
+                    symbol.TypeWithAnnotations.ReportDiagnosticsIfObsolete(this, syntax, diagnostics);
                 }
 
                 return symbol;
             }
 
             var diagnosticInfo = diagnostics.Add(ErrorCode.ERR_BadSKknown, syntax.Location, syntax, symbol.Symbol.GetKindText(), MessageID.IDS_SK_TYPE.Localize());
-            return TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbol.Symbol), symbol.Symbol, LookupResultKind.NotATypeOrNamespace, diagnosticInfo));
+            return TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbol.Symbol), symbol.Symbol, LookupResultKind.NotATypeOrNamespace, diagnosticInfo));
         }
 
         /// <summary>
@@ -330,6 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved, basesBeingResolved != null);
         }
 
+        /// <summary>
+        /// This method is used in deeply recursive parts of the compiler and requires a non-trivial amount of stack
+        /// space to execute. Preventing inlining here to keep recursive frames small.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindNamespaceOrTypeSymbol(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
             var result = BindNamespaceOrTypeOrAliasSymbol(syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
@@ -338,45 +344,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UnwrapAlias(result, diagnostics, syntax, basesBeingResolved);
         }
 
+        /// <summary>
+        /// Bind the syntax into a namespace, type or alias symbol. 
+        /// </summary>
+        /// <remarks>
+        /// This method is used in deeply recursive parts of the compiler. Specifically this and
+        /// <see cref="BindQualifiedName(ExpressionSyntax, SimpleNameSyntax, DiagnosticBag, ConsList{TypeSymbol}, bool)"/>
+        /// are mutually recursive. The non-recursive parts of this method tend to reserve significantly large 
+        /// stack frames due to their use of large struct like <see cref="TypeWithAnnotations"/>.
+        ///
+        /// To keep the stack frame size on recursive paths small the non-recursive parts are factored into local 
+        /// functions. This means we pay their stack penalty only when they are used. They are themselves big 
+        /// enough they should be disqualified from inlining. In the future when attributes are allowed on 
+        /// local functions we should explicitly mark them as <see cref="MethodImplOptions.NoInlining"/>
+        /// </remarks>
         internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindNamespaceOrTypeOrAliasSymbol(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
             switch (syntax.Kind())
             {
                 case SyntaxKind.NullableType:
-                    {
-                        var nullableSyntax = (NullableTypeSyntax)syntax;
-                        TypeSyntax typeArgumentSyntax = nullableSyntax.ElementType;
-                        TypeSymbolWithAnnotations typeArgument = BindType(typeArgumentSyntax, diagnostics, basesBeingResolved);
-                        TypeSymbolWithAnnotations constructedType = typeArgument.SetIsAnnotated(Compilation);
-
-                        reportNullableReferenceTypesIfNeeded(nullableSyntax.QuestionToken, typeArgument);
-
-                        if (!ShouldCheckConstraints)
-                        {
-                            diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
-                        }
-                        else if (constructedType.IsNullableType())
-                        {
-                            ReportUseSiteDiagnostics(constructedType.TypeSymbol.OriginalDefinition, diagnostics, syntax);
-                            var type = (NamedTypeSymbol)constructedType.TypeSymbol;
-                            var location = syntax.Location;
-                            var conversions = this.Conversions.WithNullability(includeNullability: true);
-                            type.CheckConstraints(this.Compilation, conversions, location, diagnostics);
-                        }
-                        else if (constructedType.TypeSymbol.IsTypeParameterDisallowingAnnotation())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, syntax.Location);
-                        }
-
-                        return constructedType;
-                    }
+                    return bindNullable();
 
                 case SyntaxKind.PredefinedType:
-                    {
-                        var predefinedType = (PredefinedTypeSyntax)syntax;
-                        var type = BindPredefinedTypeSymbol(predefinedType, diagnostics);
-                        return TypeSymbolWithAnnotations.Create(IsNullableEnabled(predefinedType.Keyword), type);
-                    }
+                    return bindPredefined();
 
                 case SyntaxKind.IdentifierName:
                     return BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol((IdentifierNameSyntax)syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, qualifierOpt: null);
@@ -385,19 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindGenericSimpleNamespaceOrTypeOrAliasSymbol((GenericNameSyntax)syntax, diagnostics, basesBeingResolved, qualifierOpt: null);
 
                 case SyntaxKind.AliasQualifiedName:
-                    {
-                        var node = (AliasQualifiedNameSyntax)syntax;
-                        var bindingResult = BindNamespaceAliasSymbol(node.Alias, diagnostics);
-                        var alias = bindingResult as AliasSymbol;
-                        NamespaceOrTypeSymbol left = ((object)alias != null) ? alias.Target : (NamespaceOrTypeSymbol)bindingResult;
-
-                        if (left.Kind == SymbolKind.NamedType)
-                        {
-                            return TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(left, LookupResultKind.NotATypeOrNamespace, diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, node.Alias.Location, node.Alias.Identifier.Text)));
-                        }
-
-                        return this.BindSimpleNamespaceOrTypeOrAliasSymbol(node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left);
-                    }
+                    return bindAlias();
 
                 case SyntaxKind.QualifiedName:
                     {
@@ -417,25 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SyntaxKind.PointerType:
-                    {
-                        var node = (PointerTypeSyntax)syntax;
-                        var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
-                        ReportUnsafeIfNotAllowed(node, diagnostics);
-
-                        // Checking BinderFlags.GenericConstraintsClause to prevent cycles in binding
-                        if (Flags.HasFlag(BinderFlags.GenericConstraintsClause) && elementType.TypeKind == TypeKind.TypeParameter)
-                        {
-                            // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
-                            Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
-                        }
-                        else if (elementType.IsManagedType)
-                        {
-                            // "Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')"
-                            Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, elementType.TypeSymbol);
-                        }
-
-                        return TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(elementType));
-                    }
+                    return bindPointer();
 
                 case SyntaxKind.OmittedTypeArgument:
                     {
@@ -445,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.TupleType:
                     {
                         var tupleTypeSyntax = (TupleTypeSyntax)syntax;
-                        return TypeSymbolWithAnnotations.Create(IsNullableEnabled(tupleTypeSyntax.CloseParenToken), BindTupleType(tupleTypeSyntax, diagnostics));
+                        return TypeWithAnnotations.Create(IsNullableEnabled(tupleTypeSyntax.CloseParenToken), BindTupleType(tupleTypeSyntax, diagnostics));
                     }
 
                 case SyntaxKind.RefType:
@@ -465,13 +425,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
 
-            void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeSymbolWithAnnotations typeArgument = default)
+            void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeWithAnnotations typeArgument = default)
             {
                 bool isNullableEnabled = IsNullableEnabled(questionToken);
                 var location = questionToken.GetLocation();
 
                 // Inside a method body or other executable code, we can question IsValueType without causing cycles.
-                if (!typeArgument.IsNull && !ShouldCheckConstraints)
+                if (typeArgument.HasType && !ShouldCheckConstraints)
                 {
                     LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(isNullableEnabled, typeArgument, location, diagnostics);
                 }
@@ -480,20 +440,90 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(isNullableEnabled, typeArgument, location, diagnostics);
                 }
             }
+
+            NamespaceOrTypeOrAliasSymbolWithAnnotations bindNullable()
+            {
+                var nullableSyntax = (NullableTypeSyntax)syntax;
+                TypeSyntax typeArgumentSyntax = nullableSyntax.ElementType;
+                TypeWithAnnotations typeArgument = BindType(typeArgumentSyntax, diagnostics, basesBeingResolved);
+                TypeWithAnnotations constructedType = typeArgument.SetIsAnnotated(Compilation);
+
+                reportNullableReferenceTypesIfNeeded(nullableSyntax.QuestionToken, typeArgument);
+
+                if (!ShouldCheckConstraints)
+                {
+                    diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
+                }
+                else if (constructedType.IsNullableType())
+                {
+                    ReportUseSiteDiagnostics(constructedType.Type.OriginalDefinition, diagnostics, syntax);
+                    var type = (NamedTypeSymbol)constructedType.Type;
+                    var location = syntax.Location;
+                    type.CheckConstraints(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics);
+                }
+                else if (constructedType.Type.IsTypeParameterDisallowingAnnotation())
+                {
+                    diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, syntax.Location);
+                }
+
+                return constructedType;
+            }
+
+            NamespaceOrTypeOrAliasSymbolWithAnnotations bindPredefined()
+            {
+                var predefinedType = (PredefinedTypeSyntax)syntax;
+                var type = BindPredefinedTypeSymbol(predefinedType, diagnostics);
+                return TypeWithAnnotations.Create(IsNullableEnabled(predefinedType.Keyword), type);
+            }
+
+            NamespaceOrTypeOrAliasSymbolWithAnnotations bindAlias()
+            {
+                var node = (AliasQualifiedNameSyntax)syntax;
+                var bindingResult = BindNamespaceAliasSymbol(node.Alias, diagnostics);
+                var alias = bindingResult as AliasSymbol;
+                NamespaceOrTypeSymbol left = ((object)alias != null) ? alias.Target : (NamespaceOrTypeSymbol)bindingResult;
+
+                if (left.Kind == SymbolKind.NamedType)
+                {
+                    return TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(left, LookupResultKind.NotATypeOrNamespace, diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, node.Alias.Location, node.Alias.Identifier.Text)));
+                }
+
+                return this.BindSimpleNamespaceOrTypeOrAliasSymbol(node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left);
+            }
+
+            NamespaceOrTypeOrAliasSymbolWithAnnotations bindPointer()
+            {
+                var node = (PointerTypeSyntax)syntax;
+                var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
+                ReportUnsafeIfNotAllowed(node, diagnostics);
+
+                // Checking BinderFlags.GenericConstraintsClause to prevent cycles in binding
+                if (Flags.HasFlag(BinderFlags.GenericConstraintsClause) && elementType.TypeKind == TypeKind.TypeParameter)
+                {
+                    // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
+                }
+                else
+                {
+                    CheckManagedAddr(elementType.Type, node, diagnostics);
+                }
+
+                return TypeWithAnnotations.Create(new PointerTypeSymbol(elementType));
+            }
         }
 
-        private TypeSymbolWithAnnotations BindArrayType(
+        private TypeWithAnnotations BindArrayType(
             ArrayTypeSyntax node,
             DiagnosticBag diagnostics,
             bool permitDimensions,
             ConsList<TypeSymbol> basesBeingResolved,
             bool disallowRestrictedTypes)
         {
-            TypeSymbolWithAnnotations type = BindType(node.ElementType, diagnostics, basesBeingResolved);
+            TypeWithAnnotations type = BindType(node.ElementType, diagnostics, basesBeingResolved);
             if (type.IsStatic)
             {
                 // CS0719: '{0}': array elements cannot be of static type
-                Error(diagnostics, ErrorCode.ERR_ArrayOfStaticClass, node.ElementType, type.TypeSymbol);
+                Error(diagnostics, ErrorCode.ERR_ArrayOfStaticClass, node.ElementType, type.Type);
             }
 
             if (disallowRestrictedTypes)
@@ -504,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (type.IsRestrictedType())
                     {
                         // CS0611: Array elements cannot be of type '{0}'
-                        Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node.ElementType, type.TypeSymbol);
+                        Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node.ElementType, type.Type);
                     }
                 }
                 else
@@ -525,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var array = ArrayTypeSymbol.CreateCSharpArray(this.Compilation.Assembly, type, rankSpecifier.Rank);
-                type = TypeSymbolWithAnnotations.Create(IsNullableEnabled(rankSpecifier.CloseBracketToken), array);
+                type = TypeWithAnnotations.Create(IsNullableEnabled(rankSpecifier.CloseBracketToken), array);
             }
 
             return type;
@@ -534,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbol BindTupleType(TupleTypeSyntax syntax, DiagnosticBag diagnostics)
         {
             int numElements = syntax.Elements.Count;
-            var types = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(numElements);
+            var types = ArrayBuilder<TypeWithAnnotations>.GetInstance(numElements);
             var locations = ArrayBuilder<Location>.GetInstance(numElements);
             ArrayBuilder<string> elementNames = null;
 
@@ -596,17 +626,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.UnexpectedValue(typesArray.Length);
             }
 
+            bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
             return TupleTypeSymbol.Create(syntax.Location,
-                                            typesArray,
-                                            locationsArray,
-                                            elementNames == null ?
-                                                default(ImmutableArray<string>) :
-                                                elementNames.ToImmutableAndFree(),
-                                            this.Compilation,
-                                            this.ShouldCheckConstraints,
-                                            errorPositions: default(ImmutableArray<bool>),
-                                            syntax: syntax,
-                                            diagnostics: diagnostics);
+                                          typesArray,
+                                          locationsArray,
+                                          elementNames == null ?
+                                            default(ImmutableArray<string>) :
+                                            elementNames.ToImmutableAndFree(),
+                                          this.Compilation,
+                                          this.ShouldCheckConstraints,
+                                          includeNullability: this.ShouldCheckConstraints && includeNullability,
+                                          errorPositions: default(ImmutableArray<bool>),
+                                          syntax: syntax,
+                                          diagnostics: diagnostics);
         }
 
         private static void CollectTupleFieldMemberName(string name, int elementIndex, int tupleSize, ref ArrayBuilder<string> elementNames)
@@ -678,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (syntax.Kind())
             {
                 default:
-                    return TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(qualifierOpt ?? this.Compilation.Assembly.GlobalNamespace, string.Empty, arity: 0, errorInfo: null));
+                    return TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(qualifierOpt ?? this.Compilation.Assembly.GlobalNamespace, string.Empty, arity: 0, errorInfo: null));
 
                 case SyntaxKind.IdentifierName:
                     return BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol((IdentifierNameSyntax)syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, qualifierOpt);
@@ -727,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (string.IsNullOrWhiteSpace(identifierValueText))
             {
-                return TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(
+                return TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(
                     Compilation.Assembly.GlobalNamespace, identifierValueText, 0,
                     new CSDiagnosticInfo(ErrorCode.ERR_SingleTypeNameNotFound)));
             }
@@ -735,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var errorResult = CreateErrorIfLookupOnTypeParameter(node.Parent, qualifierOpt, identifierValueText, 0, diagnostics);
             if ((object)errorResult != null)
             {
-                return TypeSymbolWithAnnotations.Create(errorResult);
+                return TypeWithAnnotations.Create(errorResult);
             }
 
             var result = LookupResult.GetInstance();
@@ -754,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  SyntaxFacts.IsInTypeOnlyContext(node)) &&
                 node.Identifier.ValueText == "dynamic" &&
                 !IsViableType(result) &&
-                ((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
+                Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
             {
                 bindingResult = Compilation.DynamicType;
                 ReportUseSiteDiagnosticForDynamic(diagnostics, node);
@@ -895,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol;
         }
 
-        private TypeSymbolWithAnnotations BindGenericSimpleNamespaceOrTypeOrAliasSymbol(
+        private TypeWithAnnotations BindGenericSimpleNamespaceOrTypeOrAliasSymbol(
             GenericNameSyntax node,
             DiagnosticBag diagnostics,
             ConsList<TypeSymbol> basesBeingResolved,
@@ -1005,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LookupResultKind.NotAnAttributeType, errorInfo: null);
             }
 
-            return TypeSymbolWithAnnotations.Create(IsNullableEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
+            return TypeWithAnnotations.Create(IsNullableEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
         }
 
         private NamedTypeSymbol LookupGenericTypeName(
@@ -1086,10 +1118,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private ImmutableArray<TypeSymbolWithAnnotations> BindTypeArguments(SeparatedSyntaxList<TypeSyntax> typeArguments, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
+        private ImmutableArray<TypeWithAnnotations> BindTypeArguments(SeparatedSyntaxList<TypeSyntax> typeArguments, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             Debug.Assert(typeArguments.Count > 0);
-            var args = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            var args = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             foreach (var argSyntax in typeArguments)
             {
                 args.Add(BindTypeArgument(argSyntax, diagnostics, basesBeingResolved));
@@ -1098,13 +1130,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return args.ToImmutableAndFree();
         }
 
-        private TypeSymbolWithAnnotations BindTypeArgument(TypeSyntax typeArgument, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
+        private TypeWithAnnotations BindTypeArgument(TypeSyntax typeArgument, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             // Unsafe types can never be type arguments, but there's a special error code for that.
             var binder = this.WithAdditionalFlags(BinderFlags.SuppressUnsafeDiagnostics);
 
             var arg = typeArgument.Kind() == SyntaxKind.OmittedTypeArgument
-                ? TypeSymbolWithAnnotations.Create(UnboundArgumentErrorTypeSymbol.Instance)
+                ? TypeWithAnnotations.Create(UnboundArgumentErrorTypeSymbol.Instance)
                 : binder.BindType(typeArgument, diagnostics, basesBeingResolved);
 
             return arg;
@@ -1113,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Keep check and error in sync with ConstructBoundMethodGroupAndReportOmittedTypeArguments.
         /// </remarks>
-        private NamedTypeSymbol ConstructNamedTypeUnlessTypeArgumentOmitted(SyntaxNode typeSyntax, NamedTypeSymbol type, SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, ImmutableArray<TypeSymbolWithAnnotations> typeArguments, DiagnosticBag diagnostics)
+        private NamedTypeSymbol ConstructNamedTypeUnlessTypeArgumentOmitted(SyntaxNode typeSyntax, NamedTypeSymbol type, SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, ImmutableArray<TypeWithAnnotations> typeArguments, DiagnosticBag diagnostics)
         {
             if (typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
             {
@@ -1141,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static BoundMethodOrPropertyGroup ConstructBoundMemberGroupAndReportOmittedTypeArguments(
             SyntaxNode syntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
+            ImmutableArray<TypeWithAnnotations> typeArguments,
             BoundExpression receiver,
             string plainName,
             ArrayBuilder<Symbol> members,
@@ -1193,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol type,
             SyntaxNode typeSyntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
+            ImmutableArray<TypeWithAnnotations> typeArguments,
             ConsList<TypeSymbol> basesBeingResolved,
             DiagnosticBag diagnostics)
         {
@@ -1203,8 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ShouldCheckConstraints && ConstraintsHelper.RequiresChecking(type))
             {
                 bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-                var conversions = this.Conversions.WithNullability(includeNullability);
-                type.CheckConstraintsForNonTuple(conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
+                type.CheckConstraintsForNonTuple(this.Conversions, includeNullability, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
 
             type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);
@@ -1256,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var namedTypeRight = right.Symbol as NamedTypeSymbol;
                 if ((object)namedTypeRight != null && namedTypeRight.IsGenericType)
                 {
-                    TypeSymbolWithAnnotations type = right.Type;
+                    TypeWithAnnotations type = right.TypeWithAnnotations;
                     right = type.WithTypeAndModifiers(namedTypeRight.AsUnboundGenericType(), type.CustomModifiers);
                 }
             }
@@ -1461,403 +1492,424 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceOrTypeSymbol qualifierOpt = null,
             LookupOptions options = default(LookupOptions))
         {
-            Debug.Assert(where != null);
-            Debug.Assert(diagnostics != null);
+            Symbol symbol = resultSymbol(result, simpleName, arity, where, diagnostics, suppressUseSiteDiagnostics, out wasError, qualifierOpt, options);
 
-            var symbols = result.Symbols;
-            wasError = false;
-
-            if (result.IsMultiViable)
+            if (symbol.Kind == SymbolKind.NamedType)
             {
-                if (symbols.Count > 1)
+                CheckRuntimeSupportForSymbolAccess(where, receiverOpt: null, symbol, diagnostics);
+            }
+
+            return symbol;
+
+            Symbol resultSymbol(
+                LookupResult result,
+                string simpleName,
+                int arity,
+                SyntaxNode where,
+                DiagnosticBag diagnostics,
+                bool suppressUseSiteDiagnostics,
+                out bool wasError,
+                NamespaceOrTypeSymbol qualifierOpt,
+                LookupOptions options)
+            {
+                Debug.Assert(where != null);
+                Debug.Assert(diagnostics != null);
+
+                var symbols = result.Symbols;
+                wasError = false;
+
+                if (result.IsMultiViable)
                 {
-                    // gracefully handle symbols.Count > 2
-                    symbols.Sort(ConsistentSymbolOrder.Instance);
-
-                    var originalSymbols = symbols.ToImmutable();
-
-                    for (int i = 0; i < symbols.Count; i++)
+                    if (symbols.Count > 1)
                     {
-                        symbols[i] = UnwrapAlias(symbols[i], diagnostics, where);
-                    }
+                        // gracefully handle symbols.Count > 2
+                        symbols.Sort(ConsistentSymbolOrder.Instance);
 
-                    BestSymbolInfo secondBest;
-                    BestSymbolInfo best = GetBestSymbolInfo(symbols, out secondBest);
+                        var originalSymbols = symbols.ToImmutable();
 
-                    Debug.Assert(!best.IsNone);
-                    Debug.Assert(!secondBest.IsNone);
-
-                    if (best.IsFromCompilation && !secondBest.IsFromCompilation)
-                    {
-                        var srcSymbol = symbols[best.Index];
-                        var mdSymbol = symbols[secondBest.Index];
-
-                        object arg0;
-
-                        if (best.IsFromSourceModule)
+                        for (int i = 0; i < symbols.Count; i++)
                         {
-                            arg0 = srcSymbol.Locations.First().SourceTree.FilePath;
-                        }
-                        else
-                        {
-                            Debug.Assert(best.IsFromAddedModule);
-                            arg0 = srcSymbol.ContainingModule;
+                            symbols[i] = UnwrapAlias(symbols[i], diagnostics, where);
                         }
 
-                        //if names match, arities match, and containing symbols match (recursively), ...
-                        if (srcSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
-                            mdSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+                        BestSymbolInfo secondBest;
+                        BestSymbolInfo best = GetBestSymbolInfo(symbols, out secondBest);
+
+                        Debug.Assert(!best.IsNone);
+                        Debug.Assert(!secondBest.IsNone);
+
+                        if (best.IsFromCompilation && !secondBest.IsFromCompilation)
                         {
-                            if (srcSymbol.Kind == SymbolKind.Namespace && mdSymbol.Kind == SymbolKind.NamedType)
-                            {
-                                // ErrorCode.WRN_SameFullNameThisNsAgg: The namespace '{1}' in '{0}' conflicts with the imported type '{3}' in '{2}'. Using the namespace defined in '{0}'.
-                                diagnostics.Add(ErrorCode.WRN_SameFullNameThisNsAgg, where.Location, originalSymbols,
-                                    arg0,
-                                    srcSymbol,
-                                    mdSymbol.ContainingAssembly,
-                                    mdSymbol);
+                            var srcSymbol = symbols[best.Index];
+                            var mdSymbol = symbols[secondBest.Index];
 
-                                return originalSymbols[best.Index];
-                            }
-                            else if (srcSymbol.Kind == SymbolKind.NamedType && mdSymbol.Kind == SymbolKind.Namespace)
-                            {
-                                // ErrorCode.WRN_SameFullNameThisAggNs: The type '{1}' in '{0}' conflicts with the imported namespace '{3}' in '{2}'. Using the type defined in '{0}'.
-                                diagnostics.Add(ErrorCode.WRN_SameFullNameThisAggNs, where.Location, originalSymbols,
-                                    arg0,
-                                    srcSymbol,
-                                    GetContainingAssembly(mdSymbol),
-                                    mdSymbol);
+                            object arg0;
 
-                                return originalSymbols[best.Index];
-                            }
-                            else if (srcSymbol.Kind == SymbolKind.NamedType && mdSymbol.Kind == SymbolKind.NamedType)
+                            if (best.IsFromSourceModule)
                             {
-                                // WRN_SameFullNameThisAggAgg: The type '{1}' in '{0}' conflicts with the imported type '{3}' in '{2}'. Using the type defined in '{0}'.
-                                diagnostics.Add(ErrorCode.WRN_SameFullNameThisAggAgg, where.Location, originalSymbols,
-                                    arg0,
-                                    srcSymbol,
-                                    mdSymbol.ContainingAssembly,
-                                    mdSymbol);
-
-                                return originalSymbols[best.Index];
+                                arg0 = srcSymbol.Locations.First().SourceTree.FilePath;
                             }
                             else
                             {
-                                // namespace would be merged with the source namespace:
-                                Debug.Assert(!(srcSymbol.Kind == SymbolKind.Namespace && mdSymbol.Kind == SymbolKind.Namespace));
+                                Debug.Assert(best.IsFromAddedModule);
+                                arg0 = srcSymbol.ContainingModule;
                             }
-                        }
-                    }
 
-                    var first = symbols[best.Index];
-                    var second = symbols[secondBest.Index];
-
-                    Debug.Assert(originalSymbols[best.Index] != originalSymbols[secondBest.Index] || options.IsAttributeTypeLookup(),
-                        "This kind of ambiguity is only possible for attributes.");
-
-                    Debug.Assert(first != second || originalSymbols[best.Index] != originalSymbols[secondBest.Index],
-                        "Why does the LookupResult contain the same symbol twice?");
-
-                    CSDiagnosticInfo info;
-                    bool reportError;
-
-                    //if names match, arities match, and containing symbols match (recursively), ...
-                    if (first != second &&
-                        first.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
-                            second.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
-                    {
-                        // suppress reporting the error if we found multiple symbols from source module
-                        // since an error has already been reported from the declaration
-                        reportError = !(best.IsFromSourceModule && secondBest.IsFromSourceModule);
-
-                        if (first.Kind == SymbolKind.NamedType && second.Kind == SymbolKind.NamedType)
-                        {
-                            if (first.OriginalDefinition == second.OriginalDefinition)
+                            //if names match, arities match, and containing symbols match (recursively), ...
+                            if (srcSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
+                                mdSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
                             {
-                                // We imported different generic instantiations of the same generic type
-                                // and have an ambiguous reference to a type nested in it
-                                reportError = true;
-
-                                // '{0}' is an ambiguous reference between '{1}' and '{2}'
-                                info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
-                                    new object[] {
-                                        (where as NameSyntax)?.ErrorDisplayName() ?? simpleName,
-                                        new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
-                                        new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
-                            }
-                            else
-                            {
-                                Debug.Assert(!best.IsFromCorLibrary);
-
-                                // ErrorCode.ERR_SameFullNameAggAgg: The type '{1}' exists in both '{0}' and '{2}'
-                                info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameAggAgg, originalSymbols,
-                                    new object[] { first.ContainingAssembly, first, second.ContainingAssembly });
-
-                                // Do not report this error if the first is declared in source and the second is declared in added module,
-                                // we already reported declaration error about this name collision.
-                                // Do not report this error if both are declared in added modules,
-                                // we will report assembly level declaration error about this name collision.
-                                if (secondBest.IsFromAddedModule)
+                                if (srcSymbol.Kind == SymbolKind.Namespace && mdSymbol.Kind == SymbolKind.NamedType)
                                 {
-                                    Debug.Assert(best.IsFromCompilation);
-                                    reportError = false;
+                                    // ErrorCode.WRN_SameFullNameThisNsAgg: The namespace '{1}' in '{0}' conflicts with the imported type '{3}' in '{2}'. Using the namespace defined in '{0}'.
+                                    diagnostics.Add(ErrorCode.WRN_SameFullNameThisNsAgg, where.Location, originalSymbols,
+                                        arg0,
+                                        srcSymbol,
+                                        mdSymbol.ContainingAssembly,
+                                        mdSymbol);
+
+                                    return originalSymbols[best.Index];
                                 }
-                                else if (this.Flags.Includes(BinderFlags.IgnoreCorLibraryDuplicatedTypes) &&
-                                    secondBest.IsFromCorLibrary)
+                                else if (srcSymbol.Kind == SymbolKind.NamedType && mdSymbol.Kind == SymbolKind.Namespace)
                                 {
-                                    // Ignore duplicate types from the cor library if necessary.
-                                    // (Specifically the framework assemblies loaded at runtime in
-                                    // the EE may contain types also available from mscorlib.dll.)
-                                    return first;
+                                    // ErrorCode.WRN_SameFullNameThisAggNs: The type '{1}' in '{0}' conflicts with the imported namespace '{3}' in '{2}'. Using the type defined in '{0}'.
+                                    diagnostics.Add(ErrorCode.WRN_SameFullNameThisAggNs, where.Location, originalSymbols,
+                                        arg0,
+                                        srcSymbol,
+                                        GetContainingAssembly(mdSymbol),
+                                        mdSymbol);
+
+                                    return originalSymbols[best.Index];
                                 }
-                            }
-                        }
-                        else if (first.Kind == SymbolKind.Namespace && second.Kind == SymbolKind.NamedType)
-                        {
-                            // ErrorCode.ERR_SameFullNameNsAgg: The namespace '{1}' in '{0}' conflicts with the type '{3}' in '{2}'
-                            info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameNsAgg, originalSymbols,
-                                new object[] { GetContainingAssembly(first), first, second.ContainingAssembly, second });
-
-                            // Do not report this error if namespace is declared in source and the type is declared in added module,
-                            // we already reported declaration error about this name collision.
-                            if (best.IsFromSourceModule && secondBest.IsFromAddedModule)
-                            {
-                                reportError = false;
-                            }
-                        }
-                        else if (first.Kind == SymbolKind.NamedType && second.Kind == SymbolKind.Namespace)
-                        {
-                            if (!secondBest.IsFromCompilation || secondBest.IsFromSourceModule)
-                            {
-                                // ErrorCode.ERR_SameFullNameNsAgg: The namespace '{1}' in '{0}' conflicts with the type '{3}' in '{2}'
-                                info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameNsAgg, originalSymbols,
-                                    new object[] { GetContainingAssembly(second), second, first.ContainingAssembly, first });
-                            }
-                            else
-                            {
-                                Debug.Assert(secondBest.IsFromAddedModule);
-
-                                // ErrorCode.ERR_SameFullNameThisAggThisNs: The type '{1}' in '{0}' conflicts with the namespace '{3}' in '{2}'
-                                object arg0;
-
-                                if (best.IsFromSourceModule)
+                                else if (srcSymbol.Kind == SymbolKind.NamedType && mdSymbol.Kind == SymbolKind.NamedType)
                                 {
-                                    arg0 = first.Locations.First().SourceTree.FilePath;
+                                    // WRN_SameFullNameThisAggAgg: The type '{1}' in '{0}' conflicts with the imported type '{3}' in '{2}'. Using the type defined in '{0}'.
+                                    diagnostics.Add(ErrorCode.WRN_SameFullNameThisAggAgg, where.Location, originalSymbols,
+                                        arg0,
+                                        srcSymbol,
+                                        mdSymbol.ContainingAssembly,
+                                        mdSymbol);
+
+                                    return originalSymbols[best.Index];
                                 }
                                 else
                                 {
-                                    Debug.Assert(best.IsFromAddedModule);
-                                    arg0 = first.ContainingModule;
+                                    // namespace would be merged with the source namespace:
+                                    Debug.Assert(!(srcSymbol.Kind == SymbolKind.Namespace && mdSymbol.Kind == SymbolKind.Namespace));
                                 }
+                            }
+                        }
 
-                                ModuleSymbol arg2 = second.ContainingModule;
+                        var first = symbols[best.Index];
+                        var second = symbols[secondBest.Index];
 
-                                // Merged namespaces that span multiple modules don't have a containing module,
-                                // so just use module with the smallest ordinal from the containing assembly.
-                                if ((object)arg2 == null)
+                        Debug.Assert(originalSymbols[best.Index] != originalSymbols[secondBest.Index] || options.IsAttributeTypeLookup(),
+                            "This kind of ambiguity is only possible for attributes.");
+
+                        Debug.Assert(first != second || originalSymbols[best.Index] != originalSymbols[secondBest.Index],
+                            "Why does the LookupResult contain the same symbol twice?");
+
+                        CSDiagnosticInfo info;
+                        bool reportError;
+
+                        //if names match, arities match, and containing symbols match (recursively), ...
+                        if (first != second &&
+                            first.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
+                                second.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat))
+                        {
+                            // suppress reporting the error if we found multiple symbols from source module
+                            // since an error has already been reported from the declaration
+                            reportError = !(best.IsFromSourceModule && secondBest.IsFromSourceModule);
+
+                            if (first.Kind == SymbolKind.NamedType && second.Kind == SymbolKind.NamedType)
+                            {
+                                if (first.OriginalDefinition == second.OriginalDefinition)
                                 {
-                                    foreach (NamespaceSymbol ns in ((NamespaceSymbol)second).ConstituentNamespaces)
-                                    {
-                                        if (ns.ContainingAssembly == Compilation.Assembly)
-                                        {
-                                            ModuleSymbol module = ns.ContainingModule;
+                                    // We imported different generic instantiations of the same generic type
+                                    // and have an ambiguous reference to a type nested in it
+                                    reportError = true;
 
-                                            if ((object)arg2 == null || arg2.Ordinal > module.Ordinal)
-                                            {
-                                                arg2 = module;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                Debug.Assert(arg2.ContainingAssembly == Compilation.Assembly);
-
-                                info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameThisAggThisNs, originalSymbols,
-                                    new object[] { arg0, first, arg2, second });
-                            }
-                        }
-                        else if (first.Kind == SymbolKind.RangeVariable && second.Kind == SymbolKind.RangeVariable)
-                        {
-                            // We will already have reported a conflicting range variable declaration.
-                            info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, originalSymbols,
-                                new object[] { first, second });
-                        }
-                        else
-                        {
-                            // TODO: this is not an appropriate error message here, but used as a fallback until the
-                            // appropriate diagnostics are implemented.
-                            // '{0}' is an ambiguous reference between '{1}' and '{2}'
-                            //info = diagnostics.Add(ErrorCode.ERR_AmbigContext, location, readOnlySymbols,
-                            //    whereText,
-                            //    first,
-                            //    second);
-
-                            // CS0229: Ambiguity between '{0}' and '{1}'
-                            info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, originalSymbols,
-                                new object[] { first, second });
-
-                            reportError = true;
-                        }
-                    }
-                    else
-                    {
-                        Debug.Assert(originalSymbols[best.Index].Name != originalSymbols[secondBest.Index].Name ||
-                                     originalSymbols[best.Index] != originalSymbols[secondBest.Index],
-                            "Why was the lookup result viable if it contained non-equal symbols with the same name?");
-
-                        reportError = true;
-
-                        if (first is NamespaceOrTypeSymbol && second is NamespaceOrTypeSymbol)
-                        {
-                            if (options.IsAttributeTypeLookup() &&
-                                first.Kind == SymbolKind.NamedType &&
-                                second.Kind == SymbolKind.NamedType &&
-                                originalSymbols[best.Index].Name != originalSymbols[secondBest.Index].Name && // Use alias names, if available.
-                                Compilation.IsAttributeType((NamedTypeSymbol)first) &&
-                                Compilation.IsAttributeType((NamedTypeSymbol)second))
-                            {
-                                //  SPEC:   If an attribute class is found both with and without Attribute suffix, an ambiguity 
-                                //  SPEC:   is present, and a compile-time error results.
-
-                                info = new CSDiagnosticInfo(ErrorCode.ERR_AmbiguousAttribute, originalSymbols,
-                                    new object[] { (where as NameSyntax)?.ErrorDisplayName() ?? simpleName, first, second });
-                            }
-                            else
-                            {
-                                // '{0}' is an ambiguous reference between '{1}' and '{2}'
-                                info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
-                                    new object[] {
+                                    // '{0}' is an ambiguous reference between '{1}' and '{2}'
+                                    info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
+                                        new object[] {
                                         (where as NameSyntax)?.ErrorDisplayName() ?? simpleName,
                                         new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
                                         new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
+                                }
+                                else
+                                {
+                                    Debug.Assert(!best.IsFromCorLibrary);
+
+                                    // ErrorCode.ERR_SameFullNameAggAgg: The type '{1}' exists in both '{0}' and '{2}'
+                                    info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameAggAgg, originalSymbols,
+                                        new object[] { first.ContainingAssembly, first, second.ContainingAssembly });
+
+                                    // Do not report this error if the first is declared in source and the second is declared in added module,
+                                    // we already reported declaration error about this name collision.
+                                    // Do not report this error if both are declared in added modules,
+                                    // we will report assembly level declaration error about this name collision.
+                                    if (secondBest.IsFromAddedModule)
+                                    {
+                                        Debug.Assert(best.IsFromCompilation);
+                                        reportError = false;
+                                    }
+                                    else if (this.Flags.Includes(BinderFlags.IgnoreCorLibraryDuplicatedTypes) &&
+                                        secondBest.IsFromCorLibrary)
+                                    {
+                                        // Ignore duplicate types from the cor library if necessary.
+                                        // (Specifically the framework assemblies loaded at runtime in
+                                        // the EE may contain types also available from mscorlib.dll.)
+                                        return first;
+                                    }
+                                }
+                            }
+                            else if (first.Kind == SymbolKind.Namespace && second.Kind == SymbolKind.NamedType)
+                            {
+                                // ErrorCode.ERR_SameFullNameNsAgg: The namespace '{1}' in '{0}' conflicts with the type '{3}' in '{2}'
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameNsAgg, originalSymbols,
+                                    new object[] { GetContainingAssembly(first), first, second.ContainingAssembly, second });
+
+                                // Do not report this error if namespace is declared in source and the type is declared in added module,
+                                // we already reported declaration error about this name collision.
+                                if (best.IsFromSourceModule && secondBest.IsFromAddedModule)
+                                {
+                                    reportError = false;
+                                }
+                            }
+                            else if (first.Kind == SymbolKind.NamedType && second.Kind == SymbolKind.Namespace)
+                            {
+                                if (!secondBest.IsFromCompilation || secondBest.IsFromSourceModule)
+                                {
+                                    // ErrorCode.ERR_SameFullNameNsAgg: The namespace '{1}' in '{0}' conflicts with the type '{3}' in '{2}'
+                                    info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameNsAgg, originalSymbols,
+                                        new object[] { GetContainingAssembly(second), second, first.ContainingAssembly, first });
+                                }
+                                else
+                                {
+                                    Debug.Assert(secondBest.IsFromAddedModule);
+
+                                    // ErrorCode.ERR_SameFullNameThisAggThisNs: The type '{1}' in '{0}' conflicts with the namespace '{3}' in '{2}'
+                                    object arg0;
+
+                                    if (best.IsFromSourceModule)
+                                    {
+                                        arg0 = first.Locations.First().SourceTree.FilePath;
+                                    }
+                                    else
+                                    {
+                                        Debug.Assert(best.IsFromAddedModule);
+                                        arg0 = first.ContainingModule;
+                                    }
+
+                                    ModuleSymbol arg2 = second.ContainingModule;
+
+                                    // Merged namespaces that span multiple modules don't have a containing module,
+                                    // so just use module with the smallest ordinal from the containing assembly.
+                                    if ((object)arg2 == null)
+                                    {
+                                        foreach (NamespaceSymbol ns in ((NamespaceSymbol)second).ConstituentNamespaces)
+                                        {
+                                            if (ns.ContainingAssembly == Compilation.Assembly)
+                                            {
+                                                ModuleSymbol module = ns.ContainingModule;
+
+                                                if ((object)arg2 == null || arg2.Ordinal > module.Ordinal)
+                                                {
+                                                    arg2 = module;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Debug.Assert(arg2.ContainingAssembly == Compilation.Assembly);
+
+                                    info = new CSDiagnosticInfo(ErrorCode.ERR_SameFullNameThisAggThisNs, originalSymbols,
+                                        new object[] { arg0, first, arg2, second });
+                                }
+                            }
+                            else if (first.Kind == SymbolKind.RangeVariable && second.Kind == SymbolKind.RangeVariable)
+                            {
+                                // We will already have reported a conflicting range variable declaration.
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, originalSymbols,
+                                    new object[] { first, second });
+                            }
+                            else
+                            {
+                                // TODO: this is not an appropriate error message here, but used as a fallback until the
+                                // appropriate diagnostics are implemented.
+                                // '{0}' is an ambiguous reference between '{1}' and '{2}'
+                                //info = diagnostics.Add(ErrorCode.ERR_AmbigContext, location, readOnlySymbols,
+                                //    whereText,
+                                //    first,
+                                //    second);
+
+                                // CS0229: Ambiguity between '{0}' and '{1}'
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, originalSymbols,
+                                    new object[] { first, second });
+
+                                reportError = true;
                             }
                         }
                         else
                         {
-                            // CS0229: Ambiguity between '{0}' and '{1}'
-                            info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, originalSymbols,
-                                new object[] { first, second });
+                            Debug.Assert(originalSymbols[best.Index].Name != originalSymbols[secondBest.Index].Name ||
+                                         originalSymbols[best.Index] != originalSymbols[secondBest.Index],
+                                "Why was the lookup result viable if it contained non-equal symbols with the same name?");
+
+                            reportError = true;
+
+                            if (first is NamespaceOrTypeSymbol && second is NamespaceOrTypeSymbol)
+                            {
+                                if (options.IsAttributeTypeLookup() &&
+                                    first.Kind == SymbolKind.NamedType &&
+                                    second.Kind == SymbolKind.NamedType &&
+                                    originalSymbols[best.Index].Name != originalSymbols[secondBest.Index].Name && // Use alias names, if available.
+                                    Compilation.IsAttributeType((NamedTypeSymbol)first) &&
+                                    Compilation.IsAttributeType((NamedTypeSymbol)second))
+                                {
+                                    //  SPEC:   If an attribute class is found both with and without Attribute suffix, an ambiguity 
+                                    //  SPEC:   is present, and a compile-time error results.
+
+                                    info = new CSDiagnosticInfo(ErrorCode.ERR_AmbiguousAttribute, originalSymbols,
+                                        new object[] { (where as NameSyntax)?.ErrorDisplayName() ?? simpleName, first, second });
+                                }
+                                else
+                                {
+                                    // '{0}' is an ambiguous reference between '{1}' and '{2}'
+                                    info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigContext, originalSymbols,
+                                        new object[] {
+                                        (where as NameSyntax)?.ErrorDisplayName() ?? simpleName,
+                                        new FormattedSymbol(first, SymbolDisplayFormat.CSharpErrorMessageFormat),
+                                        new FormattedSymbol(second, SymbolDisplayFormat.CSharpErrorMessageFormat) });
+                                }
+                            }
+                            else
+                            {
+                                // CS0229: Ambiguity between '{0}' and '{1}'
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_AmbigMember, originalSymbols,
+                                    new object[] { first, second });
+                            }
                         }
-                    }
 
-                    wasError = true;
-
-                    if (reportError)
-                    {
-                        diagnostics.Add(info, where.Location);
-                    }
-
-                    return new ExtendedErrorTypeSymbol(
-                        GetContainingNamespaceOrType(originalSymbols[0]),
-                        originalSymbols,
-                        LookupResultKind.Ambiguous,
-                        info,
-                        arity);
-                }
-                else
-                {
-                    // Single viable result.
-                    var singleResult = symbols[0];
-
-                    // Cannot reference System.Void directly.
-                    var singleType = singleResult as TypeSymbol;
-                    if ((object)singleType != null && singleType.PrimitiveTypeCode == Cci.PrimitiveTypeCode.Void && simpleName == "Void")
-                    {
                         wasError = true;
-                        var errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_SystemVoid);
-                        diagnostics.Add(errorInfo, where.Location);
-                        singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(singleResult), singleResult, LookupResultKind.NotReferencable, errorInfo); // UNDONE: Review resultkind.
+
+                        if (reportError)
+                        {
+                            diagnostics.Add(info, where.Location);
+                        }
+
+                        return new ExtendedErrorTypeSymbol(
+                            GetContainingNamespaceOrType(originalSymbols[0]),
+                            originalSymbols,
+                            LookupResultKind.Ambiguous,
+                            info,
+                            arity);
                     }
-                    // Check for bad symbol.
                     else
                     {
-                        if (singleResult.Kind == SymbolKind.NamedType &&
-                            ((SourceModuleSymbol)this.Compilation.SourceModule).AnyReferencedAssembliesAreLinked)
-                        {
-                            // Complain about unembeddable types from linked assemblies.
-                            Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType((NamedTypeSymbol)singleResult, where, diagnostics);
-                        }
+                        // Single viable result.
+                        var singleResult = symbols[0];
 
-                        if (!suppressUseSiteDiagnostics)
+                        // Cannot reference System.Void directly.
+                        var singleType = singleResult as TypeSymbol;
+                        if ((object)singleType != null && singleType.PrimitiveTypeCode == Cci.PrimitiveTypeCode.Void && simpleName == "Void")
                         {
-                            wasError = ReportUseSiteDiagnostics(singleResult, diagnostics, where);
+                            wasError = true;
+                            var errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_SystemVoid);
+                            diagnostics.Add(errorInfo, where.Location);
+                            singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(singleResult), singleResult, LookupResultKind.NotReferencable, errorInfo); // UNDONE: Review resultkind.
                         }
-                        else if (singleResult.Kind == SymbolKind.ErrorType)
+                        // Check for bad symbol.
+                        else
                         {
-                            // We want to report ERR_CircularBase error on the spot to make sure 
-                            // that the right location is used for it.
-                            var errorType = (ErrorTypeSymbol)singleResult;
-
-                            if (errorType.Unreported)
+                            if (singleResult.Kind == SymbolKind.NamedType &&
+                                ((SourceModuleSymbol)this.Compilation.SourceModule).AnyReferencedAssembliesAreLinked)
                             {
-                                DiagnosticInfo errorInfo = errorType.ErrorInfo;
+                                // Complain about unembeddable types from linked assemblies.
+                                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType((NamedTypeSymbol)singleResult, where, diagnostics);
+                            }
 
-                                if (errorInfo != null && errorInfo.Code == (int)ErrorCode.ERR_CircularBase)
+                            if (!suppressUseSiteDiagnostics)
+                            {
+                                wasError = ReportUseSiteDiagnostics(singleResult, diagnostics, where);
+                            }
+                            else if (singleResult.Kind == SymbolKind.ErrorType)
+                            {
+                                // We want to report ERR_CircularBase error on the spot to make sure 
+                                // that the right location is used for it.
+                                var errorType = (ErrorTypeSymbol)singleResult;
+
+                                if (errorType.Unreported)
                                 {
-                                    wasError = true;
-                                    diagnostics.Add(errorInfo, where.Location);
-                                    singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(errorType), errorType.Name, errorType.Arity, errorInfo, unreported: false);
+                                    DiagnosticInfo errorInfo = errorType.ErrorInfo;
+
+                                    if (errorInfo != null && errorInfo.Code == (int)ErrorCode.ERR_CircularBase)
+                                    {
+                                        wasError = true;
+                                        diagnostics.Add(errorInfo, where.Location);
+                                        singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(errorType), errorType.Name, errorType.Arity, errorInfo, unreported: false);
+                                    }
                                 }
                             }
                         }
+
+                        return singleResult;
                     }
-
-                    return singleResult;
                 }
-            }
 
-            // Below here is the error case; no viable symbols found (but maybe one or more non-viable.)
-            wasError = true;
+                // Below here is the error case; no viable symbols found (but maybe one or more non-viable.)
+                wasError = true;
 
-            if (result.Kind == LookupResultKind.Empty)
-            {
-                string aliasOpt = null;
-                SyntaxNode node = where;
-                while (node is ExpressionSyntax)
+                if (result.Kind == LookupResultKind.Empty)
                 {
-                    if (node.Kind() == SyntaxKind.AliasQualifiedName)
+                    string aliasOpt = null;
+                    SyntaxNode node = where;
+                    while (node is ExpressionSyntax)
                     {
-                        aliasOpt = ((AliasQualifiedNameSyntax)node).Alias.Identifier.ValueText;
-                        break;
+                        if (node.Kind() == SyntaxKind.AliasQualifiedName)
+                        {
+                            aliasOpt = ((AliasQualifiedNameSyntax)node).Alias.Identifier.ValueText;
+                            break;
+                        }
+                        node = node.Parent;
                     }
-                    node = node.Parent;
+
+                    CSDiagnosticInfo info = NotFound(where, simpleName, arity, (where as NameSyntax)?.ErrorDisplayName() ?? simpleName, diagnostics, aliasOpt, qualifierOpt, options);
+                    return new ExtendedErrorTypeSymbol(qualifierOpt ?? Compilation.Assembly.GlobalNamespace, simpleName, arity, info);
                 }
 
-                CSDiagnosticInfo info = NotFound(where, simpleName, arity, (where as NameSyntax)?.ErrorDisplayName() ?? simpleName, diagnostics, aliasOpt, qualifierOpt, options);
-                return new ExtendedErrorTypeSymbol(qualifierOpt ?? Compilation.Assembly.GlobalNamespace, simpleName, arity, info);
-            }
+                Debug.Assert(symbols.Count > 0);
 
-            Debug.Assert(symbols.Count > 0);
-
-            // Report any errors we encountered with the symbol we looked up.
-            if (!suppressUseSiteDiagnostics)
-            {
-                for (int i = 0; i < symbols.Count; i++)
+                // Report any errors we encountered with the symbol we looked up.
+                if (!suppressUseSiteDiagnostics)
                 {
-                    ReportUseSiteDiagnostics(symbols[i], diagnostics, where);
+                    for (int i = 0; i < symbols.Count; i++)
+                    {
+                        ReportUseSiteDiagnostics(symbols[i], diagnostics, where);
+                    }
                 }
-            }
 
-            // result.Error might be null if we have already generated parser errors,
-            // e.g. when generic name is used for attribute name.
-            if (result.Error != null &&
-                ((object)qualifierOpt == null || qualifierOpt.Kind != SymbolKind.ErrorType)) // Suppress cascading.
-            {
-                diagnostics.Add(new CSDiagnostic(result.Error, where.Location));
-            }
+                // result.Error might be null if we have already generated parser errors,
+                // e.g. when generic name is used for attribute name.
+                if (result.Error != null &&
+                    ((object)qualifierOpt == null || qualifierOpt.Kind != SymbolKind.ErrorType)) // Suppress cascading.
+                {
+                    diagnostics.Add(new CSDiagnostic(result.Error, where.Location));
+                }
 
-            if ((symbols.Count > 1) || (symbols[0] is NamespaceOrTypeSymbol || symbols[0] is AliasSymbol) ||
-                result.Kind == LookupResultKind.NotATypeOrNamespace || result.Kind == LookupResultKind.NotAnAttributeType)
-            {
-                // Bad type or namespace (or things expected as types/namespaces) are packaged up as error types, preserving the symbols and the result kind.
-                // We do this if there are multiple symbols too, because just returning one would be losing important information, and they might
-                // be of different kinds.
-                return new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), symbols.ToImmutable(), result.Kind, result.Error, arity);
-            }
-            else
-            {
-                // It's a single non-type-or-namespace; error was already reported, so just return it.
-                return symbols[0];
+                if ((symbols.Count > 1) || (symbols[0] is NamespaceOrTypeSymbol || symbols[0] is AliasSymbol) ||
+                    result.Kind == LookupResultKind.NotATypeOrNamespace || result.Kind == LookupResultKind.NotAnAttributeType)
+                {
+                    // Bad type or namespace (or things expected as types/namespaces) are packaged up as error types, preserving the symbols and the result kind.
+                    // We do this if there are multiple symbols too, because just returning one would be losing important information, and they might
+                    // be of different kinds.
+                    return new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), symbols.ToImmutable(), result.Kind, result.Error, arity);
+                }
+                else
+                {
+                    // It's a single non-type-or-namespace; error was already reported, so just return it.
+                    return symbols[0];
+                }
             }
         }
 
@@ -2229,16 +2281,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
-        {
-            CSDiagnosticInfo error = feature.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)tree.Options);
-
-            if (error is null)
-            {
-                return true;
-            }
-
-            diagnostics.Add(new CSDiagnostic(error, location));
-            return false;
-        }
+            => feature.CheckFeatureAvailability(diagnostics, location);
     }
 }

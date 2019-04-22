@@ -228,7 +228,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
-        Public Async Function CommentNotSupported() As Task
+        Public Async Function TestCommentsLiveBetweenForEachAndArrayDeclaration() As Task
             Dim initial = "
 Class Test
     Sub Method()
@@ -239,8 +239,43 @@ Class Test
     End Sub
 End Class
 "
+            Dim Expected = "
+Class Test
+    Sub Method()
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
+        Next
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(initial, Expected)
+        End Function
 
-            Await TestMissingInRegularAndScriptAsync(initial)
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
+        Public Async Function CommentNotSupportedCommentsAfterLineContinuation() As Task
+            Dim initial = "
+Class Test
+    Sub Method()
+        For Each [||] a _ ' test
+            In ' test
+            New Integer() {1, 2, 3}
+        Next
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Class Test
+    Sub Method()
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
+        Next
+    End Sub
+End Class
+"
+
+            Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>

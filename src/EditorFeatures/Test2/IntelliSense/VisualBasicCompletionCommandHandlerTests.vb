@@ -484,7 +484,6 @@ End Class
                 ' allow the provider to continue
                 e.Set()
 
-                ' TODO re-consider if the behavior change is valid: https://github.com/dotnet/roslyn/issues/31131
                 If completionImplementation = CompletionImplementation.Legacy Then
                     ' We should not have a session since we tear things down if we see a caret move
                     ' before the providers have returned.
@@ -493,6 +492,42 @@ End Class
                     ' Async provider can handle keys pressed while waiting for providers.
                     Await state.AssertCompletionSession()
                 End If
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNavigationOutBeforeCompletedComputation(completionImplementation As CompletionImplementation) As Task
+            ' Simulate a very slow completionImplementation provider.
+            Dim e = New ManualResetEvent(False)
+            Dim provider = CreateTriggeredCompletionProvider(e)
+
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+                              <document>
+                                Class Program
+                                    Shared Sub Main(args As String())
+                                        Program$$
+                                    End Sub
+                                End Class
+                              </document>, extraCompletionProviders:={provider})
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars(".Ma")
+
+                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' since the provider will not return.
+                state.AssertNoCompletionSessionWithNoBlock()
+
+                ' Now, navigate using the caret.
+                state.SendDownKey()
+
+                ' allow the provider to continue
+                e.Set()
+
+                ' Caret was intended to be moved out of the span. 
+                ' Therefore, we should cancel the completion And move the caret.
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("    End Sub", state.GetLineFromCurrentCaretPosition().GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -617,8 +652,8 @@ Class c
 End Class</document>)
                 state.SendTypeChars("Sy")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"OperatingSystem", "System"}))
-                Assert.False(state.CompletionItemsContainsAny(displayText:={"Exception", "Activator"}))
+                state.AssertCompletionItemsContainAll(displayText:={"OperatingSystem", "System"})
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"Exception", "Activator"})
             End Using
         End Function
 
@@ -633,7 +668,7 @@ Class c
 End Class</document>)
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"Attribute", "Exception"}))
+                state.AssertCompletionItemsContainAll(displayText:={"Attribute", "Exception"})
             End Using
         End Function
 
@@ -676,12 +711,12 @@ End Module]]></Document>)
                 state.SendTypeChars(" ")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"LinkedList", "List", "System"}))
+                state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List", "System"})
                 state.SendTypeChars("Li")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"LinkedList", "List"}))
-                Assert.False(state.CompletionItemsContainsAny(displayText:={"System"}))
+                state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List"})
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"System"})
                 state.SendTypeChars("n")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="LinkedList", displayTextSuffix:="(Of " & ChrW(&H2026) & ")", isHardSelected:=True)
@@ -839,7 +874,7 @@ end class
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ToString"}))
+                state.AssertCompletionItemsContainAll({"ToString"})
             End Using
         End Function
 
@@ -1173,7 +1208,7 @@ End Class
                 state.SendTypeChars("(")
                 Await state.AssertSignatureHelpSession()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.SignatureHelpItemsContainsAll({"Object.Finalize()"}))
+                state.AssertSignatureHelpItemsContainAll({"Object.Finalize()"})
             End Using
         End Function
 
@@ -1547,7 +1582,7 @@ End Class
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("String")
-                state.CompletionItemsContainsAll({"Integer", "G"})
+                state.AssertCompletionItemsContainAll({"Integer", "G"})
             End Using
         End Function
 
@@ -1565,7 +1600,7 @@ End Class
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("String")
-                state.CompletionItemsContainsAll({"Integer", "G"})
+                state.AssertCompletionItemsContainAll({"Integer", "G"})
             End Using
         End Function
 
@@ -1602,7 +1637,7 @@ End Class
                 state.SendBackspace()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("String")
-                state.CompletionItemsContainsAll({"Integer", "G"})
+                state.AssertCompletionItemsContainAll({"Integer", "G"})
             End Using
         End Function
 
@@ -2804,7 +2839,7 @@ End Class
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.CompletionItemsContainsAll({"x", "Shortcut"}))
+                state.AssertCompletionItemsContainAll({"x", "Shortcut"})
             End Using
         End Function
 
@@ -3105,6 +3140,231 @@ End Class
                 state.SendTypeChars("M(M(M(M(")
                 Await state.AssertCompletionSession()
                 Assert.Equal("        Ma(m:=(Ma(m:=(", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        Private Shared Function CreateThenIncludeTestCode(lambdaExpressionString As String, methodsDeclarationString As String) As XElement
+            Dim template = "<Document><![CDATA[
+Imports System.Linq.Expressions
+
+Namespace ThenIncludeIntellisenseBug
+
+    Class Program
+        Shared Sub Main(args As String())
+            Dim registrations = New List(Of Registration)().AsQueryable()
+            Dim reg = registrations.Include(Function(r) r.Activities).ThenInclude([1])
+        End Sub
+    End Class
+
+    Friend Class Registration
+        Public Property Activities As ICollection(Of Activity)
+    End Class
+
+    Public Class Activity
+        Public Property Task As Task
+    End Class
+
+    Public Class Task
+        Public Property Name As String
+    End Class
+
+    Public Interface IIncludableQueryable(Of Out TEntity, Out TProperty)
+        Inherits IQueryable(Of TEntity)
+    End Interface
+
+    Public Module EntityFrameworkQuerybleExtensions
+        <System.Runtime.CompilerServices.Extension>
+        Public Function Include(Of TEntity, TProperty)(
+                                                      source As IQueryable(Of TEntity), 
+                                                      navigationPropertyPath As Expression(Of Func(Of TEntity, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+[2]
+
+    End Module
+End Namespace
+]]></Document>"
+
+            Return XElement.Parse(template.Replace("[1]", lambdaExpressionString).Replace("[2]", methodsDeclarationString))
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestThenInclude(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "Function(b) b$$",
+                "
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+"))
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"Task", "FirstOrDefault"})
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestThenIncludeNoExpression(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "Function(b) b$$",
+                "
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                                                                             navigationPropertyPath As Func(Of TPreviousProperty, TProperty)) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
+                                                                             navigationPropertyPath As Func(Of TPreviousProperty, TProperty)) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function"))
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"Task", "FirstOrDefault"})
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestThenIncludeSecondArgument(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "0, Function(b) b$$",
+                "
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                                                                             a as Integer,
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                                                                             a as Integer,
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+"))
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"Task", "FirstOrDefault"})
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestThenIncludeSecondArgumentAndMultiArgumentLambda(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "0, Function(a, b, c) c$$",
+                "<System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                                                                             a as Integer,
+                                                                             navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
+                                                                             a as Integer,
+                                                                             navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function"))
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"Task", "FirstOrDefault"})
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestThenIncludeSecondArgumentNoOverlap(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "Function(b) b.Task, Function(b) b$$",
+                "        
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty)),
+                                                                             anotherNavigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
+                                                                             navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function"))
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsDoNotContainAny({"FirstOrDefault"})
+                state.AssertCompletionItemsContainAll({"Task"})
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestThenIncludeSecondArgumentAndMultiArgumentLambdaWithNoLambdaOverlap(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "0, Function(a, b, c) c$$",
+                "
+       <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
+                                                                             a as Integer,
+                                                                             navigationPropertyPath As Expression(Of Func(Of string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                                                                             source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                                                                             a as Integer,
+                                                                             navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+"))
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"FirstOrDefault"})
+                state.AssertCompletionItemsDoNotContainAny({"Task"})
             End Using
         End Function
 

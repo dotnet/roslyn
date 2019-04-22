@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="A_new_namespace_will_be_created">
+        <source>A new namespace will be created</source>
+        <target state="new">A new namespace will be created</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
         <target state="translated">新增至 _current 檔案</target>
@@ -122,6 +127,21 @@
         <target state="translated">成員</target>
         <note />
       </trans-unit>
+      <trans-unit id="Modifier_preferences_colon">
+        <source>Modifier preferences:</source>
+        <target state="new">Modifier preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_to_namespace">
+        <source>Move to Namespace</source>
+        <target state="new">Move to Namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace">
+        <source>Namespace</source>
+        <target state="new">Namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
         <target state="translated">命名空間: '{0}'</target>
@@ -162,6 +182,21 @@
         <target state="translated">優先使用範圍運算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_readonly_fields">
+        <source>Prefer readonly fields</source>
+        <target state="new">Prefer readonly fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simple_using_statement">
+        <source>Prefer simple 'using' statement</source>
+        <target state="new">Prefer simple 'using' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_static_local_functions">
+        <source>Prefer static local functions</source>
+        <target state="new">Prefer static local functions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
         <target state="translated">提升成員</target>
@@ -170,6 +205,11 @@
       <trans-unit id="Regular_Expressions">
         <source>Regular Expressions</source>
         <target state="translated">規則運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename {0} to {1}</source>
+        <target state="new">Rename {0} to {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -198,13 +238,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Select_Dependents">
-        <source>_Select Dependents</source>
-        <target state="translated">選取相依項(_S)</target>
+        <source>Select _Dependents</source>
+        <target state="needs-review-translation">選取相依項(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
-        <source>_Select Public</source>
-        <target state="translated">選取公用(_S)</target>
+        <source>Select _Public</source>
+        <target state="needs-review-translation">選取公用(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
@@ -225,6 +265,21 @@
       <trans-unit id="Select_members_colon">
         <source>Select members:</source>
         <target state="translated">選取成員:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list">
+        <source>Show completion list</source>
+        <target state="new">Show completion list</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Target_Namespace_colon">
+        <source>Target Namespace:</source>
+        <target state="new">Target Namespace:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_is_an_invalid_namespace">
+        <source>This is an invalid namespace</source>
+        <target state="new">This is an invalid namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -265,6 +320,11 @@
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
         <target state="translated">我們發現您暫止了 '{0}'。重設按鍵對應以繼續巡覽和重構。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
+        <source>This workspace does not support updating Visual Basic compilation options.</source>
+        <target state="new">This workspace does not support updating Visual Basic compilation options.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -1623,11 +1683,6 @@ Additional information: {1}</source>
         <target state="translated">啟用完整解決方案分析(_A)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Perform_editor_feature_analysis_in_external_process">
-        <source>Perform editor _feature analysis in external process (experimental)</source>
-        <target state="translated">在外部處理序中執編輯器功能分析 (_F)(實驗性)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">
         <source>Fade out unreachable code</source>
         <target state="translated">淡出執行不到的程式碼</target>
@@ -1756,16 +1811,6 @@ I agree to all of the foregoing:</source>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
         <target state="translated">無法套用變更 -- 未預期的錯誤: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Field_preferences_colon">
-        <source>Field preferences:</source>
-        <target state="translated">欄位喜好設定:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly">
-        <source>Prefer readonly</source>
-        <target state="translated">偏好唯讀</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">

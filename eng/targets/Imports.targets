@@ -14,10 +14,16 @@
 
     <!-- Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
          but gets included in lots of output items like VSIX. -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.1'">false</GenerateRuntimeConfigurationFiles>
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.1' AND '$(TargetFramework)' != 'netcoreapp3.0'">false</GenerateRuntimeConfigurationFiles>
 
     <!-- Place VS insertion (CoreXT) packages to a separate directory -->
     <PackageOutputPath Condition="'$(IsVisualStudioInsertionPackage)' == 'true'">$(DevDivPackagesDir)</PackageOutputPath>
+
+    <!-- 
+      When building a .NET Core exe make sure to include the template runtimeconfig.json file 
+      which has all of our global settings 
+    -->
+    <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
@@ -100,9 +106,7 @@
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
   </PropertyGroup>
 
-  <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" AfterTargets="CoreCompile">
-    <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
-  </Target>
+  <Import Project="Bootstrap.targets" Condition="'$(BootstrapBuildPath)' != ''" />
 
   <!--
     When running our determinism tests we need to copy the diagnostic file from the intermediate directory
@@ -236,5 +240,52 @@
         $(TargetFrameworkMonikerAssemblyAttributeText)
       </TargetFrameworkMonikerAssemblyAttributeText>
     </PropertyGroup>
+  </Target>
+
+  <Target Name="_CalculateSubstituteVariablesInApplicationManifestInputsOutputs">
+    <PropertyGroup>
+      <_OriginalApplicationManifestPath>$(RepositoryEngineeringDir)config\app.manifest</_OriginalApplicationManifestPath>
+      <_UpdatedApplicationManifestPath>$(IntermediateOutputPath)$(AssemblyName).exe.manifest</_UpdatedApplicationManifestPath>
+    </PropertyGroup>
+  </Target>
+
+  <!--
+    Sets the values of "version" and "name" attributes in assemblyIdentity element in the application manifest file
+    with values $(AssemblyVersion) and $(AssemblyName) to avoid hardcoding those in the manifest file.
+  -->
+  <Target Name="_SubstituteVariablesInApplicationManifest"
+          BeforeTargets="_SetExternalWin32ManifestProperties;_SetEmbeddedWin32ManifestProperties"
+          DependsOnTargets="_CalculateSubstituteVariablesInApplicationManifestInputsOutputs;GetAssemblyVersion"
+          Inputs="$(_OriginalApplicationManifestPath)"
+          Outputs="$(_UpdatedApplicationManifestPath)"
+          Condition="'$(OutputType)' == 'Exe' And '$(TargetFramework)' == 'net472'">
+
+    <Copy SourceFiles="$(_OriginalApplicationManifestPath)" DestinationFiles="$(_UpdatedApplicationManifestPath)" />
+
+    <PropertyGroup>
+      <_Namespace>
+        <Namespace Prefix="asm" Uri="urn:schemas-microsoft-com:asm.v1" />
+      </_Namespace>
+    </PropertyGroup>
+
+    <!-- Update version attribute -->
+    <XmlPoke XmlInputPath="$(_UpdatedApplicationManifestPath)"
+             Value="$(AssemblyVersion)"
+             Query="/asm:assembly/asm:assemblyIdentity/@version"
+             Namespaces="$(_Namespace)"/>
+
+    <!-- Update name attribute -->
+    <XmlPoke XmlInputPath="$(_UpdatedApplicationManifestPath)"
+             Value="$(AssemblyName)"
+             Query="/asm:assembly/asm:assemblyIdentity/@name"
+             Namespaces="$(_Namespace)"/>
+
+    <PropertyGroup>
+      <ApplicationManifest>$(_UpdatedApplicationManifestPath)</ApplicationManifest>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <FileWrites Include="$(_UpdatedApplicationManifestPath)"/>
+    </ItemGroup>
   </Target>
 </Project>
