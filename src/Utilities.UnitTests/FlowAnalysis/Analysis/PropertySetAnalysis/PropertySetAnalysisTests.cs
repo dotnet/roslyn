@@ -1032,7 +1032,7 @@ class TestClass
         }
 
         /// <summary>
-        /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrack.AString property is not null when calling its Method() method.
+        /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrack.AString property is not null when returning a TestTypeToTrack.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfStringIsNonNullOnReturn =
             new PropertySetAnalysisParameters(
@@ -1123,6 +1123,172 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNullOnReturn);
+        }
+
+        [Fact]
+        public void TestTypeToTrack_HazardousIfStringIsNonNullOnReturns_ReturnObject_Unflagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    object TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""A non-null string"";
+        return new object();
+    }/*</bind>*/
+}",
+                TestTypeToTrack_HazardousIfStringIsNonNullOnReturn);
+        }
+
+        /// <summary>
+        /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrack.AString and TestTypeToTrack.AnObject are aliases, and the aliased value is not null, when calling its Method() method.
+        /// </summary>
+        private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfStringObjectIsNonNull =
+            new PropertySetAnalysisParameters(
+                "TestTypeToTrack",
+                new ConstructorMapper(     // Only one constructor, which leaves its AString property as null (not hazardous).
+                    ImmutableArray.Create<PropertySetAbstractValueKind>(
+                        PropertySetAbstractValueKind.Unflagged)),
+                new PropertyMapperCollection(
+                    new PropertyMapper(    // Definitely null => unflagged, definitely non-null => flagged, otherwise => maybe.
+                        "AString",
+                        (PointsToAbstractValue pointsToAbstractValue) =>
+                        {
+                            switch (pointsToAbstractValue.NullState)
+                            {
+                                case NullAbstractValue.Null:
+                                    return PropertySetAbstractValueKind.Unflagged;
+                                case NullAbstractValue.NotNull:
+                                    return PropertySetAbstractValueKind.Flagged;
+                                case NullAbstractValue.MaybeNull:
+                                    return PropertySetAbstractValueKind.MaybeFlagged;
+                                default:
+                                    return PropertySetAbstractValueKind.Unknown;
+                            }
+                        },
+                        propertyIndex: 0),    // Both AString and AnObject point to index 0.
+                    new PropertyMapper(    // Definitely null => unflagged, definitely non-null => flagged, otherwise => maybe.
+                        "AnObject",
+                        (PointsToAbstractValue pointsToAbstractValue) =>
+                        {
+                            switch (pointsToAbstractValue.NullState)
+                            {
+                                case NullAbstractValue.Null:
+                                    return PropertySetAbstractValueKind.Unflagged;
+                                case NullAbstractValue.NotNull:
+                                    return PropertySetAbstractValueKind.Flagged;
+                                case NullAbstractValue.MaybeNull:
+                                    return PropertySetAbstractValueKind.MaybeFlagged;
+                                default:
+                                    return PropertySetAbstractValueKind.Unknown;
+                            }
+                        },
+                        propertyIndex: 0)),    // Both AString and AnObject point to index 0.
+                new HazardousUsageEvaluatorCollection(
+                    new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
+                        "Method",
+                        (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                        {
+                            // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
+
+                            // With only underlying value (from the two "aliased" properties) being tracked, this is straightforward.
+                            switch (abstractValue[0])
+                            {
+                                case PropertySetAbstractValueKind.Flagged:
+                                    return HazardousUsageEvaluationResult.Flagged;
+                                case PropertySetAbstractValueKind.MaybeFlagged:
+                                    return HazardousUsageEvaluationResult.MaybeFlagged;
+                                default:
+                                    return HazardousUsageEvaluationResult.Unflagged;
+                            }
+                        })));
+
+        [Fact]
+        public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_AStringNonNull_Flagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""A non-null string"";
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrack_HazardousIfStringObjectIsNonNull,
+                (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
+        }
+
+        [Fact]
+        public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_AnObjectNonNull_Flagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AnObject = new System.Random();
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrack_HazardousIfStringObjectIsNonNull,
+                (8, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
+        }
+
+        [Fact]
+        public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_StringEmpty_MaybeFlagged()
+        {
+            VerifyCSharp(@"
+using System;
+
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = String.Empty;   // Ideally String.Empty would be NullAbstractValue.NonNull.
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrack_HazardousIfStringObjectIsNonNull,
+                (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
+        }
+
+        [Fact]
+        public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_StringNonNull_ObjectNull_Unflagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AString = ""A non-null string"";
+        t.AnObject = null;
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrack_HazardousIfStringObjectIsNonNull);
+        }
+
+        [Fact]
+        public void TestTypeToTrack_HazardousIfStringObjectIsNonNull_AnObjectNonNull_StringNull_Unflagged()
+        {
+            VerifyCSharp(@"
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrack t = new TestTypeToTrack();
+        t.AnObject = new System.Random();
+        t.AString = null;
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrack_HazardousIfStringObjectIsNonNull);
         }
 
         #region Infrastructure

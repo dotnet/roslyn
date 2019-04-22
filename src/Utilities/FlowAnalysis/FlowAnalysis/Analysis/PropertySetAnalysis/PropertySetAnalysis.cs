@@ -68,7 +68,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 throw new ArgumentNullException(nameof(hazardousUsageEvaluators));
             }
 
-            constructorMapper.Validate(propertyMappers.Count);
+            constructorMapper.Validate(propertyMappers.PropertyValuesCount);
 
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
 
