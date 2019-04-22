@@ -5,6 +5,9 @@
 # Stop script if unbound variable found (use ${var:-} if intentional)
 set -u
 
+# Stop script if subcommand fails
+set -e 
+
 usage()
 {
   echo "Common settings:"
