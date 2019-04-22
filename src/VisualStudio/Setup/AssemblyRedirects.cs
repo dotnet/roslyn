@@ -23,6 +23,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Workspaces.Desktop.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Workspaces.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Workspaces.MSBuild.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.CodeLens.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Implementation.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.VisualBasic.dll")]
