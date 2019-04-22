@@ -1,13 +1,7 @@
 ﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
-    <!-- 
-      Currently the tests depend on compiler having InternalsVisibleTo("Roslyn.Test.Utilities").
-      See https://github.com/dotnet/roslyn-analyzers/issues/1225
-    -->
-    <AssemblyName>Roslyn.Test.Utilities</AssemblyName>
-    
+    <TargetFramework>net46</TargetFramework>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
@@ -27,6 +21,7 @@
     <Reference Include="PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="System.DirectoryServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   </ItemGroup>
   <Import Project="..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />

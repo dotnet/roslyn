@@ -2,53 +2,54 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Test.Utilities;
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
 
 namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests
 {
-    public static partial class CSharpPerformanceCodeFixVerifier<TAnalyzer, TCodeFix>
+    public static partial class VisualBasicPerformanceCodeFixVerifier<TAnalyzer, TCodeFix>
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
         private const string PerformanceSensitiveAttributeSource = @"
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading.Tasks;
+Imports System
+Imports System.Collections.Generic
+Imports System.Diagnostics
+Imports System.Threading.Tasks
 
-namespace Roslyn.Utilities
-{
-    [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
-    internal sealed class PerformanceSensitiveAttribute : Attribute
-    {
-        public PerformanceSensitiveAttribute(string uri)
-        {
-            Uri = uri;
-        }
+Namespace Global.Roslyn.Utilities
+    <AttributeUsage(AttributeTargets.Constructor Or AttributeTargets.Method Or AttributeTargets.Property Or AttributeTargets.Field, AllowMultiple:=True, Inherited:=False)>
+    Friend NotInheritable Class PerformanceSensitiveAttribute
+        Inherits Attribute
 
-        public string Uri { get; }
-        public string Constraint { get; set; }
-        public bool AllowCaptures { get; set; }
-        public bool AllowGenericEnumeration { get; set; }
-        public bool AllowLocks { get; set; }
-        public bool OftenCompletesSynchronously { get; set; }
-        public bool IsParallelEntry { get; set; }
-    }
-}";
+        Public Sub New(uri As String)
+            Me.Uri = uri
+        End Sub
+
+        Public ReadOnly Property Uri As String
+        Public Property Constraint As String
+        Public Property AllowCaptures As Boolean
+        Public Property AllowGenericEnumeration As Boolean
+        Public Property AllowLocks As Boolean
+        Public Property OftenCompletesSynchronously As Boolean
+        Public Property IsParallelEntry As Boolean
+    End Class
+End Namespace
+";
 
         public static DiagnosticResult Diagnostic()
-            => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic();
+            => VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic();
 
         public static DiagnosticResult Diagnostic(string diagnosticId)
-            => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(diagnosticId);
+            => VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(diagnosticId);
 
         public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
-            => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(descriptor);
+            => VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix, XUnitVerifier>.Diagnostic(descriptor);
 
         public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
         {
@@ -59,7 +60,7 @@ namespace Roslyn.Utilities
                     Sources =
                     {
                         source,
-                        ("PerformanceSensitiveAttribute.cs", PerformanceSensitiveAttributeSource)
+                        ("PerformanceSensitiveAttribute.vb", PerformanceSensitiveAttributeSource)
                     },
                 },
                 TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
@@ -84,7 +85,7 @@ namespace Roslyn.Utilities
                     Sources =
                     {
                         source,
-                        ("PerformanceSensitiveAttribute.cs", PerformanceSensitiveAttributeSource)
+                        ("PerformanceSensitiveAttribute.vb", PerformanceSensitiveAttributeSource)
                     },
                 },
                 FixedCode = fixedSource,

@@ -21,7 +21,7 @@ using Xunit.Sdk;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
-    [Trait(Traits.DataflowAnalysis, Traits.Dataflow.TaintedDataAnalysis)]
+    [Trait(Traits.DataflowAnalysis, Traits.Dataflow.PropertySetAnalysis)]
     public class PropertySetAnalysisTests : DiagnosticAnalyzerTestBase
     {
         /// <summary>
@@ -203,9 +203,9 @@ public class OtherClass
                 new PropertyMapperCollection(
                     new PropertyMapper(    // Definitely null => unflagged, definitely non-null => flagged, otherwise => maybe.
                         "AString",
-                        (NullAbstractValue nullAbstractValue) =>
+                        (PointsToAbstractValue pointsToAbstractValue) =>
                         {
-                            switch (nullAbstractValue)
+                            switch (pointsToAbstractValue.NullState)
                             {
                                 case NullAbstractValue.Null:
                                     return PropertySetAbstractValueKind.Unflagged;
@@ -391,14 +391,14 @@ class TestClass
             new PropertySetAnalysisParameters(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
-                    (IMethodSymbol method, IReadOnlyList<NullAbstractValue> argumentNullAbstractValues) =>
+                    (IMethodSymbol method, IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
                         PropertySetAbstractValueKind kind = PropertySetAbstractValueKind.Unknown;
                         if (method.Parameters.Length >= 2)
                         {
                             // Definitely null => unflagged, definitely non-null => flagged, otherwise => maybe.
-                            switch (argumentNullAbstractValues[2])
+                            switch (argumentPointsToAbstractValues[2].NullState)
                             {
                                 case NullAbstractValue.Null:
                                     kind = PropertySetAbstractValueKind.Unflagged;
@@ -420,9 +420,9 @@ class TestClass
             new PropertyMapperCollection(
                 new PropertyMapper(    // Definitely null => unflagged, definitely non-null => flagged, otherwise => maybe.
                     "AString",
-                    (NullAbstractValue nullAbstractValue) =>
+                    (PointsToAbstractValue pointsToAbstractValue) =>
                     {
-                        switch (nullAbstractValue)
+                        switch (pointsToAbstractValue.NullState)
                         {
                             case NullAbstractValue.Null:
                                 return PropertySetAbstractValueKind.Unflagged;
@@ -608,7 +608,7 @@ class TestClass
             new PropertySetAnalysisParameters(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
-                    (IMethodSymbol method, IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues, IReadOnlyList<NullAbstractValue> argumentNullAbstractValues) =>
+                    (IMethodSymbol method, IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues, IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
@@ -894,6 +894,131 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringStartsWithTAndValue2);
+        }
+
+        /// <summary>
+        /// Parameters for PropertySetAnalysis to flag hazardous usage when both TestTypeToTrack.AnObject is a BitArray.
+        /// </summary>
+        private readonly PropertySetAnalysisParameters TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray =
+            new PropertySetAnalysisParameters(
+                "TestTypeToTrackWithConstructor",
+                new ConstructorMapper(
+                    (IMethodSymbol constructorMethodSymbol, IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
+                    {
+                        // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
+
+                        // Better to compare LocationTypeOpt to INamedTypeSymbol, but for this demonstration, just using MetadataName.
+                        PropertySetAbstractValueKind kind;
+                        if (argumentPointsToAbstractValues[1].Locations.Any(l =>
+                                l.LocationTypeOpt != null
+                                && l.LocationTypeOpt.MetadataName == "BitArray"))
+                        {
+                            kind = PropertySetAbstractValueKind.Flagged;
+                        }
+                        else
+                        {
+                            kind = PropertySetAbstractValueKind.Unflagged;
+                        }
+
+                        return PropertySetAbstractValue.GetInstance(kind);
+                    }),
+            new PropertyMapperCollection(
+                new PropertyMapper(
+                    "AnObject",
+                    (PointsToAbstractValue pointsToAbstractValue) =>
+                    {
+                        // Better to compare LocationTypeOpt to INamedTypeSymbol, but for this demonstration, just using MetadataName.
+                        PropertySetAbstractValueKind kind;
+                        if (pointsToAbstractValue.Locations.Any(l =>
+                                l.LocationTypeOpt != null
+                                && l.LocationTypeOpt.MetadataName == "BitArray"))
+                        {
+                            kind = PropertySetAbstractValueKind.Flagged;
+                        }
+                        else
+                        {
+                            kind = PropertySetAbstractValueKind.Unflagged;
+                        }
+
+                        return kind;
+                    })),
+            new HazardousUsageEvaluatorCollection(
+                new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
+                    "Method",
+                    (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                    {
+                        // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
+
+                        // With only one property being tracked, this is straightforward.
+                        switch (abstractValue[0])
+                        {
+                            case PropertySetAbstractValueKind.Flagged:
+                                return HazardousUsageEvaluationResult.Flagged;
+                            case PropertySetAbstractValueKind.MaybeFlagged:
+                                return HazardousUsageEvaluationResult.MaybeFlagged;
+                            default:
+                                return HazardousUsageEvaluationResult.Unflagged;
+                        }
+                    })));
+
+        [Fact]
+        public void TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray_Constructor_Flagged()
+        {
+            VerifyCSharp(@"
+using System;
+using System.Collections;
+
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), new BitArray(4), ""string"");
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray,
+                (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
+        }
+
+        [Fact]
+        public void TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray_Constructor_TwoPaths_Flagged()
+        {
+            VerifyCSharp(@"
+using System;
+using System.Collections;
+
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t;
+        if (new Random().Next(6) == 4)
+            t = new TestTypeToTrackWithConstructor(default(TestEnum), new BitArray(6), ""string"");
+        else
+            t = new TestTypeToTrackWithConstructor(default(TestEnum), ""object string"", ""string"");
+        t.Method();   // PropertySetAnalysis is aggressive--at least one previous code path being Flagged means it's Flagged at this point.
+    }/*</bind>*/
+}",
+                TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray,
+                (14, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
+        }
+
+        [Fact]
+        public void TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray_Constructor_NotFlagged()
+        {
+            VerifyCSharp(@"
+using System;
+using System.Collections;
+
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, ""string"");
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray);
         }
 
         #region Infrastructure

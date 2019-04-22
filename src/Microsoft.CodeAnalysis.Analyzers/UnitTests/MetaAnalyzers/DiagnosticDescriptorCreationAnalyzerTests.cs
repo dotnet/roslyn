@@ -2,7 +2,6 @@
 
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
@@ -10,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
-    public class DiagnosticDescriptorCreationAnalyzerTests : CodeFixTestBase
+    public class DiagnosticDescriptorCreationAnalyzerTests : DiagnosticAnalyzerTestBase
     {
         #region RS1007 (UseLocalizableStringsInDescriptorRuleId) and RS1015 (ProvideHelpUriInDescriptorRuleId)
 
@@ -768,16 +767,6 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
         #endregion
 
         #region Helpers
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
-        {
-            return null;
-        }
-
-        protected override CodeFixProvider GetBasicCodeFixProvider()
-        {
-            return null;
-        }
-
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new DiagnosticDescriptorCreationAnalyzer();

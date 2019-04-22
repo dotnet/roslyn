@@ -7,6 +7,9 @@ using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests.CSharpPerformanceCodeFixVerifier<
     Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.ExplicitAllocationAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests.VisualBasicPerformanceCodeFixVerifier<
+    Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.ExplicitAllocationAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
 {
@@ -36,6 +39,28 @@ public class TestClass
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 22));
         }
 
+        [Fact]
+        public async Task ExplicitAllocation_ObjectInitializer_VisualBasic()
+        {
+            var code =
+    @"Imports System
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing()
+        Dim instance = New TestClass With {.Name = ""Bob""}
+    End Sub
+End Class
+
+Public Class TestClass
+    Public Property Name As String
+End Class";
+
+            await VerifyVB.VerifyAnalyzerAsync(
+                code,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 24));
+        }
 
         [Fact]
         public async Task ExplicitAllocation_ObjectInitializerStruct_NoWarning()
@@ -61,6 +86,27 @@ public struct TestStruct
         }
 
         [Fact]
+        public async Task ExplicitAllocation_ObjectInitializerStruct_NoWarning_VisualBasic()
+        {
+            var code =
+    @"Imports System
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing()
+        Dim instance = New TestClass With {.Name = ""Bob""}
+    End Sub
+End Class
+
+Public Structure TestClass
+    Public Property Name As String
+End Structure";
+
+            await VerifyVB.VerifyAnalyzerAsync(code);
+        }
+
+        [Fact]
         public async Task ExplicitAllocation_ImplicitArrayCreation()
         {
             var sampleProgram =
@@ -77,6 +123,23 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(9, 25));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_ImplicitArrayCreation_VisualBasic()
+        {
+            var sampleProgram =
+    @"Imports System.Collections.Generic
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing()
+        Dim intData() As Integer = {123, 32, 4}
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(7, 36));
         }
 
         [Fact]
@@ -99,6 +162,23 @@ public class MyClass
         }
 
         [Fact]
+        public async Task ExplicitAllocation_AnonymousObjectCreation_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing()
+        Dim temp = New With {Key .B = 123, .Name = ""Test""}
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.AnonymousObjectCreationRule).WithLocation(7, 20));
+        }
+
+        [Fact]
         public async Task ExplicitAllocation_ArrayCreation()
         {
             var sampleProgram =
@@ -118,6 +198,23 @@ public class MyClass
         }
 
         [Fact]
+        public async Task ExplicitAllocation_ArrayCreation_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System.Collections.Generic
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing()
+        Dim intData = New Integer() {123, 32, 4}
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(7, 23));
+        }
+
+        [Fact]
         public async Task ExplicitAllocation_ObjectCreation()
         {
             var sampleProgram =
@@ -134,6 +231,23 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 26));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_ObjectCreation_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing()
+        Dim allocation = New String(""a""c, 10)
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 26));
         }
 
         [Fact]
@@ -161,6 +275,28 @@ public class MyClass
         }
 
         [Fact]
+        public async Task ExplicitAllocation_LetClause_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System.Collections.Generic
+Imports System.Linq
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing()
+        Dim intData() As Integer = {123, 32, 4}
+        Dim result = (From x In intData
+                      Let b = x * 3
+                      Select b).ToList()
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(8, 36),
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.LetCauseRule).WithLocation(10, 27));
+        }
+
+        [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
         public async Task Converting_any_value_type_to_System_Object_type()
         {
@@ -183,6 +319,26 @@ public class MyClass
 
         [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
+        public async Task Converting_any_value_type_to_System_Object_type_VisualBasic()
+        {
+            var source = @"
+Imports Roslyn.Utilities
+
+Public Structure S
+End Structure
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Foo() 
+        Dim box As Object = new S()
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(source,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 29));
+        }
+
+        [Fact]
+        [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
         public async Task Converting_any_value_type_to_System_ValueType_type()
         {
             var source = @"
@@ -200,6 +356,26 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(11, 32));
+        }
+
+        [Fact]
+        [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
+        public async Task Converting_any_value_type_to_System_ValueType_type_VisualBasic()
+        {
+            var source = @"
+Imports Roslyn.Utilities
+
+Public Structure S
+End Structure
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Foo() 
+        Dim box As System.ValueType = new S()
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(source,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 39));
         }
 
         [Fact]
@@ -226,6 +402,30 @@ public class MyClass
         }
 
         [Fact]
+        [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
+        public async Task Converting_any_value_type_into_interface_reference_VisualBasic()
+        {
+            var source = @"
+Imports Roslyn.Utilities
+
+Interface I
+End Interface
+
+Public Structure S
+    Implements I
+End Structure
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Foo() 
+        Dim box As I = new S()
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(source,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(14, 24));
+        }
+
+        [Fact]
         public async Task ExplicitAllocation_StructCreation_NoWarning()
         {
             var sampleProgram =
@@ -248,6 +448,26 @@ public class MyClass
         }
 
         [Fact]
+        public async Task ExplicitAllocation_StructCreation_NoWarning_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System
+Imports Roslyn.Utilities
+
+Public Structure S
+End Structure
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing()
+        Dim noBox1 = new DateTime()
+        Dim noBox2 As S = new S()
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
         public async Task ExplicitAllocation_PrimitiveTypeConversion_NoWarning()
         {
             var sampleProgram =
@@ -263,6 +483,22 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_PrimitiveTypeConversion_NoWarning_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing()
+        Dim x As Double = New Integer()
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram);
         }
 
         [Fact]
@@ -296,6 +532,31 @@ public class MyClass
         }
 
         [Fact]
+        public async Task ExplicitAllocation_ImplicitValueTypeConversion_NoWarning_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System
+Imports Roslyn.Utilities
+
+Structure A
+    Public Shared Widening Operator CType(other As B) As A
+        Return New A()
+    End Operator
+End Structure
+
+Structure B
+End Structure
+
+Public Class C
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing()
+        Dim a As A = New B()
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
         public async Task ExplicitAllocation_NoParamsArrayCreation()
         {
             var sampleProgram =
@@ -311,6 +572,22 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_NoParamsArrayCreation_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System.Collections.Generic
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing(ParamArray values() As Integer)
+        Testing()
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram);
         }
 
         [Fact]
@@ -333,6 +610,23 @@ public class MyClass
         }
 
         [Fact]
+        public async Task ExplicitAllocation_ExplicitDelegateCreation_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing(sender As Object, e As EventArgs)
+        Dim handler = new EventHandler(AddressOf Testing)
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 23));
+        }
+
+        [Fact]
         public async Task ExplicitAllocation_ImplicitDelegateCreation()
         {
             var sampleProgram =
@@ -348,6 +642,22 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_ImplicitDelegateCreation_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing(sender As Object, e As EventArgs)
+        Dim handler As EventHandler = AddressOf Testing
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram);
         }
 
         [Fact]
@@ -367,6 +677,23 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 23));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_ListInitializerCreation_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System.Collections.Generic
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing()
+        Dim intData = New List(Of Integer) From {3, 4}
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 23));
         }
 
         [Fact]
@@ -390,6 +717,23 @@ public class MyClass
         }
 
         [Fact]
+        public async Task ExplicitAllocation_GenericObjectCreation_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing(Of T As {Class, New})()
+        Dim allocation = New T()
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 26));
+        }
+
+        [Fact]
         public async Task ExplicitAllocation_GenericObjectCreation2()
         {
             var sampleProgram =
@@ -410,6 +754,23 @@ public class MyClass
         }
 
         [Fact]
+        public async Task ExplicitAllocation_GenericObjectCreation2_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing(Of T As Structure)()
+        Dim allocation As Object = New T()
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+                VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 36));
+        }
+
+        [Fact]
         public async Task ExplicitAllocation_GenericObjectCreation3()
         {
             var sampleProgram =
@@ -426,6 +787,22 @@ public class MyClass
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_GenericObjectCreation3_VisualBasic()
+        {
+            var sampleProgram =
+@"Imports System
+Imports Roslyn.Utilities
+
+Public Class A
+    <PerformanceSensitive(""uri"")>
+    Public Sub Testing(Of T As Structure)()
+        Dim value As T = new T()
+    End Sub
+End Class";
+            await VerifyVB.VerifyAnalyzerAsync(sampleProgram);
         }
     }
 }

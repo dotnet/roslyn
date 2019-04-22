@@ -108,7 +108,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsPropertyWithBackingField(this ISymbol symbol)
         {
             return symbol is IPropertySymbol propertySymbol &&
-                propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && f.AssociatedSymbol == symbol);
+                propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && Equals(f.AssociatedSymbol, symbol));
         }
 
         public static bool IsUserDefinedOperator(this ISymbol symbol)
@@ -227,7 +227,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool MatchMemberByName(this ISymbol member, INamedTypeSymbol type, string name)
         {
-            return member != null && member.ContainingType == type && member.MetadataName == name;
+            return member != null && Equals(member.ContainingType, type) && member.MetadataName == name;
         }
 
         public static bool MatchPropertyByName(this ISymbol member, INamedTypeSymbol type, string name)

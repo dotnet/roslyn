@@ -368,7 +368,6 @@ namespace Test.Utilities
             Project project = (addToSolution ?? new AdhocWorkspace().CurrentSolution)
 #pragma warning restore CA2000 // Dispose objects before losing scope
                 .AddProject(projectId, projectName, projectName, language)
-                .AddMetadataReference(projectId, AdditionalMetadataReferences.Netstandard)
                 .AddMetadataReference(projectId, MetadataReferences.CorlibReference)
                 .AddMetadataReference(projectId, MetadataReferences.SystemCoreReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlReference)
@@ -384,6 +383,7 @@ namespace Test.Utilities
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDirectoryServices)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXaml)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.PresentationFramework)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebExtensions)
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, parseOptions)
                 .GetProject(projectId);
@@ -391,7 +391,7 @@ namespace Test.Utilities
             // Enable Flow-Analysis feature on the project
             parseOptions = project.ParseOptions.WithFeatures(
                 project.ParseOptions.Features.Concat(
-                    SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create("flow-analysis", "true"))));
+                    new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
             project = project.WithParseOptions(parseOptions);
 
             if ((referenceFlags & ReferenceFlags.RemoveCodeAnalysis) != ReferenceFlags.RemoveCodeAnalysis)
@@ -457,7 +457,7 @@ namespace Test.Utilities
             }
 
             var analyzerOptions = additionalFiles != null ? new AnalyzerOptions(additionalFiles.ToImmutableArray<AdditionalText>()) : null;
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+            List<Diagnostic> diagnostics = new List<Diagnostic>();
             foreach (Project project in projects)
             {
                 Compilation compilation = project.GetCompilationAsync().Result;
@@ -498,7 +498,6 @@ namespace Test.Utilities
             }
 
             Diagnostic[] results = diagnostics.AsEnumerable().OrderBy(d => d.Location.SourceSpan.Start).ToArray();
-            diagnostics.Free();
             return results;
         }
 
@@ -602,8 +601,8 @@ namespace Test.Utilities
                     .WithSpecificDiagnosticOptions(
                         analyzer
                             .SupportedDiagnostics
-                            .Select(x => KeyValuePairUtil.Create(x.Id, ReportDiagnostic.Default))
-                            .ToImmutableDictionaryOrEmpty()));
+                            .Select(x => new KeyValuePair<string, ReportDiagnostic>(x.Id, ReportDiagnostic.Default))
+                            .ToImmutableDictionary()));
         }
 
         protected static FileAndSource GetEditorConfigAdditionalFile(string source)
