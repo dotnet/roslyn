@@ -51349,7 +51349,7 @@ class Enumerable : IEnumerable
 }
 class C
 {
-    static void F(Enumerable e)
+    static void F1(Enumerable e)
     {
         foreach (var x in e) // 1
         {
@@ -51361,17 +51361,154 @@ class C
         {
         }
     }
+    static void F2(Enumerable? e)
+    {
+        foreach (var x in e) // 3
+        {
+        }
+    }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            // Missing diagnostic at `// 1`
-            // https://github.com/dotnet/roslyn/issues/29972: Should report WRN_NullReferenceReceiver using Enumerable.GetEnumerator.
-
             comp.VerifyDiagnostics(
+                // (10,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var x in e) // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e").WithLocation(10, 27),
                 // (13,27): warning CS8602: Dereference of a possibly null reference.
                 //         foreach (var y in (IEnumerable?)e) // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable?)e").WithLocation(13, 27)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable?)e").WithLocation(13, 27),
+                // (22,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var x in e) // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e").WithLocation(22, 27));
+        }
+
+        [Fact]
+        [WorkItem(29972, "https://github.com/dotnet/roslyn/issues/29972")]
+        public void ForEach_17()
+        {
+            var source =
+@"
+class C
+{
+    void M1<EnumerableType, EnumeratorType, T>(EnumerableType e)
+            where EnumerableType : Enumerable<EnumeratorType, T>
+            where EnumeratorType : I<T>?
+    {
+        foreach (var t in e) // 1
+        {
+            t.ToString(); // 2
+        }
+    }
+    void M2<EnumerableType, EnumeratorType, T>(EnumerableType e)
+            where EnumerableType : Enumerable<EnumeratorType, T>
+            where EnumeratorType : I<T>
+    {
+        foreach (var t in e)
+        {
+            t.ToString(); // 3
+        }
+    }
+}
+
+interface Enumerable<E, T> where E : I<T>?
+{
+	E GetEnumerator();
+}
+
+interface I<T>
+{
+	T Current { get; }
+    bool MoveNext();
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var t in e) // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e").WithLocation(8, 27),
+                // (10,13): warning CS8602: Dereference of a possibly null reference.
+                //             t.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(10, 13),
+                // (19,13): warning CS8602: Dereference of a possibly null reference.
+                //             t.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(19, 13));
+        }
+
+        [Fact]
+        [WorkItem(34667, "https://github.com/dotnet/roslyn/issues/34667")]
+        public void ForEach_18()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main() { }
+
+    static void F(IEnumerable<object[]?[]> source)
+    {
+        foreach (object[][] item in source) { }
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,29): warning CS8619: Nullability of reference types in value of type 'object[]?[]' doesn't match target type 'object[][]'.
+                //         foreach (object[][] item in source) { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "item").WithArguments("object[]?[]", "object[][]").WithLocation(10, 29));
+        }
+
+        [Fact]
+        public void ForEach_19()
+        {
+            var source =
+@"
+using System.Collections;
+class C
+{
+    void M1(IEnumerator e)
+    {
+        var enumerable1 = Create(e);
+        foreach (var i in enumerable1)
+        {
+        }
+
+        e = null; // 1
+        var enumerable2 = Create(e);
+        foreach (var i in enumerable2) // 2
+        {
+        }
+    }
+
+    void M2(IEnumerator? e)
+    {
+        var enumerable1 = Create(e);
+        foreach (var i in enumerable1) // 3
+        {
+        }
+
+        if (e == null) return;
+        var enumerable2 = Create(e);
+        foreach (var i in enumerable2)
+        {
+        }
+    }
+    static Enumerable<T> Create<T>(T t) where T : IEnumerator? => throw null!;
+}
+
+class Enumerable<T> where T : IEnumerator?
+{
+    public T GetEnumerator() => throw null!;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/35151 Report diagnostics on 2 and 3
+            comp.VerifyDiagnostics(
+                // (12,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         e = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 13));
         }
 
         [Fact]
