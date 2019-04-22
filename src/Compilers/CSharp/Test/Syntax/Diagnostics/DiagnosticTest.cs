@@ -251,6 +251,7 @@ class X
                         case ErrorCode.WRN_IsTypeNamedUnderscore:
                         case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                        case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -269,6 +270,7 @@ class X
                         case ErrorCode.WRN_NullReferenceReceiver:
                         case ErrorCode.WRN_NullReferenceReturn:
                         case ErrorCode.WRN_NullReferenceArgument:
+                        case ErrorCode.WRN_NullReferenceIterationVariable:
                         case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
@@ -296,7 +298,8 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
                         case ErrorCode.ERR_FeatureInPreview:
-                        case ErrorCode.WRN_PossibleNull:
+                        case ErrorCode.WRN_ThrowPossibleNull:
+                        case ErrorCode.WRN_UnboxPossibleNull:
                         case ErrorCode.WRN_ConditionalAccessMayReturnNull:
                         case ErrorCode.WRN_AsOperatorMayReturnNull:
                         case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:

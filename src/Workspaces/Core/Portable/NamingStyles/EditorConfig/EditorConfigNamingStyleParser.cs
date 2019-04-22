@@ -14,29 +14,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         /// <remarks>
         /// The dictionary we get from the VS editorconfig API uses the same dictionary object if there are no changes, so we can cache based on dictionary
         /// </remarks>
-        private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object>, NamingStylePreferences> _cache = new ConditionalWeakTable<IReadOnlyDictionary<string, object>, NamingStylePreferences>();
+        // TODO: revisit this cache. The assumption that the dictionary doesn't change in the exact instance is terribly fragile,
+        // and with the new .editorconfig support won't hold as well as we'd like: a single tree will have a stable instance but
+        // that won't necessarily be the same across files and projects.
+        private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, string>, NamingStylePreferences> _cache = new ConditionalWeakTable<IReadOnlyDictionary<string, string>, NamingStylePreferences>();
         private static readonly object _cacheLock = new object();
 
-        public static NamingStylePreferences GetNamingStylesFromDictionary(IReadOnlyDictionary<string, object> allRawConventions)
+        public static NamingStylePreferences GetNamingStylesFromDictionary(IReadOnlyDictionary<string, string> rawOptions)
         {
-            if (_cache.TryGetValue(allRawConventions, out var value))
+            if (_cache.TryGetValue(rawOptions, out var value))
             {
                 return value;
             }
 
             lock (_cacheLock)
             {
-                if (!_cache.TryGetValue(allRawConventions, out value))
+                if (!_cache.TryGetValue(rawOptions, out value))
                 {
-                    value = ParseDictionary(allRawConventions);
-                    _cache.Add(allRawConventions, value);
+                    value = ParseDictionary(rawOptions);
+                    _cache.Add(rawOptions, value);
                 }
 
                 return value;
             }
         }
 
-        public static NamingStylePreferences ParseDictionary(IReadOnlyDictionary<string, object> allRawConventions)
+        public static NamingStylePreferences ParseDictionary(IReadOnlyDictionary<string, string> allRawConventions)
         {
             var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
             var namingStyles = ArrayBuilder<NamingStyle>.GetInstance();
@@ -62,9 +65,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 namingRules.ToImmutableAndFree());
         }
 
-        private static Dictionary<string, object> TrimDictionary(IReadOnlyDictionary<string, object> allRawConventions)
+        private static Dictionary<string, string> TrimDictionary(IReadOnlyDictionary<string, string> allRawConventions)
         {
-            var trimmedDictionary = new Dictionary<string, object>(allRawConventions.Count);
+            var trimmedDictionary = new Dictionary<string, string>(allRawConventions.Count);
             foreach (var item in allRawConventions)
             {
                 var key = item.Key.Trim();
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return trimmedDictionary;
         }
 
-        private static IEnumerable<string> GetRuleTitles(IReadOnlyDictionary<string, object> allRawConventions)
+        private static IEnumerable<string> GetRuleTitles(IReadOnlyDictionary<string, string> allRawConventions)
             => (from kvp in allRawConventions
                 where kvp.Key.Trim().StartsWith("dotnet_naming_rule.", StringComparison.Ordinal)
                 let nameSplit = kvp.Key.Split('.')

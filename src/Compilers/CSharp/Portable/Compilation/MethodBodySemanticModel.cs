@@ -204,5 +204,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             speculativeModel = null;
             return false;
         }
+
+        protected override BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Conversions conversions, DiagnosticBag diagnostics)
+        {
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, conversions, diagnostics);
+        }
     }
 }

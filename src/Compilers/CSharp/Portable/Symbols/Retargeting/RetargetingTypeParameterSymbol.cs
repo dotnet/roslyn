@@ -82,6 +82,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetConstraintTypes(inProgress, early));
         }
 
+        internal override bool? IsNotNullableIfReferenceType
+        {
+            get
+            {
+                return _underlyingTypeParameter.IsNotNullableIfReferenceType;
+            }
+        }
+
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
         {
             return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetInterfaces(inProgress));

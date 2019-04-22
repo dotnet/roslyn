@@ -1472,6 +1472,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         propertySymbol = indexerAccess.Indexer;
                     }
                     break;
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    {
+                        var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                        receiver = patternIndexer.Receiver;
+                        propertySymbol = (PropertySymbol)patternIndexer.PatternSymbol;
+                    }
+                    break;
                 default:
                     receiver = null;
                     propertySymbol = null;

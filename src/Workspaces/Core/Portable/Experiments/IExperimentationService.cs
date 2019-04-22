@@ -25,5 +25,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string TypeImportCompletion = "Roslyn.TypeImportCompletion";
         public const string RoslynToggleBlockComment = "Roslyn.ToggleBlockComment";
         public const string RoslynToggleLineComment = "Roslyn.ToggleLineComment";
+        public const string NativeEditorConfigSupport = "Roslyn.NativeEditorConfigSupport";
     }
 }
