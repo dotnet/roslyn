@@ -99,7 +99,7 @@ namespace Analyzer.Utilities.Extensions
         {
             foreach (var item in collection)
             {
-                item.Dispose();
+                item?.Dispose();
             }
         }
 
