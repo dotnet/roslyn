@@ -1597,5 +1597,43 @@ namespace System
 ";
             CreateEmptyCompilation(source).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(34876, "https://github.com/dotnet/roslyn/pull/34876")]
+        public void Repro_34876()
+        {
+            var source = @"
+class C<T>
+{
+    public static implicit operator C<T>(T t) => new C<T>();
+
+    private static void M1() { }
+    private static C<object> M2()
+    {
+        return M1();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(34876, "https://github.com/dotnet/roslyn/pull/34876")]
+        public void Repro_34876_String()
+        {
+            var source = @"
+class C<T>
+{
+    public static implicit operator C<T>(T t) => new C<T>();
+
+    private static void M1() { }
+    private static C<string> M2()
+    {
+        return M1();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
     }
 }
