@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (this.method.IsAsync)
                     {
                         ParameterSymbol tokenParameter = getEnumeratorMethod.Parameters[0];
-                        if (hasEnumeratorCancellationAttribute(parameter))
+                        if (parameter.HasEnumeratorCancellationAttribute)
                         {
                             // For any async-enumerable parameter marked with [EnumeratorCancellation] attribute, conditionally copy GetAsyncEnumerator's cancellation token parameter instead
                             // if (token.Equals(default))
@@ -489,19 +489,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(F.Return(F.Local(resultVariable)));
             F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), bodyBuilder.ToImmutableAndFree()));
             return getEnumerator;
-
-            static bool hasEnumeratorCancellationAttribute(ParameterSymbol parameter)
-            {
-                foreach (var attribute in parameter.GetAttributes())
-                {
-                    if (attribute.IsTargetAttribute(parameter, AttributeDescription.EnumeratorCancellationAttribute))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
         }
 
         /// <summary>

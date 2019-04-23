@@ -86,5 +86,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SetDataStored();
             }
         }
+
+        private bool _hasEnumeratorCancellationAttribute;
+        public bool HasEnumeratorCancellationAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasEnumeratorCancellationAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasEnumeratorCancellationAttribute = value;
+                SetDataStored();
+            }
+        }
     }
 }

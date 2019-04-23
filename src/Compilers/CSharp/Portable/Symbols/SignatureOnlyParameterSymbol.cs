@@ -42,10 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name { get { return ""; } }
 
-        public override bool IsImplicitlyDeclared
-        {
-            get { return true; }
-        }
+        public override bool IsImplicitlyDeclared { get { return true; } }
+
+        internal sealed override bool HasEnumeratorCancellationAttribute { get { return false; } }
 
         #region Not used by MethodSignatureComparer
 

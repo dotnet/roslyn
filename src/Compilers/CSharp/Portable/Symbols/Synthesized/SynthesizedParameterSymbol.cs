@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataOut => RefKind == RefKind.Out;
 
+        internal sealed override bool HasEnumeratorCancellationAttribute => false;
+
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {
             get { return null; }

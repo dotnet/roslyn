@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Syntax
 
-        internal (BlockSyntax, ArrowExpressionClauseSyntax) Bodies
+        internal (BlockSyntax blockBody, ArrowExpressionClauseSyntax arrowBody) Bodies
         {
             get
             {

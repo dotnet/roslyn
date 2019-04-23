@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.IsMetadataOut; }
         }
 
+        internal sealed override bool HasEnumeratorCancellationAttribute
+        {
+            get { return _underlyingParameter.HasEnumeratorCancellationAttribute; }
+        }
+
         public sealed override ImmutableArray<Location> Locations
         {
             get { return _underlyingParameter.Locations; }

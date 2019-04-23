@@ -27,10 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _originalParam = originalParam;
         }
 
-        public override bool IsImplicitlyDeclared
-        {
-            get { return true; }
-        }
+        public override bool IsImplicitlyDeclared => true;
+
+        internal sealed override bool HasEnumeratorCancellationAttribute => false;
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
