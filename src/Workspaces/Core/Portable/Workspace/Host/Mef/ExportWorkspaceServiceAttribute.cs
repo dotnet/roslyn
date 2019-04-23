@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// Use this attribute to declare a <see cref="IWorkspaceService"/> implementation for inclusion in a MEF-based workspace.
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class)]
     public class ExportWorkspaceServiceAttribute : ExportAttribute
     {
         /// <summary>
