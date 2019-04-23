@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -12,17 +14,19 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionService
 {
-    [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudioTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
+    [Shared]
+    [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), ServiceLayer.Host)]
+    [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), ServiceLayer.Host)]
+    internal sealed class VisualStudioTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService, IDocumentSupportsFeatureService
     {
         public bool SupportsCodeFixes(ITextBuffer textBuffer)
         {
-            return GetContainedDocument(textBuffer) == null;
+            return SupportsCodeFixesWorker(GetContainedDocumentId(textBuffer));
         }
 
         public bool SupportsRefactorings(ITextBuffer textBuffer)
         {
-            return GetContainedDocument(textBuffer) == null;
+            return SupportsRefactoringsWorker(GetContainedDocumentId(textBuffer));
         }
 
         public bool SupportsRename(ITextBuffer textBuffer)
@@ -30,9 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
             var sourceTextContainer = textBuffer.AsTextContainer();
             if (Workspace.TryGetWorkspace(sourceTextContainer, out var workspace))
             {
-                return workspace.GetRelatedDocumentIds(sourceTextContainer)
-                    .Select(id => ContainedDocument.TryGetContainedDocument(id))
-                    .All(cd => cd == null || cd.SupportsRename);
+                return SupportsRenameWorker(workspace.GetRelatedDocumentIds(sourceTextContainer).ToImmutableArray());
             }
 
             return false;
@@ -40,23 +42,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
 
         public bool SupportsNavigationToAnyPosition(ITextBuffer textBuffer)
         {
-            return GetContainedDocument(textBuffer) == null;
+            return SupportsNavigationToAnyPositionWorker(GetContainedDocumentId(textBuffer));
         }
 
-        private static ContainedDocument GetContainedDocument(ITextBuffer textBuffer)
+        public bool SupportsCodeFixes(Document document)
+        {
+            return SupportsCodeFixesWorker(document.Id);
+        }
+
+        public bool SupportsRefactorings(Document document)
+        {
+            return SupportsRefactoringsWorker(document.Id);
+        }
+
+        public bool SupportsRename(Document document)
+        {
+            return SupportsRenameWorker(document.Project.Solution.GetRelatedDocumentIds(document.Id));
+        }
+
+        public bool SupportsNavigationToAnyPosition(Document document)
+        {
+            return SupportsNavigationToAnyPositionWorker(document.Id);
+        }
+
+        private static DocumentId GetContainedDocumentId(ITextBuffer textBuffer)
         {
             var sourceTextContainer = textBuffer.AsTextContainer();
             if (Workspace.TryGetWorkspace(sourceTextContainer, out var workspace)
                 && workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
-                var id = vsWorkspace.GetDocumentIdInCurrentContext(sourceTextContainer);
-                if (id != null)
-                {
-                    return ContainedDocument.TryGetContainedDocument(id);
-                }
+                return vsWorkspace.GetDocumentIdInCurrentContext(sourceTextContainer);
             }
 
             return null;
+        }
+
+        private static bool SupportsCodeFixesWorker(DocumentId id)
+        {
+            return ContainedDocument.TryGetContainedDocument(id) == null;
+        }
+
+        private static bool SupportsRefactoringsWorker(DocumentId id)
+        {
+            return ContainedDocument.TryGetContainedDocument(id) == null;
+        }
+
+        private static bool SupportsRenameWorker(ImmutableArray<DocumentId> ids)
+        {
+            return ids.Select(id => ContainedDocument.TryGetContainedDocument(id))
+                    .All(cd => cd == null || cd.SupportsRename);
+        }
+
+        private static bool SupportsNavigationToAnyPositionWorker(DocumentId id)
+        {
+            return ContainedDocument.TryGetContainedDocument(id) == null;
         }
     }
 }

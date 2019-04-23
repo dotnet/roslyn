@@ -3,14 +3,14 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.CodeAnalysis.Shared;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), WorkspaceKind.Interactive), Shared]
-    internal sealed class InteractiveTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
+    internal sealed class InteractiveTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService, IDocumentSupportsFeatureService
     {
         public bool SupportsCodeFixes(ITextBuffer textBuffer)
         {
@@ -42,6 +42,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         }
 
         public bool SupportsNavigationToAnyPosition(ITextBuffer textBuffer)
+        {
+            return true;
+        }
+
+        public bool SupportsCodeFixes(Document document)
+        {
+            // TODO: Implement this.
+            return false;
+        }
+
+        public bool SupportsRefactorings(Document document)
+        {
+            return false;
+        }
+
+        public bool SupportsRename(Document document)
+        {
+            return false;
+        }
+
+        public bool SupportsNavigationToAnyPosition(Document document)
         {
             return true;
         }
