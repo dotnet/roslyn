@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
         }
 
         [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test), Shared]
+        [PartNotDiscoverable]
         private class MockToggleCommentExperimentationService : IExperimentationService
         {
             public bool IsExperimentEnabled(string experimentName)

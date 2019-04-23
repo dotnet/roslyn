@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -30,6 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private readonly RecentItemsManager _recentItemsManager;
 
+        /// <summary>
+        /// For telemetry.
+        /// </summary>
+        private readonly object _targetTypeCompletionFilterChosenMarker = new object();
+
         internal ItemManager(RecentItemsManager recentItemsManager)
         {
             // Let us make the completion Helper used for non-Roslyn items case-sensitive.
@@ -42,7 +49,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             IAsyncCompletionSession session,
             AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
-            => Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
+        {
+            if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
+            {
+                AsyncCompletionLogger.LogSessionHasExperimentEnabled();
+
+                // This method is called exactly once, so use the opportunity to set a baseline for telemetry.
+                if (data.InitialList.Any(i => i.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches)))
+                {
+                    AsyncCompletionLogger.LogSessionContainsTargetTypeFilter();
+                }
+            }
+
+            return Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
+        }
 
         public Task<FilteredCompletionModel> UpdateCompletionListAsync(
             IAsyncCompletionSession session,
@@ -95,6 +115,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // We need to filter if a non-empty strict subset of filters are selected
             var selectedFilters = data.SelectedFilters.Where(f => f.IsSelected).Select(f => f.Filter).ToImmutableArray();
             var needToFilter = selectedFilters.Length > 0 && selectedFilters.Length < data.SelectedFilters.Length;
+
+            if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
+            {
+                // Telemetry: Want to know % of sessions with the "Target type matches" filter where that filter is actually enabled
+                if (needToFilter &&
+                    !session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) &&
+                    selectedFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
+                {
+                    AsyncCompletionLogger.LogTargetTypeFilterChosenInSession();
+
+                    // Make sure we only record one enabling of the filter per session
+                    session.Properties.AddProperty(_targetTypeCompletionFilterChosenMarker, _targetTypeCompletionFilterChosenMarker);
+                }
+            }
+
             var filterReason = Helpers.GetFilterReason(data.Trigger);
 
             // If the session was created/maintained out of Roslyn, e.g. in debugger; no properties are set and we should use data.Snapshot.

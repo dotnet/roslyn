@@ -1347,7 +1347,7 @@ Class C
                 expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
                 sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
                 glyph:=Nothing, matchPriority:=Nothing, hasSuggestionItem:=Nothing,
-                displayTextSuffix:=Nothing)
+                displayTextSuffix:=Nothing, matchingFilters:=Nothing, targetTypedExperimentEnabled:=False)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
@@ -7803,9 +7803,11 @@ End Namespace
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
+                                        matchingFilters:=Nothing)
                 Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
+                                        matchingFilters:=Nothing)
             End Using
 
         End Function
@@ -8157,6 +8159,51 @@ End Module
             Await VerifyItemIsAbsentAsync(source, "Clone")
             Await VerifyItemIsAbsentAsync(source, "Method")
             Await VerifyItemIsAbsentAsync(source, "Target")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
+        Public Async Function TestTargetTypeFilterWithExperimentEnabled() As Task
+            Dim markup =
+"Class C
+    Dim intField As Integer
+    Sub M(x as Integer)
+        M($$)
+    End Sub
+End Class"
+            Await VerifyItemExistsAsync(
+                markup, "intField",
+                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter},
+                targetTypedFilterExperimentEnabled:=True)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
+        Public Async Function TestNoTargetTypeFilterWithExperimentDisabled() As Task
+            Dim markup =
+"Class C
+    Dim intField As Integer
+    Sub M(x as Integer)
+        M($$)
+    End Sub
+End Class"
+            Await VerifyItemExistsAsync(
+                markup, "intField",
+                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.FieldFilter},
+                targetTypedFilterExperimentEnabled:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
+        Public Async Function TestTargetTypeFilter_NotOnObjectMembers() As Task
+            Dim markup =
+"Class C
+    Dim intField As Integer
+    Sub M(x as Integer)
+        M($$)
+    End Sub
+End Class"
+            Await VerifyItemExistsAsync(
+                markup, "GetHashCode",
+                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.MethodFilter},
+                targetTypedFilterExperimentEnabled:=True)
         End Function
     End Class
 End Namespace

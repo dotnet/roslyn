@@ -337,6 +337,11 @@
         <target state="new">Split into nested '{0}' statements</target>
         <note />
       </trans-unit>
+      <trans-unit id="Target_type_matches">
+        <source>Target type matches</source>
+        <target state="new">Target type matches</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
         <target state="translated">將所有引數取消換行</target>
