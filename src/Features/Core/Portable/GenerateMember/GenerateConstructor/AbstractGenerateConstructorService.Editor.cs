@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     ? syntaxFactory.CreateFieldsForParameters(remainingParameters, parameterToNewFieldMap)
                     : ImmutableArray<IFieldSymbol>.Empty;
                 var assignStatements = syntaxFactory.CreateAssignmentStatements(
-                    _document.SemanticModel.Compilation, _document.SyntaxTree.Options, remainingParameters,
+                    _document.SemanticModel, remainingParameters,
                     parameterToExistingFieldMap, parameterToNewFieldMap,
                     addNullChecks: false, preferThrowExpression: false);
 
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 var syntaxTree = _document.SyntaxTree;
                 var (fields, constructor) = syntaxFactory.CreateFieldDelegatingConstructor(
-                    _document.SemanticModel.Compilation, _document.SyntaxTree.Options,
+                    _document.SemanticModel,
                     _state.TypeToGenerateIn.Name,
                     _state.TypeToGenerateIn, parameters,
                     parameterToExistingFieldMap, parameterToNewFieldMap,

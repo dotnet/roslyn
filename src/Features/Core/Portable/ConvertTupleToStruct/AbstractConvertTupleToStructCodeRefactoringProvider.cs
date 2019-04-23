@@ -721,7 +721,6 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             INamedTypeSymbol tupleType, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = semanticModel.Compilation;
 
             var fields = tupleType.TupleElements;
 
@@ -735,8 +734,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 scope, structName, typeParameters, members: default);
 
             var generator = SyntaxGenerator.GetGenerator(document);
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var constructor = CreateConstructor(compilation, tree.Options, structName, fields, generator);
+            var constructor = CreateConstructor(semanticModel, structName, fields, generator);
 
             // Generate Equals/GetHashCode.  We can defer to our existing language service for this
             // so that we generate the same Equals/GetHashCode that our other IDE features generate.
@@ -835,7 +833,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private static IMethodSymbol CreateConstructor(
-            Compilation compilation, ParseOptions options, string className,
+            SemanticModel semanticModel, string className,
             ImmutableArray<IFieldSymbol> fields, SyntaxGenerator generator)
         {
             // For every property, create a corresponding parameter, as well as an assignment
@@ -852,7 +850,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             });
 
             var assignmentStatements = generator.CreateAssignmentStatements(
-                compilation, options, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
+                semanticModel, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
                 addNullChecks: false, preferThrowExpression: false);
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(

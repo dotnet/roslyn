@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static (ImmutableArray<ISymbol> fields, ISymbol constructor) CreateFieldDelegatingConstructor(
             this SyntaxGenerator factory,
-            Compilation compilation,
-            ParseOptions parseOptions,
+            SemanticModel semanticModel,
             string typeName,
             INamedTypeSymbol containingTypeOpt,
             ImmutableArray<IParameterSymbol> parameters,
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
             var statements = factory.CreateAssignmentStatements(
-                compilation, parseOptions, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
+                semanticModel, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
                 addNullChecks, preferThrowExpression).SelectAsArray(
                     s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
@@ -182,13 +181,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static SyntaxNode CreateNullCheckAndThrowStatement(
             this SyntaxGenerator factory,
-            Compilation compilation,
-            IParameterSymbol parameter,
-            ParseOptions options)
+            SemanticModel semanticModel,
+            IParameterSymbol parameter)
         {
             var identifier = factory.IdentifierName(parameter.Name);
             var nullExpr = factory.NullLiteralExpression();
-            var condition = factory.SupportsPatterns(options)
+            var condition = factory.SupportsPatterns(semanticModel.SyntaxTree.Options)
                 ? factory.IsPatternExpression(identifier, factory.ConstantPattern(nullExpr))
                 : factory.ReferenceEqualsExpression(identifier, nullExpr);
 
@@ -197,13 +195,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                condition,
                 SpecializedCollections.SingletonEnumerable(
                     factory.ExpressionStatement(
-                        factory.CreateThrowArgumentNullExpression(compilation, parameter))));
+                        factory.CreateThrowArgumentNullExpression(semanticModel.Compilation, parameter))));
         }
 
         public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(
             this SyntaxGenerator factory,
-            Compilation compilation,
-            ParseOptions parseOptions,
+            SemanticModel semanticModel,
             ImmutableArray<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
             IDictionary<string, string> parameterToNewFieldMap,
@@ -240,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                                  .WithAdditionalAnnotations(Simplifier.Annotation);
 
                         factory.AddAssignmentStatements(
-                            compilation, parseOptions, parameter, fieldAccess,
+                            semanticModel, parameter, fieldAccess,
                             addNullChecks, preferThrowExpression,
                             nullCheckStatements, assignStatements);
                     }
@@ -252,8 +249,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static void AddAssignmentStatements(
              this SyntaxGenerator factory,
-             Compilation compilation,
-             ParseOptions parseOptions,
+             SemanticModel semanticModel,
              IParameterSymbol parameter,
              SyntaxNode fieldAccess,
              bool addNullChecks,
@@ -269,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // Generate: this.x = x ?? throw ...
                 assignStatements.Add(CreateAssignWithNullCheckStatement(
-                    factory, compilation, parameter, fieldAccess));
+                    factory, semanticModel.Compilation, parameter, fieldAccess));
             }
             else
             {
@@ -277,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // generate: if (x == null) throw ...
                     nullCheckStatements.Add(
-                        factory.CreateNullCheckAndThrowStatement(compilation, parameter, parseOptions));
+                        factory.CreateNullCheckAndThrowStatement(semanticModel, parameter));
                 }
 
                 // generate: this.x = x;

@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (!(parameters.Count == 0 && options != null && (options.TypeKind == TypeKind.Struct || options.TypeKind == TypeKind.Structure)))
                 {
                     var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
-                        _semanticDocument.SemanticModel.Compilation, _semanticDocument.SyntaxTree.Options,
+                        _semanticDocument.SemanticModel,
                         DetermineName(), null, parameters.ToImmutable(),
                         parameterToExistingFieldMap, parameterToNewFieldMap,
                         addNullChecks: false, preferThrowExpression: false);
