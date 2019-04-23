@@ -297,7 +297,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             var namedTypeWithoutMembers = CreateNamedType(className, capturedTypeParameters, members: default);
 
             var generator = SyntaxGenerator.GetGenerator(document);
-            var constructor = CreateConstructor(compilation, className, properties, generator);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var constructor = CreateConstructor(compilation, tree.Options, className, properties, generator);
 
             // Generate Equals/GetHashCode.  Only readonly properties are suitable for these
             // methods.  We can defer to our existing language service for this so that we
@@ -391,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
                    name: "", typeParameters: default, parameters: default, methodKind: kind);
 
         private static IMethodSymbol CreateConstructor(
-            Compilation compilation, string className,
+            Compilation compilation, ParseOptions parseOptions, string className,
             ImmutableArray<IPropertySymbol> properties, SyntaxGenerator generator)
         {
             // For every property, create a corresponding parameter, as well as an assignment
@@ -408,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             });
 
             var assignmentStatements = generator.CreateAssignmentStatements(
-                compilation, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
+                compilation, parseOptions, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
                 addNullChecks: false, preferThrowExpression: false);
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(

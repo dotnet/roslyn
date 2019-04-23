@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var useThrowExpressions = options.GetOption(CodeStyleOptions.PreferThrowExpression).Value;
 
+                var tree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
                 for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
                 {
                     var symbolName = _state.SelectedMembers[i].Name;
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         factory.IdentifierName(symbolName));
 
                     factory.AddAssignmentStatements(
-                        compilation, parameter, fieldAccess,
+                        compilation, tree.Options, parameter, fieldAccess,
                         _addNullChecks, useThrowExpressions,
                         nullCheckStatements, assignStatements);
                 }

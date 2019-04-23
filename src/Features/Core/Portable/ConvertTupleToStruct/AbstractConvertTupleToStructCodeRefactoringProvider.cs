@@ -735,7 +735,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 scope, structName, typeParameters, members: default);
 
             var generator = SyntaxGenerator.GetGenerator(document);
-            var constructor = CreateConstructor(compilation, structName, fields, generator);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var constructor = CreateConstructor(compilation, tree.Options, structName, fields, generator);
 
             // Generate Equals/GetHashCode.  We can defer to our existing language service for this
             // so that we generate the same Equals/GetHashCode that our other IDE features generate.
@@ -834,7 +835,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private static IMethodSymbol CreateConstructor(
-            Compilation compilation, string className,
+            Compilation compilation, ParseOptions options, string className,
             ImmutableArray<IFieldSymbol> fields, SyntaxGenerator generator)
         {
             // For every property, create a corresponding parameter, as well as an assignment
@@ -851,7 +852,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             });
 
             var assignmentStatements = generator.CreateAssignmentStatements(
-                compilation, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
+                compilation, options, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
                 addNullChecks: false, preferThrowExpression: false);
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
