@@ -2529,8 +2529,17 @@ struct S
             CompileAndVerify(csharp, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: "42");
         }
 
-        [Fact]
-        public void ReadOnlyGetter_LangVersion()
+
+        public static TheoryData<bool, CSharpParseOptions, Verification> ReadOnlyGetter_LangVersion_Data() =>
+            new TheoryData<bool, CSharpParseOptions, Verification>
+            {
+                {  false, TestOptions.Regular7_3, Verification.Passes },
+                {  true, null, Verification.Fails }
+            };
+
+        [Theory]
+        [MemberData(nameof(ReadOnlyGetter_LangVersion_Data))]
+        public void ReadOnlyGetter_LangVersion(bool isReadOnly, CSharpParseOptions parseOptions, Verification verify)
         {
             var csharp = @"
 struct S
@@ -2544,23 +2553,10 @@ struct S
     }
 }
 ";
-
-            CompileAndVerify(csharp, parseOptions: TestOptions.Regular7_3, symbolValidator: validate7_3, verify: Verification.Passes);
-            CompileAndVerify(csharp, symbolValidator: validate, verify: Verification.Fails);
-
-            void validate7_3(ModuleSymbol module)
-            {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("S");
-                Assert.False(type.GetProperty("P").GetMethod.IsDeclaredReadOnly);
-                Assert.False(type.GetProperty("P").GetMethod.IsEffectivelyReadOnly);
-            }
-
-            void validate(ModuleSymbol module)
-            {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("S");
-                Assert.True(type.GetProperty("P").GetMethod.IsDeclaredReadOnly);
-                Assert.True(type.GetProperty("P").GetMethod.IsEffectivelyReadOnly);
-            }
+            var verifier = CompileAndVerify(csharp, parseOptions: parseOptions, verify: verify);
+            var type = verifier.Compilation.GetMember<NamedTypeSymbol>("S");
+            Assert.Equal(isReadOnly, type.GetProperty("P").GetMethod.IsDeclaredReadOnly);
+            Assert.Equal(isReadOnly, type.GetProperty("P").GetMethod.IsEffectivelyReadOnly);
         }
     }
 }
