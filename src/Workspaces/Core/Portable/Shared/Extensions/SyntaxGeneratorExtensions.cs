@@ -167,17 +167,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static SyntaxNode CreateThrowArgumentNullExpression(
-            this SyntaxGenerator factory,
-            Compilation compilation,
-            IParameterSymbol parameter)
-        {
-            return factory.ThrowExpression(
-                factory.ObjectCreationExpression(
-                    compilation.GetTypeByMetadataName("System.ArgumentNullException"),
-                    factory.NameOfExpression(
-                        factory.IdentifierName(parameter.Name))));
-        }
+        public static SyntaxNode CreateThrowArgumentNullExpression(this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
+            => factory.ThrowExpression(CreateNewArgumentNullException(factory, compilation, parameter));
+
+        private static SyntaxNode CreateNewArgumentNullException(SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
+            => factory.ObjectCreationExpression(
+                compilation.GetTypeByMetadataName("System.ArgumentNullException"),
+                factory.NameOfExpression(
+                    factory.IdentifierName(parameter.Name)));
 
         public static SyntaxNode CreateNullCheckAndThrowStatement(
             this SyntaxGenerator factory,
@@ -194,8 +191,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return factory.IfStatement(
                condition,
                 SpecializedCollections.SingletonEnumerable(
-                    factory.ExpressionStatement(
-                        factory.CreateThrowArgumentNullExpression(semanticModel.Compilation, parameter))));
+                    factory.ThrowStatement(CreateNewArgumentNullException(
+                        factory, semanticModel.Compilation, parameter))));
         }
 
         public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(
