@@ -23,7 +23,7 @@ parameters:
   WaitForWorkItemCompletion: true        # optional -- true will make the task wait until work items have been completed and fail the build if work items fail. False is "fire and forget."
   IsExternal: false                      # [DEPRECATED] -- doesn't do anything, jobs are external if HelixAccessToken is empty and Creator is set
   Creator: ''                            # optional -- if the build is external, use this to specify who is sending the job
-  DisplayNamePrefix: 'Send job to Helix' # optional -- rename the beginning of the displayName of the steps in AzDO 
+  DisplayNamePrefix: 'Run Tests'         # optional -- rename the beginning of the displayName of the steps in AzDO 
   condition: succeeded()                 # optional -- condition for step to execute; defaults to succeeded()
   continueOnError: false                 # optional -- determines whether to continue the build if the step errors; defaults to false
 
