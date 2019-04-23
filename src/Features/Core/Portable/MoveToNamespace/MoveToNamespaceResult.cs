@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         public MoveToNamespaceResult(
             Solution originalSolution,
-            Solution updatedSolution, 
+            Solution updatedSolution,
             DocumentId updatedDocumentId,
             ImmutableDictionary<string, ISymbol> newNameOriginalSymbolMapping)
         {
