@@ -167,7 +167,7 @@ public class C
                 GetCSharpResultAt(7, 43, DeclarePublicApiAnalyzer.DeclareNewApiRule, "ArrowExpressionProperty.get"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/821"), WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
+        [Fact, WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
         public async Task SimpleMissingMember_Basic()
         {
             var source = @"
@@ -189,7 +189,8 @@ Public Class C
     Public Sub Method()
     End Sub
 
-    Public ReadOnly Property ReadOnlyProperty As Integer = 0
+    Public ReadOnly Property ReadOnlyAutoProperty As Integer = 0
+    Public Property NormalAutoProperty As Integer = 0
 End Class
 ";
 
@@ -210,7 +211,10 @@ End Class
                 // Test0.vb(17,16): warning RS0016: Symbol 'Method' is not part of the declared API.
                 GetBasicResultAt(17, 16, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Method"),
                 // Test0.vb(17,60): warning RS0016: Symbol 'ReadOnlyProperty' is not part of the declared API.
-                GetBasicResultAt(20, 60, DeclarePublicApiAnalyzer.DeclareNewApiRule, "ReadOnlyProperty"));
+                GetBasicResultAt(20, 60, DeclarePublicApiAnalyzer.DeclareNewApiRule, "ReadOnlyProperty"),
+                GetBasicResultAt(20, 30, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit get-accessor for ReadOnlyAutoProperty"),
+                GetBasicResultAt(21, 21, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit get-accessor for NormalAutoProperty"),
+                GetBasicResultAt(21, 21, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "implicit set-accessor for NormalAutoProperty"));
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
