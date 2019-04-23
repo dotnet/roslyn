@@ -181,6 +181,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 matchingFilters, targetTypedExperimentEnabled);
         }
 
+        protected async Task<RoslynCompletion.CompletionList> GetCompletionListAsync(string markup)
+        {
+            var workspace = WorkspaceFixture.GetWorkspace(markup);
+            var currentDocument = workspace.CurrentSolution.GetDocument(WorkspaceFixture.CurrentDocument.Id);
+            var position = WorkspaceFixture.Position;
+            SetWorkspaceOptions(workspace);
+
+            return await GetCompletionListAsync(GetCompletionService(workspace), currentDocument, position, CompletionTrigger.Invoke, workspace.Options).ConfigureAwait(false);
+        }
+
         protected async Task VerifyCustomCommitProviderAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind? sourceCodeKind = null, char? commitChar = null)
         {
             using (WorkspaceFixture.GetWorkspace(markupBeforeCommit))
