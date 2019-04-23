@@ -120,6 +120,9 @@ csharp_style_prefer_range_operator = true:suggestion
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:silent
 
+# 'using' directive preferences
+csharp_using_directive_placement = outside_namespace:silent
+
 #### C# Formatting Rules ####
 
 # New line preferences
@@ -324,6 +327,9 @@ csharp_style_prefer_index_operator = true:suggestion
 csharp_style_prefer_range_operator = true:suggestion
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:silent
+
+# 'using' directive preferences
+csharp_using_directive_placement = outside_namespace:silent
 
 #### C# Formatting Rules ####
 
