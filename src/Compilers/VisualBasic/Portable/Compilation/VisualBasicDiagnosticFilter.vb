@@ -79,13 +79,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return diagnostic.WithReportDiagnostic(report)
         End Function
 
-        Friend Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, isEnabledByDefault As Boolean, id As String, location As Location, category As String, generalDiagnosticOption As ReportDiagnostic, caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic), <Out> ByRef hasDisableDirectiveSuppression As Boolean) As ReportDiagnostic
+        ''' <summary>
+        ''' Take a warning And return the final disposition of the given warning,
+        ''' based on both command line options And pragmas. The diagnostic options
+        ''' have precedence in the following order:
+        '''     1. Global warning options
+        '''     2. Syntax tree options
+        '''     3. Compilation options
+        '''
+        ''' Global overrides are complicated. Global options never override suppression.
+        ''' Even if you have generalDiagnosticOption = ReportDiagnostic.Error, a
+        ''' suppressed diagnostic will not turn into an error. However, general diagnostic options
+        ''' do override warnings and infos into suppressions, i.e. if you had a syntaxtree option
+        ''' to turn a diagnostic into a warning, and the global option was Suppress, the diagnostic
+        ''' would be suppressed.
+        '''
+        ''' Pragmas are considered seperately. If a diagnostic would not otherwise
+        ''' be suppressed, but is suppressed by a pragma,
+        ''' <paramref name="hasDisableDirectiveSuppression"/>
+        ''' is true but the diagnostic is not reported as suppressed.
+        ''' </summary> 
+        Friend Shared Function GetDiagnosticReport(severity As DiagnosticSeverity,
+                                                   isEnabledByDefault As Boolean,
+                                                   id As String,
+                                                   location As Location,
+                                                   category As String,
+                                                   generalDiagnosticOption As ReportDiagnostic,
+                                                   caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic),
+                                                   <Out> ByRef hasDisableDirectiveSuppression As Boolean) As ReportDiagnostic
             hasDisableDirectiveSuppression = False
 
-            ' Read options (e.g., /nowarn or /warnaserror)
-            Dim report As ReportDiagnostic = ReportDiagnostic.Default
-            Dim isSpecified = caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report)
-            If Not isSpecified Then
+            Dim report As ReportDiagnostic
+            Dim tree = If(location IsNot Nothing, location.SourceTree, Nothing)
+            Dim isSpecified As Boolean = False
+
+            ' Global options depend on other options, so calculate those first
+            If tree IsNot Nothing AndAlso tree.DiagnosticOptions.TryGetValue(id, report) Then
+                ' 2. Syntax tree level
+                isSpecified = True
+            ElseIf caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report) Then
+                ' 3. Compilation level
+                isSpecified = True
+            Else
                 report = If(isEnabledByDefault, ReportDiagnostic.Default, ReportDiagnostic.Suppress)
             End If
 
@@ -100,12 +135,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 hasDisableDirectiveSuppression = True
             End If
 
+            ' 1. Global options
+            ' If present, they override previous options
+
             ' check options (/nowarn)
             ' When doing suppress-all-warnings, don't lower severity for anything other than warning and info.
             ' We shouldn't suppress hidden diagnostics here because then features that use hidden diagnostics to
             ' display light bulb would stop working if someone has suppress-all-warnings (/nowarn) specified in their project.
             If generalDiagnosticOption = ReportDiagnostic.Suppress AndAlso
-            (severity = DiagnosticSeverity.Warning OrElse severity = DiagnosticSeverity.Info) Then
+                (severity = DiagnosticSeverity.Warning OrElse severity = DiagnosticSeverity.Info) Then
                 Return ReportDiagnostic.Suppress
             End If
 

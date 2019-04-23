@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
-using System.Xml.XPath;
 
 namespace BuildBoss
 {
@@ -17,15 +11,17 @@ namespace BuildBoss
         private readonly ProjectData _data;
         private readonly ProjectUtil _projectUtil;
         private readonly Dictionary<ProjectKey, ProjectData> _solutionMap;
+        private readonly bool _isPrimarySolution;
 
         internal ProjectFileType ProjectType => _data.ProjectFileType;
         internal string ProjectFilePath => _data.FilePath;
 
-        internal ProjectCheckerUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap)
+        internal ProjectCheckerUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap, bool isPrimarySolution)
         {
             _data = data;
             _projectUtil = data.ProjectUtil;
             _solutionMap = solutionMap;
+            _isPrimarySolution = isPrimarySolution;
         }
 
         public bool Check(TextWriter textWriter)
@@ -61,6 +57,12 @@ namespace BuildBoss
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
                 allGood &= CheckPackageReferences(textWriter);
+
+                if (_isPrimarySolution)
+                {
+                    allGood &= CheckInternalsVisibleTo(textWriter);
+                }
+
                 allGood &= CheckDeploymentSettings(textWriter);
             }
             else if (ProjectType == ProjectFileType.Tool)
@@ -234,6 +236,53 @@ namespace BuildBoss
             }
 
             return allGood;
+        }
+
+        private bool CheckInternalsVisibleTo(TextWriter textWriter)
+        {
+            var allGood = true;
+            foreach (var internalsVisibleTo in _projectUtil.GetInternalsVisibleTo())
+            {
+                if (string.Equals(internalsVisibleTo.LoadsWithinVisualStudio, "false", StringComparison.OrdinalIgnoreCase))
+                {
+                    // IVTs explicitly declared with LoadsWithinVisualStudio="false" are allowed
+                    continue;
+                }
+
+                if (_projectUtil.Key.FileName.StartsWith("Microsoft.CodeAnalysis.ExternalAccess."))
+                {
+                    // External access layer may have external IVTs
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(internalsVisibleTo.WorkItem))
+                {
+                    if (!Uri.TryCreate(internalsVisibleTo.WorkItem, UriKind.Absolute, out _))
+                    {
+                        textWriter.WriteLine($"InternalsVisibleTo for external assembly '{internalsVisibleTo.TargetAssembly}' does not have a valid URI specified for {nameof(InternalsVisibleTo.WorkItem)}.");
+                        allGood = false;
+                    }
+
+                    // A work item is tracking elimination of this IVT
+                    continue;
+                }
+
+                var builtByThisRepository = _solutionMap.Values.Any(projectData => GetAssemblyName(projectData) == internalsVisibleTo.TargetAssembly);
+                if (!builtByThisRepository)
+                {
+                    textWriter.WriteLine($"InternalsVisibleTo not allowed for external assembly '{internalsVisibleTo.TargetAssembly}' that may load within Visual Studio.");
+                    allGood = false;
+                }
+            }
+
+            return allGood;
+
+            // Local functions
+            static string GetAssemblyName(ProjectData projectData)
+            {
+                return projectData.ProjectUtil.FindSingleProperty("AssemblyName")?.Value.Trim()
+                    ?? Path.GetFileNameWithoutExtension(projectData.FileName);
+            }
         }
 
         private bool CheckDeploymentSettings(TextWriter textWriter)

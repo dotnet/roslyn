@@ -1499,4 +1499,13 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="DateTimeKind_must_be_Utc" xml:space="preserve">
     <value>DateTimeKind must be Utc</value>
   </data>
+  <data name="Naming_styles" xml:space="preserve">
+    <value>Naming styles</value>
+  </data>
+  <data name="Naming_rules" xml:space="preserve">
+    <value>Naming rules</value>
+  </data>
+  <data name="Symbol_specifications" xml:space="preserve">
+    <value>Symbol specifications</value>
+  </data>
 </root>
