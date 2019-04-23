@@ -431,6 +431,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
+                // can this accessor be made implicitly readonly?
+
+                var options = (CSharpParseOptions)SyntaxTree.Options;
+                if (!options.IsFeatureEnabled(MessageID.IDS_FeatureReadOnlyMembers))
+                {
+                    return false;
+                }
+
                 // If we have IsReadOnly..ctor, we can use the attribute. Otherwise, we need to NOT be a netmodule and the type must not already exist in order to synthesize it.
                 var isReadOnlyAttributeUsable = DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor) != null ||
                     (DeclaringCompilation.Options.OutputKind != OutputKind.NetModule &&

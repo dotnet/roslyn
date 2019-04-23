@@ -2528,5 +2528,39 @@ struct S
 ";
             CompileAndVerify(csharp, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: "42");
         }
+
+        [Fact]
+        public void ReadOnlyGetter_LangVersion()
+        {
+            var csharp = @"
+struct S
+{
+    public int P { get; }
+
+    static readonly S Field = default;
+    static void M()
+    {
+        _ = Field.P;
+    }
+}
+";
+
+            CompileAndVerify(csharp, parseOptions: TestOptions.Regular7_3, symbolValidator: validate7_3, verify: Verification.Passes);
+            CompileAndVerify(csharp, symbolValidator: validate, verify: Verification.Fails);
+
+            void validate7_3(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("S");
+                Assert.False(type.GetProperty("P").GetMethod.IsDeclaredReadOnly);
+                Assert.False(type.GetProperty("P").GetMethod.IsEffectivelyReadOnly);
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("S");
+                Assert.True(type.GetProperty("P").GetMethod.IsDeclaredReadOnly);
+                Assert.True(type.GetProperty("P").GetMethod.IsEffectivelyReadOnly);
+            }
+        }
     }
 }
