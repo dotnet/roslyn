@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (inputType.ContainsTypeParameter())
             {
                 convertedExpression = expression;
-                if (!hasErrors)
+                if (!hasErrors && expression.ConstantValue is {})
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     if (expression.ConstantValue == ConstantValue.Null)
