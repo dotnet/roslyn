@@ -66,18 +66,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static (ImmutableArray<ISymbol> fields, ISymbol constructor) CreateFieldDelegatingConstructor(
             this SyntaxGenerator factory,
             Compilation compilation,
+            ParseOptions parseOptions,
             string typeName,
             INamedTypeSymbol containingTypeOpt,
             ImmutableArray<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
             IDictionary<string, string> parameterToNewFieldMap,
             bool addNullChecks,
-            bool preferThrowExpression,
-            CancellationToken cancellationToken)
+            bool preferThrowExpression)
         {
             var fields = factory.CreateFieldsForParameters(parameters, parameterToNewFieldMap);
             var statements = factory.CreateAssignmentStatements(
-                compilation, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
+                compilation, parseOptions, parameters, parameterToExistingFieldMap, parameterToNewFieldMap,
                 addNullChecks, preferThrowExpression).SelectAsArray(
                     s => s.WithAdditionalAnnotations(Simplifier.Annotation));
 
@@ -180,15 +180,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         factory.IdentifierName(parameter.Name))));
         }
 
-        public static SyntaxNode CreateIfNullThrowStatement(
+        public static SyntaxNode CreateNullCheckAndThrowStatement(
             this SyntaxGenerator factory,
             Compilation compilation,
-            IParameterSymbol parameter)
+            IParameterSymbol parameter,
+            ParseOptions options)
         {
+            var identifier = factory.IdentifierName(parameter.Name);
+            var nullExpr = factory.NullLiteralExpression();
+            var condition = factory.SupportsPatterns(options)
+                ? factory.IsPatternExpression(identifier, factory.ConstantPattern(nullExpr))
+                : factory.ReferenceEqualsExpression(identifier, nullExpr);
+
+            // generates: if (s == null) throw new ArgumentNullException(nameof(s))
             return factory.IfStatement(
-                factory.ReferenceEqualsExpression(
-                    factory.IdentifierName(parameter.Name),
-                    factory.NullLiteralExpression()),
+               condition,
                 SpecializedCollections.SingletonEnumerable(
                     factory.ExpressionStatement(
                         factory.CreateThrowArgumentNullExpression(compilation, parameter))));
@@ -197,6 +203,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(
             this SyntaxGenerator factory,
             Compilation compilation,
+            ParseOptions parseOptions,
             ImmutableArray<IParameterSymbol> parameters,
             IDictionary<string, ISymbol> parameterToExistingFieldMap,
             IDictionary<string, string> parameterToNewFieldMap,
@@ -233,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                                  .WithAdditionalAnnotations(Simplifier.Annotation);
 
                         factory.AddAssignmentStatements(
-                            compilation, parameter, fieldAccess,
+                            compilation, parseOptions, parameter, fieldAccess,
                             addNullChecks, preferThrowExpression,
                             nullCheckStatements, assignStatements);
                     }
@@ -246,6 +253,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static void AddAssignmentStatements(
              this SyntaxGenerator factory,
              Compilation compilation,
+             ParseOptions parseOptions,
              IParameterSymbol parameter,
              SyntaxNode fieldAccess,
              bool addNullChecks,
@@ -253,7 +261,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
              ArrayBuilder<SyntaxNode> nullCheckStatements,
              ArrayBuilder<SyntaxNode> assignStatements)
         {
-            var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck();
+            // Don't want to add a null check for something of the form `int?`.  The type was
+            // already declared as nullable to indicate that null is ok.  Adding a null check
+            // just disallows something that should be allowed.
+            var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck() && !parameter.Type.IsNullable();
             if (shouldAddNullCheck && preferThrowExpression)
             {
                 // Generate: this.x = x ?? throw ...
@@ -266,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // generate: if (x == null) throw ...
                     nullCheckStatements.Add(
-                        factory.CreateIfNullThrowStatement(compilation, parameter));
+                        factory.CreateNullCheckAndThrowStatement(compilation, parameter, parseOptions));
                 }
 
                 // generate: this.x = x;

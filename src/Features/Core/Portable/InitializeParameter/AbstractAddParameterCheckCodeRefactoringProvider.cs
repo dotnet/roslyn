@@ -260,18 +260,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Compilation compilation, SyntaxGenerator generator,
             IParameterSymbol parameter, ParseOptions options)
         {
-            var identifier = generator.IdentifierName(parameter.Name);
-            var nullExpr = generator.NullLiteralExpression();
-            var condition = generator.SupportsPatterns(options)
-                ? generator.IsPatternExpression(identifier, generator.ConstantPattern(nullExpr))
-                : generator.ReferenceEqualsExpression(identifier, nullExpr);
-
-            // generates: if (s == null) throw new ArgumentNullException(nameof(s))
-            return (TStatementSyntax)generator.IfStatement(
-               condition,
-                SpecializedCollections.SingletonEnumerable(
-                    generator.ThrowStatement(
-                        CreateArgumentNullException(compilation, generator, parameter))));
+            return (TStatementSyntax)generator.CreateNullCheckAndThrowStatement(compilation, parameter, options);
         }
 
         private static TStatementSyntax CreateStringCheckStatement(
