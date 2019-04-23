@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, LSP.Methods.WorkspaceExecuteCommandName)]
     internal class RunCodeActionsHandler : CodeActionsHandlerBase, ILspRequestHandler<LSP.ExecuteCommandParams, object, Solution>
     {
-        private IThreadingContext _threadingContext;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         public RunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext)

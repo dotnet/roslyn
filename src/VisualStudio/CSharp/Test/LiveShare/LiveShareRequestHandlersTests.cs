@@ -26,8 +26,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LiveShare
             var workspace = (TestWorkspace)solution.Workspace;
             var handlers = workspace.ExportProvider.GetExportedValues<ILspRequestHandler>(LiveShareConstants.RoslynContractName).ToArray();
 
-
+            // Verify there are exactly the number of liveshare request handlers as expected.
+            // Liveshare shims will verify there is a matching roslyn request handler when they are created.
             Assert.Equal(21, handlers.Length);
+        }
+
+        // TODO - Move to code analysis layer when classifications moved.
+        [Fact]
+        public void TestClassificationsHandler()
+        {
+
+        }
+
+        // TODO - Move to code analysis layer when diagnostics moved.
+        [Fact]
+        public void TestDiagnosticHandler()
+        {
+
+        }
+
+        // TODO - Move to code analysis layer when initialize moved.
+        [Fact]
+        public void TestInitializeHandler()
+        {
+
+        }
+
+        // TODO - Move to code analysis layer when load moved.
+        [Fact]
+        public void TestLoadHandler()
+        {
+
+        }
+
+        // TODO - Move to code analysis layer when projects moved.
+        [Fact]
+        public void TestProjectsHandler()
+        {
+
+        }
+
+        // TODO - Move to code analysis layer when run code actions moved.
+        [Fact]
+        public void TestRunCodeActionsHandler()
+        {
+
         }
 
         private static Solution CreateTestSolution()

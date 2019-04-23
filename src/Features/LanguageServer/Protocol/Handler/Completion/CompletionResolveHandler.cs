@@ -22,7 +22,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<LSP.CompletionItem> HandleRequestAsync(Solution solution, LSP.CompletionItem completionItem,
             LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            var data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
+            CompletionResolveData data;
+            if (completionItem.Data is CompletionResolveData)
+            {
+                data = (CompletionResolveData)completionItem.Data;
+            }
+            else
+            {
+                data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
+            }
+
             var request = data.CompletionParams;
 
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);

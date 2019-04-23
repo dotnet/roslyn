@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
     [ExportLspMethod(Methods.InitializeName)]
-    internal class InitializeHandler
+    internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeResult>
     {
-        public Task<InitializeResult> HandleAsync(Solution solution, InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public Task<InitializeResult> HandleRequestAsync(Solution solution, InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var result = new InitializeResult
             {
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     ReferencesProvider = true,
                     ImplementationProvider = true,
                     CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
-                    HoverProvider = false,
+                    HoverProvider = true,
                     SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
                     CodeActionProvider = true,
                     DocumentSymbolProvider = true,

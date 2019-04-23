@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [Shared]
     [ExportLspMethod(LSP.Methods.TextDocumentCodeActionName)]
-    internal class CodeActionHandler : CodeActionsHandlerBase, IRequestHandler<LSP.CodeActionParams, LSP.Command[]>
+    internal class CodeActionsHandler : CodeActionsHandlerBase, IRequestHandler<LSP.CodeActionParams, LSP.Command[]>
     {
         [ImportingConstructor]
-        public CodeActionHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
+        public CodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService) : base(codeFixService, codeRefactoringService)
         {
         }
 

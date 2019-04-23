@@ -36,7 +36,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
 
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
+                if (textChanges != null)
+                {
+                    edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
+                }
             }
 
             return edits.ToArray();
