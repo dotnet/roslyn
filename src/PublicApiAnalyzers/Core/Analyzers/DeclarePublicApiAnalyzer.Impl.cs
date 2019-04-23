@@ -302,12 +302,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             private static string GetErrorMessageName(ISymbol symbol, bool isImplicitlyDeclaredConstructor)
             {
                 if (symbol.IsImplicitlyDeclared &&
-                    symbol is IMethodSymbol methodSymbol && 
+                    symbol is IMethodSymbol methodSymbol &&
                     methodSymbol.AssociatedSymbol is IPropertySymbol property)
                 {
                     var formatString = symbol.Equals(property.GetMethod)
-                        ? PublicApiAnalyzersResources.PublicImplicitGetAccessor
-                        : PublicApiAnalyzersResources.PublicImplicitSetAccessor;
+                        ? PublicApiAnalyzerResources.PublicImplicitGetAccessor
+                        : PublicApiAnalyzerResources.PublicImplicitSetAccessor;
 
                     return string.Format(formatString, property.Name);
                 }
