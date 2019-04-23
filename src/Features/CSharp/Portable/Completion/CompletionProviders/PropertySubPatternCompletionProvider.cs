@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, type);
             members = members.Where(m => m.CanBeReferencedByName &&
                 IsFieldOrReadableProperty(m) &&
-                !m.IsImplicitlyDeclared);
+                !m.IsImplicitlyDeclared && 
+                !m.IsStatic);
 
             // Filter out those members that have already been typed
             var propertyPatternClause = (PropertyPatternClauseSyntax)token.Parent;
