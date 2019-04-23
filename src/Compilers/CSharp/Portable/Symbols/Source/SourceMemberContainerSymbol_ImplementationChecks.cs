@@ -1007,7 +1007,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (overriddenMethod is null ||
                     overridingMethod is null ||
                     compilation is null ||
-                    overridingMethod.IsImplicitlyDeclared ||
                     ((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)
                         ?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) != true)
                 {
