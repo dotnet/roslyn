@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
         {
-            if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
+            if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isTargetTypeFilterEnabled) && isTargetTypeFilterEnabled)
             {
-                AsyncCompletionLogger.LogSessionHasExperimentEnabled();
+                AsyncCompletionLogger.LogSessionHasTargetTypeFilterEnabled();
 
                 // This method is called exactly once, so use the opportunity to set a baseline for telemetry.
                 if (data.InitialList.Any(i => i.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches)))
@@ -60,6 +60,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     AsyncCompletionLogger.LogSessionContainsTargetTypeFilter();
                 }
             }
+
+            if (session.TextView.Properties.TryGetProperty(CompletionSource.TypeImportCompletionEnabled, out bool isTypeImportCompletionEnabled) && isTypeImportCompletionEnabled)
+            {
+                AsyncCompletionLogger.LogSessionWithTypeImportCompletionEnabled();
+            }
+
 
             return Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
         }

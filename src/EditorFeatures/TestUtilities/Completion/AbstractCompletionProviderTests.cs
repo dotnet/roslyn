@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 }
             }
         }
-
+        
         private bool FiltersMatch(List<CompletionItemFilter> expectedMatchingFilters, CompletionItem item)
         {
             var matchingFilters = CompletionItemFilter.AllFilters

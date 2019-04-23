@@ -144,6 +144,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // Telemetry
+            if (session.TextView.Properties.TryGetProperty(CompletionSource.TypeImportCompletionEnabled, out bool isTyperImportCompletionEnabled) && isTyperImportCompletionEnabled)
+            {
+                AsyncCompletionLogger.LogCommitWithTypeImportCompletionEnabled();
+
+                if (roslynItem.ProviderName == "TypeImportCompletionProvider")
+                {
+                    AsyncCompletionLogger.LogCommitTypeImportCompletionItem();
+                }
+            }
+            
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
             {
                 // Capture the % of committed completion items that would have appeared in the "Target type matches" filter

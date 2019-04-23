@@ -10,7 +10,13 @@ namespace Microsoft.CodeAnalysis
 
         internal enum ActionInfo
         {
-            SessionHasExperimentEnabled,
+            // For type import completion
+            SessionWithTypeImportCompletionEnabled,
+            CommitWithTypeImportCompletionEnabled,
+            CommitTypeImportCompletionItem,
+
+            // For targeted type completion
+            SessionHasTargetTypeFilterEnabled,
 
             // TargetTypeFilterChosenInSession / SessionContainsTargetTypeFilter indicates % of the time 
             // the Target Type Completion Filter is chosen of the sessions offering it.
@@ -24,6 +30,15 @@ namespace Microsoft.CodeAnalysis
             CommitItemWithTargetTypeFilter,
         }
 
+        internal static void LogSessionWithTypeImportCompletionEnabled() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithTypeImportCompletionEnabled);
+
+        internal static void LogCommitWithTypeImportCompletionEnabled() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitWithTypeImportCompletionEnabled);
+
+        internal static void LogCommitTypeImportCompletionItem() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitTypeImportCompletionItem);
+
         internal static void LogCommitWithTargetTypeCompletionExperimentEnabled() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitWithTargetTypeCompletionExperimentEnabled);
 
@@ -36,8 +51,8 @@ namespace Microsoft.CodeAnalysis
         internal static void LogTargetTypeFilterChosenInSession() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.TargetTypeFilterChosenInSession);
 
-        internal static void LogSessionHasExperimentEnabled() =>
-            s_logAggregator.IncreaseCount((int)ActionInfo.SessionHasExperimentEnabled);
+        internal static void LogSessionHasTargetTypeFilterEnabled() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.SessionHasTargetTypeFilterEnabled);
 
         internal static void ReportTelemetry()
         {
