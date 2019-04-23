@@ -1005,7 +1005,7 @@ Namespace ThenIncludeIntellisenseBug
         Inherits IQueryable(Of TEntity)
     End Interface
 
-    Public Module EntityFrameworkQuerybleExtensions
+    Public Module EntityFrameworkQueryableExtensions
         <System.Runtime.CompilerServices.Extension>
         Public Function Include(Of TEntity, TProperty)(
                 source As IQueryable(Of TEntity), 
