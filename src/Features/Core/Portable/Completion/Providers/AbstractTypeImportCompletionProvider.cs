@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -245,6 +246,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // During an EnC session, adding import is not supported.
                 var encService = workspace.Services.GetService<IDebuggingWorkspaceService>()?.EditAndContinueServiceOpt;
                 if (encService?.EditSession != null)
+                {
+                    return true;
+                }
+
+                // Certain documents, e.g. Razor document, don't support adding imports
+                var documentSupportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
+                if (!documentSupportsFeatureService.SupportsRefactorings(document))
                 {
                     return true;
                 }
