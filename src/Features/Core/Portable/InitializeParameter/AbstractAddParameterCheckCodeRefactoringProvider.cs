@@ -198,10 +198,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return documentOpt;
             }
 
+            var options = functionDeclaration.SyntaxTree.Options;
+
             // If we can't, then just offer to add an "if (s == null)" statement.
             return await AddNullCheckStatementAsync(
                 document, parameter, functionDeclaration, method, blockStatementOpt,
-                (c, g) => CreateNullCheckStatement(c, g, parameter),
+                (c, g) => CreateNullCheckStatement(c, g, parameter, options),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -255,13 +257,18 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private static TStatementSyntax CreateNullCheckStatement(
-            Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter)
+            Compilation compilation, SyntaxGenerator generator,
+            IParameterSymbol parameter, ParseOptions options)
         {
+            var identifier = generator.IdentifierName(parameter.Name);
+            var nullExpr = generator.NullLiteralExpression();
+            var condition = generator.SupportsPatterns(options)
+                ? generator.IsPatternExpression(identifier, generator.ConstantPattern(nullExpr))
+                : generator.ReferenceEqualsExpression(identifier, nullExpr);
+
             // generates: if (s == null) throw new ArgumentNullException(nameof(s))
             return (TStatementSyntax)generator.IfStatement(
-                generator.ReferenceEqualsExpression(
-                    generator.IdentifierName(parameter.Name),
-                    generator.NullLiteralExpression()),
+               condition,
                 SpecializedCollections.SingletonEnumerable(
                     generator.ThrowStatement(
                         CreateArgumentNullException(compilation, generator, parameter))));
