@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CommandHandler_ExecuteHandlers,
         CommandHandler_FormatCommand,
         CommandHandler_ToggleBlockComment,
+        CommandHandler_ToggleLineComment,
 
         Workspace_SourceText_GetChangeRanges,
         Workspace_Recoverable_RecoverRootAsync,

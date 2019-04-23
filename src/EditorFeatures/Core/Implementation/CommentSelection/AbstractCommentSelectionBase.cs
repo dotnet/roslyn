@@ -37,6 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
     internal abstract class AbstractCommentSelectionBase<TCommand>
     {
+        protected const string LanguageNameString = "languagename";
+        protected const string LengthString = "length";
+
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 

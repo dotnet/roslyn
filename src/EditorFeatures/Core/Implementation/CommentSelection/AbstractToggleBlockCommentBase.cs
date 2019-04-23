@@ -31,9 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
             new CommentSelectionResult(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
 
-        private const string LanguageNameString = "languagename";
-        private const string LengthString = "length";
-
         private readonly ITextStructureNavigatorSelectorService _navigatorSelectorService;
 
         internal AbstractToggleBlockCommentBase(
