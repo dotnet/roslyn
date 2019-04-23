@@ -411,6 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AsOperatorMayReturnNull:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                 case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
+                case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                     return 1;
                 default:
                     return 0;

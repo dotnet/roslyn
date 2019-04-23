@@ -357,7 +357,7 @@
     <Field Name="Right" Type="BoundExpression"/>
   </AbstractNode>
 
-  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase">
+  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
@@ -379,7 +379,7 @@
     <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
 
-  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase">
+  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="LogicalOperator" Type="MethodSymbol"/>
     <Field Name="TrueOperator" Type="MethodSymbol"/>

@@ -36,7 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
-    <InternalsVisibleTo Include="RoslynETAHost" />
+    <InternalsVisibleTo Include="RoslynETAHost" WorkItem="https://github.com/dotnet/roslyn/issues/35072" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="PerfMargin\StatusIndicator.xaml">

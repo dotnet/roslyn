@@ -296,11 +296,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte transformFlag, out _))
                 {
-                    switch (transformFlag)
+                    switch ((NullableAnnotation)transformFlag)
                     {
-                        case NullableAnnotationExtensions.AnnotatedAttributeValue:
+                        case NullableAnnotation.Annotated:
                             return true;
-                        case NullableAnnotationExtensions.NotAnnotatedAttributeValue:
+                        case NullableAnnotation.NotAnnotated:
                             return false;
                     }
                 }
@@ -413,9 +413,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
-            // https://github.com/dotnet/roslyn/issues/30081: Re-enable asserts.
-            //Debug.Assert(!inProgress.ContainsReference(this));
-            //Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
+            Debug.Assert(!inProgress.ContainsReference(this));
+            Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
 
             var currentBounds = _lazyBounds;
             if (currentBounds == TypeParameterBounds.Unset)

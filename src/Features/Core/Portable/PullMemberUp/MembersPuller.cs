@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
             else if (member is IPropertySymbol propertySymbol)
             {
-                return CodeGenerationSymbolFactory.CreatePropertySymbol(propertySymbol, modifiers: modifier);
+                return CodeGenerationSymbolFactory.CreatePropertySymbol(propertySymbol, modifiers: modifier, getMethod: propertySymbol.GetMethod, setMethod: propertySymbol.SetMethod);
             }
             else if (member is IEventSymbol eventSymbol)
             {

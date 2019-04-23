@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol Type { get; }
 
         /// <summary>
+        /// Gets the top-level nullability of this field.
+        /// </summary>
+        NullableAnnotation NullableAnnotation { get; }
+
+        /// <summary>
         /// Returns false if the field wasn't declared as "const", or constant value was omitted or erroneous.
         /// True otherwise.
         /// </summary>

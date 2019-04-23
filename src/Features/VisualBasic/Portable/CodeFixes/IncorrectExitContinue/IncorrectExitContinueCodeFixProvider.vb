@@ -41,6 +41,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
             End Get
         End Property
 
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            ' Fix All is not supported for this code fix
+            ' https://github.com/dotnet/roslyn/issues/34466
+            Return Nothing
+        End Function
+
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim document = context.Document
             Dim span = context.Span

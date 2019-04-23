@@ -125,6 +125,11 @@ namespace Microsoft.CodeAnalysis.Options
 
             public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
             {
+                if (documentOptionsProvider == null)
+                {
+                    throw new ArgumentNullException(nameof(documentOptionsProvider));
+                }
+
                 lock (_gate)
                 {
                     _documentOptionsProviders = _documentOptionsProviders.Add(documentOptionsProvider);

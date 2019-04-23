@@ -16,6 +16,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private const string RangeAllSignature = "System.Range System.Range.All.get";
 
         [Fact]
+        public void PatternIndexRangeLangVer()
+        {
+            var src = @"
+using System;
+struct S
+{
+    public int Length => 0;
+    public int Slice(int x, int y) => 0;
+}
+class C
+{
+    void M(string s, Index i, Range r)
+    {
+        _ = s[i];
+        _ = s[r];
+        _ = new S()[r];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = s[i];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s[i]").WithArguments("index operator").WithLocation(12, 13),
+                // (13,13): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = s[r];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s[r]").WithArguments("index operator").WithLocation(13, 13),
+                // (14,13): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = new S()[r];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()[r]").WithArguments("index operator").WithLocation(14, 13));
+        }
+
+        [Fact]
         public void SpanPatternRangeDelegate()
         {
             var src = @"
