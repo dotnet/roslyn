@@ -226,8 +226,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                // The IRuleSetFile held by _ruleSetFile is now out of date. Our model is we now request a new one which will have up-to-date values.
+                // The IRuleSetFile held by _ruleSetFile is now out of date. We'll dispose our old one first so as to let go of any old cached values.
+                // Then, we must reparse: in the case where the command line we have from the project system includes a /ruleset, the computation of the
+                // effective values was potentially done by the act of parsing the command line. Even though the command line didn't change textually,
+                // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
+                // includes in the IDE so we can be watching for changes again.
                 DisposeOfRuleSetFile_NoLock();
+                ReparseCommandLine_NoLock();
                 UpdateProjectOptions_NoLock();
             }
         }
