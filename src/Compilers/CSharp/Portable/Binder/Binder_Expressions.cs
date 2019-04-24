@@ -1179,7 +1179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindDefaultExpression(DefaultExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            TypeWithAnnotations typeWithAnnotations = this.BindType(node.Type, diagnostics, out var alias);
+            TypeWithAnnotations typeWithAnnotations = this.BindType(node.Type, diagnostics, out AliasSymbol alias);
             var typeExpression = new BoundTypeExpression(node.Type, aliasOpt: alias, typeWithAnnotations);
             TypeSymbol type = typeWithAnnotations.Type;
             return new BoundDefaultExpression(node, typeExpression, constantValueOpt: type.GetDefaultValue(), type);

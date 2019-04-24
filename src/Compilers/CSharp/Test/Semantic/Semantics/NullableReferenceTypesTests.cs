@@ -68724,7 +68724,7 @@ class A<T1, T2> where T1 : class where T2 : class
 " + NonNullTypesOn() + @"
     void M2()
     {
-        F = null; // 2
+        F = null;
     }
 
 " + NonNullTypesOn() + @"
@@ -68732,7 +68732,7 @@ class A<T1, T2> where T1 : class where T2 : class
     {
         void M3()
         {
-            F = null; // 3
+            F = null; // 2
         }
     }
 
@@ -68741,7 +68741,7 @@ class A<T1, T2> where T1 : class where T2 : class
     {
         void M3()
         {
-            F = null; // 4
+            F = null; // 3
         }
     }
 
@@ -68750,7 +68750,7 @@ class A<T1, T2> where T1 : class where T2 : class
     {
         void M3()
         {
-            F = null; // 5
+            F = null; // 4
         }
     }
 }
@@ -68764,13 +68764,13 @@ class A<T1, T2> where T1 : class where T2 : class
                 //             F = null; // 1
                 Diagnostic(ErrorCode.WRN_NullLiteralMayIntroduceNullT, "null").WithArguments("T1").WithLocation(14, 17),
                 // (29,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //             F = null; // 3
+                //             F = null; // 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(29, 17),
                 // (38,17): warning CS8654: A null literal introduces a null value when 'T1' is a non-nullable reference type.
-                //             F = null; // 4
+                //             F = null; // 3
                 Diagnostic(ErrorCode.WRN_NullLiteralMayIntroduceNullT, "null").WithArguments("T1").WithLocation(38, 17),
                 // (47,17): warning CS8654: A null literal introduces a null value when 'T2' is a non-nullable reference type.
-                //             F = null; // 5
+                //             F = null; // 4
                 Diagnostic(ErrorCode.WRN_NullLiteralMayIntroduceNullT, "null").WithArguments("T2").WithLocation(47, 17));
 
             var b = comp.GetTypeByMetadataName("A`2+B");
