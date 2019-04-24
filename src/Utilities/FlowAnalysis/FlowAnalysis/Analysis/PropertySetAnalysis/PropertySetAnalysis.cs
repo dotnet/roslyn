@@ -93,7 +93,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     wellKnownTypeProvider,
                     interproceduralAnalysisConfig,
                     out var copyAnalysisResult,
-                    out pointsToAnalysisResult);
+                    out pointsToAnalysisResult,
+                    pessimisticAnalysis);
             }
 
             var analysisContext = PropertySetAnalysisContext.Create(
