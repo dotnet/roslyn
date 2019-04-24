@@ -596,7 +596,7 @@ try {
   }
 
   if ($bootstrap) {
-    $bootstrapDir = Make-BootstrapBuild
+    $bootstrapDir = Make-BootstrapBuild -force32:$test32
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
