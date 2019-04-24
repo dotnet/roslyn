@@ -1966,8 +1966,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_AttributeIgnoredWhenPublicSigning = 42379
         WRN_Experimental = 42380
 
-        ' // AVAILABLE                             42381 - 49998
-        ERRWRN_NextAvailable = 42381
+        ERR_MultipleAnalyzerConfigsInSameDir = 42500
+
+        ' // AVAILABLE                             42600 - 49998
+        ERRWRN_NextAvailable = 42600
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000

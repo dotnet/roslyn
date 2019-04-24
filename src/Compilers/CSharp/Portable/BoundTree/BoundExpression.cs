@@ -67,6 +67,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
         }
+
+        public new NullabilityInfo TopLevelNullability
+        {
+            get => base.TopLevelNullability;
+            set => base.TopLevelNullability = value;
+        }
     }
 
     internal partial class BoundPassByCopy
@@ -100,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this call's method was chosen. 
+        /// The set of method symbols from which this call's method was chosen.
         /// Only kept in the tree if the call was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -191,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of indexer symbols from which this call's indexer was chosen. 
+        /// The set of indexer symbols from which this call's indexer was chosen.
         /// Only kept in the tree if the call was an error and overload resolution
         /// was unable to choose a best indexer.
         /// </summary>
@@ -283,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -302,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -326,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -345,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -364,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this operator's method was chosen. 
+        /// The set of method symbols from which this operator's method was chosen.
         /// Only kept in the tree if the operator was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -411,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The set of method symbols from which this conversion's method was chosen. 
+        /// The set of method symbols from which this conversion's method was chosen.
         /// Only kept in the tree if the conversion was an error and overload resolution
         /// was unable to choose a best method.
         /// </summary>
@@ -433,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         internal bool ConversionHasSideEffects()
         {
-            // only some intrinsic conversions are side effect free 
+            // only some intrinsic conversions are side effect free
             // the only side effect of an intrinsic conversion is a throw when we fail to convert.
             // and some intrinsic conversion always succeed
             switch (this.ConversionKind)
@@ -448,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Boxing:
                     return false;
 
-                // unchecked numeric conversion does not throw 
+                // unchecked numeric conversion does not throw
                 case ConversionKind.ExplicitNumeric:
                     return this.Checked;
             }

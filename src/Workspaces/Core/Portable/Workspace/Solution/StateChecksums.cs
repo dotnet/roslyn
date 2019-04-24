@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             ProjectReferenceChecksumCollection projectReferenceChecksums,
             MetadataReferenceChecksumCollection metadataReferenceChecksums,
             AnalyzerReferenceChecksumCollection analyzerReferenceChecksums,
-            TextDocumentChecksumCollection additionalDocumentChecksums) :
+            TextDocumentChecksumCollection additionalDocumentChecksums,
+            AnalyzerConfigDocumentChecksumCollection analyzerConfigDocumentChecksumCollection) :
             this(
                 (object)infoChecksum,
                 compilationOptionsChecksum,
@@ -90,7 +91,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                 projectReferenceChecksums,
                 metadataReferenceChecksums,
                 analyzerReferenceChecksums,
-                additionalDocumentChecksums)
+                additionalDocumentChecksums,
+                analyzerConfigDocumentChecksumCollection)
         {
         }
 

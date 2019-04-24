@@ -1199,7 +1199,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = GetReadMethod(node.LengthOrCountProperty);
             VisitReceiverAfterCall(node.Receiver, method);
             VisitRvalue(node.Argument);
-            VisitReceiverAfterCall(node.Receiver, node.PatternMethod);
+            method = node.PatternSymbol switch
+            {
+                PropertySymbol p => GetReadMethod(p),
+                MethodSymbol m => m,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.PatternSymbol)
+            };
+            VisitReceiverAfterCall(node.Receiver, method);
 
             return null;
         }

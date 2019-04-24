@@ -969,6 +969,87 @@ BC30203: Identifier expected.
             Assert.Equal("a As Program", symbolInfo.Symbol.ToTestDisplayString())
         End Sub
 
+        <WorkItem(35096, "https://github.com/dotnet/roslyn/issues/35096")>
+        <Fact()>
+        Public Sub ThenIncludeSecondArgumentAndMultiArgumentLambdaWithNoLambdaOverlap()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
+<compilation name="ThenIncludeIntellisenseBugNamespace">
+    <file name="a.vb"><![CDATA[
+Imports System                       
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Linq.Expressions
+
+Namespace ThenIncludeIntellisenseBug
+
+    Class Program
+        Shared Sub Main(args As String())
+            Dim registrations = New List(Of Registration)().AsQueryable()
+            Dim reg = registrations.Include(Function(r) r.Activities).ThenInclude(0, Function(a, b, c) c.F)
+        End Sub
+    End Class
+
+    Friend Class Registration
+        Public Property Activities As ICollection(Of Activity)
+    End Class
+
+    Public Class Activity
+        Public Property Task As Task
+    End Class
+
+    Public Class Task
+        Public Property Name As String
+    End Class
+
+    Public Interface IIncludableQueryable(Of Out TEntity, Out TProperty)
+        Inherits IQueryable(Of TEntity)
+    End Interface
+
+    Public Module EntityFrameworkQueryableExtensions
+        <System.Runtime.CompilerServices.Extension>
+        Public Function Include(Of TEntity, TProperty)(
+                source As IQueryable(Of TEntity), 
+                navigationPropertyPath As Expression(Of Func(Of TEntity, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)),
+                a as Integer,
+                navigationPropertyPath As Expression(Of Func(Of string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
+                source As IIncludableQueryable(Of TEntity, TPreviousProperty),
+                a as Integer,
+                navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+    End Module
+End Namespace"
+    ]]></file>
+</compilation>, references:={SystemCoreRef})
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim node = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().ToArray()(1)
+            Assert.Equal("registrations.Include(Function(r) r.Activities).ThenInclude(0, Function(a, b, c) c.F)", node.ToString())
+
+            Dim info = model.GetSymbolInfo(node)
+            Assert.Equal(2, info.CandidateSymbols.Length)
+            Assert.Equal("Public Function ThenInclude(Of TProperty)(a As Integer, navigationPropertyPath As " +
+                         "System.Linq.Expressions.Expression(Of System.Func(Of String, ThenIncludeIntellisenseBug.Activity, TProperty))) As " +
+                         "ThenIncludeIntellisenseBug.IIncludableQueryable(Of ThenIncludeIntellisenseBug.Registration, TProperty)", info.CandidateSymbols(0).ToString())
+            Assert.Equal("Public Function ThenInclude(Of TProperty)(a As Integer, navigationPropertyPath As " +
+                         "System.Linq.Expressions.Expression(Of System.Func(Of String, String, System.Collections.Generic.ICollection(Of ThenIncludeIntellisenseBug.Activity), TProperty))) As " +
+                         "ThenIncludeIntellisenseBug.IIncludableQueryable(Of ThenIncludeIntellisenseBug.Registration, TProperty)", info.CandidateSymbols(1).ToString())
+        End Sub
+
     End Class
 
 End Namespace
