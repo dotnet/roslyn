@@ -2,9 +2,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace Roslyn.Utilities
 {
@@ -66,7 +64,8 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether enumeration of a generic <see cref="IEnumerable{T}"/> is allowed.
+        /// Gets or sets a value indicating whether enumeration of a generic
+        /// <see cref="System.Collections.Generic.IEnumerable{T}"/> is allowed.
         /// </summary>
         public bool AllowGenericEnumeration
         {
@@ -89,7 +88,8 @@ namespace Roslyn.Utilities
         /// <remarks>
         /// <para>When <see langword="true"/>, validation of this performance constraint typically involves analyzing
         /// the method to ensure synchronous completion of the state machine does not require the allocation of a
-        /// <see cref="Task"/>, either through caching the result or by using <see cref="ValueTask{TResult}"/>.</para>
+        /// <see cref="System.Threading.Tasks.Task"/>, either through caching the result or by using
+        /// <see cref="System.Threading.Tasks.ValueTask{TResult}"/>.</para>
         /// </remarks>
         public bool OftenCompletesSynchronously
         {

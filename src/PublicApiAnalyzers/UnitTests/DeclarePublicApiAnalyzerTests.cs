@@ -167,7 +167,7 @@ public class C
                 GetCSharpResultAt(7, 43, DeclarePublicApiAnalyzer.DeclareNewApiRule, "ArrowExpressionProperty.get"));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/821"), WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
+        [Fact, WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
         public async Task SimpleMissingMember_Basic()
         {
             var source = @"
@@ -189,7 +189,8 @@ Public Class C
     Public Sub Method()
     End Sub
 
-    Public ReadOnly Property ReadOnlyProperty As Integer = 0
+    Public ReadOnly Property ReadOnlyAutoProperty As Integer = 0
+    Public Property NormalAutoProperty As Integer = 0
 End Class
 ";
 
@@ -209,8 +210,59 @@ End Class
                 GetBasicResultAt(11, 9, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Property"),
                 // Test0.vb(17,16): warning RS0016: Symbol 'Method' is not part of the declared API.
                 GetBasicResultAt(17, 16, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Method"),
-                // Test0.vb(17,60): warning RS0016: Symbol 'ReadOnlyProperty' is not part of the declared API.
-                GetBasicResultAt(20, 60, DeclarePublicApiAnalyzer.DeclareNewApiRule, "ReadOnlyProperty"));
+                // Test0.vb(20,30): warning RS0016: Symbol 'implicit get-accessor for ReadOnlyAutoProperty' is not part of the declared API.
+                GetBasicResultAt(20, 30, DeclarePublicApiAnalyzer.DeclareNewApiRule, "implicit get-accessor for ReadOnlyAutoProperty"),
+                // Test0.vb(21,21): warning RS0016: Symbol 'implicit get-accessor for NormalAutoProperty' is not part of the declared API.
+                GetBasicResultAt(21, 21, DeclarePublicApiAnalyzer.DeclareNewApiRule, "implicit get-accessor for NormalAutoProperty"),
+                // Test0.vb(21,21): warning RS0016: Symbol 'implicit set-accessor for NormalAutoProperty' is not part of the declared API.
+                GetBasicResultAt(21, 21, DeclarePublicApiAnalyzer.DeclareNewApiRule, "implicit set-accessor for NormalAutoProperty"));
+        }
+
+        [Fact(), WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
+        public async Task SimpleMissingMember_Basic1()
+        {
+            var source = @"
+Imports System
+Public Class C
+    Private m_Property As Integer
+    Public Property [Property]() As Integer
+    '   Get
+    '      Return m_Property
+    '   End Get
+    '   Set
+    '       m_Property = Value
+    '  End Set
+    ' End Property
+    Public ReadOnly Property ReadOnlyProperty0() As Integer
+        Get
+            Return m_Property
+        End Get
+    End Property
+    Public WriteOnly Property WriteOnlyProperty0() As Integer
+        Set
+           m_Property = Value
+        End Set
+    End Property
+    Public ReadOnly Property ReadOnlyProperty1 As Integer = 0
+    Public ReadOnly Property ReadOnlyProperty2 As Integer
+    Public Property Property1 As Integer
+End Class
+";
+
+            var shippedText = @"
+C
+C.New() -> Void
+C.Property() -> Integer
+C.Property(AutoPropertyValue As Integer) -> Void
+C.Property1() -> Integer
+C.Property1(AutoPropertyValue As Integer) -> Void
+C.ReadOnlyProperty0() -> Integer
+C.ReadOnlyProperty1() -> Integer
+C.ReadOnlyProperty2() -> Integer
+C.WriteOnlyProperty0(Value As Integer) -> Void
+";
+            var unshippedText = @"";
+            await VerifyBasicAsync(source, shippedText, unshippedText);
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
