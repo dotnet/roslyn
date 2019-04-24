@@ -869,6 +869,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
+                            else
+                            {
+                                // Don't check parameters on the getter because they will be a subset of the setter
+                                checkValidNullableMethodOverride(
+                                    overridingProperty.GetMethod.Locations[0],
+                                    overriddenProperty.GetMethod,
+                                    overridingProperty.GetMethod,
+                                    diagnostics,
+                                    checkParameters: overridingProperty.SetMethod is null);
+
+                                if (overridingProperty.SetMethod is object)
+                                {
+                                    checkValidNullableMethodOverride(
+                                        overridingProperty.SetMethod.Locations[0],
+                                        overriddenProperty.SetMethod,
+                                        overridingProperty.SetMethod,
+                                        diagnostics,
+                                        checkParameters: true);
+                                }
+                            }
 
                             // If the overriding property is sealed, then the overridden accessors cannot be inaccessible, since we
                             // have to override them to make them sealed in metadata.
@@ -916,7 +936,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     overridingMemberLocation,
                                     overriddenEvent.AddMethod,
                                     overridingEvent.AddMethod,
-                                    diagnostics);
+                                    diagnostics,
+                                    checkParameters: true);
                                 // Don't check remove method because the result is the same
                             }
                         }
@@ -950,14 +971,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 diagnostics.Add(ErrorCode.ERR_OverrideFinalizeDeprecated, overridingMemberLocation);
                             }
-                            else if (overridingMethod.AssociatedSymbol?.Kind != SymbolKind.Event)
+                            else if (!overridingMethod.IsAccessor())
                             {
-                                // Event accessors will have already been checked above
+                                // Accessors will have already been checked above
                                 checkValidNullableMethodOverride(
                                     overridingMemberLocation,
                                     overriddenMethod,
                                     overridingMethod,
-                                    diagnostics);
+                                    diagnostics,
+                                    checkParameters: true);
                             }
                         }
 
@@ -1001,7 +1023,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Location overridingMemberLocation,
                 MethodSymbol overriddenMethod,
                 MethodSymbol overridingMethod,
-                DiagnosticBag diagnostics)
+                DiagnosticBag diagnostics,
+                bool checkParameters)
             {
                 var compilation = overridingMethod.DeclaringCompilation;
                 if (overriddenMethod is null ||
@@ -1023,6 +1046,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         overriddenMethod.ReturnTypeWithAnnotations))
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, overridingMemberLocation);
+                    return;
+                }
+
+                if (!checkParameters)
+                {
                     return;
                 }
 
