@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 }
             }
         }
-
+        
         private bool FiltersMatch(List<CompletionItemFilter> expectedMatchingFilters, CompletionItem item)
         {
             var matchingFilters = CompletionItemFilter.AllFilters
@@ -179,6 +179,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
                 matchPriority, hasSuggestionModeItem, displayTextSuffix, inlineDescription,
                 matchingFilters, targetTypedExperimentEnabled);
+        }
+
+        protected async Task<RoslynCompletion.CompletionList> GetCompletionListAsync(string markup)
+        {
+            var workspace = WorkspaceFixture.GetWorkspace(markup);
+            var currentDocument = workspace.CurrentSolution.GetDocument(WorkspaceFixture.CurrentDocument.Id);
+            var position = WorkspaceFixture.Position;
+            SetWorkspaceOptions(workspace);
+
+            return await GetCompletionListAsync(GetCompletionService(workspace), currentDocument, position, CompletionTrigger.Invoke, workspace.Options).ConfigureAwait(false);
         }
 
         protected async Task VerifyCustomCommitProviderAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind? sourceCodeKind = null, char? commitChar = null)

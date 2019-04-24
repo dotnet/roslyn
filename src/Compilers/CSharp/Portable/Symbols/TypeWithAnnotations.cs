@@ -300,10 +300,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _extensions.IsStatic(DefaultType);
         public bool IsRestrictedType(bool ignoreSpanLikeTypes = false) =>
             _extensions.IsRestrictedType(DefaultType, ignoreSpanLikeTypes);
-        internal bool GetIsReferenceType(ConsList<TypeParameterSymbol> inProgress) =>
-            _extensions.GetIsReferenceType(DefaultType, inProgress);
-        internal bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress) =>
-            _extensions.GetIsValueType(DefaultType, inProgress);
 
         public string ToDisplayString(SymbolDisplayFormat format = null)
         {
@@ -784,9 +780,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal abstract TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol);
 
-            internal abstract bool GetIsReferenceType(TypeSymbol typeSymbol, ConsList<TypeParameterSymbol> inProgress);
-            internal abstract bool GetIsValueType(TypeSymbol typeSymbol, ConsList<TypeParameterSymbol> inProgress);
-
             internal abstract TypeSymbol AsTypeSymbolOnly(TypeSymbol typeSymbol);
 
             internal abstract SpecialType GetSpecialType(TypeSymbol typeSymbol);
@@ -828,24 +821,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override bool IsSZArray(TypeSymbol typeSymbol) => typeSymbol.IsSZArray();
 
             internal override TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol) => typeSymbol.StrippedType();
-
-            internal override bool GetIsReferenceType(TypeSymbol typeSymbol, ConsList<TypeParameterSymbol> inProgress)
-            {
-                if (typeSymbol.TypeKind == TypeKind.TypeParameter)
-                {
-                    return ((TypeParameterSymbol)typeSymbol).GetIsReferenceType(inProgress);
-                }
-                return typeSymbol.IsReferenceType;
-            }
-
-            internal override bool GetIsValueType(TypeSymbol typeSymbol, ConsList<TypeParameterSymbol> inProgress)
-            {
-                if (typeSymbol.TypeKind == TypeKind.TypeParameter)
-                {
-                    return ((TypeParameterSymbol)typeSymbol).GetIsValueType(inProgress);
-                }
-                return typeSymbol.IsValueType;
-            }
 
             internal override TypeWithAnnotations WithModifiers(TypeWithAnnotations type, ImmutableArray<CustomModifier> customModifiers)
             {
@@ -945,16 +920,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return _resolved;
-            }
-
-            internal override bool GetIsReferenceType(TypeSymbol typeSymbol, ConsList<TypeParameterSymbol> inProgress)
-            {
-                return _underlying.GetIsReferenceType(inProgress);
-            }
-
-            internal override bool GetIsValueType(TypeSymbol typeSymbol, ConsList<TypeParameterSymbol> inProgress)
-            {
-                return _underlying.GetIsValueType(inProgress);
             }
 
             internal override TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol) => _underlying.Type;
