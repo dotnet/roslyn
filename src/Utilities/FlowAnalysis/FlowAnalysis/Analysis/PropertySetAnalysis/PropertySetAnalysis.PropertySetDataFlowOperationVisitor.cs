@@ -149,7 +149,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         foreach (IArgumentOperation argumentOperation in operation.Arguments)
                         {
                             pointsToBuilder.Add(this.GetPointsToAbstractValue(argumentOperation));
-                            valueContentBuilder.Add(this.GetValueContentAbstractValue(argumentOperation));
+                            valueContentBuilder.Add(this.GetValueContentAbstractValue(argumentOperation.Value));
                         }
 
                         abstractValue = constructorMapper.MapFromValueContentAbstractValue(operation.Constructor, valueContentBuilder, pointsToBuilder);
