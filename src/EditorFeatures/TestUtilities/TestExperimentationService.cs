@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     [Shared]
-    [Export(typeof(MockExperimentationService))]
+    [Export(typeof(TestExperimentationService))]
     [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test), PartNotDiscoverable]
-    internal sealed class MockExperimentationService : IExperimentationService
+    internal sealed class TestExperimentationService : IExperimentationService
     {
         private Dictionary<string, bool> _experimentsOptionValues = new Dictionary<string, bool>();
 
