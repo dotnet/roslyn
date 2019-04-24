@@ -41,13 +41,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Initializes a <see cref="HazardousUsageEvaluator"/> that evaluates a method invocation with an argument of the type being tracked by PropertySetAnalysis.
         /// </summary>
-        /// <param name="instanceTypeName">Name of the instance that the method is invoked on.</param>
-        /// <param name="methodName">Name of the method within <paramref name="instanceTypeName"/>.</param>
+        /// <param name="containingType">Name of the instance that the method is invoked on.</param>
+        /// <param name="methodName">Name of the method within <paramref name="containingType"/>.</param>
         /// <param name="parameterNameOfPropertySetObject">Name of the method parameter containing the type being tracked by PropertySetAnalysis.</param>
         /// <param name="evaluator">Evaluation callback.</param>
-        public HazardousUsageEvaluator(string instanceTypeName, string methodName, string parameterNameOfPropertySetObject, InvocationEvaluationCallback evaluator)
+        public HazardousUsageEvaluator(string containingType, string methodName, string parameterNameOfPropertySetObject, InvocationEvaluationCallback evaluator)
         {
-            InstanceTypeName = instanceTypeName ?? throw new ArgumentNullException(nameof(instanceTypeName));
+            ContainingTypeName = containingType ?? throw new ArgumentNullException(nameof(containingType));
             MethodName = methodName ?? throw new ArgumentNullException(nameof(methodName));
             ParameterNameOfPropertySetObject = parameterNameOfPropertySetObject ?? throw new ArgumentNullException(nameof(parameterNameOfPropertySetObject));
             InvocationEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
@@ -69,7 +69,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Name of the type containing the method, or null if method is part of the type being tracked by PropertySetAnalysis or this is for a return statement.
         /// </summary>
-        public string InstanceTypeName { get; }
+        public string ContainingTypeName { get; }
 
         /// <summary>
         /// Name of the method being invoked, or null if this is for a return statement.
@@ -94,7 +94,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public override int GetHashCode()
         {
             return HashUtilities.Combine(
-                this.InstanceTypeName.GetHashCodeOrDefault(),
+                this.ContainingTypeName.GetHashCodeOrDefault(),
                 HashUtilities.Combine(this.MethodName.GetHashCodeOrDefault(),
                 HashUtilities.Combine(this.ParameterNameOfPropertySetObject.GetHashCodeOrDefault(),
                 this.InvocationEvaluator.GetHashCodeOrDefault())));
@@ -108,7 +108,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public bool Equals(HazardousUsageEvaluator other)
         {
             return other != null
-                && this.InstanceTypeName == other.InstanceTypeName
+                && this.ContainingTypeName == other.ContainingTypeName
                 && this.MethodName == other.MethodName
                 && this.ParameterNameOfPropertySetObject == other.ParameterNameOfPropertySetObject
                 && this.InvocationEvaluator == other.InvocationEvaluator;

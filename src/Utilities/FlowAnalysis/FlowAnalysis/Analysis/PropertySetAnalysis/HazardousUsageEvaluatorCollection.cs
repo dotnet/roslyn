@@ -31,7 +31,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             this.HazardousUsageEvaluators =
                 hazardousUsageEvaluators.ToImmutableDictionary<HazardousUsageEvaluator, (string InstanceTypeName, string MethodName, string ParameterName)>(
-                    h => (h.InstanceTypeName, h.MethodName, h.ParameterNameOfPropertySetObject));
+                    h => (h.ContainingTypeName, h.MethodName, h.ParameterNameOfPropertySetObject));
         }
 
         public HazardousUsageEvaluatorCollection(params HazardousUsageEvaluator[] hazardousUsageEvaluators)
