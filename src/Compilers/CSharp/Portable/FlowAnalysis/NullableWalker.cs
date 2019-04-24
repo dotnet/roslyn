@@ -6230,7 +6230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitExpressionWithNullability(BoundExpressionWithNullability node)
         {
-            ResultType = TypeWithState.Create(node.Type, node.NullableAnnotation == NullableAnnotation.Annotated ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
+            ResultType = TypeWithAnnotations.Create(node.Type, node.NullableAnnotation).ToTypeWithState();
             return null;
         }
 
