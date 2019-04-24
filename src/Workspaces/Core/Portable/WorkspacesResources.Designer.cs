@@ -1142,6 +1142,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Naming rules.
+        /// </summary>
+        internal static string Naming_rules {
+            get {
+                return ResourceManager.GetString("Naming_rules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming styles.
+        /// </summary>
+        internal static string Naming_styles {
+            get {
+                return ResourceManager.GetString("Naming_styles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nested quantifier {0}.
         /// </summary>
         internal static string Nested_quantifier_0 {
@@ -3309,6 +3327,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Symbol_0_is_not_from_source {
             get {
                 return ResourceManager.GetString("Symbol_0_is_not_from_source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol specifications.
+        /// </summary>
+        internal static string Symbol_specifications {
+            get {
+                return ResourceManager.GetString("Symbol_specifications", resourceCulture);
             }
         }
         
