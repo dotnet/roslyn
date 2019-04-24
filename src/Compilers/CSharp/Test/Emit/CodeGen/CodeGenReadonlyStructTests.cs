@@ -2528,5 +2528,27 @@ struct S
 ";
             CompileAndVerify(csharp, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: "42");
         }
+
+        [Fact]
+        public void ReadOnlyEvent_Emit()
+        {
+            var csharp = @"
+public struct S
+{
+    public readonly event System.Action E { add { } remove { } }
+}
+";
+            CompileAndVerify(csharp, symbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var testStruct = module.ContainingAssembly.GetTypeByMetadataName("S");
+
+                var peModule = (PEModuleSymbol)module;
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)testStruct.GetEvent("E").AddMethod).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)testStruct.GetEvent("E").RemoveMethod).Handle));
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
+            }
+        }
     }
 }

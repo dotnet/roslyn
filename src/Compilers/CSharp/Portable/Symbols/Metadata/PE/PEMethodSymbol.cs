@@ -749,11 +749,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                      ? _packedFlags.IsReadOnly
                      : IsValidReadOnlyTarget;
 
-                bool checkForCompilerAttributes = checkForExtension || checkForIsReadOnly;
-
                 bool isExtensionMethod = false;
                 bool isReadOnly = false;
-                if (checkForCompilerAttributes)
+                if (checkForExtension || checkForIsReadOnly)
                 {
                     containingPEModuleSymbol.LoadCustomAttributesFilterCompilerAttributes(_handle,
                         ref attributeData,
