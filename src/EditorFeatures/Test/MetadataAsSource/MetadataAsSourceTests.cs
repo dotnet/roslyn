@@ -1770,7 +1770,7 @@ public struct S
 ";
             var symbolName = "S.P";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp,
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "Preview",
                 expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
@@ -1778,6 +1778,38 @@ public struct S
 public struct S
 {{
     public readonly int [|P|] {{ get; }}
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
+                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Structure S
+    Public ReadOnly Property [|P|] As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructProperty_ReadOnly_CSharp7_3()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public int P { get; }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, metadataLanguageVersion: "CSharp7_3",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public int [|P|] {{ get; }}
 }}");
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, metadataLanguageVersion: "Preview",
