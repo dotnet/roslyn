@@ -7987,7 +7987,7 @@ End Namespace"
             Await VerifyItemIsAbsentAsync(source, "FirstOrDefault")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35096"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ThenIncludeSecondArgumentAndMultiArgumentLambdaWithNoLambdaOverlap() As Task
             Dim source = CreateThenIncludeTestCode("0, Function(a, b, c) c.$$",
 "       <System.Runtime.CompilerServices.Extension>
