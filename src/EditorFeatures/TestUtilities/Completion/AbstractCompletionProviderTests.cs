@@ -155,8 +155,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected virtual ExportProvider ExportProvider => null;
-        
+        private ExportProvider _exportProvider = null;
+
+        private ExportProvider ExportProvider
+        {
+            get
+            {
+                if (_exportProvider == null)
+                {
+                    _exportProvider = GetExportProvider();
+                }
+
+                return _exportProvider;
+            }
+        }
+
+        protected void SetExperimentOption(string experimentName, bool enabled)
+        {
+            var mockExperimentService = ExportProvider.GetExportedValue<MockExperimentationService>();
+            mockExperimentService.SetExperimentOption(experimentName, enabled);
+        }
+
+        protected virtual ExportProvider GetExportProvider() => null;
+
         private bool FiltersMatch(List<CompletionItemFilter> expectedMatchingFilters, CompletionItem item)
         {
             var matchingFilters = CompletionItemFilter.AllFilters
@@ -341,9 +362,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             List<CompletionItemFilter> matchingFilters, bool targetTypedExperimentEnabled)
         {
             var document1 = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
-
-            var experimentationService = (Experiments.DefaultExperimentationService)document1.Project.Solution.Workspace.Services.GetService<Experiments.IExperimentationService>();
-            experimentationService.ReturnValue = targetTypedExperimentEnabled;
 
             await CheckResultsAsync(
                 document1, position, expectedItemOrNull,

@@ -3,14 +3,12 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
@@ -38,19 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue);
         }
 
-        ExportProvider _exportProvider = null;
-        protected override ExportProvider ExportProvider
+        protected override ExportProvider GetExportProvider()
         {
-            get
-            {
-                if (_exportProvider == null)
-                {
-                    _exportProvider = ExportProviderCache
-                        .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(MockTypeImportCompletionExperimentationService)))
-                        .CreateExportProvider();
-                }
-                return _exportProvider;
-            }
+            return ExportProviderCache
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(MockExperimentationService)))
+                .CreateExportProvider();
         }
 
         #region "Option tests"
@@ -58,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OptionSetToNull_ExpEnabled()
         {
-            var mockExperimentService = ExportProvider.GetExportedValue<MockTypeImportCompletionExperimentationService>();
-            mockExperimentService.ExperimentEnabled = true;
+            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, true);
 
             ShowImportCompletionItemsOptionValue = null;
 
@@ -90,8 +79,7 @@ class Bar
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OptionSetToFalse(bool isExperimentEnabled)
         {
-            var mockExperimentService = ExportProvider.GetExportedValue<MockTypeImportCompletionExperimentationService>();
-            mockExperimentService.ExperimentEnabled = isExperimentEnabled;
+            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
 
             ShowImportCompletionItemsOptionValue = false;
 
@@ -109,8 +97,7 @@ class Bar
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OptionSetToTrue(bool isExperimentEnabled)
         {
-            var mockExperimentService = ExportProvider.GetExportedValue<MockTypeImportCompletionExperimentationService>();
-            mockExperimentService.ExperimentEnabled = isExperimentEnabled;
+            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
 
             ShowImportCompletionItemsOptionValue = true;
 
@@ -941,19 +928,6 @@ namespace Baz
         private Task VerifyTypeImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)
         {
             return VerifyItemIsAbsentAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription);
-        }
-
-        [Shared]
-        [Export(typeof(MockTypeImportCompletionExperimentationService))]
-        [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test)]
-        private class MockTypeImportCompletionExperimentationService : IExperimentationService
-        {
-            public bool ExperimentEnabled { get; set; } = false;
-
-            public bool IsExperimentEnabled(string experimentName)
-            {
-                return ExperimentEnabled && WellKnownExperimentNames.TypeImportCompletion.Equals(experimentName);
-            }
         }
     }
 }
