@@ -409,11 +409,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             var result = GetCustomAttributesForToken(
                 token,
-                out CustomAttributeHandle extensionAttribute,
-                AttributeDescription.CaseSensitiveExtensionAttribute,
-                out CustomAttributeHandle isReadOnlyAttribute,
-                AttributeDescription.IsReadOnlyAttribute,
-                out _, default, out _, default);
+                filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
+                filterOut1: AttributeDescription.CaseSensitiveExtensionAttribute,
+                filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
+                filterOut2: AttributeDescription.IsReadOnlyAttribute,
+                filteredOutAttribute3: out _, filterOut3: default,
+                filteredOutAttribute4: out _, filterOut4: default);
 
             foundExtension = !extensionAttribute.IsNil;
             foundReadOnly = !isReadOnlyAttribute.IsNil;
