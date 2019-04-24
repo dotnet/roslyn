@@ -4808,6 +4808,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!conversion.DeconstructionInfo.IsDefault)
             {
                 VisitRvalue(right);
+                var rightResult = ResultType;
+                var rightResultWithAnnotations = rightResult.ToTypeWithAnnotations();
 
                 var invocation = conversion.DeconstructionInfo.Invocation as BoundCall;
                 var deconstructMethod = invocation?.Method;
@@ -4824,14 +4826,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameter = deconstructMethod.Parameters[0];
                         VisitArgumentConversion(
                                 right, conversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations,
-                                new VisitArgumentResult(new VisitResult(ResultType, ResultType.ToTypeWithAnnotations()), stateForLambda: default),
+                                new VisitArgumentResult(new VisitResult(rightResult, rightResultWithAnnotations), stateForLambda: default),
                                 extensionMethodThisArgument: true);
 
                         if (invocation.Method.IsGenericMethod)
                         {
                             // re-infer the deconstruct parameters based on the 'this' parameter 
                             ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n);
-                            placeholderArgs.Add(CreatePlaceholderIfNecessary(right, ResultType.ToTypeWithAnnotations()));
+                            placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResultWithAnnotations));
                             for (int i = 0; i < n; i++)
                             {
                                 placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
@@ -6230,7 +6232,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitExpressionWithNullability(BoundExpressionWithNullability node)
         {
-            ResultType = TypeWithAnnotations.Create(node.Type, node.NullableAnnotation).ToTypeWithState();
+            var typeWithAnnotations = TypeWithAnnotations.Create(node.Type, node.NullableAnnotation);
+            SetResult(node.Expression, typeWithAnnotations.ToTypeWithState(), typeWithAnnotations);
             return null;
         }
 
