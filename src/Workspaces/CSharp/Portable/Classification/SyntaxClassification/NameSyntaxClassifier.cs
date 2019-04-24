@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (symbolInfo.CandidateReason == CandidateReason.Ambiguous)
+            if (symbolInfo.CandidateReason == CandidateReason.Ambiguous ||
+                symbolInfo.CandidateReason == CandidateReason.MemberGroup)
             {
                 return TryClassifyAmbiguousSymbol(name, symbolInfo, semanticModel, result, cancellationToken);
             }
