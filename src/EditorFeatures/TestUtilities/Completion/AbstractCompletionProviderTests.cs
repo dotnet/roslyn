@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -153,6 +154,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 }
             }
         }
+
+        protected virtual ExportProvider ExportProvider => null;
         
         private bool FiltersMatch(List<CompletionItemFilter> expectedMatchingFilters, CompletionItem item)
         {
@@ -169,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string inlineDescription, List<CompletionItemFilter> matchingFilters,
             bool targetTypedExperimentEnabled)
         {
-            var workspace = WorkspaceFixture.GetWorkspace(markup);
+            var workspace = WorkspaceFixture.GetWorkspace(markup, ExportProvider);
             var code = WorkspaceFixture.Code;
             var position = WorkspaceFixture.Position;
             SetWorkspaceOptions(workspace);
