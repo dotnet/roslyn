@@ -2,9 +2,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
-Imports System.Collections.Generic
 Imports System.Diagnostics
-Imports System.Threading.Tasks
 
 Namespace Global.Roslyn.Utilities
     ''' <summary>
@@ -50,7 +48,8 @@ Namespace Global.Roslyn.Utilities
         Public Property AllowImplicitBoxing As Boolean
 
         ''' <summary>
-        ''' Gets Or sets a value indicating whether enumeration of a generic <see cref="IEnumerable{T}"/> Is allowed.
+        ''' Gets Or sets a value indicating whether enumeration of a generic
+        ''' <see cref="System.Collections.Generic.IEnumerable(Of T)"/> Is allowed.
         ''' </summary>
         Public Property AllowGenericEnumeration As Boolean
 
@@ -65,7 +64,8 @@ Namespace Global.Roslyn.Utilities
         ''' <remarks>
         ''' <para>When <see langword="true"/>, validation of this performance constraint typically involves analyzing
         ''' the method to ensure synchronous completion of the state machine does Not require the allocation of a
-        ''' <see cref="Task"/>, either through caching the result Or by using <see cref="ValueTask{TResult}"/>.</para>
+        ''' <see cref="System.Threading.Tasks.Task"/>, either through caching the result Or by using
+        ''' <see cref="System.Threading.Tasks.ValueTask(Of TResult)"/>.</para>
         ''' </remarks>
         Public Property OftenCompletesSynchronously As Boolean
 
