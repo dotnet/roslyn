@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Emit.UnitTests
                 Assert.Equal("lib", mdReader.GetString(mdReader.GetAssemblyDefinition().Name));
             }
 
+            // make sure all files are closed and can be deleted
             Directory.Delete(dir.Path, recursive: true);
         }
     }

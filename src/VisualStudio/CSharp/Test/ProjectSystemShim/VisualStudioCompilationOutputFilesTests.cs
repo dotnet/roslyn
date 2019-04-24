@@ -55,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.U
                 Assert.Equal("lib", mdReader.GetString(mdReader.GetAssemblyDefinition().Name));
             }
 
+            // make sure all files are closed and can be deleted
             Directory.Delete(dir.Path, recursive: true);
         }
 
