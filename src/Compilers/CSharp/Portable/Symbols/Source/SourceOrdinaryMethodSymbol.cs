@@ -181,17 +181,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
             var location = this.Locations[0];
-            var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
-            var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
-            if (IsAsync &&
-                ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
-                (Bodies.blockBody != null || Bodies.arrowBody != null) &&
-                ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)) &&
-                !Parameters.Any(p => p.HasEnumeratorCancellationAttribute))
+            if (IsAsync)
             {
-                diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, location, this);
+                // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
+                var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+                var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+                if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
+                    (Bodies.blockBody != null || Bodies.arrowBody != null) &&
+                    ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)) &&
+                    !Parameters.Any(p => p.HasEnumeratorCancellationAttribute))
+                {
+                    // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
+                    diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, location, this);
+                }
             }
 
             var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
