@@ -176,6 +176,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return -1;
         }
 
+        public bool Remove(T element)
+        {
+            return _builder.Remove(element);
+        }
+
         public void RemoveAt(int index)
         {
             _builder.RemoveAt(index);

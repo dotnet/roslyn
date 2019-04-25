@@ -103,6 +103,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return constraintTypes.ToImmutableAndFree().WhereAsArray(type => type.SpecialType != SpecialType.System_Object || !type.NullableAnnotation.IsAnnotated());
         }
 
+        internal override bool? IsNotNullableIfReferenceType
+        {
+            get
+            {
+                if (_underlyingTypeParameter.ConstraintTypesNoUseSiteDiagnostics.IsEmpty)
+                {
+                    return _underlyingTypeParameter.IsNotNullableIfReferenceType;
+                }
+
+                return CalculateIsNotNullableIfReferenceType();
+            }
+        }
+
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
         {
             return _map.SubstituteNamedTypes(_underlyingTypeParameter.GetInterfaces(inProgress));

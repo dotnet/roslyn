@@ -1455,16 +1455,13 @@ public struct S
 ";
             var moduleMetadata = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
             var moduleComp = CreateCompilation("", new[] { moduleMetadata });
-            var moduleGetterAttributes = moduleComp.GetMember<PropertySymbol>("S.P1").GetMethod.GetAttributes();
-            Assert.Equal(1, moduleGetterAttributes.Length);
-            Assert.Equal("CompilerGeneratedAttribute", moduleGetterAttributes[0].AttributeClass.Name);
+            var moduleGetter = moduleComp.GetMember<PropertySymbol>("S.P1").GetMethod;
+            Assert.False(moduleGetter.IsDeclaredReadOnly);
 
             var dllMetadata = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
             var dllComp = CreateCompilation("", new[] { dllMetadata });
-            var dllGetterAttributes = dllComp.GetMember<PropertySymbol>("S.P1").GetMethod.GetAttributes();
-            Assert.Equal(2, dllGetterAttributes.Length);
-            Assert.Equal("IsReadOnlyAttribute", dllGetterAttributes[0].AttributeClass.Name);
-            Assert.Equal("CompilerGeneratedAttribute", dllGetterAttributes[1].AttributeClass.Name);
+            var dllGetter = dllComp.GetMember<PropertySymbol>("S.P1").GetMethod;
+            Assert.True(dllGetter.IsDeclaredReadOnly);
         }
 
         [Fact]
@@ -1486,15 +1483,13 @@ public struct S
 ";
             var moduleMetadata = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
             var moduleComp = CreateCompilation("", new[] { moduleMetadata });
-            var moduleGetterAttributes = moduleComp.GetMember<PropertySymbol>("S.P1").GetMethod.GetAttributes();
-            Assert.Equal(1, moduleGetterAttributes.Length);
-            Assert.Equal("CompilerGeneratedAttribute", moduleGetterAttributes[0].AttributeClass.Name);
+            var moduleGetter = moduleComp.GetMember<PropertySymbol>("S.P1").GetMethod;
+            Assert.False(moduleGetter.IsDeclaredReadOnly);
 
             var dllMetadata = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
             var dllComp = CreateCompilation("", new[] { dllMetadata });
-            var dllGetterAttributes = dllComp.GetMember<PropertySymbol>("S.P1").GetMethod.GetAttributes();
-            Assert.Equal(1, dllGetterAttributes.Length);
-            Assert.Equal("CompilerGeneratedAttribute", dllGetterAttributes[0].AttributeClass.Name);
+            var dllGetter = dllComp.GetMember<PropertySymbol>("S.P1").GetMethod;
+            Assert.False(dllGetter.IsDeclaredReadOnly);
         }
 
         [Fact]

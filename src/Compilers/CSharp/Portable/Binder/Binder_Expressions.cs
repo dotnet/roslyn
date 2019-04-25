@@ -7198,6 +7198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node,
                     expr,
                     analyzedArguments.Arguments,
+                    diagnostics,
                     out var patternIndexerAccess))
                 {
                     indexerAccessExpression = patternIndexerAccess;
@@ -7371,6 +7372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax,
                         receiverOpt,
                         analyzedArguments.Arguments,
+                        diagnostics,
                         out var patternIndexerAccess))
                     {
                         return patternIndexerAccess;
@@ -7470,6 +7472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression receiverOpt,
             ArrayBuilder<BoundExpression> arguments,
+            DiagnosticBag diagnostics,
             out BoundIndexOrRangePatternIndexerAccess patternIndexerAccess)
         {
             // Verify a few things up-front, namely that we have a single argument
@@ -7544,19 +7547,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!candidate.IsStatic &&
                             candidate is PropertySymbol property &&
-                            property.GetOwnOrInheritedGetMethod() is MethodSymbol getMethod &&
-                            IsAccessible(getMethod, ref useSiteDiagnostics) &&
-                            getMethod.OriginalDefinition is var original &&
-                            original.ParameterCount == 1 &&
+                            IsAccessible(property, ref useSiteDiagnostics) &&
+                            property.OriginalDefinition is { ParameterCount: 1 } original &&
                             isIntNotByRef(original.Parameters[0]))
                         {
+                            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,
                                 lengthOrCountProperty,
-                                getMethod,
+                                property,
                                 arguments[0],
-                                getMethod.ReturnType);
+                                property.Type);
                             cleanup(lookupResult, ref useSiteDiagnostics);
                             return true;
                         }
@@ -7570,6 +7572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
                 if (substring is { })
                 {
+                    _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
                     patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                         syntax,
                         receiverOpt,
@@ -7609,6 +7612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isIntNotByRef(original.Parameters[0]) &&
                             isIntNotByRef(original.Parameters[1]))
                         {
+                            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,

@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Assuming that nullable annotations are enabled:
         /// T => true
         /// T where T : struct => false
         /// T where T : class => false
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Assuming that nullable annotations are enabled:
         /// T => true
         /// T where T : struct => false
         /// T where T : class => false

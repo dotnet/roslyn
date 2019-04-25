@@ -35,11 +35,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     {
                         // Thread.Yield is insufficient; something in the light bulb must be relying on a UI thread
                         // message at lower priority than the Background priority used in testing.
-                        WaitForApplicationIdle();
+                        WaitForApplicationIdle(Helper.HangMitigatingTimeout);
                         continue;
                     }
 
-                    WaitForApplicationIdle();
+                    WaitForApplicationIdle(Helper.HangMitigatingTimeout);
                     return;
                 }
             }

@@ -536,14 +536,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2);
         }
 
-        public static bool HaveSameConstraints(ImmutableArray<TypeParameterSymbol> typeParameters1, TypeMap typeMap1, ImmutableArray<TypeParameterSymbol> typeParameters2, TypeMap typeMap2)
+        public static bool HaveSameConstraints(ImmutableArray<TypeParameterSymbol> typeParameters1, TypeMap typeMap1, ImmutableArray<TypeParameterSymbol> typeParameters2, TypeMap typeMap2, bool includingNullability = false)
         {
             Debug.Assert(typeParameters1.Length == typeParameters2.Length);
 
             int arity = typeParameters1.Length;
             for (int i = 0; i < arity; i++)
             {
-                if (!HaveSameConstraints(typeParameters1[i], typeMap1, typeParameters2[i], typeMap2))
+                if (!HaveSameConstraints(typeParameters1[i], typeMap1, typeParameters2[i], typeMap2) ||
+                    (includingNullability && !HaveSameNullabilityInConstraints(typeParameters1[i], typeMap1, typeParameters2[i], typeMap2, unknownNullabilityMatchesAny: false)))
                 {
                     return false;
                 }
@@ -595,20 +596,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AreConstraintTypesSubset(substitutedTypes2, substitutedTypes1, typeParameter1);
         }
 
-        public static bool HaveSameNullabilityInConstraints(TypeParameterSymbol typeParameter1, TypeMap typeMap1, TypeParameterSymbol typeParameter2, TypeMap typeMap2)
+        public static bool HaveSameNullabilityInConstraints(TypeParameterSymbol typeParameter1, TypeMap typeMap1, TypeParameterSymbol typeParameter2, TypeMap typeMap2, bool unknownNullabilityMatchesAny = true)
         {
             if (!typeParameter1.IsValueType)
             {
                 bool? isNotNullableIfReferenceType1 = typeParameter1.IsNotNullableIfReferenceType;
                 bool? isNotNullableIfReferenceType2 = typeParameter2.IsNotNullableIfReferenceType;
-                if (isNotNullableIfReferenceType1.HasValue && isNotNullableIfReferenceType2.HasValue &&
-                    isNotNullableIfReferenceType1.GetValueOrDefault() != isNotNullableIfReferenceType2.GetValueOrDefault())
+                if (isNotNullableIfReferenceType1 != isNotNullableIfReferenceType2 &&
+                    !(unknownNullabilityMatchesAny && (!isNotNullableIfReferenceType1.HasValue || !isNotNullableIfReferenceType2.HasValue)))
                 {
                     return false;
                 }
             }
 
-            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, TypeSymbol.EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer);
+            return HaveSameTypeConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2,
+                                           unknownNullabilityMatchesAny ?
+                                               TypeSymbol.EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer :
+                                               TypeSymbol.EqualsAllIgnoreOptionsPlusNullableComparer);
         }
 
         /// <summary>

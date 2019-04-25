@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => new CSharpInteractiveWindow_InProc();
 
         protected override IInteractiveWindow AcquireInteractiveWindow()
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var componentModel = GetComponentModel();
                 var vsInteractiveWindowProvider = componentModel.GetService<CSharpVsInteractiveWindowProvider>();

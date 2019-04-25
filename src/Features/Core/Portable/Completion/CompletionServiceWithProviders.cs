@@ -182,18 +182,17 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return ImmutableArray<CompletionProvider>.Empty;
-
         }
 
         internal protected CompletionProvider GetProvider(CompletionItem item)
         {
             CompletionProvider provider = null;
 
-            if (item.Properties.TryGetValue("Provider", out var name))
+            if (item.ProviderName != null)
             {
                 lock (_gate)
                 {
-                    provider = _nameToProvider.GetOrAdd(name, _getProviderByName);
+                    provider = _nameToProvider.GetOrAdd(item.ProviderName, _getProviderByName);
                 }
             }
 
@@ -485,6 +484,16 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 return CompletionChange.Create(new TextChange(item.Span, item.DisplayText));
             }
+        }
+
+        internal override async Task<CompletionChange> GetChangeAsync(
+            Document document, CompletionItem item, TextSpan completionListSpan,
+            char? commitKey, CancellationToken cancellationToken)
+        {
+            var provider = GetProvider(item);
+            return provider != null
+                ? await provider.GetChangeAsync(document, item, completionListSpan, commitKey, cancellationToken).ConfigureAwait(false)
+                : CompletionChange.Create(new TextChange(completionListSpan, item.DisplayText));
         }
 
         bool IEqualityComparer<ImmutableHashSet<string>>.Equals(ImmutableHashSet<string> x, ImmutableHashSet<string> y)
