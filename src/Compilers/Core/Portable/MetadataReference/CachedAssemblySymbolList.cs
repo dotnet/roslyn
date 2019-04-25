@@ -17,7 +17,11 @@ namespace Microsoft.CodeAnalysis
         private readonly object _guard = new object();
         private readonly WeakList<IAssemblySymbol> _cachedSymbols = new WeakList<IAssemblySymbol>();
 
-        internal void ForEach<TSymbol, TData>(Action<TSymbol, TData> action, TData data)
+        internal void CopyTo<TSymbol>(List<TSymbol> list)
+            where TSymbol : class, IAssemblySymbol
+            => CopyTo<TSymbol, object>(list);
+
+        internal void CopyTo<TSymbol, TData>(List<TSymbol> list, Func<TSymbol, TData, bool> predicate = default, TData data = default)
             where TSymbol : class, IAssemblySymbol
         {
             lock (_guard)
@@ -25,16 +29,14 @@ namespace Microsoft.CodeAnalysis
                 for (int i = 0; i < _cachedSymbols.WeakCount; i++)
                 {
                     if (_cachedSymbols.GetWeakReference(i).TryGetTarget(out IAssemblySymbol assemblySymbol) &&
-                        assemblySymbol is TSymbol typedSymbol)
+                        assemblySymbol is TSymbol typedSymbol &&
+                        (predicate is null || predicate(typedSymbol, data)))
                     {
-                        action(typedSymbol, data);
+                        list.Add(typedSymbol);
                     }
                 }
             }
         }
-
-        internal void ForEach<TData>(Action<IAssemblySymbol, TData> action, TData data) =>
-            ForEach<IAssemblySymbol, TData>(action, data);
 
         internal void Add(IAssemblySymbol peAssembly)
         {
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         internal List<IAssemblySymbol> CopyAll()
         {
             var list = new List<IAssemblySymbol>();
-            ForEach((s, l) => l.Add(s), list);
+            CopyTo(list);
             return list;
         }
     }

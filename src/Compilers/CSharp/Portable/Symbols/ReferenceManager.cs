@@ -984,13 +984,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 protected override void AddAvailableSymbols(List<AssemblySymbol> assemblies)
                 {
-                    CachedSymbols.ForEach<PEAssemblySymbol, List<AssemblySymbol>>((peAssembly, assemblies) =>
-                    {
-                        if (IsMatchingAssembly(peAssembly))
-                        {
-                            assemblies.Add(peAssembly);
-                        }
-                    }, assemblies);
+                    CachedSymbols.CopyTo<AssemblySymbol, AssemblyDataForFile>(
+                        assemblies,
+                        (assembly, me) => me.IsMatchingAssembly(assembly),
+                        this);
                 }
 
                 public override bool IsMatchingAssembly(AssemblySymbol candidateAssembly)

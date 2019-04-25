@@ -853,12 +853,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Protected Overrides Sub AddAvailableSymbols(assemblies As List(Of AssemblySymbol))
                     Dim internalsMayBeVisibleToCompilation = Me.InternalsMayBeVisibleToCompilation
 
-                    CachedSymbols.ForEach(Of PEAssemblySymbol, List(Of AssemblySymbol))(
-                        Sub(peAssembly, list)
-                            If IsMatchingAssembly(peAssembly) Then
-                                list.Add(peAssembly)
-                            End If
-                        End Sub, assemblies)
+                    CachedSymbols.CopyTo(Of AssemblySymbol, AssemblyDataForFile)(
+                        assemblies,
+                        Function(assembly, this) this.IsMatchingAssembly(assembly),
+                        Me)
                 End Sub
 
                 Public Overrides Function IsMatchingAssembly(candidateAssembly As AssemblySymbol) As Boolean
