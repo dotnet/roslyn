@@ -2902,6 +2902,7 @@ public class C
                     case SpecialType.None:
                     case SpecialType.System_Void:
                     case SpecialType.System_Runtime_CompilerServices_IsVolatile: // static
+                    case SpecialType.System_Runtime_CompilerServices_RuntimeFeature: // static and not available
                         continue;
                 }
 
@@ -3230,9 +3231,9 @@ namespace N{0}
     }}
 }}
 ";
-
-            var tree1 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 1), path: "a.cs");
-            var tree2 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 2), path: "b.cs");
+            var parseOptions = TestOptions.Regular7;
+            var tree1 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 1), parseOptions, path: "a.cs");
+            var tree2 = SyntaxFactory.ParseSyntaxTree(string.Format(sourceTemplate, 2), parseOptions, path: "b.cs");
             var comp = CreateCompilation(new[] { tree1, tree2 });
 
             comp.VerifyDiagnostics(

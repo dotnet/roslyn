@@ -113,6 +113,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return GetSemanticInfoForTest<TNode>(compilation);
         }
 
+        internal CompilationUtils.SemanticInfoSummary GetSemanticInfoForTestExperimental<TNode>(string testSrc, MessageID feature, CSharpParseOptions parseOptions = null) where TNode : SyntaxNode
+        {
+            var compilation = CreateExperimentalCompilationWithMscorlib45(testSrc, feature, parseOptions: parseOptions);
+            return GetSemanticInfoForTest<TNode>(compilation);
+        }
+
         protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(CSharpCompilation compilation) where TNode : SyntaxNode
         {
             var tree = compilation.SyntaxTrees[0];

@@ -14,14 +14,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum> :
-        AbstractCodeStyleDiagnosticAnalyzer where TLanguageKindEnum : struct
+        AbstractBuiltInCodeStyleDiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         private static readonly LocalizableString s_localizableMessageFormat = new LocalizableResourceString(nameof(FeaturesResources.Naming_rule_violation_0), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableTitleNamingStyle = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
         protected NamingStyleDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.NamingRuleId,
-                   s_localizableTitleNamingStyle, 
+                   s_localizableTitleNamingStyle,
                    s_localizableMessageFormat)
         {
         }

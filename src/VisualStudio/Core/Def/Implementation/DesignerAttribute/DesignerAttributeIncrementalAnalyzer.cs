@@ -145,6 +145,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var vsWorkspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
             var cps = vsWorkspace?.IsCPSProject(project) == true;
 
             // The remainder of this method does not need to execute on the UI thread, but it's pointless to force a
@@ -201,20 +203,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var documentId = document.Id;
             _notificationService.RegisterNotification(() =>
             {
-                var vsDocument = workspace.GetHostDocument(documentId);
-                if (vsDocument == null)
+                var hierarchy = workspace.GetHierarchy(documentId.ProjectId);
+                if (hierarchy == null)
                 {
                     return;
                 }
 
-                uint itemId = vsDocument.GetItemId();
-                if (itemId == (uint)VSConstants.VSITEMID.Nil)
+                uint itemId = hierarchy.TryGetItemId(document.FilePath);
+
+                if (itemId == VSConstants.VSITEMID_NIL)
                 {
-                    // it is no longer part of the solution
                     return;
                 }
 
-                if (ErrorHandler.Succeeded(vsDocument.Project.Hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ItemSubType, out var currentValue)))
+                if (ErrorHandler.Succeeded(hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ItemSubType, out var currentValue)))
                 {
                     var currentStringValue = string.IsNullOrEmpty(currentValue as string) ? null : (string)currentValue;
                     if (string.Equals(currentStringValue, designerAttributeArgument, StringComparison.OrdinalIgnoreCase))
@@ -229,7 +231,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     var designer = GetDesignerFromForegroundThread();
                     if (designer != null)
                     {
-                        designer.RegisterDesignViewAttribute(vsDocument.Project.Hierarchy, (int)itemId, dwClass: 0, pwszAttributeValue: designerAttributeArgument);
+                        designer.RegisterDesignViewAttribute(hierarchy, (int)itemId, dwClass: 0, pwszAttributeValue: designerAttributeArgument);
                     }
                 }
                 catch

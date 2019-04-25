@@ -4512,7 +4512,7 @@ class B
                 activeStatements: ActiveStatementsDescription.Empty,
                 additionalOldSources: new[] { srcB1 },
                 additionalNewSources: new[] { srcB2 },
-                expectedSemanticEdits:null,
+                expectedSemanticEdits: null,
                 expectedDiagnostics: new[] { Diagnostic(RudeEditKind.ChangingConstructorVisibility, "internal C()") },
                 expectedDeclarationError: null);
         }
@@ -7072,7 +7072,7 @@ class C
         {
             var src1 = "class C { int P { get { return 2; } } }";
             var src2 = "class C { int P { get => 2; } }";
-            
+
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits("Update [get { return 2; }]@18 -> [get => 2;]@18");
@@ -8116,7 +8116,7 @@ class SampleCollection<T>
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.ReadOnlyReferences, "in int i", FeaturesResources.parameter));
         }
-        
+
         [Fact]
         public void Indexer_ReadOnlyRef_Parameter_Update()
         {

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return Checksum.Create(kind, _hostSerializationService.CreateChecksum((MetadataReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKind.AnalyzerReference:
-                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((AnalyzerReference)value, cancellationToken));
+                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((AnalyzerReference)value, usePathFromAssembly: true, cancellationToken));
 
                     case WellKnownSynchronizationKind.SourceText:
                         return Checksum.Create(kind, ((SourceText)value).GetChecksum());
@@ -160,6 +160,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.Projects:
                     case WellKnownSynchronizationKind.Documents:
                     case WellKnownSynchronizationKind.TextDocuments:
+                    case WellKnownSynchronizationKind.AnalyzerConfigDocuments:
                     case WellKnownSynchronizationKind.ProjectReferences:
                     case WellKnownSynchronizationKind.MetadataReferences:
                     case WellKnownSynchronizationKind.AnalyzerReferences:

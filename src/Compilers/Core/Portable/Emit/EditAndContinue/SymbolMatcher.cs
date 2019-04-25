@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 anonymousTypeMap: MapAnonymousTypes(baseline.AnonymousTypeMap),
                 synthesizedMembers: mappedSynthesizedMembers,
                 addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
-                debugInformationProvider: baseline.DebugInformationProvider, 
+                debugInformationProvider: baseline.DebugInformationProvider,
                 localSignatureProvider: baseline.LocalSignatureProvider);
         }
 

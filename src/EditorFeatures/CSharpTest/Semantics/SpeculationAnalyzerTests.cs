@@ -151,9 +151,10 @@ class Program
     static void Main()
     {
         var c = new Class();
-        [|((IComparable)c).CompareTo(null)|];
+        var d = new Class();
+        [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(null)", true);
+}           ", "c.CompareTo(d)", true);
         }
 
         [Fact]
@@ -170,9 +171,10 @@ class Program
     static void Main()
     {
         var c = new Class();
-        [|((IComparable)c).CompareTo(null)|];
+        var d = new Class();
+        [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(null)", false);
+}           ", "c.CompareTo(d)", false);
         }
 
         [Fact]
@@ -287,7 +289,7 @@ class Program
 using System.Collections;
 class Collection : IEnumerable
 {
-    public IEnumerator GetEnumerator() { return null; }
+    public IEnumerator GetEnumerator() { throw new System.NotImplementedException(); }
     public void Add(string s) { }
     public void Add(int i) { }
     void Main()

@@ -5,59 +5,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal struct TokenSemanticInfo
-    {
-        public static readonly TokenSemanticInfo Empty = new TokenSemanticInfo(
-            null, null, ImmutableArray<ISymbol>.Empty, null, default(TextSpan));
-
-        public readonly ISymbol DeclaredSymbol;
-        public readonly IAliasSymbol AliasSymbol;
-        public readonly ImmutableArray<ISymbol> ReferencedSymbols;
-        public readonly ITypeSymbol Type;
-        public readonly TextSpan Span;
-
-        public TokenSemanticInfo(
-            ISymbol declaredSymbol,
-            IAliasSymbol aliasSymbol,
-            ImmutableArray<ISymbol> referencedSymbols,
-            ITypeSymbol type,
-            TextSpan span)
-        {
-            DeclaredSymbol = declaredSymbol;
-            AliasSymbol = aliasSymbol;
-            ReferencedSymbols = referencedSymbols;
-            Type = type;
-            Span = span;
-        }
-
-        public ImmutableArray<ISymbol> GetSymbols(bool includeType)
-        {
-            var result = ArrayBuilder<ISymbol>.GetInstance();
-            result.AddIfNotNull(DeclaredSymbol);
-            result.AddIfNotNull(AliasSymbol);
-            result.AddRange(ReferencedSymbols);
-
-            if (includeType)
-            {
-                result.AddIfNotNull(Type);
-            }
-
-            return result.ToImmutableAndFree();
-        }
-
-        public ISymbol GetAnySymbol(bool includeType)
-        {
-            return GetSymbols(includeType).FirstOrDefault();
-        }
-    }
-
     internal static class SemanticModelExtensions
     {
         public static SemanticMap GetSemanticMap(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
@@ -120,26 +73,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return typeInfo.Type ?? symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
         }
 
-        public static TokenSemanticInfo GetSemanticInfo(
-            this SemanticModel semanticModel,
-            SyntaxToken token,
-            Workspace workspace,
-            CancellationToken cancellationToken)
-        {
-            var languageServices = workspace.Services.GetLanguageServices(token.Language);
-            var syntaxFacts = languageServices.GetService<ISyntaxFactsService>();
-            if (!syntaxFacts.IsBindableToken(token))
-            {
-                return TokenSemanticInfo.Empty;
-            }
-
-            var semanticFacts = languageServices.GetService<ISemanticFactsService>();
-
-            return GetSemanticInfo(
-                semanticModel, semanticFacts, syntaxFacts,
-                token, cancellationToken);
-        }
-
         private static ISymbol MapSymbol(ISymbol symbol, ITypeSymbol type)
         {
             if (symbol.IsConstructor() && symbol.ContainingType.IsAnonymousType)
@@ -166,18 +99,46 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
+            // see if we can map the built-in language operator to a real method on the containing
+            // type of the symbol.  built-in operators can happen when querying the semantic model
+            // for operators.  However, we would prefer to just use the real operator on the type
+            // if it has one.
+            if (symbol is IMethodSymbol methodSymbol &&
+                methodSymbol.MethodKind == MethodKind.BuiltinOperator &&
+                methodSymbol.ContainingType is ITypeSymbol containingType)
+            {
+                var comparer = SymbolEquivalenceComparer.Instance.ParameterEquivalenceComparer;
+
+                // Note: this will find the real method vs the built-in.  That's because the
+                // built-in is synthesized operator that isn't actually in the list of members of
+                // its 'ContainingType'.
+                var mapped = containingType.GetMembers(methodSymbol.Name)
+                                           .OfType<IMethodSymbol>()
+                                           .FirstOrDefault(s => s.Parameters.SequenceEqual(methodSymbol.Parameters, comparer));
+                symbol = mapped ?? symbol;
+            }
+
             return symbol;
         }
 
-        private static TokenSemanticInfo GetSemanticInfo(
-            SemanticModel semanticModel,
-            ISemanticFactsService semanticFacts,
-            ISyntaxFactsService syntaxFacts,
+        public static TokenSemanticInfo GetSemanticInfo(
+            this SemanticModel semanticModel,
             SyntaxToken token,
+            Workspace workspace,
             CancellationToken cancellationToken)
         {
+            var languageServices = workspace.Services.GetLanguageServices(token.Language);
+            var syntaxFacts = languageServices.GetService<ISyntaxFactsService>();
+            if (!syntaxFacts.IsBindableToken(token))
+            {
+                return TokenSemanticInfo.Empty;
+            }
+
+            var semanticFacts = languageServices.GetService<ISemanticFactsService>();
+
             IAliasSymbol aliasSymbol;
             ITypeSymbol type;
+            ITypeSymbol convertedType;
             ISymbol declaredSymbol;
             ImmutableArray<ISymbol> allSymbols;
 
@@ -191,6 +152,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 // on an "override" token, the overridden symbol is the only part of TokenSemanticInfo used by callers, so type doesn't matter
                 type = null;
+                convertedType = null;
                 declaredSymbol = null;
                 allSymbols = overriddenSymbol is null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create(overriddenSymbol);
             }
@@ -198,7 +160,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 aliasSymbol = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
                 var bindableParent = syntaxFacts.GetBindableParent(token);
-                type = semanticModel.GetTypeInfo(bindableParent, cancellationToken).Type;
+                var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
+                type = typeInfo.Type;
+                convertedType = typeInfo.ConvertedType;
                 declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
 
                 var skipSymbolInfoLookup = declaredSymbol.IsKind(SymbolKind.RangeVariable);
@@ -237,9 +201,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (allSymbols.Length == 0 && syntaxFacts.IsQueryKeyword(token))
             {
                 type = null;
+                convertedType = null;
             }
 
-            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, token.Span);
+            return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, convertedType, token.Span);
         }
 
         public static SemanticModel GetOriginalSemanticModel(this SemanticModel semanticModel)

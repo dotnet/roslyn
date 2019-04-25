@@ -686,5 +686,40 @@ class C
     IEnumerable<(string name, int age)> GetPeople() => default;
 }");
         }
+
+        [WorkItem(27251, "https://github.com/dotnet/roslyn/issues/27251")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestEscapedContextualKeywordAsTupleName()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var collection = new List<(int position, int @delegate)>();
+        foreach (var it[||]em in collection)
+        {
+            // Do something
+        }
+    }
+
+    IEnumerable<(string name, int age)> GetPeople() => default;
+}",
+@"using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var collection = new List<(int position, int @delegate)>();
+        foreach (var (position, @delegate) in collection)
+        {
+            // Do something
+        }
+    }
+
+    IEnumerable<(string name, int age)> GetPeople() => default;
+}");
+        }
     }
 }

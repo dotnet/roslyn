@@ -12,6 +12,697 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenInParametersTests : CompilingTestBase
     {
         [Fact]
+        public void ThreeParamReorder()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public struct S
+    {
+        public int X;
+    }
+
+    private static S _field;
+
+    public static ref S GetField(int order)
+    {
+        Console.WriteLine(""GetField "" + _field.X++ + "" "" + order);
+        return ref _field;
+    }
+
+    public static void Main()
+    {
+        M(y: in GetField(0).X, z: GetField(1).X, x: GetField(2).X);
+    }
+
+    static void M(in int x, in int y, in int z)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+        Console.WriteLine(z);
+    }
+}", expectedOutput: @"GetField 0 0
+GetField 1 1
+GetField 2 2
+3
+3
+3");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (int& V_0,
+                int& V_1)
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""ref C.S C.GetField(int)""
+  IL_0006:  ldflda     ""int C.S.X""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       ""ref C.S C.GetField(int)""
+  IL_0012:  ldflda     ""int C.S.X""
+  IL_0017:  stloc.1
+  IL_0018:  ldc.i4.2
+  IL_0019:  call       ""ref C.S C.GetField(int)""
+  IL_001e:  ldflda     ""int C.S.X""
+  IL_0023:  ldloc.0
+  IL_0024:  ldloc.1
+  IL_0025:  call       ""void C.M(in int, in int, in int)""
+  IL_002a:  ret
+}");
+
+        }
+
+        [Fact]
+        public void InParamReadonlyFieldReorder()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    private static readonly int _f = 0;
+    public C()
+    {
+        M(y: _f, x: _f + 1);
+        M(y: in _f, x: _f + 1);
+    }
+
+    public static void Main()
+    {
+        M(y: _f, x: _f + 1);
+        M(y: in _f, x: _f + 1);
+        _ = new C();
+    }
+
+    static void M(in int x, in int y)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+}", expectedOutput: @"1
+0
+1
+0
+1
+0
+1
+0", verify: Verification.Fails);
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (int& V_0,
+                int V_1)
+  IL_0000:  ldsflda    ""int C._f""
+  IL_0005:  stloc.0
+  IL_0006:  ldsfld     ""int C._f""
+  IL_000b:  ldc.i4.1
+  IL_000c:  add
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  ldloc.0
+  IL_0011:  call       ""void C.M(in int, in int)""
+  IL_0016:  ldsflda    ""int C._f""
+  IL_001b:  stloc.0
+  IL_001c:  ldsfld     ""int C._f""
+  IL_0021:  ldc.i4.1
+  IL_0022:  add
+  IL_0023:  stloc.1
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldloc.0
+  IL_0027:  call       ""void C.M(in int, in int)""
+  IL_002c:  newobj     ""C..ctor()""
+  IL_0031:  pop
+  IL_0032:  ret
+}");
+        }
+
+        [Fact]
+        public void InParamCallOptionalArg()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        int x = 1;
+        M(in x);
+    }
+    static void M(in int x, int y = 0)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+}", expectedOutput: @"1
+0");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.0
+  IL_0005:  call       ""void C.M(in int, int)""
+  IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void InParamCtorOptionalArg()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        int x = 1;
+        new C(in x);
+    }
+
+    public C(in int x, int y = 0)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+}", expectedOutput: @"1
+0");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.0
+  IL_0005:  newobj     ""C..ctor(in int, int)""
+  IL_000a:  pop
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void InParamInitializerOptionalArg()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public static int _x = 1;
+    public int _f = M(in _x);
+
+    public static void Main()
+    {
+        new C();
+    }
+
+    public static int M(in int x, int y = 0)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+        return x;
+    }
+}", expectedOutput: @"1
+0");
+            comp.VerifyIL("C..ctor", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldsflda    ""int C._x""
+  IL_0006:  ldc.i4.0
+  IL_0007:  call       ""int C.M(in int, int)""
+  IL_000c:  stfld      ""int C._f""
+  IL_0011:  ldarg.0
+  IL_0012:  call       ""object..ctor()""
+  IL_0017:  ret
+}");
+
+        }
+
+        [Fact]
+        public void InParamCollectionInitializerOptionalArg()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+using System.Collections;
+class C : IEnumerable
+{
+    public static void Main()
+    {
+        int x = 1;
+        new C() { x };
+    }
+
+    public IEnumerator GetEnumerator() => null;
+
+    public void Add(in int x, int y = 0)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+}");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  3
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  newobj     ""C..ctor()""
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldc.i4.0
+  IL_000a:  callvirt   ""void C.Add(in int, int)""
+  IL_000f:  ret
+}");
+        }
+
+        [Fact]
+        public void InParamSetter()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+using System.Collections;
+class C
+{
+    static int _f = 1;
+    public static void Main()
+    {
+        new C()[in _f] = 0;
+    }
+
+    public IEnumerator GetEnumerator() => null;
+
+    public int this[in int x, int y = 0]
+    {
+        get => x;
+        set
+        {
+            Console.WriteLine(x);
+            Console.WriteLine(y);
+            _f++;
+            Console.WriteLine(x);
+        }
+    }
+}", expectedOutput: @"1
+0
+2");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  4
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldsflda    ""int C._f""
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  call       ""void C.this[in int, int].set""
+  IL_0011:  ret
+}");
+        }
+
+        [Fact]
+        public void InParamParamsArg()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        int x = 1;
+        M(in x);
+    }
+    public static void M(in int x, params int[] p)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(p.Length);
+    }
+}", expectedOutput: @"1
+0");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  .locals init (int V_0) //x
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""int[] System.Array.Empty<int>()""
+  IL_0009:  call       ""void C.M(in int, params int[])""
+  IL_000e:  ret
+}");
+        }
+
+        [Fact]
+        public void InParamReorder()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public struct S
+    {
+        public int X;
+    }
+
+    private static S _field;
+
+    public static ref S GetField(int order)
+    {
+        Console.WriteLine(""GetField "" + _field.X++ + "" "" + order);
+        return ref _field;
+    }
+
+    public static void Main()
+    {
+        M(y: in GetField(0).X, x: GetField(1).X);
+    }
+
+    static void M(in int x, in int y)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+}", expectedOutput: @"GetField 0 0
+GetField 1 1
+2
+2");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (int& V_0)
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""ref C.S C.GetField(int)""
+  IL_0006:  ldflda     ""int C.S.X""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       ""ref C.S C.GetField(int)""
+  IL_0012:  ldflda     ""int C.S.X""
+  IL_0017:  ldloc.0
+  IL_0018:  call       ""void C.M(in int, in int)""
+  IL_001d:  ret
+}");
+        }
+
+        [Fact]
+        public void InParamCtorReorder()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public struct S
+    {
+        public int X;
+    }
+
+    private static S _field;
+
+    public static ref S GetField(int order)
+    {
+        Console.WriteLine(""GetField "" + _field.X++ + "" "" + order);
+        return ref _field;
+    }
+
+    public static void Main()
+    {
+        new C(y: in GetField(0).X, x: GetField(1).X);
+    }
+
+    public C(in int x, in int y)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(y);
+    }
+}", expectedOutput: @"GetField 0 0
+GetField 1 1
+2
+2");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (int& V_0)
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""ref C.S C.GetField(int)""
+  IL_0006:  ldflda     ""int C.S.X""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       ""ref C.S C.GetField(int)""
+  IL_0012:  ldflda     ""int C.S.X""
+  IL_0017:  ldloc.0
+  IL_0018:  newobj     ""C..ctor(in int, in int)""
+  IL_001d:  pop
+  IL_001e:  ret
+}");
+        }
+
+        [Fact]
+        public void InIndexerReorder()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+class C
+{
+    public struct S
+    {
+        public int X;
+    }
+
+    private static S _field;
+
+    public static ref S GetField(int order)
+    {
+        Console.WriteLine(""GetField "" + _field.X++ + "" "" + order);
+        return ref _field;
+    }
+
+    public static void Main()
+    {
+        var c = new C();
+        _ = c[y: in GetField(0).X, x: in GetField(1).X];
+    }
+
+    int this[in int x, in int y]
+    {
+        get
+        {
+            Console.WriteLine(x);
+            Console.WriteLine(y);
+            return x;
+        }
+    }
+}", expectedOutput: @"GetField 0 0
+GetField 1 1
+2
+2");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (int& V_0)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldc.i4.0
+  IL_0006:  call       ""ref C.S C.GetField(int)""
+  IL_000b:  ldflda     ""int C.S.X""
+  IL_0010:  stloc.0
+  IL_0011:  ldc.i4.1
+  IL_0012:  call       ""ref C.S C.GetField(int)""
+  IL_0017:  ldflda     ""int C.S.X""
+  IL_001c:  ldloc.0
+  IL_001d:  callvirt   ""int C.this[in int, in int].get""
+  IL_0022:  pop
+  IL_0023:  ret
+}");
+        }
+
+        [Fact]
+        public void InIndexerReorderWithCopy()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+class C
+{
+    public struct S
+    {
+        public int X;
+    }
+
+    private static S _field;
+
+    public static ref S GetField(int order)
+    {
+        Console.WriteLine(""GetField "" + _field.X++ + "" "" + order);
+        return ref _field;
+    }
+
+    public static void Main()
+    {
+        var c = new C();
+        _ = c[y: GetField(0).X, x: GetField(1).X + 1];
+        _ = c[y: GetField(0).X + 2, x: GetField(1).X];
+    }
+
+    int this[in int x, in int y]
+    {
+        get
+        {
+            Console.WriteLine(x);
+            Console.WriteLine(y);
+            return x;
+        }
+    }
+}", expectedOutput: @"GetField 0 0
+GetField 1 1
+3
+2
+GetField 2 0
+GetField 3 1
+4
+5");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       75 (0x4b)
+  .maxstack  4
+  .locals init (int& V_0,
+                int V_1)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldc.i4.0
+  IL_0007:  call       ""ref C.S C.GetField(int)""
+  IL_000c:  ldflda     ""int C.S.X""
+  IL_0011:  stloc.0
+  IL_0012:  ldc.i4.1
+  IL_0013:  call       ""ref C.S C.GetField(int)""
+  IL_0018:  ldfld      ""int C.S.X""
+  IL_001d:  ldc.i4.1
+  IL_001e:  add
+  IL_001f:  stloc.1
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  ldloc.0
+  IL_0023:  callvirt   ""int C.this[in int, in int].get""
+  IL_0028:  pop
+  IL_0029:  ldc.i4.0
+  IL_002a:  call       ""ref C.S C.GetField(int)""
+  IL_002f:  ldfld      ""int C.S.X""
+  IL_0034:  ldc.i4.2
+  IL_0035:  add
+  IL_0036:  stloc.1
+  IL_0037:  ldc.i4.1
+  IL_0038:  call       ""ref C.S C.GetField(int)""
+  IL_003d:  ldflda     ""int C.S.X""
+  IL_0042:  ldloca.s   V_1
+  IL_0044:  callvirt   ""int C.this[in int, in int].get""
+  IL_0049:  pop
+  IL_004a:  ret
+}");
+        }
+
+        [Fact]
+        public void InParamSetterReorder()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+using System.Collections;
+class C
+{
+    static int _f = 1;
+    public static void Main()
+    {
+        new C()[y: in _f, x: _f] = 0;
+    }
+
+    public IEnumerator GetEnumerator() => null;
+
+    public int this[in int x, in int y]
+    {
+        get => x;
+        set
+        {
+            Console.WriteLine(x);
+            Console.WriteLine(y);
+            _f++;
+            Console.WriteLine(x);
+            Console.WriteLine(y);
+        }
+    }
+}", expectedOutput: @"1
+1
+2
+2");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  4
+  .locals init (int& V_0)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldsflda    ""int C._f""
+  IL_000a:  stloc.0
+  IL_000b:  ldsflda    ""int C._f""
+  IL_0010:  ldloc.0
+  IL_0011:  ldc.i4.0
+  IL_0012:  call       ""void C.this[in int, in int].set""
+  IL_0017:  ret
+}");
+        }
+
+        [Fact]
+        public void InParamMemberInitializerReorder()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+using System.Collections;
+class C
+{
+    static int _f = 1;
+    public static void Main()
+    {
+        new C() { [y: in _f, x: _f] = 0 };
+    }
+
+    public IEnumerator GetEnumerator() => null;
+
+    public int this[in int x, in int y]
+    {
+        get => x;
+        set
+        {
+            Console.WriteLine(x);
+            Console.WriteLine(y);
+            _f++;
+            Console.WriteLine(x);
+            Console.WriteLine(y);
+        }
+    }
+}", expectedOutput: @"1
+1
+2
+2");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  4
+  .locals init (int& V_0,
+                int& V_1)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldsflda    ""int C._f""
+  IL_000a:  stloc.0
+  IL_000b:  ldsflda    ""int C._f""
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.1
+  IL_0012:  ldloc.0
+  IL_0013:  ldc.i4.0
+  IL_0014:  callvirt   ""void C.this[in int, in int].set""
+  IL_0019:  ret
+}");
+        }
+
+        [Fact]
         public void RefReturnParamAccess()
         {
             var text = @"
@@ -720,7 +1411,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -846,10 +1537,139 @@ class Program
 
             var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (14,44): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.RefReturning(ref int)' because it returns by reference
+                // (14,19): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.RefReturning(ref int)' because it returns by reference
                 //             M1(in RefReturning(ref local), await GetT(2), 3);
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await GetT(2)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 44)
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "RefReturning(ref local)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 19)
                 );
+        }
+
+        [Fact]
+        public void ReadonlyParamAsyncSpillIn2()
+        {
+            var text = @"
+    using System.Threading.Tasks;
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Test().Wait();
+        }
+
+        public static async Task Test()
+        {
+            int local = 1;
+            M1(arg3: 3, arg1: RefReturning(ref local), arg2: await GetT(2));
+        }
+
+        private static ref int RefReturning(ref int arg)
+        {
+            return ref arg;
+        }
+
+        public static async Task<T> GetT<T>(T val)
+        {
+            await Task.Yield();
+            return val;
+        }
+
+        public static void M1(in int arg1, in int arg2, in int arg3)
+        {
+            System.Console.WriteLine(arg1 + arg2 + arg3);
+        }
+    }
+
+";
+
+            var verifier = CompileAndVerify(text, verify: Verification.Fails, expectedOutput: "6");
+            verifier.VerifyIL("Program.<Test>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      180 (0xb4)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1, //local
+                int V_2,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
+                int V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Test>d__1.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_004f
+    IL_000a:  ldc.i4.1
+    IL_000b:  stloc.1
+    IL_000c:  ldarg.0
+    IL_000d:  ldloca.s   V_1
+    IL_000f:  call       ""ref int Program.RefReturning(ref int)""
+    IL_0014:  ldind.i4
+    IL_0015:  stfld      ""int Program.<Test>d__1.<>7__wrap1""
+    IL_001a:  ldc.i4.2
+    IL_001b:  call       ""System.Threading.Tasks.Task<int> Program.GetT<int>(int)""
+    IL_0020:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0025:  stloc.3
+    IL_0026:  ldloca.s   V_3
+    IL_0028:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_002d:  brtrue.s   IL_006b
+    IL_002f:  ldarg.0
+    IL_0030:  ldc.i4.0
+    IL_0031:  dup
+    IL_0032:  stloc.0
+    IL_0033:  stfld      ""int Program.<Test>d__1.<>1__state""
+    IL_0038:  ldarg.0
+    IL_0039:  ldloc.3
+    IL_003a:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Test>d__1.<>u__1""
+    IL_003f:  ldarg.0
+    IL_0040:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__1.<>t__builder""
+    IL_0045:  ldloca.s   V_3
+    IL_0047:  ldarg.0
+    IL_0048:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Test>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Test>d__1)""
+    IL_004d:  leave.s    IL_00b3
+    IL_004f:  ldarg.0
+    IL_0050:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Test>d__1.<>u__1""
+    IL_0055:  stloc.3
+    IL_0056:  ldarg.0
+    IL_0057:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Test>d__1.<>u__1""
+    IL_005c:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0062:  ldarg.0
+    IL_0063:  ldc.i4.m1
+    IL_0064:  dup
+    IL_0065:  stloc.0
+    IL_0066:  stfld      ""int Program.<Test>d__1.<>1__state""
+    IL_006b:  ldloca.s   V_3
+    IL_006d:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0072:  stloc.2
+    IL_0073:  ldarg.0
+    IL_0074:  ldflda     ""int Program.<Test>d__1.<>7__wrap1""
+    IL_0079:  ldloca.s   V_2
+    IL_007b:  ldc.i4.3
+    IL_007c:  stloc.s    V_4
+    IL_007e:  ldloca.s   V_4
+    IL_0080:  call       ""void Program.M1(in int, in int, in int)""
+    IL_0085:  leave.s    IL_00a0
+  }
+  catch System.Exception
+  {
+    IL_0087:  stloc.s    V_5
+    IL_0089:  ldarg.0
+    IL_008a:  ldc.i4.s   -2
+    IL_008c:  stfld      ""int Program.<Test>d__1.<>1__state""
+    IL_0091:  ldarg.0
+    IL_0092:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__1.<>t__builder""
+    IL_0097:  ldloc.s    V_5
+    IL_0099:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_009e:  leave.s    IL_00b3
+  }
+  IL_00a0:  ldarg.0
+  IL_00a1:  ldc.i4.s   -2
+  IL_00a3:  stfld      ""int Program.<Test>d__1.<>1__state""
+  IL_00a8:  ldarg.0
+  IL_00a9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Test>d__1.<>t__builder""
+  IL_00ae:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00b3:  ret
+}");
         }
 
         [Fact]
@@ -1673,7 +2493,7 @@ public readonly struct S1
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834")]
         public void InParamGenericReadonly()
         {
             var text = @"
@@ -1737,7 +2557,7 @@ public readonly struct S1
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834")]
         public void InParamGenericReadonlyROstruct()
         {
             var text = @"

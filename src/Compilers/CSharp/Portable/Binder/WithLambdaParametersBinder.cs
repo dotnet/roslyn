@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override bool IsNestedFunctionBinder => true;
+
         internal override bool IsDirectlyInIterator
         {
             get
@@ -69,17 +71,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // NOTE: Specifically not overriding IsIndirectlyInIterator.
 
-        internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             if (node != null)
             {
                 diagnostics.Add(ErrorCode.ERR_YieldInAnonMeth, node.YieldKeyword.GetLocation());
             }
-            return CreateErrorType();
+            return TypeWithAnnotations.Create(CreateErrorType());
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(result.IsClear);
 
@@ -110,43 +112,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
-            if (parameter.Locations[0] == newLocation)
+            var oldLocation = parameter.Locations[0];
+            if (oldLocation == newLocation)
             {
                 // a query variable and its corresponding lambda parameter, for example
                 return false;
             }
 
-            var oldLocation = parameter.Locations[0];
-
-            Debug.Assert(oldLocation != newLocation || oldLocation == Location.None, "same nonempty location refers to different symbols?");
-
-            SymbolKind parameterKind = parameter.Kind;
             // Quirk of the way we represent lambda parameters.                
             SymbolKind newSymbolKind = (object)newSymbol == null ? SymbolKind.Parameter : newSymbol.Kind;
 
-            if (newSymbolKind == SymbolKind.ErrorType)
+            switch (newSymbolKind)
             {
-                return true;
-            }
+                case SymbolKind.ErrorType:
+                    return true;
 
-            if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
-            {
-                // Error: A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
-                return true;
-            }
+                case SymbolKind.Parameter:
+                case SymbolKind.Local:
+                    // Error: A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
+                    return true;
 
-            if (newSymbolKind == SymbolKind.RangeVariable)
-            {
-                // The range variable '{0}' conflicts with a previous declaration of '{0}'
-                diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
-                return true;
+                case SymbolKind.Method:
+                    // Local function declaration name conflicts are not reported, for backwards compatibility.
+                    return false;
+
+                case SymbolKind.TypeParameter:
+                    // Type parameter declaration name conflicts are not reported, for backwards compatibility.
+                    return false;
+
+                case SymbolKind.RangeVariable:
+                    // The range variable '{0}' conflicts with a previous declaration of '{0}'
+                    diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
+                    return true;
             }
 
             Debug.Assert(false, "what else could be defined in a lambda?");
             return false;
         }
-
 
         internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
         {

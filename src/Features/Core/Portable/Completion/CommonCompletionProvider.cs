@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             switch (trigger.Kind)
             {
-                case CompletionTriggerKind.Insertion:
+                case CompletionTriggerKind.Insertion when position > 0:
                     var insertedCharacterPosition = position - 1;
                     return this.IsInsertionTrigger(text, insertedCharacterPosition, options);
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private async Task<ImmutableArray<TaggedText>> TryAddSnippetInvocationPart(
-            Document document, CompletionItem item, 
+            Document document, CompletionItem item,
             ImmutableArray<TaggedText> parts, CancellationToken cancellationToken)
         {
             var languageServices = document.Project.LanguageServices;
@@ -104,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             return CommonCompletionItem.Create(
                 displayText: displayText ?? string.Empty,
+                displayTextSuffix: "",
                 description: description != null ? description.ToSymbolDisplayParts() : default,
                 rules: s_suggestionItemRules);
         }

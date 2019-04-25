@@ -41,5 +41,19 @@ namespace Roslyn.Utilities
 
             collection.Add(value);
         }
+
+        public static void MultiRemove<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
+            where TCollection : ICollection<TValue>
+        {
+            if (dictionary.TryGetValue(key, out var collection))
+            {
+                collection.Remove(value);
+
+                if (collection.Count == 0)
+                {
+                    dictionary.Remove(key);
+                }
+            }
+        }
     }
 }

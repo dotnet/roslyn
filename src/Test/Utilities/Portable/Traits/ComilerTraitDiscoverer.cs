@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var array = (CompilerFeature[])traitAttribute.GetConstructorArguments().Single();
             foreach (var feature in array)
-            { 
+            {
                 var value = feature.ToString();
                 yield return new KeyValuePair<string, string>("Compiler", value);
             }

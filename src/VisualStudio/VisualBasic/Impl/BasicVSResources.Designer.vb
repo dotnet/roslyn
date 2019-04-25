@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute()>  _
     Friend Class BasicVSResources
@@ -335,6 +335,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Never.
+        '''</summary>
+        Friend Shared ReadOnly Property Never() As String
+            Get
+                Return ResourceManager.GetString("Never", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to _Never add new line on enter.
         '''</summary>
         Friend Shared ReadOnly Property Never_add_new_line_on_enter() As String
@@ -524,6 +533,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Show items from unimported namespaces (experimental).
+        '''</summary>
+        Friend Shared ReadOnly Property Show_items_from_unimported_namespaces() As String
+            Get
+                Return ResourceManager.GetString("Show_items_from_unimported_namespaces", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Show preview for rename _tracking.
         '''</summary>
         Friend Shared ReadOnly Property Show_preview_for_rename_tracking() As String
@@ -574,6 +592,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Suggest_imports_for_types_in_reference_assemblies() As String
             Get
                 Return ResourceManager.GetString("Suggest_imports_for_types_in_reference_assemblies", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Unused local.
+        '''</summary>
+        Friend Shared ReadOnly Property Unused_local() As String
+            Get
+                Return ResourceManager.GetString("Unused_local", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to VB Coding Conventions.
+        '''</summary>
+        Friend Shared ReadOnly Property VB_Coding_Conventions() As String
+            Get
+                Return ResourceManager.GetString("VB_Coding_Conventions", resourceCulture)
             End Get
         End Property
     End Class

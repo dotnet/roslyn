@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _variable.ContainingSymbol; }
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _variable.Type; }
+            get { return TypeWithAnnotations.Create(_variable.Type); }
         }
 
         internal override bool IsPinned

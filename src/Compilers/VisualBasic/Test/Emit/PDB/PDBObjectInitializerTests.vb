@@ -37,7 +37,7 @@ End Class
             compilation.VerifyPdb("C1.Main",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -92,7 +92,7 @@ End Class
             compilation.VerifyPdb("C1.Main",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -146,7 +146,7 @@ End Class
             compilation.VerifyPdb("C1.Main",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -201,7 +201,7 @@ End Class
             compilation.VerifyPdb("C1.Main",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>

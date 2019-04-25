@@ -15,7 +15,7 @@ namespace Roslyn.Test.PdbUtilities
 {
     public static class SymReaderFactory
     {
-        public static void Dispose(this ISymUnmanagedReader symReader) 
+        public static void Dispose(this ISymUnmanagedReader symReader)
             => ((ISymUnmanagedDispose)symReader)?.Destroy();
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]

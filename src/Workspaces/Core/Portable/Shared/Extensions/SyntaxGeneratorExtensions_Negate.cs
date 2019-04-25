@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -34,6 +35,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
+            return Negate(generator, expression, semanticModel, negateBinary: true, cancellationToken);
+        }
+
+        public static SyntaxNode Negate(
+            this SyntaxGenerator generator,
+            SyntaxNode expression,
+            SemanticModel semanticModel,
+            bool negateBinary,
+            CancellationToken cancellationToken)
+        {
             var syntaxFacts = generator.SyntaxFacts;
             if (syntaxFacts.IsParenthesizedExpression(expression))
             {
@@ -41,10 +52,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     generator.Negate(
                         syntaxFacts.GetExpressionOfParenthesizedExpression(expression),
                         semanticModel,
+                        negateBinary,
                         cancellationToken))
                     .WithTriviaFrom(expression);
             }
-            if (syntaxFacts.IsBinaryExpression(expression))
+            if (negateBinary && syntaxFacts.IsBinaryExpression(expression))
             {
                 return GetNegationOfBinaryExpression(expression, generator, semanticModel, cancellationToken);
             }
@@ -69,13 +81,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var syntaxFacts = generator.SyntaxFacts;
             syntaxFacts.GetPartsOfBinaryExpression(expressionNode, out var leftOperand, out var operatorToken, out var rightOperand);
 
-            var operation = semanticModel.GetOperation(expressionNode, cancellationToken);
-            if (operation.Kind == OperationKind.IsPattern)
+            var binaryOperation = semanticModel.GetOperation(expressionNode, cancellationToken) as IBinaryOperation;
+            if (binaryOperation == null)
             {
+                // Apply the logical not operator if it is not a binary operation.
                 return generator.LogicalNotExpression(expressionNode);
             }
-
-            var binaryOperation = (IBinaryOperation)operation;
 
             if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
             {
@@ -281,7 +292,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var operatorToken = syntaxFacts.GetOperatorTokenOfPrefixUnaryExpression(expression);
             var operand = syntaxFacts.GetOperandOfPrefixUnaryExpression(expression);
 
-            return operand.WithPrependedLeadingTrivia(operatorToken.LeadingTrivia);
+            return operand.WithPrependedLeadingTrivia(operatorToken.LeadingTrivia)
+                          .WithAdditionalAnnotations(Simplifier.Annotation);
         }
     }
 }

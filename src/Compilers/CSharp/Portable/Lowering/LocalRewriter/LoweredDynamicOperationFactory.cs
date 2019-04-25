@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LoweredDynamicOperation MakeDynamicMemberInvocation(
             string name,
             BoundExpression loweredReceiver,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             ImmutableArray<BoundExpression> loweredArguments,
             ImmutableArray<string> argumentNames,
             ImmutableArray<RefKind> refKinds,
@@ -237,9 +237,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Literal(name),
 
                 // type arguments:
-                typeArguments.IsDefaultOrEmpty ?
+                typeArgumentsWithAnnotations.IsDefaultOrEmpty ?
                     _factory.Null(_factory.WellKnownArrayType(WellKnownType.System_Type)) :
-                    _factory.ArrayOrEmpty(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArguments)),
+                    _factory.ArrayOrEmpty(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArgumentsWithAnnotations)),
 
                 // context:
                 _factory.TypeofDynamicOperationContextType(),

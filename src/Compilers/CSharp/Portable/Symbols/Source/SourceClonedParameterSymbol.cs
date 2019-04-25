@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Forwarded
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _originalParam.Type; }
+            get { return _originalParam.TypeWithAnnotations; }
         }
 
         public override RefKind RefKind
@@ -114,11 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override string Name
         {
             get { return _originalParam.Name; }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return _originalParam.CustomModifiers; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -154,6 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsCallerMemberName
         {
             get { return _originalParam.IsCallerMemberName; }
+        }
+
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get { return FlowAnalysisAnnotations.None; }
         }
 
         #endregion

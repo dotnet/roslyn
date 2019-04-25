@@ -495,7 +495,7 @@ N(out var b);
         public void ParenthesizedVariable_Update()
         {
             var src1 = @"
-var (x1, (x2, x3)) = (1, (2, true));
+var (x1, (x2, x3, _)) = (1, (2, true, 3));
 var (a1, a2) = (1, () => { return 7; });
 ";
 
@@ -509,7 +509,7 @@ var (a1, a3) = (1, () => { return 8; });
 
             var expected = new MatchingPairs
             {
-                { "var (x1, (x2, x3)) = (1, (2, true));", "var (x1, (x3, x4)) = (1, (2, true));" },
+                { "var (x1, (x2, x3, _)) = (1, (2, true, 3));", "var (x1, (x3, x4)) = (1, (2, true));" },
                 { "x1", "x1" },
                 { "x2", "x4" },
                 { "x3", "x3" },
@@ -1495,12 +1495,12 @@ foreach (var b in e2) { yield return 4; }
         public void ForeachVariable_Insert()
         {
             var src1 = @"
-foreach (var (a3, a4) in e) { }
+foreach (var ((a3, a4), _) in e) { }
 foreach ((var b4, var b5) in e) { }
 ";
 
             var src2 = @"
-foreach (var (a3, a5, a4) in e) { }
+foreach (var ((a3, a5, a4), _) in e) { }
 foreach ((var b6, var b4, var b5) in e) { }
 ";
 
@@ -1509,7 +1509,7 @@ foreach ((var b6, var b4, var b5) in e) { }
 
             var expected = new MatchingPairs
             {
-                { "foreach (var (a3, a4) in e) { }", "foreach (var (a3, a5, a4) in e) { }" },
+                { "foreach (var ((a3, a4), _) in e) { }", "foreach (var ((a3, a5, a4), _) in e) { }" },
                 { "a3", "a3" },
                 { "a4", "a4" },
                 { "{ }", "{ }" },

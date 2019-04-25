@@ -41,15 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int DeclarationModifiersOffset = SpecialTypeSize;
             private const int DeclarationModifiersSize = 23;
 
-            private const int IsManagedTypeOffset = DeclarationModifiersOffset + DeclarationModifiersSize;
-            private const int IsManagedTypeSize = 2;
+            private const int ManagedKindOffset = DeclarationModifiersOffset + DeclarationModifiersSize;
+            private const int ManagedKindSize = 2;
 
-            private const int FieldDefinitionsNotedOffset = IsManagedTypeOffset + IsManagedTypeSize;
+            private const int FieldDefinitionsNotedOffset = ManagedKindOffset + ManagedKindSize;
             private const int FieldDefinitionsNotedSize = 1;
 
             private const int SpecialTypeMask = (1 << SpecialTypeSize) - 1;
             private const int DeclarationModifiersMask = (1 << DeclarationModifiersSize) - 1;
-            private const int IsManagedTypeMask = (1 << IsManagedTypeSize) - 1;
+            private const int ManagedKindMask = (1 << ManagedKindSize) - 1;
 
             private const int FieldDefinitionsNotedBit = 1 << FieldDefinitionsNotedOffset;
 
@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return (DeclarationModifiers)((_flags >> DeclarationModifiersOffset) & DeclarationModifiersMask); }
             }
 
-            public ThreeState IsManagedType
+            public ManagedKind ManagedKind
             {
-                get { return (ThreeState)((_flags >> IsManagedTypeOffset) & IsManagedTypeMask); }
+                get { return (ManagedKind)((_flags >> ManagedKindOffset) & ManagedKindMask); }
             }
 
             public bool FieldDefinitionsNoted
@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (bits & mask) == 0 || (bits & mask) == mask;
             }
 
-            public void SetIsManagedType(bool isManagedType)
+            public void SetManagedKind(ManagedKind managedKind)
             {
-                int bitsToSet = ((int)isManagedType.ToThreeState() & IsManagedTypeMask) << IsManagedTypeOffset;
+                int bitsToSet = ((int)managedKind & ManagedKindMask) << ManagedKindOffset;
                 Debug.Assert(BitsAreUnsetOrSame(_flags, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _flags, bitsToSet);
             }
@@ -238,21 +238,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private DeclarationModifiers MakeModifiers(TypeKind typeKind, DiagnosticBag diagnostics)
         {
-            var defaultAccess = this.ContainingSymbol is NamespaceSymbol
-                ? DeclarationModifiers.Internal
-                : DeclarationModifiers.Private;
-
+            Symbol containingSymbol = this.ContainingSymbol;
+            DeclarationModifiers defaultAccess;
             var allowedModifiers = DeclarationModifiers.AccessibilityMask;
 
-            if (ContainingSymbol is TypeSymbol)
+            if (containingSymbol.Kind == SymbolKind.Namespace)
             {
-                if (ContainingType.IsInterface)
+                defaultAccess = DeclarationModifiers.Internal;
+            }
+            else
+            {
+                allowedModifiers |= DeclarationModifiers.New;
+
+                if (((NamedTypeSymbol)containingSymbol).IsInterface)
                 {
-                    allowedModifiers |= DeclarationModifiers.All;
+                    defaultAccess = DeclarationModifiers.Public;
                 }
                 else
                 {
-                    allowedModifiers |= DeclarationModifiers.New;
+                    defaultAccess = DeclarationModifiers.Private;
                 }
             }
 
@@ -345,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)
                     {
-                        var info = ModifierUtils.CheckAccessibility(mods);
+                        var info = ModifierUtils.CheckAccessibility(mods, this, isExplicitInterfaceImplementation: false);
                         if (info != null)
                         {
                             diagnostics.Add(info, self.Locations[0]);
@@ -473,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.TypeArguments:
                         {
-                            var tmp = this.TypeArgumentsNoUseSiteDiagnostics; // force type arguments
+                            var tmp = this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics; // force type arguments
                         }
                         break;
 
@@ -596,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var member in _lazyMembersAndInitializers.NonTypeNonIndexerMembers)
                     {
                         FieldSymbol field;
-                        if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixed)
+                        if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixedSizeBuffer)
                         {
                             continue;
                         }
@@ -682,18 +686,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsManagedType
+        internal override ManagedKind ManagedKind
         {
             get
             {
-                var isManagedType = _flags.IsManagedType;
-                if (!isManagedType.HasValue())
+                var managedKind = _flags.ManagedKind;
+                if (managedKind == ManagedKind.Unknown)
                 {
-                    bool value = base.IsManagedType;
-                    _flags.SetIsManagedType(value);
-                    return value;
+                    var baseKind = base.ManagedKind;
+                    _flags.SetManagedKind(baseKind);
+                    return baseKind;
                 }
-                return isManagedType.Value();
+                return managedKind;
             }
         }
 
@@ -705,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get
             {
@@ -713,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsReadOnly
+        public override bool IsReadOnly
         {
             get
             {
@@ -1160,7 +1164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     foreach (var t in symbols)
                     {
-                        diagnostics.Add(ErrorCode.ERR_InterfacesCannotContainTypes, t.Locations[0], t);
+                        Binder.CheckFeatureAvailability(t.DeclaringSyntaxReferences[0].GetSyntax(), MessageID.IDS_DefaultInterfaceImplementation, diagnostics, t.Locations[0]);
                     }
                 }
 
@@ -1186,6 +1190,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_MemberNameSameAsType, member.Locations[0], this.Name);
                     }
                     break;
+                case TypeKind.Interface:
+                    if (member.IsStatic)
+                    {
+                        goto case TypeKind.Class;
+                    }
+                    break;
             }
         }
 
@@ -1200,13 +1210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = _lazyMembersFlattened;
             }
 
-#if DEBUG
-            // In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            // more obviously.
-            return result.DeOrder();
-#else
-            return result;
-#endif
+            return result.ConditionallyDeOrder();
         }
 
         public override ImmutableArray<Symbol> GetMembers()
@@ -1409,14 +1413,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
 
-            if (this.IsByRefLikeType)
+            var location = Locations[0];
+            if (this.IsRefLikeType)
             {
-                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, Locations[0], modifyCompilationForIsByRefLike: true);
+                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, location, modifyCompilation: true);
             }
 
             if (this.IsReadOnly)
             {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, Locations[0], modifyCompilationForRefReadOnly: true);
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
+            var baseType = BaseTypeNoUseSiteDiagnostics;
+            var interfaces = InterfacesNoUseSiteDiagnostics();
+            if (baseType?.NeedsNullableAttribute() == true ||
+                interfaces.Any(t => t.NeedsNullableAttribute()))
+            {
+                this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
         }
 
@@ -1875,7 +1889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         continue;
                     }
-                    var type = field.Type;
+                    var type = field.NonPointerType();
                     if (((object)type != null) &&
                         (type.TypeKind == TypeKind.Struct) &&
                         BaseTypeAnalysis.StructDependsOn((NamedTypeSymbol)type, this) &&
@@ -2001,7 +2015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int p = 0; p < op1.ParameterCount; ++p)
             {
-                if (!op1.ParameterTypes[p].Equals(op2.ParameterTypes[p], TypeCompareKind.AllIgnoreOptions))
+                if (!op1.ParameterTypesWithAnnotations[p].Equals(op2.ParameterTypesWithAnnotations[p], TypeCompareKind.AllIgnoreOptions))
                 {
                     return false;
                 }
@@ -2091,7 +2105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (instanceMap.TryGetValue(tOriginal, out oldInstance))
             {
                 // short circuit when we find a cycle, but only return true when the cycle contains the top struct
-                return (oldInstance != t) && ReferenceEquals(tOriginal, top);
+                return (!TypeSymbol.Equals(oldInstance, t, TypeCompareKind.AllNullableIgnoreOptions)) && ReferenceEquals(tOriginal, top);
             }
             else
             {
@@ -2350,6 +2364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case TypeKind.Class:
+                case TypeKind.Interface:
                 case TypeKind.Submission:
                     // No additional checking required.
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
@@ -2538,7 +2553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return builder.ToImmutableAndFree();
         }
-        
+
         /// <summary>
         /// Report an error if a member (other than a method) exists with the same name
         /// as the property accessor, or if a method exists with the same name and signature.
@@ -2662,7 +2677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                var propertyParamType = ((i == numParams - 1) && !getNotSet) ? propertySymbol.Type : propertyParams[i].Type;
+                var propertyParamType = (((i == numParams - 1) && !getNotSet) ? propertySymbol.TypeWithAnnotations : propertyParams[i].TypeWithAnnotations).Type;
                 if (!propertyParamType.Equals(methodParam.Type, TypeCompareKind.AllIgnoreOptions))
                 {
                     return false;
@@ -2770,10 +2785,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (member.Kind)
             {
                 case SymbolKind.Field:
-                    if ((object)((FieldSymbol)member).AssociatedSymbol == null)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, member.Locations[0]);
-                    }
                     break;
 
                 case SymbolKind.Method:
@@ -2781,12 +2792,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (meth.MethodKind)
                     {
                         case MethodKind.Constructor:
-                        case MethodKind.StaticConstructor:
                             diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConstructors, member.Locations[0]);
                             break;
                         case MethodKind.Conversion:
+                            diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, member.Locations[0]);
+                            break;
                         case MethodKind.UserDefinedOperator:
-                            diagnostics.Add(ErrorCode.ERR_InterfacesCantContainOperators, member.Locations[0]);
+                            if (meth.Name == WellKnownMemberNames.EqualityOperatorName || meth.Name == WellKnownMemberNames.InequalityOperatorName)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, member.Locations[0]);
+                            }
                             break;
                         case MethodKind.Destructor:
                             diagnostics.Add(ErrorCode.ERR_OnlyClassesCanContainDestructors, member.Locations[0]);
@@ -2799,6 +2814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case MethodKind.PropertySet:
                         case MethodKind.EventAdd:
                         case MethodKind.EventRemove:
+                        case MethodKind.StaticConstructor:
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(meth.MethodKind);
@@ -2893,7 +2909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: Per section 11.3.8 of the spec, "every struct implicitly has a parameterless instance constructor".
             // We won't insert a parameterless constructor for a struct if there already is one.
             // We don't expect anything to be emitted, but it should be in the symbol table.
-            if ((!hasParameterlessInstanceConstructor && this.IsStructType()) || (!hasInstanceConstructor && !this.IsStatic))
+            if ((!hasParameterlessInstanceConstructor && this.IsStructType()) || (!hasInstanceConstructor && !this.IsStatic && !this.IsInterface))
             {
                 members.Add((this.TypeKind == TypeKind.Submission) ?
                     new SynthesizedSubmissionConstructor(this, diagnostics) :

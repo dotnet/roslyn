@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -40,7 +41,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableDocumentHighlights>>(
-                RemoteFeatureOptions.DocumentHighlightingEnabled,
                 nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                 new object[]
                 {
@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var result = await TryGetEmbeddedLanguageHighlightsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var result = await TryGetEmbeddedLanguageHighlightsAsync(
+                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefaultOrEmpty)
             {
                 return result;
@@ -92,29 +93,22 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
-            Document document, int position, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var embeddedLanguagesProvider = document.GetLanguageService<IEmbeddedLanguagesProvider>();
-            if (embeddedLanguagesProvider != null)
+            var languagesProvider = document.GetLanguageService<IEmbeddedLanguageFeaturesProvider>();
+            if (languagesProvider != null)
             {
-                foreach (var language in embeddedLanguagesProvider.GetEmbeddedLanguages())
+                foreach (var language in languagesProvider.Languages)
                 {
-                    var highlighter = language.Highlighter;
+                    var highlighter = language.DocumentHighlightsService;
                     if (highlighter != null)
                     {
-                        var highlights = await highlighter.GetHighlightsAsync(
-                            document, position, cancellationToken).ConfigureAwait(false);
+                        var highlights = await highlighter.GetDocumentHighlightsAsync(
+                            document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
 
                         if (!highlights.IsDefaultOrEmpty)
                         {
-                            var result = ArrayBuilder<HighlightSpan>.GetInstance();
-                            foreach (var span in highlights)
-                            {
-                                result.Add(new HighlightSpan(span, HighlightSpanKind.None));
-                            }
-
-                            return ImmutableArray.Create(new DocumentHighlights(
-                                document, result.ToImmutableAndFree()));
+                            return highlights;
                         }
                     }
                 }

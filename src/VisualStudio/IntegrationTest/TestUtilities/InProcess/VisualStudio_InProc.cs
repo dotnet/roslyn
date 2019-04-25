@@ -15,8 +15,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static VisualStudio_InProc Create()
             => new VisualStudio_InProc();
 
-        new public void WaitForApplicationIdle()
-            => InProcComponent.WaitForApplicationIdle();
+        public new void WaitForApplicationIdle(TimeSpan timeout)
+            => InProcComponent.WaitForApplicationIdle(timeout);
 
         new public void WaitForSystemIdle()
             => InProcComponent.WaitForSystemIdle();
@@ -47,8 +47,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return result.ToArray();
         }
 
-        public void ActivateMainWindow(bool skipAttachingThreads = false)
-            => InvokeOnUIThread(() => {
+        public void ActivateMainWindow()
+            => InvokeOnUIThread(cancellationToken =>
+            {
                 var dte = GetDTE();
 
                 var activeVisualStudioWindow = (IntPtr)dte.ActiveWindow.HWnd;
@@ -60,7 +61,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     Debug.WriteLine($"DTE.MainWindow.HWnd = {activeVisualStudioWindow}");
                 }
 
-                IntegrationHelper.SetForegroundWindow(activeVisualStudioWindow, skipAttachingThreads);
+                IntegrationHelper.SetForegroundWindow(activeVisualStudioWindow);
             });
 
         public int GetErrorListErrorCount()

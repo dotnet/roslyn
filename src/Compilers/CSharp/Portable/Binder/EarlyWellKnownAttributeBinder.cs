@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (objectCreation.Initializer == null)
                         {
                             var unusedDiagnostics = DiagnosticBag.GetInstance();
-                            var type = typeBinder.BindType(objectCreation.Type, unusedDiagnostics);
+                            var type = typeBinder.BindType(objectCreation.Type, unusedDiagnostics).Type;
                             unusedDiagnostics.Free();
 
                             var kind = TypedConstant.GetTypedConstantKind(type, typeBinder.Compilation);

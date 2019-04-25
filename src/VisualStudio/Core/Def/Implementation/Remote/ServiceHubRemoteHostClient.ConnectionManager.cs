@@ -57,6 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _shutdownLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
             }
 
+            public HostGroup HostGroup => _hostGroup;
+
             public Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
             {
                 // pool is not enabled by option

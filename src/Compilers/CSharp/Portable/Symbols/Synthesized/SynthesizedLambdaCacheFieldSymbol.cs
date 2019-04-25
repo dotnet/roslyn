@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedLambdaCacheFieldSymbol : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly TypeSymbol _type;
+        private readonly TypeWithAnnotations _type;
         private readonly MethodSymbol _topLevelMethod;
 
         public SynthesizedLambdaCacheFieldSymbol(NamedTypeSymbol containingType, TypeSymbol type, string name, MethodSymbol topLevelMethod, bool isReadOnly, bool isStatic)
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)type != null);
             Debug.Assert((object)topLevelMethod != null);
-            _type = type;
+            _type = TypeWithAnnotations.Create(type);
             _topLevelMethod = topLevelMethod;
         }
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // since a field update is a no-op.
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => false;
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return _type;
         }

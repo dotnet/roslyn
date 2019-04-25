@@ -2,11 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -45,6 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsLiteralDefault(this BoundExpression node)
         {
             return node.Kind == BoundKind.DefaultExpression && node.Syntax.Kind() == SyntaxKind.DefaultLiteralExpression;
+        }
+
+        public static bool IsLiteralNullOrDefault(this BoundExpression node)
+        {
+            return node.IsLiteralNull() || node.IsLiteralDefault();
         }
 
         // returns true when expression has no side-effects and produces

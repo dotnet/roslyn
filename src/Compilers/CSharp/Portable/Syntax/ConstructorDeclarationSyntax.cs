@@ -10,20 +10,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public ConstructorDeclarationSyntax Update(
             SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers, 
+            SyntaxTokenList modifiers,
             SyntaxToken identifier,
-            ParameterListSyntax parameterList, 
-            ConstructorInitializerSyntax initializer, 
-            BlockSyntax body, 
+            ParameterListSyntax parameterList,
+            ConstructorInitializerSyntax initializer,
+            BlockSyntax body,
             SyntaxToken semicolonToken)
             => Update(
-                attributeLists, 
-                modifiers, 
-                identifier, 
-                parameterList, 
-                initializer, 
-                body, 
-                default(ArrowExpressionClauseSyntax), 
+                attributeLists,
+                modifiers,
+                identifier,
+                parameterList,
+                initializer,
+                body,
+                default(ArrowExpressionClauseSyntax),
                 semicolonToken);
     }
 }

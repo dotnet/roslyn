@@ -8,11 +8,10 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -25,9 +24,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             if (filters.TryGetValue(textView, out var filter))
             {
-                filter.Enabled = enable != 0;
+                if (enable != 0)
+                {
+                    filter.EnableCompletion();
+                }
+                else
+                {
+                    filter.DisableCompletion();
+                }
             }
 
+            // Debugger wants Roslyn to return OK in all cases, 
+            // for example, even if Rolsyn tried to enable the one already enabled.
             return VSConstants.S_OK;
         }
 
@@ -40,25 +48,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             if (install != 0)
             {
                 DebuggerIntelliSenseFilter<TPackage, TLanguageService> filter;
-                if (this.filters.ContainsKey(textView))
-                {
-                    // We already have a filter in this textview. Return.
-                    return VSConstants.S_OK;
-                }
-                else
+                if (!this.filters.ContainsKey(textView))
                 {
                     filter = new DebuggerIntelliSenseFilter<TPackage, TLanguageService>(this,
                         this.EditorAdaptersFactoryService.GetWpfTextView(textView),
                         this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>(),
-                        this.Package.ComponentModel.GetService<ICommandHandlerServiceFactory>());
+                        this.Package.ComponentModel.GetService<ICommandHandlerServiceFactory>(),
+                        this.Package.ComponentModel.GetService<IFeatureServiceFactory>());
                     this.filters[textView] = filter;
                     Marshal.ThrowExceptionForHR(textView.AddCommandFilter(filter, out var nextFilter));
                     filter.SetNextFilter(nextFilter);
                 }
+
+                this.filters[textView].SetContentType(install: true);
             }
             else
             {
                 Marshal.ThrowExceptionForHR(textView.RemoveCommandFilter(this.filters[textView]));
+                this.filters[textView].SetContentType(install: false);
                 this.filters[textView].Dispose();
                 this.filters.Remove(textView);
             }
@@ -68,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         int IVsImmediateStatementCompletion2.SetCompletionContext(string filePath,
             IVsTextLines buffer,
-            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] currentStatementSpan,
+            TextSpan[] currentStatementSpan,
             object punkContext,
             IVsTextView textView)
         {
@@ -94,14 +101,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     return VSConstants.E_FAIL;
                 }
 
+                // Clean the old context in any case upfront: 
+                // even if we fail to initialize, the old context must be cleaned.
+                this.filters[textView].RemoveContext();
+
                 var context = CreateContext(view, textView, debuggerBuffer, contextBuffer, currentStatementSpan);
                 if (context.TryInitialize())
                 {
                     this.filters[textView].SetContext(context);
-                }
-                else
-                {
-                    this.filters[textView].RemoveContext();
                 }
             }
 

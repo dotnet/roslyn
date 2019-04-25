@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private new List<Symbol> Analyze(ref bool badRegion)
+        private List<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
             List<Symbol> result = new List<Symbol>();
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // branches into a region are considered entry points
             if (IsInside && pending.Branch != null && !RegionContains(pending.Branch.Syntax.Span))
             {
-                pending.State = pending.State.Reachable ? ReachableState() : UnreachableState();
+                pending.State = pending.State.Reachable ? TopState() : UnreachableState();
             }
 
             base.ResolveBranch(pending, label, target, ref labelStateChanged);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void EnterRegion()
         {
-            this.State = ReachableState();
+            this.State = TopState();
             base.EnterRegion();
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the region is in a condition, then the state will be split and state.Assigned will
                 // be null.  Merge to get sensible results.
                 _endOfRegionState = StateWhenTrue.Clone();
-                IntersectWith(ref _endOfRegionState, ref StateWhenFalse);
+                Join(ref _endOfRegionState, ref StateWhenFalse);
             }
             else
             {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (branch.Branch != null && RegionContains(branch.Branch.Syntax.Span) && !_labelsInside.Contains(branch.Label))
                 {
-                    IntersectWith(ref _endOfRegionState, ref branch.State);
+                    Join(ref _endOfRegionState, ref branch.State);
                 }
             }
 

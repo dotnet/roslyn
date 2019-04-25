@@ -165,9 +165,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 Return expression
-
-                ' TODO (DevDiv workitem 966425): Replace exception name test with a type test once the type 
-                ' Is available in the PCL
             Finally
                 _recursionDepth -= 1
             End Try
@@ -952,7 +949,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 TryEatNewLine(ScannerState.VB)
             Else
                 operatorToken = DirectCast(HandleUnexpectedToken(SyntaxKind.IsKeyword), KeywordSyntax)
-                ReportSyntaxError(operatorToken, ERRID.ERR_MissingIsInTypeOf)
             End If
 
             Dim typeName = ParseGeneralType()

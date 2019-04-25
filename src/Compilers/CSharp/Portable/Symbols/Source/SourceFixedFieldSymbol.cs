@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Checked in parser: a fixed field declaration requires a length in square brackets
 
-            Debug.Assert(this.IsFixed);
+            Debug.Assert(this.IsFixedSizeBuffer);
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
@@ -230,8 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-        {
-            get { return ContainingAssembly.GetSpecialType(SpecialType.System_ValueType); }
-        }
+            => ContainingAssembly.GetSpecialType(SpecialType.System_ValueType);
     }
 }

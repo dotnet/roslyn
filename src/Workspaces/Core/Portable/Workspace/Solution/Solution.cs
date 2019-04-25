@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo info)
-            : this(new SolutionState(workspace, info))
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes)
+            : this(new SolutionState(workspace, solutionAttributes))
         {
         }
 
@@ -128,6 +128,11 @@ namespace Microsoft.CodeAnalysis
         /// True if the solution contains the additional document in one of its projects
         /// </summary>
         public bool ContainsAdditionalDocument(DocumentId documentId) => _state.ContainsAdditionalDocument(documentId);
+
+        /// <summary>
+        /// True if the solution contains the analyzer config document in one of its projects
+        /// </summary>
+        public bool ContainsAnalyzerConfigDocument(DocumentId documentId) => _state.ContainsAnalyzerConfigDocument(documentId);
 
         /// <summary>
         /// Gets the documentId in this solution with the specified syntax tree.
@@ -305,6 +310,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the default namespace.
+        /// </summary>
+        internal Solution WithProjectDefaultNamespace(ProjectId projectId, string defaultNamespace)
+        {
+            var newState = _state.WithProjectDefaultNamespace(projectId, defaultNamespace);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
         public Solution WithProjectName(ProjectId projectId, string name)
@@ -401,7 +420,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution AddProjectReference(ProjectId projectId, ProjectReference projectReference)
         {
-            var newState = _state.AddProjectReference(projectId, projectReference);
+            var newState = _state.AddProjectReferences(projectId, SpecializedCollections.SingletonEnumerable(projectReference));
             if (newState == _state)
             {
                 return this;
@@ -447,6 +466,21 @@ namespace Microsoft.CodeAnalysis
         public Solution WithProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> projectReferences)
         {
             var newState = _state.WithProjectReferences(projectId, projectReferences);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project documents in the order by the specified document ids.
+        /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
+        /// </summary>
+        public Solution WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
+        {
+            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds);
             if (newState == _state)
             {
                 return this;
@@ -752,6 +786,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new Solution instance that contains a new compiler configuration document like a .editorconfig file.
+        /// </summary>
+        public Solution AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            var newState = _state.AddAnalyzerConfigDocuments(documentInfos);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Creates a new solution instance that no longer includes the specified document.
         /// </summary>
         public Solution RemoveDocument(DocumentId documentId)
@@ -771,6 +819,17 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveAdditionalDocument(DocumentId documentId)
         {
             var newState = _state.RemoveAdditionalDocument(documentId);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        public Solution RemoveAnalyzerConfigDocument(DocumentId documentId)
+        {
+            var newState = _state.RemoveAnalyzerConfigDocument(documentId);
             if (newState == _state)
             {
                 return this;
@@ -939,6 +998,21 @@ namespace Microsoft.CodeAnalysis
         public Solution WithAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var newState = _state.WithAdditionalDocumentTextLoader(documentId, loader, mode);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text
+        /// supplied by the text loader.
+        /// </summary>
+        public Solution WithAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        {
+            var newState = _state.WithAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
             if (newState == _state)
             {
                 return this;

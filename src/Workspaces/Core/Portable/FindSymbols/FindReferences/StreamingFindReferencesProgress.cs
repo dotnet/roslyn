@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal class StreamingFindReferencesProgress : IStreamingFindReferencesProgress
     {
-        public static readonly IStreamingFindReferencesProgress Instance = 
+        public static readonly IStreamingFindReferencesProgress Instance =
             new StreamingFindReferencesProgress();
 
         private StreamingFindReferencesProgress()

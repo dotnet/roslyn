@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     var lastConst = this.StartConstant;
                     var lastLabel = allLabels[_startLabelIndex].Value;
 
-                    for(int idx = _startLabelIndex + 1; idx <= _endLabelIndex; idx++)
+                    for (int idx = _startLabelIndex + 1; idx <= _endLabelIndex; idx++)
                     {
                         var switchLabel = allLabels[idx];
 
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             if (split != 0)
                             {
                                 // found another discontinuity, so cannot be split
-                                return -1; 
+                                return -1;
                             }
 
                             split = idx;

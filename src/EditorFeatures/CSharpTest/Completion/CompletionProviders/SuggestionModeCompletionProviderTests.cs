@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public SuggestionModeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) 
+        public SuggestionModeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture)
             : base(workspaceFixture)
         {
         }
@@ -1139,8 +1139,8 @@ public static class Repro
 
             foreach (var triggerInfo in triggerInfos)
             {
-                var completionList = await service.GetContextAsync(
-                    service.ExclusiveProviders?[0], document, position, triggerInfo,
+                var completionList = await service.GetTestAccessor().GetContextAsync(
+                    service.GetTestAccessor().ExclusiveProviders?[0], document, position, triggerInfo,
                     options: null, cancellationToken: CancellationToken.None);
 
                 if (isBuilder)

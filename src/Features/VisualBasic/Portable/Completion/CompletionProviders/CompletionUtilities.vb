@@ -72,28 +72,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 text, characterPosition, AddressOf IsWordStartCharacter, AddressOf IsWordCharacter)
         End Function
 
-        Public Function GetDisplayAndInsertionText(
+        Public Function GetDisplayAndSuffixAndInsertionText(
             symbol As ISymbol,
-            context As SyntaxContext) As (displayText As String, insertionText As String)
+            context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
 
             Dim name As String = Nothing
             If Not CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context, name) Then
                 name = symbol.Name
             End If
 
-            Dim insertionText = GetInsertionText(name, symbol, context)
             Dim displayText = GetDisplayText(name, symbol)
+            Dim insertionText = GetInsertionText(name, symbol, context)
+            Dim suffix = GetSuffix(symbol)
 
-            Return (displayText, insertionText)
+            Return (displayText, suffix, insertionText)
         End Function
 
         Private Function GetDisplayText(name As String, symbol As ISymbol) As String
             If symbol.IsConstructor() Then
                 Return "New"
-            ElseIf symbol.GetArity() > 0 Then
-                Return name & GenericSuffix
             Else
                 Return name
+            End If
+        End Function
+
+        Private Function GetSuffix(symbol As ISymbol) As String
+            If symbol.IsConstructor() Then
+                Return ""
+            ElseIf symbol.GetArity() > 0 Then
+                Return GenericSuffix
+            Else
+                Return ""
             End If
         End Function
 
@@ -114,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             ' If this item was generic, customize what we insert depending on if the user typed
             ' open paren or not.
-            If ch = "("c AndAlso item.DisplayText.EndsWith(GenericSuffix) Then
+            If ch = "("c AndAlso item.DisplayTextSuffix = GenericSuffix Then
                 Return insertionText.Substring(0, insertionText.IndexOf("("c))
             End If
 

@@ -15,11 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_full_solution_analysis
             => ServicesVSResources.Enable_full_solution_analysis;
 
-        public static string Option_Perform_editor_feature_analysis_in_external_process
-            => ServicesVSResources.Perform_editor_feature_analysis_in_external_process;
-
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
+
+        public static string Option_use_nullable_reference_analysis_IDE_features
+            => ServicesVSResources.Enable_nullable_reference_analysis_IDE_features;
 
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             CSharpVSResources.Using_Directives;
 
         public static string Option_Suggest_usings_for_types_in_reference_assemblies =>
-            CSharpVSResources.Suggest_usings_for_types_in_reference_assemblies;
+            CSharpVSResources.Suggest_usings_for_types_in_dotnet_framework_assemblies;
 
         public static string Option_Suggest_usings_for_types_in_NuGet_packages =>
             CSharpVSResources.Suggest_usings_for_types_in_NuGet_packages;
@@ -180,5 +180,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Highlight_related_components_under_cursor =>
             ServicesVSResources.Highlight_related_components_under_cursor;
+
+        public static string Option_Show_completion_list =>
+            ServicesVSResources.Show_completion_list;
+
+        public static string Option_Classifications =>
+            ServicesVSResources.Classifications;
+
+        public static string Option_Use_enhanced_colors_for_C_and_Basic =>
+            ServicesVSResources.Use_enhanced_colors_for_C_and_Basic;
     }
 }

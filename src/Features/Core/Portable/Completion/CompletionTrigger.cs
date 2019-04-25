@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// <summary>
     /// The action that triggered completion to start.
     /// </summary>
-    public struct CompletionTrigger
+    public readonly struct CompletionTrigger
     {
         /// <summary>
         /// The reason that completion was started.
@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Do not use.  Use <see cref="Invoke"/> instead.
         /// </summary>
         [Obsolete("Use 'Invoke' instead.")]
-        public static readonly CompletionTrigger Default = 
+        public static readonly CompletionTrigger Default =
             new CompletionTrigger(CompletionTriggerKind.Other);
 
         /// <summary>
         /// The default <see cref="CompletionTrigger"/> when none is specified.
         /// </summary>
-        public static readonly CompletionTrigger Invoke = 
+        public static readonly CompletionTrigger Invoke =
             new CompletionTrigger(CompletionTriggerKind.Invoke);
 
         /// <summary>

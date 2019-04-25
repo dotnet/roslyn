@@ -16,13 +16,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         void IIntellisenseBuildTarget.SetIntellisenseBuildResult(bool succeeded, string reason)
         {
-            SetIntellisenseBuildResultAndNotifyWorkspace(succeeded);
+            //            SetIntellisenseBuildResultAndNotifyWorkspace(succeeded);
 
             UpdateIntellisenseBuildFailureDiagnostic(succeeded, reason);
         }
 
         private void UpdateIntellisenseBuildFailureDiagnostic(bool succeeded, string reason)
         {
+            /*
             if (!succeeded)
             {
                 // report intellisense build failure to error list
@@ -34,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 // clear intellisense build failure diagnostic from error list.
                 this.HostDiagnosticUpdateSource?.ClearDiagnosticsForProject(Id, s_diagnosticKey);
             }
+            */
         }
 
         private DiagnosticData CreateIntellisenseBuildFailureDiagnostic(string reason)
@@ -50,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 isEnabledByDefault: true,
                 warningLevel: 0,
                 workspace: Workspace,
-                projectId: Id,
+                projectId: VisualStudioProject.Id,
                 title: ServicesVSResources.Project_loading_failed,
                 description: GetDescription(reason),
                 helpLink: "http://go.microsoft.com/fwlink/p/?LinkID=734719");
@@ -58,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         private string GetDescription(string reason)
         {
-            var logFilePath = $"{Path.GetTempPath()}\\{Path.GetFileNameWithoutExtension(this.ProjectFilePath)}_*.designtime.log";
+            var logFilePath = $"{Path.GetTempPath()}\\{Path.GetFileNameWithoutExtension(this.VisualStudioProject.FilePath)}_*.designtime.log";
 
             var logFileDescription = string.Format(ServicesVSResources.To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragraph_follows, logFilePath);
             if (string.IsNullOrWhiteSpace(reason))

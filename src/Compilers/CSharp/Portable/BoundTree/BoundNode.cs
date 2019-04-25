@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -19,24 +22,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             HasErrors = 1 << 0,
             CompilerGenerated = 1 << 1,
+            IsSuppressed = 1 << 2,
+
+            // Bit 3: 1 if the node has maybe-null state, 0 if the node is not null
+            // Bits 4 and 5: 01 if the node is not annotated, 10 if the node is annotated, 11 if the node is disabled
+            TopLevelFlowStateMaybeNull = 1 << 3,
+            TopLevelNotAnnotated = 1 << 4,
+            TopLevelAnnotated = 1 << 5,
+            TopLevelDisabled = TopLevelAnnotated | TopLevelNotAnnotated,
+            TopLevelAnnotationMask = TopLevelDisabled,
 #if DEBUG
             /// <summary>
             /// Captures the fact that consumers of the node already checked the state of the WasCompilerGenerated bit.
             /// Allows to assert on attempts to set WasCompilerGenerated bit after that.
             /// </summary>
-            WasCompilerGeneratedIsChecked = 1 << 2,
+            WasCompilerGeneratedIsChecked = 1 << 6,
+            WasTopLevelNullabilityChecked = 1 << 7,
 #endif
         }
 
         protected BoundNode(BoundKind kind, SyntaxNode syntax)
         {
-            Debug.Assert(kind == BoundKind.SequencePoint || kind == BoundKind.SequencePointExpression || syntax != null);
+            Debug.Assert(
+                kind == BoundKind.SequencePoint ||
+                kind == BoundKind.SequencePointExpression ||
+                kind == (BoundKind)byte.MaxValue || // used in SpillSequenceSpiller
+                syntax != null);
 
             _kind = kind;
             this.Syntax = syntax;
         }
 
-        protected BoundNode(BoundKind kind, SyntaxNode syntax, bool hasErrors) 
+        protected BoundNode(BoundKind kind, SyntaxNode syntax, bool hasErrors)
             : this(kind, syntax)
         {
             if (hasErrors)
@@ -62,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
                 var expression = this as BoundExpression;
-                return expression != null && !ReferenceEquals(expression.Type, null) && expression.Type.IsErrorType();
+                return expression?.Type?.IsErrorType() == true;
             }
         }
 
@@ -90,6 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return Syntax?.SyntaxTree;
             }
+        }
+
+        protected void CopyAttributes(BoundNode original)
+        {
+            this.WasCompilerGenerated = original.WasCompilerGenerated;
+
+            Debug.Assert(original is BoundExpression || !original.IsSuppressed);
+            this.IsSuppressed = original.IsSuppressed;
         }
 
         /// <remarks>
@@ -142,6 +167,97 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Top level nullability for the node. This should not be used by flow analysis.
+        /// </summary>
+        [DebuggerHidden]
+        protected NullabilityInfo TopLevelNullability
+        {
+            get
+            {
+#if DEBUG
+                _attributes |= BoundNodeAttributes.WasTopLevelNullabilityChecked;
+#endif
+
+                // This is broken out into a separate property so the debugger can display the
+                // top level nullability without setting the _attributes flag and interferring
+                // with the normal operation of tests.
+                return TopLevelNullabilityCore;
+            }
+            set
+            {
+#if DEBUG
+                Debug.Assert((_attributes & BoundNodeAttributes.WasTopLevelNullabilityChecked) == 0,
+                    "bound node nullability should not be set after reading it");
+#endif
+                _attributes &= ~(BoundNodeAttributes.TopLevelAnnotationMask | BoundNodeAttributes.TopLevelFlowStateMaybeNull);
+
+                _attributes |= value.Annotation switch
+                {
+                    CodeAnalysis.NullableAnnotation.Annotated => BoundNodeAttributes.TopLevelAnnotated,
+                    CodeAnalysis.NullableAnnotation.NotAnnotated => BoundNodeAttributes.TopLevelNotAnnotated,
+                    CodeAnalysis.NullableAnnotation.Disabled => BoundNodeAttributes.TopLevelDisabled,
+                    var a => throw ExceptionUtilities.UnexpectedValue(a),
+                };
+
+                switch (value.FlowState)
+                {
+                    case CodeAnalysis.NullableFlowState.MaybeNull:
+                        _attributes |= BoundNodeAttributes.TopLevelFlowStateMaybeNull;
+                        break;
+
+                    case CodeAnalysis.NullableFlowState.NotNull:
+                        // Not needed: unset is NotNull
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(value.FlowState);
+                }
+            }
+        }
+
+        /// <summary>
+        /// This is for debugger display use only: <see cref="TopLevelNullability"/> will set the BoundNodeAttributes.WasTopLevelNullabilityChecked
+        /// bit in the boundnode properties, which will break debugging. This allows the debugger to display the current value without setting the bit.
+        /// </summary>
+        private NullabilityInfo TopLevelNullabilityCore
+        {
+            get
+            {
+                if ((_attributes & BoundNodeAttributes.TopLevelAnnotationMask) == 0)
+                {
+                    return default;
+                }
+
+                var annotation = (_attributes & BoundNodeAttributes.TopLevelAnnotationMask) switch
+                {
+                    BoundNodeAttributes.TopLevelAnnotated => CodeAnalysis.NullableAnnotation.Annotated,
+                    BoundNodeAttributes.TopLevelNotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
+                    BoundNodeAttributes.TopLevelDisabled => CodeAnalysis.NullableAnnotation.Disabled,
+                    var mask => throw ExceptionUtilities.UnexpectedValue(mask)
+                };
+
+                var flowState = (_attributes & BoundNodeAttributes.TopLevelFlowStateMaybeNull) == 0 ? CodeAnalysis.NullableFlowState.NotNull : CodeAnalysis.NullableFlowState.MaybeNull;
+
+                return new NullabilityInfo(annotation, flowState);
+            }
+        }
+
+        public bool IsSuppressed
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.IsSuppressed) != 0;
+            }
+            protected set
+            {
+                Debug.Assert((_attributes & BoundNodeAttributes.IsSuppressed) == 0, "flag should not be set twice or reset");
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.IsSuppressed;
+                }
+            }
+        }
 
         public BoundKind Kind
         {
@@ -157,9 +273,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #if DEBUG
+        private class MyTreeDumper : TreeDumper
+        {
+            private MyTreeDumper() : base() { }
+
+            public static new string DumpCompact(TreeDumperNode root)
+            {
+                return new MyTreeDumper().DoDumpCompact(root);
+            }
+
+            protected override string DumperString(object o)
+            {
+                return (o is SynthesizedLocal l) ? l.DumperString() : base.DumperString(o);
+            }
+        }
+
         internal virtual string Dump()
         {
-            return TreeDumper.DumpCompact(BoundTreeDumperNodeProducer.MakeTree(this));
+            return MyTreeDumper.DumpCompact(BoundTreeDumperNodeProducer.MakeTree(this));
         }
 #endif
 
@@ -172,5 +303,228 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return result;
         }
+
+        [Conditional("DEBUG")]
+        public void CheckLocalsDefined()
+        {
+#if DEBUG
+            LocalsScanner.CheckLocalsDefined(this);
+#endif
+        }
+
+#if DEBUG
+        private class LocalsScanner : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            public readonly PooledHashSet<LocalSymbol> DeclaredLocals = PooledHashSet<LocalSymbol>.GetInstance();
+
+            private LocalsScanner()
+            {
+            }
+
+            public static void CheckLocalsDefined(BoundNode root)
+            {
+                var localsScanner = new LocalsScanner();
+                localsScanner.Visit(root);
+                localsScanner.Free();
+            }
+
+            private void AddAll(ImmutableArray<LocalSymbol> locals)
+            {
+                foreach (var local in locals)
+                {
+                    if (!DeclaredLocals.Add(local))
+                    {
+                        Debug.Assert(false, "duplicate local " + local.GetDebuggerDisplay());
+                    }
+                }
+            }
+
+            private void RemoveAll(ImmutableArray<LocalSymbol> locals)
+            {
+                foreach (var local in locals)
+                {
+                    if (!DeclaredLocals.Remove(local))
+                    {
+                        Debug.Assert(false, "missing local " + local.GetDebuggerDisplay());
+                    }
+                }
+            }
+
+            private void CheckDeclared(LocalSymbol local)
+            {
+                if (!DeclaredLocals.Contains(local))
+                {
+                    Debug.Assert(false, "undeclared local " + local.GetDebuggerDisplay());
+                }
+            }
+
+            public override BoundNode VisitFieldEqualsValue(BoundFieldEqualsValue node)
+            {
+                AddAll(node.Locals);
+                base.VisitFieldEqualsValue(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitPropertyEqualsValue(BoundPropertyEqualsValue node)
+            {
+                AddAll(node.Locals);
+                base.VisitPropertyEqualsValue(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitParameterEqualsValue(BoundParameterEqualsValue node)
+            {
+                AddAll(node.Locals);
+                base.VisitParameterEqualsValue(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitBlock(BoundBlock node)
+            {
+                AddAll(node.Locals);
+                base.VisitBlock(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
+            {
+                CheckDeclared(node.LocalSymbol);
+                base.VisitLocalDeclaration(node);
+                return null;
+            }
+
+            public override BoundNode VisitSequence(BoundSequence node)
+            {
+                AddAll(node.Locals);
+                base.VisitSequence(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitSpillSequence(BoundSpillSequence node)
+            {
+                AddAll(node.Locals);
+                base.VisitSpillSequence(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
+            {
+                AddAll(node.InnerLocals);
+                base.VisitSwitchStatement(node);
+                RemoveAll(node.InnerLocals);
+                return null;
+            }
+
+            public override BoundNode VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
+            {
+                AddAll(node.Locals);
+                base.VisitSwitchExpressionArm(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitSwitchSection(BoundSwitchSection node)
+            {
+                AddAll(node.Locals);
+                base.VisitSwitchSection(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitDoStatement(BoundDoStatement node)
+            {
+                AddAll(node.Locals);
+                base.VisitDoStatement(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitWhileStatement(BoundWhileStatement node)
+            {
+                AddAll(node.Locals);
+                base.VisitWhileStatement(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitForStatement(BoundForStatement node)
+            {
+                AddAll(node.OuterLocals);
+                this.Visit(node.Initializer);
+                AddAll(node.InnerLocals);
+                this.Visit(node.Condition);
+                this.Visit(node.Increment);
+                this.Visit(node.Body);
+                RemoveAll(node.InnerLocals);
+                RemoveAll(node.OuterLocals);
+                return null;
+            }
+
+            public override BoundNode VisitForEachStatement(BoundForEachStatement node)
+            {
+                AddAll(node.IterationVariables);
+                base.VisitForEachStatement(node);
+                RemoveAll(node.IterationVariables);
+                return null;
+            }
+
+            public override BoundNode VisitUsingStatement(BoundUsingStatement node)
+            {
+                AddAll(node.Locals);
+                base.VisitUsingStatement(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitFixedStatement(BoundFixedStatement node)
+            {
+                AddAll(node.Locals);
+                base.VisitFixedStatement(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitCatchBlock(BoundCatchBlock node)
+            {
+                AddAll(node.Locals);
+                base.VisitCatchBlock(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public override BoundNode VisitLocal(BoundLocal node)
+            {
+                CheckDeclared(node.LocalSymbol);
+                base.VisitLocal(node);
+                return null;
+            }
+
+            public override BoundNode VisitPseudoVariable(BoundPseudoVariable node)
+            {
+                CheckDeclared(node.LocalSymbol);
+                base.VisitPseudoVariable(node);
+                return null;
+            }
+
+            public override BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
+            {
+                AddAll(node.Locals);
+                base.VisitConstructorMethodBody(node);
+                RemoveAll(node.Locals);
+                return null;
+            }
+
+            public void Free()
+            {
+                DeclaredLocals.Free();
+            }
+        }
+#endif
     }
 }

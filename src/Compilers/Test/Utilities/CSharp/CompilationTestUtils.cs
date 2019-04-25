@@ -15,6 +15,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -277,6 +278,122 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     ? model.LookupNamespacesAndTypes(position, container)
                     : model.LookupSymbols(position, container);
             return symbols.Select(s => s.Name).Distinct().ToList();
+        }
+
+        /// <summary>
+        /// Verify the type and nullability inferred by NullabilityWalker of all expressions in the source
+        /// that are followed by specific annotations. Annotations are of the form /*T:type*/.
+        /// </summary>
+        internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
+        {
+            // When nullable analysis does not require a feature flag, this can be removed so that we
+            // don't need to create an extra compilation
+            if (compilation.Feature("run-nullable-analysis") != "true")
+            {
+                compilation = compilation.WithAdditionalFeatures(("run-nullable-analysis", "true"));
+            }
+
+            if (tree == null)
+            {
+                foreach (var syntaxTree in compilation.SyntaxTrees)
+                {
+                    VerifyTypes(compilation, syntaxTree);
+                }
+                return;
+            }
+
+            var root = tree.GetRoot();
+            var allAnnotations = getAnnotations();
+            if (allAnnotations.IsEmpty)
+            {
+                return;
+            }
+
+            var model = compilation.GetSemanticModel(tree);
+            var annotationsByMethod = allAnnotations.GroupBy(annotation => annotation.Expression.Ancestors().OfType<BaseMethodDeclarationSyntax>().First()).ToArray();
+            foreach (var annotations in annotationsByMethod)
+            {
+                var methodSyntax = annotations.Key;
+                var method = model.GetDeclaredSymbol(methodSyntax);
+
+                var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
+                var actualTypes = annotations.SelectAsArray(annotation =>
+                    {
+                        var typeInfo = model.GetTypeInfo(annotation.Expression);
+                        Assert.NotEqual(CodeAnalysis.NullableAnnotation.NotApplicable, typeInfo.Nullability.Annotation);
+                        Assert.NotEqual(CodeAnalysis.NullableFlowState.NotApplicable, typeInfo.Nullability.FlowState);
+                        // https://github.com/dotnet/roslyn/issues/35035: After refactoring symboldisplay, we should be able to just call something like typeInfo.Type.ToDisplayString(typeInfo.Nullability.FlowState, TypeWithState.TestDisplayFormat)
+                        return TypeWithState.Create((TypeSymbol)typeInfo.Type, typeInfo.Nullability.FlowState.ToInternalFlowState()).ToTypeWithAnnotations().ToDisplayString(TypeWithAnnotations.TestDisplayFormat);
+                    });
+                // Consider reporting the correct source with annotations on mismatch.
+                AssertEx.Equal(expectedTypes, actualTypes, message: method.ToTestDisplayString());
+            }
+
+            ImmutableArray<(ExpressionSyntax Expression, string Text)> getAnnotations()
+            {
+                var builder = ArrayBuilder<(ExpressionSyntax, string)>.GetInstance();
+                foreach (var token in root.DescendantTokens())
+                {
+                    foreach (var trivia in token.TrailingTrivia)
+                    {
+                        if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                        {
+                            var text = trivia.ToFullString();
+                            const string prefix = "/*T:";
+                            const string suffix = "*/";
+                            if (text.StartsWith(prefix) && text.EndsWith(suffix))
+                            {
+                                var expr = getEnclosingExpression(token);
+                                Assert.True(expr != null, $"VerifyTypes could not find a matching expression for annotation '{text}'.");
+
+                                var content = text.Substring(prefix.Length, text.Length - prefix.Length - suffix.Length);
+                                builder.Add((expr, content));
+                            }
+                        }
+                    }
+                }
+                return builder.ToImmutableAndFree();
+            }
+
+            ExpressionSyntax getEnclosingExpression(SyntaxToken token)
+            {
+                var node = token.Parent;
+                while (true)
+                {
+                    var expr = asExpression(node);
+                    if (expr != null)
+                    {
+                        return expr;
+                    }
+                    if (node == root)
+                    {
+                        break;
+                    }
+                    node = node.Parent;
+                }
+                return null;
+            }
+
+            ExpressionSyntax asExpression(SyntaxNode node)
+            {
+                var expr = node as ExpressionSyntax;
+                if (expr == null)
+                {
+                    return null;
+                }
+                switch (expr.Kind())
+                {
+                    case SyntaxKind.ParenthesizedExpression:
+                        return ((ParenthesizedExpressionSyntax)expr).Expression;
+                    case SyntaxKind.IdentifierName:
+                        if (expr.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == expr)
+                        {
+                            return memberAccess;
+                        }
+                        break;
+                }
+                return expr;
+            }
         }
     }
 }

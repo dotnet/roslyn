@@ -53,6 +53,12 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
                 return false;
             }
 
+            bool isByRef = IsByRef(signature, ref position);
+            if (IsByRefProperty(property) != isByRef)
+            {
+                return false;
+            }
+
             // get the property type
             if (!MatchType(GetPropertyType(property), signature, ref position))
             {
@@ -287,6 +293,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
 
         protected abstract bool IsByRefParam(ParameterSymbol parameter);
         protected abstract bool IsByRefMethod(MethodSymbol method);
+        protected abstract bool IsByRefProperty(PropertySymbol property);
 
         protected abstract TypeSymbol GetFieldType(FieldSymbol field);
     }

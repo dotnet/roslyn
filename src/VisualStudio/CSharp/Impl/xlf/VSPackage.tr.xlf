@@ -33,28 +33,231 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
-        <target state="needs-review-translation">İmlecin altındaki sembole başvuruları vurgula;İmlecin altındaki ilişkili anahtar sözcükleri vurgula;Dosyalar açıldığında anahat moduna gir;Yordam satır ayraçlarını göster;XML belge açıklamaları oluştur;Kapatılan dosyalar için tanılamaları göster;Yeniden adlandırma izlemesi için önizleme göster;Kullanımları sıralarken önce 'System' yönergelerini yerleştir;Özel yapılara ref veya out koyma</target>
+        <source>Show diagnostics for closed files;
+Colorize regular expression; 
+Highlight related components under cursor; 
+Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Using directives;
+Place system directives first when sorting usings;
+Separate using directive groups;
+Suggest usings for types in reference assemblies;
+Suggest usings for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused usings;
+Fade out unreachable code;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ///;
+Insert * at the start of new lines when writing /* */ comments;
+Show preview for rename tracking;
+Split string literals on Enter;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Don't put ref or out on custom struct;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;</source>
+        <target state="needs-review-translation">Teşhis için kapalı dosyaları göster;
+Normal ifade renklendirmek; 
+İmleç altında ilişkili bileşenleri vurgulamak; 
+Rapor geçersiz normal ifadeler;
+Tam çözüm analiz izin verin;
+Dış işlem Düzenleyicisi özelliğini çözümlemesi;
+Gezinti decompiled kaynakları için etkinleştir;
+Yönergeleri kullanarak;
+Sistem yönergeleri usings sıralarken birincilik;
+Yönerge gruplarını kullanarak ayırın;
+Usings başvuru derlemelerinin türlerin öneririz;
+Usings NuGet paketlerinde türleri için öneririz;
+Vurgulayarak;
+İmleç altında sembol için başvurular vurgulamak;
+İmleç altında ilgili anahtar kelimeler vurgulayın;
+Anahat oluşturma;
+Dosyaları açtığınızda düzeylendirme modu girin;
+Yordam satır ayırıcıları göster;
+Bildirim düzey yapıları için anahat göster;
+Anahat kodu düzeyi yapıları için göstermek;
+Yorum ve Önişlemci bölgeler için anahat göster;
+Bölgeler ne zaman tanımlarına daraltma daraltma;
+Solan;
+Kullanılmayan usings fade;
+Ulaşılamaz kodu fade;
+Yapı kılavuzları engellemek;
+Bildirim düzey yapıları için kılavuzları göster;
+Kod düzeyi yapıları için kılavuzları göster;
+Editör Yardım;
+XML belgeleri yorum için / / / oluşturmak;
+Ekle * yazarken yeni satırları başlangıcında / * * / Yorumlar;
+İzleme yeniden adlandırma için Önizlemeyi göster;
+Split dize hazır bilgi tarih girin;
+Dizesinde geçersiz yer tutucuları rapor. Biçimi çağrıları;
+Yöntemi ayıklamak;
+Değil ürün kodu koymak veya özel yapı dışarı;
+Arabirim ya da soyut sınıf uygulamak;
+Özelliklerini, olaylarını ve yöntemlerini eklerken, yer onları;
+aynı diğer üyeleri ile;
+vasıl belgili tanımlık son;
+Özellik oluşturma sırasında;
+özellikleri atma tercih;
+otomatik özellikleri tercih;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
-        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste;code cleanup;</source>
-        <target state="needs-review-translation">Noktalı virgül girildiğinde deyimi otomatik biçimlendir;Küme ayracı girildiğinde bloğu otomatik biçimlendir;Yapıştırma sonrasında otomatik biçimlendir</target>
+        <source>Automatically format when typing;
+Automatically format statement on semicolon ;
+Automatically format block on end brace;
+Automatically format on return;
+Automatically format on paste;</source>
+        <target state="translated">Ne zaman tipik biçimi otomatik olarak;
+Otomatik olarak noktalı virgül ekstresinde biçimi;
+Otomatik biçimlendirme blok sonu küme ayracı;
+Otomatik olarak biçimi dönüşünde;
+Formatı yapıştırırken otomatik olarak;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
-        <source>Indent block contents;Indent open and close braces, indent case contents;indent case labels;label indentation</source>
-        <target state="translated">Blok içeriklerini girintile;Açık ve kapalı küme ayraçlarını girintile;durum içeriklerini girintile;durum etiketlerini girintile;etiket girintileme</target>
+        <source>Indent block contents; 
+indent open and close braces; 
+indent case contents; 
+indent case contents (when block); 
+indent case labels; 
+label indentation; 
+place goto labels in leftmost column; 
+indent labels normally; 
+place goto labels one indent less than current;</source>
+        <target state="translated">Girinti bloğu içeriği; 
+açma ve kapama ayraçları girinti; 
+girinti servis talebi içeriğini; 
+girinti servis talebi içeriğini (ne zaman blok); 
+girinti durum etiketi; 
+etiket girinti; 
+goto etiket en soldaki sütuna getirin; 
+Etiketleri normal girinti; 
+goto etiket bir girinti az geçerli yerleştirin;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
-        <source>New line formatting option for braces;New line formatting options for keywords</source>
-        <target state="translated">Küme ayraçları için yeni satır biçimlendirme seçeneği;Anahtar sözcükler için yeni satır biçimlendirme seçenekleri</target>
+        <source>New line formatting option for braces;New line formatting options for keywords;New line options for braces;
+Place open brace on new line for types;
+Place open brace on new line for methods and local functions;
+Place open brace on new line for properties, indexers, and events;
+Place open brace on new line for property, indexer, and event accessors;
+Place open brace on new line for anonymous methods;
+Place open brace on new line for control blocks;
+Place open brace on new line for anonymous types;
+Place open brace on new line for object, collection and array initializers;
+New line options for keywords;
+Place else on new line;
+Place catch on new line;
+Place finally on new line;
+New line options for expression;
+Place members in object initializers on new line;
+Place members in anonymous types on new line;
+Place query expression clauses on new line;</source>
+        <target state="translated">Yeni satır biçimlendirme seçeneği Diş teline; Yeni satır biçimlendirme seçenekleri anahtar kelimeler için; Yeni satırı seçenekleri Diş teline;
+Açık küme ayracı türleri için yeni satıra yerleştirin;
+Yöntemleri ve yerel işlevler için yeni satırda yer açık küme ayracı;
+Özellikleri, Dizin oluşturucular ve olaylar için yeni satırda yer açık küme ayracı;
+Açık küme ayracı özelliği, Dizin Oluşturucusu ve olay erişimcileri için yeni satıra yerleştirin;
+Anonim yöntemler için yeni satırda yer açık küme ayracı;
+Denetim blokları için yeni satırda yer açık küme ayracı;
+Anonim türler için yeni satırda yer açık küme ayracı;
+Açık küme ayracı nesne, koleksiyon ve dizi başlatıcı için yeni satıra yerleştirin;
+Anahtar kelimeler için yeni satırı seçenekleri;
+Başka yeni satıra yerleştirin;
+Yer üstünde yeni içini kaplamak yakalamak;
+Sonunda yer yeni satıra;
+Yeni satırı seçenekleri ifade için;
+Üye nesnesi başlatıcıları yeni satıra yerleştirin;
+Üye anonim türler yeni satıra yerleştirin;
+Sorgu ifade yan tümceleri yeni satıra yerleştirin;</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
-        <source>Set spacing for method declarations;set spacing for method calls;set other spacing options;set spacing for brackets;set spacing for delimiters;set spacing for operators</source>
-        <target state="translated">Yöntem bildirimleri için aralama ayarla;yöntem çağrıları için aralama ayarla;diğer aralama seçeneklerini ayarla;köşeli ayraçlar için aralamayı ayarla;sınırlayıcılar için aralamaları ayarla;operatörler için aralamaları ayarla</target>
+        <source>Set spacing for method declarations;
+Insert space between method name and its opening parenthesis;
+Insert space within parameter list parentheses;
+Insert space within empty parameter list parentheses;
+Set spacing for method calls;
+Insert space within argument list parentheses;
+Insert space within empty argument list parentheses;
+Set other spacing options;
+Insert space after keywords in control flow statements;
+Insert space within parentheses of expressions;
+Insert space within parentheses of type casts;
+Insert spaces within parentheses of control flow statements;
+Insert space after cast;
+Ignore spaces in declaration statements;
+Set spacing for brackets;
+Insert space before open square bracket;
+Insert space within empty square brackets;
+Insert spaces within square brackets;
+Set spacing for delimiters;
+Insert space after colon for base or interface in type declaration;
+Insert space after comma;
+Insert space after dot;
+Insert space after semicolon in for statement;
+Insert space before colon for base or interface in type declaration;
+Insert space before comma;
+Insert space before dot;
+Insert space before semicolon in for statement;
+Set spacing for operators;
+Ignore spaces around binary operators;
+Remove spaces before and after binary operators;
+Insert space before and after binary operators;</source>
+        <target state="translated">Aralığı için yöntem bildirimleri ayarlama;
+Yöntem adı ve onun açma parantezi arasında boşluk;
+Parametre liste parantez içindeki boşluk ekleyin;
+Boş parametre liste parantez içindeki boşluk ekleyin;
+Yöntem çağrıları için aralığı ayarlama;
+Bağımsız değişken listesi parantez içindeki boşluk ekleyin;
+Boş bağımsız değişken listesi parantez içindeki boşluk ekleyin;
+Diğer aralığı seçenekleri ayarlayın;
+Denetim akış deyimleri anahtar kelimeler sonra boşluk Ekle;
+Parantez içindeki ifadeler boşluk;
+Türü yayınları parantez içindeki boşluk ekleyin;
+Parantez içindeki alanlarda denetim akış deyimleri ekleyin;
+Döküm sonra boşluk;
+Bildirim deyimleri içinde boşluklar göz ardı;
+Köşeli ayraç aralığı ayarlama;
+Açık köşeli ayraç önce boşluk Ekle;
+Boş köşeli ayraç içindeki boşluk ekleyin;
+Köşeli ayraçlar içinde boşluk Ekle;
+Sınırlayıcılar aralığını ayarla;
+Kolon Bankası veya arayüz türü bildirimindeki sonra boşluk Ekle;
+Virgülden sonra boşluk;
+Sonra nokta boşluk;
+For ifadesinin içinde noktalı sonra boşluk Ekle;
+Kolon Bankası veya arayüz önce boşluk tür bildiriminde;
+Virgül önce boşluk Ekle;
+Nokta önce boşluk Ekle;
+İçinde noktalı virgül deyim için önce boşluk Ekle;
+Operatörler için aralığı ayarlama;
+İkili işleçler sonra boşluk yok saymak;
+Önce ve sonra ikili işleçler boşlukları kaldırma;
+Önce ve sonra ikili işleçler boşluk ekleyin;</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -63,8 +266,34 @@
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
       <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Tamamlanma listesi ayarlarını değiştir;en son kullanılan üyeyi önceden seç</target>
+        <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
+Show completion list after a character is typed;
+Show completion list after a character is deleted;
+Highlight matching portions of completion list items;
+Show completion item filters;
+Snippets behavior;
+Never include snippets;
+Always include snippets;
+Include snippets when ?-Tab is typed after an identifier;
+Enter key behavior;
+Never add new line on enter;
+Only add new line on enter after end of fully typed word;
+Always add new line on enter;
+Show name suggestions;</source>
+        <target state="translated">Tamamlama liste ayarlarını değiştirme; Önceden select en son üye kullanılan; Tamamlama listeleri;
+Bir karakter yazılır sonra tamamlanma listesi göstermek;
+Bir karakter silindikten sonra tamamlanma listesinde göster;
+Tamamlama liste öğelerini eşleşen kısımlarını vurgulamak;
+Tamamlama madde filtreleri göster;
+Parçacıkları davranış;
+Asla parçacıkları içerir;
+Her zaman parçacıkları içerir;
+Parçacıkları içerir zaman?-sekmesini sonra bir tanımlayıcı; yazılan
+Tuşuna basıldığında girin;
+Asla yeni bir satır ekleyin hadi girin;
+Sadece yeni bir satır ekleyin üzerinde tam olarak yazılı kelime; bitiminden sonra girin
+Her zaman yeni bir satır ekleyin hadi girin;
+Adı önerilerini göster;</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
@@ -104,7 +333,7 @@
       </trans-unit>
       <trans-unit id="2359">
         <source>CSharp Editor with Encoding</source>
-        <target state="translated">Kodlama ile CSharp Düzenleyici</target>
+        <target state="translated">Encoding ile CSharp Düzenleyici</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -141,6 +370,16 @@
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
         <target state="translated">IDE’de kullanılan C# bileşenleri. Projenizin türüne ve ayarlarına bağlı olarak, derleyicinin farklı bir sürümü kullanılabilir.</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_CSharp_script_file">
+        <source>An empty C# script file.</source>
+        <target state="new">An empty C# script file.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_CSharp_Script">
+        <source>Visual C# Script</source>
+        <target state="new">Visual C# Script</target>
+        <note />
       </trans-unit>
     </body>
   </file>

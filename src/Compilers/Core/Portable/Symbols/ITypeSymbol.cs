@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         /// relationship: if interface type A extends interface type B, then A precedes B in the
         /// list. This is not quite the same as "all interfaces of which this type is a proper
         /// subtype" because it does not take into account variance: AllInterfaces for
-        /// <c><![CDATA[IEnumerable<string>]]></c> will not include <c><![CDATA[IEnumerable<object>]]></c>;
+        /// IEnumerable&lt;string&gt; will not include IEnumerable&lt;object&gt;.
         /// </summary>
         ImmutableArray<INamedTypeSymbol> AllInterfaces { get; }
 
@@ -94,6 +96,75 @@ namespace Microsoft.CodeAnalysis
         /// Must be a non-null interface property, method, or event.
         /// </param>
         ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember);
+
+        /// <summary>
+        /// True if the type is ref-like, meaning it follows rules similar to CLR by-ref variables. False if the type
+        /// is not ref-like or if the language has no concept of ref-like types.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Span{T}" /> is a commonly used ref-like type.
+        /// </remarks>
+        bool IsRefLikeType { get; }
+
+        /// <summary>
+        /// True if the type is unmanaged according to language rules. False if managed or if the language
+        /// has no concept of unmanaged types.
+        /// </summary>
+        bool IsUnmanagedType { get; }
+
+        /// <summary>
+        /// True if the type is readonly.
+        /// </summary>
+        bool IsReadOnly { get; }
+
+        /// <summary>
+        /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.
+        /// </summary>
+        /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
+        /// <param name="format">Format or null for the default.</param>
+        /// <returns>A formatted string representation of the symbol with the given nullability.</returns>
+        string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null);
+
+        /// <summary>
+        /// Converts a symbol to an array of string parts, each of which has a kind. Useful
+        /// for colorizing the display string.
+        /// </summary>
+        /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
+        /// <param name="format">Format or null for the default.</param>
+        /// <returns>A read-only array of string parts.</returns>
+        ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null);
+
+        /// <summary>
+        /// Converts a symbol to a string that can be displayed to the user. May be tailored to a
+        /// specific location in the source code.
+        /// </summary>
+        /// <param name="semanticModel">Binding information (for determining names appropriate to
+        /// the context).</param>
+        /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
+        /// <param name="position">A position in the source code (context).</param>
+        /// <param name="format">Formatting rules - null implies <see cref="SymbolDisplayFormat.MinimallyQualifiedFormat"/></param>
+        /// <returns>A formatted string that can be displayed to the user.</returns>
+        string ToMinimalDisplayString(
+            SemanticModel semanticModel,
+            NullableFlowState topLevelNullability,
+            int position,
+            SymbolDisplayFormat format = null);
+
+        /// <summary>
+        /// Convert a symbol to an array of string parts, each of which has a kind. May be tailored
+        /// to a specific location in the source code. Useful for colorizing the display string.
+        /// </summary>
+        /// <param name="semanticModel">Binding information (for determining names appropriate to
+        /// the context).</param>
+        /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>
+        /// <param name="position">A position in the source code (context).</param>
+        /// <param name="format">Formatting rules - null implies <see cref="SymbolDisplayFormat.MinimallyQualifiedFormat"/></param>
+        /// <returns>A read-only array of string parts.</returns>
+        ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
+            SemanticModel semanticModel,
+            NullableFlowState topLevelNullability,
+            int position,
+            SymbolDisplayFormat format = null);
     }
 
     // Intentionally not extension methods. We don't want them ever be called for symbol classes
@@ -104,7 +175,7 @@ namespace Microsoft.CodeAnalysis
         {
             return typeOpt?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
         }
-        
+
         internal static bool IsNullableOfBoolean(ITypeSymbol type)
         {
             return IsNullableType(type) && IsBooleanType(GetNullableUnderlyingType(type));

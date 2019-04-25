@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _property = property;
             }
 
-            internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+            internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
             {
-                return _property.Type;
+                return _property.TypeWithAnnotations;
             }
 
             public override string Name
@@ -56,11 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override int? TypeLayoutOffset
             {
                 get { return null; }
-            }
-
-            public override ImmutableArray<CustomModifier> CustomModifiers
-            {
-                get { return ImmutableArray<CustomModifier>.Empty; }
             }
 
             public override Symbol AssociatedSymbol

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
@@ -16,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             {
                 _listener = listener;
 
-                listener.Increment();
+                listener.Increment_NoLock();
             }
 
             public void Dispose()
             {
-                lock (_listener._gate)
+                using (_listener._gate.DisposableWait(CancellationToken.None))
                 {
                     if (_disposed)
                     {
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     }
 
                     _disposed = true;
-                    _listener.Decrement(this);
+                    _listener.Decrement_NoLock(this);
                 }
             }
         }

@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal struct FirstDiagnosticResult
+    internal readonly struct FirstDiagnosticResult
     {
         public readonly bool PartialResult;
         public readonly bool HasFix;

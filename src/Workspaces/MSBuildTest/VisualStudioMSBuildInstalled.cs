@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -74,10 +73,23 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     if (state == InstanceState.Complete &&
                         instance2.GetPackages().Any(package => package.GetId() == "Microsoft.VisualStudio.Component.Roslyn.Compiler"))
                     {
-                        var toolsPath = Path.Combine(instance2.GetInstallationPath(), "MSBuild", "15.0", "Bin");
-                        return Directory.Exists(toolsPath)
-                            ? toolsPath
-                            : null;
+                        var toolsBasePath = Path.Combine(instance2.GetInstallationPath(), "MSBuild");
+
+                        // Visual Studio 2019 and later place MSBuild in a "Current" folder.
+                        var toolsPath = Path.Combine(toolsBasePath, "Current", "Bin");
+                        if (Directory.Exists(toolsPath))
+                        {
+                            return toolsPath;
+                        }
+
+                        // Check for 15.0 to support Visual Studio 2017.
+                        toolsPath = Path.Combine(toolsBasePath, "15.0", "Bin");
+                        if (Directory.Exists(toolsPath))
+                        {
+                            return toolsPath;
+                        }
+
+                        return null;
                     }
                 }
                 while (fetched > 0);

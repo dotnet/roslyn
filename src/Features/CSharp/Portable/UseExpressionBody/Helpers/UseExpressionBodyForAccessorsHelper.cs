@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    internal class UseExpressionBodyForAccessorsHelper : 
+    internal class UseExpressionBodyForAccessorsHelper :
         UseExpressionBodyHelper<AccessorDeclarationSyntax>
     {
         public static readonly UseExpressionBodyForAccessorsHelper Instance = new UseExpressionBodyForAccessorsHelper();

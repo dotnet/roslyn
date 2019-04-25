@@ -405,6 +405,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Figure out if the target runtime supports default interface implementation.
+        /// </summary>
+        internal bool RuntimeSupportsDefaultInterfaceImplementation
+        {
+            get => !(GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) is null);
+        }
+
+        /// <summary>
         /// Return an array of assemblies involved in canonical type resolution of
         /// NoPia local types defined within this assembly. In other words, all 
         /// references used by previous compilation referencing this assembly.
@@ -612,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 int rank = typeInfo.GetArrayRank();
 
-                return ArrayTypeSymbol.CreateCSharpArray(this, symbol, ImmutableArray<CustomModifier>.Empty, rank);
+                return ArrayTypeSymbol.CreateCSharpArray(this, TypeWithAnnotations.Create(symbol), rank);
             }
             else if (typeInfo.IsPointer)
             {
@@ -622,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return new PointerTypeSymbol(symbol);
+                return new PointerTypeSymbol(TypeWithAnnotations.Create(symbol));
             }
             else if (typeInfo.DeclaringType != null)
             {
@@ -712,18 +720,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return symbol;
             }
 
-            var typeArgumentSymbols = new TypeWithModifiers[symbol.TypeArgumentsNoUseSiteDiagnostics.Length];
-            for (int i = 0; i < typeArgumentSymbols.Length; i++)
+            var length = symbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length;
+            var typeArgumentSymbols = ArrayBuilder<TypeWithAnnotations>.GetInstance(length);
+            for (int i = 0; i < length; i++)
             {
                 var argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++], includeReferences);
                 if ((object)argSymbol == null)
                 {
                     return null;
                 }
-                typeArgumentSymbols[i] = new TypeWithModifiers(argSymbol);
+                typeArgumentSymbols.Add(TypeWithAnnotations.Create(argSymbol));
             }
 
-            return symbol.ConstructIfGeneric(typeArgumentSymbols.AsImmutableOrNull());
+            return symbol.ConstructIfGeneric(typeArgumentSymbols.ToImmutableAndFree());
         }
 
         internal NamedTypeSymbol GetTopLevelTypeByMetadataName(
@@ -789,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                Debug.Assert(candidate != result);
+                Debug.Assert(!TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything2));
 
                 if ((object)result != null)
                 {

@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var queue = new AsyncQueue<int>();
             Assert.True(queue.TryEnqueue(42));
             queue.PromiseNotToEnqueue();
-            Assert.Throws(typeof(InvalidOperationException), () => {
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
                 queue.TryEnqueue(42);
             });
         }

@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         }
 
         private async Task<Solution> UpdateReferencesAsync(
-            Solution updatedSolution, 
-            ILookup<Document, (IPropertySymbol property, ReferenceLocation location)> referencesByDocument, 
+            Solution updatedSolution,
+            ILookup<Document, (IPropertySymbol property, ReferenceLocation location)> referencesByDocument,
             Dictionary<IPropertySymbol, IFieldSymbol> propertyToBackingField,
             string desiredGetMethodName, string desiredSetMethodName,
             CancellationToken cancellationToken)
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             var service = originalDocument.GetLanguageService<IReplacePropertyWithMethodsService>();
 
             await ReplaceReferencesAsync(
-                originalDocument, references, propertyToBackingField, root, editor, service, 
+                originalDocument, references, propertyToBackingField, root, editor, service,
                 desiredGetMethodName, desiredSetMethodName, cancellationToken).ConfigureAwait(false);
 
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(originalDocument.Id, editor.GetChangedRoot());
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     {
                         var fieldSymbol = propertyToBackingField.GetValueOrDefault(tuple.property);
                         await service.ReplaceReferenceAsync(
-                            originalDocument, editor, parent, 
+                            originalDocument, editor, parent,
                             property, fieldSymbol,
                             desiredGetMethodName, desiredSetMethodName,
                             cancellationToken).ConfigureAwait(false);

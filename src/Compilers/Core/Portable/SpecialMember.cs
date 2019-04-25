@@ -22,6 +22,10 @@ namespace Microsoft.CodeAnalysis
         System_String__Length,
         System_String__Chars,
         System_String__Format,
+        System_String__Substring,
+
+        System_Double__IsNaN,
+        System_Single__IsNaN,
 
         System_Delegate__Combine,
         System_Delegate__Remove,
@@ -140,6 +144,8 @@ namespace Microsoft.CodeAnalysis
         System_Nullable_T__ctor,
         System_Nullable_T__op_Implicit_FromT,
         System_Nullable_T__op_Explicit_ToT,
+
+        System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces,
 
         Count
     }

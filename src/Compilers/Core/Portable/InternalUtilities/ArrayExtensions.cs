@@ -24,29 +24,6 @@ namespace Roslyn.Utilities
             return newArray;
         }
 
-        internal static bool ValueEquals(this uint[] array, uint[] other)
-        {
-            if (array == other)
-            {
-                return true;
-            }
-
-            if (array == null || other == null || array.Length != other.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < array.Length; i++)
-            {
-                if (array[i] != other[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         internal static T[] InsertAt<T>(this T[] array, int position, T item)
         {
             T[] newArray = new T[array.Length + 1];

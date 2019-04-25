@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MakeMethodSynchronous;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using static Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
 {
@@ -21,12 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
-        protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, ITypeSymbol taskType, ITypeSymbol taskOfTType)
+        protected override SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, KnownTypes knownTypes)
         {
             switch (node)
             {
-                case MethodDeclarationSyntax method: return FixMethod(methodSymbolOpt, method, taskType, taskOfTType);
-                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(methodSymbolOpt, localFunction, taskType, taskOfTType);
+                case MethodDeclarationSyntax method: return FixMethod(methodSymbolOpt, method, knownTypes);
+                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(methodSymbolOpt, localFunction, knownTypes);
                 case AnonymousMethodExpressionSyntax method: return FixAnonymousMethod(method);
                 case ParenthesizedLambdaExpressionSyntax lambda: return FixParenthesizedLambda(lambda);
                 case SimpleLambdaExpressionSyntax lambda: return FixSimpleLambda(lambda);
@@ -34,33 +35,44 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
             }
         }
 
-        private SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, ITypeSymbol taskType, ITypeSymbol taskOfTType)
+        private SyntaxNode FixMethod(IMethodSymbol methodSymbol, MethodDeclarationSyntax method, KnownTypes knownTypes)
         {
-            var newReturnType = FixMethodReturnType(methodSymbol, method.ReturnType, taskType, taskOfTType);
+            var newReturnType = FixMethodReturnType(methodSymbol, method.ReturnType, knownTypes);
             var newModifiers = FixMethodModifiers(method.Modifiers, ref newReturnType);
             return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
-        private SyntaxNode FixLocalFunction(IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction, ITypeSymbol taskType, ITypeSymbol taskOfTType)
+        private SyntaxNode FixLocalFunction(IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction, KnownTypes knownTypes)
         {
-            var newReturnType = FixMethodReturnType(methodSymbol, localFunction.ReturnType, taskType, taskOfTType);
+            var newReturnType = FixMethodReturnType(methodSymbol, localFunction.ReturnType, knownTypes);
             var newModifiers = FixMethodModifiers(localFunction.Modifiers, ref newReturnType);
             return localFunction.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
-        private static TypeSyntax FixMethodReturnType(IMethodSymbol methodSymbol, TypeSyntax returnType, ITypeSymbol taskType, ITypeSymbol taskOfTType)
+        private static TypeSyntax FixMethodReturnType(IMethodSymbol methodSymbol, TypeSyntax returnTypeSyntax, KnownTypes knownTypes)
         {
-            var newReturnType = returnType;
+            var newReturnType = returnTypeSyntax;
 
-            // If the return type is Task<T>, then make the new return type "T".
-            // If it is Task, then make the new return type "void".
-            if (methodSymbol.ReturnType.OriginalDefinition.Equals(taskType))
+            var returnType = methodSymbol.ReturnType;
+            if (returnType.OriginalDefinition.Equals(knownTypes._taskType))
             {
-                newReturnType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)).WithTriviaFrom(returnType);
+                // If the return type is Task, then make the new return type "void".
+                newReturnType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)).WithTriviaFrom(returnTypeSyntax);
             }
-            else if (methodSymbol.ReturnType.OriginalDefinition.Equals(taskOfTType))
+            else if (returnType.OriginalDefinition.Equals(knownTypes._taskOfTType))
             {
-                newReturnType = methodSymbol.ReturnType.GetTypeArguments()[0].GenerateTypeSyntax().WithTriviaFrom(returnType);
+                // If the return type is Task<T>, then make the new return type "T".
+                newReturnType = returnType.GetTypeArguments()[0].GenerateTypeSyntax().WithTriviaFrom(returnTypeSyntax);
+            }
+            else if (returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTTypeOpt))
+            {
+                // If the return type is IAsyncEnumerable<T>, then make the new return type IEnumerable<T>.
+                newReturnType = knownTypes._iEnumerableOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+            }
+            else if (returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumeratorOfTTypeOpt))
+            {
+                // If the return type is IAsyncEnumerator<T>, then make the new return type IEnumerator<T>.
+                newReturnType = knownTypes._iEnumeratorOfTType.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
             }
 
             return newReturnType;

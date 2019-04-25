@@ -72,10 +72,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
 
                 return await solution.TryRunCodeAnalysisRemoteAsync(
-                    RemoteFeatureOptions.SymbolFinderEnabled,
                     serverCallback,
                     nameof(IRemoteSymbolFinder.FindReferencesAsync),
-                    new object[] 
+                    new object[]
                     {
                         SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
                         documents?.Select(d => d.Id).ToArray(),

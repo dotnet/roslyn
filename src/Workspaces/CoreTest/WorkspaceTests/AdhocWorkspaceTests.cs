@@ -17,7 +17,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class AdhocWorkspaceTests : WorkspaceTestBase
+    [UseExportProvider]
+    public partial class AdhocWorkspaceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddProject_ProjectInfo()
@@ -149,41 +150,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal(info2.Language, project2.Language);
                 Assert.Equal(1, project2.ProjectReferences.Count());
                 Assert.Equal(id1, project2.ProjectReferences.First().ProjectId);
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public async Task TestAddProject_CommandLineProjectAsync()
-        {
-            CreateFiles(GetSimpleCSharpSolutionFiles());
-
-            string commandLine = @"CSharpClass.cs /out:goo.dll /target:library";
-            var baseDirectory = Path.Combine(this.SolutionDirectory.Path, "CSharpProject");
-
-            using (var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices))
-            {
-                var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, baseDirectory, ws);
-                ws.AddProject(info);
-                var project = ws.CurrentSolution.GetProject(info.Id);
-
-                Assert.Equal("TestProject", project.Name);
-                Assert.Equal("goo", project.AssemblyName);
-                Assert.Equal(OutputKind.DynamicallyLinkedLibrary, project.CompilationOptions.OutputKind);
-
-                Assert.Equal(1, project.Documents.Count());
-
-                var gooDoc = project.Documents.First(d => d.Name == "CSharpClass.cs");
-                Assert.Equal(0, gooDoc.Folders.Count);
-                var expectedPath = Path.Combine(baseDirectory, "CSharpClass.cs");
-                Assert.Equal(expectedPath, gooDoc.FilePath);
-
-                var text = (await gooDoc.GetTextAsync()).ToString();
-                Assert.NotEqual("", text);
-
-                var tree = await gooDoc.GetSyntaxRootAsync();
-                Assert.Equal(false, tree.ContainsDiagnostics);
-
-                var compilation = await project.GetCompilationAsync();
             }
         }
 

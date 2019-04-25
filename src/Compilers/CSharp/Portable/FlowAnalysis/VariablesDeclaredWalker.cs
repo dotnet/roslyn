@@ -43,20 +43,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variablesDeclared = null;
         }
 
-        public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
+        public override void VisitPattern(BoundPattern pattern)
         {
-            base.VisitPattern(expression, pattern);
+            base.VisitPattern(pattern);
             NoteDeclaredPatternVariables(pattern);
         }
 
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
         {
             foreach (var label in node.SwitchLabels)
             {
                 NoteDeclaredPatternVariables(label.Pattern);
             }
 
-            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+            base.VisitSwitchSection(node, isLastSection);
         }
 
         /// <summary>
@@ -64,15 +64,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void NoteDeclaredPatternVariables(BoundPattern pattern)
         {
-            if (IsInside && pattern.Kind == BoundKind.DeclarationPattern)
+            if (IsInside)
             {
-                var decl = (BoundDeclarationPattern)pattern;
-                // The variable may be null if it is a discard designation `_`.
-                if (decl.Variable?.Kind == SymbolKind.Local)
+                switch (pattern)
                 {
-                    // Because this API only returns local symbols and parameters,
-                    // we exclude pattern variables that have become fields in scripts.
-                    _variablesDeclared.Add(decl.Variable);
+                    case BoundDeclarationPattern decl:
+                        {
+                            // The variable may be null if it is a discard designation `_`.
+                            if (decl.Variable?.Kind == SymbolKind.Local)
+                            {
+                                // Because this API only returns local symbols and parameters,
+                                // we exclude pattern variables that have become fields in scripts.
+                                _variablesDeclared.Add(decl.Variable);
+                            }
+                        }
+                        break;
+                    case BoundRecursivePattern recur:
+                        {
+                            if (recur.Variable?.Kind == SymbolKind.Local)
+                            {
+                                _variablesDeclared.Add(recur.Variable);
+                            }
+                        }
+                        break;
                 }
             }
         }
@@ -166,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocal(BoundLocal node)
         {
-            if (IsInside && node.IsDeclaration)
+            if (IsInside && node.DeclarationKind != BoundLocalDeclarationKind.None)
             {
                 _variablesDeclared.Add(node.LocalSymbol);
             }

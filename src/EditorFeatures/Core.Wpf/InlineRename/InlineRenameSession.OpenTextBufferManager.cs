@@ -53,13 +53,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 InlineRenameSession session,
                 ITextBuffer subjectBuffer,
                 Workspace workspace,
-                IEnumerable<Document> documents,
                 ITextBufferFactoryService textBufferFactoryService)
                 : base(session.ThreadingContext)
             {
                 _session = session;
                 _subjectBuffer = subjectBuffer;
-                _baseDocuments = documents;
+                _baseDocuments = subjectBuffer.GetRelatedDocuments();
                 _textBufferFactoryService = textBufferFactoryService;
                 _subjectBuffer.ChangedLowPriority += OnTextBufferChanged;
 
@@ -489,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             if (_referenceSpanToLinkedRenameSpanMap.ContainsKey(replacement.OriginalSpan) && kind != RenameSpanKind.Complexified)
                             {
                                 var linkedRenameSpan = _session._renameInfo.GetConflictEditSpan(
-                                    new InlineRenameLocation(newDocument, replacement.NewSpan), _session.ReplacementText, cancellationToken);
+                                    new InlineRenameLocation(newDocument, replacement.NewSpan), GetWithoutAttributeSuffix(_session.ReplacementText, document.GetLanguageService<LanguageServices.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);
                                 if (linkedRenameSpan.HasValue)
                                 {
                                     if (!mergeConflictComments.Any(s => replacement.NewSpan.IntersectsWith(s)))
@@ -538,6 +537,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     this.ApplyReplacementText(updateSelection: false);
                     RaiseSpansChanged();
                 }
+            }
+
+            private static string GetWithoutAttributeSuffix(string text, bool isCaseSensitive)
+            {
+                if (!text.TryGetWithoutAttributeSuffix(isCaseSensitive, out string replaceText))
+                {
+                    replaceText = text;
+                }
+
+                return replaceText;
             }
 
             private static async Task<IEnumerable<TextChange>> GetTextChangesFromTextDifferencingServiceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken = default)
@@ -618,7 +627,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 foreach (var replacement in relevantReplacements)
                 {
-                    var buffer = snapshotSpanToClone.HasValue ? textBufferCloneService.Clone(snapshotSpanToClone.Value) : _textBufferFactoryService.CreateTextBuffer(preMergeDocumentTextString, contentType);
+                    var buffer = snapshotSpanToClone.HasValue ? textBufferCloneService.CloneWithUnknownContentType(snapshotSpanToClone.Value) : _textBufferFactoryService.CreateTextBuffer(preMergeDocumentTextString, contentType);
                     var trackingSpan = buffer.CurrentSnapshot.CreateTrackingSpan(replacement.NewSpan.ToSpan(), SpanTrackingMode.EdgeExclusive, TrackingFidelityMode.Forward);
 
                     using (var edit = _subjectBuffer.CreateEdit(EditOptions.None, null, s_calculateMergedSpansEditTag))

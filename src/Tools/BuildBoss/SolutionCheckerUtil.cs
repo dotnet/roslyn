@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BuildBoss
 {
@@ -24,10 +21,12 @@ namespace BuildBoss
 
         internal string SolutionFilePath { get; }
         internal string SolutionPath { get; }
+        internal bool IsPrimarySolution { get; }
 
-        internal SolutionCheckerUtil(string solutionFilePath)
+        internal SolutionCheckerUtil(string solutionFilePath, bool isPrimarySolution)
         {
             SolutionFilePath = solutionFilePath;
+            IsPrimarySolution = isPrimarySolution;
             SolutionPath = Path.GetDirectoryName(SolutionFilePath);
         }
 
@@ -43,7 +42,7 @@ namespace BuildBoss
         }
 
         private bool CheckProjects(TextWriter textWriter, Dictionary<ProjectKey, SolutionProjectData> map)
-        { 
+        {
             var solutionMap = new Dictionary<ProjectKey, ProjectData>();
             foreach (var pair in map)
             {
@@ -57,7 +56,7 @@ namespace BuildBoss
                 var projectWriter = new StringWriter();
                 var projectData = data.ProjectData;
                 projectWriter.WriteLine($"Processing {projectData.Key.FileName}");
-                var util = new ProjectCheckerUtil(projectData, solutionMap);
+                var util = new ProjectCheckerUtil(projectData, solutionMap, IsPrimarySolution);
                 if (!util.Check(projectWriter))
                 {
                     allGood = false;
@@ -115,7 +114,7 @@ namespace BuildBoss
             }
 
             var allGood = true;
-            foreach (var data in dataList)
+            foreach (var data in dataList.Where(x => x.ProjectEntry.ProjectType != ProjectFileType.Tool))
             {
                 var guid = getExpectedGuid(data.ProjectData);
                 if (guid != data.ProjectEntry.TypeGuid)

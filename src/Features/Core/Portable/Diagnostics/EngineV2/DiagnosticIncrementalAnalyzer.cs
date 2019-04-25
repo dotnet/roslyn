@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
@@ -61,6 +62,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal HostAnalyzerManager HostAnalyzerManager { get; }
         internal DiagnosticLogAggregator DiagnosticLogAggregator { get; private set; }
 
+        public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer diagnosticAnalyzer, Project project, Compilation compilation)
+        {
+            var stateSet = _stateManager.GetOrCreateStateSet(project, diagnosticAnalyzer);
+            return stateSet.IsCompilationEndAnalyzer(project, compilation);
+        }
+
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
         {
             foreach (var stateSet in _stateManager.GetStateSets(projectId))
@@ -80,25 +87,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                    e.Option.Feature == nameof(CodeStyleOptions) ||
                    e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic ||
                    e.Option == RuntimeOptions.FullSolutionAnalysis;
-        }
-
-        private bool SupportAnalysisKind(DiagnosticAnalyzer analyzer, string language, AnalysisKind kind)
-        {
-            // compiler diagnostic analyzer always support all kinds
-            if (HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(language, analyzer))
-            {
-                return true;
-            }
-
-            switch (kind)
-            {
-                case AnalysisKind.Syntax:
-                    return analyzer.SupportsSyntaxDiagnosticAnalysis();
-                case AnalysisKind.Semantic:
-                    return analyzer.SupportsSemanticDiagnosticAnalysis();
-                default:
-                    return Contract.FailWithReturn<bool>("shouldn't reach here");
-            }
         }
 
         private void OnProjectAnalyzerReferenceChanged(object sender, ProjectAnalyzerReferenceChangedEventArgs e)
@@ -239,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result;
             }
 
-            return new DiagnosticAnalysisResult(projectId, version);
+            return DiagnosticAnalysisResult.CreateEmpty(projectId, version);
         }
 
         private static ImmutableArray<DiagnosticData> GetResult(DiagnosticAnalysisResult result, AnalysisKind kind, DocumentId id)
@@ -274,12 +262,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private void ResetDiagnosticLogAggregator()
         {
             DiagnosticLogAggregator = new DiagnosticLogAggregator(Owner);
-        }
-
-        // internal for testing purposes.
-        internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId)
-        {
-            return Owner.GetOnAnalyzerException(projectId, DiagnosticLogAggregator);
         }
 
         internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)

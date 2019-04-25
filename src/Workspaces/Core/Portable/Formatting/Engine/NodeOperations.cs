@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -13,25 +12,25 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         public static NodeOperations Empty = new NodeOperations();
 
-        public Task<List<IndentBlockOperation>> IndentBlockOperationTask { get; }
-        public Task<List<SuppressOperation>> SuppressOperationTask { get; }
-        public Task<List<AlignTokensOperation>> AlignmentOperationTask { get; }
-        public Task<List<AnchorIndentationOperation>> AnchorIndentationOperationsTask { get; }
+        public List<IndentBlockOperation> IndentBlockOperation { get; }
+        public List<SuppressOperation> SuppressOperation { get; }
+        public List<AlignTokensOperation> AlignmentOperation { get; }
+        public List<AnchorIndentationOperation> AnchorIndentationOperations { get; }
 
-        public NodeOperations(Task<List<IndentBlockOperation>> indentBlockOperationTask, Task<List<SuppressOperation>> suppressOperationTask, Task<List<AnchorIndentationOperation>> anchorIndentationOperationsTask, Task<List<AlignTokensOperation>> alignmentOperationTask)
+        public NodeOperations(List<IndentBlockOperation> indentBlockOperation, List<SuppressOperation> suppressOperation, List<AnchorIndentationOperation> anchorIndentationOperations, List<AlignTokensOperation> alignmentOperation)
         {
-            this.IndentBlockOperationTask = indentBlockOperationTask;
-            this.SuppressOperationTask = suppressOperationTask;
-            this.AlignmentOperationTask = alignmentOperationTask;
-            this.AnchorIndentationOperationsTask = anchorIndentationOperationsTask;
+            this.IndentBlockOperation = indentBlockOperation;
+            this.SuppressOperation = suppressOperation;
+            this.AlignmentOperation = alignmentOperation;
+            this.AnchorIndentationOperations = anchorIndentationOperations;
         }
 
         private NodeOperations()
         {
-            this.IndentBlockOperationTask = Task.FromResult(new List<IndentBlockOperation>());
-            this.SuppressOperationTask = Task.FromResult(new List<SuppressOperation>());
-            this.AlignmentOperationTask = Task.FromResult(new List<AlignTokensOperation>());
-            this.AnchorIndentationOperationsTask = Task.FromResult(new List<AnchorIndentationOperation>());
+            this.IndentBlockOperation = new List<IndentBlockOperation>();
+            this.SuppressOperation = new List<SuppressOperation>();
+            this.AlignmentOperation = new List<AlignTokensOperation>();
+            this.AnchorIndentationOperations = new List<AnchorIndentationOperation>();
         }
     }
 }

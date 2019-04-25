@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseDefaultLiteralDiagnosticAnalyzer(), new CSharpUseDefaultLiteralCodeFixProvider());
 
-        private static readonly CSharpParseOptions s_parseOptions = 
+        private static readonly CSharpParseOptions s_parseOptions =
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1);
 
         private static readonly TestParameters s_testParameters =
@@ -204,7 +204,7 @@ class C
     {
         var s = [||]default(string);
     }
-}",  parameters: s_testParameters);
+}", parameters: s_testParameters);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]

@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NETCOREAPP2_0
+#if NETCOREAPP2_1
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -139,7 +139,7 @@ namespace Roslyn.Test.Utilities.CoreClr
             var platformAssemblies = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")).Split(Path.PathSeparator);
             foreach (var assemblyPath in platformAssemblies)
             {
-                if (TryGetAssemblyName(assemblyPath, out string assemblyName))
+                if (!String.IsNullOrEmpty(assemblyPath) && TryGetAssemblyName(assemblyPath, out string assemblyName))
                 {
                     assemblyNames.Add(assemblyName, assemblyPath);
                 }

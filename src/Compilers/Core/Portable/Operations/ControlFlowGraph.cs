@@ -26,12 +26,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private ControlFlowGraph[] _lazyAnonymousFunctionsGraphs;
 
         internal ControlFlowGraph(IOperation originalOperation,
+                                  ControlFlowGraph parent,
                                   ControlFlowGraphBuilder.CaptureIdDispenser captureIdDispenser,
                                   ImmutableArray<BasicBlock> blocks, ControlFlowRegion root,
                                   ImmutableArray<IMethodSymbol> localFunctions,
                                   ImmutableDictionary<IMethodSymbol, (ControlFlowRegion region, ILocalFunctionOperation operation, int ordinal)> localFunctionsMap,
                                   ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)> anonymousFunctionsMap)
         {
+            Debug.Assert(parent != null == (originalOperation.Kind == OperationKind.LocalFunction || originalOperation.Kind == OperationKind.AnonymousFunction));
             Debug.Assert(captureIdDispenser != null);
             Debug.Assert(!blocks.IsDefault);
             Debug.Assert(blocks.First().Kind == BasicBlockKind.Entry);
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #endif 
 
             OriginalOperation = originalOperation;
+            Parent = parent;
             Blocks = blocks;
             Root = root;
             LocalFunctions = localFunctions;
@@ -171,11 +174,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, argumentNameForException);
             }
 
-            if (!operation.Syntax.SyntaxTree.Options.Features.ContainsKey("flow-analysis"))
-            {
-                throw new InvalidOperationException(CodeAnalysisResources.FlowAnalysisFeatureDisabled);
-            }
-
             try
             {
                 ControlFlowGraph controlFlowGraph = ControlFlowGraphBuilder.Create(operation);
@@ -197,6 +195,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// the original operation.
         /// </summary>
         public IOperation OriginalOperation { get; }
+
+        /// <summary>
+        /// Optional parent control flow graph for this graph.
+        /// Non-null for a control flow graph generated for a local function or a lambda.
+        /// Null otherwise.
+        /// </summary>
+        public ControlFlowGraph Parent { get; }
 
         /// <summary>
         /// Basic blocks for the control flow graph.
@@ -225,9 +230,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentNullException(nameof(localFunction));
             }
 
-            if (!_localFunctionsMap.TryGetValue(localFunction, out (ControlFlowRegion enclosing, ILocalFunctionOperation operation, int ordinal) info))
+            if (!TryGetLocalFunctionControlFlowGraph(localFunction, cancellationToken, out var controlFlowGraph))
             {
                 throw new ArgumentOutOfRangeException(nameof(localFunction));
+            }
+
+            return controlFlowGraph;
+        }
+
+        internal bool TryGetLocalFunctionControlFlowGraph(IMethodSymbol localFunction, CancellationToken cancellationToken, out ControlFlowGraph controlFlowGraph)
+        {
+            if (!_localFunctionsMap.TryGetValue(localFunction, out (ControlFlowRegion enclosing, ILocalFunctionOperation operation, int ordinal) info))
+            {
+                controlFlowGraph = null;
+                return false;
             }
 
             Debug.Assert(localFunction == LocalFunctions[info.ordinal]);
@@ -240,12 +256,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             if (_lazyLocalFunctionsGraphs[info.ordinal] == null)
             {
                 Debug.Assert(localFunction == info.operation.Symbol);
-                ControlFlowGraph graph = ControlFlowGraphBuilder.Create(info.operation, info.enclosing, _captureIdDispenser);
+                ControlFlowGraph graph = ControlFlowGraphBuilder.Create(info.operation, this, info.enclosing, _captureIdDispenser);
                 Debug.Assert(graph.OriginalOperation == info.operation);
                 Interlocked.CompareExchange(ref _lazyLocalFunctionsGraphs[info.ordinal], graph, null);
             }
 
-            return _lazyLocalFunctionsGraphs[info.ordinal];
+            controlFlowGraph = _lazyLocalFunctionsGraphs[info.ordinal];
+            Debug.Assert(controlFlowGraph.Parent == this);
+            return true;
         }
 
         /// <summary>
@@ -260,9 +278,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentNullException(nameof(anonymousFunction));
             }
 
-            if (!_anonymousFunctionsMap.TryGetValue(anonymousFunction, out (ControlFlowRegion enclosing, int ordinal) info))
+            if (!TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, cancellationToken, out ControlFlowGraph controlFlowGraph))
             {
                 throw new ArgumentOutOfRangeException(nameof(anonymousFunction));
+            }
+
+            return controlFlowGraph;
+        }
+
+        internal bool TryGetAnonymousFunctionControlFlowGraph(IFlowAnonymousFunctionOperation anonymousFunction, CancellationToken cancellationToken, out ControlFlowGraph controlFlowGraph)
+        {
+            if (!_anonymousFunctionsMap.TryGetValue(anonymousFunction, out (ControlFlowRegion enclosing, int ordinal) info))
+            {
+                controlFlowGraph = null;
+                return false;
             }
 
             if (_lazyAnonymousFunctionsGraphs == null)
@@ -273,12 +302,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             if (_lazyAnonymousFunctionsGraphs[info.ordinal] == null)
             {
                 var anonymous = (FlowAnonymousFunctionOperation)anonymousFunction;
-                ControlFlowGraph graph = ControlFlowGraphBuilder.Create(anonymous.Original, info.enclosing, _captureIdDispenser, in anonymous.Context);
+                ControlFlowGraph graph = ControlFlowGraphBuilder.Create(anonymous.Original, this, info.enclosing, _captureIdDispenser, in anonymous.Context);
                 Debug.Assert(graph.OriginalOperation == anonymous.Original);
                 Interlocked.CompareExchange(ref _lazyAnonymousFunctionsGraphs[info.ordinal], graph, null);
             }
 
-            return _lazyAnonymousFunctionsGraphs[info.ordinal];
+            controlFlowGraph = _lazyAnonymousFunctionsGraphs[info.ordinal];
+            Debug.Assert(controlFlowGraph.Parent == this);
+            return true;
         }
     }
 }

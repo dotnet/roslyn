@@ -36,5 +36,8 @@ namespace Microsoft.CodeAnalysis
         public const string Text = nameof(Text);
         public const string TypeParameter = nameof(TypeParameter);
         public const string RangeVariable = nameof(RangeVariable);
+        public const string EnumMember = nameof(EnumMember);
+        public const string ExtensionMethod = nameof(ExtensionMethod);
+        public const string Constant = nameof(Constant);
     }
 }

@@ -2521,7 +2521,7 @@ public class A<T>
             var comp = CreateCompilation(text, options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
-                 // no diagnostics expected
+                // no diagnostics expected
                 );
         }
 
@@ -2637,7 +2637,7 @@ class E : Exception
         [Fact]
         [WorkItem(13206, "https://github.com/dotnet/roslyn/issues/13206")]
         public void Lambda_01()
-        { 
+        {
             var source =
 @"public delegate ref T D<T>();
 public class A<T>
@@ -3631,7 +3631,7 @@ Program+RefFunc1`2[Derived1,Base]", verify: Verification.Passes);
     }
 ";
 
-            CompileAndVerifyRef(text, expectedOutput:"37", verify: Verification.Fails).VerifyIL("Program.Main()", @"
+            CompileAndVerifyRef(text, expectedOutput: "37", verify: Verification.Fails).VerifyIL("Program.Main()", @"
 {
   // Code size       75 (0x4b)
   .maxstack  3

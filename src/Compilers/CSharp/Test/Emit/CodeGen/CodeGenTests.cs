@@ -16,6 +16,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenTests : CSharpTestBase
     {
+        [Fact]
+        public void EmitWithSuppressedWarnAsError()
+        {
+            var src = @"
+#pragma warning disable 1591
+
+public class P {
+    public static void Main() {}
+}";
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var options = TestOptions.ReleaseDll
+                .WithXmlReferenceResolver(XmlFileResolver.Default)
+                .WithGeneralDiagnosticOption(ReportDiagnostic.Error);
+
+            var comp = CreateCompilation(src, parseOptions: parseOptions, options: options);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp);
+        }
+
         [Fact()]
         [WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")]
         public void Bug776642a()
@@ -1833,7 +1852,7 @@ public class D
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void TestAssignIdentity()
         {
             string source = @"
@@ -1879,7 +1898,7 @@ There are no context policies.
 ");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void TestRefCast()
         {
             string source = @"
@@ -9798,7 +9817,9 @@ class MyClass
 ");
         }
 
-        [Fact, WorkItem(538246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538246"), WorkItem(543655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543655")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(538246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538246"), WorkItem(543655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543655")]
         public void FloatDoubleInfinity()
         {
             string source = @"
@@ -10651,7 +10672,8 @@ public class MyClass {
         // digits < 1e-49 when rounding.
         [WorkItem(529827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529827")]
         [WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")]
-        [Fact]
+        [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/32576")]
         public void DecimalLiteral_BreakingChange()
         {
             string source =
@@ -11317,9 +11339,15 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/32576")]
+        [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
+        [WorkItem(34198, "https://github.com/dotnet/roslyn/issues/34198")]
         public void DecimalBinaryOp_03()
         {
+            // Test temporarily disabled on Mono as it fails on nightlies due to System.Decimal changes
+            // We'll need to update / disable for CoreCLR 3.0 too as it has the same change
+            // Tracked by https://github.com/dotnet/roslyn/issues/34198
+
             string source = @"
 class C
 {
@@ -12878,7 +12906,8 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "(decimal)-4e30f").WithArguments("-4E+30", "decimal"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void Bug14064()
         {
             string source = @"
@@ -13332,7 +13361,7 @@ public static class P
         }
 
         [WorkItem(26113, "https://github.com/dotnet/roslyn/issues/26113")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         public void VarargByRef()
         {
             var code = @"
@@ -14490,11 +14519,12 @@ class C
             {
                 var result = compilation.Emit(stream);
                 result.Diagnostics.Verify(
-                    // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                    Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
-                    // (14,9): error CS0656: Missing compiler required member 'System.String.op_Equality'
-                    //         switch (s) { case "A": break; case "B": break; }
-                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (s) { case ""A"": break; case ""B"": break; }").WithArguments("System.String", "op_Equality").WithLocation(14, 9));
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (14,22): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                //         switch (s) { case "A": break; case "B": break; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""A"":").WithArguments("System.String", "op_Equality").WithLocation(14, 22)
+                );
             }
         }
 
@@ -16691,6 +16721,54 @@ static class Program
                 expectedOutput: @"
 none called
 in called");
+        }
+
+        [Fact]
+        public void NormalizedNaN()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        CheckNaN(double.NaN);
+        CheckNaN(0.0 / 0.0);
+        CheckNaN(0.0 / -0.0);
+        const double inf = 1.0 / 0.0;
+        CheckNaN(inf + double.NaN);
+        CheckNaN(inf - double.NaN);
+        CheckNaN(-double.NaN);
+
+        CheckNaN(float.NaN);
+        CheckNaN(0.0f / 0.0f);
+        CheckNaN(0.0f / -0.0f);
+        const float finf = 1.0f / 0.0f;
+        CheckNaN(finf + float.NaN);
+        CheckNaN(finf - float.NaN);
+        CheckNaN(-float.NaN);
+}
+
+    static void CheckNaN(double nan)
+    {
+        const long expected = unchecked((long)0xFFF8000000000000UL);
+        long actual = BitConverter.DoubleToInt64Bits(nan);
+        if (expected != actual)
+            throw new Exception($""expected=0X{expected:X} actual=0X{actual:X}"");
+    }
+
+    static unsafe void CheckNaN(float nan)
+    {
+        const int expected = unchecked((int)0xFFC00000U);
+        void* p = &nan;
+        int* ip = (int*)p;
+        int actual = *ip;
+        if (expected != actual)
+            throw new Exception($""expected=0X{expected:X} actual=0X{actual:X}"");
+    }
+}
+";
+            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Skipped, expectedOutput: @"");
         }
     }
 }

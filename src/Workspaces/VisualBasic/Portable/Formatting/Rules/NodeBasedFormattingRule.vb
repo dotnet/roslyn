@@ -1,25 +1,21 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Composition
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
-    <ExportFormattingRule(NodeBasedFormattingRule.Name, LanguageNames.VisualBasic), [Shared]>
-    <ExtensionOrder(After:=AlignTokensFormattingRule.Name)>
     Friend Class NodeBasedFormattingRule
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Node Based Formatting Rule"
 
-        Public Overrides Sub AddAnchorIndentationOperations(operations As List(Of AnchorIndentationOperation),
+        Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As List(Of AnchorIndentationOperation),
                                                             node As SyntaxNode,
                                                             optionSet As OptionSet,
-                                                            nextOperation As NextAction(Of AnchorIndentationOperation))
-            nextOperation.Invoke(operations)
+                                                            ByRef nextOperation As NextAnchorIndentationOperationAction)
+            nextOperation.Invoke()
 
             If TypeOf node Is StatementSyntax AndAlso Not IsBlockSyntax(node) Then
                 Dim baseToken = node.GetFirstToken(includeZeroWidth:=True)
@@ -50,11 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return True
         End Function
 
-        Public Overrides Sub AddIndentBlockOperations(operations As List(Of IndentBlockOperation),
+        Public Overrides Sub AddIndentBlockOperationsSlow(operations As List(Of IndentBlockOperation),
                                                       node As SyntaxNode,
                                                       optionSet As OptionSet,
-                                                      nextOperation As NextAction(Of IndentBlockOperation))
-            nextOperation.Invoke(operations)
+                                                      ByRef nextOperation As NextIndentBlockOperationAction)
+            nextOperation.Invoke()
 
             Dim xmlDocument = TryCast(node, XmlDocumentSyntax)
             If xmlDocument IsNot Nothing Then

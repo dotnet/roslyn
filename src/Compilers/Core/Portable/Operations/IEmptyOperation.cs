@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Reprsents an empty or no-op operation.
+    /// Represents an empty or no-op operation.
     /// <para>
     /// Current usage:
     ///  (1) C# empty statement.

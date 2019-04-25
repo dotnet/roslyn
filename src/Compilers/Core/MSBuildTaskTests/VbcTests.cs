@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.ChecksumAlgorithm = "";
             Assert.Equal("/optionstrict:custom /out:test.exe /checksumalgorithm: test.vb", vbc.GenerateResponseFileContents());
         }
-        
+
         [Fact]
         public void InstrumentTestNamesFlag()
         {
@@ -292,6 +292,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.DebugType = "full";
             vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
             Assert.Equal(@"/optionstrict:custom /debug:full /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("a;b.vb");
+            vbc.DebugType = "full";
+            vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems("a;b.vb");
+            Assert.Equal(@"/optionstrict:custom /debug:full /out:""a;b.exe"" /embed:""a;b.vb"" ""a;b.vb""", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("a, b.vb");
+            vbc.DebugType = "full";
+            vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems("a, b.vb");
+            Assert.Equal(@"/optionstrict:custom /debug:full /out:""a, b.exe"" /embed:""a, b.vb"" ""a, b.vb""", vbc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -349,7 +361,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.SharedCompilationId = "testPipeName";
             Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
-      
+
         [Fact]
         [WorkItem(21371, "https://github.com/dotnet/roslyn/issues/21371")]
         public void GenerateDocumentationFalse()
@@ -390,6 +402,43 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
             vbc.DocumentationFile = "test.xml";
             Assert.Equal("/optionstrict:custom /doc:test.xml /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void SdkPath()
+        {
+            var vbc = new Vbc();
+            vbc.SdkPath = @"path\to\sdk";
+            Assert.Equal(@"/optionstrict:custom /sdkpath:path\to\sdk", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        [WorkItem(29252, "https://github.com/dotnet/roslyn/issues/29252")]
+        public void DisableSdkPath()
+        {
+            var vbc = new Vbc();
+            vbc.DisableSdkPath = true;
+            Assert.Equal(@"/optionstrict:custom /nosdkpath", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void EditorConfig()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig");
+            Assert.Equal(@"/optionstrict:custom /out:test.exe /analyzerconfig:.editorconfig test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb", "subdir\\test.vb");
+            vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
+            Assert.Equal(@"/optionstrict:custom /out:test.exe /analyzerconfig:.editorconfig /analyzerconfig:subdir\.editorconfig test.vb subdir\test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems("..\\.editorconfig", "sub dir\\.editorconfig");
+            Assert.Equal(@"/optionstrict:custom /out:test.exe /analyzerconfig:..\.editorconfig /analyzerconfig:""sub dir\.editorconfig"" test.vb", vbc.GenerateResponseFileContents());
         }
     }
 }

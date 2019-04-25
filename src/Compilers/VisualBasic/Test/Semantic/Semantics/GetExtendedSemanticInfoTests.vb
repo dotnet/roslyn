@@ -7777,7 +7777,8 @@ Module Module1
 
 End Module
         </file>
-    </compilation>)
+    </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
             compilation.AssertTheseDiagnostics(<errors>
 BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
@@ -7803,7 +7804,8 @@ Module Module1
 
 End Module
         </file>
-    </compilation>)
+    </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
             compilation.AssertTheseDiagnostics(<errors>
 BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"

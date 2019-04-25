@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : IRemoteAddImportFeatureService
     {
         public Task<IList<AddImportFixData>> GetFixesAsync(
-            DocumentId documentId, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
+            DocumentId documentId, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
             bool searchReferenceAssemblies, IList<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async token =>
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var symbolSearchService = new SymbolSearchService(this);
 
                     var result = await service.GetFixesAsync(
-                        document, span, diagnosticId, placeSystemNamespaceFirst,
+                        document, span, diagnosticId, maxResults, placeSystemNamespaceFirst,
                         symbolSearchService, searchReferenceAssemblies,
                         packageSources.ToImmutableArray(), token).ConfigureAwait(false);
 
@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Remote
             public async Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
-                var result = await codeAnalysisService.Rpc.InvokeAsync<IList<PackageWithTypeResult>>(
-                    nameof(FindPackagesWithTypeAsync), source, name, arity).ConfigureAwait(false);
+                var result = await codeAnalysisService.InvokeAsync<IList<PackageWithTypeResult>>(
+                    nameof(FindPackagesWithTypeAsync), new object[] { source, name, arity }, cancellationToken).ConfigureAwait(false);
 
                 return result;
             }
@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.Remote
             public async Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string assemblyName, CancellationToken cancellationToken)
             {
-                var result = await codeAnalysisService.Rpc.InvokeAsync<IList<PackageWithAssemblyResult>>(
-                    nameof(FindPackagesWithAssemblyAsync), source, assemblyName).ConfigureAwait(false);
+                var result = await codeAnalysisService.InvokeAsync<IList<PackageWithAssemblyResult>>(
+                    nameof(FindPackagesWithAssemblyAsync), new object[] { source, assemblyName }, cancellationToken).ConfigureAwait(false);
 
                 return result;
             }
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.Remote
             public async Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity, CancellationToken cancellationToken)
             {
-                var result = await codeAnalysisService.Rpc.InvokeAsync<IList<ReferenceAssemblyWithTypeResult>>(
-                    nameof(FindReferenceAssembliesWithTypeAsync), name, arity).ConfigureAwait(false);
+                var result = await codeAnalysisService.InvokeAsync<IList<ReferenceAssemblyWithTypeResult>>(
+                    nameof(FindReferenceAssembliesWithTypeAsync), new object[] { name, arity }, cancellationToken).ConfigureAwait(false);
 
                 return result;
             }

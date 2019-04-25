@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             {
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_XML_DOCFILE, "DocFile.xml");
+                project.SetOption(CompilerOptions.OPTID_XML_DOCFILE, "DocFile.xml");
 
                 var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 var options = (CSharpParseOptions)workspaceProject.ParseOptions;
@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             {
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_XML_DOCFILE, "");
+                project.SetOption(CompilerOptions.OPTID_XML_DOCFILE, "");
 
                 var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 var options = (CSharpParseOptions)workspaceProject.ParseOptions;
@@ -58,7 +58,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             {
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_COMPATIBILITY, "6");
+                project.SetOption(CompilerOptions.OPTID_COMPATIBILITY, "6");
 
                 var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
                 var options = (CSharpParseOptions)workspaceProject.ParseOptions;
@@ -95,13 +95,41 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             {
                 var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNASERRORLIST, "1111");
+                project.SetOption(CompilerOptions.OPTID_WARNASERRORLIST, "1111");
                 var options = environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: options.SpecificDiagnosticOptions["CS1111"]);
 
-                project.SetOptionWithMarshaledValue(CompilerOptions.OPTID_WARNASERRORLIST, null);
+                project.SetOption(CompilerOptions.OPTID_WARNASERRORLIST, null);
                 options = environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.False(options.SpecificDiagnosticOptions.ContainsKey("CS1111"));
+            }
+        }
+
+        [WpfFact]
+        [WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")]
+        public void ProjectOutputPathAndOutputExeNameChange()
+        {
+            using (var environment = new TestEnvironment())
+            {
+                var initialPath = @"C:\test.dll";
+                var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
+                project.SetOutputFileName(initialPath);
+                Assert.Equal(initialPath, project.GetOutputFileName());
+
+                // Change output folder from command line arguments - verify that objOutputPath changes.
+                var newPath = @"C:\NewFolder\test.dll";
+                project.SetOutputFileName(newPath);
+                Assert.Equal(newPath, project.GetOutputFileName());
+
+                // Change output file name - verify that outputPath changes.
+                newPath = @"C:\NewFolder\test2.dll";
+                project.SetOutputFileName(newPath);
+                Assert.Equal(newPath, project.GetOutputFileName());
+
+                // Change output file name and folder - verify that outputPath changes.
+                newPath = @"C:\NewFolder3\test3.dll";
+                project.SetOutputFileName(newPath);
+                Assert.Equal(newPath, project.GetOutputFileName());
             }
         }
     }

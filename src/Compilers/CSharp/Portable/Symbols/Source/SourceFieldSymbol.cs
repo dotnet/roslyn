@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void CheckAccessibility(DiagnosticBag diagnostics)
         {
-            var info = ModifierUtils.CheckAccessibility(Modifiers);
+            var info = ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false);
             if (info != null)
             {
                 diagnostics.Add(new CSDiagnostic(info, this.ErrorLocation));
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // type isn't available.
         }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
+        protected ImmutableArray<CustomModifier> RequiredCustomModifiers
         {
             get
             {
@@ -122,6 +122,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 base.DecodeWellKnownAttribute(ref arguments);
+            }
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            var location = ErrorLocation;
+            if (this.TypeWithAnnotations.NeedsNullableAttribute())
+            {
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
         }
 
@@ -281,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (value != null) &&
                 !value.IsBad &&
                 (value != Microsoft.CodeAnalysis.ConstantValue.Unset) &&
-                diagnostics.IsEmptyWithoutResolution)
+                !diagnostics.HasAnyResolvedErrors())
             {
                 this.SetLazyConstantValue(
                     value,

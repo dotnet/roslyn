@@ -1742,6 +1742,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_ValueTupleResolutionAmbiguous3 = 37305
 
+        ERR_CommentsAfterLineContinuationNotAvailable1 = 37306
+
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_InvalidOverrideDueToTupleNames2 = 40001
@@ -1964,8 +1966,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_AttributeIgnoredWhenPublicSigning = 42379
         WRN_Experimental = 42380
 
-        ' // AVAILABLE                             42381 - 49998
-        ERRWRN_NextAvailable = 42381
+        ERR_MultipleAnalyzerConfigsInSameDir = 42500
+
+        ' // AVAILABLE                             42600 - 49998
+        ERRWRN_NextAvailable = 42600
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000
@@ -2018,5 +2022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_LeadingDigitSeparator
         FEATURE_PrivateProtected
         FEATURE_InterpolatedStrings
+        FEATURE_UnconstrainedTypeParameterInConditional
+        FEATURE_CommentsAfterLineContinuation
     End Enum
 End Namespace

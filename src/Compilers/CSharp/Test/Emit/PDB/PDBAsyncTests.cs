@@ -709,8 +709,7 @@ sequencePoints: "C.F");
   IL_0099:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_009e:  nop
   IL_009f:  ret
-}
-", sequencePoints: "C+<F>d__0.MoveNext");
+}", sequencePoints: "C+<F>d__0.MoveNext");
         }
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
@@ -1195,7 +1194,7 @@ class C
       </asyncInfo>
     </method>
   </methods>
-</symbols>");        
+</symbols>");
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
@@ -2028,7 +2027,7 @@ MethodDebugInformation (index: 0x31, size: 20):
   IL_0022: (5, 29) - (5, 30)
   IL_002A: <hidden>
 }
-5: nil", 
+5: nil",
                     writer.ToString());
             }
         }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,50 +27,6 @@ namespace Microsoft.CodeAnalysis
 
             stream.Position = 0;
             return stream;
-        }
-
-        internal static PooledStream CreateReadableStream(Stream stream, CancellationToken cancellationToken)
-        {
-            long length = stream.Length;
-
-            long chunkCount = (length + ChunkSize - 1) / ChunkSize;
-            byte[][] chunks = new byte[chunkCount][];
-
-            try
-            {
-                for (long i = 0, c = 0; i < length; i += ChunkSize, c++)
-                {
-                    int count = (int)Math.Min(ChunkSize, length - i);
-                    var chunk = SharedPools.ByteArray.Allocate();
-
-                    int chunkOffset = 0;
-                    while (count > 0)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        int bytesRead = stream.Read(chunk, chunkOffset, count);
-                        if (bytesRead > 0)
-                        {
-                            count = count - bytesRead;
-                            chunkOffset += bytesRead;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
-                    chunks[c] = chunk;
-                }
-
-                var result = new ReadStream(length, chunks);
-                chunks = null;
-                return result;
-            }
-            finally
-            {
-                BlowChunks(chunks);
-            }
         }
 
         internal async static Task<PooledStream> CreateReadableStreamAsync(Stream stream, CancellationToken cancellationToken)
@@ -286,6 +243,12 @@ namespace Microsoft.CodeAnalysis
                 // read entire array
                 Read(this.chunks, 0, this.length, array, 0, array.Length);
                 return array;
+            }
+
+            public ImmutableArray<byte> ToImmutableArray()
+            {
+                var array = ToArray();
+                return ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref array);
             }
 
             protected int CurrentChunkIndex { get { return GetChunkIndex(this.position); } }

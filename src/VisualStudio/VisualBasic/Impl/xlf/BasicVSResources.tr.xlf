@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
-        <target state="new">In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
+        <target state="translated">İlişkisel işleçleri içinde: = Transfeleri'nin &lt; &gt; &lt;&gt; = nasıl olduğunu =</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -32,9 +32,19 @@
         <target state="translated">Interface ve MustOverride üyelerini otomatik olarak _ekle</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">Hiçbir zaman</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
-        <target state="new">Prefer 'Is Nothing' for reference equality checks</target>
+        <target state="translated">Başvuru eşitliği denetimleri için 'Is Nothing'i tercih et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="new">Show items from unimported namespaces (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -174,12 +184,12 @@
       </trans-unit>
       <trans-unit id="Do_not_prefer_Me">
         <source>Do not prefer 'Me.'</source>
-        <target state="translated">Me.' öğesini tercih etme</target>
+        <target state="translated">'Me.' öğesini tercih etme</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Me">
         <source>Prefer 'Me.'</source>
-        <target state="translated">Me.' öğesini tercih et</target>
+        <target state="translated">'Me' tercih</target>
         <note />
       </trans-unit>
       <trans-unit id="Me_preferences_colon">
@@ -204,7 +214,7 @@
       </trans-unit>
       <trans-unit id="Completion_Lists">
         <source>Completion Lists</source>
-        <target state="translated">Tamamlanma Listeleri</target>
+        <target state="translated">Tamamlama Listeleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
@@ -257,6 +267,16 @@
         <target state="translated">Bir karakter yazıldıktan sonra tamamlanma listesini _göster</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="translated">Kullanılmayan yerel</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="translated">VB kodlama kuralları</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'nothing' denetimi:</target>
@@ -269,7 +289,7 @@
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'String.Format' calls</source>
-        <target state="translated">String.Format' çağrılarındaki geçersiz yer tutucuları bildir</target>
+        <target state="translated">Rapor geçersiz yer tutucuları 'String.Format' çağrıları</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_import_directive_groups">
@@ -279,12 +299,12 @@
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</source>
-        <target state="new">In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</target>
+        <target state="translated">İçinde aritmetik işleçler: ^ * / \ Mod + - &amp; &lt;&gt; &lt;&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  And   AndAlso   Or   OrElse</source>
-        <target state="new">In other binary operators:  And   AndAlso   Or   OrElse</target>
+        <target state="translated">Diğer ikili işleçlerde: And AndAlso Or OrElse</target>
         <note />
       </trans-unit>
     </body>

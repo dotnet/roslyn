@@ -1177,7 +1177,7 @@ HandleAsAGeneralExpression:
                             AddTypeToGraph(delegateParameter.Type, argNode, isOutgoingEdge:=False, haveSeenTypeParameters:=haveSeenTypeParameters) ' incoming (type->name) edge
                         Next
                     End If
-                ElseIf parameterType.OriginalDefinition = binder.Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T) Then
+                ElseIf TypeSymbol.Equals(parameterType.OriginalDefinition, binder.Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T), TypeCompareKind.ConsiderEverything) Then
                     ' If we've got an Expression(Of T), skip through to T
                     AddAddressOfToGraph(DirectCast(parameterType, NamedTypeSymbol).TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteDiagnostics), argNode, binder)
                 End If
@@ -1241,7 +1241,7 @@ HandleAsAGeneralExpression:
                         AddTypeToGraph(invoke.ReturnType, argNode, isOutgoingEdge:=True, haveSeenTypeParameters:=haveSeenTypeParameters)
                     End If
 
-                ElseIf parameterType.OriginalDefinition = binder.Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T) Then
+                ElseIf TypeSymbol.Equals(parameterType.OriginalDefinition, binder.Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T), TypeCompareKind.ConsiderEverything) Then
                     ' If we've got an Expression(Of T), skip through to T
                     AddLambdaToGraph(DirectCast(parameterType, NamedTypeSymbol).TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteDiagnostics), argNode, binder)
                 End If
@@ -2092,9 +2092,12 @@ HandleAsAGeneralExpression:
                     End Select
 
                     Dim delegateParams As ImmutableArray(Of ParameterSymbol) = invokeMethod.Parameters
-                    Dim minCount As Integer = Math.Min(lambdaParams.Length, delegateParams.Length)
 
-                    For i As Integer = 0 To minCount - 1 Step 1
+                    If lambdaParams.Length > delegateParams.Length Then
+                        Return True
+                    End If
+
+                    For i As Integer = 0 To lambdaParams.Length - 1 Step 1
                         Dim lambdaParam As ParameterSymbol = lambdaParams(i)
                         Dim delegateParam As ParameterSymbol = delegateParams(i)
 
@@ -2221,12 +2224,9 @@ HandleAsAGeneralExpression:
 
                                         ' We can assume that the lambda will have return type Task(Of T) or IEnumerable(Of T)
                                         ' or IEnumerator(Of T) as appropriate. That's already been ensured by the lambda-interpretation.
-                                        Debug.Assert(lambdaReturnNamedType.OriginalDefinition =
-                                                         argument.GetBinderFromLambda().Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T) OrElse
-                                                     lambdaReturnNamedType.OriginalDefinition =
-                                                         argument.GetBinderFromLambda().Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T) OrElse
-                                                     lambdaReturnNamedType.OriginalDefinition =
-                                                         argument.GetBinderFromLambda().Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T))
+                                        Debug.Assert(TypeSymbol.Equals(lambdaReturnNamedType.OriginalDefinition, argument.GetBinderFromLambda().Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T), TypeCompareKind.ConsiderEverything) OrElse
+                                                     TypeSymbol.Equals(lambdaReturnNamedType.OriginalDefinition, argument.GetBinderFromLambda().Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T), TypeCompareKind.ConsiderEverything) OrElse
+                                                     TypeSymbol.Equals(lambdaReturnNamedType.OriginalDefinition, argument.GetBinderFromLambda().Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T), TypeCompareKind.ConsiderEverything))
 
                                         lambdaReturnType = lambdaReturnNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteDiagnostics)
                                         returnType = returnNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteDiagnostics)
@@ -2274,7 +2274,7 @@ HandleAsAGeneralExpression:
                             param:=param, digThroughToBasesAndImplements:=MatchGenericArgumentToParameter.MatchBaseOfGenericArgumentToParameter,
                             inferenceRestrictions:=RequiredConversion.Any)
 
-                ElseIf parameterType.OriginalDefinition = argument.GetBinderFromLambda().Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T) Then
+                ElseIf TypeSymbol.Equals(parameterType.OriginalDefinition, argument.GetBinderFromLambda().Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T), TypeCompareKind.ConsiderEverything) Then
                     ' If we've got an Expression(Of T), skip through to T
                     Return InferTypeArgumentsFromLambdaArgument(argument, DirectCast(parameterType, NamedTypeSymbol).TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteDiagnostics), param)
                 End If

@@ -5,7 +5,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private class MetadataSymbolReferenceCodeAction : SymbolReferenceCodeAction
         {

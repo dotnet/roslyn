@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                            ITypeSymbol type = increment.Type;
                                            Optional<object> constantValue = new Optional<object>(1);
                                            bool isImplicit = increment.IsImplicit;
-                                           var value = new LiteralExpression(operationContext.Compilation.GetSemanticModel(syntax.SyntaxTree), syntax, type, constantValue, isImplicit);
+                                           var value = new LiteralOperation(operationContext.Compilation.GetSemanticModel(syntax.SyntaxTree), syntax, type, constantValue, isImplicit);
 
                                            AssignTo(increment.Target, localsSourceTypes, fieldsSourceTypes, value);
                                        }

@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// </summary>
     internal interface IEmbeddedLanguagesProvider : ILanguageService
     {
-        ImmutableArray<IEmbeddedLanguage> GetEmbeddedLanguages();
+        ImmutableArray<IEmbeddedLanguage> Languages { get; }
     }
 }

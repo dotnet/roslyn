@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         public override TypeStyleResult AnalyzeTypeName(
-            TypeSyntax typeName, SemanticModel semanticModel, 
+            TypeSyntax typeName, SemanticModel semanticModel,
             OptionSet optionSet, CancellationToken cancellationToken)
         {
             if (typeName.StripRefIfNeeded().IsVar)
@@ -79,15 +79,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             if (state.IsInIntrinsicTypeContext)
             {
-                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeForIntrinsicTypes);
+                return stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
             }
             else if (state.IsTypeApparentInContext)
             {
-                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWhereApparent);
+                return stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent);
             }
             else
             {
-                return stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeWherePossible);
+                return stylePreferences.HasFlag(UseVarPreference.Elsewhere);
             }
         }
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // variables declared using var cannot be used further in the same initialization expression.
             if (initializer.DescendantNodesAndSelf()
                 .Where(n => n is IdentifierNameSyntax id && id.Identifier.ValueText.Equals(identifier.ValueText))
-                .Any(n => 
+                .Any(n =>
                 {
                     // case of variable direct use: int x = x * 2;
                     if (semanticModel.GetSymbolInfo(n, cancellationToken).Symbol.IsKind(SymbolKind.Local) == true)
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return false;
         }
 
-        internal static ExpressionSyntax GetInitializerExpression(ExpressionSyntax initializer) 
+        internal static ExpressionSyntax GetInitializerExpression(ExpressionSyntax initializer)
             => initializer is CheckedExpressionSyntax
                 ? ((CheckedExpressionSyntax)initializer).Expression.WalkDownParentheses()
                 : initializer.WalkDownParentheses();

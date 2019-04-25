@@ -187,14 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return RefKind.None; }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            get { return _returnType; }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
+            get { return TypeWithAnnotations.Create(_returnType); }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -202,9 +197,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            get { return ImmutableArray<TypeSymbol>.Empty; }
+            get { return ImmutableArray<TypeWithAnnotations>.Empty; }
         }
 
         public override Symbol AssociatedSymbol
@@ -304,6 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ImmutableArray<MethodSymbol>.Empty; }
         }
+
+        internal sealed override bool IsDeclaredReadOnly => false;
 
         internal override bool SynthesizesLoweredBoundBody
         {

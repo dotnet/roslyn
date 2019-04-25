@@ -48,15 +48,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private readonly AbstractCodeModelEventCollector _eventCollector;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
-        private readonly IFormattingRule _lineAdjustmentFormattingRule;
-        private readonly IFormattingRule _endRegionFormattingRule;
+        private readonly AbstractFormattingRule _lineAdjustmentFormattingRule;
+        private readonly AbstractFormattingRule _endRegionFormattingRule;
 
         protected AbstractCodeModelService(
             HostLanguageServices languageServiceProvider,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            IFormattingRule lineAdjustmentFormattingRule,
-            IFormattingRule endRegionFormattingRule)
+            AbstractFormattingRule lineAdjustmentFormattingRule,
+            AbstractFormattingRule endRegionFormattingRule)
         {
             Debug.Assert(languageServiceProvider != null);
             Debug.Assert(editorOptionsFactoryService != null);
@@ -488,30 +488,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public abstract string GetFullyQualifiedName(string name, int position, SemanticModel semanticModel);
 
-        public void Rename(ISymbol symbol, string newName, Solution solution)
+        public void Rename(ISymbol symbol, string newName, Workspace workspace, ProjectCodeModelFactory projectCodeModelFactory)
         {
-            // TODO: (tomescht) make this testable through unit tests.
-            // Right now we have to go through the project system to find all
-            // the outstanding CodeElements which might be affected by the
-            // rename. This is silly. This functionality should be moved down
-            // into the service layer.
-
-            var workspace = solution.Workspace as VisualStudioWorkspaceImpl;
-            if (workspace == null)
-            {
-                throw Exceptions.ThrowEFail();
-            }
-
             // Save the node keys.
-            var nodeKeyValidation = new NodeKeyValidation();
-            foreach (var project in workspace.DeferredState.ProjectTracker.ImmutableProjects)
-            {
-                nodeKeyValidation.AddProject(project);
-            }
+            var nodeKeyValidation = new NodeKeyValidation(projectCodeModelFactory);
 
             // Rename symbol.
-            var newSolution = Renamer.RenameSymbolAsync(solution, symbol, newName, solution.Options).WaitAndGetResult_CodeModel(CancellationToken.None);
-            var changedDocuments = newSolution.GetChangedDocuments(solution);
+            var oldSolution = workspace.CurrentSolution;
+            var newSolution = Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options).WaitAndGetResult_CodeModel(CancellationToken.None);
+            var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
 
             // Notify third parties of the coming rename operation and let exceptions propagate out
             _refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: true);
@@ -1112,7 +1097,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         protected abstract SyntaxNode InsertImportIntoContainer(int index, SyntaxNode import, SyntaxNode container);
         protected abstract SyntaxNode InsertParameterIntoContainer(int index, SyntaxNode parameter, SyntaxNode container);
 
-        private Document FormatAnnotatedNode(Document document, SyntaxAnnotation annotation, IEnumerable<IFormattingRule> additionalRules, CancellationToken cancellationToken)
+        private Document FormatAnnotatedNode(Document document, SyntaxAnnotation annotation, IEnumerable<AbstractFormattingRule> additionalRules, CancellationToken cancellationToken)
         {
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var annotatedNode = root.GetAnnotatedNodesAndTokens(annotation).Single().AsNode();

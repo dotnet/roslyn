@@ -843,7 +843,7 @@ class AAttribute : Attribute {
 class C {
 }
 ";
-            ParseAndRoundTripping(text, -1);
+            ParseAndRoundTripping(text);
         }
 
         [Fact]

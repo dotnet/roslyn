@@ -101,6 +101,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' Always returns false because the 'readonly members' feature is not available in VB.
+        ''' </summary>
+        Private ReadOnly Property IMethodSymbol_IsReadOnly As Boolean Implements IMethodSymbol.IsReadOnly
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Returns true if this method has no return type; i.e., is a Sub instead of a Function.
         ''' </summary>
         Public MustOverride ReadOnly Property IsSub As Boolean
@@ -241,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' True if the method itself Is excluded from code covarage instrumentation.
+        ''' True if the method itself Is excluded from code coverage instrumentation.
         ''' True for source methods marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         ''' </summary>
         Friend Overridable ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
@@ -883,6 +892,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_ReceiverNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReceiverNullableAnnotation
+            Get
+                Return NullableAnnotation.NotApplicable
+            End Get
+        End Property
+
         Private Function IMethodSymbol_GetTypeInferredDuringReduction(reducedFromTypeParameter As ITypeParameterSymbol) As ITypeSymbol Implements IMethodSymbol.GetTypeInferredDuringReduction
             Return Me.GetTypeInferredDuringReduction(reducedFromTypeParameter.EnsureVbSymbolOrNothing(Of TypeParameterSymbol)(NameOf(reducedFromTypeParameter)))
         End Function
@@ -980,9 +995,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_ReturnNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReturnNullableAnnotation
+            Get
+                Return NullableAnnotation.NotApplicable
+            End Get
+        End Property
+
         Private ReadOnly Property IMethodSymbol_TypeArguments As ImmutableArray(Of ITypeSymbol) Implements IMethodSymbol.TypeArguments
             Get
                 Return StaticCast(Of ITypeSymbol).From(Me.TypeArguments)
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbol_TypeArgumentsNullableAnnotation As ImmutableArray(Of NullableAnnotation) Implements IMethodSymbol.TypeArgumentsNullableAnnotations
+            Get
+                Return Me.TypeArguments.SelectAsArray(Function(t) NullableAnnotation.NotApplicable)
             End Get
         End Property
 

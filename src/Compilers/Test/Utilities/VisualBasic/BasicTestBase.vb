@@ -884,7 +884,6 @@ Public MustInherit Class BasicTestBase
         Optional useLatestFramework As Boolean = False)
 
         Dim fileName = "a.vb"
-        parseOptions = If(parseOptions?.WithFlowAnalysisFeature(), TestOptions.RegularWithFlowAnalysisFeature)
         Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
         Dim references As IEnumerable(Of MetadataReference) = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(
             If(useLatestFramework, TestBase.MsvbRef_v4_0_30319_17929, TestBase.MsvbRef))

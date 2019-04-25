@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     public class TypeTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(30023, "https://github.com/dotnet/roslyn/issues/30023")]
         public void Bug18280()
         {
             string brackets = "[][][][][][][][][][][][][][][][][][][][]";
@@ -35,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var arr = x.Type;
 
             arr.GetHashCode();
+            // https://github.com/dotnet/roslyn/issues/30023: StackOverflowException in SetUnknownNullabilityForReferenceTypes.
+            //arr.SetUnknownNullabilityForReferenceTypes();
         }
 
         [Fact]
@@ -461,15 +464,15 @@ public partial class A { }
             Assert.Equal(SymbolKind.Field, field1.Kind);
             Assert.True(field1.IsDefinition);
             Assert.True(field1.IsStatic);
-            var elemType1 = (field1 as FieldSymbol).Type;
-            Assert.Equal(TypeKind.Array, elemType1.TypeKind);
-            Assert.Equal("System.Int32[,]", elemType1.ToTestDisplayString());
+            var elemType1 = (field1 as FieldSymbol).TypeWithAnnotations;
+            Assert.Equal(TypeKind.Array, elemType1.Type.TypeKind);
+            Assert.Equal("System.Int32[,]", elemType1.Type.ToTestDisplayString());
 
             // ArrayType public API
-            Assert.False(elemType1.IsStatic);
-            Assert.False(elemType1.IsAbstract);
-            Assert.False(elemType1.IsSealed);
-            Assert.Equal(Accessibility.NotApplicable, elemType1.DeclaredAccessibility);
+            Assert.False(elemType1.Type.IsStatic);
+            Assert.False(elemType1.Type.IsAbstract);
+            Assert.False(elemType1.Type.IsSealed);
+            Assert.Equal(Accessibility.NotApplicable, elemType1.Type.DeclaredAccessibility);
 
             field1 = classTest.GetMembers("ulongAryField").Single();
             Assert.Equal(classTest, field1.ContainingSymbol);
@@ -512,8 +515,8 @@ public partial class A { }
         }
 
         // Interfaces impl-ed by System.Array
-        // .Net 2/3.0 (7) IList&[T] -> ICollection&[T] ->IEnumerable&[T]; ICloneable;
-        // .Net 4.0 (9) IList&[T] -> ICollection&[T] ->IEnumerable&[T]; ICloneable; IStructuralComparable; IStructuralEquatable
+        // .NET 2/3.0 (7) IList&[T] -> ICollection&[T] ->IEnumerable&[T]; ICloneable;
+        // .NET 4.0 (9) IList&[T] -> ICollection&[T] ->IEnumerable&[T]; ICloneable; IStructuralComparable; IStructuralEquatable
         // Array T[] impl IList[T] only
         [Fact, WorkItem(537300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537300"), WorkItem(527247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527247")]
         public void ArrayTypeInterfaces()
@@ -1796,7 +1799,7 @@ class Goo {
             var Func_Dynamic = (Goo.GetMembers("Z")[0] as FieldSymbol).Type;
             var Func_Object = (Goo.GetMembers("W")[0] as FieldSymbol).Type;
 
-            var comparator = TypeSymbol.EqualsIgnoringDynamicAndTupleNamesComparer;
+            var comparator = TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer;
             Assert.NotEqual(Object, Dynamic);
             Assert.Equal(comparator.GetHashCode(Dynamic), comparator.GetHashCode(Object));
             Assert.True(comparator.Equals(Dynamic, Object));

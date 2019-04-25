@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 if (finalFieldName != field.Name && constructorSyntaxes.Count > 0)
                 {
                     solution = await Renamer.RenameSymbolAsync(solution,
-                        SymbolAndProjectId.Create(field, projectId), 
+                        SymbolAndProjectId.Create(field, projectId),
                         finalFieldName, solution.Options,
                         location => constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)),
                         cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 // Just rename everything.
                 return await Renamer.RenameSymbolAsync(
-                    solution, SymbolAndProjectId.Create(field, projectId), 
+                    solution, SymbolAndProjectId.Create(field, projectId),
                     generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -292,12 +292,12 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         }
 
         protected IPropertySymbol GenerateProperty(
-            string propertyName, string fieldName, 
-            Accessibility accessibility, 
-            IFieldSymbol field, 
-            INamedTypeSymbol containingSymbol, 
-            SyntaxAnnotation annotation, 
-            Document document, 
+            string propertyName, string fieldName,
+            Accessibility accessibility,
+            IFieldSymbol field,
+            INamedTypeSymbol containingSymbol,
+            SyntaxAnnotation annotation,
+            Document document,
             CancellationToken cancellationToken)
         {
             var factory = document.GetLanguageService<SyntaxGenerator>();

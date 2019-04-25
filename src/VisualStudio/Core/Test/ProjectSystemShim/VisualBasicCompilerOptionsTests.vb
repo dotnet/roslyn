@@ -63,9 +63,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
-                ' SetCompilerOptions only handles versions 15.3 and up
-                Assert.Equal(LanguageVersion.VisualBasic15, options.LanguageVersion)
-                Assert.Equal(LanguageVersion.VisualBasic15, options.SpecifiedLanguageVersion)
+                ' SetCompilerOptions only handles versions 15.3 and up, so we are ignoring the
+                ' /langversion:14 above in favor of the legacy value. Since the legacy value was
+                ' not set, it'll just be default.
+                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
+                Assert.Equal(LanguageVersion.Default, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -85,8 +87,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
-                Assert.Equal(LanguageVersion.VisualBasic15, options.LanguageVersion)
-                Assert.Equal(LanguageVersion.VisualBasic15, options.SpecifiedLanguageVersion)
+                ' SetCompilerOptions only handles versions 15.3 and up, so we are ignoring the
+                ' /langversion:14 above in favor of the legacy value. Since the legacy value was
+                ' not set, it'll just be default.
+                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
+                Assert.Equal(LanguageVersion.Default, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -107,7 +112,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
                 Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
-                Assert.Equal(LanguageVersion.Default.MapSpecifiedToEffectiveVersion(), options.SpecifiedLanguageVersion)
+                Assert.Equal(LanguageVersion.Default, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -149,7 +154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim options = DirectCast(workspaceProject.ParseOptions, VisualBasicParseOptions)
 
                 Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(), options.LanguageVersion)
-                Assert.Equal(LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(), options.SpecifiedLanguageVersion)
+                Assert.Equal(LanguageVersion.Latest, options.SpecifiedLanguageVersion)
 
                 project.Disconnect()
             End Using
@@ -206,21 +211,41 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         End Sub
 
         <WpfFact()>
+        <WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(18098, "https://github.com/dotnet/roslyn/issues/18098")>
-        Sub NullBinPath()
+        Public Sub ProjectOutputPathAndOutputExeNameChange()
             Using environment = New TestEnvironment()
-                Dim project = CreateVisualBasicProjectWithNullBinPath(environment, "Test")
-
+                Dim project = CreateVisualBasicProject(environment, "Test")
                 Dim compilerOptions = CreateMinimalCompilerOptions(project)
+                compilerOptions.wszOutputPath = "C:\"
+                compilerOptions.wszExeName = "test.dll"
                 project.SetCompilerOptions(compilerOptions)
+                Assert.Equal("C:\test.dll", project.GetOutputFileName())
 
-                ' Mostly, we're just validating that we didn't crash on the way here
-                Assert.NotNull(project)
-                Assert.Null(project.BinOutputPath)
-                project.Disconnect()
+                ' Change output folder from command line arguments - verify that objOutputPath changes.
+                Dim newPath = "C:\NewFolder\test.dll"
+                compilerOptions = CreateMinimalCompilerOptions(project)
+                compilerOptions.wszOutputPath = "C:\NewFolder"
+                compilerOptions.wszExeName = "test.dll"
+                project.SetCompilerOptions(compilerOptions)
+                Assert.Equal(newPath, project.GetOutputFileName())
+
+                ' Change output file name - verify that outputPath changes.
+                newPath = "C:\NewFolder\test2.dll"
+                compilerOptions = CreateMinimalCompilerOptions(project)
+                compilerOptions.wszOutputPath = "C:\NewFolder"
+                compilerOptions.wszExeName = "test2.dll"
+                project.SetCompilerOptions(compilerOptions)
+                Assert.Equal(newPath, project.GetOutputFileName())
+
+                ' Change output file name and folder - verify that outputPath changes.
+                newPath = "C:\NewFolder3\test3.dll"
+                compilerOptions = CreateMinimalCompilerOptions(project)
+                compilerOptions.wszOutputPath = "C:\NewFolder3"
+                compilerOptions.wszExeName = "test3.dll"
+                project.SetCompilerOptions(compilerOptions)
+                Assert.Equal(newPath, project.GetOutputFileName())
             End Using
-
         End Sub
     End Class
 End Namespace

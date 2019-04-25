@@ -108,6 +108,23 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return availableIndices != null && availableIndices.Any(b => b);
         }
 
+        /// <summary>
+        /// Return the most relevant declaration to namespaceOrType,
+        /// it will first search the context node contained within,
+        /// then the declaration in the same file, then non auto-generated file,
+        /// then all the potential location. Return null if no declaration.
+        /// </summary>
+        public async Task<SyntaxNode> FindMostRelevantNameSpaceOrTypeDeclarationAsync(
+            Solution solution,
+            INamespaceOrTypeSymbol namespaceOrType,
+            CodeGenerationOptions options,
+            CancellationToken cancellationToken)
+        {
+            var option = options ?? CodeGenerationOptions.Default;
+            var (declaration, _) = await FindMostRelevantDeclarationAsync(solution, namespaceOrType, option, cancellationToken).ConfigureAwait(false);
+            return declaration;
+        }
+
         private async Task<(SyntaxNode declaration, IList<bool> availableIndices)> FindMostRelevantDeclarationAsync(
             Solution solution,
             INamespaceOrTypeSymbol namespaceOrType,

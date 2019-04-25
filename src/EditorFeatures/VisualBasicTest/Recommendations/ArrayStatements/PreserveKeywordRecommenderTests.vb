@@ -48,5 +48,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ar
 <MethodBody>ReDim _
 | </MethodBody>, "Preserve")
         End Function
+
+        <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>ReDim _ ' Test
+| </MethodBody>, "Preserve")
+        End Function
     End Class
 End Namespace

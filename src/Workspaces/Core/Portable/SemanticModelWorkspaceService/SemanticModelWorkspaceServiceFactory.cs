@@ -315,6 +315,10 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     case WorkspaceChangeKind.AdditionalDocumentRemoved:
                     case WorkspaceChangeKind.AdditionalDocumentChanged:
                     case WorkspaceChangeKind.AdditionalDocumentReloaded:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+                    case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                         break;
                     default:
                         Contract.Fail("Unknown event");
@@ -474,7 +478,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         if (documentId == null)
                         {
                             Debug.Assert(newProject.Solution.Workspace.Kind == WorkspaceKind.Interactive || newProject.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
-                            continue;                                
+                            continue;
                         }
 
                         map = map.SetItem(documentId, newTree);

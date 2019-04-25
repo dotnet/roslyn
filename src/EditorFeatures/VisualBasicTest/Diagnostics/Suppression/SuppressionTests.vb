@@ -629,7 +629,7 @@ End Class]]>
 
                     Private Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                         Dim classDecl = DirectCast(context.Node, ClassStatementSyntax)
-                        context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
+                        context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
                     End Sub
                 End Class
 
@@ -703,7 +703,7 @@ End Class]]>
 
                     Private Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                         Dim classDecl = DirectCast(context.Node, ClassStatementSyntax)
-                        context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
+                        context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
                     End Sub
                 End Class
 
@@ -747,7 +747,7 @@ End Class]]>
 
                     Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                         Dim classDecl = DirectCast(context.Node, ClassStatementSyntax)
-                        context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
+                        context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
                     End Sub
                 End Class
 
@@ -811,7 +811,7 @@ End Class]]>
 
                     Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                         Dim classDecl = DirectCast(context.Node, ClassStatementSyntax)
-                        context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
+                        context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
                     End Sub
                 End Class
 
@@ -931,32 +931,32 @@ End Class]]>
                         Select Case context.Node.Kind()
                             Case SyntaxKind.ClassStatement
                                 Dim classDecl = DirectCast(context.Node, ClassStatementSyntax)
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.NamespaceStatement
                                 Dim ns = DirectCast(context.Node, NamespaceStatementSyntax)
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(_descriptor, ns.Name.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, ns.Name.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.SubStatement, SyntaxKind.FunctionStatement
                                 Dim method = DirectCast(context.Node, MethodStatementSyntax)
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(_descriptor, method.Identifier.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, method.Identifier.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.PropertyStatement
                                 Dim p = DirectCast(context.Node, PropertyStatementSyntax)
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(_descriptor, p.Identifier.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, p.Identifier.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.FieldDeclaration
                                 Dim f = DirectCast(context.Node, FieldDeclarationSyntax)
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(_descriptor, f.Declarators.First().Names.First.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, f.Declarators.First().Names.First.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.EventStatement
                                 Dim e = DirectCast(context.Node, EventStatementSyntax)
-                                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(_descriptor, e.Identifier.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, e.Identifier.GetLocation()))
                                 Exit Select
                         End Select
                     End Sub

@@ -125,10 +125,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return null;
                 }
 
-                var ctor = semanticModel.GetSymbolInfo(objectCreation, cancellationToken).Symbol;
-                var type = ctor != null ? ctor.ContainingType : null;
+                var type = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
+                if (type is ITypeParameterSymbol typeParameterSymbol)
+                {
+                    return Tuple.Create<ITypeSymbol, Location>(typeParameterSymbol.GetNamedTypeSymbolConstraint(), token.GetLocation());
+                }
 
-                return Tuple.Create<ITypeSymbol, Location>(type, token.GetLocation());
+                return Tuple.Create(type, token.GetLocation());
             }
 
             // Nested: new Goo { bar = { $$

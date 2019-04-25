@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _fixAllProviderMap = ImmutableDictionary<object, FixAllProviderInfo>.Empty;
         }
 
-        public async Task<FirstDiagnosticResult> GetMostSevereFixableDiagnostic(
+        public async Task<FirstDiagnosticResult> GetMostSevereFixableDiagnosticAsync(
             Document document, TextSpan range, CancellationToken cancellationToken)
         {
             if (document == null || !document.IsOpen())
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var spanAndDiagnostic in aggregatedDiagnostics)
             {
                 await AppendFixesAsync(
-                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan:false,
+                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan: false,
                     result, cancellationToken).ConfigureAwait(false);
             }
 
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return result.ToImmutableAndFree();
         }
 
-        public async Task<CodeFixCollection> GetDocumentFixAllForIdInSpan(Document document, TextSpan range, string diagnosticId, CancellationToken cancellationToken)
+        public async Task<CodeFixCollection> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan range, string diagnosticId, CancellationToken cancellationToken)
         {
             var diagnostics = (await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, diagnosticId, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken).ConfigureAwait(false)).ToList();
             if (diagnostics.Count == 0)
@@ -224,11 +224,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var result = ArrayBuilder<CodeFixCollection>.GetInstance();
-            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan:true, result, cancellationToken).ConfigureAwait(false);
+            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, result, cancellationToken).ConfigureAwait(false);
 
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
             // https://github.com/dotnet/roslyn/issues/27066
             return result.ToImmutableAndFree().FirstOrDefault();
+        }
+
+        public async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var textSpan = new TextSpan(0, tree.Length);
+
+            var fixCollection = await GetDocumentFixAllForIdInSpanAsync(
+                document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
+            if (fixCollection == null)
+            {
+                return document;
+            }
+
+            var fixAllService = document.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
+
+            var solution = await fixAllService.GetFixAllChangedSolutionAsync(
+                fixCollection.FixAllState.CreateFixAllContext(progressTracker, cancellationToken)).ConfigureAwait(false);
+
+            return solution.GetDocument(document.Id);
         }
 
         private async Task AppendFixesAsync(
@@ -339,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             await AppendFixesOrSuppressionsAsync(
-                document, span, diagnostics, fixAllForInSpan: false, result, lazySuppressionProvider.Value, 
+                document, span, diagnostics, fixAllForInSpan: false, result, lazySuppressionProvider.Value,
                 hasFix: d => lazySuppressionProvider.Value.CanBeSuppressedOrUnsuppressed(d),
                 getFixes: dxs => lazySuppressionProvider.Value.GetSuppressionsAsync(
                     document, span, dxs, cancellationToken),
@@ -411,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 supportedScopes, diagnostics.First());
             result.Add(codeFix);
         }
-  
+
         public CodeFixProvider GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds)
         {
             if (!_suppressionProvidersMap.TryGetValue(language, out var lazySuppressionProvider) || lazySuppressionProvider.Value == null)
@@ -522,6 +542,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // Have to see if this fix is still applicable.  Jump to the foreground thread
                     // to make that check.
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     var applicable = fix.Action.IsApplicable(document.Project.Solution.Workspace);
 

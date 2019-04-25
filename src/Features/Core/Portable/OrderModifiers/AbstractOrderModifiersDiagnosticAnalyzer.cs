@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.OrderModifiers
 {
-    internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private readonly ISyntaxFactsService _syntaxFacts;
         private readonly Option<CodeStyleOption<string>> _option;
@@ -28,13 +28,14 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             _helpers = helpers;
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SyntaxAnalysis;
-        public override bool OpenFileOnly(Workspace workspace) => false;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+
+        public override bool OpenFileOnly(Workspace workspace)
+            => false;
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
-        }
+            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {

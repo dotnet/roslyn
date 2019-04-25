@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     internal sealed class EELocalSymbol : EELocalSymbolBase
     {
         private readonly MethodSymbol _method;
-        private readonly TypeSymbol _type;
+        private readonly TypeWithAnnotations _type;
 
         private readonly LocalDeclarationKind _declarationKind;
         private readonly bool _isCompilerGenerated;
@@ -33,11 +33,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             bool isPinned,
             bool isCompilerGenerated,
             bool canScheduleToStack)
+            : this(method, locations, nameOpt, ordinal, declarationKind, TypeWithAnnotations.Create(type), refKind, isPinned, isCompilerGenerated, canScheduleToStack)
+        {
+        }
+
+        public EELocalSymbol(
+            MethodSymbol method,
+            ImmutableArray<Location> locations,
+            string nameOpt,
+            int ordinal,
+            LocalDeclarationKind declarationKind,
+            TypeWithAnnotations type,
+            RefKind refKind,
+            bool isPinned,
+            bool isCompilerGenerated,
+            bool canScheduleToStack)
         {
             Debug.Assert(method != null);
             Debug.Assert(ordinal >= -1);
             Debug.Assert(!locations.IsDefault);
-            Debug.Assert(type != null);
+            Debug.Assert((object)type != null);
 
             _method = method;
             _locations = locations;
@@ -54,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap)
         {
             var type = typeMap.SubstituteType(_type);
-            return new EELocalSymbol(method, _locations, _nameOpt, _ordinal, _declarationKind, type.Type, _refKind, _isPinned, _isCompilerGenerated, _canScheduleToStack);
+            return new EELocalSymbol(method, _locations, _nameOpt, _ordinal, _declarationKind, type, _refKind, _isPinned, _isCompilerGenerated, _canScheduleToStack);
         }
 
         internal override LocalDeclarationKind DeclarationKind
@@ -97,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _method; }
         }
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }

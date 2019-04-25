@@ -90,6 +90,90 @@ public class DATest : DATestBase {
 }";
 
         [Fact]
+        [WorkItem(35011, "https://github.com/dotnet/roslyn/issues/35011")]
+        public void SwitchConstantUnreachable()
+        {
+            var src = @"
+class C
+{
+    const string S = ""abc"";
+
+    public static string M1()
+    {
+        switch (S)
+        {
+            case ""abc"":
+                return S;
+        }
+    }
+
+    public static string M2()
+    {
+        const string S2 = S + """";
+        switch (S)
+        {
+            case S2:
+                return S;
+        }
+    }
+
+    public static string M3()
+    {
+        const int I = 11;
+        switch (I)
+        {
+            case 11:
+                return S;
+        }
+    }
+
+    public static string M4()
+    {
+        switch (S)
+        {
+            case ""def"":
+                return S; // 1
+            default:
+                return S;
+        }
+    }
+
+    public static string M5()
+    {
+        switch (S)
+        {
+            case ""def"":
+                return S; // 2
+        }
+        // error
+    }
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (40,17): warning CS0162: Unreachable code detected
+                //                 return S; // 1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(40, 17),
+                // (46,26): error CS0161: 'C.M5()': not all code paths return a value
+                //     public static string M5()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M5").WithArguments("C.M5()").WithLocation(46, 26),
+                // (51,17): warning CS0162: Unreachable code detected
+                //                 return S; // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(51, 17));
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (40,17): warning CS0162: Unreachable code detected
+                //                 return S; // 1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(40, 17),
+                // (46,26): error CS0161: 'C.M5()': not all code paths return a value
+                //     public static string M5()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M5").WithArguments("C.M5()").WithLocation(46, 26),
+                // (51,17): warning CS0162: Unreachable code detected
+                //                 return S; // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(51, 17));
+        }
+
+        [Fact]
         public void General()
         {
             var source = prefix + @"
@@ -450,7 +534,7 @@ public class DATest : DATestBase {
         if (f) { int a; switch (f && G(out a)) { case false: No(); break; case true: F(a); break; } } // Error
 
         // Exhaust cases
-        if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); } // Error - BUG? The cases are exhaustive.
+        if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); }
         if (f) { int a; switch (val) { case 0: goto default; default: G(out a); break; } F(a); }
         if (f) { int a; switch (val) { case 0: G(out a); break; default: goto case 0; } F(a); }
         if (f) { int a; switch (val) { case 0: G(out a); break; default: goto LSkip; } F(a); LSkip: No(); }
@@ -479,7 +563,7 @@ public class DATest : DATestBase {
                 G(out a);
                 break;
             }
-            F(a); // Error - BUG? The cases are exhaustive.
+            F(a); // Error - we don't consider enumerating values for integral types to be exhaustive
         }
 
         if (f) { int a; switch (val) { default: goto case 0; case 0: goto default; } F(a); } // Unreachable
@@ -505,11 +589,8 @@ public class DATest : DATestBase {
                 // (86,88): error CS0165: Use of unassigned local variable 'a'
                 //         if (f) { int a; switch (f && G(out a)) { case false: No(); break; case true: F(a); break; } } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(86, 88),
-                // (89,99): error CS0165: Use of unassigned local variable 'a'
-                //         if (f) { int a; switch (f) { case false: G(out a); break; case true: G(out a); break; } F(a); } // Error - BUG? The cases are exhaustive.
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(89, 99),
                 // (118,15): error CS0165: Use of unassigned local variable 'a'
-                //             F(a); // Error - BUG? The cases are exhaustive.
+                //             F(a); // Error - we don't consider enumerating values for integral types to be exhaustive
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(118, 15)
                 );
         }
@@ -1560,6 +1641,29 @@ class C
                 );
         }
 
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void WhidbeyBug467493_WithSuppression()
+        {
+            var source = prefix + @"
+    // Whidbey bug #467493
+    public static void M4() {
+        int x;
+        throw new Exception();
+        ((DI)(delegate { if (x == 1) return 1; Console.WriteLine(""Bug""); } !))();
+    }
+" + suffix;
+
+            // Covers GenerateExplicitConversionErrors
+            CreateCompilation(source).VerifyDiagnostics(
+                // (78,15): error CS1643: Not all code paths return a value in anonymous method of type 'DI'
+                //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "DI").WithLocation(78, 15),
+                // (78,9): warning CS0162: Unreachable code detected
+                //         ((DI)(delegate { if (x == 1) return 1; Console.WriteLine("Bug"); }))();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "(").WithLocation(78, 9)
+                );
+        }
+
         [Fact]
         public void AccessingFixedFieldUsesTheReceiver()
         {
@@ -2350,6 +2454,64 @@ class C
 }
 ";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+        }
+
+        // DataFlowPass.VisitConversion with IsConditionalState.
+        [Fact]
+        public void OutVarConversion()
+        {
+            var source =
+@"class C
+{
+    static object F(bool b)
+    {
+        return ((bool)(b && G(out var o))) ? o : null;
+    }
+    static bool G(out object o)
+    {
+        o = null;
+        return true;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        // DataFlowPass.VisitConversion with IsConditionalState.
+        [Fact]
+        public void IsPatternConversion()
+        {
+            var source =
+@"class C
+{
+    static object F(object o)
+    {
+        return ((bool)(o is C c)) ? c: null;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        // DataFlowPass.VisitConversion with IsConditionalState.
+        [Fact]
+        public void IsPatternBadValueConversion()
+        {
+            // C#7.0 does not support this particular pattern so the pattern
+            // expression is bound as a BadExpression with a conversion.
+            var source =
+@"class C
+{
+    static T F<T>(System.ValueType o)
+    {
+        return o is T t ? t : default(T);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // (5,21): error CS8314: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                //         return o is T t ? t : default(T);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(5, 21));
         }
 
         [Fact, WorkItem(19831, "https://github.com/dotnet/roslyn/issues/19831")]

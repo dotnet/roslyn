@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-                declarators.Add(root.FindNode(diagnosticSpan).FirstAncestorOrSelf<TSymbolSyntax>());
+                declarators.Add(root.FindNode(diagnosticSpan, getInnermostNodeForTie: true).FirstAncestorOrSelf<TSymbolSyntax>());
             }
 
             await MakeFieldReadonlyAsync(document, editor, declarators).ConfigureAwait(false);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 {
                     var model = await document.GetSemanticModelAsync().ConfigureAwait(false);
                     var generator = editor.Generator;
-                    
+
                     foreach (var declarator in declarationDeclarators.Reverse())
                     {
                         var symbol = (IFieldSymbol)model.GetDeclaredSymbol(declarator);

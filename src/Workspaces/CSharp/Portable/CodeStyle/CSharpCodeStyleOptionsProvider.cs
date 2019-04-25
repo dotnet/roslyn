@@ -11,15 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     [ExportOptionProvider, Shared]
     internal class CSharpCodeStyleOptionsProvider : IOptionProvider
     {
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            CodeStyleOptions.QualifyFieldAccess,
-            CodeStyleOptions.QualifyPropertyAccess,
-            CodeStyleOptions.QualifyMethodAccess,
-            CodeStyleOptions.QualifyEventAccess,
-            CSharpCodeStyleOptions.UseImplicitTypeWherePossible,
-            CSharpCodeStyleOptions.UseImplicitTypeWhereApparent,
-            CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes,
-            CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
-            CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
+        public ImmutableArray<IOption> Options { get; } = CSharpCodeStyleOptions.AllOptions;
     }
 }

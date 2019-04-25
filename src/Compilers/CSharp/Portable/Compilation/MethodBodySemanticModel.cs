@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a SemanticModel for the method.
         /// </summary>
-        internal static MethodBodySemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, MethodSymbol owner, ExecutableCodeBinder executableCodeBinder, 
+        internal static MethodBodySemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, MethodSymbol owner, ExecutableCodeBinder executableCodeBinder,
                                                        CSharpSyntaxNode syntax, BoundNode boundNode = null)
         {
             Debug.Assert(containingSemanticModel != null);
-            var result =  new MethodBodySemanticModel(owner, executableCodeBinder, syntax, containingSemanticModel);
+            var result = new MethodBodySemanticModel(owner, executableCodeBinder, syntax, containingSemanticModel);
 
             if (boundNode != null)
             {
@@ -203,6 +203,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             speculativeModel = null;
             return false;
+        }
+
+        protected override BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Conversions conversions, DiagnosticBag diagnostics)
+        {
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, conversions, diagnostics);
         }
     }
 }

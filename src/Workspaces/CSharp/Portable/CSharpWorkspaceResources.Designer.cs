@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis.CSharp {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpWorkspaceResources {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpWorkspaceResources", typeof(CSharpWorkspaceResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.CSharpWorkspaceResources", typeof(CSharpWorkspaceResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -71,6 +70,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code-block preferences.
+        /// </summary>
+        internal static string Code_block_preferences {
+            get {
+                return ResourceManager.GetString("Code_block_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected string or char literal.
         /// </summary>
         internal static string Expected_string_or_char_literal {
@@ -80,11 +88,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression-bodied members.
+        /// </summary>
+        internal static string Expression_bodied_members {
+            get {
+                return ResourceManager.GetString("Expression_bodied_members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement Interface.
         /// </summary>
         internal static string Implement_Interface {
             get {
                 return ResourceManager.GetString("Implement_Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indentation preferences.
+        /// </summary>
+        internal static string Indentation_preferences {
+            get {
+                return ResourceManager.GetString("Indentation_preferences", resourceCulture);
             }
         }
         
@@ -125,6 +151,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Null-checking preferences.
+        /// </summary>
+        internal static string Null_checking_preferences {
+            get {
+                return ResourceManager.GetString("Null_checking_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Only attributes, constructor initializers, expressions or statements can be made explicit.
         /// </summary>
         internal static string Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit {
@@ -135,11 +170,56 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pattern matching preferences.
+        /// </summary>
+        internal static string Pattern_matching_preferences {
+            get {
+                return ResourceManager.GetString("Pattern_matching_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Space preferences.
+        /// </summary>
+        internal static string Space_preferences {
+            get {
+                return ResourceManager.GetString("Space_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Trivia is not associated with token.
         /// </summary>
         internal static string Trivia_is_not_associated_with_token {
             get {
                 return ResourceManager.GetString("Trivia_is_not_associated_with_token", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;using&apos; directive preferences.
+        /// </summary>
+        internal static string using_directive_preferences {
+            get {
+                return ResourceManager.GetString("using_directive_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to var preferences.
+        /// </summary>
+        internal static string var_preferences {
+            get {
+                return ResourceManager.GetString("var_preferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrapping preferences.
+        /// </summary>
+        internal static string Wrapping_preferences {
+            get {
+                return ResourceManager.GetString("Wrapping_preferences", resourceCulture);
             }
         }
     }

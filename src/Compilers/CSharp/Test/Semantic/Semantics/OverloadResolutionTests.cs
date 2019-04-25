@@ -1905,8 +1905,8 @@ class Base4<U, V> : Base3<U, V>
 }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(a, b)").WithArguments("Base<A, B>.Method(A, B)"),
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(x, y)").WithArguments("Base3<U, V>.Method(U, V)"),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("Base<A, B>.Method(A, B)"),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("Base3<U, V>.Method(U, V)"),
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Property").WithArguments("Base3<U, V>.Property"));
         }
 
@@ -1979,7 +1979,7 @@ namespace B
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(x)").WithArguments("A.Base2<long>.Method(long)"));
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("A.Base2<long>.Method(long)"));
         }
 
         [Fact]
@@ -7163,7 +7163,7 @@ public class Derived : Base
             var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
             var methodSymbol = (MethodSymbol)model.GetSymbolInfo(callSyntax).Symbol;
 
-            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArguments.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArgumentsWithAnnotations.Single().SpecialType);
         }
 
         [Fact]
@@ -10454,7 +10454,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(code, expectedOutput: 
+            CompileAndVerify(code, expectedOutput:
 @"params: 0
 in: 1
 params: 2
@@ -10587,7 +10587,7 @@ class Program
         M((byte)2);
     }
 }",
-                expectedOutput:@"
+                expectedOutput: @"
 val: 0
 val: 1
 in: 1
@@ -10981,7 +10981,7 @@ public static class Extensions
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
                 );
 
-            CreateCompilation(code, references: new[] {libComp.ToMetadataReference() }).VerifyDiagnostics(
+            CreateCompilation(code, references: new[] { libComp.ToMetadataReference() }).VerifyDiagnostics(
                 // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
                 //          y.R_extension(); // error 1
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),
