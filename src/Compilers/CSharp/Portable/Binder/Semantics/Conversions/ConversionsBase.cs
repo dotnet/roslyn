@@ -168,6 +168,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ClassifyConversionFromType(source, destination, ref useSiteDiagnostics);
         }
 
+        private bool TryGetVoidConversion(TypeSymbol source, TypeSymbol destination, out Conversion conversion)
+        {
+            var sourceIsVoid = source?.SpecialType == SpecialType.System_Void;
+            var destIsVoid = destination.SpecialType == SpecialType.System_Void;
+
+            if (sourceIsVoid && destIsVoid)
+            {
+                conversion = Conversion.Identity;
+                return true;
+            }
+
+            if (sourceIsVoid || destIsVoid)
+            {
+                conversion = Conversion.NoConversion;
+                return true;
+            }
+
+            conversion = default;
+            return false;
+
+        }
+
         /// <summary>
         /// Determines if the source expression is convertible to the destination type via
         /// any conversion: implicit, explicit, user-defined or built-in.
@@ -182,9 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(sourceExpression != null);
             Debug.Assert((object)destination != null);
 
-            if (sourceExpression.Type?.SpecialType == SpecialType.System_Void || destination.SpecialType == SpecialType.System_Void)
+            if (TryGetVoidConversion(sourceExpression.Type, destination, out var conversion))
             {
-                return Conversion.NoConversion;
+                return conversion;
             }
 
             if (forCast)
