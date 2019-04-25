@@ -33369,8 +33369,6 @@ class C<T, TClass, TStruct>
     }
 }
 " }, options: WithNonNullTypesTrue());
-
-            // https://github.com/dotnet/roslyn/issues/29894: should nullable reference types be disallowed in `typeof`?
             c.VerifyDiagnostics(
                 // (9,13): error CS8639: The typeof operator cannot be used on a nullable reference type
                 //         _ = typeof(C<int, object, int>?);
