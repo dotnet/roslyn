@@ -4816,35 +4816,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)deconstructMethod != null)
                 {
-                    if (!invocation.InvokedAsExtensionMethod)
-                    {
-                        _ = CheckPossibleNullReceiver(right);
-                    }
-                    else
-                    {
-                        // Check nullability for `this` parameter
-                        var parameter = deconstructMethod.Parameters[0];
-                        VisitArgumentConversion(
-                                right, conversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations,
-                                new VisitArgumentResult(new VisitResult(rightResult, rightResultWithAnnotations), stateForLambda: default),
-                                extensionMethodThisArgument: true);
+                    _ = CheckPossibleNullReceiver(right);
 
-                        if (invocation.Method.IsGenericMethod)
+                    if (invocation.InvokedAsExtensionMethod && invocation.Method.IsGenericMethod)
+                    {
+                        // re-infer the deconstruct parameters based on the 'this' parameter 
+                        ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n);
+                        placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResultWithAnnotations));
+                        for (int i = 0; i < n; i++)
                         {
-                            // re-infer the deconstruct parameters based on the 'this' parameter 
-                            ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n);
-                            placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResultWithAnnotations));
-                            for (int i = 0; i < n; i++)
-                            {
-                                placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
-                            }
-                            deconstructMethod = InferMethodTypeArguments(invocation, deconstructMethod, placeholderArgs.ToImmutableAndFree());
+                            placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
+                        }
+                        deconstructMethod = InferMethodTypeArguments(invocation, deconstructMethod, placeholderArgs.ToImmutableAndFree());
 
-                            // check the constraints remain valid with the re-inferred parameter types
-                            if (ConstraintsHelper.RequiresChecking(deconstructMethod))
-                            {
-                                CheckMethodConstraints(invocation.Syntax, deconstructMethod);
-                            }
+                        // check the constraints remain valid with the re-inferred parameter types
+                        if (ConstraintsHelper.RequiresChecking(deconstructMethod))
+                        {
+                            CheckMethodConstraints(invocation.Syntax, deconstructMethod);
                         }
                     }
 
