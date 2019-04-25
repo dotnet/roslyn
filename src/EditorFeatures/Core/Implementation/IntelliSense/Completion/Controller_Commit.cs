@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     Contract.ThrowIfNull(completionService, nameof(completionService));
 
                     completionChange = completionService.GetChangeAsync(
-                        triggerDocument, item, commitChar, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        triggerDocument, item, model.OriginalList.Span, commitChar, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                     var textChange = completionChange.TextChange;
 
                     var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());

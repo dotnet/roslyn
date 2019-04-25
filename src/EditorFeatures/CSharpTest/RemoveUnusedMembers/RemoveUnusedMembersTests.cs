@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -928,6 +929,19 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(33765, "https://github.com/dotnet/roslyn/issues/33765")]
+        public async Task GenericFieldInNameOf()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass<T>
+{
+    private T [|_goo|];
+    private string _goo2 = nameof(MyClass<int>._goo);
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
         public async Task MethodInNameOf()
         {
@@ -937,6 +951,19 @@ class MyClass
     private void [|M|]() { }
     private string _goo = nameof(M);
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(33765, "https://github.com/dotnet/roslyn/issues/33765")]
+        public async Task GenericMethodInNameOf()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass<T>
+{
+    private void [|M|]() { }
+    private string _goo2 = nameof(MyClass<int>.M);
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1051,9 +1078,10 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(33994, "https://github.com/dotnet/roslyn/issues/33994")]
         public async Task PropertyIsOnlyWritten()
         {
-            await TestDiagnosticsAsync(
+            var source =
 @"class MyClass
 {
     private int [|P|] { get; set; }
@@ -1061,8 +1089,15 @@ class C
     {
         P = 0;
     }
-}",
-    expected: Diagnostic("IDE0052"));
+}";
+            var testParameters = new TestParameters(retainNonFixableDiagnostics: true);
+            using (var workspace = CreateWorkspaceFromOptions(source, testParameters))
+            {
+                var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
+                diagnostics.Verify(Diagnostic("IDE0052", "P").WithLocation(3, 17));
+                var expectedMessage = string.Format(FeaturesResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P");
+                Assert.Equal(expectedMessage, diagnostics.Single().GetMessage());
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]

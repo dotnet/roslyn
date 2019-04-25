@@ -17,7 +17,7 @@
     <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.XamlLanguageService" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.XamlLanguageService" Key="$(VisualStudioKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35069" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">
