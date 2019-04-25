@@ -5530,11 +5530,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Yet we want to keep the result split if it was split.  So we simply visit.
                     Visit(node.Operand);
                     break;
-                case UnaryOperatorKind.DynamicFalse:
-                    Visit(node.Operand);
-                    Split();
-                    SetConditionalState(StateWhenFalse, StateWhenTrue);
-                    break;
                 default:
                     VisitRvalue(node.Operand);
                     break;
