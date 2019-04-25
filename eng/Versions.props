@@ -286,7 +286,7 @@
     <UsingToolVSSDK>true</UsingToolVSSDK>
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
     <UsingToolIbcOptimization>true</UsingToolIbcOptimization>
-    <UsingToolVisualStudioIbcTraining>true</UsingToolVisualStudioIbcTraining>
+    <UsingToolVisualStudioIbcTraining>false</UsingToolVisualStudioIbcTraining>
     <UsingToolXliff>true</UsingToolXliff>
     <UsingToolXUnit>true</UsingToolXUnit>
     <!-- 
