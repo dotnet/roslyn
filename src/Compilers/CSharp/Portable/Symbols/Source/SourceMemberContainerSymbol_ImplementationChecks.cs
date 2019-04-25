@@ -871,13 +871,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else
                             {
-                                // Don't check parameters on the getter because they will be a subset of the setter
-                                checkValidNullableMethodOverride(
-                                    overridingProperty.GetMethod.Locations[0],
-                                    overriddenProperty.GetMethod,
-                                    overridingProperty.GetMethod,
-                                    diagnostics,
-                                    checkParameters: overridingProperty.SetMethod is null);
+                                if (overridingProperty.GetMethod is object)
+                                {
+                                    checkValidNullableMethodOverride(
+                                        overridingProperty.GetMethod.Locations[0],
+                                        overriddenProperty.GetMethod,
+                                        overridingProperty.GetMethod,
+                                        diagnostics,
+                                        // Don't check parameters on the getter if there is a setter
+                                        // because they will be a subset of the setter
+                                        checkParameters: overridingProperty.SetMethod is null);
+                                }
 
                                 if (overridingProperty.SetMethod is object)
                                 {
