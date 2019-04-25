@@ -6,26 +6,35 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>
+    /// This is a collection of weakly held <see cref="IAssemblySymbol"/> instances. 
+    ///
+    /// The methods on this type can be safely called from multiple threads without risk of 
+    /// corrupting the internal data structures.
+    /// </summary>
     internal sealed class CachedAssemblySymbolList
     {
         private readonly object _guard = new object();
         private readonly WeakList<IAssemblySymbol> _cachedSymbols = new WeakList<IAssemblySymbol>();
 
-        internal void ForEach<T>(Action<T> action)
-            where T : class, IAssemblySymbol
+        internal void ForEach<TSymbol, TData>(Action<TSymbol, TData> action, TData data)
+            where TSymbol : class, IAssemblySymbol
         {
             lock (_guard)
             {
                 for (int i = 0; i < _cachedSymbols.WeakCount; i++)
                 {
                     if (_cachedSymbols.GetWeakReference(i).TryGetTarget(out IAssemblySymbol assemblySymbol) &&
-                        assemblySymbol is T typedSymbol)
+                        assemblySymbol is TSymbol typedSymbol)
                     {
-                        action(typedSymbol);
+                        action(typedSymbol, data);
                     }
                 }
             }
         }
+
+        internal void ForEach<TData>(Action<IAssemblySymbol, TData> action, TData data) =>
+            ForEach<IAssemblySymbol, TData>(action, data);
 
         internal void Add(IAssemblySymbol peAssembly)
         {
@@ -38,19 +47,8 @@ namespace Microsoft.CodeAnalysis
         internal List<IAssemblySymbol> CopyAll()
         {
             var list = new List<IAssemblySymbol>();
-            lock (_guard)
-            {
-                for (int i = 0; i < _cachedSymbols.WeakCount; i++)
-                {
-                    if (_cachedSymbols.GetWeakReference(i).TryGetTarget(out IAssemblySymbol assemblySymbol))
-                    {
-                        list.Add(assemblySymbol);
-                    }
-                }
-            }
-
+            ForEach((s, l) => l.Add(s), list);
             return list;
         }
-
     }
 }

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Cached assembly symbols.
         /// </summary>
-        internal readonly CachedAssemblySymbolList CachedSymbols = new CachedAssemblySymbolList();
+        internal readonly CachedAssemblySymbolList CachedSymbols;
 
         // creates a copy
         private AssemblyMetadata(AssemblyMetadata other, bool shareCachedSymbols)
@@ -73,6 +73,10 @@ namespace Microsoft.CodeAnalysis
             if (shareCachedSymbols)
             {
                 this.CachedSymbols = other.CachedSymbols;
+            }
+            else
+            {
+                CachedSymbols = new CachedAssemblySymbolList();
             }
 
             _lazyData = other._lazyData;
@@ -86,6 +90,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(!modules.IsDefaultOrEmpty);
             _initialModules = modules;
+            CachedSymbols = new CachedAssemblySymbolList();
         }
 
         internal AssemblyMetadata(ModuleMetadata manifestModule, Func<string, ModuleMetadata> moduleFactory)
@@ -96,6 +101,7 @@ namespace Microsoft.CodeAnalysis
 
             _initialModules = ImmutableArray.Create(manifestModule);
             _moduleFactoryOpt = moduleFactory;
+            CachedSymbols = new CachedAssemblySymbolList();
         }
 
         /// <summary>
