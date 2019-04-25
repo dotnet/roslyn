@@ -85,8 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             var parseOptions = (CSharpParseOptions)projectOptions;
             Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
 
+            var mappedVersion = parsedNewVersion.MapSpecifiedToEffectiveVersion();
+
             // treat equivalent versions (one generic and one specific) to be a valid upgrade
-            return parsedNewVersion.MapSpecifiedToEffectiveVersion() >= parseOptions.LanguageVersion &&
+            return mappedVersion >= parseOptions.LanguageVersion &&
+                mappedVersion < LanguageVersion.CSharp8 &&
                 parseOptions.SpecifiedLanguageVersion.ToDisplayString() != newVersion;
         }
     }

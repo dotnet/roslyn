@@ -157,18 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 var moduleSymbol = containingType.ContainingPEModule;
-                var metadataReader = moduleSymbol.Module.MetadataReader;
-                GenericParameterConstraintHandleCollection constraints;
-
-                try
-                {
-                    constraints = metadataReader.GetGenericParameter(_handle).GetConstraints();
-                }
-                catch (BadImageFormatException)
-                {
-                    constraints = default(GenericParameterConstraintHandleCollection);
-                    Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
-                }
+                PEModule peModule = moduleSymbol.Module;
+                GenericParameterConstraintHandleCollection constraints = GetConstraintHandleCollection(peModule);
 
                 bool hasUnmanagedModreqPattern = false;
 
@@ -186,6 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         tokenDecoder = new MetadataDecoder(moduleSymbol, containingType);
                     }
 
+                    var metadataReader = peModule.MetadataReader;
                     foreach (var constraintHandle in constraints)
                     {
                         var constraint = metadataReader.GetGenericParameterConstraint(constraintHandle);
@@ -230,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // - presence of unmanaged pattern has to be matched with `valuetype`
                 // - IsUnmanagedAttribute is allowed iif there is an unmanaged pattern
                 if (hasUnmanagedModreqPattern && (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0 ||
-                    hasUnmanagedModreqPattern != moduleSymbol.Module.HasIsUnmanagedAttribute(_handle))
+                    hasUnmanagedModreqPattern != peModule.HasIsUnmanagedAttribute(_handle))
                 {
                     // we do not recognize these combinations as "unmanaged"
                     hasUnmanagedModreqPattern = false;
@@ -242,6 +233,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return _lazyDeclaredConstraintTypes;
+        }
+
+        private GenericParameterConstraintHandleCollection GetConstraintHandleCollection(PEModule module)
+        {
+            GenericParameterConstraintHandleCollection constraints;
+
+            try
+            {
+                constraints = module.MetadataReader.GetGenericParameter(_handle).GetConstraints();
+            }
+            catch (BadImageFormatException)
+            {
+                constraints = default(GenericParameterConstraintHandleCollection);
+                Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
+            }
+
+            return constraints;
         }
 
         public override ImmutableArray<Location> Locations
@@ -298,6 +306,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return null;
+            }
+        }
+
+        internal override bool? IsNotNullableIfReferenceType
+        {
+            get
+            {
+                if ((_flags & (GenericParameterAttributes.NotNullableValueTypeConstraint | GenericParameterAttributes.ReferenceTypeConstraint)) == 0)
+                {
+                    PEModule module = ((PEModuleSymbol)this.ContainingModule).Module;
+                    GenericParameterConstraintHandleCollection constraints = GetConstraintHandleCollection(module);
+
+                    if (constraints.Count == 0)
+                    {
+                        if (module.HasNullableAttribute(_handle, out byte transformFlag, out _) && transformFlag == NullableAnnotationExtensions.AnnotatedAttributeValue)
+                        {
+                            return false;
+                        }
+
+                        return null;
+                    }
+                }
+
+                return CalculateIsNotNullableIfReferenceType();
             }
         }
 
@@ -381,9 +413,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
-            // https://github.com/dotnet/roslyn/issues/30081: Re-enable asserts.
-            //Debug.Assert(!inProgress.ContainsReference(this));
-            //Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
+            Debug.Assert(!inProgress.ContainsReference(this));
+            Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
 
             var currentBounds = _lazyBounds;
             if (currentBounds == TypeParameterBounds.Unset)

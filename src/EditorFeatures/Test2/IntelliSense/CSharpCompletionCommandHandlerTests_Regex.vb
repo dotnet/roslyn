@@ -75,7 +75,7 @@ class c
                 state.SendTypeChars("[")
 
                 ' WaitForAsynchronousOperationsAsync is not enough for waiting in the async completion.
-                ' To be sure that calculations are done, need to check session.GetComputedItems, 
+                ' To be sure that calculations are done, need to check session.GetComputedItems,
                 ' E.g. via AssertSelectedCompletionItem.
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("[  character-group  ]")

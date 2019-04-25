@@ -1029,6 +1029,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        CodeAnalysis.NullableAnnotation IMethodSymbol.ReturnNullableAnnotation => ReturnTypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+
         ImmutableArray<ITypeSymbol> IMethodSymbol.TypeArguments
         {
             get
@@ -1036,6 +1038,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.TypeArgumentsWithAnnotations.SelectAsArray(a => (ITypeSymbol)a.Type);
             }
         }
+
+        ImmutableArray<CodeAnalysis.NullableAnnotation> IMethodSymbol.TypeArgumentsNullableAnnotations => TypeArgumentsWithAnnotations.SelectAsArray(arg => arg.NullableAnnotation.ToPublicAnnotation());
 
         ImmutableArray<ITypeParameterSymbol> IMethodSymbol.TypeParameters
         {
@@ -1092,6 +1096,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this.ReceiverType;
             }
         }
+
+        CodeAnalysis.NullableAnnotation IMethodSymbol.ReceiverNullableAnnotation => ReceiverNullableAnnotation;
+
+        protected virtual CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
+            IsStatic ? CodeAnalysis.NullableAnnotation.NotApplicable : CodeAnalysis.NullableAnnotation.NotAnnotated;
 
         IMethodSymbol IMethodSymbol.ReducedFrom
         {

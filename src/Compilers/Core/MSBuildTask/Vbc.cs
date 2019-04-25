@@ -827,6 +827,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CheckHostObjectSupport(param = nameof(AdditionalFiles), analyzerHostObject.SetAdditionalFiles(AdditionalFiles));
                 }
 
+                // For host objects which support them, set analyzer config files and potential analyzer config files
+                if (vbcHostObject is IAnalyzerConfigFilesHostObject analyzerConfigFilesHostObject)
+                {
+                    CheckHostObjectSupport(param = nameof(AnalyzerConfigFiles), analyzerConfigFilesHostObject.SetAnalyzerConfigFiles(AnalyzerConfigFiles));
+                    CheckHostObjectSupport(param = nameof(PotentialAnalyzerConfigFiles), analyzerConfigFilesHostObject.SetPotentialAnalyzerConfigFiles(PotentialAnalyzerConfigFiles));
+                }
+
                 CheckHostObjectSupport(param = nameof(BaseAddress), vbcHostObject.SetBaseAddress(TargetType, GetBaseAddressInHex()));
                 CheckHostObjectSupport(param = nameof(CodePage), vbcHostObject.SetCodePage(CodePage));
                 CheckHostObjectSupport(param = nameof(DebugType), vbcHostObject.SetDebugType(EmitDebugInformation, DebugType));

@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.Options
 {
     internal sealed class NamingStylePreferenceEditorConfigStorageLocation : OptionStorageLocation, IEditorConfigStorageLocation
     {
-        public bool TryGetOption(object underlyingOption, IReadOnlyDictionary<string, object> allRawConventions, Type type, out object result)
+        public bool TryGetOption(object underlyingOption, IReadOnlyDictionary<string, string> rawOptions, Type type, out object result)
         {
-            var tuple = ParseDictionary(underlyingOption, allRawConventions, type);
+            var tuple = ParseDictionary(underlyingOption, rawOptions, type);
             result = tuple.result;
             return tuple.succeeded;
         }
 
         private static (object result, bool succeeded) ParseDictionary(
-            object underlyingOption, IReadOnlyDictionary<string, object> allRawConventions, Type type)
+            object underlyingOption, IReadOnlyDictionary<string, string> allRawConventions, Type type)
         {
             if (type == typeof(NamingStylePreferences))
             {

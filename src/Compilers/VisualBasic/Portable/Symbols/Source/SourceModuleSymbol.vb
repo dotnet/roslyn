@@ -103,8 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 Select Case DeclaringCompilation.Options.Platform
                     Case Platform.Arm64
-                        ' Use real enum instead of casting value https://github.com/dotnet/roslyn/issues/25185
-                        Return CType(CInt(&HAA64), System.Reflection.PortableExecutable.Machine)
+                        Return System.Reflection.PortableExecutable.Machine.Arm64
                     Case Platform.Arm
                         Return System.Reflection.PortableExecutable.Machine.ArmThumb2
                     Case Platform.X64

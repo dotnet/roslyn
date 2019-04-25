@@ -2449,8 +2449,21 @@ public class C
         } while (n$$ < 5)
     }
 }";
-
-            VerifyNoSpecialSemicolonHandling(code);
+            var expected =
+ @"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < 5);$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -3281,6 +3294,7 @@ class C
         }
 
         [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WorkItem(34983, "https://github.com/dotnet/roslyn/issues/34983")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ImplicitElementAccessSyntax()
         {
@@ -3302,8 +3316,8 @@ class C
     {
         var d = new Dictionary<int, int>
         {
-            [1] = 4,
-        };$$
+            [1];$$ = 4,
+        }
     }
 }";
             VerifyTypingSemicolon(code, expected);
@@ -3344,9 +3358,304 @@ class C
 }";
             VerifyNoSpecialSemicolonHandling(code);
         }
+
+        [WorkItem(34983, "https://github.com/dotnet/roslyn/issues/34983")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void AttributeParsedAsElementAccessExpression()
+        {
+            var code = @"
+using System;
+internal class TestMethodAttribute : Attribute
+{
+    readonly int i = Foo(3,4$$)
+
+    [Test]
+}";
+            var expected = @"
+using System;
+internal class TestMethodAttribute : Attribute
+{
+    readonly int i = Foo(3,4);$$
+
+    [Test]
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34983, "https://github.com/dotnet/roslyn/issues/34983")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void MemberAccessOffOfMethod()
+        {
+            var code = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s = ""Hello"";
+        var t = s.ToLower($$).Substring(1);
+    }
+}";
+            var expected = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var s = ""Hello"";
+        var t = s.ToLower();$$.Substring(1);
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34983, "https://github.com/dotnet/roslyn/issues/34983")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void LinqQuery()
+        {
+            var code = @"
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    void Main(string[] args)
+    {
+        List<int> c1 = new List<int> { 1, 2, 3, 4, 5, 7 };
+        List<int> c2 = new List<int> { 10, 30, 40, 50, 60, 70 };
+        var c3 = c1.SelectMany(x1 => c2
+            .Where(x2 => object.Equals(x1, x2 / 10$$))
+            .Select(x2 => x1 + x2));
+    }
+}";
+            var expected = @"
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    void Main(string[] args)
+    {
+        List<int> c1 = new List<int> { 1, 2, 3, 4, 5, 7 };
+        List<int> c2 = new List<int> { 10, 30, 40, 50, 60, 70 };
+        var c3 = c1.SelectMany(x1 => c2
+            .Where(x2 => object.Equals(x1, x2 / 10))
+            .Select(x2 => x1 + x2));$$;
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34983, "https://github.com/dotnet/roslyn/issues/34983")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void LinqQuery2()
+        {
+            var code = @"
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    void Main(string[] args)
+    {
+        List<int> c = new List<int> { 1, 2, 3, 4, 5, 7 };
+        var d = c
+            .Where(x => x == 4$$)
+            .Select(x => x + x);
+    }
+}";
+            var expected = @"
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    void Main(string[] args)
+    {
+        List<int> c = new List<int> { 1, 2, 3, 4, 5, 7 };
+        var d = c
+            .Where(x => x == 4);$$
+            .Select(x => x + x);
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34983, "https://github.com/dotnet/roslyn/issues/34983")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void BinaryExpression()
+        {
+            var code = @"
+class D
+{
+    void M()
+    {
+        int i = Foo(4$$) + 1
+    }
+
+    private int Foo(int v)
+    {
+        return v;
+    }
+}";
+            var expected = @"
+class D
+{
+    void M()
+    {
+        int i = Foo(4);$$ + 1
+    }
+
+    private int Foo(int v)
+    {
+        return v;
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34983, "https://github.com/dotnet/roslyn/issues/34983")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void BinaryExpression2()
+        {
+            var code = @"
+class D
+{
+    void M()
+    {
+        int i = Foo(Foo(4$$) + 1) + 2
+    }
+
+    private int Foo(int v)
+    {
+        return v;
+    }
+}";
+            var expected = @"
+class D
+{
+    void M()
+    {
+        int i = Foo(Foo(4) + 1);$$ + 2
+    }
+
+    private int Foo(int v)
+    {
+        return v;
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34983, "https://github.com/dotnet/roslyn/issues/34983")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void AsOperator()
+        {
+            var code = @"
+class D
+{
+    void M()
+    {
+        string i = Foo(4$$) as string
+    }
+
+    object Foo(int v)
+    {
+        return v.ToString();
+    }
+}";
+            var expected = @"
+class D
+{
+    void M()
+    {
+        string i = Foo(4);$$ as string
+    }
+
+    object Foo(int v)
+    {
+        return v.ToString();
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34983, "https://github.com/dotnet/roslyn/issues/34983")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void TernaryOperator()
+        {
+            var code = @"
+class Query
+{
+    void Main(string[] args)
+    {
+        int j = 0;
+        int k = 0;
+        int i = j < k ? Foo(j$$) : Foo(3)
+    }
+
+    private int Foo(int j)
+    {
+        return j;
+    }
+";
+            var expected = @"
+class Query
+{
+    void Main(string[] args)
+    {
+        int j = 0;
+        int k = 0;
+        int i = j < k ? Foo(j);$$ : Foo(3)
+    }
+
+    private int Foo(int j)
+    {
+        return j;
+    }
+";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34983, "https://github.com/dotnet/roslyn/issues/34983")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void SemicolonInCharacterLiteral()
+        {
+            var code = @"
+class D
+{
+    void Main(string[]args)
+    {
+        M('$$')
+    }
+
+    void M(char c)
+    {
+    }
+}
+";
+            var expected = @"
+class D
+{
+    void Main(string[]args)
+    {
+        M(';$$')
+    }
+
+    void M(char c)
+    {
+    }
+}
+";
+            VerifyTypingSemicolon(code, expected);
+        }
+
         internal override VSCommanding.ICommandHandler GetCommandHandler(TestWorkspace workspace)
         {
             return workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
+        }
+
+        [WorkItem(32337, "https://github.com/dotnet/roslyn/issues/32337")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_MultipleCharsSelected()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM([|x[0]|], x[1])");
+
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         protected override TestWorkspace CreateTestWorkspace(string code)

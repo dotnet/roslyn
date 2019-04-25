@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionOptions.ShowCompletionItemFilters,
             CompletionOptions.HighlightMatchingPortionsOfCompletionListItems,
             CompletionOptions.EnterKeyBehavior,
-            CompletionOptions.SnippetsBehavior);
+            CompletionOptions.SnippetsBehavior,
+            CompletionOptions.ShowItemsFromUnimportedNamespaces);
     }
 }

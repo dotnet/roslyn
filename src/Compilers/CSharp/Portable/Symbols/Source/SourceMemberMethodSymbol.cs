@@ -1627,6 +1627,16 @@ done:
 
         #endregion
 
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            if (IsDeclaredReadOnly)
+            {
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, locations[0], modifyCompilation: true);
+            }
+        }
+
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
