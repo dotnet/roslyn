@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool HasEnumeratorCancellationAttribute
+        internal bool HasEnumeratorCancellationAttribute
         {
             get
             {

@@ -288,9 +288,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        // The EnumeratorCancellation attribute is never consumed from metadata
-        internal sealed override bool HasEnumeratorCancellationAttribute => false;
-
         private static PEParameterSymbol Create(
             PEModuleSymbol moduleSymbol,
             Symbol containingSymbol,

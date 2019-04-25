@@ -461,10 +461,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             left,
                             copySrc[parameter].Replacement(F.Syntax, stateMachineType => F.This()));
 
-                    if (this.method.IsAsync)
+                    if (this.method.IsAsync && parameter is SourceComplexParameterSymbol complexParameter)
                     {
                         ParameterSymbol tokenParameter = getEnumeratorMethod.Parameters[0];
-                        if (parameter.HasEnumeratorCancellationAttribute)
+                        if (complexParameter.HasEnumeratorCancellationAttribute)
                         {
                             // For any async-enumerable parameter marked with [EnumeratorCancellation] attribute, conditionally copy GetAsyncEnumerator's cancellation token parameter instead
                             // if (token.Equals(default))

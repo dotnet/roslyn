@@ -385,8 +385,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
-        internal abstract bool HasEnumeratorCancellationAttribute { get; }
-
         /// <summary>
         /// If there are no annotations on the member (not just that parameter), then returns null. The purpose is to ensure
         /// that if some annotations are present on the member, then annotations win over the attributes on the member in all positions.

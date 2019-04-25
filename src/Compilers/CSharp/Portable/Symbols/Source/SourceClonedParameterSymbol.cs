@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared => true;
 
-        internal sealed override bool HasEnumeratorCancellationAttribute => false;
-
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
