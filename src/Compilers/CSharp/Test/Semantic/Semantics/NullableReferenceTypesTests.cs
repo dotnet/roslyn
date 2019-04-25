@@ -14864,10 +14864,6 @@ partial class C1
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (10,18): error CS0761: Partial method declarations of 'C1.M1<T>(T?, T[]?, Action<T?>, Action<T?[]?>?[]?)' have inconsistent type parameter constraints
-                //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("C1.M1<T>(T?, T[]?, System.Action<T?>, System.Action<T?[]?>?[]?)").WithLocation(10, 18),
                 // (10,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
                 //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "M1").WithArguments("x").WithLocation(10, 18),
@@ -61624,6 +61620,18 @@ partial interface I1<TF1>
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator1, symbolValidator: symbolValidator1);
+            void symbolValidator1(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol tf1 = i1.TypeParameters[0];
+                Assert.Null(tf1.IsNotNullableIfReferenceType);
+                var attributes = tf1.GetAttributes();
+                Assert.Empty(attributes);
+            }
         }
 
         [Fact]
@@ -61643,6 +61651,29 @@ partial interface I1<TF1>
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator1, symbolValidator: symbolValidator1);
+            void symbolValidator1(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol tf1 = i1.TypeParameters[0];
+                Assert.False(tf1.IsNotNullableIfReferenceType);
+                var attributes = tf1.GetAttributes();
+
+                if (isSource)
+                {
+                    Assert.Empty(attributes);
+                }
+                else
+                {
+                    Assert.Equal(1, attributes.Length);
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", attributes[0].ToString());
+                }
+            }
         }
 
         [Fact]
@@ -61663,12 +61694,30 @@ partial interface I1<TF1>
 ";
             var comp1 = CreateCompilation(source1);
 
-            comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1>
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
-                );
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator1, symbolValidator: symbolValidator1);
+            void symbolValidator1(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol tf1 = i1.TypeParameters[0];
+                Assert.False(tf1.IsNotNullableIfReferenceType);
+                var attributes = tf1.GetAttributes();
+
+                if (isSource)
+                {
+                    Assert.Empty(attributes);
+                }
+                else
+                {
+                    Assert.Equal(1, attributes.Length);
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", attributes[0].ToString());
+                }
+            }
         }
 
         [Fact]
@@ -61690,12 +61739,30 @@ partial interface I1<TF1>
 ";
             var comp1 = CreateCompilation(source1);
 
-            comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1>
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
-                );
+            comp1.VerifyDiagnostics();
+
+            CompileAndVerify(comp1, sourceSymbolValidator: symbolValidator1, symbolValidator: symbolValidator1);
+            void symbolValidator1(ModuleSymbol m)
+            {
+                bool isSource = !(m is PEModuleSymbol);
+
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                Assert.Equal("I1<TF1>", i1.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
+
+                TypeParameterSymbol tf1 = i1.TypeParameters[0];
+                Assert.False(tf1.IsNotNullableIfReferenceType);
+                var attributes = tf1.GetAttributes();
+
+                if (isSource)
+                {
+                    Assert.Empty(attributes);
+                }
+                else
+                {
+                    Assert.Equal(1, attributes.Length);
+                    Assert.Equal("System.Runtime.CompilerServices.NullableAttribute(2)", attributes[0].ToString());
+                }
+            }
         }
 
         [Fact]
@@ -61738,6 +61805,11 @@ partial interface I1<TF1> where TF1 : object, new()
                 // partial interface I1<TF1> where TF1 : new()
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
                 );
+
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
         }
 
         [Fact]
@@ -61780,6 +61852,11 @@ partial interface I1<TF1> where TF1 : object, new()
                 // partial interface I1<TF1> where TF1 : new()
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
                 );
+
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
         }
 
         [Fact]
@@ -61825,6 +61902,11 @@ partial interface I1<TF1> where TF1 : object, new()
                 // partial interface I1<TF1> where TF1 : new()
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
                 );
+
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
         }
 
         [Fact]
@@ -61871,6 +61953,11 @@ partial interface I1<TF1> where TF1 : object, new()
                 // partial interface I1<TF1> where TF1 : new()
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
                 );
+
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
         }
 
         [Fact]
@@ -61927,6 +62014,11 @@ partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 45)
                 );
 
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+
             var source3 =
 @"#nullable disable
 #pragma warning enable nullable
@@ -61951,6 +62043,14 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 50)
                 );
+
+            i1 = comp3.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.Null(tf1.IsNotNullableIfReferenceType);
+
+            TypeParameterSymbol tf2 = i1.TypeParameters[1];
+            Assert.Null(tf2.IsNotNullableIfReferenceType);
+            Assert.True(tf2.HasConstructorConstraint);
         }
 
         [Fact]
@@ -62001,6 +62101,11 @@ partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 39)
                 );
 
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+
             var source3 =
 @"
 #nullable enable
@@ -62022,6 +62127,14 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 44)
                 );
+
+            i1 = comp3.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+
+            TypeParameterSymbol tf2 = i1.TypeParameters[1];
+            Assert.False(tf2.IsNotNullableIfReferenceType);
+            Assert.True(tf2.HasConstructorConstraint);
         }
 
         [Fact]
@@ -62075,6 +62188,11 @@ partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 39)
                 );
 
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+
             var source3 =
 @"#nullable disable
 #pragma warning enable nullable
@@ -62093,14 +62211,18 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
                 // partial interface I1<TF1, TF2> where TF2 : new()
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF2'
-                // partial interface I1<TF1, TF2> where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF2").WithLocation(3, 19),
                 // (8,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 44)
                 );
+
+            i1 = comp3.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.Null(tf1.IsNotNullableIfReferenceType);
+
+            TypeParameterSymbol tf2 = i1.TypeParameters[1];
+            Assert.False(tf2.IsNotNullableIfReferenceType);
+            Assert.True(tf2.HasConstructorConstraint);
         }
 
         [Fact]
@@ -62160,6 +62282,11 @@ partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 45)
                 );
 
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+
             var source3 =
 @"
 #nullable enable
@@ -62178,10 +62305,6 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
                 // partial interface I1<TF1, TF2> where TF2 : new()
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF2'
-                // partial interface I1<TF1, TF2> where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF2").WithLocation(3, 19),
                 // (8,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 44),
@@ -62189,6 +62312,14 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 50)
                 );
+
+            i1 = comp3.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+
+            TypeParameterSymbol tf2 = i1.TypeParameters[1];
+            Assert.False(tf2.IsNotNullableIfReferenceType);
+            Assert.True(tf2.HasConstructorConstraint);
         }
 
         [Fact]
@@ -62245,6 +62376,11 @@ partial interface I1<TF1> where TF1 : new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 45)
                 );
 
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+
             var source3 =
 @"#nullable disable
 #pragma warning enable nullable
@@ -62269,6 +62405,14 @@ partial interface I1<TF1, TF2> where TF2 : new()
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 50)
                 );
+
+            i1 = comp3.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+
+            TypeParameterSymbol tf2 = i1.TypeParameters[1];
+            Assert.Null(tf2.IsNotNullableIfReferenceType);
+            Assert.True(tf2.HasConstructorConstraint);
         }
 
         [Fact]
@@ -62319,6 +62463,11 @@ partial interface I1<TF1> where TF1 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39)
                 );
 
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+
             var source3 =
 @"
 #nullable enable
@@ -62340,6 +62489,14 @@ partial interface I1<TF1, TF2> where TF2 : new()
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44)
                 );
+
+            i1 = comp3.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+
+            TypeParameterSymbol tf2 = i1.TypeParameters[1];
+            Assert.False(tf2.IsNotNullableIfReferenceType);
+            Assert.True(tf2.HasConstructorConstraint);
         }
 
         [Fact]
@@ -62399,6 +62556,11 @@ partial interface I1<TF1> where TF1 : new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 45)
                 );
 
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+
             var source3 =
 @"#nullable disable
 #pragma warning enable nullable
@@ -62417,10 +62579,6 @@ partial interface I1<TF1, TF2> where TF2 : new()
                 // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF2'
-                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF2").WithLocation(3, 19),
                 // (3,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44),
@@ -62428,6 +62586,14 @@ partial interface I1<TF1, TF2> where TF2 : new()
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 50)
                 );
+
+            i1 = comp3.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+
+            TypeParameterSymbol tf2 = i1.TypeParameters[1];
+            Assert.False(tf2.IsNotNullableIfReferenceType);
+            Assert.True(tf2.HasConstructorConstraint);
         }
 
         [Fact]
@@ -62483,6 +62649,11 @@ partial interface I1<TF1> where TF1 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39)
                 );
 
+            i1 = comp2.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+            Assert.True(tf1.HasConstructorConstraint);
+
             var source3 =
 @"
 #nullable enable
@@ -62502,14 +62673,18 @@ partial interface I1<TF1, TF2> where TF2 : new()
                 // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF2'
-                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF2").WithLocation(3, 19),
                 // (3,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44)
                 );
+
+            i1 = comp3.GlobalNamespace.GetTypeMember("I1");
+            tf1 = i1.TypeParameters[0];
+            Assert.False(tf1.IsNotNullableIfReferenceType);
+
+            TypeParameterSymbol tf2 = i1.TypeParameters[1];
+            Assert.False(tf2.IsNotNullableIfReferenceType);
+            Assert.True(tf2.HasConstructorConstraint);
         }
 
         [Fact]
@@ -62572,12 +62747,11 @@ partial void M1<TF1>()
 ";
             var comp1 = CreateCompilation(source1);
 
-            comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (8,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>()
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(8, 14)
-                );
+            comp1.VerifyDiagnostics();
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.False(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
 
             var source2 =
 @"
@@ -62595,12 +62769,11 @@ partial void M1<TF1>();
 ";
             var comp2 = CreateCompilation(source2);
 
-            comp2.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>()
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
-                );
+            comp2.VerifyDiagnostics();
+
+            m1 = comp2.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.False(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -62622,12 +62795,11 @@ partial void M1<TF1>()
 ";
             var comp1 = CreateCompilation(source1);
 
-            comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (8,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>()
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(8, 14)
-                );
+            comp1.VerifyDiagnostics();
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.Null(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
 
             var source2 =
 @"#nullable disable
@@ -62644,12 +62816,11 @@ partial void M1<TF1>();
 ";
             var comp2 = CreateCompilation(source2);
 
-            comp2.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>()
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
-                );
+            comp2.VerifyDiagnostics();
+
+            m1 = comp2.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.Null(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -62692,11 +62863,14 @@ partial void M1<TF1>() where TF1 : object
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (7,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
+                // (7,14): warning CS8667: Partial method declarations of 'A.M1<TF1>()' have inconsistent nullability in constraints for type parameter 'TF1'
                 // partial void M1<TF1>() where TF1 : object
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(7, 14)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, "M1").WithArguments("A.M1<TF1>()", "TF1").WithLocation(7, 14)
                 );
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.True(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -62718,12 +62892,11 @@ partial void M1<TF1>() where TF1 : object
 ";
             var comp1 = CreateCompilation(source1);
 
-            comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (8,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>() where TF1 : object
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(8, 14)
-                );
+            comp1.VerifyDiagnostics();
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.True(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -62745,12 +62918,11 @@ partial void M1<TF1>() where TF1 : object
 ";
             var comp1 = CreateCompilation(source1);
 
-            comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (8,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>() where TF1 : object
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(8, 14)
-                );
+            comp1.VerifyDiagnostics();
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.Null(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -62772,10 +62944,6 @@ partial void M1<TF1>() where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (7,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>() where TF1 : object?
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(7, 14),
                 // (7,36): error CS0702: Constraint cannot be special class 'object?'
                 // partial void M1<TF1>() where TF1 : object?
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 36),
@@ -62783,6 +62951,10 @@ partial void M1<TF1>() where TF1 : object?
                 // partial void M1<TF1>() where TF1 : object?
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 42)
                 );
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.False(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -62804,7 +62976,6 @@ partial void M1<TF1>() where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (7,36): error CS0702: Constraint cannot be special class 'object?'
                 // partial void M1<TF1>() where TF1 : object?
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 36)
@@ -62831,14 +63002,14 @@ partial void M1<TF1>() where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (8,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>() where TF1 : object?
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(8, 14),
                 // (8,36): error CS0702: Constraint cannot be special class 'object?'
                 // partial void M1<TF1>() where TF1 : object?
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 36)
                 );
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.False(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -62929,12 +63100,11 @@ partial void M1<TF1>();
 ";
             var comp1 = CreateCompilation(source1);
 
-            comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>()
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
-                );
+            comp1.VerifyDiagnostics();
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.Null(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -62957,12 +63127,11 @@ partial void M1<TF1>();
 ";
             var comp1 = CreateCompilation(source1);
 
-            comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>()
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
-                );
+            comp1.VerifyDiagnostics();
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.False(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -63005,11 +63174,14 @@ partial void M1<TF1>() where TF1 : object;
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
+                // (5,14): warning CS8667: Partial method declarations of 'A.M1<TF1>()' have inconsistent nullability in constraints for type parameter 'TF1'
                 // partial void M1<TF1>()
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, "M1").WithArguments("A.M1<TF1>()", "TF1").WithLocation(5, 14)
                 );
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.False(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -63031,12 +63203,11 @@ partial void M1<TF1>() where TF1 : object;
 ";
             var comp1 = CreateCompilation(source1);
 
-            comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>()
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
-                );
+            comp1.VerifyDiagnostics();
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.True(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.Null(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -63059,12 +63230,11 @@ partial void M1<TF1>() where TF1 : object;
 ";
             var comp1 = CreateCompilation(source1);
 
-            comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>()
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
-                );
+            comp1.VerifyDiagnostics();
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.Null(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.False(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -63086,10 +63256,6 @@ partial void M1<TF1>() where TF1 : object?;
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>()
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14),
                 // (9,36): error CS0702: Constraint cannot be special class 'object?'
                 // partial void M1<TF1>() where TF1 : object?;
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(9, 36),
@@ -63097,6 +63263,10 @@ partial void M1<TF1>() where TF1 : object?;
                 // partial void M1<TF1>() where TF1 : object?;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 42)
                 );
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.Null(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -63143,14 +63313,14 @@ partial void M1<TF1>() where TF1 : object?;
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
-                // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
-                // partial void M1<TF1>()
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14),
                 // (10,36): error CS0702: Constraint cannot be special class 'object?'
                 // partial void M1<TF1>() where TF1 : object?;
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(10, 36)
                 );
+
+            var m1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("A.M1");
+            Assert.False(m1.TypeParameters[0].IsNotNullableIfReferenceType);
+            Assert.Null(m1.PartialImplementationPart.TypeParameters[0].IsNotNullableIfReferenceType);
         }
 
         [Fact]
@@ -91500,19 +91670,29 @@ class C
             var source1 =
 @"#nullable enable
 using System;
-partial class C<T> where T : IEquatable<T>
+partial class C<T> where T : IEquatable<T>, new()
 {
 }";
             var source2 =
 @"using System;
-partial class C<T> where T : IEquatable<T>
+partial class C<T> where T : IEquatable<T>, new()
 {
 }";
             var comp = CreateCompilation(new[] { source1, source2 });
-            comp.VerifyDiagnostics(
-                // (3,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
-                // partial class C<T> where T : IEquatable<T>
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(3, 15));
+            comp.VerifyDiagnostics();
+            validate();
+
+            comp = CreateCompilation(new[] { source2, source1 });
+            comp.VerifyDiagnostics();
+            validate();
+
+            void validate()
+            {
+                var c = comp.GlobalNamespace.GetTypeMember("C");
+                TypeParameterSymbol t = c.TypeParameters[0];
+                Assert.True(t.HasConstructorConstraint);
+                Assert.Equal("System.IEquatable<T>!", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString(true));
+            }
         }
 
         [Fact]
@@ -91522,19 +91702,31 @@ partial class C<T> where T : IEquatable<T>
             var source1 =
 @"#nullable enable
 using System;
-partial class C<T> where T : class?, IEquatable<T?>
+partial class C<T> where T : class?, IEquatable<T?>, new()
 {
 }";
             var source2 =
 @"using System;
-partial class C<T> where T : class, IEquatable<T>
+partial class C<T> where T : class, IEquatable<T>, new()
 {
 }";
             var comp = CreateCompilation(new[] { source1, source2 });
-            comp.VerifyDiagnostics(
-                // (3,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
-                // partial class C<T> where T : IEquatable<T>
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(3, 15));
+            comp.VerifyDiagnostics();
+            validate();
+
+            comp = CreateCompilation(new[] { source2, source1 });
+            comp.VerifyDiagnostics();
+            validate();
+
+            void validate()
+            {
+                var c = comp.GlobalNamespace.GetTypeMember("C");
+                TypeParameterSymbol t = c.TypeParameters[0];
+                Assert.True(t.HasConstructorConstraint);
+                Assert.True(t.HasReferenceTypeConstraint);
+                Assert.True(t.ReferenceTypeConstraintIsNullable);
+                Assert.Equal("System.IEquatable<T?>!", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString(true));
+            }
         }
 
         [Fact]
@@ -91556,14 +91748,374 @@ class C<T> where T : IEquatable<T>
             comp.VerifyDiagnostics(
                 // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
                 // class C<T> where T : IEquatable<T>
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 7),
-                // (3,7): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
-                // class C<T> where T : IEquatable<T>
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(3, 7));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 7)
+                );
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.Equal("System.IEquatable<T>!", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString(true));
         }
 
         [Fact]
         public void PartialClassWithConstraints_04()
+        {
+            var source1 =
+@"
+using System;
+partial class C<T> where T : IEquatable<
+#nullable enable
+                                        string?
+#nullable disable
+                                               >
+{
+}";
+            var source2 =
+@"using System;
+partial class C<T> where T : IEquatable<string
+#nullable enable
+                                              >?
+#nullable disable
+{
+}";
+            var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyDiagnostics();
+            validate();
+
+            comp = CreateCompilation(new[] { source2, source1 });
+            comp.VerifyDiagnostics();
+            validate();
+
+            void validate()
+            {
+                var c = comp.GlobalNamespace.GetTypeMember("C");
+                TypeParameterSymbol t = c.TypeParameters[0];
+                Assert.Equal("System.IEquatable<System.String?>?", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString(true));
+            }
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_05()
+        {
+            var source1 =
+@"#nullable enable
+partial class C<T> where T : class, new()
+{
+}";
+            var source2 =
+@"
+partial class C<T> where T : class, new()
+{
+}";
+            var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyDiagnostics();
+            validate();
+
+            comp = CreateCompilation(new[] { source2, source1 });
+            comp.VerifyDiagnostics();
+            validate();
+
+            void validate()
+            {
+                var c = comp.GlobalNamespace.GetTypeMember("C");
+                TypeParameterSymbol t = c.TypeParameters[0];
+                Assert.True(t.HasConstructorConstraint);
+                Assert.True(t.HasReferenceTypeConstraint);
+                Assert.False(t.ReferenceTypeConstraintIsNullable);
+            }
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_06()
+        {
+            var source1 =
+@"#nullable enable
+partial class C<T> where T : class, new()
+{
+}
+
+partial class C<T> where T : class, new()
+{
+}";
+            var comp = CreateCompilation(new[] { source1 });
+            comp.VerifyDiagnostics();
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.True(t.HasConstructorConstraint);
+            Assert.True(t.HasReferenceTypeConstraint);
+            Assert.False(t.ReferenceTypeConstraintIsNullable);
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_07()
+        {
+            var source1 =
+@"#nullable enable
+partial class C<T> where T : class?, new()
+{
+}
+
+partial class C<T> where T : class?, new()
+{
+}";
+            var comp = CreateCompilation(new[] { source1 });
+            comp.VerifyDiagnostics();
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.True(t.HasConstructorConstraint);
+            Assert.True(t.HasReferenceTypeConstraint);
+            Assert.True(t.ReferenceTypeConstraintIsNullable);
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_08()
+        {
+            var source1 =
+@"#nullable disable
+partial class C<T> where T : class, new()
+{
+}
+
+partial class C<T> where T : class, new()
+{
+}";
+            var comp = CreateCompilation(new[] { source1 });
+            comp.VerifyDiagnostics();
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.True(t.HasConstructorConstraint);
+            Assert.True(t.HasReferenceTypeConstraint);
+            Assert.Null(t.ReferenceTypeConstraintIsNullable);
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_09()
+        {
+            var source1 =
+@"#nullable enable
+partial class C<T> where T : class?, new()
+{
+}
+
+partial class C<T> where T : class, new()
+{
+}";
+            var comp = CreateCompilation(new[] { source1 });
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T> where T : class?, new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(2, 15)
+                );
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.True(t.HasConstructorConstraint);
+            Assert.True(t.HasReferenceTypeConstraint);
+            Assert.True(t.ReferenceTypeConstraintIsNullable);
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_10()
+        {
+            var source1 =
+@"#nullable enable
+partial class C<T> where T : class, new()
+{
+}
+
+partial class C<T> where T : class?, new()
+{
+}";
+            var comp = CreateCompilation(new[] { source1 });
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T> where T : class, new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(2, 15)
+                );
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.True(t.HasConstructorConstraint);
+            Assert.True(t.HasReferenceTypeConstraint);
+            Assert.False(t.ReferenceTypeConstraintIsNullable);
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_11()
+        {
+            var source1 =
+@"#nullable enable
+using System;
+partial class C<T> where T : IEquatable<T>?
+{
+}
+
+partial class C<T> where T : IEquatable<T>
+{
+}";
+            var comp = CreateCompilation(new[] { source1 });
+            comp.VerifyDiagnostics(
+                // (3,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T> where T : IEquatable<T>?
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(3, 15)
+                );
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.Equal("System.IEquatable<T>?", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString(true));
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_12()
+        {
+            var source1 =
+@"#nullable enable
+using System;
+partial class C<T> where T : IEquatable<T>
+{
+}
+
+partial class C<T> where T : IEquatable<T>?
+{
+}";
+            var comp = CreateCompilation(new[] { source1 });
+            comp.VerifyDiagnostics(
+                // (3,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T> where T : IEquatable<T>
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(3, 15)
+                );
+
+            var c = comp.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.Equal("System.IEquatable<T>!", t.ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString(true));
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_13()
+        {
+            var source1 =
+@"#nullable enable
+using System;
+partial class C<T> where T : class, IEquatable<T>?, IEquatable<string?>
+{
+}
+";
+            var source2 =
+@"using System;
+partial class C<T> where T : class, IEquatable<string>, IEquatable<T>
+{
+}";
+            var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyDiagnostics();
+            validate(0, 1);
+
+            comp = CreateCompilation(new[] { source2, source1 });
+            comp.VerifyDiagnostics();
+            validate(1, 0);
+
+            void validate(int i, int j)
+            {
+                var c = comp.GlobalNamespace.GetTypeMember("C");
+                TypeParameterSymbol t = c.TypeParameters[0];
+                Assert.Equal("System.IEquatable<T!>?", t.ConstraintTypesNoUseSiteDiagnostics[i].ToTestDisplayString(true));
+                Assert.Equal("System.IEquatable<System.String?>!", t.ConstraintTypesNoUseSiteDiagnostics[j].ToTestDisplayString(true));
+            }
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_14()
+        {
+            var source0 =
+@"
+interface I1<T, S>
+{
+}
+";
+            var source1 =
+@"
+partial class C<T> where T : I1<
+#nullable enable
+                                string?,
+#nullable disable
+                                         string>
+{
+}
+";
+            var source2 =
+@"
+partial class C<T> where T : I1<string,
+#nullable enable
+                                        string?
+#nullable disable
+                                               >
+{
+}
+";
+
+            var source3 =
+@"
+partial class C<T> where T : I1<string, string
+#nullable enable
+                                              >?
+#nullable disable
+{
+}
+";
+
+            var comp1 = CreateCompilation(new[] { source0, source1 });
+            comp1.VerifyDiagnostics();
+            var c = comp1.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.Equal("I1<System.String?, System.String>", t.ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+
+            var comp2 = CreateCompilation(new[] { source0, source2 });
+            comp2.VerifyDiagnostics();
+            c = comp2.GlobalNamespace.GetTypeMember("C");
+            t = c.TypeParameters[0];
+            Assert.Equal("I1<System.String, System.String?>", t.ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+
+            var comp3 = CreateCompilation(new[] { source0, source3 });
+            comp3.VerifyDiagnostics();
+            c = comp3.GlobalNamespace.GetTypeMember("C");
+            t = c.TypeParameters[0];
+            Assert.Equal("I1<System.String, System.String>?", t.ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+
+            var comp = CreateCompilation(new[] { source0, source1, source2, source3 });
+            comp.VerifyDiagnostics();
+            validate();
+
+            comp = CreateCompilation(new[] { source0, source1, source3, source2 });
+            comp.VerifyDiagnostics();
+            validate();
+
+            comp = CreateCompilation(new[] { source0, source2, source1, source3 });
+            comp.VerifyDiagnostics();
+            validate();
+
+            comp = CreateCompilation(new[] { source0, source2, source3, source1 });
+            comp.VerifyDiagnostics();
+            validate();
+
+            comp = CreateCompilation(new[] { source0, source3, source1, source2 });
+            comp.VerifyDiagnostics();
+            validate();
+
+            comp = CreateCompilation(new[] { source0, source3, source2, source1 });
+            comp.VerifyDiagnostics();
+            validate();
+
+            void validate()
+            {
+                var c = comp.GlobalNamespace.GetTypeMember("C");
+                TypeParameterSymbol t = c.TypeParameters[0];
+                Assert.Equal("I1<System.String?, System.String?>?", t.ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            }
+        }
+
+        [Fact]
+        public void PartialMethodsWithConstraints_01()
         {
             var source1 =
 @"#nullable enable
@@ -91579,15 +92131,15 @@ partial class C
     static partial void F<T>() where T : IEquatable<T> { }
 }";
             var comp = CreateCompilation(new[] { source1, source2 });
-            comp.VerifyDiagnostics(
-                // (4,25): error CS0761: Partial method declarations of 'C.F<T>()' have inconsistent type parameter constraints
-                //     static partial void F<T>() where T : IEquatable<T> { }
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "F").WithArguments("C.F<T>()").WithLocation(4, 25)
-                );
+            comp.VerifyDiagnostics();
+
+            var f = comp.GlobalNamespace.GetMember<MethodSymbol>("C.F");
+            Assert.Equal("System.IEquatable<T>!", f.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString(true));
+            Assert.Equal("System.IEquatable<T>", f.PartialImplementationPart.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString(true));
         }
 
         [Fact]
-        public void PartialClassWithConstraints_05()
+        public void PartialMethodsWithConstraints_02()
         {
             var source1 =
 @"#nullable enable
@@ -91603,10 +92155,94 @@ partial class C
     static partial void F<T>() where T : class, IEquatable<T> { }
 }";
             var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyDiagnostics();
+
+            var f = comp.GlobalNamespace.GetMember<MethodSymbol>("C.F");
+            Assert.True(f.TypeParameters[0].ReferenceTypeConstraintIsNullable);
+            Assert.Equal("System.IEquatable<T?>!", f.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString(true));
+            Assert.Null(f.PartialImplementationPart.TypeParameters[0].ReferenceTypeConstraintIsNullable);
+            Assert.Equal("System.IEquatable<T>", f.PartialImplementationPart.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics.Single().ToTestDisplayString(true));
+        }
+
+        [Fact]
+        [WorkItem(35227, "https://github.com/dotnet/roslyn/issues/35227")]
+        public void PartialMethodsWithConstraints_03()
+        {
+            var source1 =
+@"
+partial class C
+{
+#nullable enable
+    static partial void F<T>(I<T> x) where T : class;
+
+#nullable disable
+    static partial void F<T>(I<T> x) where T : class
+#nullable enable
+    {
+        Test2(x);
+    }
+
+    void Test1<U>() where U : class?
+    {
+        F<U>(null);
+    }
+
+    static void Test2<S>(I<S?> x) where S : class { }
+}
+
+interface I<in S> { }
+";
+            var comp = CreateCompilation(new[] { source1 });
             comp.VerifyDiagnostics(
-                // (4,25): error CS0761: Partial method declarations of 'C.F<T>()' have inconsistent type parameter constraints
-                //     static partial void F<T>() where T : class, IEquatable<T> { }
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "F").WithArguments("C.F<T>()").WithLocation(4, 25)
+                // https://github.com/dotnet/roslyn/issues/35227 - the warning below in unexpected
+                // (8,25): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
+                //     static partial void F<T>(I<T> x) where T : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F").WithArguments("x").WithLocation(8, 25),
+                // (16,9): warning CS8634: The type 'U' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(I<T>)'. Nullability of type argument 'U' doesn't match 'class' constraint.
+                //         F<U>(null);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F<U>").WithArguments("C.F<T>(I<T>)", "T", "U").WithLocation(16, 9),
+                // (16,14): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         F<U>(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35227, "https://github.com/dotnet/roslyn/issues/35227")]
+        public void PartialMethodsWithConstraints_04()
+        {
+            var source1 =
+@"
+partial class C
+{
+#nullable disable
+    static partial void F<T>(I<T> x) where T : class;
+
+#nullable enable
+    static partial void F<T>(I<T> x) where T : class
+    {
+        Test2(x);
+    }
+
+    void Test1<U>() where U : class?
+    {
+        F<U>(null);
+    }
+
+    static void Test2<S>(I<S?> x) where S : class { }
+}
+
+interface I<in S> { }
+";
+            var comp = CreateCompilation(new[] { source1 });
+            comp.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/35227 - the warning below in unexpected
+                // (8,25): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
+                //     static partial void F<T>(I<T> x) where T : class
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F").WithArguments("x").WithLocation(8, 25),
+                // (10,15): warning CS8620: Argument of type 'I<T>' cannot be used for parameter 'x' of type 'I<T?>' in 'void C.Test2<T>(I<T?> x)' due to differences in the nullability of reference types.
+                //         Test2(x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<T>", "I<T?>", "x", "void C.Test2<T>(I<T?> x)").WithLocation(10, 15)
                 );
         }
 

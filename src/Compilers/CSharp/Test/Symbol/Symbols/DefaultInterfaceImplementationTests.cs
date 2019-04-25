@@ -9515,9 +9515,9 @@ public partial interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
             compilation1.VerifyDiagnostics(
-                // (5,25): error CS0761: Partial method declarations of 'I1.M1<T>()' have inconsistent type parameter constraints
+                // (5,25): error CS0761: Partial method declarations of 'I1.M1<T>()' have inconsistent constraints for type parameter 'T'
                 //     static partial void M1<T>() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("I1.M1<T>()").WithLocation(5, 25),
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("I1.M1<T>()", "T").WithLocation(5, 25),
                 // (8,25): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
                 //     static partial void M2(int[] x) {}
                 Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "M2").WithLocation(8, 25),
