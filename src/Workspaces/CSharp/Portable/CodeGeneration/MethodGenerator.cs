@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
-            var returnNullableAnnotation = method.ReturnNullableAnnotation;
+            var (attributeLists, returnNullableAnnotation) = GenerateAttributes(method, options, explicitInterfaceSpecifier != null);
             var methodDeclaration = SyntaxFactory.MethodDeclaration(
-                attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null, ref returnNullableAnnotation),
+                attributeLists: attributeLists,
                 modifiers: GenerateModifiers(method, destination, options),
                 returnType: method.GenerateReturnTypeSyntax(returnNullableAnnotation),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
@@ -186,12 +186,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return localFunctionDeclaration;
         }
 
-        private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-            IMethodSymbol method, CodeGenerationOptions options, bool isExplicit, ref NullableAnnotation returnNullableAnnotation)
+        private static (SyntaxList<AttributeListSyntax>, NullableAnnotation) GenerateAttributes(
+            IMethodSymbol method, CodeGenerationOptions options, bool isExplicit)
         {
+            var returnNullableAnnotation = method.ReturnNullableAnnotation;
+
             if (isExplicit)
             {
-                return default;
+                return (default, returnNullableAnnotation);
             }
 
             var attributes = new List<AttributeListSyntax>();
@@ -235,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             attributes.AddRange(AttributeGenerator.GenerateAttributeLists(returnTypeAttributes, options, SyntaxFactory.Token(SyntaxKind.ReturnKeyword)));
 
-            return attributes.ToSyntaxList();
+            return (attributes.ToSyntaxList(), returnNullableAnnotation);
         }
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(

@@ -76,20 +76,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return result.ToImmutableAndFree();
         }
 
-        internal static ParameterSyntax GetParameter(IParameterSymbol p, CodeGenerationOptions options, bool isExplicit, bool isFirstParam, bool seenOptional)
+        internal static ParameterSyntax GetParameter(IParameterSymbol parameter, CodeGenerationOptions options, bool isExplicit, bool isFirstParam, bool seenOptional)
         {
-            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ParameterSyntax>(p, options);
+            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ParameterSyntax>(parameter, options);
             if (reusableSyntax != null)
             {
                 return reusableSyntax;
             }
 
-            var nullableAnnotation = p.NullableAnnotation;
-            return SyntaxFactory.Parameter(p.Name.ToIdentifierToken())
-                    .WithAttributeLists(GenerateAttributes(p, isExplicit, options, ref nullableAnnotation))
-                    .WithModifiers(GenerateModifiers(p, isFirstParam))
-                    .WithType(p.Type.WithNullableAnnotation(nullableAnnotation).GenerateTypeSyntax())
-                    .WithDefault(GenerateEqualsValueClause(p, isExplicit, seenOptional));
+            var (attributeLists, nullableAnnotation) = GenerateAttributes(parameter, isExplicit, options);
+            return SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken())
+                    .WithAttributeLists(attributeLists)
+                    .WithModifiers(GenerateModifiers(parameter, isFirstParam))
+                    .WithType(parameter.Type.WithNullableAnnotation(nullableAnnotation).GenerateTypeSyntax())
+                    .WithDefault(GenerateEqualsValueClause(parameter, isExplicit, seenOptional));
         }
 
         private static SyntaxTokenList GenerateModifiers(
@@ -142,12 +142,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return ExpressionGenerator.GenerateExpression(parameter.Type, value, canUseFieldReference: true);
         }
 
-        private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-            IParameterSymbol parameter, bool isExplicit, CodeGenerationOptions options, ref NullableAnnotation nullableAnnotation)
+        private static (SyntaxList<AttributeListSyntax>, NullableAnnotation) GenerateAttributes(
+            IParameterSymbol parameter, bool isExplicit, CodeGenerationOptions options)
         {
+            var nullableAnnotation = parameter.NullableAnnotation;
+
             if (isExplicit)
             {
-                return default;
+                return (default, nullableAnnotation);
             }
 
             var attributes = parameter.GetAttributes();
@@ -182,10 +184,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (attributes.Length == 0)
             {
-                return default;
+                return (default, nullableAnnotation);
             }
 
-            return AttributeGenerator.GenerateAttributeLists(attributes, options);
+            return (AttributeGenerator.GenerateAttributeLists(attributes, options), nullableAnnotation);
         }
     }
 }
