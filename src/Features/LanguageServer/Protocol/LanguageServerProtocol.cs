@@ -47,20 +47,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         /// <summary>
-        /// Answers a find references request by returning the location of references to the given symbol.
-        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_references
-        /// </summary>
-        /// <param name="solution">the solution containing the symbol.</param>
-        /// <param name="request">the request symbol document location.</param>
-        /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>a list of locations of references to the given symbol.</returns>
-        public async Task<object[]> FindAllReferencesAsync(Solution solution, LSP.ReferenceParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.ReferenceParams, object[]>(LSP.Methods.TextDocumentReferencesName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        /// <summary>
         /// Answers an implementation request by returning the implementation location(s) of a given symbol.
         /// https://microsoft.github.io/language-server-protocol/specification#textDocument_implementation
         /// </summary>
@@ -280,20 +266,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public async Task<LSP.TextEdit[]> PreviewCodeActionsAsync(Solution solution, RunCodeActionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             return await ExecuteRequestAsync<RunCodeActionParams, LSP.TextEdit[]>(RoslynMethods.CodeActionPreviewName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Answers a rename request by returning the edits requrired to rename an identifier.
-        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_rename
-        /// </summary>
-        /// <param name="solution">the solution containing the document.</param>
-        /// <param name="request">the document position of the identifier to rename and new name.</param>
-        /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>the edits required to rename an item.</returns>
-        public async Task<LSP.WorkspaceEdit> RenameAsync(Solution solution, LSP.RenameParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.RenameParams, LSP.WorkspaceEdit>(LSP.Methods.TextDocumentRenameName, solution, request, clientCapabilities, cancellationToken)
                 .ConfigureAwait(false);
         }
 

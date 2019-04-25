@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -19,6 +20,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
     [UseExportProvider]
     public abstract class LanguageServerProtocolTestsBase
     {
+        protected virtual ExportProvider GetExportProvider()
+        {
+            var requestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(IRequestHandler).Assembly, typeof(IRequestHandler));
+            var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
+                .WithPart(typeof(LanguageServerProtocol))
+                .WithParts(requestHelperTypes));
+            return exportProviderFactory.CreateExportProvider();
+        }
+
         protected static void AssertSymbolInformationsEqual(LSP.SymbolInformation expected, LSP.SymbolInformation actual)
         {
             if (expected is null)
@@ -212,7 +224,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         /// </summary>
         /// <param name="markup">the document text.</param>
         /// <returns>the solution and the annotated ranges in the document.</returns>
-        protected static (Solution solution, Dictionary<string, IList<LSP.Location>> locations) CreateTestSolution(string markup)
+        protected (Solution solution, Dictionary<string, IList<LSP.Location>> locations) CreateTestSolution(string markup)
             => CreateTestSolution(new string[] { markup });
 
         /// <summary>
@@ -222,18 +234,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         /// <returns>
         /// the solution with the documents plus a list for each document of all annotated ranges in the document.
         /// </returns>
-        protected static (Solution solution, Dictionary<string, IList<LSP.Location>> locations) CreateTestSolution(string[] markups)
+        protected (Solution solution, Dictionary<string, IList<LSP.Location>> locations) CreateTestSolution(string[] markups)
         {
-            var requestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(IRequestHandler).Assembly, typeof(IRequestHandler));
-            var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(LanguageServerProtocol))
-                .WithParts(requestHelperTypes)
-            );
-            var exportProvider = exportProviderFactory.CreateExportProvider();
-
-            using var workspace = TestWorkspace.CreateCSharp(markups, exportProvider: exportProvider);
+            using var workspace = TestWorkspace.CreateCSharp(markups, exportProvider: GetExportProvider());
             var solution = workspace.CurrentSolution;
             var locations = new Dictionary<string, IList<LSP.Location>>();
 
@@ -257,7 +260,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             static List<LSP.Location> CreateLocation(string s) => new List<LSP.Location>();
         }
 
-        // Private procted because LanguageServerProtocol is internal
+        // Private protected because LanguageServerProtocol is internal
         private protected static LanguageServerProtocol GetLanguageServer(Solution solution)
         {
             var workspace = (TestWorkspace)solution.Workspace;

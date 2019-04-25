@@ -1,16 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
+namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
 {
-    public class FindAllReferencesTests : LanguageServerProtocolTestsBase
+    public class FindAllReferencesHandlerTests : LiveShareRequestHandlerTestsBase
     {
-        [Fact]
+        [WpfFact]
         public async Task TestFindAllReferencesAsync()
         {
             var markup =
@@ -36,7 +37,7 @@ class B
             AssertLocationsEqual(locations["reference"], results);
         }
 
-        [Fact]
+        [WpfFact]
         public async Task TestFindAllReferencesAsync_DoNotIncludeDeclarations()
         {
             var markup =
@@ -62,7 +63,7 @@ class B
             AssertLocationsEqual(locations["reference"], results);
         }
 
-        [Fact]
+        [WpfFact]
         public async Task TestFindAllReferencesAsync_MultipleDocuments()
         {
             var markups = new string[] {
@@ -89,7 +90,7 @@ class B
             AssertLocationsEqual(locations["reference"], results);
         }
 
-        [Fact]
+        [WpfFact]
         public async Task TestFindAllReferencesAsync_InvalidLocation()
         {
             var markup =
@@ -115,7 +116,7 @@ class B
                 }
             };
 
-            var references = await GetLanguageServer(solution).FindAllReferencesAsync(solution, request, new LSP.ClientCapabilities(), CancellationToken.None);
+            var references = await TestHandleAsync<LSP.ReferenceParams, object[]>(solution, request);
             return references.Select(o => (LSP.Location)o).ToArray();
         }
     }

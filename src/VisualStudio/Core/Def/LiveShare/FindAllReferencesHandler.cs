@@ -1,29 +1,39 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentReferencesName)]
-    internal class FindAllReferencesHandler : IRequestHandler<LSP.ReferenceParams, object[]>
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, LSP.Methods.TextDocumentReferencesName)]
+    internal class FindAllReferencesHandler : ILspRequestHandler<LSP.ReferenceParams, object[], Solution>
     {
-        public async Task<object[]> HandleRequestAsync(Solution solution, LSP.ReferenceParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        private readonly IThreadingContext _threadingContext;
+
+        [ImportingConstructor]
+        public FindAllReferencesHandler(IThreadingContext threadingContext)
+        {
+            _threadingContext = threadingContext;
+        }
+
+        public async Task<object[]> HandleAsync(LSP.ReferenceParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
-
+            var solution = requestContext.Context;
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document == null)
             {
@@ -35,9 +45,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var context = new SimpleFindUsagesContext(cancellationToken);
 
+            // Roslyn calls into third party extensions to compute reference results and needs to be on the UI thread to compute results.
+            // This is not great for us and ideally we should ask for a Roslyn API where we can make this call without blocking the UI.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await findUsagesService.FindReferencesAsync(document, position, context).ConfigureAwait(false);
 
-            if (clientCapabilities?.HasVisualStudioLspCapability() == true)
+            if (requestContext?.ClientCapabilities?.HasVisualStudioLspCapability() == true)
             {
                 return await GetReferenceGroupsAsync(request, context, cancellationToken).ConfigureAwait(false);
             }
