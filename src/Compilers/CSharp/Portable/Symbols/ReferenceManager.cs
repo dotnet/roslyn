@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override AssemblyData CreateAssemblyDataForFile(
                 PEAssembly assembly,
-                WeakList<IAssemblySymbol> cachedSymbols,
+                CachedAssemblySymbolList cachedSymbols,
                 DocumentationProvider documentationProvider,
                 string sourceAssemblySimpleName,
                 MetadataImportOptions importOptions,
@@ -909,12 +909,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private sealed class AssemblyDataForFile : AssemblyDataForMetadataOrCompilation
             {
-                public readonly PEAssembly Assembly;
+                public readonly CachedAssemblySymbolList CachedSymbols;
 
-                /// <summary>
-                /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
-                /// </summary>
-                public readonly WeakList<IAssemblySymbol> CachedSymbols;
+                public readonly PEAssembly Assembly;
 
                 public readonly DocumentationProvider DocumentationProvider;
 
@@ -934,15 +931,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public AssemblyDataForFile(
                     PEAssembly assembly,
-                    WeakList<IAssemblySymbol> cachedSymbols,
+                    CachedAssemblySymbolList cachedSymbols,
                     bool embedInteropTypes,
                     DocumentationProvider documentationProvider,
                     string sourceAssemblySimpleName,
                     MetadataImportOptions compilationImportOptions)
                     : base(assembly.Identity, assembly.AssemblyReferences, embedInteropTypes)
                 {
-                    Debug.Assert(documentationProvider != null);
-                    Debug.Assert(cachedSymbols != null);
+                    Debug.Assert(assembly is object);
+                    Debug.Assert(documentationProvider is object);
+                    Debug.Assert(cachedSymbols is object);
 
                     CachedSymbols = cachedSymbols;
                     Assembly = assembly;
@@ -986,18 +984,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 protected override void AddAvailableSymbols(List<AssemblySymbol> assemblies)
                 {
-                    // accessing cached symbols requires a lock
-                    lock (SymbolCacheAndReferenceManagerStateGuard)
+                    CachedSymbols.ForEach<PEAssemblySymbol>(peAssembly =>
                     {
-                        foreach (var assembly in CachedSymbols)
+                        if (IsMatchingAssembly(peAssembly))
                         {
-                            var peAssembly = assembly as PEAssemblySymbol;
-                            if (IsMatchingAssembly(peAssembly))
-                            {
-                                assemblies.Add(peAssembly);
-                            }
+                            assemblies.Add(peAssembly);
                         }
-                    }
+                    });
                 }
 
                 public override bool IsMatchingAssembly(AssemblySymbol candidateAssembly)

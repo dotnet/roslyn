@@ -1075,7 +1075,7 @@ End Class
             c.VerifyDiagnostics()
             Dim symbolA2 = c.GetReferencedAssemblySymbol(refA2)
             Assert.True(TypeOf symbolA2 Is VisualBasic.Symbols.Metadata.PE.PEAssemblySymbol, "PE symbol expected")
-            Assert.Equal(1, (DirectCast(refA2.GetMetadataNoCopy(), AssemblyMetadata)).CachedSymbols.WeakCount)
+            Assert.Equal(1, (DirectCast(refA2.GetMetadataNoCopy(), AssemblyMetadata)).CachedSymbols.CopyAll().Count)
 
             GC.KeepAlive(symbolA2)
 

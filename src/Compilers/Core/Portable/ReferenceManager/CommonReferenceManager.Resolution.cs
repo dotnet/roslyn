@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract AssemblyData CreateAssemblyDataForFile(
             PEAssembly assembly,
-            WeakList<IAssemblySymbol> cachedSymbols,
+            CachedAssemblySymbolList cachedSymbols,
             DocumentationProvider documentationProvider,
             string sourceAssemblySimpleName,
             MetadataImportOptions importOptions,
@@ -313,7 +313,6 @@ namespace Microsoft.CodeAnalysis
                     {
                         case MetadataImageKind.Assembly:
                             var assemblyMetadata = (AssemblyMetadata)metadata;
-                            WeakList<IAssemblySymbol> cachedSymbols = assemblyMetadata.CachedSymbols;
 
                             if (assemblyMetadata.IsValidAssembly())
                             {
@@ -335,7 +334,7 @@ namespace Microsoft.CodeAnalysis
 
                                 var asmData = CreateAssemblyDataForFile(
                                     assembly,
-                                    cachedSymbols,
+                                    assemblyMetadata.CachedSymbols,
                                     peReference.DocumentationProvider,
                                     SimpleAssemblyName,
                                     compilation.Options.MetadataImportOptions,

@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
 
             Protected Overrides Function CreateAssemblyDataForFile(assembly As PEAssembly,
-                                                                   cachedSymbols As WeakList(Of IAssemblySymbol),
+                                                                   cachedSymbols As CachedAssemblySymbolList,
                                                                    documentationProvider As DocumentationProvider,
                                                                    sourceAssemblySimpleName As String,
                                                                    importOptions As MetadataImportOptions,
@@ -788,10 +788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public ReadOnly Assembly As PEAssembly
 
-                ''' <summary>
-                ''' Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
-                ''' </summary>
-                Public ReadOnly CachedSymbols As WeakList(Of IAssemblySymbol)
+                Public ReadOnly CachedSymbols As CachedAssemblySymbolList
 
                 Public ReadOnly DocumentationProvider As DocumentationProvider
 
@@ -810,7 +807,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private _internalsPotentiallyVisibleToCompilation As Boolean = False
 
                 Public Sub New(assembly As PEAssembly,
-                               cachedSymbols As WeakList(Of IAssemblySymbol),
+                               cachedSymbols As CachedAssemblySymbolList,
                                embedInteropTypes As Boolean,
                                documentationProvider As DocumentationProvider,
                                sourceAssemblySimpleName As String,
@@ -856,15 +853,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Protected Overrides Sub AddAvailableSymbols(assemblies As List(Of AssemblySymbol))
                     Dim internalsMayBeVisibleToCompilation = Me.InternalsMayBeVisibleToCompilation
 
-                    ' accessing cached symbols requires a lock
-                    SyncLock SymbolCacheAndReferenceManagerStateGuard
-                        For Each assemblySymbol In CachedSymbols
-                            Dim peAssembly = TryCast(assemblySymbol, PEAssemblySymbol)
+                    CachedSymbols.ForEach(Of PEAssemblySymbol)(
+                        Sub(peAssembly)
                             If IsMatchingAssembly(peAssembly) Then
                                 assemblies.Add(peAssembly)
                             End If
-                        Next
-                    End SyncLock
+                        End Sub)
                 End Sub
 
                 Public Overrides Function IsMatchingAssembly(candidateAssembly As AssemblySymbol) As Boolean

@@ -64,10 +64,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Cached assembly symbols.
         /// </summary>
-        /// <remarks>
-        /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
-        /// </remarks>
-        internal readonly WeakList<IAssemblySymbol> CachedSymbols = new WeakList<IAssemblySymbol>();
+        internal readonly CachedAssemblySymbolList CachedSymbols = new CachedAssemblySymbolList();
 
         // creates a copy
         private AssemblyMetadata(AssemblyMetadata other, bool shareCachedSymbols)

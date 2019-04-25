@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis
         /// - Compilation.lazyAssemblySymbol
         /// - Compilation.referenceManager
         /// - ReferenceManager state
-        /// - <see cref="AssemblyMetadata.CachedSymbols"/>
         /// - <see cref="Compilation.RetargetingAssemblySymbols"/>
         /// 
         /// All the above data should be updated at once while holding this lock.
