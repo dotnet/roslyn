@@ -6,6 +6,8 @@ trigger:
 - dev16.0-vs-deps
 - dev16.1-preview2
 - dev16.1-preview2-vs-deps
+- dev16.1-preview3
+- dev16.1-preview3-vs-deps
 - dev16.1
 - dev16.1-vs-deps
 
