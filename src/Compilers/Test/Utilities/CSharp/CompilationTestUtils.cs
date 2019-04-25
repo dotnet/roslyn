@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// Verify the type and nullability inferred by NullabilityWalker of all expressions in the source
         /// that are followed by specific annotations. Annotations are of the form /*T:type*/.
         /// </summary>
-        internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
+        internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null, bool conditionalExpressions = false)
         {
             // When nullable analysis does not require a feature flag, this can be removed so that we
             // don't need to create an extra compilation
@@ -297,8 +297,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var syntaxTree in compilation.SyntaxTrees)
                 {
-                    VerifyTypes(compilation, syntaxTree);
+                    VerifyTypes(compilation, syntaxTree, conditionalExpressions);
                 }
+
                 return;
             }
 
@@ -388,10 +389,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     case SyntaxKind.IdentifierName:
                         if (expr.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == expr)
                         {
-                            return memberAccess;
+                            expr = memberAccess;
+                            goto default;
                         }
                         break;
+                    default:
+                        while (conditionalExpressions && expr.Parent is ConditionalAccessExpressionSyntax cond && cond.WhenNotNull == expr)
+                            expr = cond;
+                        break;
                 }
+
                 return expr;
             }
         }

@@ -92548,65 +92548,83 @@ class C
 {
     void Test1(object? x)
     {
-        _ = (M(x)?.Self)/*T:Box<object?>?*/;
+        M(x)?.Self()/*T:Box<object?>?*/;
+        M(x)?.Value()/*T:object?*/;
         if (x == null) return;
-        _ = (M(x)?.Self)/*T:Box<object!>?*/;
+        M(x)?.Self()/*T:Box<object!>?*/;
+        M(x)?.Value()/*T:object?*/;
     }
 
     void Test2<T>(T x)
     {
-        _ = (M(x)?.Self)/*T:Box<T>?*/;
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:void*/;
         if (x == null) return;
-        _ = (M(x)?.Self)/*T:Box<T>?*/;
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:void*/;
     }
 
     void Test3(int x)
     {
-        _ = (M(x)?.Self)/*T:Box<int>?*/;
+        M(x)?.Self()/*T:Box<int>?*/;
+        M(x)?.Value()/*T:int?*/;
         if (x == null) return; // 1
-        _ = (M(x)?.Self)/*T:Box<int>?*/;
+        M(x)?.Self()/*T:Box<int>?*/;
+        M(x)?.Value()/*T:int?*/;
     }
 
     void Test4(int? x)
     {
-        _ = (M(x)?.Self)/*T:Box<int?>?*/;
+        M(x)?.Self()/*T:Box<int?>?*/;
+        M(x)?.Value()/*T:int?*/;
         if (x == null) return;
-        _ = (M(x)?.Self)/*T:Box<int?>?*/;
+        M(x)?.Self()/*T:Box<int?>?*/;
+        M(x)?.Value()/*T:int?*/;
     }
 
     void Test5<T>(T? x) where T : class
     {
-        _ = (M(x)?.Self)/*T:Box<T?>?*/;
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
         if (x == null) return;
-        _ = (M(x)?.Self)/*T:Box<T!>?*/;
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
     }
 
     void Test6<T>(T x) where T : struct
     {
-        _ = (M(x)?.Self)/*T:Box<T>?*/;
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:T?*/;
         if (x == null) return; // 2
-        _ = (M(x)?.Self)/*T:Box<T>?*/;
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:T?*/;
     }
 
     void Test7<T>(T? x) where T : struct
     {
-        _ = (M(x)?.Self)/*T:Box<T?>?*/;
-        if (x == null) return; // 2
-        _ = (M(x)?.Self)/*T:Box<T?>?*/;
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
     }
 
     void Test8<T>(T x) where T : class
     {
-        _ = (M(x)?.Self)/*T:Box<T!>?*/;
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
         if (x == null) return;
-        _ = (M(x)?.Self)/*T:Box<T!>?*/;
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
     }
 
     void Test9<T>(T x) where T : class
     {
-        _ = (M(x)?.Self)/*T:Box<T!>?*/;
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
         if (x != null) return;
-        _ = (M(x)?.Self)/*T:Box<T?>?*/;
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
     }
 
     static Box<T> M<T>(T t) => new Box<T>(t);
@@ -92614,18 +92632,43 @@ class C
 
 class Box<T>
 {
-    public Box<T> Self => this;
+    public Box<T> Self() => this;
+    public T Value() => throw null!;
     public Box(T value) { }
 }
 ");
+            c.VerifyTypes(conditionalExpressions: true);
             c.VerifyDiagnostics(
-                // (21,13): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
+                // (26,13): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         if (x == null) return; // 1
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "x == null").WithArguments("false", "int", "int?").WithLocation(21, 13),
-                // (42,13): error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "x == null").WithArguments("false", "int", "int?").WithLocation(26, 13),
+                // (53,13): error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
                 //         if (x == null) return; // 2
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == null").WithArguments("==", "T", "<null>").WithLocation(42, 13));
-            c.VerifyTypes();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == null").WithArguments("==", "T", "<null>").WithLocation(53, 13));
+        }
+
+        [Fact, WorkItem(35075, "https://github.com/dotnet/roslyn/issues/35075")]
+        public void ConditionalExpression_TypeParameterConstrainedToNullableValueType()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+class C<T>
+{
+    public virtual void M<U>(B x, U y) where U : T { }
+}
+
+class B : C<int?>
+{
+    public override void M<U>(B x, U y)
+    {
+        var z = x?.Test(y)/*T:U?*/;
+        z = null;
+    }
+
+    T Test<T>(T x) => throw null!;
+}");
+            c.VerifyTypes(conditionalExpressions: true);
+            // Per https://github.com/dotnet/roslyn/issues/35075 errors should be expected
+            c.VerifyDiagnostics();
         }
     }
 }

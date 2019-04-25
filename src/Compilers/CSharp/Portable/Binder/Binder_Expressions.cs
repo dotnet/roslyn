@@ -7996,6 +7996,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // if access has value type, the type of the conditional access is nullable of that
+            // https://github.com/dotnet/roslyn/issues/35075: The test `accessType.IsValueType && !accessType.IsNullableType()`
+            // should probably be `accessType.IsNonNullableValueType()`
             if (accessType.IsValueType && !accessType.IsNullableType() && accessType.SpecialType != SpecialType.System_Void)
             {
                 accessType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(accessType);
