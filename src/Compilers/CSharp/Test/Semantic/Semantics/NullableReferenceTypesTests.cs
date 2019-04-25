@@ -92637,7 +92637,7 @@ class Box<T>
     public Box(T value) { }
 }
 ");
-            c.VerifyTypes(conditionalExpressions: true);
+            c.VerifyTypes();
             c.VerifyDiagnostics(
                 // (26,13): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
                 //         if (x == null) return; // 1
@@ -92666,7 +92666,7 @@ class B : C<int?>
 
     T Test<T>(T x) => throw null!;
 }");
-            c.VerifyTypes(conditionalExpressions: true);
+            c.VerifyTypes();
             // Per https://github.com/dotnet/roslyn/issues/35075 errors should be expected
             c.VerifyDiagnostics();
         }

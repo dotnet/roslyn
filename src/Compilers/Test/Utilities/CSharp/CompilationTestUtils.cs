@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// Verify the type and nullability inferred by NullabilityWalker of all expressions in the source
         /// that are followed by specific annotations. Annotations are of the form /*T:type*/.
         /// </summary>
-        internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null, bool conditionalExpressions = false)
+        internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
         {
             // When nullable analysis does not require a feature flag, this can be removed so that we
             // don't need to create an extra compilation
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 foreach (var syntaxTree in compilation.SyntaxTrees)
                 {
-                    VerifyTypes(compilation, syntaxTree, conditionalExpressions);
+                    VerifyTypes(compilation, syntaxTree);
                 }
 
                 return;
@@ -377,29 +377,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             ExpressionSyntax asExpression(SyntaxNode node)
             {
-                var expr = node as ExpressionSyntax;
-                if (expr == null)
+                while (true)
                 {
-                    return null;
+                    switch (node)
+                    {
+                        case null:
+                            return null;
+                        case ParenthesizedExpressionSyntax paren:
+                            return paren.Expression;
+                        case IdentifierNameSyntax id when id.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == node:
+                            node = memberAccess;
+                            continue;
+                        case ExpressionSyntax expr when expr.Parent is ConditionalAccessExpressionSyntax cond && cond.WhenNotNull == node:
+                            node = cond;
+                            continue;
+                        case ExpressionSyntax expr:
+                            return expr;
+                        case { Parent: var parent }:
+                            node = parent;
+                            continue;
+                    }
                 }
-                switch (expr.Kind())
-                {
-                    case SyntaxKind.ParenthesizedExpression:
-                        return ((ParenthesizedExpressionSyntax)expr).Expression;
-                    case SyntaxKind.IdentifierName:
-                        if (expr.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == expr)
-                        {
-                            expr = memberAccess;
-                            goto default;
-                        }
-                        break;
-                    default:
-                        while (conditionalExpressions && expr.Parent is ConditionalAccessExpressionSyntax cond && cond.WhenNotNull == expr)
-                            expr = cond;
-                        break;
-                }
-
-                return expr;
             }
         }
     }
