@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     // An event is readonly if its accessors are readonly.
                     // If one accessor is readonly and the other one is not,
                     // the event is malformed and cannot be properly displayed.
+                    // See https://github.com/dotnet/roslyn/issues/34213
                     if (@event.AddMethod?.IsReadOnly == true)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
