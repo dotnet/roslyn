@@ -583,10 +583,6 @@ try {
 
     $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
     InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
-
-    # Make sure a 2.1 runtime is installed so we can run our tests. Most of them still 
-    # target netcoreapp2.1.
-    InstallDotNetSdk $global:_DotNetInstallDir "2.1.503"
   }
 
   if ($bootstrap) {

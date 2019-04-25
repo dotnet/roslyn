@@ -23,6 +23,7 @@
   -->
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
+    <MicrosoftNetCoreAppVersion>2.1.7</MicrosoftNetCoreAppVersion>
     <RoslynDiagnosticsNugetPackageVersion>2.6.2-beta2</RoslynDiagnosticsNugetPackageVersion>
     <CodeStyleLayerCodeAnalysisVersion>2.8.2</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63310-01</MicrosoftCodeAnalysisTestingVersion>
@@ -277,6 +278,7 @@
     <PrivateVisualStudioPackage Include="VSLangProj140" />
     <PrivateVisualStudioPackage Include="VsWebsite.Interop" />
   </ItemGroup>
+
   <PropertyGroup>
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>

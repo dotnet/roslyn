@@ -200,6 +200,7 @@ function Build {
     /p:PerformanceTest=$performance_test \
     /p:Sign=$sign \
     /p:Publish=$publish \
+    /p:__InstallAdditionalDotNetCoreFrameworks=$installAdditionalDotNetCoreFrameworks \
     $properties
 
   ExitWithExitCode 0
