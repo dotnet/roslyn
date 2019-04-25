@@ -89004,6 +89004,39 @@ class Program
 
         [Fact]
         [WorkItem(33006, "https://github.com/dotnet/roslyn/issues/33006")]
+        public void Deconstruction_ExtensionMethod_05()
+        {
+            var source =
+@"class Pair<T, U>
+{
+}
+static class E
+{
+    internal static void Deconstruct<T, U>(this Pair<T, U>? p, out T t, out U u) => throw null!;
+}
+class Program
+{
+    static void F(Pair<object?, Pair<object, object?>> p)
+    {
+        (object? x, (object y, object? z)) = p; 
+        x.ToString(); // 1
+        y.ToString(); 
+        z.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 9),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
+                //         z.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33006, "https://github.com/dotnet/roslyn/issues/33006")]
         public void Deconstruction_ExtensionMethod_ConstraintWarning()
         {
             var source =
