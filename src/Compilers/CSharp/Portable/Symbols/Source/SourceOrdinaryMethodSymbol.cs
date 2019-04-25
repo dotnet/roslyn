@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
                     (Bodies.blockBody != null || Bodies.arrowBody != null) &&
                     ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)) &&
-                    !Parameters.Any(p => p is SourceComplexParameterSymbol complexParameter && complexParameter.HasEnumeratorCancellationAttribute))
+                    !Parameters.Any(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true }))
                 {
                     // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
                     diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, location, this);

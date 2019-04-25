@@ -461,25 +461,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                             left,
                             copySrc[parameter].Replacement(F.Syntax, stateMachineType => F.This()));
 
-                    if (this.method.IsAsync && parameter is SourceComplexParameterSymbol complexParameter)
+                    if (this.method.IsAsync && parameter is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true})
                     {
                         ParameterSymbol tokenParameter = getEnumeratorMethod.Parameters[0];
-                        if (complexParameter.HasEnumeratorCancellationAttribute)
-                        {
-                            // For any async-enumerable parameter marked with [EnumeratorCancellation] attribute, conditionally copy GetAsyncEnumerator's cancellation token parameter instead
-                            // if (token.Equals(default))
-                            //     result.parameter = this.parameterProxy;
-                            // else
-                            //     result.parameter = token;
+                        // For any async-enumerable parameter marked with [EnumeratorCancellation] attribute, conditionally copy GetAsyncEnumerator's cancellation token parameter instead
+                        // if (token.Equals(default))
+                        //     result.parameter = this.parameterProxy;
+                        // else
+                        //     result.parameter = token;
 
-                            copy = F.If(
-                                // if (token.Equals(default))
-                                F.Call(F.Parameter(tokenParameter), WellKnownMember.System_Threading_CancellationToken__Equals, F.Default(tokenParameter.Type)),
-                                // result.parameter = this.parameterProxy;
-                                copy,
-                                // result.parameter = token;
-                                F.Assignment(left, F.Parameter(tokenParameter)));
-                        }
+                        copy = F.If(
+                            // if (token.Equals(default))
+                            F.Call(F.Parameter(tokenParameter), WellKnownMember.System_Threading_CancellationToken__Equals, F.Default(tokenParameter.Type)),
+                            // result.parameter = this.parameterProxy;
+                            copy,
+                            // result.parameter = token;
+                            F.Assignment(left, F.Parameter(tokenParameter)));
                     }
 
                     bodyBuilder.Add(copy);
