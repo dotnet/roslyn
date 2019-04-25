@@ -2835,6 +2835,7 @@ class Program
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
+        // https://github.com/dotnet/roslyn/issues/35032: Handle switch expressions correctly
         [Fact]
         public void PointerAsInput_02()
         {

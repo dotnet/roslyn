@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Navigation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -53,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal static IEnumerable<(string feature, ImmutableArray<IOption> options)> GetLanguageAgnosticEditorConfigOptions()
         {
             yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions.AllOptions);
-            yield return (WorkspacesResources.dot_NET_Coding_Conventions, CodeStyleOptions.AllOptions);
+            yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.Concat(CodeStyleOptions.AllOptions));
         }
 
         private void LearnMoreHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

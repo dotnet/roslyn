@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="new">Make '{0}' inheritable</target>
+        <target state="translated">将“{0}”设为可继承</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">

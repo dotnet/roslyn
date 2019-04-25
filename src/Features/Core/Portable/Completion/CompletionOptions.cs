@@ -41,6 +41,13 @@ namespace Microsoft.CodeAnalysis.Completion
             new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(ShowNameSuggestions), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions"));
 
+        //Dev16 options
+
+        // Use tri-value so the default state can be used to turn on the feature with experimentation service.
+        public static readonly PerLanguageOption<bool?> ShowItemsFromUnimportedNamespaces =
+            new PerLanguageOption<bool?>(nameof(CompletionOptions), nameof(ShowItemsFromUnimportedNamespaces), defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces"));
+
         public static IEnumerable<PerLanguageOption<bool>> GetDev15CompletionOptions()
         {
             yield return ShowCompletionItemFilters;
