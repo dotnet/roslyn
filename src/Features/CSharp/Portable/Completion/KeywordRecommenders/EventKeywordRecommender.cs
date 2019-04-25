@@ -25,22 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 SyntaxKind.UnsafeKeyword
             };
 
-        private static readonly ISet<SyntaxKind> s_validStructModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validStructModifiers = new HashSet<SyntaxKind>(s_validClassModifiers, SyntaxFacts.EqualityComparer)
             {
-                SyntaxKind.NewKeyword,
-                SyntaxKind.PublicKeyword,
-                SyntaxKind.ProtectedKeyword,
-                SyntaxKind.InternalKeyword,
-                SyntaxKind.PrivateKeyword,
-                SyntaxKind.StaticKeyword,
-                SyntaxKind.VirtualKeyword,
-                SyntaxKind.SealedKeyword,
-                SyntaxKind.OverrideKeyword,
-                SyntaxKind.AbstractKeyword,
-                SyntaxKind.ExternKeyword,
-                SyntaxKind.UnsafeKeyword,
                 SyntaxKind.ReadOnlyKeyword,
-        };
+            };
 
         public EventKeywordRecommender()
             : base(SyntaxKind.EventKeyword)
