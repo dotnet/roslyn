@@ -7187,9 +7187,7 @@ readonly struct X
             var members = semanticModel.GetDeclaredSymbol(declaration).GetMembers();
 
             Verify(members[0].ToDisplayParts(format),
-                "readonly void X.M()",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+                "void X.M()",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -7199,9 +7197,7 @@ readonly struct X
                 SymbolDisplayPartKind.Punctuation);
 
             Verify(members[1].ToDisplayParts(format),
-                "readonly int X.P1 { get; }",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+                "int X.P1 { get; }",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -7216,9 +7212,7 @@ readonly struct X
                 SymbolDisplayPartKind.Punctuation);
 
             Verify(members[2].ToDisplayParts(format),
-                "readonly int X.P1.get",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+                "int X.P1.get",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -7228,9 +7222,7 @@ readonly struct X
                 SymbolDisplayPartKind.Keyword);
 
             Verify(members[3].ToDisplayParts(format),
-                "readonly int X.P2 { set; }",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+                "int X.P2 { set; }",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -7245,9 +7237,7 @@ readonly struct X
                 SymbolDisplayPartKind.Punctuation);
 
             Verify(members[4].ToDisplayParts(format),
-                "readonly void X.P2.set",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+                "void X.P2.set",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -7257,9 +7247,7 @@ readonly struct X
                 SymbolDisplayPartKind.Keyword);
 
             Verify(members[5].ToDisplayParts(format),
-                "readonly int X.P3 { get; set; }",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+                "int X.P3 { get; readonly set; }",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -7272,14 +7260,14 @@ readonly struct X
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation);
 
             Verify(members[6].ToDisplayParts(format),
-                "readonly int X.P3.get",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+                "int X.P3.get",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -7301,9 +7289,7 @@ readonly struct X
                 SymbolDisplayPartKind.Keyword);
 
             Verify(members[8].ToDisplayParts(format),
-                "readonly event System.Action X.E",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+                "event System.Action X.E",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.NamespaceName,
@@ -7315,9 +7301,7 @@ readonly struct X
                 SymbolDisplayPartKind.EventName);
 
             Verify(members[9].ToDisplayParts(format),
-                "readonly void X.E.add",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+                "void X.E.add",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -7327,9 +7311,7 @@ readonly struct X
                 SymbolDisplayPartKind.Keyword);
 
             Verify(members[10].ToDisplayParts(format),
-                "readonly void X.E.remove",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+                "void X.E.remove",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
