@@ -33274,6 +33274,48 @@ class C : Base
         }
 
         [Fact]
+        public void Base_02()
+        {
+            var source0 =
+@"public abstract class A<T>
+{
+}
+public class B<T> : A<T?> where T : B<T>
+{
+}";
+            var comp0 = CreateCompilation(source0, options: WithNonNullTypesTrue());
+            comp0.VerifyDiagnostics();
+
+            CompileAndVerify(comp0, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var b = m.GlobalNamespace.GetTypeMember("B");
+                Assert.Equal("A<T?>", b.BaseTypeNoUseSiteDiagnostics.ToTestDisplayString(true));
+            }
+        }
+
+        [Fact]
+        public void Base_03()
+        {
+            var source0 =
+@"public abstract class A<T>
+{
+}
+public class B<T> : A<T> where T : B<T>
+{
+}";
+            var comp0 = CreateCompilation(source0, options: WithNonNullTypesTrue());
+            comp0.VerifyDiagnostics();
+
+            CompileAndVerify(comp0, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+            void symbolValidator(ModuleSymbol m)
+            {
+                var b = m.GlobalNamespace.GetTypeMember("B");
+                Assert.Equal("A<T!>", b.BaseTypeNoUseSiteDiagnostics.ToTestDisplayString(true));
+            }
+        }
+
+        [Fact]
         public void TypeOf_01()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -68307,7 +68349,6 @@ public class A2<T> where T : class, IEquatable<T?> { }
 
             MetadataReference ref0 = comp0.ToMetadataReference();
             var comp = CreateCompilation(source, references: new[] { ref0 });
-            // https://github.com/dotnet/roslyn/issues/30003: Should report a nullability mismatch warning for A2<string>().
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         new A2<string?>(); // 2
@@ -68327,7 +68368,6 @@ public class A2<T> where T : class, IEquatable<T?> { }
                 );
             ref0 = comp0.ToMetadataReference();
             comp = CreateCompilation(source, references: new[] { ref0 });
-            // https://github.com/dotnet/roslyn/issues/30003: Should report same warnings as other two cases.
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         new A2<string?>(); // 2
@@ -68340,7 +68380,6 @@ public class A2<T> where T : class, IEquatable<T?> { }
             ref0 = comp0.EmitToImageReference();
 
             comp = CreateCompilation(source, references: new[] { ref0 });
-            // https://github.com/dotnet/roslyn/issues/30003: Should report a nullability mismatch warning for A2<string>().
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //         new A2<string?>(); // 2

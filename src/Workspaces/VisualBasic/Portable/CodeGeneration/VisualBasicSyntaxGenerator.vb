@@ -4190,6 +4190,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Throw New NotImplementedException()
         End Function
 
+        Friend Overrides Function ConstantPattern(expression As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
         Friend Overrides Function DeclarationPattern(type As INamedTypeSymbol, name As String) As SyntaxNode
             Throw New NotImplementedException()
         End Function

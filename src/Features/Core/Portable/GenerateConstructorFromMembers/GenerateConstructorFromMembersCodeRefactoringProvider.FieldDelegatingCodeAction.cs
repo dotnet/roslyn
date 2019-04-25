@@ -52,21 +52,20 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 var factory = _document.GetLanguageService<SyntaxGenerator>();
 
-                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = semanticModel.SyntaxTree;
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var preferThrowExpression = options.GetOption(CodeStyleOptions.PreferThrowExpression).Value;
 
-                var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
-                    compilation,
+                    semanticModel,
                     _state.ContainingType.Name,
                     _state.ContainingType,
                     _state.Parameters,
                     parameterToExistingFieldMap,
                     parameterToNewFieldMap: null,
                     addNullChecks: _addNullChecks,
-                    preferThrowExpression: preferThrowExpression,
-                    cancellationToken: cancellationToken);
+                    preferThrowExpression: preferThrowExpression);
 
                 // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
                 // choose the right location (i.e. null) to insert the constructor.  However, if they're 
