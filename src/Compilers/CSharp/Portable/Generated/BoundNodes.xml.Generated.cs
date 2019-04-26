@@ -10843,13 +10843,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
-            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
-            {
-                return node;
-            }
+            BoundTypeExpression targetType = node.TargetType;
+            BoundDefaultExpression updatedNode;
 
-            BoundDefaultExpression updatedNode = node.Update(node.TargetType, node.ConstantValueOpt, infoAndType.Type);
-            updatedNode.TopLevelNullability = infoAndType.Info;
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(targetType, node.ConstantValueOpt, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(targetType, node.ConstantValueOpt, node.Type);
+            }
             return updatedNode;
         }
 
