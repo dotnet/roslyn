@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - It's a reference type (excluding unconstrained generics): no copy
             // - It's a constant: no copy
             // - The type definitely doesn't have its own ToString method (i.e. we're definitely calling 
-            //   object.ToString on a struct type, not a generic type): no copy (yes this is a versioning issue,
+            //   object.ToString on a struct type, not type parameter): no copy (yes this is a versioning issue,
             //   but that doesn't matter)
             // - We're calling the type's own ToString method, and it's effectively readonly (the method or the whole
             //   type is readonly): no copy
