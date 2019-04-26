@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (thisAnnotation.IsOblivious() || otherAnnotation.IsOblivious())
                     {
-                        if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0)
+                        if ((comparison & TypeCompareKind.ObliviousNullableModifierMatchesAny) == 0)
                         {
                             return false;
                         }
