@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -424,6 +425,90 @@ public class C
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(35278, "https://github.com/dotnet/roslyn/issues/35278")]
+        public void ValEscapeForSwitchExpression_01()
+        {
+            var source = @"
+class Program
+{
+    public enum Rainbow
+    {
+        Red,
+        Orange,
+    }
+
+    public ref struct RGBColor
+    {
+        int _r, _g, _b;
+
+        public int R => _r;
+        public int G => _g;
+        public int B => _b;
+
+        public RGBColor(int r, int g, int b)
+        {
+            _r = r;
+            _g = g;
+            _b = b;
+        }
+
+        public new string ToString() => $""RGBColor(0x{_r:X2}, 0x{_g:X2}, 0x{_b:X2})"";
+    }
+
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(FromRainbow(Rainbow.Red).ToString());
+    }
+
+    public static RGBColor FromRainbow(Rainbow colorBand) =>
+        colorBand switch
+    {
+        Rainbow.Red => new RGBColor(0xFF, 0x00, 0x00),
+        Rainbow.Orange => new RGBColor(0xFF, 0x7F, 0x00),
+        _ => throw null!
+    };
+}";
+            var expectedOutput = "RGBColor(0xFF, 0x00, 0x00)";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(35278, "https://github.com/dotnet/roslyn/issues/35278")]
+        public void ValEscapeForSwitchExpression_02()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public ref struct RGBColor
+    {
+        public RGBColor(Span<int> span)
+        {
+        }
+    }
+
+    public static RGBColor FromSpan(int r, int g, int b)
+    {
+        Span<int> span = stackalloc int[] { r, g, b };
+        return 1 switch
+        {
+            1 => new RGBColor(span),
+            _ => throw null!
+        };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (17,18): error CS8347: Cannot use a result of 'Program.RGBColor.RGBColor(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //             1 => new RGBColor(span),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RGBColor(span)").WithArguments("Program.RGBColor.RGBColor(System.Span<int>)", "span").WithLocation(17, 18),
+                // (17,31): error CS8352: Cannot use local 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //             1 => new RGBColor(span),
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "span").WithArguments("span").WithLocation(17, 31));
         }
     }
 }

@@ -2584,7 +2584,7 @@ moreArguments:
 
         /// <summary>
         /// A counterpart to the GetValEscape, which validates if given escape demand can be met by the expression.
-        /// The result indicates whether the escape is possible. 
+        /// The result indicates whether the escape is possible.
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// </summary>
         internal static bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
@@ -2884,10 +2884,20 @@ moreArguments:
                     // only possible in error cases (if possible at all)
                     return false;
 
+                case BoundKind.SwitchExpression:
+                    foreach (var arm in ((BoundSwitchExpression)expr).SwitchArms)
+                    {
+                        var result = arm.Value;
+                        if (!CheckValEscape(result.Syntax, result, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                            return false;
+                    }
+
+                    return true;
+
                 default:
                     // in error situations some unexpected nodes could make here
                     // returning "false" seems safer than throwing.
-                    // we will still assert to make sure that all nodes are accounted for. 
+                    // we will still assert to make sure that all nodes are accounted for.
                     Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
                     return false;
 
