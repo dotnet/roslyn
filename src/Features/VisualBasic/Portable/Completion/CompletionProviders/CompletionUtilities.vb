@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim displayText = GetDisplayText(name, symbol)
             Dim insertionText = GetInsertionText(name, symbol, context)
-            Dim suffix = GetSuffix(name, symbol)
+            Dim suffix = GetSuffix(symbol)
 
             Return (displayText, suffix, insertionText)
         End Function
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Function
 
-        Private Function GetSuffix(name As String, symbol As ISymbol) As String
+        Private Function GetSuffix(symbol As ISymbol) As String
             If symbol.IsConstructor() Then
                 Return ""
             ElseIf symbol.GetArity() > 0 Then

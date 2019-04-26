@@ -313,6 +313,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexerAccess:
                     return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
 
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var patternIndexer = ((BoundIndexOrRangePatternIndexerAccess)expr);
+                    if (patternIndexer.PatternSymbol.Kind == SymbolKind.Property)
+                    {
+                        // If this is an Index indexer, PatternSymbol should be a property, pointing to the
+                        // pattern indexer. If it's a Range access, it will be a method, pointing to a Slice method
+                        // and it's handled below as part of invocations.
+                        return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
+                    }
+                    Debug.Assert(patternIndexer.PatternSymbol.Kind == SymbolKind.Method);
+                    break;
+
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
             }
@@ -438,8 +450,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckLocalValueKind(node, local, valueKind, checkingReceiver, diagnostics);
 
                 case BoundKind.ThisReference:
-                    var thisref = (BoundThisReference)expr;
-
                     // `this` is never ref assignable
                     if (RequiresRefAssignableVariable(valueKind))
                     {
@@ -457,14 +467,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // SPEC: of a struct, it is classified as a variable. 
 
                     // Note: RValueOnly is checked at the beginning of this method. Since we are here we need more than readable.
-                    //"this" is readonly in members of readonly structs, unless we are in a constructor.
-                    if (!thisref.Type.IsValueType ||
-                            (RequiresAssignableVariable(valueKind) &&
-                             thisref.Type.IsReadOnly &&
-                             (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor))
+                    // "this" is readonly in members marked "readonly" and in members of readonly structs, unless we are in a constructor.
+                    var isValueType = ((BoundThisReference)expr).Type.IsValueType;
+                    if (!isValueType || (RequiresAssignableVariable(valueKind) && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true))
                     {
-                        // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
-                        Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
+                        Error(diagnostics, GetThisLvalueError(valueKind, isValueType), node, node);
                         return false;
                     }
 
@@ -477,6 +484,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
                     return CheckCallValueKind(call, node, valueKind, checkingReceiver, diagnostics);
+
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    // If we got here this should be a pttern indexer taking a Range,
+                    // meaning that the pattern symbol must be a method (either Slice or Substring)
+                    return CheckMethodReturnValueKind(
+                        (MethodSymbol)patternIndexer.PatternSymbol,
+                        patternIndexer.Syntax,
+                        node,
+                        valueKind,
+                        checkingReceiver,
+                        diagnostics);
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
@@ -980,7 +999,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver?.Kind == BoundKind.BaseReference);
 
-                    if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, BindValueKind.Assignable, diagnostics))
+                    var setValueKind = setMethod.IsEffectivelyReadOnly ? BindValueKind.RValue : BindValueKind.Assignable;
+                    if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, setValueKind, diagnostics))
                     {
                         return false;
                     }
@@ -1026,6 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
+                    CheckImplicitThisCopyInReadOnlyMember(receiver, getMethod, diagnostics);
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
 
                     if (IsBadBaseAccess(node, receiver, getMethod, diagnostics, propertySymbol) ||
@@ -1581,7 +1602,7 @@ moreArguments:
             Error(diagnostics, ReadOnlyLocalErrors[index], node, local, cause.Localize());
         }
 
-        static private ErrorCode GetThisLvalueError(BindValueKind kind)
+        static private ErrorCode GetThisLvalueError(BindValueKind kind, bool isValueType)
         {
             switch (kind)
             {
@@ -1596,7 +1617,7 @@ moreArguments:
                     return ErrorCode.ERR_InvalidAddrOp;
 
                 case BindValueKind.IncrementDecrement:
-                    return ErrorCode.ERR_IncrementLvalueExpected;
+                    return isValueType ? ErrorCode.ERR_AssgReadonlyLocal : ErrorCode.ERR_IncrementLvalueExpected;
 
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
@@ -2142,6 +2163,44 @@ moreArguments:
                         diagnostics,
                         isRefEscape: true);
 
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    RefKind refKind;
+                    ImmutableArray<ParameterSymbol> parameters;
+
+                    switch (patternIndexer.PatternSymbol)
+                    {
+                        case PropertySymbol p:
+                            refKind = p.RefKind;
+                            parameters = p.Parameters;
+                            break;
+                        case MethodSymbol m:
+                            refKind = m.RefKind;
+                            parameters = m.Parameters;
+                            break;
+                        default:
+                            throw ExceptionUtilities.Unreachable;
+                    }
+
+                    if (refKind == RefKind.None)
+                    {
+                        break;
+                    }
+
+                    return CheckInvocationEscape(
+                        patternIndexer.Syntax,
+                        patternIndexer.PatternSymbol,
+                        patternIndexer.Receiver,
+                        parameters,
+                        ImmutableArray.Create<BoundExpression>(patternIndexer.Argument),
+                        default,
+                        default,
+                        checkingReceiver,
+                        escapeFrom,
+                        escapeTo,
+                        diagnostics,
+                        isRefEscape: true);
+
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
                     var propertySymbol = propertyAccess.PropertySymbol;
@@ -2333,6 +2392,25 @@ moreArguments:
                         indexerAccess.Arguments,
                         indexerAccess.ArgumentRefKindsOpt,
                         indexerAccess.ArgsToParamsOpt,
+                        scopeOfTheContainingExpression,
+                        isRefEscape: false);
+
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    var parameters = patternIndexer.PatternSymbol switch
+                    {
+                        PropertySymbol p => p.Parameters,
+                        MethodSymbol m => m.Parameters,
+                        _ => throw ExceptionUtilities.UnexpectedValue(patternIndexer.PatternSymbol)
+                    };
+
+                    return GetInvocationEscapeScope(
+                        patternIndexer.PatternSymbol,
+                        patternIndexer.Receiver,
+                        parameters,
+                        default,
+                        default,
+                        default,
                         scopeOfTheContainingExpression,
                         isRefEscape: false);
 
@@ -2651,6 +2729,30 @@ moreArguments:
                         indexerAccess.Arguments,
                         indexerAccess.ArgumentRefKindsOpt,
                         indexerAccess.ArgsToParamsOpt,
+                        checkingReceiver,
+                        escapeFrom,
+                        escapeTo,
+                        diagnostics,
+                        isRefEscape: false);
+
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                    var patternSymbol = patternIndexer.PatternSymbol;
+                    var parameters = patternSymbol switch
+                    {
+                        PropertySymbol p => p.Parameters,
+                        MethodSymbol m => m.Parameters,
+                        _ => throw ExceptionUtilities.Unreachable,
+                    };
+
+                    return CheckInvocationEscape(
+                        patternIndexer.Syntax,
+                        patternSymbol,
+                        patternIndexer.Receiver,
+                        parameters,
+                        ImmutableArray.Create(patternIndexer.Argument),
+                        default,
+                        default,
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,
@@ -3030,9 +3132,9 @@ moreArguments:
                         return true;
                     }
 
-                    if (!IsAnyReadOnly(addressKind) && type.IsReadOnly)
+                    if (!IsAnyReadOnly(addressKind) && method.IsEffectivelyReadOnly)
                     {
-                        return method.MethodKind == MethodKind.Constructor;
+                        return false;
                     }
 
                     return true;

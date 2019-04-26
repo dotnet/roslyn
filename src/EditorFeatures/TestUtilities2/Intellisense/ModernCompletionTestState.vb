@@ -212,7 +212,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                     Optional shouldFormatOnCommit As Boolean? = Nothing,
                                                     Optional inlineDescription As String = Nothing,
                                                     Optional projectionsView As ITextView = Nothing) As Task
-            ' inlineDescription is not used in this implementation.
 
             Dim view = If(projectionsView, TextView)
 

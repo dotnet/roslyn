@@ -304,6 +304,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.IsStatic)
                 {
                     Binder.CheckFeatureAvailability(declarator, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, ErrorLocation);
+
+                    if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ErrorLocation);
+                    }
                 }
                 else
                 {

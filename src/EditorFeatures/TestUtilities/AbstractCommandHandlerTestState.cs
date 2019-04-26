@@ -273,8 +273,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public string GetLineTextFromCaretPosition()
         {
-            var caretPosition = Workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value;
-            return SubjectBuffer.CurrentSnapshot.GetLineFromPosition(caretPosition).GetText();
+            var caretPosition = GetCaretPoint();
+            return caretPosition.BufferPosition.GetContainingLine().GetText();
         }
 
         public (string TextBeforeCaret, string TextAfterCaret) GetLineTextAroundCaretPosition()

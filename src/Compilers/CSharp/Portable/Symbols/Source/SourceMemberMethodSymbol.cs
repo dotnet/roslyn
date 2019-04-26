@@ -515,6 +515,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsDeclaredReadOnly
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
+            }
+        }
+
         internal sealed override Cci.CallingConvention CallingConvention
         {
             get
@@ -1222,9 +1230,16 @@ done:
             {
                 if (this.IsAccessor())
                 {
-                    // CS1667: Attribute '{0}' is not valid on property or event accessors. It is only valid on '{1}' declarations.
-                    AttributeUsageInfo attributeUsage = arguments.Attribute.AttributeClass.GetAttributeUsageInfo();
-                    arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
+                    if (this is SourceEventAccessorSymbol)
+                    {
+                        // CS1667: Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.
+                        AttributeUsageInfo attributeUsage = arguments.Attribute.AttributeClass.GetAttributeUsageInfo();
+                        arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnEventAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
+                    }
+                    else
+                    {
+                        MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt.Location);
+                    }
                 }
 
                 return true;
@@ -1616,6 +1631,11 @@ done:
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
+            if (IsDeclaredReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
+
             bool isAsync = this.IsAsync;
             bool isIterator = this.IsIterator;
 
@@ -1690,7 +1710,7 @@ done:
                     Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
                 }
 
-                if ((hasBody || IsExtern) && !IsStatic && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                if ((hasBody || IsExtern) && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
                 }

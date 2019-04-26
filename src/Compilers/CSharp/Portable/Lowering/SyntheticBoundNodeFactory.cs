@@ -578,6 +578,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binary(BinaryOperatorKind.IntGreaterThanOrEqual, SpecialType(CodeAnalysis.SpecialType.System_Boolean), left, right);
         }
 
+        public BoundBinaryOperator IntSubtract(BoundExpression left, BoundExpression right)
+        {
+            return Binary(BinaryOperatorKind.IntSubtraction, SpecialType(CodeAnalysis.SpecialType.System_Int32), left, right);
+        }
+
         public BoundLiteral Literal(int value)
         {
             return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32)) { WasCompilerGenerated = true };
@@ -723,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Coalesce(BoundExpression left, BoundExpression right)
         {
-            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) || left.Type.IsErrorType());
             Debug.Assert(left.Type.IsReferenceType);
 
             return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, BoundNullCoalescingOperatorResultKind.LeftType, left.Type) { WasCompilerGenerated = true };
@@ -890,18 +895,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             statements.Add(null); // placeholder at statements[0] for the dispatch
             foreach (var section in sections)
             {
-                LabelSymbol sectionLabel;
-                // If the section only contains a goto statement, use that label.
-                if (section.Statements.Length == 1 && section.Statements[0] is BoundGotoStatement bgoto)
-                {
-                    sectionLabel = bgoto.Label;
-                }
-                else
-                {
-                    sectionLabel = new GeneratedLabelSymbol("case " + section.Values[0]);
-                    statements.Add(Label(sectionLabel));
-                    statements.AddRange(section.Statements);
-                }
+                LabelSymbol sectionLabel = new GeneratedLabelSymbol("case " + section.Values[0]);
+                statements.Add(Label(sectionLabel));
+                statements.AddRange(section.Statements);
 
                 foreach (var value in section.Values)
                 {

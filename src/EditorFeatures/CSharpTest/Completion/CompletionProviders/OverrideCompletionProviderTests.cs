@@ -2140,7 +2140,7 @@ End Class
                 var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Bar[int bay]"));
 
-                if (service.ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
+                if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
@@ -2396,7 +2396,7 @@ int bar;
                 var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
-                if (service.ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
+                if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
@@ -2451,7 +2451,7 @@ int bar;
                 var completionList = await GetCompletionListAsync(service, document, cursorPosition, triggerInfo);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
-                if (service.ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
+                if (service.GetTestAccessor().ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
@@ -2744,7 +2744,7 @@ public class SomeClass : Base
                 var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
                 var completionItem = completionList.Items.Where(c => c.DisplayText == "M(in int x)").Single();
 
-                var commit = await service.GetChangeAsync(document, completionItem, commitKey: null, CancellationToken.None);
+                var commit = await service.GetChangeAsync(document, completionItem, completionList.Span, commitKey: null, CancellationToken.None);
 
                 var text = await document.GetTextAsync();
                 var newText = text.WithChanges(commit.TextChange);

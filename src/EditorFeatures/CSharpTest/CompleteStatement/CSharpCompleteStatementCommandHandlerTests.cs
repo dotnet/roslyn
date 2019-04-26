@@ -3204,9 +3204,159 @@ public class Class1
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void BeforeAttribute()
+        {
+            var code = @"
+public class C
+{
+private const string s = 
+        @""test""$$
+
+    [Fact]
+    public void M()
+            {
+            }
+        }";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ElementBindingExpression()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var data = new int[3];
+        var value = data?[0$$]
+    }
+}";
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var data = new int[3];
+        var value = data?[0];$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void BeforeElementBindingExpression()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var data = new int[3];
+        var value = data?$$[0]
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void AfterElementBindingExpression()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var data = new int[3];
+        var value = data?[0]$$
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ImplicitElementAccessSyntax()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+        {
+            [1$$] = 4,
+        }
+    }
+}";
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+        {
+            [1] = 4,
+        };$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void BeforeImplicitElementAccessSyntax()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+        {
+            $$[1] = 4,
+        }
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void AfterImplicitElementAccessSyntax()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+        {
+            [1]$$ = 4,
+        }
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         internal override VSCommanding.ICommandHandler GetCommandHandler(TestWorkspace workspace)
         {
             return workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();
+        }
+
+        [WorkItem(32337, "https://github.com/dotnet/roslyn/issues/32337")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentList_MultipleCharsSelected()
+        {
+            var code = CreateTestWithMethodCall(@"var test = ClassC.MethodM([|x[0]|], x[1])");
+
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         protected override TestWorkspace CreateTestWorkspace(string code)

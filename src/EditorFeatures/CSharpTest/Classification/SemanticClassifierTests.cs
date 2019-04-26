@@ -3412,5 +3412,19 @@ class True
                 Class("True"),
                 Class("True"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCatchDeclarationVariable()
+        {
+            await TestInMethodAsync(@"
+try
+{
+}
+catch (Exception ex)
+{
+    throw ex;
+}",
+                Local("ex"));
+        }
     }
 }
