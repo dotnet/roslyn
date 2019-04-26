@@ -3049,6 +3049,7 @@ Unify Enum declarations with other block type declarations.
         <kind name="SelectKeyword" node-kind="ExitSelectStatement"/>
         <kind name="WhileKeyword" node-kind="ExitWhileStatement"/>
       </child>
+      <child name="ControlVariable" optional="true" kind="@ExpressionSyntax" />
     </node-structure>
 
     <!--****************
@@ -3089,8 +3090,8 @@ Unify Enum declarations with other block type declarations.
         <kind name="ForKeyword" node-kind="ContinueForStatement"/>
         <kind name="WhileKeyword" node-kind="ContinueWhileStatement"/>
       </child>
+      <child name="ControlVariable" optional="true" kind="@ExpressionSyntax" />
     </node-structure>
-
 
     <!--****************
       -  Return

@@ -2870,9 +2870,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If node.ExitKeyword.Node IsNot newExitKeyword Then anyChanges = True
             Dim newBlockKeyword = DirectCast(VisitToken(node.BlockKeyword).Node, InternalSyntax.KeywordSyntax)
             If node.BlockKeyword.Node IsNot newBlockKeyword Then anyChanges = True
+            Dim newControlVariable = DirectCast(Visit(node.ControlVariable), ExpressionSyntax)
+            If node.ControlVariable IsNot newControlVariable Then anyChanges = True
 
             If anyChanges Then
-                Return New ExitStatementSyntax(node.Kind, node.Green.GetDiagnostics, node.Green.GetAnnotations, newExitKeyword, newBlockKeyword)
+                Return New ExitStatementSyntax(node.Kind, node.Green.GetDiagnostics, node.Green.GetAnnotations, newExitKeyword, newBlockKeyword, newControlVariable)
             Else
                 Return node
             End If
@@ -2885,9 +2887,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If node.ContinueKeyword.Node IsNot newContinueKeyword Then anyChanges = True
             Dim newBlockKeyword = DirectCast(VisitToken(node.BlockKeyword).Node, InternalSyntax.KeywordSyntax)
             If node.BlockKeyword.Node IsNot newBlockKeyword Then anyChanges = True
+            Dim newControlVariable = DirectCast(Visit(node.ControlVariable), ExpressionSyntax)
+            If node.ControlVariable IsNot newControlVariable Then anyChanges = True
 
             If anyChanges Then
-                Return New ContinueStatementSyntax(node.Kind, node.Green.GetDiagnostics, node.Green.GetAnnotations, newContinueKeyword, newBlockKeyword)
+                Return New ContinueStatementSyntax(node.Kind, node.Green.GetDiagnostics, node.Green.GetAnnotations, newContinueKeyword, newBlockKeyword, newControlVariable)
             Else
                 Return node
             End If
@@ -13345,7 +13349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="blockKeyword">
         ''' The keyword describing the block to exit.
         ''' </param>
-        Public Shared Function ExitDoStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ExitStatementSyntax
+        Public Shared Function ExitDoStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ExitStatementSyntax
             Select Case exitKeyword.Kind()
                 Case SyntaxKind.ExitKeyword
                 Case Else
@@ -13364,7 +13368,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw new ArgumentException("blockKeyword")
              End Select
-            Return New ExitStatementSyntax(SyntaxKind.ExitDoStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ExitStatementSyntax(SyntaxKind.ExitDoStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' An exit statement. The kind of block being exited can be found by examining the
+        ''' Kind.
+        ''' </summary>
+        Public Shared Function ExitDoStatement(controlVariable As ExpressionSyntax) As ExitStatementSyntax
+            Return SyntaxFactory.ExitDoStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword), controlVariable)
         End Function
 
 
@@ -13373,7 +13386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Kind.
         ''' </summary>
         Public Shared Function ExitDoStatement() As ExitStatementSyntax
-            Return SyntaxFactory.ExitDoStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword))
+            Return SyntaxFactory.ExitDoStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword), Nothing)
         End Function
 
 
@@ -13387,7 +13400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="blockKeyword">
         ''' The keyword describing the block to exit.
         ''' </param>
-        Public Shared Function ExitForStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ExitStatementSyntax
+        Public Shared Function ExitForStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ExitStatementSyntax
             Select Case exitKeyword.Kind()
                 Case SyntaxKind.ExitKeyword
                 Case Else
@@ -13398,7 +13411,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw new ArgumentException("blockKeyword")
              End Select
-            Return New ExitStatementSyntax(SyntaxKind.ExitForStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ExitStatementSyntax(SyntaxKind.ExitForStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' An exit statement. The kind of block being exited can be found by examining the
+        ''' Kind.
+        ''' </summary>
+        Public Shared Function ExitForStatement(controlVariable As ExpressionSyntax) As ExitStatementSyntax
+            Return SyntaxFactory.ExitForStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword), controlVariable)
         End Function
 
 
@@ -13407,7 +13429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Kind.
         ''' </summary>
         Public Shared Function ExitForStatement() As ExitStatementSyntax
-            Return SyntaxFactory.ExitForStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword))
+            Return SyntaxFactory.ExitForStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword), Nothing)
         End Function
 
 
@@ -13421,7 +13443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="blockKeyword">
         ''' The keyword describing the block to exit.
         ''' </param>
-        Public Shared Function ExitSubStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ExitStatementSyntax
+        Public Shared Function ExitSubStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ExitStatementSyntax
             Select Case exitKeyword.Kind()
                 Case SyntaxKind.ExitKeyword
                 Case Else
@@ -13432,7 +13454,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw new ArgumentException("blockKeyword")
              End Select
-            Return New ExitStatementSyntax(SyntaxKind.ExitSubStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ExitStatementSyntax(SyntaxKind.ExitSubStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' An exit statement. The kind of block being exited can be found by examining the
+        ''' Kind.
+        ''' </summary>
+        Public Shared Function ExitSubStatement(controlVariable As ExpressionSyntax) As ExitStatementSyntax
+            Return SyntaxFactory.ExitSubStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.SubKeyword), controlVariable)
         End Function
 
 
@@ -13441,7 +13472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Kind.
         ''' </summary>
         Public Shared Function ExitSubStatement() As ExitStatementSyntax
-            Return SyntaxFactory.ExitSubStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.SubKeyword))
+            Return SyntaxFactory.ExitSubStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.SubKeyword), Nothing)
         End Function
 
 
@@ -13455,7 +13486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="blockKeyword">
         ''' The keyword describing the block to exit.
         ''' </param>
-        Public Shared Function ExitFunctionStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ExitStatementSyntax
+        Public Shared Function ExitFunctionStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ExitStatementSyntax
             Select Case exitKeyword.Kind()
                 Case SyntaxKind.ExitKeyword
                 Case Else
@@ -13466,7 +13497,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw new ArgumentException("blockKeyword")
              End Select
-            Return New ExitStatementSyntax(SyntaxKind.ExitFunctionStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ExitStatementSyntax(SyntaxKind.ExitFunctionStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' An exit statement. The kind of block being exited can be found by examining the
+        ''' Kind.
+        ''' </summary>
+        Public Shared Function ExitFunctionStatement(controlVariable As ExpressionSyntax) As ExitStatementSyntax
+            Return SyntaxFactory.ExitFunctionStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.FunctionKeyword), controlVariable)
         End Function
 
 
@@ -13475,7 +13515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Kind.
         ''' </summary>
         Public Shared Function ExitFunctionStatement() As ExitStatementSyntax
-            Return SyntaxFactory.ExitFunctionStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.FunctionKeyword))
+            Return SyntaxFactory.ExitFunctionStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.FunctionKeyword), Nothing)
         End Function
 
 
@@ -13489,7 +13529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="blockKeyword">
         ''' The keyword describing the block to exit.
         ''' </param>
-        Public Shared Function ExitOperatorStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ExitStatementSyntax
+        Public Shared Function ExitOperatorStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ExitStatementSyntax
             Select Case exitKeyword.Kind()
                 Case SyntaxKind.ExitKeyword
                 Case Else
@@ -13500,7 +13540,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw new ArgumentException("blockKeyword")
              End Select
-            Return New ExitStatementSyntax(SyntaxKind.ExitOperatorStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ExitStatementSyntax(SyntaxKind.ExitOperatorStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' An exit statement. The kind of block being exited can be found by examining the
+        ''' Kind.
+        ''' </summary>
+        Public Shared Function ExitOperatorStatement(controlVariable As ExpressionSyntax) As ExitStatementSyntax
+            Return SyntaxFactory.ExitOperatorStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.OperatorKeyword), controlVariable)
         End Function
 
 
@@ -13509,7 +13558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Kind.
         ''' </summary>
         Public Shared Function ExitOperatorStatement() As ExitStatementSyntax
-            Return SyntaxFactory.ExitOperatorStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.OperatorKeyword))
+            Return SyntaxFactory.ExitOperatorStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.OperatorKeyword), Nothing)
         End Function
 
 
@@ -13523,7 +13572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="blockKeyword">
         ''' The keyword describing the block to exit.
         ''' </param>
-        Public Shared Function ExitPropertyStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ExitStatementSyntax
+        Public Shared Function ExitPropertyStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ExitStatementSyntax
             Select Case exitKeyword.Kind()
                 Case SyntaxKind.ExitKeyword
                 Case Else
@@ -13534,7 +13583,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw new ArgumentException("blockKeyword")
              End Select
-            Return New ExitStatementSyntax(SyntaxKind.ExitPropertyStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ExitStatementSyntax(SyntaxKind.ExitPropertyStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' An exit statement. The kind of block being exited can be found by examining the
+        ''' Kind.
+        ''' </summary>
+        Public Shared Function ExitPropertyStatement(controlVariable As ExpressionSyntax) As ExitStatementSyntax
+            Return SyntaxFactory.ExitPropertyStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.PropertyKeyword), controlVariable)
         End Function
 
 
@@ -13543,7 +13601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Kind.
         ''' </summary>
         Public Shared Function ExitPropertyStatement() As ExitStatementSyntax
-            Return SyntaxFactory.ExitPropertyStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.PropertyKeyword))
+            Return SyntaxFactory.ExitPropertyStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.PropertyKeyword), Nothing)
         End Function
 
 
@@ -13557,7 +13615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="blockKeyword">
         ''' The keyword describing the block to exit.
         ''' </param>
-        Public Shared Function ExitTryStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ExitStatementSyntax
+        Public Shared Function ExitTryStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ExitStatementSyntax
             Select Case exitKeyword.Kind()
                 Case SyntaxKind.ExitKeyword
                 Case Else
@@ -13568,7 +13626,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw new ArgumentException("blockKeyword")
              End Select
-            Return New ExitStatementSyntax(SyntaxKind.ExitTryStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ExitStatementSyntax(SyntaxKind.ExitTryStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' An exit statement. The kind of block being exited can be found by examining the
+        ''' Kind.
+        ''' </summary>
+        Public Shared Function ExitTryStatement(controlVariable As ExpressionSyntax) As ExitStatementSyntax
+            Return SyntaxFactory.ExitTryStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.TryKeyword), controlVariable)
         End Function
 
 
@@ -13577,7 +13644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Kind.
         ''' </summary>
         Public Shared Function ExitTryStatement() As ExitStatementSyntax
-            Return SyntaxFactory.ExitTryStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.TryKeyword))
+            Return SyntaxFactory.ExitTryStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.TryKeyword), Nothing)
         End Function
 
 
@@ -13591,7 +13658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="blockKeyword">
         ''' The keyword describing the block to exit.
         ''' </param>
-        Public Shared Function ExitSelectStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ExitStatementSyntax
+        Public Shared Function ExitSelectStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ExitStatementSyntax
             Select Case exitKeyword.Kind()
                 Case SyntaxKind.ExitKeyword
                 Case Else
@@ -13602,7 +13669,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw new ArgumentException("blockKeyword")
              End Select
-            Return New ExitStatementSyntax(SyntaxKind.ExitSelectStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ExitStatementSyntax(SyntaxKind.ExitSelectStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' An exit statement. The kind of block being exited can be found by examining the
+        ''' Kind.
+        ''' </summary>
+        Public Shared Function ExitSelectStatement(controlVariable As ExpressionSyntax) As ExitStatementSyntax
+            Return SyntaxFactory.ExitSelectStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.SelectKeyword), controlVariable)
         End Function
 
 
@@ -13611,7 +13687,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Kind.
         ''' </summary>
         Public Shared Function ExitSelectStatement() As ExitStatementSyntax
-            Return SyntaxFactory.ExitSelectStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.SelectKeyword))
+            Return SyntaxFactory.ExitSelectStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.SelectKeyword), Nothing)
         End Function
 
 
@@ -13625,7 +13701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="blockKeyword">
         ''' The keyword describing the block to exit.
         ''' </param>
-        Public Shared Function ExitWhileStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ExitStatementSyntax
+        Public Shared Function ExitWhileStatement(exitKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ExitStatementSyntax
             Select Case exitKeyword.Kind()
                 Case SyntaxKind.ExitKeyword
                 Case Else
@@ -13636,7 +13712,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw new ArgumentException("blockKeyword")
              End Select
-            Return New ExitStatementSyntax(SyntaxKind.ExitWhileStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ExitStatementSyntax(SyntaxKind.ExitWhileStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' An exit statement. The kind of block being exited can be found by examining the
+        ''' Kind.
+        ''' </summary>
+        Public Shared Function ExitWhileStatement(controlVariable As ExpressionSyntax) As ExitStatementSyntax
+            Return SyntaxFactory.ExitWhileStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword), controlVariable)
         End Function
 
 
@@ -13645,7 +13730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Kind.
         ''' </summary>
         Public Shared Function ExitWhileStatement() As ExitStatementSyntax
-            Return SyntaxFactory.ExitWhileStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword))
+            Return SyntaxFactory.ExitWhileStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword), Nothing)
         End Function
 
 
@@ -13665,7 +13750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="blockKeyword">
         ''' The keyword describing the block to exit.
         ''' </param>
-        Public Shared Function ExitStatement(ByVal kind As SyntaxKind, exitKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ExitStatementSyntax
+        Public Shared Function ExitStatement(ByVal kind As SyntaxKind, exitKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ExitStatementSyntax
             If Not SyntaxFacts.IsExitStatement(kind) Then
                 Throw New ArgumentException("kind")
             End If
@@ -13677,7 +13762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If (Not blockKeyword.IsKind(GetExitStatementBlockKeywordKind(kind))) Then
                 Throw new ArgumentException("blockKeyword")
             End If
-            Return New ExitStatementSyntax(kind, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ExitStatementSyntax(kind, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
         End Function
 
         Private Shared Function GetExitStatementBlockKeywordKind(kind As SyntaxKind) As SyntaxKind
@@ -13718,8 +13803,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="blockKeyword">
         ''' The keyword describing the block to exit.
         ''' </param>
+        Public Shared Function ExitStatement(ByVal kind As SyntaxKind, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ExitStatementSyntax
+            Return SyntaxFactory.ExitStatement(kind, SyntaxFactory.Token(SyntaxKind.ExitKeyword), blockKeyword, controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' An exit statement. The kind of block being exited can be found by examining the
+        ''' Kind.
+        ''' </summary>
+        ''' <param name="kind">
+        ''' A <cref c="SyntaxKind"/> representing the specific kind of ExitStatementSyntax.
+        ''' One of ExitDoStatement, ExitForStatement, ExitSubStatement,
+        ''' ExitFunctionStatement, ExitOperatorStatement, ExitPropertyStatement,
+        ''' ExitTryStatement, ExitSelectStatement, ExitWhileStatement.
+        ''' </param>
+        ''' <param name="blockKeyword">
+        ''' The keyword describing the block to exit.
+        ''' </param>
         Public Shared Function ExitStatement(ByVal kind As SyntaxKind, blockKeyword As SyntaxToken) As ExitStatementSyntax
-            Return SyntaxFactory.ExitStatement(kind, SyntaxFactory.Token(SyntaxKind.ExitKeyword), blockKeyword)
+            Return SyntaxFactory.ExitStatement(kind, SyntaxFactory.Token(SyntaxKind.ExitKeyword), blockKeyword, Nothing)
         End Function
 
 
@@ -13734,7 +13837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The "Do", "For" or "While" keyword that identifies the kind of loop being
         ''' continued.
         ''' </param>
-        Public Shared Function ContinueWhileStatement(continueKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ContinueStatementSyntax
+        Public Shared Function ContinueWhileStatement(continueKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ContinueStatementSyntax
             Select Case continueKeyword.Kind()
                 Case SyntaxKind.ContinueKeyword
                 Case Else
@@ -13747,7 +13850,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw new ArgumentException("blockKeyword")
              End Select
-            Return New ContinueStatementSyntax(SyntaxKind.ContinueWhileStatement, Nothing, Nothing, DirectCast(continueKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ContinueStatementSyntax(SyntaxKind.ContinueWhileStatement, Nothing, Nothing, DirectCast(continueKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' Represents a "Continue (block)" statement. THe kind of block referenced can be
+        ''' determined by examining the Kind.
+        ''' </summary>
+        Public Shared Function ContinueWhileStatement(controlVariable As ExpressionSyntax) As ContinueStatementSyntax
+            Return SyntaxFactory.ContinueWhileStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword), controlVariable)
         End Function
 
 
@@ -13756,7 +13868,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' determined by examining the Kind.
         ''' </summary>
         Public Shared Function ContinueWhileStatement() As ContinueStatementSyntax
-            Return SyntaxFactory.ContinueWhileStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword))
+            Return SyntaxFactory.ContinueWhileStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword), Nothing)
         End Function
 
 
@@ -13771,7 +13883,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The "Do", "For" or "While" keyword that identifies the kind of loop being
         ''' continued.
         ''' </param>
-        Public Shared Function ContinueDoStatement(continueKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ContinueStatementSyntax
+        Public Shared Function ContinueDoStatement(continueKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ContinueStatementSyntax
             Select Case continueKeyword.Kind()
                 Case SyntaxKind.ContinueKeyword
                 Case Else
@@ -13782,7 +13894,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw new ArgumentException("blockKeyword")
              End Select
-            Return New ContinueStatementSyntax(SyntaxKind.ContinueDoStatement, Nothing, Nothing, DirectCast(continueKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ContinueStatementSyntax(SyntaxKind.ContinueDoStatement, Nothing, Nothing, DirectCast(continueKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' Represents a "Continue (block)" statement. THe kind of block referenced can be
+        ''' determined by examining the Kind.
+        ''' </summary>
+        Public Shared Function ContinueDoStatement(controlVariable As ExpressionSyntax) As ContinueStatementSyntax
+            Return SyntaxFactory.ContinueDoStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword), controlVariable)
         End Function
 
 
@@ -13791,7 +13912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' determined by examining the Kind.
         ''' </summary>
         Public Shared Function ContinueDoStatement() As ContinueStatementSyntax
-            Return SyntaxFactory.ContinueDoStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword))
+            Return SyntaxFactory.ContinueDoStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword), Nothing)
         End Function
 
 
@@ -13806,7 +13927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The "Do", "For" or "While" keyword that identifies the kind of loop being
         ''' continued.
         ''' </param>
-        Public Shared Function ContinueForStatement(continueKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ContinueStatementSyntax
+        Public Shared Function ContinueForStatement(continueKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ContinueStatementSyntax
             Select Case continueKeyword.Kind()
                 Case SyntaxKind.ContinueKeyword
                 Case Else
@@ -13817,7 +13938,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case Else
                     Throw new ArgumentException("blockKeyword")
              End Select
-            Return New ContinueStatementSyntax(SyntaxKind.ContinueForStatement, Nothing, Nothing, DirectCast(continueKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ContinueStatementSyntax(SyntaxKind.ContinueForStatement, Nothing, Nothing, DirectCast(continueKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' Represents a "Continue (block)" statement. THe kind of block referenced can be
+        ''' determined by examining the Kind.
+        ''' </summary>
+        Public Shared Function ContinueForStatement(controlVariable As ExpressionSyntax) As ContinueStatementSyntax
+            Return SyntaxFactory.ContinueForStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword), controlVariable)
         End Function
 
 
@@ -13826,7 +13956,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' determined by examining the Kind.
         ''' </summary>
         Public Shared Function ContinueForStatement() As ContinueStatementSyntax
-            Return SyntaxFactory.ContinueForStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword))
+            Return SyntaxFactory.ContinueForStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword), Nothing)
         End Function
 
 
@@ -13846,7 +13976,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The "Do", "For" or "While" keyword that identifies the kind of loop being
         ''' continued.
         ''' </param>
-        Public Shared Function ContinueStatement(ByVal kind As SyntaxKind, continueKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ContinueStatementSyntax
+        Public Shared Function ContinueStatement(ByVal kind As SyntaxKind, continueKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ContinueStatementSyntax
             If Not SyntaxFacts.IsContinueStatement(kind) Then
                 Throw New ArgumentException("kind")
             End If
@@ -13858,7 +13988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If (Not blockKeyword.IsKind(GetContinueStatementBlockKeywordKind(kind))) Then
                 Throw new ArgumentException("blockKeyword")
             End If
-            Return New ContinueStatementSyntax(kind, Nothing, Nothing, DirectCast(continueKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
+            Return New ContinueStatementSyntax(kind, Nothing, Nothing, DirectCast(continueKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable)
         End Function
 
         Private Shared Function GetContinueStatementBlockKeywordKind(kind As SyntaxKind) As SyntaxKind
@@ -13887,8 +14017,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' The "Do", "For" or "While" keyword that identifies the kind of loop being
         ''' continued.
         ''' </param>
+        Public Shared Function ContinueStatement(ByVal kind As SyntaxKind, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ContinueStatementSyntax
+            Return SyntaxFactory.ContinueStatement(kind, SyntaxFactory.Token(SyntaxKind.ContinueKeyword), blockKeyword, controlVariable)
+        End Function
+
+
+        ''' <summary>
+        ''' Represents a "Continue (block)" statement. THe kind of block referenced can be
+        ''' determined by examining the Kind.
+        ''' </summary>
+        ''' <param name="kind">
+        ''' A <cref c="SyntaxKind"/> representing the specific kind of
+        ''' ContinueStatementSyntax. One of ContinueWhileStatement, ContinueDoStatement,
+        ''' ContinueForStatement.
+        ''' </param>
+        ''' <param name="blockKeyword">
+        ''' The "Do", "For" or "While" keyword that identifies the kind of loop being
+        ''' continued.
+        ''' </param>
         Public Shared Function ContinueStatement(ByVal kind As SyntaxKind, blockKeyword As SyntaxToken) As ContinueStatementSyntax
-            Return SyntaxFactory.ContinueStatement(kind, SyntaxFactory.Token(SyntaxKind.ContinueKeyword), blockKeyword)
+            Return SyntaxFactory.ContinueStatement(kind, SyntaxFactory.Token(SyntaxKind.ContinueKeyword), blockKeyword, Nothing)
         End Function
 
 

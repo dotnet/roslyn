@@ -13328,6 +13328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Public NotInheritable Class ExitStatementSyntax
         Inherits ExecutableStatementSyntax
 
+        Friend _controlVariable as ExpressionSyntax
 
         Friend Sub New(ByVal green As GreenNode, ByVal parent as SyntaxNode, ByVal startLocation As Integer)
             MyBase.New(green, parent, startLocation)
@@ -13335,8 +13336,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Debug.Assert(startLocation >= 0)
         End Sub
 
-        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), exitKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax)
-            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ExitStatementSyntax(kind, errors, annotations, exitKeyword, blockKeyword), Nothing, 0)
+        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), exitKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax, controlVariable As ExpressionSyntax)
+            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ExitStatementSyntax(kind, errors, annotations, exitKeyword, blockKeyword, if(controlVariable IsNot Nothing , DirectCast(controlVariable.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ExpressionSyntax), Nothing) ), Nothing, 0)
         End Sub
 
         ''' <summary>
@@ -13354,7 +13355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' value.
         ''' </summary>
         Public Shadows Function WithExitKeyword(exitKeyword as SyntaxToken) As ExitStatementSyntax
-            return Update(Me.Kind, exitKeyword, Me.BlockKeyword)
+            return Update(Me.Kind, exitKeyword, Me.BlockKeyword, Me.ControlVariable)
         End Function
 
         ''' <summary>
@@ -13372,11 +13373,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' value.
         ''' </summary>
         Public Shadows Function WithBlockKeyword(blockKeyword as SyntaxToken) As ExitStatementSyntax
-            return Update(Me.Kind, Me.ExitKeyword, blockKeyword)
+            return Update(Me.Kind, Me.ExitKeyword, blockKeyword, Me.ControlVariable)
+        End Function
+
+        ''' <remarks>
+        ''' This child is optional. If it is not present, then Nothing is returned.
+        ''' </remarks>
+        Public  ReadOnly Property ControlVariable As ExpressionSyntax
+            Get
+                Return GetRed(_controlVariable, 2)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns a copy of this with the ControlVariable property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Shadows Function WithControlVariable(controlVariable as ExpressionSyntax) As ExitStatementSyntax
+            return Update(Me.Kind, Me.ExitKeyword, Me.BlockKeyword, controlVariable)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
             Select case i
+                Case 2
+                    Return Me._controlVariable
                 Case Else
                      Return Nothing
             End Select
@@ -13384,6 +13405,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetNodeSlot(i as Integer) as SyntaxNode
             Select case i
+                Case 2
+                    Return Me.ControlVariable
                 Case Else
                      Return Nothing
             End Select
@@ -13411,9 +13434,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' <param name="blockKeyword">
         ''' The value for the BlockKeyword property.
         ''' </param>
-        Public Function Update(kind As SyntaxKind, exitKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ExitStatementSyntax
-            If kind <> Me.Kind OrElse exitKeyword <> Me.ExitKeyword OrElse blockKeyword <> Me.BlockKeyword Then
-                Dim newNode = SyntaxFactory.ExitStatement(kind, exitKeyword, blockKeyword)
+        ''' <param name="controlVariable">
+        ''' The value for the ControlVariable property.
+        ''' </param>
+        Public Function Update(kind As SyntaxKind, exitKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ExitStatementSyntax
+            If kind <> Me.Kind OrElse exitKeyword <> Me.ExitKeyword OrElse blockKeyword <> Me.BlockKeyword OrElse controlVariable IsNot Me.ControlVariable Then
+                Dim newNode = SyntaxFactory.ExitStatement(kind, exitKeyword, blockKeyword, controlVariable)
                 Dim annotations = Me.GetAnnotations()
                 If annotations IsNot Nothing AndAlso annotations.Length > 0
                     return newNode.WithAnnotations(annotations)
@@ -13432,6 +13458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Public NotInheritable Class ContinueStatementSyntax
         Inherits ExecutableStatementSyntax
 
+        Friend _controlVariable as ExpressionSyntax
 
         Friend Sub New(ByVal green As GreenNode, ByVal parent as SyntaxNode, ByVal startLocation As Integer)
             MyBase.New(green, parent, startLocation)
@@ -13439,8 +13466,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Debug.Assert(startLocation >= 0)
         End Sub
 
-        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), continueKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax)
-            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ContinueStatementSyntax(kind, errors, annotations, continueKeyword, blockKeyword), Nothing, 0)
+        Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), continueKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax, controlVariable As ExpressionSyntax)
+            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ContinueStatementSyntax(kind, errors, annotations, continueKeyword, blockKeyword, if(controlVariable IsNot Nothing , DirectCast(controlVariable.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ExpressionSyntax), Nothing) ), Nothing, 0)
         End Sub
 
         ''' <summary>
@@ -13458,7 +13485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' the current value.
         ''' </summary>
         Public Shadows Function WithContinueKeyword(continueKeyword as SyntaxToken) As ContinueStatementSyntax
-            return Update(Me.Kind, continueKeyword, Me.BlockKeyword)
+            return Update(Me.Kind, continueKeyword, Me.BlockKeyword, Me.ControlVariable)
         End Function
 
         ''' <summary>
@@ -13477,11 +13504,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' value.
         ''' </summary>
         Public Shadows Function WithBlockKeyword(blockKeyword as SyntaxToken) As ContinueStatementSyntax
-            return Update(Me.Kind, Me.ContinueKeyword, blockKeyword)
+            return Update(Me.Kind, Me.ContinueKeyword, blockKeyword, Me.ControlVariable)
+        End Function
+
+        ''' <remarks>
+        ''' This child is optional. If it is not present, then Nothing is returned.
+        ''' </remarks>
+        Public  ReadOnly Property ControlVariable As ExpressionSyntax
+            Get
+                Return GetRed(_controlVariable, 2)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Returns a copy of this with the ControlVariable property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Shadows Function WithControlVariable(controlVariable as ExpressionSyntax) As ContinueStatementSyntax
+            return Update(Me.Kind, Me.ContinueKeyword, Me.BlockKeyword, controlVariable)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
             Select case i
+                Case 2
+                    Return Me._controlVariable
                 Case Else
                      Return Nothing
             End Select
@@ -13489,6 +13536,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetNodeSlot(i as Integer) as SyntaxNode
             Select case i
+                Case 2
+                    Return Me.ControlVariable
                 Case Else
                      Return Nothing
             End Select
@@ -13516,9 +13565,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         ''' <param name="blockKeyword">
         ''' The value for the BlockKeyword property.
         ''' </param>
-        Public Function Update(kind As SyntaxKind, continueKeyword As SyntaxToken, blockKeyword As SyntaxToken) As ContinueStatementSyntax
-            If kind <> Me.Kind OrElse continueKeyword <> Me.ContinueKeyword OrElse blockKeyword <> Me.BlockKeyword Then
-                Dim newNode = SyntaxFactory.ContinueStatement(kind, continueKeyword, blockKeyword)
+        ''' <param name="controlVariable">
+        ''' The value for the ControlVariable property.
+        ''' </param>
+        Public Function Update(kind As SyntaxKind, continueKeyword As SyntaxToken, blockKeyword As SyntaxToken, controlVariable As ExpressionSyntax) As ContinueStatementSyntax
+            If kind <> Me.Kind OrElse continueKeyword <> Me.ContinueKeyword OrElse blockKeyword <> Me.BlockKeyword OrElse controlVariable IsNot Me.ControlVariable Then
+                Dim newNode = SyntaxFactory.ContinueStatement(kind, continueKeyword, blockKeyword, controlVariable)
                 Dim annotations = Me.GetAnnotations()
                 If annotations IsNot Nothing AndAlso annotations.Length > 0
                     return newNode.WithAnnotations(annotations)

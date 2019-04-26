@@ -27,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim kind As SyntaxKind
             Dim blockKeyword As KeywordSyntax = Nothing
+            Dim controlVariable As ExpressionSyntax = Nothing
 
             Select Case (CurrentToken.Kind)
 
@@ -39,7 +40,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     kind = SyntaxKind.ContinueForStatement
                     blockKeyword = DirectCast(CurrentToken, KeywordSyntax)
                     GetNextToken()
-
+                    controlVariable = ParseIdentifierNameAllowingKeyword()
+                    controlVariable = CheckFeatureAvailability(Feature.ContinueExitWithIdentifier, controlVariable)
                 Case SyntaxKind.WhileKeyword
                     kind = SyntaxKind.ContinueWhileStatement
                     blockKeyword = DirectCast(CurrentToken, KeywordSyntax)
@@ -85,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     blockKeyword = ReportSyntaxError(blockKeyword, ERRID.ERR_ExpectedContinueKind)
             End Select
 
-            Dim statement = SyntaxFactory.ContinueStatement(kind, continueKeyword, blockKeyword)
+            Dim statement = SyntaxFactory.ContinueStatement(kind, continueKeyword, blockKeyword, controlVariable)
 
             Return statement
         End Function
@@ -99,6 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim statement As StatementSyntax = Nothing
             Dim kind As SyntaxKind
             Dim blockKeyword As KeywordSyntax = Nothing
+            Dim controlVariable As ExpressionSyntax = Nothing
 
             Select Case (CurrentToken.Kind)
 
@@ -111,6 +114,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     kind = SyntaxKind.ExitForStatement
                     blockKeyword = DirectCast(CurrentToken, KeywordSyntax)
                     GetNextToken()
+                    controlVariable = ParseIdentifierNameAllowingKeyword()
+                    controlVariable = CheckFeatureAvailability(Feature.ContinueExitWithIdentifier, controlVariable)
 
                 Case SyntaxKind.WhileKeyword
                     kind = SyntaxKind.ExitWhileStatement
@@ -231,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     blockKeyword = ReportSyntaxError(blockKeyword, ERRID.ERR_ExpectedExitKind)
             End Select
 
-            statement = SyntaxFactory.ExitStatement(kind, exitKeyword, blockKeyword)
+            statement = SyntaxFactory.ExitStatement(kind, exitKeyword, blockKeyword, controlVariable)
 
             Return statement
 

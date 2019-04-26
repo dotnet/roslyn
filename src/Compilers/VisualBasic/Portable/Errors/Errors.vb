@@ -2024,5 +2024,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_InterpolatedStrings
         FEATURE_UnconstrainedTypeParameterInConditional
         FEATURE_CommentsAfterLineContinuation
+        FEATURE_ContinueExitWithIdentifier
     End Enum
 End Namespace

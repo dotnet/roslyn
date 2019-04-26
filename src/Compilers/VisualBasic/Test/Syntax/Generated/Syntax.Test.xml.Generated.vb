@@ -485,51 +485,51 @@ Partial Public Class GeneratedTests
         End Function
 
         Private Shared Function GenerateGreenExitDoStatement() As InternalSyntax.ExitStatementSyntax
-            return InternalSyntax.SyntaxFactory.ExitDoStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.DoKeyword, String.Empty, Nothing, Nothing))
+            return InternalSyntax.SyntaxFactory.ExitDoStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.DoKeyword, String.Empty, Nothing, Nothing), Nothing)
         End Function
 
         Private Shared Function GenerateGreenExitForStatement() As InternalSyntax.ExitStatementSyntax
-            return InternalSyntax.SyntaxFactory.ExitForStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.ForKeyword, String.Empty, Nothing, Nothing))
+            return InternalSyntax.SyntaxFactory.ExitForStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.ForKeyword, String.Empty, Nothing, Nothing), Nothing)
         End Function
 
         Private Shared Function GenerateGreenExitSubStatement() As InternalSyntax.ExitStatementSyntax
-            return InternalSyntax.SyntaxFactory.ExitSubStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.SubKeyword, String.Empty, Nothing, Nothing))
+            return InternalSyntax.SyntaxFactory.ExitSubStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.SubKeyword, String.Empty, Nothing, Nothing), Nothing)
         End Function
 
         Private Shared Function GenerateGreenExitFunctionStatement() As InternalSyntax.ExitStatementSyntax
-            return InternalSyntax.SyntaxFactory.ExitFunctionStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.FunctionKeyword, String.Empty, Nothing, Nothing))
+            return InternalSyntax.SyntaxFactory.ExitFunctionStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.FunctionKeyword, String.Empty, Nothing, Nothing), Nothing)
         End Function
 
         Private Shared Function GenerateGreenExitOperatorStatement() As InternalSyntax.ExitStatementSyntax
-            return InternalSyntax.SyntaxFactory.ExitOperatorStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.OperatorKeyword, String.Empty, Nothing, Nothing))
+            return InternalSyntax.SyntaxFactory.ExitOperatorStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.OperatorKeyword, String.Empty, Nothing, Nothing), Nothing)
         End Function
 
         Private Shared Function GenerateGreenExitPropertyStatement() As InternalSyntax.ExitStatementSyntax
-            return InternalSyntax.SyntaxFactory.ExitPropertyStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.PropertyKeyword, String.Empty, Nothing, Nothing))
+            return InternalSyntax.SyntaxFactory.ExitPropertyStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.PropertyKeyword, String.Empty, Nothing, Nothing), Nothing)
         End Function
 
         Private Shared Function GenerateGreenExitTryStatement() As InternalSyntax.ExitStatementSyntax
-            return InternalSyntax.SyntaxFactory.ExitTryStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.TryKeyword, String.Empty, Nothing, Nothing))
+            return InternalSyntax.SyntaxFactory.ExitTryStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.TryKeyword, String.Empty, Nothing, Nothing), Nothing)
         End Function
 
         Private Shared Function GenerateGreenExitSelectStatement() As InternalSyntax.ExitStatementSyntax
-            return InternalSyntax.SyntaxFactory.ExitSelectStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.SelectKeyword, String.Empty, Nothing, Nothing))
+            return InternalSyntax.SyntaxFactory.ExitSelectStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.SelectKeyword, String.Empty, Nothing, Nothing), Nothing)
         End Function
 
         Private Shared Function GenerateGreenExitWhileStatement() As InternalSyntax.ExitStatementSyntax
-            return InternalSyntax.SyntaxFactory.ExitWhileStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.WhileKeyword, String.Empty, Nothing, Nothing))
+            return InternalSyntax.SyntaxFactory.ExitWhileStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ExitKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.WhileKeyword, String.Empty, Nothing, Nothing), Nothing)
         End Function
 
         Private Shared Function GenerateGreenContinueWhileStatement() As InternalSyntax.ContinueStatementSyntax
-            return InternalSyntax.SyntaxFactory.ContinueWhileStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ContinueKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.WhileKeyword, String.Empty, Nothing, Nothing))
+            return InternalSyntax.SyntaxFactory.ContinueWhileStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ContinueKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.WhileKeyword, String.Empty, Nothing, Nothing), Nothing)
         End Function
 
         Private Shared Function GenerateGreenContinueDoStatement() As InternalSyntax.ContinueStatementSyntax
-            return InternalSyntax.SyntaxFactory.ContinueDoStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ContinueKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.DoKeyword, String.Empty, Nothing, Nothing))
+            return InternalSyntax.SyntaxFactory.ContinueDoStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ContinueKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.DoKeyword, String.Empty, Nothing, Nothing), Nothing)
         End Function
 
         Private Shared Function GenerateGreenContinueForStatement() As InternalSyntax.ContinueStatementSyntax
-            return InternalSyntax.SyntaxFactory.ContinueForStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ContinueKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.ForKeyword, String.Empty, Nothing, Nothing))
+            return InternalSyntax.SyntaxFactory.ContinueForStatement(new InternalSyntax.KeywordSyntax(SyntaxKind.ContinueKeyword, String.Empty, Nothing, Nothing), new InternalSyntax.KeywordSyntax(SyntaxKind.ForKeyword, String.Empty, Nothing, Nothing), Nothing)
         End Function
 
         Private Shared Function GenerateGreenReturnStatement() As InternalSyntax.ReturnStatementSyntax
@@ -11960,7 +11960,7 @@ Partial Public Class GeneratedTests
         Private Shared Function GenerateRedExitDoStatement() As ExitStatementSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.ExitDoStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword))
+            SyntaxFactory.ExitDoStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -11968,7 +11968,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitDoStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitDoStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -11976,20 +11976,20 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitDoStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitDoStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.ExitDoStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword))
+            return SyntaxFactory.ExitDoStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword), Nothing)
         End Function
 
         Private Shared Function GenerateRedExitForStatement() As ExitStatementSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.ExitForStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword))
+            SyntaxFactory.ExitForStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -11997,7 +11997,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitForStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitForStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12005,20 +12005,20 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitForStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitForStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.ExitForStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword))
+            return SyntaxFactory.ExitForStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword), Nothing)
         End Function
 
         Private Shared Function GenerateRedExitSubStatement() As ExitStatementSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.ExitSubStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.SubKeyword))
+            SyntaxFactory.ExitSubStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.SubKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12026,7 +12026,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitSubStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitSubStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12034,20 +12034,20 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitSubStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitSubStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.ExitSubStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.SubKeyword))
+            return SyntaxFactory.ExitSubStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.SubKeyword), Nothing)
         End Function
 
         Private Shared Function GenerateRedExitFunctionStatement() As ExitStatementSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.ExitFunctionStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.FunctionKeyword))
+            SyntaxFactory.ExitFunctionStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.FunctionKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12055,7 +12055,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitFunctionStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitFunctionStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12063,20 +12063,20 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitFunctionStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitFunctionStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.ExitFunctionStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.FunctionKeyword))
+            return SyntaxFactory.ExitFunctionStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.FunctionKeyword), Nothing)
         End Function
 
         Private Shared Function GenerateRedExitOperatorStatement() As ExitStatementSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.ExitOperatorStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.OperatorKeyword))
+            SyntaxFactory.ExitOperatorStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.OperatorKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12084,7 +12084,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitOperatorStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitOperatorStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12092,20 +12092,20 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitOperatorStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitOperatorStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.ExitOperatorStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.OperatorKeyword))
+            return SyntaxFactory.ExitOperatorStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.OperatorKeyword), Nothing)
         End Function
 
         Private Shared Function GenerateRedExitPropertyStatement() As ExitStatementSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.ExitPropertyStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.PropertyKeyword))
+            SyntaxFactory.ExitPropertyStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.PropertyKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12113,7 +12113,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitPropertyStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitPropertyStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12121,20 +12121,20 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitPropertyStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitPropertyStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.ExitPropertyStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.PropertyKeyword))
+            return SyntaxFactory.ExitPropertyStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.PropertyKeyword), Nothing)
         End Function
 
         Private Shared Function GenerateRedExitTryStatement() As ExitStatementSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.ExitTryStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.TryKeyword))
+            SyntaxFactory.ExitTryStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.TryKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12142,7 +12142,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitTryStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitTryStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12150,20 +12150,20 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitTryStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitTryStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.ExitTryStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.TryKeyword))
+            return SyntaxFactory.ExitTryStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.TryKeyword), Nothing)
         End Function
 
         Private Shared Function GenerateRedExitSelectStatement() As ExitStatementSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.ExitSelectStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.SelectKeyword))
+            SyntaxFactory.ExitSelectStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.SelectKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12171,7 +12171,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitSelectStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitSelectStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12179,20 +12179,20 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitSelectStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitSelectStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.ExitSelectStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.SelectKeyword))
+            return SyntaxFactory.ExitSelectStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.SelectKeyword), Nothing)
         End Function
 
         Private Shared Function GenerateRedExitWhileStatement() As ExitStatementSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.ExitWhileStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword))
+            SyntaxFactory.ExitWhileStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12200,7 +12200,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitWhileStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitWhileStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12208,20 +12208,20 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ExitWhileStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ExitWhileStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.ExitWhileStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword))
+            return SyntaxFactory.ExitWhileStatement(SyntaxFactory.Token(SyntaxKind.ExitKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword), Nothing)
         End Function
 
         Private Shared Function GenerateRedContinueWhileStatement() As ContinueStatementSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.ContinueWhileStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword))
+            SyntaxFactory.ContinueWhileStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12229,7 +12229,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ContinueWhileStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ContinueWhileStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12237,20 +12237,20 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ContinueWhileStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ContinueWhileStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.ContinueWhileStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword))
+            return SyntaxFactory.ContinueWhileStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.WhileKeyword), Nothing)
         End Function
 
         Private Shared Function GenerateRedContinueDoStatement() As ContinueStatementSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.ContinueDoStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword))
+            SyntaxFactory.ContinueDoStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12258,7 +12258,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ContinueDoStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ContinueDoStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12266,20 +12266,20 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ContinueDoStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ContinueDoStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.ContinueDoStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword))
+            return SyntaxFactory.ContinueDoStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.DoKeyword), Nothing)
         End Function
 
         Private Shared Function GenerateRedContinueForStatement() As ContinueStatementSyntax
             Dim exceptionTest as boolean = false
             Try
-            SyntaxFactory.ContinueForStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword))
+            SyntaxFactory.ContinueForStatement(SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12287,7 +12287,7 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ContinueForStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ContinueForStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
@@ -12295,14 +12295,14 @@ Partial Public Class GeneratedTests
             exceptionTest = false
 
             Try
-            SyntaxFactory.ContinueForStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword))
+            SyntaxFactory.ContinueForStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), Nothing)
             catch e as ArgumentException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 
-            return SyntaxFactory.ContinueForStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword))
+            return SyntaxFactory.ContinueForStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.ForKeyword), Nothing)
         End Function
 
         Private Shared Function GenerateRedReturnStatement() As ReturnStatementSyntax
@@ -19501,7 +19501,7 @@ Partial Public Class GeneratedTests
             dim objectUnderTest = GenerateRedExitDoStatement()
             Assert.NotNull(objectUnderTest.exitKeyword)
             Assert.NotNull(objectUnderTest.blockKeyword)
-            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword)
+            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword).WithControlVariable(objectUnderTest.ControlVariable)
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 
@@ -19510,7 +19510,7 @@ Partial Public Class GeneratedTests
             dim objectUnderTest = GenerateRedExitForStatement()
             Assert.NotNull(objectUnderTest.exitKeyword)
             Assert.NotNull(objectUnderTest.blockKeyword)
-            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword)
+            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword).WithControlVariable(objectUnderTest.ControlVariable)
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 
@@ -19519,7 +19519,7 @@ Partial Public Class GeneratedTests
             dim objectUnderTest = GenerateRedExitSubStatement()
             Assert.NotNull(objectUnderTest.exitKeyword)
             Assert.NotNull(objectUnderTest.blockKeyword)
-            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword)
+            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword).WithControlVariable(objectUnderTest.ControlVariable)
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 
@@ -19528,7 +19528,7 @@ Partial Public Class GeneratedTests
             dim objectUnderTest = GenerateRedExitFunctionStatement()
             Assert.NotNull(objectUnderTest.exitKeyword)
             Assert.NotNull(objectUnderTest.blockKeyword)
-            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword)
+            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword).WithControlVariable(objectUnderTest.ControlVariable)
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 
@@ -19537,7 +19537,7 @@ Partial Public Class GeneratedTests
             dim objectUnderTest = GenerateRedExitOperatorStatement()
             Assert.NotNull(objectUnderTest.exitKeyword)
             Assert.NotNull(objectUnderTest.blockKeyword)
-            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword)
+            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword).WithControlVariable(objectUnderTest.ControlVariable)
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 
@@ -19546,7 +19546,7 @@ Partial Public Class GeneratedTests
             dim objectUnderTest = GenerateRedExitPropertyStatement()
             Assert.NotNull(objectUnderTest.exitKeyword)
             Assert.NotNull(objectUnderTest.blockKeyword)
-            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword)
+            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword).WithControlVariable(objectUnderTest.ControlVariable)
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 
@@ -19555,7 +19555,7 @@ Partial Public Class GeneratedTests
             dim objectUnderTest = GenerateRedExitTryStatement()
             Assert.NotNull(objectUnderTest.exitKeyword)
             Assert.NotNull(objectUnderTest.blockKeyword)
-            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword)
+            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword).WithControlVariable(objectUnderTest.ControlVariable)
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 
@@ -19564,7 +19564,7 @@ Partial Public Class GeneratedTests
             dim objectUnderTest = GenerateRedExitSelectStatement()
             Assert.NotNull(objectUnderTest.exitKeyword)
             Assert.NotNull(objectUnderTest.blockKeyword)
-            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword)
+            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword).WithControlVariable(objectUnderTest.ControlVariable)
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 
@@ -19573,7 +19573,7 @@ Partial Public Class GeneratedTests
             dim objectUnderTest = GenerateRedExitWhileStatement()
             Assert.NotNull(objectUnderTest.exitKeyword)
             Assert.NotNull(objectUnderTest.blockKeyword)
-            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword)
+            Dim withObj = objectUnderTest.WithExitKeyword(objectUnderTest.ExitKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword).WithControlVariable(objectUnderTest.ControlVariable)
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 
@@ -19582,7 +19582,7 @@ Partial Public Class GeneratedTests
             dim objectUnderTest = GenerateRedContinueWhileStatement()
             Assert.NotNull(objectUnderTest.continueKeyword)
             Assert.NotNull(objectUnderTest.blockKeyword)
-            Dim withObj = objectUnderTest.WithContinueKeyword(objectUnderTest.ContinueKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword)
+            Dim withObj = objectUnderTest.WithContinueKeyword(objectUnderTest.ContinueKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword).WithControlVariable(objectUnderTest.ControlVariable)
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 
@@ -19591,7 +19591,7 @@ Partial Public Class GeneratedTests
             dim objectUnderTest = GenerateRedContinueDoStatement()
             Assert.NotNull(objectUnderTest.continueKeyword)
             Assert.NotNull(objectUnderTest.blockKeyword)
-            Dim withObj = objectUnderTest.WithContinueKeyword(objectUnderTest.ContinueKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword)
+            Dim withObj = objectUnderTest.WithContinueKeyword(objectUnderTest.ContinueKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword).WithControlVariable(objectUnderTest.ControlVariable)
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 
@@ -19600,7 +19600,7 @@ Partial Public Class GeneratedTests
             dim objectUnderTest = GenerateRedContinueForStatement()
             Assert.NotNull(objectUnderTest.continueKeyword)
             Assert.NotNull(objectUnderTest.blockKeyword)
-            Dim withObj = objectUnderTest.WithContinueKeyword(objectUnderTest.ContinueKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword)
+            Dim withObj = objectUnderTest.WithContinueKeyword(objectUnderTest.ContinueKeyword).WithBlockKeyword(objectUnderTest.BlockKeyword).WithControlVariable(objectUnderTest.ControlVariable)
             Assert.Equal(withobj, objectUnderTest)
         End Sub
 

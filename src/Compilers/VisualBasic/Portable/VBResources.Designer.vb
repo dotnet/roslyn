@@ -12072,6 +12072,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to `Continue For` and `Exit For` with loop identifier..
+        '''</summary>
+        Friend ReadOnly Property FEATURE_ContinueExitWithIdentifier() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_ContinueExitWithIdentifier", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to digit separators.
         '''</summary>
         Friend ReadOnly Property FEATURE_DigitSeparators() As String

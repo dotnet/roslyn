@@ -192,6 +192,11 @@ Public Class ParseStatements
                         for i = 0 to 10 
                            continue for
                         next
+                        for k = 0 To 2
+                            for j = 0 To 10
+                               Continue For k
+                            Next
+                        Next
                     end sub
                End Module
             ]]>)
