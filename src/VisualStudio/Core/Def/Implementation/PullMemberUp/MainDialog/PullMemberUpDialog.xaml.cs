@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.WarningDialog;
 using Microsoft.VisualStudio.PlatformUI;
@@ -32,6 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         {
             ViewModel = pullMemberUpViewModel;
             DataContext = pullMemberUpViewModel;
+
+            // Set focus to first tab control when the window is loaded
+            Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+
             InitializeComponent();
         }
 
