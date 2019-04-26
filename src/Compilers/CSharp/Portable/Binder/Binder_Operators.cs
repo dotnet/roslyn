@@ -3264,10 +3264,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operand.IsLiteralDefault())
             {
                 var defaultLiteral = (BoundDefaultExpression)operand;
+                Debug.Assert((object)defaultLiteral.TargetType == null);
                 Debug.Assert((object)defaultLiteral.Type == null);
                 Debug.Assert((object)defaultLiteral.ConstantValueOpt == null);
 
-                operand = new BoundDefaultExpression(defaultLiteral.Syntax, constantValueOpt: ConstantValue.Null,
+                operand = new BoundDefaultExpression(defaultLiteral.Syntax, targetType: null, constantValueOpt: ConstantValue.Null,
                     type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
             }
 

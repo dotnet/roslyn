@@ -36,6 +36,10 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             if (!pastedTextSpan.IsEmpty)
             {
                 var pasteTrackingService = workspace.ExportProvider.GetExportedValue<PasteTrackingService>();
+
+                // This tests the paste tracking service's resiliancy to failing when multiple pasted spans are
+                // registered consecutively and that the last registered span wins.
+                pasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, default);
                 pasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, pastedTextSpan);
             }
 

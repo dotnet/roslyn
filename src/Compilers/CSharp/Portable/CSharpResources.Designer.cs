@@ -16243,6 +16243,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Async-iterator &apos;{0}&apos; has one or more parameters of type &apos;CancellationToken&apos; but none of them is decorated with the &apos;EnumeratorCancellation&apos; attribute, so the cancellation token parameter from the generated &apos;IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator&apos; will be unconsumed.
+        /// </summary>
+        internal static string WRN_UndecoratedCancellationTokenParameter {
+            get {
+                return ResourceManager.GetString("WRN_UndecoratedCancellationTokenParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async-iterator member has one or more parameters of type &apos;CancellationToken&apos; but none of them is decorated with the &apos;EnumeratorCancellation&apos; attribute, so the cancellation token parameter from the generated &apos;IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator&apos; will be unconsumed.
+        /// </summary>
+        internal static string WRN_UndecoratedCancellationTokenParameter_Title {
+            get {
+                return ResourceManager.GetString("WRN_UndecoratedCancellationTokenParameter_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Assuming assembly reference &apos;{0}&apos; used by &apos;{1}&apos; matches identity &apos;{2}&apos; of &apos;{3}&apos;, you may need to supply runtime policy.
         /// </summary>
         internal static string WRN_UnifyReferenceBldRev {

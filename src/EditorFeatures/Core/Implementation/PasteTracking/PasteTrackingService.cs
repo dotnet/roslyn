@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             // Any change to the TextBuffer will remove the pasted text span.
             // This includes consecutive paste operations which will fire the
             // Changed event prior to the handler registering a new text span.
-            textBuffer.Properties.AddProperty(_pastedTextSpanKey, textSpan);
+            textBuffer.Properties[_pastedTextSpanKey] = textSpan;
             textBuffer.Changed += RemovePastedTextSpan;
 
             return;

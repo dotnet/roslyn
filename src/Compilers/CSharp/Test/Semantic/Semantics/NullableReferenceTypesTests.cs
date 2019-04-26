@@ -27086,10 +27086,10 @@ class CL0<T>
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (6,24): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (6,24): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         a1 = new T[] { default }; // 1
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(6, 24),
-                // (7,24): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (7,24): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         a1 = new T[] { default(T) }; // 2
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(7, 24),
                 // (12,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
@@ -33487,15 +33487,12 @@ class C
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,17): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (5,17): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         var s = default(T);
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(5, 17),
                 // (6,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9),
-                // (7,17): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
-                //         var t = default(T?);
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T?)").WithArguments("T").WithLocation(7, 17),
                 // (7,25): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         var t = default(T?);
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(7, 25),
@@ -41944,13 +41941,7 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(8, 39),
                 // (8,39): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
                 //         _ = new C<int>() { X = y, Y = x };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object>", "C<object?>").WithLocation(8, 39),
-                // (9,32): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
-                //         _ = new C<int>() { X = y!, Y = x! };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "C<object>").WithLocation(9, 32),
-                // (9,40): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type 'C<object?>'.
-                //         _ = new C<int>() { X = y!, Y = x! };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object>", "C<object?>").WithLocation(9, 40)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<object>", "C<object?>").WithLocation(8, 39)
                 );
         }
 
@@ -42956,15 +42947,9 @@ class C
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         t1.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(7, 9),
-                // (12,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T2' is null
-                //         default(T2).ToString(); // 3
-                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T2).ToString").WithArguments("T2").WithLocation(12, 9),
                 // (12,9): warning CS8602: Dereference of a possibly null reference.
                 //         default(T2).ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(12, 9),
-                // (13,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T2' is null
-                //         default(T2)!.ToString(); // 4
-                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T2)!.ToString").WithArguments("T2").WithLocation(13, 9)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(12, 9)
                 );
         }
 
@@ -43843,10 +43828,10 @@ class P
                 // (33,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         F6<object, object>(default);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(33, 28),
-                // (39,15): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (39,15): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         F0<T>(default); // 0
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(39, 15),
-                // (41,18): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (41,18): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         F6<T, T>(default); // 0
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(41, 18),
                 // (46,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
@@ -43858,13 +43843,13 @@ class P
                 // (50,18): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         F6<T, T>(default); // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(50, 18),
-                // (66,15): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (66,15): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         F0<T>(default); // 3
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(66, 15),
-                // (69,15): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (69,15): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         F3<T>(default); // 3
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(69, 15),
-                // (72,18): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (72,18): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         F6<T, T>(default); // 3
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(72, 18),
                 // (78,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
@@ -43882,19 +43867,19 @@ class P
                 // (86,18): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         F6<T, T>(default); // 4
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(86, 18),
-                // (91,15): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (91,15): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         F0<T>(default); // 5
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(91, 15),
-                // (93,15): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (93,15): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         F5<T>(default); // 5
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(93, 15),
-                // (95,18): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (95,18): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         F6<T, T>(default); // 5
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(95, 18),
-                // (100,15): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (100,15): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         F0<T>(default); // 6
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(100, 15),
-                // (102,18): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (102,18): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         F6<T, U>(default); // 6
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(102, 18)
                 );
@@ -56263,10 +56248,10 @@ class B
                 // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         t2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2").WithLocation(15, 9),
-                // (16,14): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (16,14): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         t2 = default; // 3
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(16, 14),
-                // (21,14): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (21,14): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         t3 = default; // 6
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(21, 14),
                 // (25,9): warning CS8602: Dereference of a possibly null reference.
@@ -56275,22 +56260,19 @@ class B
                 // (25,9): warning CS8602: Dereference of a possibly null reference.
                 //         t4.P.ToString(); // 7 and 8
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t4.P").WithLocation(25, 9),
-                // (26,16): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (26,16): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         t4.P = default; // 9
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(26, 16),
-                // (27,14): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (27,14): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         t4 = default; // 10
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(27, 14),
                 // (31,9): warning CS8602: Dereference of a possibly null reference.
                 //         t5.P.ToString(); // 11 and 12
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t5.P").WithLocation(31, 9),
-                // (32,16): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
-                //         t5.P = default;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(32, 16),
-                // (33,14): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (33,14): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         t5 = default; // 15
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(33, 14)
-            );
+                );
         }
 
         [Fact]
@@ -64889,7 +64871,7 @@ class B
         }
 
         [Fact]
-        [WorkItem(30214, "https://github.com/dotnet/roslyn/issues/30214")]
+        [WorkItem(34843, "https://github.com/dotnet/roslyn/issues/34843")]
         public void ConstraintsChecks_27()
         {
             var source =
@@ -66154,9 +66136,6 @@ class C<T>
                 // (7,24): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         var u = typeof(U?);
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?").WithLocation(7, 24),
-                // (8,21): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
-                //         object? o = default(T?);
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T?)").WithArguments("T").WithLocation(8, 21),
                 // (8,29): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         object? o = default(T?);
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(8, 29),
@@ -68745,7 +68724,7 @@ class A<T1, T2> where T1 : class where T2 : class
 " + NonNullTypesOn() + @"
     void M2()
     {
-        F = null; // 2
+        F = null;
     }
 
 " + NonNullTypesOn() + @"
@@ -68753,7 +68732,7 @@ class A<T1, T2> where T1 : class where T2 : class
     {
         void M3()
         {
-            F = null; // 3
+            F = null; // 2
         }
     }
 
@@ -68762,7 +68741,7 @@ class A<T1, T2> where T1 : class where T2 : class
     {
         void M3()
         {
-            F = null; // 4
+            F = null; // 3
         }
     }
 
@@ -68771,7 +68750,7 @@ class A<T1, T2> where T1 : class where T2 : class
     {
         void M3()
         {
-            F = null; // 5
+            F = null; // 4
         }
     }
 }
@@ -68784,17 +68763,14 @@ class A<T1, T2> where T1 : class where T2 : class
                 // (14,17): warning CS8654: A null literal introduces a null value when 'T1' is a non-nullable reference type.
                 //             F = null; // 1
                 Diagnostic(ErrorCode.WRN_NullLiteralMayIntroduceNullT, "null").WithArguments("T1").WithLocation(14, 17),
-                // (21,13): warning CS8654: A null literal introduces a null value when 'T1' is a non-nullable reference type.
-                //         F = null; // 2
-                Diagnostic(ErrorCode.WRN_NullLiteralMayIntroduceNullT, "null").WithArguments("T1").WithLocation(21, 13),
                 // (29,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //             F = null; // 3
+                //             F = null; // 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(29, 17),
                 // (38,17): warning CS8654: A null literal introduces a null value when 'T1' is a non-nullable reference type.
-                //             F = null; // 4
+                //             F = null; // 3
                 Diagnostic(ErrorCode.WRN_NullLiteralMayIntroduceNullT, "null").WithArguments("T1").WithLocation(38, 17),
                 // (47,17): warning CS8654: A null literal introduces a null value when 'T2' is a non-nullable reference type.
-                //             F = null; // 5
+                //             F = null; // 4
                 Diagnostic(ErrorCode.WRN_NullLiteralMayIntroduceNullT, "null").WithArguments("T2").WithLocation(47, 17));
 
             var b = comp.GetTypeByMetadataName("A`2+B");
@@ -70692,7 +70668,8 @@ class B {}
         }
 
         [Fact]
-        [WorkItem(30214, "https://github.com/dotnet/roslyn/issues/30214")]
+        [WorkItem(34843, "https://github.com/dotnet/roslyn/issues/34843")]
+        [WorkItem(34844, "https://github.com/dotnet/roslyn/issues/34844")]
         public void ObliviousTypeParameter_01()
         {
             var source =
@@ -70701,10 +70678,10 @@ $@"
 #pragma warning disable {(int)ErrorCode.WRN_UnreferencedField}
 #pragma warning disable {(int)ErrorCode.WRN_UnreferencedFieldAssg}
 #pragma warning disable {(int)ErrorCode.WRN_UnreferencedVarAssg}
+#pragma warning disable {(int)ErrorCode.WRN_UnassignedInternalField}
 "
 +
 @"
-
 
 " + NonNullTypesOff() + @"
 class A<T1, T2, T3> where T2 : class where T3 : object
@@ -70717,10 +70694,10 @@ class A<T1, T2, T3> where T2 : class where T3 : object
 " + NonNullTypesOn() + @"
     void M1()
     {
-        F1 = default;
-        F2 = default;
-        F3 = default;
-        F4 = default;
+        F1.ToString();
+        F2.ToString();
+        F3.ToString();
+        F4.ToString();
     }
 
 " + NonNullTypesOn() + @"
@@ -70767,22 +70744,13 @@ class D
 ";
             var comp = CreateCompilation(new[] { source });
             comp.VerifyDiagnostics(
-                // (20,14): warning CS8652: A default expression introduces a null value when 'T1' is a non-nullable reference type.
-                //         F1 = default;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T1").WithLocation(20, 14),
-                // (21,14): warning CS8652: A default expression introduces a null value when 'T2' is a non-nullable reference type.
-                //         F2 = default;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T2").WithLocation(21, 14),
-                // (22,14): warning CS8652: A default expression introduces a null value when 'T3' is a non-nullable reference type.
-                //         F3 = default;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T3").WithLocation(22, 14),
-                // (29,17): warning CS8652: A default expression introduces a null value when 'T1' is a non-nullable reference type.
+                // (29,17): warning CS8653: A default expression introduces a null value when 'T1' is a non-nullable reference type.
                 //         T1 x2 = default;
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T1").WithLocation(29, 17),
-                // (30,17): warning CS8652: A default expression introduces a null value when 'T2' is a non-nullable reference type.
+                // (30,17): warning CS8653: A default expression introduces a null value when 'T2' is a non-nullable reference type.
                 //         T2 y2 = default;
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T2").WithLocation(30, 17),
-                // (31,17): warning CS8652: A default expression introduces a null value when 'T3' is a non-nullable reference type.
+                // (31,17): warning CS8653: A default expression introduces a null value when 'T3' is a non-nullable reference type.
                 //         T3 z2 = default;
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T3").WithLocation(31, 17)
                 );
@@ -70831,6 +70799,64 @@ class C {}
                 // (22,16): warning CS8631: The type 'C?' cannot be used as type parameter 'T2' in the generic type or method 'A<C>.B<T2>'. Nullability of type argument 'C?' doesn't match constraint type 'C'.
                 //         A<C>.B<C?> f1;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "C?").WithArguments("A<C>.B<T2>", "C", "T2", "C?").WithLocation(22, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34842, "https://github.com/dotnet/roslyn/issues/34842")]
+        public void ObliviousTypeParameter_03()
+        {
+            var source =
+$@"#pragma warning disable {(int)ErrorCode.WRN_UnreferencedFieldAssg}
+"
++
+@"#nullable disable
+class A<T1, T2, T3> where T2 : class where T3 : object
+{
+    T1 F1;
+    T2 F2;
+    T3 F3;
+    B F4;
+
+#nullable enable
+    void M1()
+    {
+        F1 = default;
+        F2 = default;
+        F2 = null;
+        F3 = default;
+        F4 = default;
+    }
+}
+class B { }
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        [WorkItem(34842, "https://github.com/dotnet/roslyn/issues/34842")]
+        public void ObliviousTypeParameter_04()
+        {
+            var source =
+@"#nullable disable
+class A<T1, T2, T3> where T2 : class where T3 : object
+{
+    void M1(T1 x, T2 y, T3 z, B w)
+#nullable enable
+    {
+        x = default;
+        y = default;
+        y = null;
+        z = default;
+        w = default;
+    }
+}
+class B { }
+";
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
                 );
         }
 

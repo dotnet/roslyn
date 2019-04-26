@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Formatting;
@@ -179,7 +180,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(completionItem);
             Debug.Assert(containingNamespace != null);
 
-            if (document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            if (ShouldCompleteWithFullyQualifyTypeName(document))
+            {
+                var fullyQualifiedName = $"{containingNamespace}.{completionItem.DisplayText}";
+                var change = new TextChange(completionListSpan, fullyQualifiedName);
+
+                return CompletionChange.Create(change);
+            }
+            else
             {
                 // Find context node so we can use it to decide where to insert using/imports.
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -223,14 +231,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
             }
-            else
-            {
-                // For workspace that doesn't support document change, e.g. DebuggerIntellisense
-                // we complete the type name in its fully qualified form instead.
-                var fullyQualifiedName = $"{containingNamespace}.{completionItem.DisplayText}";
-                var change = new TextChange(completionListSpan, fullyQualifiedName);
 
-                return CompletionChange.Create(change);
+            static bool ShouldCompleteWithFullyQualifyTypeName(Document document)
+            {
+                var workspace = document.Project.Solution.Workspace;
+
+                // Certain types of workspace don't support document change, e.g. DebuggerIntellisense
+                if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+                {
+                    return true;
+                }
+
+                // During an EnC session, adding import is not supported.
+                var encService = workspace.Services.GetService<IDebuggingWorkspaceService>()?.EditAndContinueServiceOpt;
+                if (encService?.EditSession != null)
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
 
