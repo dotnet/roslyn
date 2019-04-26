@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Join(ref afterSwitchState, ref this.State);
             }
 
-            if (node.DecisionDag.ReachableLabels.Contains(node.BreakLabel) || 
+            if (node.DecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
                 (node.DefaultLabel == null && node.Expression.ConstantValue == null && IsTraditionalSwitch(node)))
             {
                 Join(ref afterSwitchState, ref initialState);

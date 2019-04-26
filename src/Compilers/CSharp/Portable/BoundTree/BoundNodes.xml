@@ -591,6 +591,7 @@
   <Node Name="BoundDefaultExpression" Base="BoundExpression">
     <!-- Type is null in the case of a default literal, and non-null for default(T). -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="TargetType" Type="BoundTypeExpression" Null="allow" SkipInVisitor="true"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 

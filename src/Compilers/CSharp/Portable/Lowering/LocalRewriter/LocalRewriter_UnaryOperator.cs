@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = GetLiftedUnaryOperatorConsequence(kind, syntax, method, type, call_GetValueOrDefault);
 
             // default(R?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, type);
 
             // temp.HasValue ? 
             //          new R?(OP(temp.GetValueOrDefault())) : 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (NullableNeverHasValue(loweredOperand))
             {
-                return new BoundDefaultExpression(syntax, null, type);
+                return new BoundDefaultExpression(syntax, type);
             }
 
             // Second, another simple optimization. If we know that the operand is never null
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, userDefinedCall);
 
             // default(S?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, type);
 
             // temp.HasValue ? 
             //          new S?(op_Increment(temp.GetValueOrDefault())) : 
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // new decimal?(op_Inc(x.GetValueOrDefault()))
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, methodCall);
             // default(decimal?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, null, operand.Type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, operand.Type);
 
             // x.HasValue ? new decimal?(op_Inc(x.GetValueOrDefault())) : default(decimal?)
             return RewriteConditionalOperator(syntax, condition, consequence, alternative, ConstantValue.NotAvailable, operand.Type, isRef: false);
