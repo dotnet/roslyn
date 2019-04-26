@@ -1888,6 +1888,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The typeof operator cannot be used on a nullable reference type.
+        /// </summary>
+        internal static string ERR_BadNullableTypeof {
+            get {
+                return ResourceManager.GetString("ERR_BadNullableTypeof", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Declaration is not valid; use &apos;{0} operator &lt;dest-type&gt; (...&apos; instead.
         /// </summary>
         internal static string ERR_BadOperatorSyntax {

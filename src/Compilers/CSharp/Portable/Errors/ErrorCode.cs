@@ -1670,7 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
         WRN_ConditionalAccessMayReturnNull = 8638,
-        // Unused 8639
+        ERR_BadNullableTypeof = 8639,
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
         ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,

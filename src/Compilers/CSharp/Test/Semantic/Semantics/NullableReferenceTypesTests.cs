@@ -7370,6 +7370,9 @@ class C4 { }";
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (6,4): error CS8639: The typeof operator cannot be used on a nullable reference type
+                // [A(typeof(object?))] // 1
+                Diagnostic(ErrorCode.ERR_BadNullableTypeof, "typeof(object?)").WithLocation(6, 4),
                 // (6,17): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // [A(typeof(object?))] // 1
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(6, 17),
@@ -7378,7 +7381,10 @@ class C4 { }";
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 19));
 
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,4): error CS8639: The typeof operator cannot be used on a nullable reference type
+                // [A(typeof(object?))] // 1
+                Diagnostic(ErrorCode.ERR_BadNullableTypeof, "typeof(object?)").WithLocation(6, 4));
         }
 
         [Fact]
@@ -33363,16 +33369,19 @@ class C<T, TClass, TStruct>
     }
 }
 " }, options: WithNonNullTypesTrue());
-
-            // https://github.com/dotnet/roslyn/issues/29894: should nullable reference types be disallowed in `typeof`?
             c.VerifyDiagnostics(
+                // (9,13): error CS8639: The typeof operator cannot be used on a nullable reference type
+                //         _ = typeof(C<int, object, int>?);
+                Diagnostic(ErrorCode.ERR_BadNullableTypeof, "typeof(C<int, object, int>?)").WithLocation(9, 13),
                 // (10,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         _ = typeof(T?);
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(10, 20),
+                // (11,13): error CS8639: The typeof operator cannot be used on a nullable reference type
+                //         _ = typeof(TClass?);
+                Diagnostic(ErrorCode.ERR_BadNullableTypeof, "typeof(TClass?)").WithLocation(11, 13),
                 // (13,25): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //         _ = typeof(List<T?>);
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(13, 25)
-                );
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(13, 25));
         }
 
         [Fact]
@@ -92564,6 +92573,88 @@ class Derived : Base
             Assert.True(tuple.TupleElements[0].Type.IsReferenceType);
             Assert.Equal(NullableAnnotation.Annotated, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
             Assert.True(tuple.TupleElements[1].Type.IsNullableType());
+        }
+
+        [Fact]
+        [WorkItem(29894, "https://github.com/dotnet/roslyn/issues/29894")]
+        public void TypeOf_03()
+        {
+            var source = @"
+#nullable enable
+class K<T> { }
+class C1
+{
+    object o1 = typeof(int);
+    object o2 = typeof(string);
+    object o3 = typeof(int?);
+    object o4 = typeof(string?);    // 1
+    object o5 = typeof(K<int?>);
+    object o6 = typeof(K<string?>);
+    object o7 = typeof(K<int?>?);   // 2
+    object o8 = typeof(K<string?>?);// 3
+}
+#nullable disable
+class C2
+{
+    object o1 = typeof(int);
+    object o2 = typeof(string);
+    object o3 = typeof(int?);
+    object o4 = typeof(string?);    // 4, 5
+    object o5 = typeof(K<int?>);
+    object o6 = typeof(K<string?>); // 6
+    object o7 = typeof(K<int?>?);   // 7, 8
+    object o8 = typeof(K<string?>?);// 9, 10, 11
+}
+#nullable enable
+class C3<T, TClass, TStruct>
+    where TClass : class
+    where TStruct : struct
+{
+    object o1 = typeof(T?);       // 12
+    object o2 = typeof(TClass?);  // 13
+    object o3 = typeof(TStruct?);
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,17): error CS8639: The typeof operator cannot be used on a nullable reference type
+                //     object o4 = typeof(string?);    // 1
+                Diagnostic(ErrorCode.ERR_BadNullableTypeof, "typeof(string?)").WithLocation(9, 17),
+                // (12,17): error CS8639: The typeof operator cannot be used on a nullable reference type
+                //     object o7 = typeof(K<int?>?);   // 2
+                Diagnostic(ErrorCode.ERR_BadNullableTypeof, "typeof(K<int?>?)").WithLocation(12, 17),
+                // (13,17): error CS8639: The typeof operator cannot be used on a nullable reference type
+                //     object o8 = typeof(K<string?>?);// 3
+                Diagnostic(ErrorCode.ERR_BadNullableTypeof, "typeof(K<string?>?)").WithLocation(13, 17),
+                // (21,17): error CS8639: The typeof operator cannot be used on a nullable reference type
+                //     object o4 = typeof(string?);    // 4, 5
+                Diagnostic(ErrorCode.ERR_BadNullableTypeof, "typeof(string?)").WithLocation(21, 17),
+                // (21,30): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     object o4 = typeof(string?);    // 4, 5
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(21, 30),
+                // (23,32): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     object o6 = typeof(K<string?>); // 6
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(23, 32),
+                // (24,17): error CS8639: The typeof operator cannot be used on a nullable reference type
+                //     object o7 = typeof(K<int?>?);   // 7, 8
+                Diagnostic(ErrorCode.ERR_BadNullableTypeof, "typeof(K<int?>?)").WithLocation(24, 17),
+                // (24,31): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     object o7 = typeof(K<int?>?);   // 7, 8
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(24, 31),
+                // (25,17): error CS8639: The typeof operator cannot be used on a nullable reference type
+                //     object o8 = typeof(K<string?>?);// 9, 10, 11
+                Diagnostic(ErrorCode.ERR_BadNullableTypeof, "typeof(K<string?>?)").WithLocation(25, 17),
+                // (25,32): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     object o8 = typeof(K<string?>?);// 9, 10, 11
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(25, 32),
+                // (25,34): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     object o8 = typeof(K<string?>?);// 9, 10, 11
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(25, 34),
+                // (32,24): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     object o1 = typeof(T?);       // 12
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(32, 24),
+                // (33,17): error CS8639: The typeof operator cannot be used on a nullable reference type
+                //     object o2 = typeof(TClass?);  // 13
+                Diagnostic(ErrorCode.ERR_BadNullableTypeof, "typeof(TClass?)").WithLocation(33, 17));
         }
     }
 }

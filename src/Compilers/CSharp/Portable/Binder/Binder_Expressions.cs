@@ -1133,6 +1133,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadDynamicTypeof, node.Location);
                 hasError = true;
             }
+            else if (typeWithAnnotations.NullableAnnotation.IsAnnotated() && type.IsReferenceType)
+            {
+                // error: cannot take the `typeof` a nullable reference type.
+                diagnostics.Add(ErrorCode.ERR_BadNullableTypeof, node.Location);
+                hasError = true;
+            }
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, type.IsErrorType());
             return new BoundTypeOfOperator(node, boundType, null, this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node), hasError);

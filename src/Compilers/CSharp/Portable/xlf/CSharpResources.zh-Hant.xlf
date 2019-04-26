@@ -67,6 +67,11 @@
         <target state="translated">/nullable 的選項 '{0}' 無效; 必須為 'disable'、'enable'、'safeonly'、'warnings' 或 'safeonlywarnings'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableTypeof">
+        <source>The typeof operator cannot be used on a nullable reference type</source>
+        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">模式比對運算元無效; 需要值，但找到 '{0}'。</target>
