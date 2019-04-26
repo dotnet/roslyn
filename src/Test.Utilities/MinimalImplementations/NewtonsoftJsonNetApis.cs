@@ -159,6 +159,20 @@ namespace Newtonsoft.Json
     public class JsonConverter
     {
     }
-}";
+}
+
+public class MyISerializationBinder : ISerializationBinder
+{
+    public Type BindToType(string assemblyName, string typeName)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void BindToName(Type serializedType, out string assemblyName, out string typeName)
+    {
+        throw new NotImplementedException();
+    }
+}
+";
     }
 }

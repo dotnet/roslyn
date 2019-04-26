@@ -69,30 +69,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
                 get
                 {
-                    if (this.TrackedObjectCreations != null)
-                    {
-                        try
-                        {
-                            this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetReturnHazardousUsageEvaluator(
-                                out HazardousUsageEvaluator returnValueHazardousUsageEvaluator);
-                            Debug.Assert(returnValueHazardousUsageEvaluator != null);
-                            foreach (IObjectCreationOperation objectCreationOperation in this.TrackedObjectCreations)
-                            {
-                                this.EvaluatePotentialHazardousUsage(
-                                    objectCreationOperation.Syntax,
-                                    null,
-                                    objectCreationOperation,
-                                    (PropertySetAbstractValue abstractValue) =>
-                                        returnValueHazardousUsageEvaluator.ReturnEvaluator(abstractValue));
-                            }
-                        }
-                        finally
-                        {
-                            this.TrackedObjectCreations.Free();
-                            this.TrackedObjectCreations = null;
-                        }
-                    }
-
                     return _hazardousUsageBuilder.ToImmutable();
                 }
             }
@@ -270,6 +246,45 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 return baseValue;
             }
 
+            /// <summary>
+            /// Processes PropertySetAbstractValues at the end of the CFG.
+            /// </summary>
+            /// <param name="exitBlockOutput">Exit block output.</param>
+            /// <remarks>When analyzing field initializers, evaluate hazardous usages of instantiated objects of the tracked type.  Then can find code like:
+            /// class Class
+            /// {
+            ///     public static readonly Settings InsecureSettings = new Settings { AllowAnyoneAdminAccess = true };
+            /// }
+            /// </remarks>
+            internal void ProcessExitBlock(PropertySetBlockAnalysisResult exitBlockOutput)
+            {
+                if (this.TrackedObjectCreations != null)
+                {
+                    try
+                    {
+                        this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetReturnHazardousUsageEvaluator(
+                            out HazardousUsageEvaluator returnValueHazardousUsageEvaluator);
+                        Debug.Assert(returnValueHazardousUsageEvaluator != null);
+                        foreach (IObjectCreationOperation objectCreationOperation in this.TrackedObjectCreations)
+                        {
+                            this.EvaluatePotentialHazardousUsage(
+                                objectCreationOperation.Syntax,
+                                null,
+                                objectCreationOperation,
+                                (PropertySetAbstractValue abstractValue) =>
+                                    returnValueHazardousUsageEvaluator.ReturnEvaluator(abstractValue),
+                                (AbstractLocation abstractLocation) =>
+                                    exitBlockOutput.Data[abstractLocation] ?? PropertySetAbstractValue.Unknown);
+                        }
+                    }
+                    finally
+                    {
+                        this.TrackedObjectCreations.Free();
+                        this.TrackedObjectCreations = null;
+                    }
+                }
+            }
+
             public override PropertySetAbstractValue VisitInvocation_NonLambdaOrDelegateOrLocalFunction(IMethodSymbol method, IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments, bool invokedAsDelegate, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
@@ -326,13 +341,26 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
-            private void EvaluatePotentialHazardousUsage(SyntaxNode operationSyntax, IMethodSymbol methodSymbol, IOperation propertySetInstance, Func<PropertySetAbstractValue, HazardousUsageEvaluationResult> evaluationFunction)
+            /// <summary>
+            /// Evaluates an operation for potentially being a hazardous usage.
+            /// </summary>
+            /// <param name="operationSyntax">SyntaxNode of operation that's being evaluated.</param>
+            /// <param name="methodSymbol">Method symbol of the invocation operation that's being evaluated, or null if not an invocation operation.</param>
+            /// <param name="propertySetInstance">IOperation of the tracked type containing the properties to be evaluated.</param>
+            /// <param name="evaluationFunction">Function to evaluate a PropertySetAbstractValue to a HazardousUsageEvaluationResult.</param>
+            /// <param name="locationToAbstractValueMapping">Optional function to map AbstractLocations to PropertySetAbstractValues.  If null, uses this.CurrentAnalysisData.</param>
+            private void EvaluatePotentialHazardousUsage(SyntaxNode operationSyntax, IMethodSymbol methodSymbol, IOperation propertySetInstance, Func<PropertySetAbstractValue, HazardousUsageEvaluationResult> evaluationFunction, Func<AbstractLocation, PropertySetAbstractValue> locationToAbstractValueMapping = null)
             {
+                if (locationToAbstractValueMapping == null)
+                {
+                    locationToAbstractValueMapping = this.GetAbstractValue;
+                }
+
                 PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertySetInstance);
                 HazardousUsageEvaluationResult result = HazardousUsageEvaluationResult.Unflagged;
                 foreach (AbstractLocation location in pointsToAbstractValue.Locations)
                 {
-                    PropertySetAbstractValue locationAbstractValue = this.GetAbstractValue(location);
+                    PropertySetAbstractValue locationAbstractValue = locationToAbstractValueMapping(location);
 
                     HazardousUsageEvaluationResult evaluationResult = evaluationFunction(locationAbstractValue);
                     result = MergeHazardousUsageEvaluationResult(result, evaluationResult);

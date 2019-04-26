@@ -33,7 +33,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// A <see cref="HazardousUsageEvaluator.ReturnEvaluationCallback"/> for all properties flagged being hazardous.
         /// </summary>
         /// <param name="propertySetAbstractValue">PropertySetAbstract value.</param>
-        /// <returns>If all properties are flagged, then flagged; if all properties are unflagged, then unflagged; otherwise maybe flagged.</returns>
+        /// <returns>If all properties are flagged, then flagged; if at least one property is unflagged, then unflagged; otherwise maybe flagged.</returns>
         public static HazardousUsageEvaluationResult HazardousIfAllFlagged(PropertySetAbstractValue propertySetAbstractValue)
         {
             if (propertySetAbstractValue.KnownValuesCount == 0)
@@ -43,7 +43,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
 
             bool allFlagged = true;
-            bool allUnflagged = true;
+            bool atLeastOneUnflagged = false;
             for (int i = 0; i < propertySetAbstractValue.KnownValuesCount; i++)
             {
                 if (propertySetAbstractValue[i] != PropertySetAbstractValueKind.Flagged)
@@ -51,9 +51,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     allFlagged = false;
                 }
 
-                if (propertySetAbstractValue[i] != PropertySetAbstractValueKind.Unflagged)
+                if (propertySetAbstractValue[i] == PropertySetAbstractValueKind.Unflagged)
                 {
-                    allUnflagged = false;
+                    atLeastOneUnflagged = true;
+                    break;
                 }
             }
 
@@ -61,7 +62,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
                 return HazardousUsageEvaluationResult.Flagged;
             }
-            else if (allUnflagged)
+            else if (atLeastOneUnflagged)
             {
                 return HazardousUsageEvaluationResult.Unflagged;
             }

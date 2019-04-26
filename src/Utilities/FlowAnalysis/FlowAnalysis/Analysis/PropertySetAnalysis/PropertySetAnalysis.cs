@@ -214,6 +214,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             PropertySetAnalysisContext analysisContext,
             DataFlowAnalysisResult<PropertySetBlockAnalysisResult, PropertySetAbstractValue> dataFlowAnalysisResult)
         {
+            PropertySetDataFlowOperationVisitor visitor = (PropertySetDataFlowOperationVisitor)this.OperationVisitor;
+            visitor.ProcessExitBlock(dataFlowAnalysisResult.ExitBlockOutput);
             return new PropertySetAnalysisResult(
                 dataFlowAnalysisResult,
                 ((PropertySetDataFlowOperationVisitor)this.OperationVisitor).HazardousUsages);
