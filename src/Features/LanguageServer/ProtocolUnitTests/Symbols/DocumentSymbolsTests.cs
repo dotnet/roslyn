@@ -9,7 +9,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 {
-    public class DocumentSymbolsTests : LanguageServerProtocolTestsBase
+    public class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestGetDocumentSymbolsAsync()

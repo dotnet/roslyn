@@ -8,7 +8,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 {
-    public class GoToDefinitionTests : LanguageServerProtocolTestsBase
+    public class GoToDefinitionTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestGotoDefinitionAsync()

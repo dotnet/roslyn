@@ -7,12 +7,12 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
 {
-    public class InitializeTests : LanguageServerProtocolTestsBase
+    public class InitializeTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestInitializeAsync()
         {
-            var (solution, _) = CreateTestSolution("");
+            var (solution, _) = CreateTestSolution(string.Empty);
             var results = await RunInitializeAsync(solution, new LSP.InitializeParams());
 
             AssertServerCapabilities(results.Capabilities);

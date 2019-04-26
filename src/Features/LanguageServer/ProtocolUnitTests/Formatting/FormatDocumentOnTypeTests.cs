@@ -8,7 +8,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 {
-    public class FormatDocumentOnTypeTests : LanguageServerProtocolTestsBase
+    public class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestFormatDocumentOnTypeAsync()

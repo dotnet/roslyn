@@ -9,7 +9,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Highlights
 {
-    public class DocumentHighlightTests : LanguageServerProtocolTestsBase
+    public class DocumentHighlightTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestGetDocumentHighlightAsync()

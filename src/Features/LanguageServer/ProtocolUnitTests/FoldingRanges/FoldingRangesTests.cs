@@ -10,7 +10,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FoldingRanges
 {
-    public class FoldingRangesTests : LanguageServerProtocolTestsBase
+    public class FoldingRangesTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestGetFoldingRangeAsync_Imports()

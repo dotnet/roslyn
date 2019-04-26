@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
 {
-    public class ClassificationsHandlerTests : LiveShareRequestHandlerTestsBase
+    public class ClassificationsHandlerTests : AbstractLiveShareRequestHandlerTests
     {
         [Fact]
         public async Task TestClassificationsAsync()

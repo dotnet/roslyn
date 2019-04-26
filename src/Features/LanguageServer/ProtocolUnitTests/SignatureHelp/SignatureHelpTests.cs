@@ -11,7 +11,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
 {
-    public class SignatureHelpTests : LanguageServerProtocolTestsBase
+    public class SignatureHelpTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestGetSignatureHelpAsync()

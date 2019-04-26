@@ -9,7 +9,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
-    public class CodeActionsTests : LanguageServerProtocolTestsBase
+    public class CodeActionsTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestGetCodeActionsAsync()

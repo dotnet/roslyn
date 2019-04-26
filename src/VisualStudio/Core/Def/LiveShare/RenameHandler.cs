@@ -41,6 +41,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 // in background threads.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+                if (!renameInfo.CanRename)
+                {
+                    return workspaceEdit;
+                }
+
                 var renameLocationSet = await renameInfo.FindRenameLocationsAsync(solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
                 var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(request.NewName, solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
 

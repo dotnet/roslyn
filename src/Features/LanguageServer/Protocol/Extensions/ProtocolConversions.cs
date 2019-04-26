@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -100,18 +101,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return location;
         }
 
-        public static LSP.Location TextSpanToLocationWithText(TextSpan span, SourceText text, Uri documentUri)
-        {
-            var location = new LSP.LocationWithText
-            {
-                Uri = documentUri,
-                Range = TextSpanToRange(span, text),
-                Text = text
-            };
-
-            return location;
-        }
-
         public static LSP.DiagnosticSeverity DiagnosticSeverityToLspDiagnositcSeverity(DiagnosticSeverity severity)
         {
             switch (severity)
@@ -125,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 case DiagnosticSeverity.Error:
                     return LSP.DiagnosticSeverity.Error;
                 default:
-                    return LSP.DiagnosticSeverity.Hint;
+                    throw ExceptionUtilities.UnexpectedValue(severity);
             }
         }
 

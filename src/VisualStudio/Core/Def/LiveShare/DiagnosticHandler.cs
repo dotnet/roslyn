@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.Threading;
@@ -82,27 +81,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             {
                 Code = diag.Id,
                 Message = diag.Message,
-                Severity = ToDiagnosticSeverity(diag.Severity),
+                Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diag.Severity),
                 Range = ProtocolConversions.TextSpanToRange(diag.GetExistingOrCalculatedTextSpan(text), text),
                 Tags = diag.CustomTags.ToArray()
             }).ToArray();
-        }
-
-        private LSP.DiagnosticSeverity ToDiagnosticSeverity(DiagnosticSeverity severity)
-        {
-            switch (severity)
-            {
-                case DiagnosticSeverity.Hidden:
-                    return LSP.DiagnosticSeverity.Hint;
-                case DiagnosticSeverity.Info:
-                    return LSP.DiagnosticSeverity.Information;
-                case DiagnosticSeverity.Warning:
-                    return LSP.DiagnosticSeverity.Warning;
-                case DiagnosticSeverity.Error:
-                    return LSP.DiagnosticSeverity.Error;
-                default:
-                    return LSP.DiagnosticSeverity.Hint;
-            }
         }
     }
 }

@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
-using CustomProtocol = Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {

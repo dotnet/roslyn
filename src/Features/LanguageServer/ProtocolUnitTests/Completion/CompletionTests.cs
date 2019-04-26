@@ -3,14 +3,12 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 {
-    public class CompletionTests : LanguageServerProtocolTestsBase
+    public class CompletionTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestGetCompletionsAsync()
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var (solution, locations) = CreateTestSolution(markup);
             var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" }, CreateCompletionParams(locations["caret"].First()));
 
-            var results = (LSP.CompletionItem[])await RunGetCompletionsAsync(solution, locations["caret"].First());
+            var results = (LSP.VSCompletionItem[])await RunGetCompletionsAsync(solution, locations["caret"].First());
             AssertCompletionItemsEqual(expected, results.First(), false);
         }
 

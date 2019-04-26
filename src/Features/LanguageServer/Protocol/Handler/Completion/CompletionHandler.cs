@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -41,35 +40,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var lspClientCapability = clientCapabilities.HasVisualStudioLspCapability();
 
-            return list.Items.Select(item =>
-            {
-                LSP.CompletionItem completionItem;
-                if (lspClientCapability == true)
-                {
-                    completionItem = CreateCompletionItem<LSP.VSCompletionItem>(request, item);
-                    ((LSP.VSCompletionItem)completionItem).Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
-                }
-                else
-                {
-                    completionItem = CreateCompletionItem<RoslynCompletionItem>(request, item);
-                    ((RoslynCompletionItem)completionItem).Tags = item.Tags.ToArray();
-                }
-                return completionItem;
-            }).ToArray();
+            return list.Items.Select(item => CreateCompletionItem(request, item)).ToArray();
 
             // local functions
-            static TCompletionItem CreateCompletionItem<TCompletionItem>(LSP.CompletionParams request, CompletionItem item) where TCompletionItem : LSP.CompletionItem, new()
-            {
-                return new TCompletionItem
+            static LSP.VSCompletionItem CreateCompletionItem(LSP.CompletionParams request, CompletionItem item)
+                => new LSP.VSCompletionItem
                 {
                     Label = item.DisplayText,
                     InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : item.DisplayText,
                     SortText = item.SortText,
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
-                    Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText }
+                    Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText },
+                    Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId())
                 };
-            }
         }
 
         private static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)

@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -18,7 +21,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
     [UseExportProvider]
-    public abstract class LanguageServerProtocolTestsBase
+    public abstract class AbstractLanguageServerProtocolTests
     {
         protected virtual ExportProvider GetExportProvider()
         {
@@ -38,6 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 Assert.Null(actual);
                 return;
             }
+
             Assert.Equal(expected.Kind, actual.Kind);
             Assert.Equal(expected.Name, actual.Name);
             Assert.Equal(expected.Location, actual.Location);
@@ -50,6 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 Assert.Null(actual);
                 return;
             }
+
             Assert.Equal(expected.Kind, actual.Kind);
             Assert.Equal(expected.Value, actual.Value);
         }
@@ -61,39 +66,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 Assert.Null(actual);
                 return;
             }
+
             Assert.Equal(expected.NewText, actual.NewText);
             Assert.Equal(expected.Range, actual.Range);
         }
 
-        protected static void AssertCompletionItemsEqual(LSP.CompletionItem expected, LSP.CompletionItem actual, bool isResolved)
+        protected static void AssertCompletionItemsEqual(LSP.VSCompletionItem expected, LSP.VSCompletionItem actual, bool isResolved)
         {
             Assert.Equal(expected.FilterText, actual.FilterText);
             Assert.Equal(expected.InsertText, actual.InsertText);
             Assert.Equal(expected.Label, actual.Label);
             Assert.Equal(expected.InsertTextFormat, actual.InsertTextFormat);
             Assert.Equal(expected.Kind, actual.Kind);
-            if (expected is RoslynCompletionItem expectedRoslynCompletion)
-            {
-                var actualRoslynCompletion = (RoslynCompletionItem)actual;
-                Assert.Equal(expectedRoslynCompletion.Tags, actualRoslynCompletion.Tags);
-                if (isResolved)
-                {
-                    AssertCollectionsEqual(expectedRoslynCompletion.Description, actualRoslynCompletion.Description, AssertTaggedTextsEqual);
-                }
-            }
+
             AssertTextEditsEqual(expected.TextEdit, actual.TextEdit);
+
+            if (expected.Icon != null)
+            {
+                Assert.Equal(expected.Icon.AutomationName, actual.Icon.AutomationName);
+                Assert.Equal(expected.Icon.ImageId.Guid, actual.Icon.ImageId.Guid);
+                Assert.Equal(expected.Icon.ImageId.Id, actual.Icon.ImageId.Id);
+            }
 
             if (isResolved)
             {
                 Assert.Equal(expected.Detail, actual.Detail);
                 AssertMarkupContentsEqual(expected.Documentation, actual.Documentation);
-            }
-
-            // local functions
-            static void AssertTaggedTextsEqual(RoslynTaggedText expected, RoslynTaggedText actual)
-            {
-                Assert.Equal(expected.Tag, actual.Tag);
-                Assert.Equal(expected.Text, actual.Text);
             }
         }
 
@@ -149,6 +147,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 var textSpan = lines.GetTextSpan(new LinePositionSpan(startPosition, endPosition));
                 text = text.Replace(textSpan, edit.NewText);
             }
+
             return text.ToString();
         }
 
@@ -191,9 +190,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 }
             };
 
-        // Private procted because RoslynCompletionItem is internal.
-        private protected static RoslynCompletionItem CreateCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters)
-            => new RoslynCompletionItem()
+        protected static LSP.VSCompletionItem CreateCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters)
+            => new LSP.VSCompletionItem()
             {
                 FilterText = text,
                 InsertText = text,
@@ -201,12 +199,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 SortText = text,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
-                Tags = tags,
                 Data = new CompletionResolveData()
                 {
                     DisplayText = text,
                     CompletionParams = requestParameters
-                }
+                },
+                Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null
             };
 
         // Private procted because RunCodeActionParams is internal.
@@ -222,7 +220,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         /// <summary>
         /// Creates a solution with a document.
         /// </summary>
-        /// <param name="markup">the document text.</param>
         /// <returns>the solution and the annotated ranges in the document.</returns>
         protected (Solution solution, Dictionary<string, IList<LSP.Location>> locations) CreateTestSolution(string markup)
             => CreateTestSolution(new string[] { markup });
@@ -230,7 +227,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         /// <summary>
         /// Create a solution with multiple documents.
         /// </summary>
-        /// <param name="markups">the documents' text</param>
         /// <returns>
         /// the solution with the documents plus a list for each document of all annotated ranges in the document.
         /// </returns>
@@ -251,7 +247,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
                 // Pass in the text without markup.
                 workspace.ChangeSolution(ChangeDocumentFilePathToValidURI(workspace.CurrentSolution, document, text));
-
             }
 
             return (workspace.CurrentSolution, locations);

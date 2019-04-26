@@ -9,7 +9,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
 {
-    public class FindAllReferencesHandlerTests : LiveShareRequestHandlerTestsBase
+    public class FindAllReferencesHandlerTests : AbstractLiveShareRequestHandlerTests
     {
         [WpfFact]
         public async Task TestFindAllReferencesAsync()

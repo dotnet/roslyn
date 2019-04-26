@@ -8,7 +8,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
 {
-    public class HoverTests : LanguageServerProtocolTestsBase
+    public class HoverTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestGetHoverAsync()

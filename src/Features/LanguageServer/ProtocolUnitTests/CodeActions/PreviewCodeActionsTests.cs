@@ -8,7 +8,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 {
-    public class PreviewCodeActionsTests : LanguageServerProtocolTestsBase
+    public class PreviewCodeActionsTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestPreviewCodeActionsAsync()

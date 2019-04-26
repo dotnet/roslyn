@@ -19,7 +19,7 @@ using RoslynHandlers = Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
 {
-    public class LiveShareRequestHandlerTestsBase : LanguageServerProtocolTestsBase
+    public abstract class AbstractLiveShareRequestHandlerTests : AbstractLanguageServerProtocolTests
     {
         private class MockHostProtocolConverter : IHostProtocolConverter
         {
@@ -30,17 +30,17 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
 
             public bool IsContainedInRootFolders(Uri uriToCheck)
             {
-                throw new NotImplementedException();
+                return true;
             }
 
             public Task RegisterExternalFilesAsync(Uri[] filePaths)
             {
-                throw new NotImplementedException();
+                return Task.CompletedTask;
             }
 
             public Uri ToProtocolUri(Uri uri)
             {
-                throw new NotImplementedException();
+                return uri;
             }
 
             public bool TryGetExternalUris(string exernalUri, out Uri uri)
@@ -49,34 +49,22 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
             }
         }
 
-        // For now we're just testing that the right liveshare handlers are exported.
-        // This ensures that for shims the right handler is found from roslyn handlers.
-        // Functionality will be tested in the code analysis language server layer.
-        [Fact]
-        public void TestLiveShareRequestHandlersExported()
-        {
-            var (solution, _) = CreateTestSolution("");
-
-            var workspace = (TestWorkspace)solution.Workspace;
-            var handlers = workspace.ExportProvider.GetExportedValues<ILspRequestHandler>(LiveShareConstants.RoslynContractName).ToArray();
-
-            // Verify there are exactly the number of liveshare request handlers as expected.
-            // Liveshare shims will verify there is a matching roslyn request handler when they are created.
-            Assert.Equal(21, handlers.Length);
-        }
-
         protected override ExportProvider GetExportProvider()
         {
             // Get all the liveshare request handlers in this assembly.
             var liveShareRequestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(InitializeHandler).Assembly, typeof(ILspRequestHandler));
+                    typeof(LoadHandler).Assembly, typeof(ILspRequestHandler));
             // Get all of the roslyn request helpers in M.CA.LanguageServer
             var roslynRequestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(RoslynHandlers.IRequestHandler).Assembly, typeof(RoslynHandlers.IRequestHandler));
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(liveShareRequestHelperTypes).WithParts(roslynRequestHelperTypes));
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
+                .WithPart(typeof(MockDocumentNavigationServiceFactory))
+                .WithParts(liveShareRequestHelperTypes)
+                .WithParts(roslynRequestHelperTypes));
             return exportProviderFactory.CreateExportProvider();
         }
+
         protected static async Task<ResponseType> TestHandleAsync<RequestType, ResponseType>(Solution solution, RequestType request)
         {
             var requestContext = new RequestContext<Solution>(solution, new MockHostProtocolConverter(), new ClientCapabilities());

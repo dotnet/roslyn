@@ -8,7 +8,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
 {
-    public class FindImplementationsTests : LanguageServerProtocolTestsBase
+    public class FindImplementationsTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
         public async Task TestFindImplementationAsync()
