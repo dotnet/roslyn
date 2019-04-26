@@ -256,9 +256,9 @@ testKey2testValue3
   // Code size      225 (0xe1)
   .maxstack  4
   .locals init (Windows.ApplicationModel.DataTransfer.DataPackagePropertySet V_0, //dpps
-                object V_1, //tv2
-                System.Collections.Generic.IEnumerator<object> V_2, //valsEnumerator
-                System.Collections.Generic.IEnumerator<string> V_3) //keysEnumerator
+  object V_1, //tv2
+  System.Collections.Generic.IEnumerator<object> V_2, //valsEnumerator
+  System.Collections.Generic.IEnumerator<string> V_3) //keysEnumerator
   IL_0000:  newobj     ""Windows.ApplicationModel.DataTransfer.DataPackage..ctor()""
   IL_0005:  callvirt   ""Windows.ApplicationModel.DataTransfer.DataPackagePropertySet Windows.ApplicationModel.DataTransfer.DataPackage.Properties.get""
   IL_000a:  stloc.0
