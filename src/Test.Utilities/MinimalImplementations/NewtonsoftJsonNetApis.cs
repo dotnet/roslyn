@@ -12,6 +12,7 @@ namespace Test.Utilities.MinimalImplementations
 namespace Newtonsoft.Json
 {
     using System;
+    using System.IO;
     using System.Runtime.Serialization;
 
     [Flags]
@@ -68,17 +69,17 @@ namespace Newtonsoft.Json
 
         public static T DeserializeObject<T>(string value)
         {
-            return null;
+            return default(T);
         }
 
         public static T DeserializeObject<T>(string value, params JsonConverter[] converters)
         {
-            return null;
+            return default(T);
         }
 
         public static T DeserializeObject<T>(string value, JsonSerializerSettings settings)
         {
-            return null;
+            return default(T);
         }
 
         public static object DeserializeObject(string value, Type type, params JsonConverter[] converters)
@@ -144,13 +145,19 @@ namespace Newtonsoft.Json
 
         public void Populate(TextReader reader, object target)
         {
-            return null;
         }
 
         public void Populate(JsonReader reader, object target)
         {
-            return null;
         }
+    }
+
+    public class JsonReader
+    {
+    }
+
+    public class JsonConverter
+    {
     }
 }";
     }

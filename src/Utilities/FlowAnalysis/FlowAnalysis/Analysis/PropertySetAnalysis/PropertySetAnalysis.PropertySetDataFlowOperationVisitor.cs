@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -24,7 +25,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         private sealed class PropertySetDataFlowOperationVisitor :
             AbstractLocationDataFlowOperationVisitor<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetAbstractValue>
         {
+            /// <summary>
+            /// Keeps track of hazardous usages detected.
+            /// </summary>
             private readonly ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.Builder _hazardousUsageBuilder;
+
+            /// <summary>
+            /// When analyzing a field initializer, track object creations of the tracked type,
+            /// so the <see cref="PropertySetAbstractValue"/> can be evaluated at the end.
+            /// </summary>
+            /// <remarks>
+            /// Only allocated when running DFA on a field initializer.</remarks>
+            private PooledHashSet<IObjectCreationOperation> TrackedObjectCreations;
 
             /// <summary>
             /// The type containing the property set we're tracking.
@@ -39,6 +51,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 _hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>();
 
                 this.WellKnownTypeProvider.TryGetTypeByMetadataName(analysisContext.TypeToTrackMetadataName, out this.TrackedTypeSymbol);
+                Debug.Assert(this.TrackedTypeSymbol != null);
+
+                if (this.DataFlowAnalysisContext.OwningSymbol.Kind == SymbolKind.Field
+                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetReturnHazardousUsageEvaluator(out _))
+                {
+                    this.TrackedObjectCreations = PooledHashSet<IObjectCreationOperation>.GetInstance();
+                }
             }
 
             public override int GetHashCode()
@@ -50,6 +69,30 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             {
                 get
                 {
+                    if (this.TrackedObjectCreations != null)
+                    {
+                        try
+                        {
+                            this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetReturnHazardousUsageEvaluator(
+                                out HazardousUsageEvaluator returnValueHazardousUsageEvaluator);
+                            Debug.Assert(returnValueHazardousUsageEvaluator != null);
+                            foreach (IObjectCreationOperation objectCreationOperation in this.TrackedObjectCreations)
+                            {
+                                this.EvaluatePotentialHazardousUsage(
+                                    objectCreationOperation.Syntax,
+                                    null,
+                                    objectCreationOperation,
+                                    (PropertySetAbstractValue abstractValue) =>
+                                        returnValueHazardousUsageEvaluator.ReturnEvaluator(abstractValue));
+                            }
+                        }
+                        finally
+                        {
+                            this.TrackedObjectCreations.Free();
+                            this.TrackedObjectCreations = null;
+                        }
+                    }
+
                     return _hazardousUsageBuilder.ToImmutable();
                 }
             }
@@ -116,6 +159,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     return abstractValue;
                 }
+
+                this.TrackedObjectCreations?.Add(operation);
 
                 ConstructorMapper constructorMapper = this.DataFlowAnalysisContext.ConstructorMapper;
                 if (!constructorMapper.PropertyAbstractValues.IsEmpty)
@@ -236,28 +281,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out var hazardousUsageEvaluator))
                     || TryFindNonTrackedTypeHazardousUsageEvaluator(out hazardousUsageEvaluator, out propertySetInstance))
                 {
-                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertySetInstance);
-                    HazardousUsageEvaluationResult result = HazardousUsageEvaluationResult.Unflagged;
-                    foreach (AbstractLocation location in pointsToAbstractValue.Locations)
-                    {
-                        PropertySetAbstractValue locationAbstractValue = this.GetAbstractValue(location);
-
-                        HazardousUsageEvaluationResult evaluationResult = hazardousUsageEvaluator.InvocationEvaluator(method, locationAbstractValue);
-                        result = MergeHazardousUsageEvaluationResult(result, evaluationResult);
-                    }
-
-                    if (result != HazardousUsageEvaluationResult.Unflagged)
-                    {
-                        (Location, IMethodSymbol) key = (originalOperation.Syntax.GetLocation(), method);
-                        if (this._hazardousUsageBuilder.TryGetValue(key, out HazardousUsageEvaluationResult existingResult))
-                        {
-                            this._hazardousUsageBuilder[key] = MergeHazardousUsageEvaluationResult(result, existingResult);
-                        }
-                        else
-                        {
-                            this._hazardousUsageBuilder.Add(key, result);
-                        }
-                    }
+                    this.EvaluatePotentialHazardousUsage(
+                        originalOperation.Syntax,
+                        method,
+                        propertySetInstance,
+                        (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.InvocationEvaluator(method, abstractValue));
                 }
                 else
                 {
@@ -298,6 +326,32 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
+            private void EvaluatePotentialHazardousUsage(SyntaxNode operationSyntax, IMethodSymbol methodSymbol, IOperation propertySetInstance, Func<PropertySetAbstractValue, HazardousUsageEvaluationResult> evaluationFunction)
+            {
+                PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertySetInstance);
+                HazardousUsageEvaluationResult result = HazardousUsageEvaluationResult.Unflagged;
+                foreach (AbstractLocation location in pointsToAbstractValue.Locations)
+                {
+                    PropertySetAbstractValue locationAbstractValue = this.GetAbstractValue(location);
+
+                    HazardousUsageEvaluationResult evaluationResult = evaluationFunction(locationAbstractValue);
+                    result = MergeHazardousUsageEvaluationResult(result, evaluationResult);
+                }
+
+                if (result != HazardousUsageEvaluationResult.Unflagged)
+                {
+                    (Location, IMethodSymbol) key = (operationSyntax.GetLocation(), methodSymbol);
+                    if (this._hazardousUsageBuilder.TryGetValue(key, out HazardousUsageEvaluationResult existingResult))
+                    {
+                        this._hazardousUsageBuilder[key] = MergeHazardousUsageEvaluationResult(result, existingResult);
+                    }
+                    else
+                    {
+                        this._hazardousUsageBuilder.Add(key, result);
+                    }
+                }
+            }
+
             public override PropertySetAbstractValue VisitInvocation_LocalFunction(IMethodSymbol localFunction, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, PropertySetAbstractValue defaultValue)
             {
                 PropertySetAbstractValue baseValue = base.VisitInvocation_LocalFunction(localFunction, visitedArguments, originalOperation, defaultValue);
@@ -321,28 +375,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetReturnHazardousUsageEvaluator(
                         out HazardousUsageEvaluator hazardousUsageEvaluator))
                 {
-                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(returnValue);
-                    HazardousUsageEvaluationResult result = HazardousUsageEvaluationResult.Unflagged;
-                    foreach (AbstractLocation location in pointsToAbstractValue.Locations)
-                    {
-                        PropertySetAbstractValue locationAbstractValue = this.GetAbstractValue(location);
-
-                        HazardousUsageEvaluationResult evaluationResult = hazardousUsageEvaluator.ReturnEvaluator(locationAbstractValue);
-                        result = MergeHazardousUsageEvaluationResult(result, evaluationResult);
-                    }
-
-                    if (result != HazardousUsageEvaluationResult.Unflagged)
-                    {
-                        (Location, IMethodSymbol) key = (returnValue.Syntax.GetLocation(), null);
-                        if (this._hazardousUsageBuilder.TryGetValue(key, out HazardousUsageEvaluationResult existingResult))
-                        {
-                            this._hazardousUsageBuilder[key] = MergeHazardousUsageEvaluationResult(result, existingResult);
-                        }
-                        else
-                        {
-                            this._hazardousUsageBuilder.Add(key, result);
-                        }
-                    }
+                    this.EvaluatePotentialHazardousUsage(
+                        returnValue.Syntax,
+                        null,
+                        returnValue,
+                        (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.ReturnEvaluator(abstractValue));
                 }
             }
 

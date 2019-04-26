@@ -50,7 +50,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     allFlagged = false;
                 }
-                else if (propertySetAbstractValue[i] != PropertySetAbstractValueKind.Unflagged)
+
+                if (propertySetAbstractValue[i] != PropertySetAbstractValueKind.Unflagged)
                 {
                     allUnflagged = false;
                 }
