@@ -4704,6 +4704,153 @@ class C
             End Using
         End Function
 
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSendCommitIfUnique(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+              <Document>
+using System;
+class C
+{
+    void Method()
+    {
+        var s="";
+        s.Len$$
+    }
+}
+                              </Document>)
+                state.SendCommitUniqueCompletionListItem()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSendCommitIfUniqueInInsertionSession(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        var s = "";
+        s$$
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars(".len")
+                state.SendCommitUniqueCompletionListItem()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/35301"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSendCommitIfUniqueInDeletionSession(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        var s = "";
+        s.Length$$
+    }
+}
+                              </Document>)
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+                state.SendCommitUniqueCompletionListItem()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        ' Implementation for the Modern completion only
+        <InlineData(CompletionImplementation.Modern)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSendCommitIfUniqueWithIntelliCode(completionImplementation As CompletionImplementation) As Task
+            Dim provider = New IntelliCodeMockProvider()
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        var s = "";
+        s.Len$$
+    }
+}
+                              </Document>, {provider})
+
+                state.SendCommitUniqueCompletionListItem()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        ' Implementation for the Modern completion only
+        <InlineData(CompletionImplementation.Modern)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSendCommitIfUniqueInInsertionSessionWithIntelliCode(completionImplementation As CompletionImplementation) As Task
+            Dim provider = New IntelliCodeMockProvider()
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        var s = "";
+        s$$
+    }
+}
+                              </Document>, {provider})
+
+                state.SendTypeChars(".len")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"Length", "★ Length"})
+                state.SendCommitUniqueCompletionListItem()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        ' Implementation for the Modern completion only
+        <InlineData(CompletionImplementation.Modern)>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/35301"), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSendCommitIfUniqueInDeletionSessionWithIntelliCode(completionImplementation As CompletionImplementation) As Task
+            Dim provider = New IntelliCodeMockProvider()
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        var s = "";
+        s.Length$$
+    }
+}
+                              </Document>, {provider})
+
+                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)
+
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"Length", "★ Length"})
+                state.SendCommitUniqueCompletionListItem()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
@@ -4738,6 +4885,22 @@ class C
                 Dim change = CompletionChange.Create(
                     New TextChange(New TextSpan(0, _caretPosition), newText))
                 Return Task.FromResult(change)
+            End Function
+        End Class
+
+        Private Class IntelliCodeMockProvider
+            Inherits CompletionProvider
+
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                context.AddItem(CompletionItem.Create(displayText:="★ Length", filterText:="Length"))
+                context.AddItem(CompletionItem.Create(displayText:="Length", filterText:="Length"))
+                context.AddItem(CompletionItem.Create(displayText:="ToString()", filterText:="ToString"))
+                context.AddItem(CompletionItem.Create(displayText:="First()", filterText:="First"))
+                Return Task.CompletedTask
+            End Function
+
+            Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean
+                Return True
             End Function
         End Class
     End Class

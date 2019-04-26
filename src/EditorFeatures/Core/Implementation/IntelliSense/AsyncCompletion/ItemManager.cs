@@ -290,7 +290,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (bestItem != null)
             {
                 selectedItemIndex = itemsInList.IndexOf(i => Equals(i.FilterResult.CompletionItem, bestItem));
-                if (selectedItemIndex > -1 && bestItem != null && matchingItems.Length == 1 && filterText.Length > 0)
+                if (selectedItemIndex > -1 &&
+                    bestItem != null &&
+                    matchingItems.Where(r => !r.DisplayText.StartsWith("★")).Count() == 1 &&
+                    filterText.Length > 0)
                 {
                     uniqueItem = highlightedList[selectedItemIndex].CompletionItem;
                 }
