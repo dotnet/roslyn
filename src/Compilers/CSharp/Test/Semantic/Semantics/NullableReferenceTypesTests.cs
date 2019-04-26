@@ -13432,6 +13432,8 @@ class A
     public virtual void M5(out object o) => throw null!;
     public virtual void M6(in object o) { }
     public virtual object this[object o] { get => null!; set { } }
+    public virtual string this[string s] => null!;
+    public virtual string this[int[] a] { set { } }
 }
 class B : A
 {
@@ -13442,6 +13444,8 @@ class B : A
     public override void M5(out object? o) => throw null!; // warn
     public override void M6(in object? o) { }
     public override object? this[object? o] { get => null!; set { } }
+    public override string this[string? s] => null!;
+    public override string this[int[]? a] { set { } }
 }
 class C : B
 {
@@ -13452,6 +13456,8 @@ class C : B
     public override void M5(out object o) => throw null!;
     public override void M6(in object o) { } // warn
     public override object this[object o] { get => null!; set { } }
+    public override string this[string s] => null!;
+    public override string this[int[] a] { set { } }
 }
 class D : C
 {
@@ -13462,6 +13468,8 @@ class D : C
     public override void M5(out object? o) => throw null!; // warn
     public override void M6(in object? o) { }
     public override object? this[object? o] { get => null!; set { } }
+    public override string this[string? s] => null!;
+    public override string this[int[]? a] { set { } }
 }
 class E : D
 {
@@ -13472,69 +13480,83 @@ class E : D
     public override void M5(out object o) => throw null!;
     public override void M6(in object o) { } // warn
     public override object this[object o] { get => null!; set { } }
+    public override string this[string s] => null!;
+    public override string this[int[] a] { set { } }
 }";
             var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (18,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                // (20,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
                 //     public override void M4(ref object? o) { } // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("o").WithLocation(18, 26),
-                // (19,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("o").WithLocation(20, 26),
+                // (21,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
                 //     public override void M5(out object? o) => throw null!; // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("o").WithLocation(19, 26),
-                // (21,47): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("o").WithLocation(21, 26),
+                // (23,47): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                 //     public override object? this[object? o] { get => null!; set { } }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(21, 47),
-                // (25,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(23, 47),
+                // (29,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
                 //     public override void M(object o) { } // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("o").WithLocation(25, 26),
-                // (26,26): warning CS8610: Nullability of reference types in type of parameter 't' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("o").WithLocation(29, 26),
+                // (30,26): warning CS8610: Nullability of reference types in type of parameter 't' doesn't match overridden member.
                 //     public override void M2((object, object) t) { } // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("t").WithLocation(26, 26),
-                // (27,26): warning CS8610: Nullability of reference types in type of parameter 'i' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("t").WithLocation(30, 26),
+                // (31,26): warning CS8610: Nullability of reference types in type of parameter 'i' doesn't match overridden member.
                 //     public override void M3(I<object> i) { } // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("i").WithLocation(27, 26),
-                // (28,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("i").WithLocation(31, 26),
+                // (32,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
                 //     public override void M4(ref object o) { } // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("o").WithLocation(28, 26),
-                // (30,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("o").WithLocation(32, 26),
+                // (34,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
                 //     public override void M6(in object o) { } // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M6").WithArguments("o").WithLocation(30, 26),
-                // (31,59): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M6").WithArguments("o").WithLocation(34, 26),
+                // (35,59): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
                 //     public override object this[object o] { get => null!; set { } }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("o").WithLocation(31, 59),
-                // (31,59): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("o").WithLocation(35, 59),
+                // (35,59): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
                 //     public override object this[object o] { get => null!; set { } }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(31, 59),
-                // (38,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(35, 59),
+                // (36,46): warning CS8610: Nullability of reference types in type of parameter 's' doesn't match overridden member.
+                //     public override string this[string s] => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "null!").WithArguments("s").WithLocation(36, 46),
+                // (37,44): warning CS8610: Nullability of reference types in type of parameter 'a' doesn't match overridden member.
+                //     public override string this[int[] a] { set { } }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("a").WithLocation(37, 44),
+                // (44,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
                 //     public override void M4(ref object? o) { } // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("o").WithLocation(38, 26),
-                // (39,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
-                //     public override void M5(out object? o) => throw null!; // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("o").WithLocation(39, 26),
-                // (41,47): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override object? this[object? o] { get => null!; set { } }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(41, 47),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("o").WithLocation(44, 26),
                 // (45,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override void M5(out object? o) => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("o").WithLocation(45, 26),
+                // (47,47): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override object? this[object? o] { get => null!; set { } }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(47, 47),
+                // (53,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
                 //     public override void M(object o) { } // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("o").WithLocation(45, 26),
-                // (46,26): warning CS8610: Nullability of reference types in type of parameter 't' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("o").WithLocation(53, 26),
+                // (54,26): warning CS8610: Nullability of reference types in type of parameter 't' doesn't match overridden member.
                 //     public override void M2((object, object) t) { } // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("t").WithLocation(46, 26),
-                // (47,26): warning CS8610: Nullability of reference types in type of parameter 'i' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("t").WithLocation(54, 26),
+                // (55,26): warning CS8610: Nullability of reference types in type of parameter 'i' doesn't match overridden member.
                 //     public override void M3(I<object> i) { } // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("i").WithLocation(47, 26),
-                // (48,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("i").WithLocation(55, 26),
+                // (56,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
                 //     public override void M4(ref object o) { } // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("o").WithLocation(48, 26),
-                // (50,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("o").WithLocation(56, 26),
+                // (58,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
                 //     public override void M6(in object o) { } // warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M6").WithArguments("o").WithLocation(50, 26),
-                // (51,59): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M6").WithArguments("o").WithLocation(58, 26),
+                // (59,59): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
                 //     public override object this[object o] { get => null!; set { } }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("o").WithLocation(51, 59),
-                // (51,59): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("o").WithLocation(59, 59),
+                // (59,59): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
                 //     public override object this[object o] { get => null!; set { } }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(51, 59)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(59, 59),
+                // (60,46): warning CS8610: Nullability of reference types in type of parameter 's' doesn't match overridden member.
+                //     public override string this[string s] => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "null!").WithArguments("s").WithLocation(60, 46),
+                // (61,44): warning CS8610: Nullability of reference types in type of parameter 'a' doesn't match overridden member.
+                //     public override string this[int[] a] { set { } }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("a").WithLocation(61, 44)
                 );
         }
 
