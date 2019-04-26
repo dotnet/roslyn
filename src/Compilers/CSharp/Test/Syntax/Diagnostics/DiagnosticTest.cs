@@ -252,6 +252,7 @@ class X
                         case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
                         case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
+                        case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
