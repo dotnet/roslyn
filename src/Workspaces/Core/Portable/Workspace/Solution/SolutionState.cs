@@ -1382,6 +1382,33 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the text
+        /// specified.
+        /// </summary>
+        public SolutionState WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            CheckContainsAnalyzerConfigDocument(documentId);
+
+            var oldDocument = this.GetAnalyzerConfigDocumentState(documentId);
+            if (oldDocument.TryGetText(out var oldText) && text == oldText)
+            {
+                return this;
+            }
+
+            return this.WithAnalyzerConfigDocumentState(oldDocument.UpdateText(text, mode), textChanged: true);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the document specified updated to have the text
         /// and version specified.
         /// </summary>
         public SolutionState WithDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)

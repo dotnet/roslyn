@@ -1028,6 +1028,21 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the analyzer config document specified updated to have the text
         /// supplied by the text loader.
         /// </summary>
+        public Solution WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        {
+            var newState = _state.WithAnalyzerConfigDocumentText(documentId, text, mode);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text
+        /// supplied by the text loader.
+        /// </summary>
         public Solution WithAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var newState = _state.WithAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
