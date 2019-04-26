@@ -155,9 +155,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     }
                 }
 
-                var spansToSelect = trackingSnapshotSpans.Select(s => new Selection(s));
-                // Set the multi selection with the last selection as the primary after edits have been applied.
-                textView.GetMultiSelectionBroker().SetSelectionRange(spansToSelect, spansToSelect.Last());
+                // Set the multi selection after edits have been applied.
+                textView.SetMultiSelection(trackingSnapshotSpans);
             }
         }
 
