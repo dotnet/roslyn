@@ -1375,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var returnType = (_methodSignatureOpt ?? method).ReturnTypeWithAnnotations;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
 
-            if (returnType.SpecialType == SpecialType.System_Void)
+            if (returnType.IsVoidType())
             {
                 type = default;
                 return false;
@@ -2489,7 +2489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var oldType = node.Type;
             var resultType =
-                oldType.SpecialType == SpecialType.System_Void ? oldType :
+                oldType.IsVoidType() || oldType.IsErrorType() ? oldType :
                 oldType.IsNullableType() && !accessType.IsNullableType() ? MakeNullableOf(accessTypeWithAnnotations) :
                 accessType;
 

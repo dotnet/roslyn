@@ -73,12 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsPossiblyNullableReferenceTypeTypeParameter(this TypeSymbol type)
         {
-            if (type.TypeKind != TypeKind.TypeParameter)
-            {
-                return false;
-            }
-            var typeParameter = (TypeParameterSymbol)type;
-            return !typeParameter.IsValueType && typeParameter.IsNotNullableIfReferenceType == false;
+            return type is TypeParameterSymbol { IsValueType: false, IsNotNullableIfReferenceType: false };
         }
 
         public static bool IsNonNullableValueType(this TypeSymbol typeArgument)
@@ -89,6 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return !IsNullableTypeOrTypeParameter(typeArgument);
+        }
+
+        public static bool IsVoidType(this TypeSymbol type)
+        {
+            return type.SpecialType == SpecialType.System_Void;
         }
 
         public static bool IsNullableTypeOrTypeParameter(this TypeSymbol type)
@@ -1156,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsVoidPointer(this TypeSymbol type)
         {
-            return type.IsPointerType() && ((PointerTypeSymbol)type).PointedAtType.SpecialType == SpecialType.System_Void;
+            return type is PointerTypeSymbol p && p.PointedAtType.IsVoidType();
         }
 
         /// <summary>
@@ -1427,7 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            if (namedType.SpecialType == SpecialType.System_Void)
+            if (namedType.IsVoidType())
             {
                 return false;
             }
@@ -1717,7 +1717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Note: we're passing the return type explicitly (rather than using `method.ReturnType`) to avoid cycles
             return !returnType.IsErrorType() &&
-                returnType.SpecialType != SpecialType.System_Void &&
+                !returnType.IsVoidType() &&
                 !returnType.IsNonGenericTaskType(declaringCompilation) &&
                 !returnType.IsGenericTaskType(declaringCompilation) &&
                 !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
