@@ -336,5 +336,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
         }
+
+        public static bool ShouldDisplayReadOnly(this IMethodSymbol method) =>
+            method is MethodSymbol m && m.IsDeclaredReadOnly && m.ContainingType?.IsReadOnly == false;
     }
 }
