@@ -73077,6 +73077,40 @@ class Outer
             y.ToString(); // 21
         }
     }
+    void M7<T>(dynamic? x)
+    {
+        if (!(x == null))
+        {
+            T y;
+            y = x;
+            y = (T)x;
+            y.ToString();
+        }
+        else
+        {
+            T y;
+            y = x; // 22
+            y = (T)x; // 23
+            y.ToString(); // 24
+        }
+    }
+    void M8<T>(dynamic? x)
+    {
+        if (!(x != null))
+        {
+            T y;
+            y = x; // 25
+            y = (T)x; // 26
+            y.ToString(); // 27
+        }
+        else
+        {
+            T y;
+            y = x;
+            y = (T)x;
+            y.ToString();
+        }
+    }
 }
 ";
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
@@ -73142,7 +73176,25 @@ class Outer
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(88, 17),
                 // (89,13): warning CS8602: Dereference of a possibly null reference.
                 //             y.ToString(); // 21
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(89, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(89, 13),
+                // (104,17): warning CS8601: Possible null reference assignment.
+                //             y = x; // 22
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(104, 17),
+                // (105,17): warning CS8601: Possible null reference assignment.
+                //             y = (T)x; // 23
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(105, 17),
+                // (106,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 24
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(106, 13),
+                // (114,17): warning CS8601: Possible null reference assignment.
+                //             y = x; // 25
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(114, 17),
+                // (115,17): warning CS8601: Possible null reference assignment.
+                //             y = (T)x; // 26
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(115, 17),
+                // (116,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 27
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(116, 13));
         }
 
         [Fact]
