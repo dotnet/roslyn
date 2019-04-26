@@ -1,4 +1,8 @@
 *REMOVED*Microsoft.CodeAnalysis.Workspace.ClearOpenDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool isSolutionClosing = false) -> void
+Microsoft.CodeAnalysis.AnalyzerConfigDocument
+Microsoft.CodeAnalysis.Project.AnalyzerConfigDocuments.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.AnalyzerConfigDocument>
+Microsoft.CodeAnalysis.Project.ContainsAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> bool
+Microsoft.CodeAnalysis.Project.GetAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> Microsoft.CodeAnalysis.AnalyzerConfigDocument
 Microsoft.CodeAnalysis.ProjectInfo.AnalyzerConfigDocuments.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.DocumentInfo>
 Microsoft.CodeAnalysis.ProjectInfo.WithAnalyzerConfigDocuments(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> analyzerConfigDocuments) -> Microsoft.CodeAnalysis.ProjectInfo
 Microsoft.CodeAnalysis.Solution.AddAdditionalDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> Microsoft.CodeAnalysis.Solution

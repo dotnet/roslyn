@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ProjectState _projectState;
         private ImmutableHashMap<DocumentId, Document> _idToDocumentMap = ImmutableHashMap<DocumentId, Document>.Empty;
         private ImmutableHashMap<DocumentId, TextDocument> _idToAdditionalDocumentMap = ImmutableHashMap<DocumentId, TextDocument>.Empty;
+        private ImmutableHashMap<DocumentId, AnalyzerConfigDocument> _idToAnalyzerConfigDocumentMap = ImmutableHashMap<DocumentId, AnalyzerConfigDocument>.Empty;
 
         internal Project(Solution solution, ProjectState projectState)
         {
@@ -170,6 +171,11 @@ namespace Microsoft.CodeAnalysis
         public IEnumerable<TextDocument> AdditionalDocuments => _projectState.AdditionalDocumentIds.Select(GetAdditionalDocument);
 
         /// <summary>
+        /// All the <see cref="AnalyzerConfigDocument"/>s associated with this project.
+        /// </summary>
+        public IEnumerable<AnalyzerConfigDocument> AnalyzerConfigDocuments => _projectState.AnalyzerConfigDocumentStates.Select(s => GetAnalyzerConfigDocument(s.Key));
+
+        /// <summary>
         /// True if the project contains a document with the specified ID.
         /// </summary>
         public bool ContainsDocument(DocumentId documentId)
@@ -183,6 +189,14 @@ namespace Microsoft.CodeAnalysis
         public bool ContainsAdditionalDocument(DocumentId documentId)
         {
             return _projectState.ContainsAdditionalDocument(documentId);
+        }
+
+        /// <summary>
+        /// True if the project contains an <see cref="AnalyzerConfigDocument"/> with the specified ID.
+        /// </summary>
+        public bool ContainsAnalyzerConfigDocument(DocumentId documentId)
+        {
+            return _projectState.ContainsAnalyzerConfigDocument(documentId);
         }
 
         /// <summary>
@@ -227,6 +241,19 @@ namespace Microsoft.CodeAnalysis
             return ImmutableHashMapExtensions.GetOrAdd(ref _idToAdditionalDocumentMap, documentId, s_createAdditionalDocumentFunction, this);
         }
 
+        /// <summary>
+        /// Get the analyzer config document in this project with the specified document Id.
+        /// </summary>
+        public AnalyzerConfigDocument GetAnalyzerConfigDocument(DocumentId documentId)
+        {
+            if (!ContainsAnalyzerConfigDocument(documentId))
+            {
+                return null;
+            }
+
+            return ImmutableHashMapExtensions.GetOrAdd(ref _idToAnalyzerConfigDocumentMap, documentId, s_createAnalyzerConfigDocumentFunction, this);
+        }
+
         internal DocumentState GetDocumentState(DocumentId documentId)
         {
             return _projectState.GetDocumentState(documentId);
@@ -264,6 +291,12 @@ namespace Microsoft.CodeAnalysis
         private static TextDocument CreateAdditionalDocument(DocumentId documentId, Project project)
         {
             return new TextDocument(project, project._projectState.GetAdditionalDocumentState(documentId));
+        }
+
+        private static readonly Func<DocumentId, Project, AnalyzerConfigDocument> s_createAnalyzerConfigDocumentFunction = CreateAnalyzerConfigDocument;
+        private static AnalyzerConfigDocument CreateAnalyzerConfigDocument(DocumentId documentId, Project project)
+        {
+            return new AnalyzerConfigDocument(project, project._projectState.GetAnalyzerConfigDocumentState(documentId));
         }
 
         /// <summary>
