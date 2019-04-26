@@ -67,6 +67,11 @@
         <target state="translated">Ungültige Option "{0}" for "/nullable". Zulässig sind nur "disable", "enable", "safeonly", "warnings" oder "safeonlywarnings".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableTypeof">
+        <source>The typeof operator cannot be used on a nullable reference type</source>
+        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Ungültiger Operand für die Musterübereinstimmung. Ein Wert ist erforderlich, gefunden wurde aber "{0}".</target>

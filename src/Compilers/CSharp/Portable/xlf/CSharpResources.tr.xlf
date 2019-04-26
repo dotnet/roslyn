@@ -67,6 +67,11 @@
         <target state="translated">/nullable için geçersiz '{0}' seçeneği; 'disable', 'enable', 'safeonly', 'warnings' veya 'safeonlywarnings' olmalıdır</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableTypeof">
+        <source>The typeof operator cannot be used on a nullable reference type</source>
+        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Desen eşleşmesi için işlenen geçersiz. Değer gerekiyordu ancak '{0}' bulundu.</target>

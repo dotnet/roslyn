@@ -55,18 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 index = ~index - 1;
             }
 
-            bool? state = null;
+            // Generated files have an initial nullable context that is "disabled"
+            bool? state = (_isGeneratedCode) ? false : (bool?)null;
             if (index >= 0)
             {
                 Debug.Assert(_directives[index].Position <= position);
                 Debug.Assert(index == _directives.Length - 1 || position < _directives[index + 1].Position);
                 state = _directives[index].State;
-            }
-
-            if (state == null && _isGeneratedCode)
-            {
-                // Generated files have a default nullable context that is "disabled".
-                state = false;
             }
 
             return state;
