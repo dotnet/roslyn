@@ -189,6 +189,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets the additional document in this solution with the specified document ID.
+        /// </summary>
+        public AnalyzerConfigDocument GetAnalyzerConfigDocument(DocumentId documentId)
+        {
+            if (documentId != null && this.ContainsAnalyzerConfigDocument(documentId))
+            {
+                return this.GetProject(documentId.ProjectId).GetAnalyzerConfigDocument(documentId);
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Gets the document in this solution with the specified syntax tree.
         /// </summary>
         public Document GetDocument(SyntaxTree syntaxTree)
