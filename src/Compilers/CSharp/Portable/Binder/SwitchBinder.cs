@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(resultantGoverningType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true));
                         return binder.CreateConversion(node, switchGoverningExpression, conversion, isCast: false, conversionGroupOpt: null, resultantGoverningType, diagnostics);
                     }
-                    else if (switchGoverningType.SpecialType != SpecialType.System_Void)
+                    else if (!switchGoverningType.IsVoidType())
                     {
                         // Otherwise (3) satisfied
                         if (!PatternsEnabled)
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!switchGoverningExpression.HasAnyErrors)
             {
-                Debug.Assert((object)switchGoverningExpression.Type == null || switchGoverningExpression.Type.SpecialType == SpecialType.System_Void);
+                Debug.Assert((object)switchGoverningExpression.Type == null || switchGoverningExpression.Type.IsVoidType());
                 diagnostics.Add(ErrorCode.ERR_SwitchExpressionValueExpected, node.Location, switchGoverningExpression.Display);
             }
 

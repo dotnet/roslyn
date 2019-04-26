@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                   out _lazyParameters, alsoCopyParamsModifier: true);
                 }
             }
-            else if (_lazyReturnType.SpecialType != SpecialType.System_Void)
+            else if (!_lazyReturnType.IsVoidType())
             {
                 PropertySymbol associatedProperty = _property;
                 var type = associatedProperty.TypeWithAnnotations;
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return this.ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return this.ReturnType.IsVoidType(); }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters

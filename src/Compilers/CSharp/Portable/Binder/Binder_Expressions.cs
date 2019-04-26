@@ -2952,7 +2952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
+            if ((object)bestType == null || bestType.IsVoidType()) // Dev10 also reports ERR_ImplicitlyTypedArrayNoBestType for void.
             {
                 Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, node);
                 bestType = CreateErrorType();
@@ -2979,7 +2979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol bestType = BestTypeInferrer.InferBestType(boundInitializerExpressions, this.Conversions, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            if ((object)bestType == null || bestType.SpecialType == SpecialType.System_Void)
+            if ((object)bestType == null || bestType.IsVoidType())
             {
                 Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, node);
                 bestType = CreateErrorType();
@@ -3630,7 +3630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 TypeSymbol constructorReturnType = constructor.ReturnType;
-                Debug.Assert(constructorReturnType.SpecialType == SpecialType.System_Void); //true of all constructors
+                Debug.Assert(constructorReturnType.IsVoidType()); //true of all constructors
 
                 // Get the bound arguments and the argument names.
                 // : this(__arglist()) is legal
@@ -5649,7 +5649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // No member accesses on void
-            if ((object)leftType != null && leftType.SpecialType == SpecialType.System_Void)
+            if ((object)leftType != null && leftType.IsVoidType())
             {
                 diagnostics.Add(ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), SyntaxFacts.GetText(operatorToken.Kind()), leftType);
                 return BadExpression(node, boundLeft);
@@ -7142,7 +7142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
             }
 
-            if (pointedAtType.SpecialType == SpecialType.System_Void)
+            if (pointedAtType.IsVoidType())
             {
                 Error(diagnostics, ErrorCode.ERR_VoidError, expr.Syntax);
                 hasErrors = true;
@@ -7998,7 +7998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if access has value type, the type of the conditional access is nullable of that
             // https://github.com/dotnet/roslyn/issues/35075: The test `accessType.IsValueType && !accessType.IsNullableType()`
             // should probably be `accessType.IsNonNullableValueType()`
-            if (accessType.IsValueType && !accessType.IsNullableType() && accessType.SpecialType != SpecialType.System_Void)
+            if (accessType.IsValueType && !accessType.IsNullableType() && !accessType.IsVoidType())
             {
                 accessType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(accessType);
             }
@@ -8114,7 +8114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // No member accesses on void
-            if (receiverType.SpecialType == SpecialType.System_Void)
+            if (receiverType.IsVoidType())
             {
                 Error(diagnostics, ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), operatorToken.Text, receiverType);
                 return BadExpression(receiverSyntax, receiver);

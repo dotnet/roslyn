@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = expression.Type;
             if (((object)type == null) ||
                 type.IsDynamic() ||
-                (type.SpecialType == SpecialType.System_Void))
+                (type.IsVoidType()))
             {
                 return false;
             }
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private bool GetGetAwaiterMethod(BoundExpression expression, SyntaxNode node, DiagnosticBag diagnostics, out MethodSymbol getAwaiterMethod, out BoundExpression getAwaiterCall)
         {
-            if (expression.Type.SpecialType == SpecialType.System_Void)
+            if (expression.Type.IsVoidType())
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitArgVoidCall, node);
                 getAwaiterMethod = null;

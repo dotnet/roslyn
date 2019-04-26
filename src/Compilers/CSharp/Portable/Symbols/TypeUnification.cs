@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.TypeParameter:
                     {
                         // These substitutions are not allowed in C#
-                        if (t2.TypeKind == TypeKind.Pointer || t2.SpecialType == SpecialType.System_Void)
+                        if (t2.TypeKind == TypeKind.Pointer || t2.IsVoidType())
                         {
                             return false;
                         }

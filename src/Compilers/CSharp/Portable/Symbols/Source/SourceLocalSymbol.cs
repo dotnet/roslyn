@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // If we got a valid result that was not void then use the inferred type
                 // else create an error type.
                 if (inferredType.HasType &&
-                    inferredType.SpecialType != SpecialType.System_Void)
+                    !inferredType.IsVoidType())
                 {
                     declType = inferredType;
                 }

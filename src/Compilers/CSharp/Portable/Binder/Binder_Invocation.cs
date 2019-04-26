@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     analyzedArguments.Arguments[i] = GenerateConversionForAssignment(objType, argument, diagnostics);
                 }
-                else if (argument.Type.SpecialType == SpecialType.System_Void)
+                else if (argument.Type.IsVoidType())
                 {
                     Error(diagnostics, ErrorCode.ERR_CantUseVoidInArglist, argument.Syntax);
                 }

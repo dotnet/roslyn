@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Add(_location, useSiteDiagnostics);
 
-            if (type.SpecialType == SpecialType.System_Void)
+            if (type.IsVoidType())
             {
                 ErrorCode errorCode = this.IsIndexer ? ErrorCode.ERR_IndexerCantHaveVoidType : ErrorCode.ERR_PropertyCantHaveVoidType;
                 diagnostics.Add(errorCode, _location, this);

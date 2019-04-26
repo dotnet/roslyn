@@ -1366,7 +1366,7 @@ oneMoreTime:
 
                 // We can't declare a reference to void, so if the pointed-at type is void, use native int
                 // (represented here by IntPtr) instead.
-                translatedType = pointedAtType.SpecialType == SpecialType.System_Void
+                translatedType = pointedAtType.IsVoidType()
                     ? _module.GetSpecialType(SpecialType.System_IntPtr, syntaxNode, _diagnostics)
                     : _module.Translate(pointedAtType, syntaxNode, _diagnostics);
             }

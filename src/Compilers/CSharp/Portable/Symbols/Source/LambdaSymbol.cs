@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return this.ReturnTypeWithAnnotations.HasType && this.ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return this.ReturnTypeWithAnnotations.HasType && this.ReturnType.IsVoidType(); }
         }
 
         public override RefKind RefKind

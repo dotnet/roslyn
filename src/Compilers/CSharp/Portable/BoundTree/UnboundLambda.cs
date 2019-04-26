@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Otherwise the return type is Task or Task<T>.
             NamedTypeSymbol taskType = null;
             var delegateReturnType = delegateType?.GetDelegateType()?.DelegateInvokeMethod?.ReturnType as NamedTypeSymbol;
-            if ((object)delegateReturnType != null && delegateReturnType.SpecialType != SpecialType.System_Void)
+            if ((object)delegateReturnType != null && !delegateReturnType.IsVoidType())
             {
                 object builderType;
                 if (delegateReturnType.IsCustomTaskType(out builderType))
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TypeWithAnnotations.Create(resultType);
             }
 
-            if (!bestResultType.HasType || bestResultType.SpecialType == SpecialType.System_Void)
+            if (!bestResultType.HasType || bestResultType.IsVoidType())
             {
                 // If the best type was 'void', ERR_CantReturnVoid is reported while binding the "return void"
                 // statement(s).
@@ -569,7 +569,7 @@ haveLambdaBodyAndBinders:
             if (IsAsync && !ErrorFacts.PreventsSuccessfulDelegateConversion(diagnostics))
             {
                 if (returnType.HasType && // Can be null if "delegateType" is not actually a delegate type.
-                    returnType.SpecialType != SpecialType.System_Void &&
+                    !returnType.IsVoidType() &&
                     !returnType.Type.IsNonGenericTaskType(Binder.Compilation) &&
                     !returnType.Type.IsGenericTaskType(Binder.Compilation))
                 {
@@ -748,7 +748,7 @@ haveLambdaBodyAndBinders:
                     if (isAsync)
                     {
                         var delegateReturnType = invoke.ReturnType as NamedTypeSymbol;
-                        if ((object)delegateReturnType != null && delegateReturnType.SpecialType != SpecialType.System_Void)
+                        if ((object)delegateReturnType != null && !delegateReturnType.IsVoidType())
                         {
                             if (delegateReturnType.IsCustomTaskType(out var builderType))
                             {
