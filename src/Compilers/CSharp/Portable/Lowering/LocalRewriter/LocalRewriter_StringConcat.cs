@@ -92,15 +92,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case 2:
-                    result = RewriteStringConcatenationTwoExprs(syntax, leftFlattened.ToImmutable());
+                    var left = leftFlattened[0];
+                    var right = leftFlattened[1];
+                    result = RewriteStringConcatenationTwoExprs(syntax, left, right);
                     break;
 
                 case 3:
-                    result = RewriteStringConcatenationThreeExprs(syntax, leftFlattened.ToImmutable());
+                    {
+                        var first = leftFlattened[0];
+                        var second = leftFlattened[1];
+                        var third = leftFlattened[2];
+                        result = RewriteStringConcatenationThreeExprs(syntax, first, second, third);
+                    }
                     break;
 
                 case 4:
-                    result = RewriteStringConcatenationFourExprs(syntax, leftFlattened.ToImmutable());
+                    {
+                        var first = leftFlattened[0];
+                        var second = leftFlattened[1];
+                        var third = leftFlattened[2];
+                        var fourth = leftFlattened[3];
+                        result = RewriteStringConcatenationFourExprs(syntax, first, second, third, fourth);
+                    }
                     break;
 
                 default:
@@ -280,43 +293,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
+        private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
         {
-            Debug.Assert(loweredArgs.Length == 2);
-            Debug.Assert(loweredArgs.All(a => a.HasErrors || a.Type.SpecialType == SpecialType.System_String));
+            Debug.Assert(loweredLeft.HasAnyErrors || loweredLeft.Type.IsStringType());
+            Debug.Assert(loweredRight.HasAnyErrors || loweredRight.Type.IsStringType());
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringString);
             Debug.Assert((object)method != null);
 
-            return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredArgs);
+            return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
         }
 
-        private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
+        private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
         {
-            Debug.Assert(loweredArgs.Length == 3);
-            Debug.Assert(loweredArgs.All(a => a.HasErrors || a.Type.SpecialType == SpecialType.System_String));
+            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type.IsStringType());
+            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type.IsStringType());
+            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type.IsStringType());
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, null, method, loweredArgs);
+            return BoundCall.Synthesized(syntax, null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
         }
 
-        private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
+        private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth)
         {
-            Debug.Assert(loweredArgs.Length == 4);
-            Debug.Assert(loweredArgs.All(a => a.HasErrors || a.Type.SpecialType == SpecialType.System_String));
+            Debug.Assert(loweredFirst.HasAnyErrors || loweredFirst.Type.IsStringType());
+            Debug.Assert(loweredSecond.HasAnyErrors || loweredSecond.Type.IsStringType());
+            Debug.Assert(loweredThird.HasAnyErrors || loweredThird.Type.IsStringType());
+            Debug.Assert(loweredFourth.HasAnyErrors || loweredFourth.Type.IsStringType());
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, null, method, loweredArgs);
+            return BoundCall.Synthesized(syntax, null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird, loweredFourth));
         }
 
         private BoundExpression RewriteStringConcatenationManyExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
         {
             Debug.Assert(loweredArgs.Length > 4);
-            Debug.Assert(loweredArgs.All(a => a.HasErrors || a.Type.SpecialType == SpecialType.System_String));
+            Debug.Assert(loweredArgs.All(a => a.HasErrors || a.Type.IsStringType()));
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringArray);
             Debug.Assert((object)method != null);
@@ -380,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If it's a string already, just return it
-            if (expr.Type.SpecialType == SpecialType.System_String)
+            if (expr.Type.IsStringType())
             {
                 return expr;
             }
