@@ -25,7 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         public string SelectDependents => ServicesVSResources.Select_Dependents;
         public string MembersHeader => ServicesVSResources.Members;
         public string MakeAbstractHeader => ServicesVSResources.Make_abstract;
-        public string InterfaceCannotHaveField => ServicesVSResources.Interface_cannot_have_field;
 
         public PullMemberUpDialogViewModel ViewModel { get; }
 
