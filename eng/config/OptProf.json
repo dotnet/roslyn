@@ -4,6 +4,12 @@
       "name": "Roslyn.VisualStudio.Setup.vsix",
       "tests": [
         {
+          "container": "ManagedLangs",
+          "testCases": [
+            "ManagedLangs.OptProfTest.DDRIT_RPS_ManagedLangs"
+          ]
+        },
+        {
           "container": "TeamEng",
           "testCases": [
             "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
@@ -52,6 +58,12 @@
       "name": "Microsoft.CodeAnalysis.Compilers.vsix",
       "tests": [
         {
+          "container": "ManagedLangs",
+          "testCases": [
+            "ManagedLangs.OptProfTest.DDRIT_RPS_ManagedLangs"
+          ]
+        },
+        {
           "container": "TeamEng",
           "testCases": [
             "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
@@ -76,6 +88,12 @@
         }
       ],
       "tests": [
+        {
+          "container": "ManagedLangs",
+          "testCases": [
+            "ManagedLangs.OptProfTest.DDRIT_RPS_ManagedLangs"
+          ]
+        },
         {
           "container": "TeamEng",
           "testCases": [
@@ -119,6 +137,12 @@
         }
       ],
       "tests": [
+        {
+          "container": "ManagedLangs",
+          "testCases": [
+            "ManagedLangs.OptProfTest.DDRIT_RPS_ManagedLangs"
+          ]
+        },
         {
           "container": "TeamEng",
           "testCases": [
