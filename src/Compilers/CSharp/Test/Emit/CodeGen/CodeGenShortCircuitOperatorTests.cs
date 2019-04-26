@@ -3704,7 +3704,7 @@ class Program
   IL_000e:  call       ""Program.C1 Program.C1?.GetValueOrDefault()""
   IL_0013:  stloc.0
   IL_0014:  ldloca.s   V_0
-  IL_0016:  call       ""int Program.C1.x.get""
+  IL_0016:  call       ""readonly int Program.C1.x.get""
   IL_001b:  ret
 }
 ").VerifyIL("Program.Test2(Program.C1?)", @"
@@ -3725,7 +3725,7 @@ class Program
   IL_0016:  call       ""Program.C1 Program.C1?.GetValueOrDefault()""
   IL_001b:  stloc.2
   IL_001c:  ldloca.s   V_2
-  IL_001e:  call       ""int? Program.C1.y.get""
+  IL_001e:  call       ""readonly int? Program.C1.y.get""
   IL_0023:  stloc.0
   IL_0024:  ldloca.s   V_0
   IL_0026:  call       ""bool int?.HasValue.get""
@@ -3793,7 +3793,7 @@ class Program
   IL_000d:  call       ""Program.C1 Program.C1?.GetValueOrDefault()""
   IL_0012:  stloc.0
   IL_0013:  ldloca.s   V_0
-  IL_0015:  call       ""int Program.C1.x.get""
+  IL_0015:  call       ""readonly int Program.C1.x.get""
   IL_001a:  ret
 }
 
@@ -3816,7 +3816,7 @@ class Program
   IL_0015:  call       ""Program.C1 Program.C1?.GetValueOrDefault()""
   IL_001a:  stloc.2
   IL_001b:  ldloca.s   V_2
-  IL_001d:  call       ""int? Program.C1.y.get""
+  IL_001d:  call       ""readonly int? Program.C1.y.get""
   IL_0022:  stloc.0
   IL_0023:  ldloca.s   V_0
   IL_0025:  call       ""bool int?.HasValue.get""

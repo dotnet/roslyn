@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddAccessibilityIfRequired(symbol);
                 AddMemberModifiersIfRequired(symbol);
 
-                if ((symbol as MethodSymbol)?.IsDeclaredReadOnly == true)
+                if ((symbol as MethodSymbol)?.IsDeclaredReadOnly == true && symbol.ContainingType?.IsReadOnly == false)
                 {
                     AddReadOnlyIfRequired();
                 }

@@ -367,7 +367,7 @@ public struct S
   IL_0003:  stfld      ""int S.<X>k__BackingField""
   IL_0008:  ldarg.0
   IL_0009:  ldarg.0
-  IL_000a:  call       ""int S.X.get""
+  IL_000a:  call       ""readonly int S.X.get""
   IL_000f:  stfld      ""int S.<Y>k__BackingField""
   IL_0014:  ret
 }
@@ -408,11 +408,11 @@ struct C
   IL_0003:  stfld      ""int C.<I>k__BackingField""
   IL_0008:  ldarg.0
   IL_0009:  ldarg.0
-  IL_000a:  call       ""int C.I.get""
+  IL_000a:  call       ""readonly int C.I.get""
   IL_000f:  call       ""void C.J.set""
   IL_0014:  ldarg.0
   IL_0015:  ldarg.0
-  IL_0016:  call       ""int C.J.get""
+  IL_0016:  call       ""readonly int C.J.get""
   IL_001b:  stfld      ""int C.<I>k__BackingField""
   IL_0020:  ldarg.0
   IL_0021:  ldarg.1

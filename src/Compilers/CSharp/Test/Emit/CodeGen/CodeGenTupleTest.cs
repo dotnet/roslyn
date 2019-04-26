@@ -14456,8 +14456,8 @@ namespace System
                 "(System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2)",
                 "System.String (System.Int32, System.Int32).ToString()",
                 "System.Int32 (System.Int32, System.Int32).<P1>k__BackingField",
-                "System.Int32 (System.Int32, System.Int32).P1 { get; set; }",
-                "System.Int32 (System.Int32, System.Int32).P1.get",
+                "System.Int32 (System.Int32, System.Int32).P1 { readonly get; set; }",
+                "readonly System.Int32 (System.Int32, System.Int32).P1.get",
                 "void (System.Int32, System.Int32).P1.set",
                 "System.Int32 (System.Int32, System.Int32).this[System.Int32 a, System.Int32 b] { get; }",
                 "System.Int32 (System.Int32, System.Int32).this[System.Int32 a, System.Int32 b].get",
@@ -14470,7 +14470,7 @@ namespace System
                          m1Tuple.MemberNames.ToArray());
             Assert.Equal(m1Tuple.TupleUnderlyingType.GetEarlyAttributeDecodingMembers().Select(m => m.Name).ToArray(),
                          m1Tuple.GetEarlyAttributeDecodingMembers().Select(m => m.Name).ToArray());
-            Assert.Equal("System.Int32 (System.Int32, System.Int32).P1 { get; set; }", m1Tuple.GetEarlyAttributeDecodingMembers("P1").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 (System.Int32, System.Int32).P1 { readonly get; set; }", m1Tuple.GetEarlyAttributeDecodingMembers("P1").Single().ToTestDisplayString());
 
             var m2Tuple = (NamedTypeSymbol)c.GetMember<MethodSymbol>("M2").ReturnType;
             var m3Tuple = (NamedTypeSymbol)c.GetMember<MethodSymbol>("M3").ReturnType;
@@ -14486,7 +14486,7 @@ namespace System
             Assert.Equal(SymbolKind.Property, m1P1.Kind);
             Assert.Same(m1P1, m1P1.OriginalDefinition);
             Assert.True(m1P1.Equals(m1P1));
-            Assert.Equal("System.Int32 System.ValueTuple<System.Int32, System.Int32>.P1 { get; set; }", m1P1.TupleUnderlyingProperty.ToTestDisplayString());
+            Assert.Equal("System.Int32 System.ValueTuple<System.Int32, System.Int32>.P1 { readonly get; set; }", m1P1.TupleUnderlyingProperty.ToTestDisplayString());
             Assert.Same(m1Tuple, m1P1.ContainingSymbol);
             Assert.Same(m1Tuple.TupleUnderlyingType, m1P1.TupleUnderlyingProperty.ContainingSymbol);
             Assert.True(m1P1.TypeWithAnnotations.CustomModifiers.IsEmpty);
