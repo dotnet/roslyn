@@ -74,7 +74,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override bool HasAnyAbstractValue(TaintedDataAnalysisData data)
             {
-                return this.CurrentAnalysisData.HasAnyAbstractValue;
+                return data.HasAnyAbstractValue;
             }
 
             protected override TaintedDataAnalysisData MergeAnalysisData(TaintedDataAnalysisData value1, TaintedDataAnalysisData value2)
