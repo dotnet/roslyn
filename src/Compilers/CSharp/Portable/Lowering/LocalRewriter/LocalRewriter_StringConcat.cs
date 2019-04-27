@@ -446,30 +446,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expr.ConstantValue != null ||
                 (structToStringMethod == null && !expr.Type.IsTypeParameter()) ||
                 structToStringMethod?.IsEffectivelyReadOnly == true;
-            if (!callWithoutCopy)
-            {
-                expr = new BoundPassByCopy(expr.Syntax, expr, expr.Type);
-            }
 
             // No need for a conditional access if it's a value type - we know it's not null.
             if (expr.Type.IsValueType)
             {
+                if (!callWithoutCopy)
+                {
+                    expr = new BoundPassByCopy(expr.Syntax, expr, expr.Type);
+                }
                 return BoundCall.Synthesized(expr.Syntax, expr, objectToStringMethod);
             }
 
-            int currentConditionalAccessID = ++_currentConditionalAccessID;
+            if (callWithoutCopy)
+            {
+                return makeConditionalAccess(expr);
+            }
+            else
+            {
+                // If we do conditional access on a copy, we need a proper BoundLocal rather than a
+                // BoundPassByCopy (as it's accessed multiple times). If we don't do this, and the
+                // receiver is an unconstrained generic parameter, BoundLoweredConditionalAccess has
+                // to generate a lot of code to ensure it only accesses the copy once (which is pointless).
+                var temp = _factory.StoreToTemp(expr, out var store);
+                return _factory.Sequence(
+                    ImmutableArray.Create(temp.LocalSymbol),
+                    ImmutableArray.Create<BoundExpression>(store),
+                    makeConditionalAccess(temp));
+            }
 
-            return new BoundLoweredConditionalAccess(
-                syntax,
-                expr,
-                hasValueMethodOpt: null,
-                whenNotNull: BoundCall.Synthesized(
+            BoundExpression makeConditionalAccess(BoundExpression receiver)
+            {
+                int currentConditionalAccessID = ++_currentConditionalAccessID;
+
+                return new BoundLoweredConditionalAccess(
                     syntax,
-                    new BoundConditionalReceiver(syntax, currentConditionalAccessID, expr.Type),
-                    objectToStringMethod),
-                whenNullOpt: null,
-                id: currentConditionalAccessID,
-                type: _compilation.GetSpecialType(SpecialType.System_String));
+                    receiver,
+                    hasValueMethodOpt: null,
+                    whenNotNull: BoundCall.Synthesized(
+                        syntax,
+                        new BoundConditionalReceiver(syntax, currentConditionalAccessID, expr.Type),
+                        objectToStringMethod),
+                    whenNullOpt: null,
+                    id: currentConditionalAccessID,
+                    type: _compilation.GetSpecialType(SpecialType.System_String));
+            }
         }
     }
 }
