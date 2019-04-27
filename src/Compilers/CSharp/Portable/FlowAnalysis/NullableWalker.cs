@@ -4816,23 +4816,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)deconstructMethod != null)
                 {
-                    _ = CheckPossibleNullReceiver(right);
-
-                    if (invocation.InvokedAsExtensionMethod && invocation.Method.IsGenericMethod)
+                    if (!invocation.InvokedAsExtensionMethod)
                     {
-                        // re-infer the deconstruct parameters based on the 'this' parameter 
-                        ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n);
-                        placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResultWithAnnotations));
-                        for (int i = 0; i < n; i++)
-                        {
-                            placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
-                        }
-                        deconstructMethod = InferMethodTypeArguments(invocation, deconstructMethod, placeholderArgs.ToImmutableAndFree());
+                        _ = CheckPossibleNullReceiver(right);
 
-                        // check the constraints remain valid with the re-inferred parameter types
-                        if (ConstraintsHelper.RequiresChecking(deconstructMethod))
+                        // update the deconstruct method with any inferred type parameters of the containing type
+                        if (deconstructMethod.OriginalDefinition != deconstructMethod)
                         {
-                            CheckMethodConstraints(invocation.Syntax, deconstructMethod);
+                            deconstructMethod = deconstructMethod.OriginalDefinition.AsMember((NamedTypeSymbol)rightResult.Type);
+                        }
+                    }
+                    else
+                    {
+                        // Check nullability for `this` parameter
+                        var parameter = deconstructMethod.Parameters[0];
+                        VisitArgumentConversion(
+                                right, conversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations,
+                                new VisitArgumentResult(new VisitResult(rightResult, rightResultWithAnnotations), stateForLambda: default),
+                                extensionMethodThisArgument: true);
+
+                        if (deconstructMethod.IsGenericMethod)
+                        {
+                            // re-infer the deconstruct parameters based on the 'this' parameter 
+                            ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n);
+                            placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResultWithAnnotations));
+                            for (int i = 0; i < n; i++)
+                            {
+                                placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
+                            }
+                            deconstructMethod = InferMethodTypeArguments(invocation, deconstructMethod, placeholderArgs.ToImmutableAndFree());
+
+                            // check the constraints remain valid with the re-inferred parameter types
+                            if (ConstraintsHelper.RequiresChecking(deconstructMethod))
+                            {
+                                CheckMethodConstraints(invocation.Syntax, deconstructMethod);
+                            }
                         }
                     }
 
@@ -4843,16 +4861,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int i = 0; i < n; i++)
                     {
                         var variable = variables[i];
+                        var parameter = parameters[i + offset];
                         var underlyingConversion = conversion.UnderlyingConversions[i];
                         var nestedVariables = variable.NestedVariables;
                         if (nestedVariables != null)
                         {
-                            var nestedRight = CreatePlaceholderIfNecessary(invocation.Arguments[i + offset], deconstructMethod.Parameters[i + offset].TypeWithAnnotations);
+                            var nestedRight = CreatePlaceholderIfNecessary(invocation.Arguments[i + offset], parameter.TypeWithAnnotations);
                             VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: nestedRight);
                         }
                         else
                         {
-                            var parameter = parameters[i + offset];
                             VisitArgumentConversion(
                                 variable.Expression, underlyingConversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations,
                                 new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
