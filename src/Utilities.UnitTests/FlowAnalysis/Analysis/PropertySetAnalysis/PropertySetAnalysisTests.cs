@@ -1059,6 +1059,7 @@ class TestClass
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(
+                        HazardousUsageEvaluatorKind.Return,
                         (PropertySetAbstractValue abstractValue) =>
                         {
                             // With only one property being tracked, this is straightforward.

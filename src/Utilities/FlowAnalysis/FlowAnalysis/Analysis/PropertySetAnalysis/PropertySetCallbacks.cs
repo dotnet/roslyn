@@ -30,7 +30,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         }
 
         /// <summary>
-        /// A <see cref="HazardousUsageEvaluator.ReturnEvaluationCallback"/> for all properties flagged being hazardous.
+        /// A <see cref="HazardousUsageEvaluator.EvaluationCallback"/> for all properties flagged being hazardous.
         /// </summary>
         /// <param name="propertySetAbstractValue">PropertySetAbstract value.</param>
         /// <returns>If all properties are flagged, then flagged; if at least one property is unflagged, then unflagged; otherwise maybe flagged.</returns>
@@ -79,6 +79,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="propertySetAbstractValue">PropertySetAbstract value.</param>
         /// <returns>If all properties are flagged, then flagged; if all properties are unflagged, then unflagged; otherwise maybe flagged.</returns>
         [SuppressMessage("Usage", "CA1801", Justification = "Intentionally ignored; have to match delegate signature")]
+        [SuppressMessage("Usage", "IDE0060", Justification = "Intentionally ignored; have to match delegate signature")]
         public static HazardousUsageEvaluationResult HazardousIfAllFlagged(
             IMethodSymbol methodSymbol,
             PropertySetAbstractValue propertySetAbstractValue)

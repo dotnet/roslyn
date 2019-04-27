@@ -53,8 +53,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 this.WellKnownTypeProvider.TryGetTypeByMetadataName(analysisContext.TypeToTrackMetadataName, out this.TrackedTypeSymbol);
                 Debug.Assert(this.TrackedTypeSymbol != null);
 
-                if (this.DataFlowAnalysisContext.OwningSymbol.Kind == SymbolKind.Field
-                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetReturnHazardousUsageEvaluator(out _))
+                if ((this.DataFlowAnalysisContext.OwningSymbol.Kind == SymbolKind.Field
+                        || this.DataFlowAnalysisContext.OwningSymbol.Kind == SymbolKind.Property)
+                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(out _))
                 {
                     this.TrackedObjectCreations = PooledHashSet<IObjectCreationOperation>.GetInstance();
                 }
@@ -262,7 +263,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     try
                     {
-                        this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetReturnHazardousUsageEvaluator(
+                        this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(
                             out HazardousUsageEvaluator returnValueHazardousUsageEvaluator);
                         Debug.Assert(returnValueHazardousUsageEvaluator != null);
                         foreach (IObjectCreationOperation objectCreationOperation in this.TrackedObjectCreations)

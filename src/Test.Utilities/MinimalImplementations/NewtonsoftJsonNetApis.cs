@@ -161,7 +161,7 @@ namespace Newtonsoft.Json
     }
 }
 
-public class MyISerializationBinder : ISerializationBinder
+public class MyISerializationBinder : Newtonsoft.Json.ISerializationBinder
 {
     public Type BindToType(string assemblyName, string typeName)
     {

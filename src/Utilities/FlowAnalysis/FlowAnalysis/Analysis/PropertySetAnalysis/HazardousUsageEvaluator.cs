@@ -21,11 +21,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public delegate HazardousUsageEvaluationResult InvocationEvaluationCallback(IMethodSymbol methodSymbol, PropertySetAbstractValue propertySetAbstractValue);
 
         /// <summary>
-        /// Evaluates if the return statement with a given <see cref="PropertySetAbstractValue"/> is hazardous or not.
+        /// Evaluates if a given <see cref="PropertySetAbstractValue"/> is hazardous or not.
         /// </summary>
         /// <param name="propertySetAbstractValue">Abstract value of the type being tracked by PropertySetAnalysis.</param>
         /// <returns>Evaluation result of whether the usage is hazardous.</returns>
-        public delegate HazardousUsageEvaluationResult ReturnEvaluationCallback(PropertySetAbstractValue propertySetAbstractValue);
+        public delegate HazardousUsageEvaluationResult EvaluationCallback(PropertySetAbstractValue propertySetAbstractValue);
 
         /// <summary>
         /// Initializes a <see cref="HazardousUsageEvaluator"/> that evaluates a method invocation on the type being tracked by PropertySetAnalysis.
@@ -36,6 +36,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
             MethodName = trackedTypeMethodName ?? throw new ArgumentNullException(nameof(trackedTypeMethodName));
             InvocationEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
+            Kind = HazardousUsageEvaluatorKind.Invocation;
         }
 
         /// <summary>
@@ -51,20 +52,31 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             MethodName = methodName ?? throw new ArgumentNullException(nameof(methodName));
             ParameterNameOfPropertySetObject = parameterNameOfPropertySetObject ?? throw new ArgumentNullException(nameof(parameterNameOfPropertySetObject));
             InvocationEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
+            Kind = HazardousUsageEvaluatorKind.Invocation;
         }
 
         /// <summary>
         /// Initializes a <see cref="HazardousUsageEvaluator"/> that evaluates a return statement with a return value of the tracked type.
         /// </summary>
         /// <param name="evaluator">Evaluation callback.</param>
-        public HazardousUsageEvaluator(ReturnEvaluationCallback evaluator)
+        public HazardousUsageEvaluator(HazardousUsageEvaluatorKind kind, EvaluationCallback evaluator)
         {
+            if (kind != HazardousUsageEvaluatorKind.Return && kind != HazardousUsageEvaluatorKind.Initialization)
+            {
+                throw new ArgumentException(
+                    "kind must be Return or Initialization.  Use other constructors for Invocation.",
+                    nameof(kind));
+            }
+
+            Kind = kind;
             ReturnEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
         }
 
         private HazardousUsageEvaluator()
         {
         }
+
+        public HazardousUsageEvaluatorKind Kind { get; }
 
         /// <summary>
         /// Name of the type containing the method, or null if method is part of the type being tracked by PropertySetAnalysis or this is for a return statement.
@@ -89,7 +101,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Evaluates if the return statement with a given <see cref="PropertySetAbstractValue"/> is hazardous or not.
         /// </summary>
-        public ReturnEvaluationCallback ReturnEvaluator { get; }
+        public EvaluationCallback ReturnEvaluator { get; }
 
         public override int GetHashCode()
         {

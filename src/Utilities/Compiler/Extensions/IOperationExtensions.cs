@@ -410,7 +410,7 @@ namespace Analyzer.Utilities.Extensions
         /// <returns></returns>
         public static IOperation GetInnermostFunction(this IOperation operation)
         {
-            while (operation.Parent != null 
+            while (operation.Parent != null
                 && operation.Kind != OperationKind.AnonymousFunction
                 && operation.Kind != OperationKind.LocalFunction)
             // What's a FlowAnonymousFunction?
