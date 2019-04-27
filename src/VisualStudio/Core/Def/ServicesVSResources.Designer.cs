@@ -1452,11 +1452,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Live code analysis.
+        ///   Looks up a localized string similar to Live analysis.
         /// </summary>
-        internal static string Live_code_analysis {
+        internal static string Live_analysis {
             get {
-                return ResourceManager.GetString("Live_code_analysis", resourceCulture);
+                return ResourceManager.GetString("Live_analysis", resourceCulture);
             }
         }
         

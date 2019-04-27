@@ -117,6 +117,11 @@
         <target state="translated">種類</target>
         <note />
       </trans-unit>
+      <trans-unit id="Live_analysis">
+        <source>Live analysis</source>
+        <target state="new">Live analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
         <target state="translated">'{0}' を抽象化する</target>
@@ -1826,11 +1831,6 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
         <target state="translated">名前付けスタイルを管理する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Live_code_analysis">
-        <source>Live code analysis</source>
-        <target state="translated">ライブ コード分析</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
