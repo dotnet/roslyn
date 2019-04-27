@@ -1353,7 +1353,6 @@ class Test
 
     static void Main()
     {
-        //m = new Mutable();
         Write(""("" + m + "")"");               // (0)
         Write(""("" + m + "")"");               // (0)
 
