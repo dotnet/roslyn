@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddMemberModifiersIfRequired(symbol);
 
             var accessor = symbol.AddMethod ?? symbol.RemoveMethod;
-            if (accessor?.ShouldDisplayReadOnly())
+            if (accessor?.ShouldDisplayReadOnly() == true)
             {
                 AddReadOnlyIfRequired();
             }
