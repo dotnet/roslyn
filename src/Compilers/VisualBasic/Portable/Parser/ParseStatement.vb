@@ -40,8 +40,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     kind = SyntaxKind.ContinueForStatement
                     blockKeyword = DirectCast(CurrentToken, KeywordSyntax)
                     GetNextToken()
-                    controlVariable = ParseIdentifierNameAllowingKeyword()
-                    controlVariable = CheckFeatureAvailability(Feature.ContinueExitWithIdentifier, controlVariable)
+                    ' Parse optional loop identifier
+                    if CurrentToken.Kind = SyntaxKind.IdentifierToken Then
+                        controlVariable = ParseIdentifierNameAllowingKeyword()
+                        controlVariable = CheckFeatureAvailability(Feature.ContinueExitWithIdentifier, controlVariable)
+                    End If
+
                 Case SyntaxKind.WhileKeyword
                     kind = SyntaxKind.ContinueWhileStatement
                     blockKeyword = DirectCast(CurrentToken, KeywordSyntax)
@@ -114,8 +118,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     kind = SyntaxKind.ExitForStatement
                     blockKeyword = DirectCast(CurrentToken, KeywordSyntax)
                     GetNextToken()
-                    controlVariable = ParseIdentifierNameAllowingKeyword()
-                    controlVariable = CheckFeatureAvailability(Feature.ContinueExitWithIdentifier, controlVariable)
+                    ' Parse optional loop identifier
+                    if CurrentToken.Kind = SyntaxKind.IdentifierToken Then
+                        controlVariable = ParseIdentifierNameAllowingKeyword()
+                        controlVariable = CheckFeatureAvailability(Feature.ContinueExitWithIdentifier, controlVariable)
+                    End If
 
                 Case SyntaxKind.WhileKeyword
                     kind = SyntaxKind.ExitWhileStatement

@@ -219,6 +219,12 @@ Public Class ParseStatements
                            exit for 
                         next
 
+                        for j = 0 to 10
+                            for i = 0 to 10 
+                               exit for j
+                            next
+                        next
+
                         select 0
                         case 0
                            exit select
