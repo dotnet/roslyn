@@ -98,10 +98,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return LanguageVersion.VisualBasic15_5
 
                 Case Feature.UnconstrainedTypeParameterInConditional,
-                    Feature.CommentsAfterLineContinuation,
-                    Feature.ContinueExitWithIdentifier ' [PROTOTYPE]
+                    Feature.CommentsAfterLineContinuation
+                     Return LanguageVersion.VisualBasic16
 
-                    Return LanguageVersion.VisualBasic16
+                Case Feature.ContinueExitWithIdentifier ' [PROTOTYPE]
+                    Return LanguageVersion.VisualBasic15
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)

@@ -212,7 +212,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rewrittenCondition = RewriteForLoopCondition(rewrittenControlVariable, rewrittenLimit, rewrittenStep,
                                                              forStatement.OperatorsOpt, positiveFlag)
 
-            Dim startLabel = GenerateLabel("start")
+            Dim startLabel = MakeStart_Label( rewrittenControlVariable.ExpressionSymbol.Name )
+            'Dim startLabel = GenerateLabel("start")
             Dim ifConditionGotoStart As BoundStatement = New BoundConditionalGoto(
                 blockSyntax,
                 rewrittenCondition,
@@ -253,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 'We do not want to associate it with statement before.
                 'This jump may be a target of another jump (for example if loops are nested) and that will make 
                 'impression of the previous statement being re-executed
-                postIncrementLabel = New GeneratedLabelSymbol("PostIncrement")
+                postIncrementLabel =MakePostIncrement_Label( rewrittenControlVariable.ExpressionSymbol.Name)
                 Dim postIncrement As New BoundLabelStatement(blockSyntax, postIncrementLabel)
 
                 gotoPostIncrement = New BoundGotoStatement(blockSyntax, postIncrementLabel, Nothing)
@@ -273,8 +274,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             statements.Add(New BoundLabelStatement(blockSyntax, startLabel))
             statements.Add(rewrittenBody)
-
-            statements.Add(New BoundLabelStatement(blockSyntax, forStatement.ContinueLabel))
+            Dim continueLbl = forStatement.ContinueLabel
+            statements.Add(New BoundLabelStatement(blockSyntax, continueLbl))
             statements.Add(rewrittenIncrement)
 
             If postIncrementLabel IsNot Nothing Then
@@ -289,8 +290,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ifConditionGotoStart = SyntheticBoundNodeFactory.HiddenSequencePoint(ifConditionGotoStart)
             End If
             statements.Add(ifConditionGotoStart)
-
-            statements.Add(New BoundLabelStatement(blockSyntax, forStatement.ExitLabel))
+            Dim exitlbl = forStatement.ExitLabel 'GenerateLabel(forStatement.ExitLabel.Name)
+            statements.Add(New BoundLabelStatement(blockSyntax, exitlbl))
 
             Dim localSymbol = forStatement.DeclaredOrInferredLocalOpt
             If localSymbol IsNot Nothing Then
@@ -303,6 +304,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 locals.ToImmutableAndFree(),
                 statements.ToImmutableAndFree
             )
+        End Function
+
+        Private Function MakePostIncrement_Label(name As String) As GeneratedLabelSymbol
+            Dim LabelName = "PostIncrement_"& If(name IsNot Nothing, name, String.Empty)
+            Return GenerateLabel(name)
+        End Function
+
+        Private Function MakeStart_Label(name As String) As GeneratedLabelSymbol
+            Dim LabelName = "start_" & If(name IsNot Nothing, name, String.Empty) 
+            Return GenerateLabel(name)
         End Function
 
         Private Shared Function WillDoAtLeastOneIteration(rewrittenInitialValue As BoundExpression,

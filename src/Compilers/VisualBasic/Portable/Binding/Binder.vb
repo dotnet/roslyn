@@ -832,15 +832,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return m_containingBinder.GetExitLabel(exitSyntaxKind)
         End Function
 
+        Public Overridable Function GetExitLabel(exitSyntaxKind As SyntaxKind, controlVariable As String) As LabelSymbol
+            If controlVariable Is Nothing THen Return Nothing
+            Return m_containingBinder.GetExitLabel(exitSyntaxKind, controlVariable)
+   End Function
+
         ''' <summary>
         ''' Get the label that a Continue XXX statement should branch to, or Nothing if we are
         ''' not inside a context that would be exited by that kind of statement. The passed in kind
         ''' is the SyntaxKind for the exit statement that would target the label (e.g. SyntaxKind.ContinueDoStatement).
         ''' </summary>
         Public Overridable Function GetContinueLabel(continueSyntaxKind As SyntaxKind) As LabelSymbol
-            Return m_containingBinder.GetContinueLabel(continueSyntaxKind)
+      Return m_containingBinder.GetContinueLabel(continueSyntaxKind)
         End Function
 
+        Public Overridable Function GetContinueLabel(continueSyntaxKind As SyntaxKind, controlVariable As string) As LabelSymbol
+            If controlVariable Is Nothing THen Return Nothing
+            Return m_containingBinder.GetContinueLabel(continueSyntaxKind, controlVariable)
+        End Function
         ''' <summary>
         ''' Get the label that a Return statement should branch to, or Nothing if we are
         ''' not inside a context that would be exited by that kind of statement. This method

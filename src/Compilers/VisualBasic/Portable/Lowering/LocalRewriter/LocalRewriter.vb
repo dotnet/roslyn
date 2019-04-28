@@ -524,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Generate a unique label with the given base name
-        Private Shared Function GenerateLabel(baseName As String) As LabelSymbol
+        Private Shared Function GenerateLabel(baseName As String) As GeneratedLabelSymbol
             Return New GeneratedLabelSymbol(baseName)
         End Function
 

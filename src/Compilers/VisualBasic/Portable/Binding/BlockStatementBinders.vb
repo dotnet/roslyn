@@ -12,26 +12,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class ExitableStatementBinder
         Inherits BlockBaseBinder
 
-        Private ReadOnly _continueLabel As LabelSymbol  ' the label to jump to for a continue (or Nothing for none)
-        Private ReadOnly _continueKind As SyntaxKind    ' the kind of continue to go there
-        Private ReadOnly _exitLabel As LabelSymbol      ' the label to jump to for an exit (or Nothing for none)
-        Private ReadOnly _exitKind As SyntaxKind        ' the kind of exit to go there
+        Friend ReadOnly _continueLabel As LabelSymbol  ' the label to jump to for a continue (or Nothing for none)
+        Friend ReadOnly _continueKind As SyntaxKind    ' the kind of continue to go there
+        Friend ReadOnly _exitLabel As LabelSymbol      ' the label to jump to for an exit (or Nothing for none)
+        Friend ReadOnly _exitKind As SyntaxKind        ' the kind of exit to go there
+        Friend ReadOnly _ID AS String 
 
         Public Sub New(enclosing As Binder,
                        continueKind As SyntaxKind,
-                       exitKind As SyntaxKind)
+                       exitKind As SyntaxKind, Optional ID As string = Nothing)
             MyBase.New(enclosing)
+            Me._ID = IF(ID is nothing,String.Empty, "_" & ID)
 
             Me._continueKind = continueKind
             If continueKind <> SyntaxKind.None Then
-                Me._continueLabel = New GeneratedLabelSymbol("continue")
+                Me._continueLabel = Generate_ContinueLabel(enclosing)
             End If
 
             Me._exitKind = exitKind
             If exitKind <> SyntaxKind.None Then
-                Me._exitLabel = New GeneratedLabelSymbol("exit")
+                Me._exitLabel = Generate_ExitLabel(enclosing)
             End If
         End Sub
+        Private Function Generate_ContinueLabel(enclosing as Binder) As LabelSymbol
+            Dim labelName = "continue" & _ID
+            Return  New GeneratedLabelSymbol(labelName)
+        End Function
+        Private Function Generate_ExitLabel(enclosing as Binder) As LabelSymbol
+            Dim labelName = "exit" & _ID
+            Return  New GeneratedLabelSymbol(labelName)
+        End Function
 
         Friend Overrides ReadOnly Property Locals As ImmutableArray(Of LocalSymbol)
             Get
@@ -44,6 +54,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _continueLabel
             Else
                 Return ContainingBinder.GetContinueLabel(continueSyntaxKind)
+            End If
+        End Function
+
+        Public Overrides Function GetContinueLabel(continueSyntaxKind As SyntaxKind, controlVariable As String) As LabelSymbol
+            Dim found = If(controlVariable Is Nothing, Nothing, me.Locals.FirstOrDefault(Function(i) i.Name=controlVariable))
+            If  _continueKind = continueSyntaxKind AndAlso controlVariable IsNot Nothing Then
+                If found IsNot Nothing Then
+                Return _continueLabel
+                Else
+                Return ContainingBinder.GetContinueLabel(continueSyntaxKind, controlVariable)
+                End If
+            ElseIf _continueKind = continueSyntaxKind Then
+                Return _continueLabel
+            Else
+                Return ContainingBinder.GetContinueLabel(continueSyntaxKind, controlVariable)
+            End If
+        End Function
+
+        Public Overrides Function GetExitLabel(exitSyntaxKind As SyntaxKind, controlVariable As String) As LabelSymbol
+            Dim found =  If(controlVariable Is Nothing, Nothing,me.Locals.FirstOrDefault(Function(i)  i.Name=controlVariable))
+            If _exitKind = exitSyntaxKind AndAlso controlVariable IsNot Nothing Then
+                If found IsNot Nothing Then
+                    Return _continueLabel
+                Else
+                    REturn ContainingBinder.GetExitLabel(exitSyntaxKind, controlVariable)
+                    End if
+            Else If _exitKind = exitSyntaxKind Then
+                Return _exitLabel
+            Else
+                Return ContainingBinder.GetExitLabel(exitSyntaxKind, controlVariable)
             End If
         End Function
 

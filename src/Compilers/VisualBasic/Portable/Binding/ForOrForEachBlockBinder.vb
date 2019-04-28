@@ -14,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend NotInheritable Class ForOrForEachBlockBinder
         Inherits ExitableStatementBinder
-
-        Private ReadOnly _syntax As ForOrForEachBlockSyntax
+       
+        Friend ReadOnly _syntax As ForOrForEachBlockSyntax
         Private _locals As ImmutableArray(Of LocalSymbol) = Nothing
 
         Public Sub New(enclosing As Binder, syntax As ForOrForEachBlockSyntax)
-            MyBase.New(enclosing, SyntaxKind.ContinueForStatement, SyntaxKind.ExitForStatement)
+            MyBase.New(enclosing, SyntaxKind.ContinueForStatement, SyntaxKind.ExitForStatement, syntax?.ForOrForEachStatement.ControlVariable.GetText().ToString)
 
             Debug.Assert(syntax IsNot Nothing)
             _syntax = syntax

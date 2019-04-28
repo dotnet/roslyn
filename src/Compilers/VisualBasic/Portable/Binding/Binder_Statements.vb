@@ -4850,7 +4850,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         Private Function BindExitStatement(node As ExitStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
-            Dim targetLabel As LabelSymbol = GetExitLabel(node.Kind)
+            ' This needs to bind to correct continue label, potentially in a higher context
+            Dim targetLabel As LabelSymbol = Nothing
+            If node.ControlVariable IsNot Nothing Then
+                Dim exitName = node.ControlVariable.ToString()
+                targetLabel = GetExitLabel(node.Kind, exitName)
+            Else
+                targetLabel = GetExitLabel(node.Kind)
+            End If 
 
             If targetLabel Is Nothing Then
                 Dim id As ERRID
@@ -4876,7 +4883,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function BindContinueStatement(node As ContinueStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
-            Dim targetLabel As LabelSymbol = GetContinueLabel(node.Kind)
+            ' This needs to bind to correct continue label, potentially in a higher context
+            Dim targetLabel As LabelSymbol = Nothing
+            If node.ControlVariable IsNot Nothing Then
+                Dim continueName = node.ControlVariable.ToString()
+                targetLabel = GetContinueLabel(node.Kind, continueName )
+            Else
+                targetLabel = GetContinueLabel(node.Kind)
+            End If
 
             If targetLabel Is Nothing Then
                 Dim id As ERRID

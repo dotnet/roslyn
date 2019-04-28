@@ -869,6 +869,47 @@ After Loop
         End Sub
 
         <Fact>
+        Public Sub ExitContinueForLoop1()
+            CompileAndVerify(
+<compilation name="ExitContinueForLoop1">
+    <file name="a.vb">
+Imports System        
+Module M1
+    Sub Main()
+        dim continueLoop as Boolean = true
+        For i = 0 To 2
+            Console.WriteLine($"Loop i Block Start ({i})")
+            For j = 0 To 2
+              Console.WriteLine($"Loop j Block Start ({i})")
+              If continueLoop Then
+                Console.WriteLine("Continuing")
+                continueLoop = false
+                Continue For i
+              End If
+              Console.WriteLine("Exiting")
+              Exit For i
+              Console.WriteLine($"Loop j Block End ({i})")
+            Next j
+            Console.WriteLine("After Loop j")
+            Console.WriteLine($"Loop i Block End ({i})")
+        Next   
+        Console.WriteLine("After Loop i") 
+    End Sub
+End Module
+    </file>
+</compilation>,
+    expectedOutput:=<![CDATA[
+Loop i Block Start (0)
+Loop j Block Start (0)
+Continuing
+Loop i Block Start (1)
+Loop j Block Start (0)
+Exiting
+After Loop i
+]]>)
+        End Sub
+
+        <Fact>
         Public Sub ExitSub()
             CompileAndVerify(
 <compilation name="ExitSub">
