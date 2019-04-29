@@ -376,11 +376,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 return;
             }
 
-            var newName = nameChanged
-                ? SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName).WithTriviaFrom(nameToken))
-                : nameNode;
-
             var invocation = nameNode?.FirstAncestorOrSelf<InvocationExpressionSyntax>();
+
+            var newName = nameNode;
+            if (nameChanged)
+            {
+                if (invocation == null)
+                {
+                    newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName)
+                        .WithTriviaFrom(nameToken));
+                }
+                else
+                {
+                    newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName)
+                        .WithLeadingTrivia(nameToken.LeadingTrivia)
+                        .WithTrailingTrivia(invocation.ArgumentList.CloseParenToken.TrailingTrivia));
+                }
+            }
+
             var invocationExpression = invocation?.Expression;
             if (!IsInvocationName(nameNode, invocationExpression))
             {

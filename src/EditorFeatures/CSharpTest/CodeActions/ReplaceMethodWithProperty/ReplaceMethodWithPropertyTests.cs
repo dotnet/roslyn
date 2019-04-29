@@ -163,6 +163,61 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestMethodWithTrailingTrivia()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+    int [||]GetP();
+    bool M()
+    {
+        return GetP() == 0;
+    }
+}",
+@"class C
+{
+    int P { get; }
+
+    bool M()
+    {
+        return P == 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestDelegateWithTrailingTrivia()
+        {
+            await TestWithAllCodeStyleOff(
+@"delegate int Mdelegate();
+class C
+{
+    int [||]GetP() => 0;
+
+    void M()
+    {
+        Mdelegate del = new Mdelegate(GetP );
+    }
+}",
+@"delegate int Mdelegate();
+class C
+{
+    int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+
+    void M()
+    {
+        Mdelegate del = new Mdelegate({|Conflict:P|} );
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestIndentation()
         {
             await TestWithAllCodeStyleOff(
