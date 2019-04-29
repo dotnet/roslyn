@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis
                 latestDocumentVersion ?? _lazyLatestDocumentVersion,
                 latestDocumentTopLevelChangeVersion ?? _lazyLatestDocumentTopLevelChangeVersion,
                 analyzerConfigSet ?? _lazyAnalyzerConfigSet,
-                commandLineOptions ?? _commandLineOptions)
+                commandLineOptions ?? _commandLineOptions);
         }
 
         public ProjectState UpdateName(string name)
