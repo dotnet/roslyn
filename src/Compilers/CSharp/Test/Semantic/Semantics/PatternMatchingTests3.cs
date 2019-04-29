@@ -510,5 +510,101 @@ class Program
                 //             1 => new RGBColor(span),
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "span").WithArguments("span").WithLocation(17, 31));
         }
+
+        [Fact]
+        public void NoRefSwitch_01()
+        {
+            var source = @"
+class Program
+{
+    ref int M(bool b, ref int x, ref int y)
+    {
+        return ref (b switch { true => x, false => y });
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref (b switch { true => x, false => y });
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "b switch { true => x, false => y }").WithLocation(6, 21));
+        }
+
+        [Fact]
+        public void NoRefSwitch_02()
+        {
+            var source = @"
+class Program
+{
+    ref int M(bool b, ref int x, ref int y)
+    {
+        return ref (b switch { true => ref x, false => ref y });
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (6,23): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 23),
+                // (6,40): error CS1525: Invalid expression term 'ref'
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(6, 40),
+                // (6,40): error CS1003: Syntax error, ',' expected
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(6, 40),
+                // (6,40): error CS1513: } expected
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "ref").WithLocation(6, 40),
+                // (6,40): error CS1026: ) expected
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "ref").WithLocation(6, 40),
+                // (6,40): error CS1002: ; expected
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(6, 40),
+                // (6,40): warning CS0162: Unreachable code detected
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "ref").WithLocation(6, 40),
+                // (6,44): error CS0118: 'x' is a variable but is used like a type
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(6, 44),
+                // (6,45): error CS1001: Identifier expected
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(6, 45),
+                // (6,45): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(6, 45),
+                // (6,47): error CS1001: Identifier expected
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "false").WithLocation(6, 47),
+                // (6,47): error CS1002: ; expected
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "false").WithLocation(6, 47),
+                // (6,47): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(6, 47),
+                // (6,53): error CS1002: ; expected
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 53),
+                // (6,53): error CS1513: } expected
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 53),
+                // (6,60): error CS0118: 'y' is a variable but is used like a type
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_BadSKknown, "y").WithArguments("y", "variable", "type").WithLocation(6, 60),
+                // (6,62): error CS1001: Identifier expected
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "}").WithLocation(6, 62),
+                // (6,62): error CS1002: ; expected
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 62),
+                // (6,62): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(6, 62),
+                // (6,63): error CS1519: Invalid token ')' in class, struct, or interface member declaration
+                //         return ref (b switch { true => ref x, false => ref y });
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ")").WithArguments(")").WithLocation(6, 63),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+        }
     }
 }
