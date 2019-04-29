@@ -41,10 +41,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if the info of the document change (name, folders, file path; not the content)
         /// </summary>
-        internal bool HasInfoChanged(Document otherDocument)
+        internal override bool HasInfoChanged(TextDocument otherTextDocument)
         {
-            return DocumentState.Attributes != otherDocument.DocumentState.Attributes
-                || DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
+            var otherDocument = otherTextDocument as Document ??
+                throw new ArgumentException($"{nameof(otherTextDocument)} isn't a regular document.", nameof(otherTextDocument));
+
+            return base.HasInfoChanged(otherDocument) ||
+                   DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
         }
 
         internal bool HasTextChanged(Document otherDocument)
