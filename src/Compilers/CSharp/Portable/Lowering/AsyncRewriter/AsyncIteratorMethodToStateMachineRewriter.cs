@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ... _exprReturnLabel: ...
             // ... this.state = FinishedState; ...
 
-            // if (this.combinedTokens != null) this.combinedTokens.Dispose(); // for enumerables only
+            // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             // this.promiseOfValueOrEnd.SetResult(false);
             // return;
             // _exprReturnLabelTrue:
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
 
-            // if (this.combinedTokens != null) this.combinedTokens.Dispose(); // for enumerables only
+            // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             AddDisposeCombinedTokensIfNeeded(builder);
 
             builder.AddRange(
@@ -102,13 +102,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddDisposeCombinedTokensIfNeeded(ArrayBuilder<BoundStatement> builder)
         {
-            // if (this.combinedTokens != null) this.combinedTokens.Dispose(); // for enumerables only
+            // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             if (_asyncIteratorInfo.CombinedTokensField is object)
             {
                 var combinedTokens = F.Field(F.This(), _asyncIteratorInfo.CombinedTokensField);
+                TypeSymbol combinedTokensType = combinedTokens.Type;
+
                 builder.Add(
-                    F.If(F.ObjectNotEqual(combinedTokens, F.Null(combinedTokens.Type)),
-                        thenClause: F.ExpressionStatement(F.Call(combinedTokens, F.WellKnownMethod(WellKnownMember.System_Threading_CancellationTokenSource__Dispose)))));
+                    F.If(F.ObjectNotEqual(combinedTokens, F.Null(combinedTokensType)),
+                        thenClause: F.Block(
+                            F.ExpressionStatement(F.Call(combinedTokens, F.WellKnownMethod(WellKnownMember.System_Threading_CancellationTokenSource__Dispose))),
+                            F.Assignment(combinedTokens, F.Null(combinedTokensType)))));
             }
         }
 
@@ -116,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
 
-            // if (this.combinedTokens != null) this.combinedTokens.Dispose(); // for enumerables only
+            // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             AddDisposeCombinedTokensIfNeeded(builder);
 
             // _promiseOfValueOrEnd.SetException(ex);

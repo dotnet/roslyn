@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Add a field: bool disposeMode
                 _disposeModeField = F.StateMachineField(boolType, GeneratedNames.MakeDisposeModeFieldName());
 
-                if (_isEnumerable)
+                if (_isEnumerable && this.method.Parameters.Any(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true }))
                 {
                     // Add a field: CancellationTokenSource combinedTokens
                     _combinedTokensField = F.StateMachineField(
@@ -193,7 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override BoundStatement InitializeParameterField(MethodSymbol getEnumeratorMethod, ParameterSymbol parameter, BoundExpression resultParameter, BoundExpression parameterProxy)
             {
                 BoundStatement result;
-                if (parameter is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true })
+                if (_combinedTokensField is object &&
+                    parameter is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true })
                 {
                     // For the parameter with [EnumeratorCancellation]
                     // if (this.parameterProxy.Equals(default))

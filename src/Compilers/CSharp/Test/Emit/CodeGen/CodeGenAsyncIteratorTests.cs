@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1881,9 +1883,9 @@ class C
         {
             string source = @"
 using static System.Console;
-class C
+public class C
 {
-    static async System.Collections.Generic.IAsyncEnumerable<int> M()
+    public static async System.Collections.Generic.IAsyncEnumerable<int> M()
     {
         Write(""1 "");
         await System.Threading.Tasks.Task.CompletedTask;
@@ -1906,6 +1908,17 @@ class C
                 var comp = CreateCompilationWithAsyncIterator(source, options: options);
                 comp.VerifyDiagnostics();
                 var verifier = CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
+
+                var expectedFields = new[] {
+                    "FieldDefinition:Int32 <>1__state",
+                    "FieldDefinition:System.Runtime.CompilerServices.AsyncIteratorMethodBuilder <>t__builder",
+                    "FieldDefinition:System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1{Boolean} <>v__promiseOfValueOrEnd",
+                    "FieldDefinition:Int32 <>2__current",
+                    "FieldDefinition:Boolean <>w__disposeMode",
+                    "FieldDefinition:Int32 <>l__initialThreadId",
+                    "FieldDefinition:System.Runtime.CompilerServices.TaskAwaiter <>u__1"
+                };
+                VerifyStateMachineFields(comp, "<M>d__0", expectedFields);
 
                 verifier.VerifyIL("C.M", @"
 {
@@ -2122,7 +2135,7 @@ class C
                 {
                     verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"{
-  // Code size      338 (0x152)
+  // Code size      298 (0x12a)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -2151,7 +2164,7 @@ class C
     IL_002f:  ldarg.0
     IL_0030:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_0035:  brfalse.s  IL_003c
-    IL_0037:  leave      IL_011a
+    IL_0037:  leave      IL_0106
     IL_003c:  ldarg.0
     IL_003d:  ldc.i4.m1
     IL_003e:  dup
@@ -2188,7 +2201,7 @@ class C
     IL_007f:  ldloca.s   V_2
     IL_0081:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
     IL_0086:  nop
-    IL_0087:  leave      IL_0151
+    IL_0087:  leave      IL_0129
     // async: resume
     IL_008c:  ldarg.0
     IL_008d:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
@@ -2217,7 +2230,7 @@ class C
     IL_00c5:  dup
     IL_00c6:  stloc.0
     IL_00c7:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_00cc:  leave.s    IL_0144
+    IL_00cc:  leave.s    IL_011c
     // sequence point: <hidden>
     IL_00ce:  ldarg.0
     IL_00cf:  ldc.i4.m1
@@ -2227,12 +2240,12 @@ class C
     IL_00d7:  ldarg.0
     IL_00d8:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_00dd:  brfalse.s  IL_00e1
-    IL_00df:  leave.s    IL_011a
+    IL_00df:  leave.s    IL_0106
     // sequence point: Write("" 4 "");
     IL_00e1:  ldstr      "" 4 ""
     IL_00e6:  call       ""void System.Console.Write(string)""
     IL_00eb:  nop
-    IL_00ec:  leave.s    IL_011a
+    IL_00ec:  leave.s    IL_0106
   }
   catch System.Exception
   {
@@ -2242,50 +2255,36 @@ class C
     IL_00f0:  ldc.i4.s   -2
     IL_00f2:  stfld      ""int C.<M>d__0.<>1__state""
     IL_00f7:  ldarg.0
-    IL_00f8:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-    IL_00fd:  brfalse.s  IL_010b
-    IL_00ff:  ldarg.0
-    IL_0100:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-    IL_0105:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
-    IL_010a:  nop
-    IL_010b:  ldarg.0
-    IL_010c:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_0111:  ldloc.3
-    IL_0112:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
-    IL_0117:  nop
-    IL_0118:  leave.s    IL_0151
+    IL_00f8:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00fd:  ldloc.3
+    IL_00fe:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_0103:  nop
+    IL_0104:  leave.s    IL_0129
   }
   // sequence point: }
-  IL_011a:  ldarg.0
-  IL_011b:  ldc.i4.s   -2
-  IL_011d:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0106:  ldarg.0
+  IL_0107:  ldc.i4.s   -2
+  IL_0109:  stfld      ""int C.<M>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_0122:  ldarg.0
-  IL_0123:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-  IL_0128:  brfalse.s  IL_0136
-  IL_012a:  ldarg.0
-  IL_012b:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-  IL_0130:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
-  IL_0135:  nop
-  IL_0136:  ldarg.0
-  IL_0137:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_013c:  ldc.i4.0
-  IL_013d:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_0142:  nop
-  IL_0143:  ret
-  IL_0144:  ldarg.0
-  IL_0145:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_014a:  ldc.i4.1
-  IL_014b:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_0150:  nop
-  IL_0151:  ret
+  IL_010e:  ldarg.0
+  IL_010f:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0114:  ldc.i4.0
+  IL_0115:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_011a:  nop
+  IL_011b:  ret
+  IL_011c:  ldarg.0
+  IL_011d:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0122:  ldc.i4.1
+  IL_0123:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0128:  nop
+  IL_0129:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
                 }
                 else
                 {
                     verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      316 (0x13c)
+  // Code size      278 (0x116)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
@@ -2310,7 +2309,7 @@ class C
     IL_0024:  ldarg.0
     IL_0025:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_002a:  brfalse.s  IL_0031
-    IL_002c:  leave      IL_0107
+    IL_002c:  leave      IL_00f4
     IL_0031:  ldarg.0
     IL_0032:  ldc.i4.m1
     IL_0033:  dup
@@ -2343,7 +2342,7 @@ class C
     IL_0070:  ldloca.s   V_1
     IL_0072:  ldloca.s   V_2
     IL_0074:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
-    IL_0079:  leave      IL_013b
+    IL_0079:  leave      IL_0115
     // async: resume
     IL_007e:  ldarg.0
     IL_007f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
@@ -2370,7 +2369,7 @@ class C
     IL_00b5:  dup
     IL_00b6:  stloc.0
     IL_00b7:  stfld      ""int C.<M>d__0.<>1__state""
-    IL_00bc:  leave.s    IL_012f
+    IL_00bc:  leave.s    IL_0109
     // sequence point: <hidden>
     IL_00be:  ldarg.0
     IL_00bf:  ldc.i4.m1
@@ -2380,11 +2379,11 @@ class C
     IL_00c7:  ldarg.0
     IL_00c8:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
     IL_00cd:  brfalse.s  IL_00d1
-    IL_00cf:  leave.s    IL_0107
+    IL_00cf:  leave.s    IL_00f4
     // sequence point: Write("" 4 "");
     IL_00d1:  ldstr      "" 4 ""
     IL_00d6:  call       ""void System.Console.Write(string)""
-    IL_00db:  leave.s    IL_0107
+    IL_00db:  leave.s    IL_00f4
   }
   catch System.Exception
   {
@@ -2394,41 +2393,507 @@ class C
     IL_00df:  ldc.i4.s   -2
     IL_00e1:  stfld      ""int C.<M>d__0.<>1__state""
     IL_00e6:  ldarg.0
-    IL_00e7:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-    IL_00ec:  brfalse.s  IL_00f9
-    IL_00ee:  ldarg.0
-    IL_00ef:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-    IL_00f4:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
-    IL_00f9:  ldarg.0
-    IL_00fa:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-    IL_00ff:  ldloc.3
-    IL_0100:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
-    IL_0105:  leave.s    IL_013b
+    IL_00e7:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00ec:  ldloc.3
+    IL_00ed:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_00f2:  leave.s    IL_0115
   }
   // sequence point: }
-  IL_0107:  ldarg.0
-  IL_0108:  ldc.i4.s   -2
-  IL_010a:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_00f4:  ldarg.0
+  IL_00f5:  ldc.i4.s   -2
+  IL_00f7:  stfld      ""int C.<M>d__0.<>1__state""
   // sequence point: <hidden>
-  IL_010f:  ldarg.0
-  IL_0110:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-  IL_0115:  brfalse.s  IL_0122
-  IL_0117:  ldarg.0
-  IL_0118:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
-  IL_011d:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
-  IL_0122:  ldarg.0
-  IL_0123:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_0128:  ldc.i4.0
-  IL_0129:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_012e:  ret
-  IL_012f:  ldarg.0
-  IL_0130:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
-  IL_0135:  ldc.i4.1
-  IL_0136:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
-  IL_013b:  ret
+  IL_00fc:  ldarg.0
+  IL_00fd:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0102:  ldc.i4.0
+  IL_0103:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0108:  ret
+  IL_0109:  ldarg.0
+  IL_010a:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_010f:  ldc.i4.1
+  IL_0110:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0115:  ret
 }", sequencePoints: "C+<M>d__0.MoveNext", source: source);
                 }
             }
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Threading;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token)
+    {
+        _ = token;
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            var expectedFields = new[] {
+                "FieldDefinition:Int32 <>1__state",
+                "FieldDefinition:System.Runtime.CompilerServices.AsyncIteratorMethodBuilder <>t__builder",
+                "FieldDefinition:System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1{Boolean} <>v__promiseOfValueOrEnd",
+                "FieldDefinition:Int32 <>2__current",
+                "FieldDefinition:Boolean <>w__disposeMode",
+                "FieldDefinition:System.Threading.CancellationTokenSource <>x__combinedTokens",
+                "FieldDefinition:Int32 <>l__initialThreadId",
+                "FieldDefinition:System.Threading.CancellationToken token",
+                "FieldDefinition:System.Threading.CancellationToken <>3__token",
+                "FieldDefinition:System.Runtime.CompilerServices.TaskAwaiter <>u__1"
+            };
+            VerifyStateMachineFields(comp, "<M>d__0", expectedFields);
+
+            // we generate initialization logic for the token parameter
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
+{
+  // Code size      165 (0xa5)
+  .maxstack  3
+  .locals init (C.<M>d__0 V_0,
+                System.Threading.CancellationToken V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_002a
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      ""int C.<M>d__0.<>l__initialThreadId""
+  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_0015:  bne.un.s   IL_002a
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.s   -3
+  IL_001a:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_001f:  ldarg.0
+  IL_0020:  stloc.0
+  IL_0021:  ldarg.0
+  IL_0022:  ldc.i4.0
+  IL_0023:  stfld      ""bool C.<M>d__0.<>w__disposeMode""
+  IL_0028:  br.s       IL_0032
+  IL_002a:  ldc.i4.s   -3
+  IL_002c:  newobj     ""C.<M>d__0..ctor(int)""
+  IL_0031:  stloc.0
+  IL_0032:  ldarg.0
+  IL_0033:  ldflda     ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
+  IL_0038:  ldloca.s   V_1
+  IL_003a:  initobj    ""System.Threading.CancellationToken""
+  IL_0040:  ldloc.1
+  IL_0041:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+  IL_0046:  brfalse.s  IL_0051
+  IL_0048:  ldloc.0
+  IL_0049:  ldarg.1
+  IL_004a:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
+  IL_004f:  br.s       IL_00a3
+  IL_0051:  ldarga.s   V_1
+  IL_0053:  ldarg.0
+  IL_0054:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
+  IL_0059:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+  IL_005e:  brtrue.s   IL_0072
+  IL_0060:  ldarga.s   V_1
+  IL_0062:  ldloca.s   V_1
+  IL_0064:  initobj    ""System.Threading.CancellationToken""
+  IL_006a:  ldloc.1
+  IL_006b:  call       ""bool System.Threading.CancellationToken.Equals(System.Threading.CancellationToken)""
+  IL_0070:  brfalse.s  IL_0080
+  IL_0072:  ldloc.0
+  IL_0073:  ldarg.0
+  IL_0074:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
+  IL_0079:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
+  IL_007e:  br.s       IL_00a3
+  IL_0080:  ldarg.0
+  IL_0081:  ldarg.0
+  IL_0082:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
+  IL_0087:  ldarg.1
+  IL_0088:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
+  IL_008d:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_0092:  ldloc.0
+  IL_0093:  ldarg.0
+  IL_0094:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_0099:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
+  IL_009e:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
+  IL_00a3:  ldloc.0
+  IL_00a4:  ret
+}");
+
+            // we generate disposal logic for the combinedTokens field
+            verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      304 (0x130)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<M>d__0 V_2,
+                System.Exception V_3)
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: <hidden>
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  sub
+    IL_000b:  switch    (
+        IL_00b1,
+        IL_0024,
+        IL_0024,
+        IL_0024,
+        IL_007b)
+    IL_0024:  ldarg.0
+    IL_0025:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
+    IL_002a:  brfalse.s  IL_0031
+    IL_002c:  leave      IL_00f4
+    IL_0031:  ldarg.0
+    IL_0032:  ldc.i4.m1
+    IL_0033:  dup
+    IL_0034:  stloc.0
+    IL_0035:  stfld      ""int C.<M>d__0.<>1__state""
+    // sequence point: _ = token;
+    IL_003a:  ldarg.0
+    IL_003b:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.token""
+    IL_0040:  pop
+    // sequence point: await System.Threading.Tasks.Task.CompletedTask;
+    IL_0041:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get""
+    IL_0046:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_004b:  stloc.1
+    // sequence point: <hidden>
+    IL_004c:  ldloca.s   V_1
+    IL_004e:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_0053:  brtrue.s   IL_0097
+    IL_0055:  ldarg.0
+    IL_0056:  ldc.i4.0
+    IL_0057:  dup
+    IL_0058:  stloc.0
+    IL_0059:  stfld      ""int C.<M>d__0.<>1__state""
+    // async: yield
+    IL_005e:  ldarg.0
+    IL_005f:  ldloc.1
+    IL_0060:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+    IL_0065:  ldarg.0
+    IL_0066:  stloc.2
+    IL_0067:  ldarg.0
+    IL_0068:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+    IL_006d:  ldloca.s   V_1
+    IL_006f:  ldloca.s   V_2
+    IL_0071:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
+    IL_0076:  leave      IL_012f
+    // async: resume
+    IL_007b:  ldarg.0
+    IL_007c:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+    IL_0081:  stloc.1
+    IL_0082:  ldarg.0
+    IL_0083:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+    IL_0088:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_008e:  ldarg.0
+    IL_008f:  ldc.i4.m1
+    IL_0090:  dup
+    IL_0091:  stloc.0
+    IL_0092:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_0097:  ldloca.s   V_1
+    IL_0099:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    // sequence point: yield return 3;
+    IL_009e:  ldarg.0
+    IL_009f:  ldc.i4.3
+    IL_00a0:  stfld      ""int C.<M>d__0.<>2__current""
+    IL_00a5:  ldarg.0
+    IL_00a6:  ldc.i4.s   -4
+    IL_00a8:  dup
+    IL_00a9:  stloc.0
+    IL_00aa:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00af:  leave.s    IL_0123
+    // sequence point: <hidden>
+    IL_00b1:  ldarg.0
+    IL_00b2:  ldc.i4.m1
+    IL_00b3:  dup
+    IL_00b4:  stloc.0
+    IL_00b5:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00ba:  ldarg.0
+    IL_00bb:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
+    IL_00c0:  pop
+    // sequence point: <hidden>
+    IL_00c1:  leave.s    IL_00f4
+  }
+  catch System.Exception
+  {
+    // sequence point: <hidden>
+    IL_00c3:  stloc.3
+    IL_00c4:  ldarg.0
+    IL_00c5:  ldc.i4.s   -2
+    IL_00c7:  stfld      ""int C.<M>d__0.<>1__state""
+    IL_00cc:  ldarg.0
+    IL_00cd:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+    IL_00d2:  brfalse.s  IL_00e6
+    IL_00d4:  ldarg.0
+    IL_00d5:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+    IL_00da:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
+    IL_00df:  ldarg.0
+    IL_00e0:  ldnull
+    IL_00e1:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+    IL_00e6:  ldarg.0
+    IL_00e7:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+    IL_00ec:  ldloc.3
+    IL_00ed:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+    IL_00f2:  leave.s    IL_012f
+  }
+  // sequence point: }
+  IL_00f4:  ldarg.0
+  IL_00f5:  ldc.i4.s   -2
+  IL_00f7:  stfld      ""int C.<M>d__0.<>1__state""
+  // sequence point: <hidden>
+  IL_00fc:  ldarg.0
+  IL_00fd:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_0102:  brfalse.s  IL_0116
+  IL_0104:  ldarg.0
+  IL_0105:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_010a:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
+  IL_010f:  ldarg.0
+  IL_0110:  ldnull
+  IL_0111:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+  IL_0116:  ldarg.0
+  IL_0117:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_011c:  ldc.i4.0
+  IL_011d:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_0122:  ret
+  IL_0123:  ldarg.0
+  IL_0124:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+  IL_0129:  ldc.i4.1
+  IL_012a:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+  IL_012f:  ret
+}", sequencePoints: "C+<M>d__0.MoveNext", source: source);
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void AsyncIteratorWithAwaitCompletedAndYield_WithEnumeratorCancellation_NoUsage()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Threading;
+class C
+{
+    static async System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token)
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 3;
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+
+            var expectedFields = new[] {
+                "FieldDefinition:Int32 <>1__state",
+                "FieldDefinition:System.Runtime.CompilerServices.AsyncIteratorMethodBuilder <>t__builder",
+                "FieldDefinition:System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1{Boolean} <>v__promiseOfValueOrEnd",
+                "FieldDefinition:Int32 <>2__current",
+                "FieldDefinition:Boolean <>w__disposeMode",
+                "FieldDefinition:System.Threading.CancellationTokenSource <>x__combinedTokens", // we generated the field
+                "FieldDefinition:Int32 <>l__initialThreadId",
+                "FieldDefinition:System.Runtime.CompilerServices.TaskAwaiter <>u__1"
+            };
+            VerifyStateMachineFields(comp, "<M>d__0", expectedFields);
+
+            // we don't generate initialization logic
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (C.<M>d__0 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_002a
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      ""int C.<M>d__0.<>l__initialThreadId""
+  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_0015:  bne.un.s   IL_002a
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.s   -3
+  IL_001a:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_001f:  ldarg.0
+  IL_0020:  stloc.0
+  IL_0021:  ldarg.0
+  IL_0022:  ldc.i4.0
+  IL_0023:  stfld      ""bool C.<M>d__0.<>w__disposeMode""
+  IL_0028:  br.s       IL_0032
+  IL_002a:  ldc.i4.s   -3
+  IL_002c:  newobj     ""C.<M>d__0..ctor(int)""
+  IL_0031:  stloc.0
+  IL_0032:  ldloc.0
+  IL_0033:  ret
+}");
+
+            // we generate disposal logic for the combinedTokens field
+            verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+      // Code size      297 (0x129)
+      .maxstack  3
+      .locals init (int V_0,
+                    System.Runtime.CompilerServices.TaskAwaiter V_1,
+                    C.<M>d__0 V_2,
+                    System.Exception V_3)
+      // sequence point: <hidden>
+      IL_0000:  ldarg.0
+      IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+      IL_0006:  stloc.0
+      .try
+      {
+        // sequence point: <hidden>
+        IL_0007:  ldloc.0
+        IL_0008:  ldc.i4.s   -4
+        IL_000a:  sub
+        IL_000b:  switch    (
+            IL_00aa,
+            IL_0024,
+            IL_0024,
+            IL_0024,
+            IL_0074)
+        IL_0024:  ldarg.0
+        IL_0025:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
+        IL_002a:  brfalse.s  IL_0031
+        IL_002c:  leave      IL_00ed
+        IL_0031:  ldarg.0
+        IL_0032:  ldc.i4.m1
+        IL_0033:  dup
+        IL_0034:  stloc.0
+        IL_0035:  stfld      ""int C.<M>d__0.<>1__state""
+        // sequence point: await System.Threading.Tasks.Task.CompletedTask;
+        IL_003a:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get""
+        IL_003f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+        IL_0044:  stloc.1
+        // sequence point: <hidden>
+        IL_0045:  ldloca.s   V_1
+        IL_0047:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+        IL_004c:  brtrue.s   IL_0090
+        IL_004e:  ldarg.0
+        IL_004f:  ldc.i4.0
+        IL_0050:  dup
+        IL_0051:  stloc.0
+        IL_0052:  stfld      ""int C.<M>d__0.<>1__state""
+        // async: yield
+        IL_0057:  ldarg.0
+        IL_0058:  ldloc.1
+        IL_0059:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+        IL_005e:  ldarg.0
+        IL_005f:  stloc.2
+        IL_0060:  ldarg.0
+        IL_0061:  ldflda     ""System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder""
+        IL_0066:  ldloca.s   V_1
+        IL_0068:  ldloca.s   V_2
+        IL_006a:  call       ""void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)""
+        IL_006f:  leave      IL_0128
+        // async: resume
+        IL_0074:  ldarg.0
+        IL_0075:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+        IL_007a:  stloc.1
+        IL_007b:  ldarg.0
+        IL_007c:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1""
+        IL_0081:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+        IL_0087:  ldarg.0
+        IL_0088:  ldc.i4.m1
+        IL_0089:  dup
+        IL_008a:  stloc.0
+        IL_008b:  stfld      ""int C.<M>d__0.<>1__state""
+        IL_0090:  ldloca.s   V_1
+        IL_0092:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+        // sequence point: yield return 3;
+        IL_0097:  ldarg.0
+        IL_0098:  ldc.i4.3
+        IL_0099:  stfld      ""int C.<M>d__0.<>2__current""
+        IL_009e:  ldarg.0
+        IL_009f:  ldc.i4.s   -4
+        IL_00a1:  dup
+        IL_00a2:  stloc.0
+        IL_00a3:  stfld      ""int C.<M>d__0.<>1__state""
+        IL_00a8:  leave.s    IL_011c
+        // sequence point: <hidden>
+        IL_00aa:  ldarg.0
+        IL_00ab:  ldc.i4.m1
+        IL_00ac:  dup
+        IL_00ad:  stloc.0
+        IL_00ae:  stfld      ""int C.<M>d__0.<>1__state""
+        IL_00b3:  ldarg.0
+        IL_00b4:  ldfld      ""bool C.<M>d__0.<>w__disposeMode""
+        IL_00b9:  pop
+        // sequence point: <hidden>
+        IL_00ba:  leave.s    IL_00ed
+      }
+      catch System.Exception
+      {
+        // sequence point: <hidden>
+        IL_00bc:  stloc.3
+        IL_00bd:  ldarg.0
+        IL_00be:  ldc.i4.s   -2
+        IL_00c0:  stfld      ""int C.<M>d__0.<>1__state""
+        IL_00c5:  ldarg.0
+        IL_00c6:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+        IL_00cb:  brfalse.s  IL_00df
+        IL_00cd:  ldarg.0
+        IL_00ce:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+        IL_00d3:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
+        IL_00d8:  ldarg.0
+        IL_00d9:  ldnull
+        IL_00da:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+        IL_00df:  ldarg.0
+        IL_00e0:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+        IL_00e5:  ldloc.3
+        IL_00e6:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
+        IL_00eb:  leave.s    IL_0128
+      }
+      // sequence point: }
+      IL_00ed:  ldarg.0
+      IL_00ee:  ldc.i4.s   -2
+      IL_00f0:  stfld      ""int C.<M>d__0.<>1__state""
+      // sequence point: <hidden>
+      IL_00f5:  ldarg.0
+      IL_00f6:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+      IL_00fb:  brfalse.s  IL_010f
+      IL_00fd:  ldarg.0
+      IL_00fe:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+      IL_0103:  callvirt   ""void System.Threading.CancellationTokenSource.Dispose()""
+      IL_0108:  ldarg.0
+      IL_0109:  ldnull
+      IL_010a:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
+      IL_010f:  ldarg.0
+      IL_0110:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+      IL_0115:  ldc.i4.0
+      IL_0116:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+      IL_011b:  ret
+      IL_011c:  ldarg.0
+      IL_011d:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd""
+      IL_0122:  ldc.i4.1
+      IL_0123:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
+      IL_0128:  ret
+}", sequencePoints: "C+<M>d__0.MoveNext", source: source);
+        }
+
+        private static void VerifyStateMachineFields(CSharpCompilation comp, string methodName, string[] expectedFields)
+        {
+            var peReader = new PEReader(comp.EmitToArray());
+            var metadataReader = peReader.GetMetadataReader();
+            var types = metadataReader.TypeDefinitions.Select(t => metadataReader.GetString(metadataReader.GetTypeDefinition(t).Name));
+            var type = metadataReader.TypeDefinitions.Single(t => metadataReader.GetString(metadataReader.GetTypeDefinition(t).Name) == methodName);
+            var fields = metadataReader.GetTypeDefinition(type).GetFields().Select(f => metadataReader.Dump(f));
+            AssertEx.SetEqual(expectedFields, fields);
+        }
+
+        private void ValidateStateMachineFields(ModuleSymbol module, string methodName, string[] expected)
+        {
+            var method = module.GlobalNamespace.GetMember<MethodSymbol>(methodName);
+            AssertEx.SetEqual(new[] { "AsyncIteratorStateMachineAttribute" },
+                GetAttributeNames(method.GetAttributes()));
+
+            var attribute = method.GetAttributes().Single();
+            var argument = attribute.ConstructorArguments.Single();
+            var stateMachineType = (ITypeSymbol)argument.Value;
+            Assert.Equal("C.<M>d__0", stateMachineType.ToTestDisplayString());
+
+            AssertEx.SetEqual(expected, stateMachineType.GetMembers().Where(m => m.Kind == SymbolKind.Field).Select(m => m.ToTestDisplayString()));
         }
 
         [Fact]
@@ -5141,7 +5606,7 @@ class C
     }
     static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token, CancellationToken origToken)
     {
-        if (!token.Equals(origToken)) throw null; // no need for a combined token 
+        if (!token.Equals(origToken)) throw null; // no need for a combined token
         yield return value++;
         await Task.Yield();
         yield return value++;
@@ -5192,7 +5657,7 @@ class C
     }
     static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token, CancellationToken origToken)
     {
-        if (!token.Equals(origToken)) throw null; // no need for a combined token 
+        if (!token.Equals(origToken)) throw null; // no need for a combined token
         yield return value++;
         await Task.Yield();
         yield return value++;
@@ -5936,6 +6401,37 @@ public partial class C2
                 // (17,68): error CS0766: Partial methods must have a void return type
                 //     partial async System.Collections.Generic.IAsyncEnumerable<int> M2([EnumeratorCancellation] CancellationToken token); // 6
                 Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M2").WithLocation(17, 68)
+                );
+        }
+
+        [Fact, WorkItem(35165, "https://github.com/dotnet/roslyn/issues/35165")]
+        public void CancellationTokenParameter_LocalFunction()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+public class C
+{
+    async Task M()
+    {
+        await foreach (var i in local(default))
+        {
+        }
+
+        async System.Collections.Generic.IAsyncEnumerable<int> local([EnumeratorCancellation] CancellationToken token)
+        {
+            yield return 1;
+            await Task.Yield();
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
+            comp.VerifyDiagnostics(
+                // (13,70): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //         async System.Collections.Generic.IAsyncEnumerable<int> local([EnumeratorCancellation] CancellationToken token)
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[EnumeratorCancellation]").WithLocation(13, 70)
                 );
         }
 
