@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     [Shared]
     [ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), WorkspaceKind.Test)]

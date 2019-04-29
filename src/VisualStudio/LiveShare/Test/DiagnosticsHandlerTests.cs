@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     public class DiagnosticsHandlerTests : AbstractLiveShareRequestHandlerTests
     {
@@ -46,7 +46,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
             var diagnosticLocation = ranges["diagnostic"].First();
 
             var results = await TestHandleAsync<TextDocumentParams, LSP.Diagnostic[]>(solution, CreateTestDocumentParams(diagnosticLocation.Uri));
-            int i = 1;
+            var i = 1;
             //AssertCollectionsEqual(new ClassificationSpan[] { CreateClassificationSpan("keyword", classifyLocation.Range) }, results, AssertClassificationsEqual);
         }
 

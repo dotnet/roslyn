@@ -17,7 +17,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using RoslynHandlers = Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     public abstract class AbstractLiveShareRequestHandlerTests : AbstractLanguageServerProtocolTests
     {

@@ -7,7 +7,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     public class RenameHandlerTests : AbstractLiveShareRequestHandlerTests
     {

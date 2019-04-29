@@ -2,11 +2,10 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.VisualStudio.LanguageServices.LiveShare;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     public class LiveShareRequestHandlerShimsTests : AbstractLiveShareRequestHandlerTests
     {

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var tags = new string[] { "Class", "Internal" };
             var completionParams = CreateCompletionParams(locations["caret"].First());
             var completionItem = CreateCompletionItem("A", LSP.CompletionItemKind.Class, tags, completionParams);
-            var description = new ClassifiedTextElement();
+            var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
 
             var expected = CreateResolvedCompletionItem("A", LSP.CompletionItemKind.Class, null, completionParams, description, "class A", null);
 
@@ -54,5 +54,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             resolvedCompletionItem.Description = description;
             return resolvedCompletionItem;
         }
+
+        private static ClassifiedTextRun[] CreateClassifiedTextRunForClass(string className)
+            => new ClassifiedTextRun[]
+            {
+                new ClassifiedTextRun("keyword", "class"),
+                new ClassifiedTextRun("whitespace", " "),
+                new ClassifiedTextRun("class name", className)
+            };
     }
 }

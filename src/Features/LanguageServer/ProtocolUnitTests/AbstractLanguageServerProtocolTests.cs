@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -80,18 +81,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.Equal(expected.Kind, actual.Kind);
 
             AssertTextEditsEqual(expected.TextEdit, actual.TextEdit);
-
-            if (expected.Icon != null)
-            {
-                Assert.Equal(expected.Icon.AutomationName, actual.Icon.AutomationName);
-                Assert.Equal(expected.Icon.ImageId.Guid, actual.Icon.ImageId.Guid);
-                Assert.Equal(expected.Icon.ImageId.Id, actual.Icon.ImageId.Id);
-            }
+            AssertIconsEqual(expected.Icon, actual.Icon);
 
             if (isResolved)
             {
                 Assert.Equal(expected.Detail, actual.Detail);
                 AssertMarkupContentsEqual(expected.Documentation, actual.Documentation);
+                AssertCollectionsEqual(expected.Description.Runs, actual.Description.Runs, AssertClassifiedTextRunsEqual);
+            }
+
+            // local functions
+            static void AssertClassifiedTextRunsEqual(ClassifiedTextRun expectedRun, ClassifiedTextRun actualRun)
+            {
+                Assert.Equal(expectedRun.Text, actualRun.Text);
+                Assert.Equal(expectedRun.ClassificationTypeName, actualRun.ClassificationTypeName);
+            }
+
+            static void AssertIconsEqual(ImageElement expectedIcon, ImageElement actualIcon)
+            {
+                if (expectedIcon != null)
+                {
+                    Assert.Equal(expectedIcon.AutomationName, actualIcon.AutomationName);
+                    Assert.Equal(expectedIcon.ImageId.Guid, actualIcon.ImageId.Guid);
+                    Assert.Equal(expectedIcon.ImageId.Id, actualIcon.ImageId.Id);
+                }
             }
         }
 

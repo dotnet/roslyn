@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Xunit;
-using CustomProtocol = Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.LiveShare
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
     public class ProjectsHandlerTests : AbstractLiveShareRequestHandlerTests
     {
