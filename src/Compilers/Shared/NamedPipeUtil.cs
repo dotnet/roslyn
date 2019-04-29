@@ -19,11 +19,29 @@ namespace Microsoft.CodeAnalysis
         // Size of the buffers to use: 64K
         private const int PipeBufferSize = 0x10000;
 
+        private static string GetPipeNameOrPath(string pipeName)
+        {
+            if (PlatformInformation.IsUnix)
+            {
+                // If we're on a Unix machine then named pipes are implemented using Unix Domain Sockets.
+                // Most Unix systems have a maximum path length limit for Unix Domain Sockets, with
+                // Mac having a particularly short one. Mac also has a generated temp directory that
+                // can be quite long, leaving very little room for the actual pipe name. Fortunately,
+                // '/tmp' is mandated by POSIX to always be a valid temp directory, so we can use that
+                // instead.
+                return Path.Combine("/tmp", pipeName);
+            }
+            else
+            {
+                return pipeName;
+            }
+        }
+
         /// <summary>
         /// Create a client for the current user only.
         /// </summary>
-        internal static NamedPipeClientStream CreateClient(string serverName, string pipeName, PipeDirection direction, PipeOptions options) =>
-            new NamedPipeClientStream(serverName, pipeName, direction, options | CurrentUserOption);
+        internal static NamedPipeClientStream CreateClient(string serverName, string pipeName, PipeDirection direction, PipeOptions options)
+            => new NamedPipeClientStream(serverName, GetPipeNameOrPath(pipeName), direction, options | CurrentUserOption);
 
         /// <summary>
         /// Does the client of "pipeStream" have the same identity and elevation as we do? The <see cref="CreateClient"/> and 
@@ -93,7 +111,7 @@ namespace Microsoft.CodeAnalysis
             int inBufferSize,
             int outBufferSize) =>
             new NamedPipeServerStream(
-                pipeName,
+                GetPipeNameOrPath(pipeName),
                 direction,
                 maxNumberOfServerInstances,
                 transmissionMode,
@@ -163,7 +181,7 @@ namespace Microsoft.CodeAnalysis
             int inBufferSize,
             int outBufferSize) =>
             new NamedPipeServerStream(
-                pipeName,
+                GetPipeNameOrPath(pipeName),
                 direction,
                 maxNumberOfServerInstances,
                 transmissionMode,

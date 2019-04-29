@@ -406,22 +406,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public class MiscTest
         {
             [Fact]
-            public void GetBasePipeNameSlashes()
+            public void GetPipeNameForPathOptSlashes()
             {
                 var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
-                var name = BuildServerConnection.GetBasePipeName(path);
-                Assert.Equal(name, BuildServerConnection.GetBasePipeName(path));
-                Assert.Equal(name, BuildServerConnection.GetBasePipeName(path + Path.DirectorySeparatorChar));
-                Assert.Equal(name, BuildServerConnection.GetBasePipeName(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
+                var name = BuildServerConnection.GetPipeNameForPathOpt(path);
+                Assert.Equal(name, BuildServerConnection.GetPipeNameForPathOpt(path));
+                Assert.Equal(name, BuildServerConnection.GetPipeNameForPathOpt(path + Path.DirectorySeparatorChar));
+                Assert.Equal(name, BuildServerConnection.GetPipeNameForPathOpt(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
             }
 
             [Fact]
-            public void GetBasePipeNameLength()
+            public void GetPipeNameForPathOptLength()
             {
                 var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
-                var name = BuildServerConnection.GetBasePipeName(path);
+                var name = BuildServerConnection.GetPipeNameForPathOpt(path);
                 // We only have ~50 total bytes to work with on mac, so the base path must be small
-                Assert.InRange(name.Length, 10, 30);
+                Assert.Equal(43, name.Length);
             }
         }
     }

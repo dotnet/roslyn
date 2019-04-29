@@ -6,6 +6,7 @@ using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.IO.Pipes;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -157,6 +158,21 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     Assert.Equal(CommonCompiler.Succeeded, exitCode);
                     Assert.True(connected);
                     Assert.True(created);
+                }
+            }
+
+            [Fact]
+            public async Task RunServerWithLongTempPath()
+            {
+                string pipeName = BuildServerConnection.GetPipeNameForPathOpt(Guid.NewGuid().ToString());
+                string tempPath = new string('a', 100);
+                using (var serverData = await ServerUtil.CreateServer(pipeName, tempPath: tempPath))
+                {
+                    // Make sure the server is listening for this particular test.
+                    await serverData.ListenTask;
+                    var exitCode = await RunShutdownAsync(serverData.PipeName, waitForProcess: false).ConfigureAwait(false);
+                    Assert.Equal(CommonCompiler.Succeeded, exitCode);
+                    await serverData.Verify(connections: 1, completed: 1);
                 }
             }
         }
