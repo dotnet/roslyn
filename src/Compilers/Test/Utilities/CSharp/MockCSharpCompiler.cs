@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         internal Compilation Compilation;
+        internal AnalyzerOptions AnalyzerOptions;
 
         public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, AnalyzerAssemblyLoader loader = null)
             : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, loader)
@@ -40,10 +41,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return analyzers;
         }
 
-        public override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)
+        public Compilation CreateCompilation(
+            TextWriter consoleOutput,
+            TouchedFileLogger touchedFilesLogger,
+            ErrorLogger errorLogger)
+            => CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt: default);
+
+        public override Compilation CreateCompilation(
+            TextWriter consoleOutput,
+            TouchedFileLogger touchedFilesLogger,
+            ErrorLogger errorLogger,
+            ImmutableArray<AnalyzerConfigOptionsResult> syntaxDiagOptionsOpt)
         {
-            Compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger);
+            Compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt);
             return Compilation;
+        }
+
+        protected override AnalyzerOptions CreateAnalyzerOptions(
+            ImmutableArray<AdditionalText> additionalTextFiles,
+            AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
+        {
+            AnalyzerOptions = base.CreateAnalyzerOptions(additionalTextFiles, analyzerConfigOptionsProvider);
+            return AnalyzerOptions;
         }
     }
 }

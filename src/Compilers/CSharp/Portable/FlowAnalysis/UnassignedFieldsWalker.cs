@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var thisParameter = MethodThisParameter;
             int thisSlot = VariableSlot(thisParameter);
-            if (thisSlot == -1)
+            if (thisSlot == -1 || !State.Reachable)
             {
                 return;
             }

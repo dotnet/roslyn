@@ -181,7 +181,7 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideInterface()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"interface I {
    $$");
         }

@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
-    internal struct BlockSpan
+    internal readonly struct BlockSpan
     {
         private const string Ellipses = "...";
 

@@ -80,15 +80,16 @@ class C
         [Fact]
         public void Syntax03()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilation(@"
 interface C
 {
     int M() => 1;
-}");
+}", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
             comp.VerifyDiagnostics(
-    // (4,9): error CS0531: 'C.M()': interface members cannot have a definition
-    //     int M() => 1;
-    Diagnostic(ErrorCode.ERR_InterfaceMemberHasBody, "M").WithArguments("C.M()").WithLocation(4, 9));
+                // (4,9): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     int M() => 1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("default interface implementation").WithLocation(4, 9)
+                );
         }
 
         [Fact]

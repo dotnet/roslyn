@@ -1625,6 +1625,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyBinder.ValidateIteratorMethods(diagnostics);
 
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
+                    if (bodyBinder.Compilation.NullableAnalysisEnabled)
+                    {
+                        // Currently, we're passing an empty DiagnosticBag here because the flow analysis pass later will
+                        // also run the nullable walker, and issue duplicate warnings. We should try to only run the pass
+                        // once.
+                        // https://github.com/dotnet/roslyn/issues/35041
+                        methodBody = NullableWalker.AnalyzeAndRewrite(bodyBinder.Compilation, method, methodBody, bodyBinder.Conversions, new DiagnosticBag());
+                    }
                     forSemanticModel = (syntaxNode, methodBody, bodyBinder);
 
                     switch (methodBody.Kind)
@@ -1824,19 +1832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static SyntaxToken GetImplicitConstructorBodyToken(CSharpSyntaxNode containerNode)
         {
-            var kind = containerNode.Kind();
-            switch (kind)
-            {
-                case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)containerNode).OpenBraceToken;
-                case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)containerNode).OpenBraceToken;
-                case SyntaxKind.EnumDeclaration:
-                    // We're not going to find any non-default ctors, but we'll look anyway.
-                    return ((EnumDeclarationSyntax)containerNode).OpenBraceToken;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-            }
+            return ((BaseTypeDeclarationSyntax)containerNode).OpenBraceToken;
         }
 
         internal static BoundCall GenerateBaseParameterlessConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics)

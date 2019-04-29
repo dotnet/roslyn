@@ -18,6 +18,34 @@ namespace Roslyn.Test.Utilities
 
         public bool IsRunningInScheduler => StaThread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId;
 
+        static StaTaskScheduler()
+        {
+            // We've created an STA thread, which has some extra requirements for COM Runtime
+            // Callable Wrappers (RCWs). If any COM object is created on the STA thread, calls to that
+            // object must be made from that thread; when the RCW is no longer being used by any
+            // managed code, the RCW is put into the finalizer queue, but to actually finalize it
+            // it has to marshal to the STA thread to do the work. This means that in order to safely
+            // clean up any RCWs, we need to ensure that the thread is pumping past the point of
+            // all RCWs being finalized
+            //
+            // This constraint is particularly problematic if our tests are running in an AppDomain:
+            // when the AppDomain is unloaded, any threads (including our STA thread) are going to be
+            // aborted. Once the thread and AppDomain is being torn down, the CLR is going to try cleaning up
+            // any RCWs associated them, because if the thread is gone for good there's no way
+            // it could ever clean anything further up. The code there waits for the finalizer queue
+            // -- but the finalizer queue might be already trying to clean up an RCW, which is marshaling
+            // to the STA thread. This could then deadlock.
+            //
+            // The suggested workaround from the CLR team is to do an explicit GC.Collect and
+            // WaitForPendingFinalizers before we let the AppDomain shut down. The belief is subscribing
+            // to DomainUnload is a reasonable place to do it.
+            AppDomain.CurrentDomain.DomainUnload += (sender, e) =>
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            };
+        }
+
         /// <summary>Initializes a new instance of the <see cref="StaTaskScheduler"/> class.</summary>
         public StaTaskScheduler()
         {

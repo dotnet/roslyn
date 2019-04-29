@@ -414,9 +414,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     returnType = parameter.TypeWithAnnotations;
                     refCustomModifiers = parameter.RefCustomModifiers;
                     break;
+                case SymbolKind.ErrorType:
+                    refKind = RefKind.None;
+                    returnType = TypeWithAnnotations.Create((TypeSymbol)symbol);
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
+        }
+
+        internal static bool IsImplementableInterfaceMember(this Symbol symbol)
+        {
+            return !symbol.IsStatic && (symbol.IsAbstract || symbol.IsVirtual) && (symbol.ContainingType?.IsInterface ?? false);
         }
     }
 }

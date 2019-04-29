@@ -11,7 +11,7 @@
     associated with the data types.
     
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -1397,6 +1397,9 @@ This version used in: {2}</value>
   <data name="Private_method_0_can_be_removed_as_it_is_never_invoked" xml:space="preserve">
     <value>Private method '{0}' can be removed as it is never invoked.</value>
   </data>
+  <data name="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked" xml:space="preserve">
+    <value>Private property '{0}' can be converted to a method as its get accessor is never invoked.</value>
+  </data>
   <data name="Code_Quality" xml:space="preserve">
     <value>Code Quality</value>
   </data>
@@ -1411,6 +1414,9 @@ This version used in: {2}</value>
   </data>
   <data name="Move_file_to_project_root_folder" xml:space="preserve">
     <value>Move file to project root folder</value>
+  </data>
+  <data name="Move_to_namespace" xml:space="preserve">
+    <value>Move to namespace...</value>
   </data>
   <data name="Change_to_global_namespace" xml:space="preserve">
     <value>Change to global namespace</value>
@@ -1599,10 +1605,22 @@ This version used in: {2}</value>
     <value>Make readonly fields writable</value>
     <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
   </data>
+  <data name="Move_contents_to_namespace" xml:space="preserve">
+    <value>Move contents to namespace...</value>
+  </data>
   <data name="Add_optional_parameter_to_constructor" xml:space="preserve">
     <value>Add optional parameter to constructor</value>
   </data>
   <data name="Add_parameter_to_constructor" xml:space="preserve">
     <value>Add parameter to constructor</value>
+  </data>
+  <data name="Target_type_matches" xml:space="preserve">
+    <value>Target type matches</value>
+  </data>
+  <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
+    <value>Stream must support read and seek operations.</value>
+  </data>
+  <data name="MethodMustReturnStreamThatSupportsReadAndSeek" xml:space="preserve">
+    <value>{0} must return a stream that supports read and seek operations.</value>
   </data>
 </root>

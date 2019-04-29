@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces = default(ImmutableArray<NamedTypeSymbol>);
-        private NamedTypeSymbol _lazyDeclaredBaseTypeWithoutNullability = ErrorTypeSymbol.UnknownResultType;
-        private NamedTypeSymbol _lazyDeclaredBaseTypeWithNullability = ErrorTypeSymbol.UnknownResultType;
+        private NamedTypeSymbol _lazyDeclaredBaseType = ErrorTypeSymbol.UnknownResultType;
         private ImmutableArray<NamedTypeSymbol> _lazyDeclaredInterfaces = default(ImmutableArray<NamedTypeSymbol>);
 
         private Tuple<CultureInfo, string> _lazyDocComment;
@@ -427,33 +426,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
-            return GetDeclaredBaseType(ignoreNullability: false);
+            return GetDeclaredBaseType();
         }
 
-        private NamedTypeSymbol GetDeclaredBaseType(bool ignoreNullability)
+        private NamedTypeSymbol GetDeclaredBaseType()
         {
-            if (ReferenceEquals(_lazyDeclaredBaseTypeWithoutNullability, ErrorTypeSymbol.UnknownResultType))
+            if (ReferenceEquals(_lazyDeclaredBaseType, ErrorTypeSymbol.UnknownResultType))
             {
-                Interlocked.CompareExchange(ref _lazyDeclaredBaseTypeWithoutNullability, MakeDeclaredBaseType(), ErrorTypeSymbol.UnknownResultType);
+                Interlocked.CompareExchange(ref _lazyDeclaredBaseType, MakeDeclaredBaseType(), ErrorTypeSymbol.UnknownResultType);
             }
 
-            if (ignoreNullability)
-            {
-                return _lazyDeclaredBaseTypeWithoutNullability;
-            }
-
-            if (ReferenceEquals(_lazyDeclaredBaseTypeWithNullability, ErrorTypeSymbol.UnknownResultType))
-            {
-                var declaredBase = _lazyDeclaredBaseTypeWithoutNullability;
-                if ((object)declaredBase != null)
-                {
-                    declaredBase = (NamedTypeSymbol)NullableTypeDecoder.TransformType(
-                        TypeWithAnnotations.Create(declaredBase), _handle, ContainingPEModule).Type;
-                }
-                Interlocked.CompareExchange(ref _lazyDeclaredBaseTypeWithNullability, declaredBase, ErrorTypeSymbol.UnknownResultType);
-            }
-
-            return _lazyDeclaredBaseTypeWithNullability;
+            return _lazyDeclaredBaseType;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
@@ -479,9 +462,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         TypeSymbol decodedType = new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
                         decodedType = DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
-                        return (NamedTypeSymbol)TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType,
-                                                                                              _handle,
-                                                                                              moduleSymbol);
+                        decodedType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(decodedType,
+                                                                                    _handle,
+                                                                                    moduleSymbol);
+                        return (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(decodedType),
+                                                                                  _handle,
+                                                                                  moduleSymbol).Type;
                     }
                 }
                 catch (BadImageFormatException mrEx)
@@ -1617,7 +1603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
-                        TypeSymbol @base = GetDeclaredBaseType(ignoreNullability: true);
+                        TypeSymbol @base = GetDeclaredBaseType();
 
                         result = TypeKind.Class;
 
@@ -2069,7 +2055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool IsReadOnly
+        public override bool IsReadOnly
         {
             get
             {

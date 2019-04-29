@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }, (binder: this, invalidDimensions: invalidDimensions, diagnostics: diagnostics));
 
-                boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, dimensionsOpt: invalidDimensions.ToImmutableAndFree(), type: declTypeOpt.Type);
+                boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, dimensionsOpt: invalidDimensions.ToImmutableAndFree(), typeWithAnnotations: declTypeOpt);
             }
 
             return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, inferredType: isVar, hasErrors: hasErrors);
@@ -1470,6 +1470,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexerAccess = (BoundIndexerAccess)expr;
                         receiver = indexerAccess.ReceiverOpt;
                         propertySymbol = indexerAccess.Indexer;
+                    }
+                    break;
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    {
+                        var patternIndexer = (BoundIndexOrRangePatternIndexerAccess)expr;
+                        receiver = patternIndexer.Receiver;
+                        propertySymbol = (PropertySymbol)patternIndexer.PatternSymbol;
                     }
                     break;
                 default:

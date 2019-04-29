@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0108);
 
+        public override FixAllProvider GetFixAllProvider()
+        {
+            return WellKnownFixAllProviders.BatchFixer;
+        }
+
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);

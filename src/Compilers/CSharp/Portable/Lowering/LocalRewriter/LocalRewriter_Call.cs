@@ -220,38 +220,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenArguments[1],
                     type);
             }
-            else if (node == null)
-            {
-                rewrittenBoundCall = new BoundCall(
-                    syntax,
-                    rewrittenReceiver,
-                    method,
-                    rewrittenArguments,
-                    default(ImmutableArray<string>),
-                    argumentRefKinds,
-                    isDelegateCall: false,
-                    expanded: false,
-                    invokedAsExtensionMethod: invokedAsExtensionMethod,
-                    argsToParamsOpt: default(ImmutableArray<int>),
-                    resultKind: resultKind,
-                    binderOpt: null,
-                    type: type);
-            }
             else
             {
-                rewrittenBoundCall = node.Update(
-                    rewrittenReceiver,
-                    method,
-                    rewrittenArguments,
-                    default(ImmutableArray<string>),
-                    argumentRefKinds,
-                    node.IsDelegateCall,
-                    false,
-                    node.InvokedAsExtensionMethod,
-                    default(ImmutableArray<int>),
-                    node.ResultKind,
-                    node.BinderOpt,
-                    node.Type);
+                method = AdjustMethodForBaseInterfaceCall(rewrittenReceiver, method);
+
+                if (node == null)
+                {
+                    rewrittenBoundCall = new BoundCall(
+                        syntax,
+                        rewrittenReceiver,
+                        method,
+                        rewrittenArguments,
+                        default(ImmutableArray<string>),
+                        argumentRefKinds,
+                        isDelegateCall: false,
+                        expanded: false,
+                        invokedAsExtensionMethod: invokedAsExtensionMethod,
+                        argsToParamsOpt: default(ImmutableArray<int>),
+                        resultKind: resultKind,
+                        binderOpt: null,
+                        type: type);
+                }
+                else
+                {
+                    rewrittenBoundCall = node.Update(
+                        rewrittenReceiver,
+                        method,
+                        rewrittenArguments,
+                        default(ImmutableArray<string>),
+                        argumentRefKinds,
+                        node.IsDelegateCall,
+                        false,
+                        node.InvokedAsExtensionMethod,
+                        default(ImmutableArray<int>),
+                        node.ResultKind,
+                        node.BinderOpt,
+                        node.Type);
+                }
             }
 
             if (!temps.IsDefaultOrEmpty)
@@ -265,6 +270,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return rewrittenBoundCall;
+        }
+
+        private static MethodSymbol AdjustMethodForBaseInterfaceCall(BoundExpression receiverOpt, MethodSymbol method)
+        {
+            if (receiverOpt?.Kind == BoundKind.BaseReference)
+            {
+                var baseReference = (BoundBaseReference)receiverOpt;
+
+                if (method.IsImplementableInterfaceMember() &&
+                    baseReference.ExplicitBaseReferenceOpt?.Type.IsInterfaceType() == true)
+                {
+                    method = (MethodSymbol)TypeSymbol.FindImplementationInInterface(method, (NamedTypeSymbol)baseReference.ExplicitBaseReferenceOpt.Type).Single();
+                }
+            }
+
+            return method;
         }
 
         private BoundExpression MakeCall(SyntaxNode syntax, BoundExpression rewrittenReceiver, MethodSymbol method, ImmutableArray<BoundExpression> rewrittenArguments, TypeSymbol type)

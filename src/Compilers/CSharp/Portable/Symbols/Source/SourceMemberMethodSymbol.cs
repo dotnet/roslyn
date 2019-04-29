@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
         {
-            if (this.DeclaredAccessibility <= Accessibility.Private)
+            if (this.DeclaredAccessibility <= Accessibility.Private || MethodKind == MethodKind.ExplicitInterfaceImplementation)
             {
                 return;
             }
@@ -391,6 +391,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // TODO (tomat): sealed
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
+            if (IsExplicitInterfaceImplementation && _containingType.IsInterface)
+            {
+                // All implementations of methods from base interfaces should omit the newslot bit to ensure no new vtable slot is allocated.
+                return false;
+            }
+
             // If C# and the runtime don't agree on the overridden method,
             // then we will mark the method as newslot and specify the
             // override explicitly (see GetExplicitImplementationOverrides
@@ -509,6 +515,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsDeclaredReadOnly
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
+            }
+        }
+
         internal sealed override Cci.CallingConvention CallingConvention
         {
             get
@@ -533,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Syntax
 
-        internal (BlockSyntax, ArrowExpressionClauseSyntax) Bodies
+        internal (BlockSyntax blockBody, ArrowExpressionClauseSyntax arrowBody) Bodies
         {
             get
             {
@@ -1216,9 +1230,16 @@ done:
             {
                 if (this.IsAccessor())
                 {
-                    // CS1667: Attribute '{0}' is not valid on property or event accessors. It is only valid on '{1}' declarations.
-                    AttributeUsageInfo attributeUsage = arguments.Attribute.AttributeClass.GetAttributeUsageInfo();
-                    arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
+                    if (this is SourceEventAccessorSymbol)
+                    {
+                        // CS1667: Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.
+                        AttributeUsageInfo attributeUsage = arguments.Attribute.AttributeClass.GetAttributeUsageInfo();
+                        arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnEventAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
+                    }
+                    else
+                    {
+                        MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt.Location);
+                    }
                 }
 
                 return true;
@@ -1606,9 +1627,24 @@ done:
 
         #endregion
 
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            if (IsDeclaredReadOnly)
+            {
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, locations[0], modifyCompilation: true);
+            }
+        }
+
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            if (IsDeclaredReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
 
             bool isAsync = this.IsAsync;
             bool isIterator = this.IsIterator;
@@ -1661,13 +1697,9 @@ done:
         /// Checks to see if a body is legal given the current modifiers.
         /// If it is not, a diagnostic is added with the current type.
         /// </summary>
-        protected void CheckModifiersForBody(Location location, DiagnosticBag diagnostics)
+        protected void CheckModifiersForBody(SyntaxNode declarationSyntax, Location location, DiagnosticBag diagnostics)
         {
-            if (_containingType.IsInterface)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterfaceMemberHasBody, location, this);
-            }
-            else if (IsExtern && !IsAbstract)
+            if (IsExtern && !IsAbstract)
             {
                 diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
             }
@@ -1677,6 +1709,22 @@ done:
             }
             // Do not report error for IsAbstract && IsExtern. Dev10 reports CS0180 only
             // in that case ("member cannot be both extern and abstract").
+        }
+
+        protected void CheckFeatureAvailabilityAndRuntimeSupport(SyntaxNode declarationSyntax, Location location, bool hasBody, DiagnosticBag diagnostics)
+        {
+            if (_containingType.IsInterface)
+            {
+                if (hasBody || IsExplicitInterfaceImplementation)
+                {
+                    Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
+                }
+
+                if ((hasBody || IsExtern) && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
+                }
+            }
         }
 
         /// <summary>

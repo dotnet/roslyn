@@ -1121,7 +1121,7 @@ class Program
 
                 if (completionList != null)
                 {
-                    Assert.True(exclusive == completionList.IsExclusive, "group.IsExclusive == " + completionList.IsExclusive);
+                    Assert.True(exclusive == completionList.GetTestAccessor().IsExclusive, "group.IsExclusive == " + completionList.GetTestAccessor().IsExclusive);
                 }
             }
         }

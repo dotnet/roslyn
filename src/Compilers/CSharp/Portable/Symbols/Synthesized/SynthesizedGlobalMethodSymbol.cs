@@ -300,6 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<MethodSymbol>.Empty; }
         }
 
+        internal sealed override bool IsDeclaredReadOnly => false;
+
         internal override bool SynthesizesLoweredBoundBody
         {
             get { return true; }

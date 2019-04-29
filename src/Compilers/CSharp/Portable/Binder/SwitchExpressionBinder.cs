@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // We only report exhaustive warnings when the default label is reachable through some series of
-            // tests that do not include a test in which the value is know to be null.  Handling paths with
+            // tests that do not include a test in which the value is known to be null.  Handling paths with
             // nulls is the job of the nullable walker.
             foreach (var n in TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors))
             {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case BoundDagNonNullTest t: // checks that the input is not null
                                 return ImmutableArray.Create(p.WhenTrue);
-                            case BoundDagNullTest t: // checks that the input is null
+                            case BoundDagExplicitNullTest t: // checks that the input is null
                                 return ImmutableArray.Create(p.WhenFalse);
                             default:
                                 return BoundDecisionDag.Successors(n);

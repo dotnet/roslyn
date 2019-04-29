@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 case ProjectChecksumCollection _: return WellKnownSynchronizationKind.Projects;
                 case DocumentChecksumCollection _: return WellKnownSynchronizationKind.Documents;
                 case TextDocumentChecksumCollection _: return WellKnownSynchronizationKind.TextDocuments;
+                case AnalyzerConfigDocumentChecksumCollection _: return WellKnownSynchronizationKind.AnalyzerConfigDocuments;
                 case ProjectReferenceChecksumCollection _: return WellKnownSynchronizationKind.ProjectReferences;
                 case MetadataReferenceChecksumCollection _: return WellKnownSynchronizationKind.MetadataReferences;
                 case AnalyzerReferenceChecksumCollection _: return WellKnownSynchronizationKind.AnalyzerReferences;

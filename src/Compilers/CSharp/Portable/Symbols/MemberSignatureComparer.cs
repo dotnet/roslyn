@@ -47,19 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
-        /// Same as <see cref="ExplicitImplementationComparer"/> except that it specially treats nullable types.  
-        /// </summary>
-        public static readonly MemberSignatureComparer ExplicitImplementationLookupComparer = new MemberSignatureComparer(
-            considerName: false,
-            considerExplicitlyImplementedInterfaces: false,
-            considerReturnType: true,
-            considerTypeConstraints: false,
-            considerRefKindDifferences: true,
-            considerCallingConvention: true,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames,
-            useSpecialHandlingForNullableTypes: true);
-
-        /// <summary>
         /// This instance is used when trying to determine if one member implicitly implements another,
         /// according to the C# definition.
         /// The member names, parameters, and (return) types must match. Custom modifiers are ignored.
@@ -138,19 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
-        /// Same as <see cref="CSharpOverrideComparer"/> except that it specially treats nullable types.  
-        /// </summary>
-        public static readonly MemberSignatureComparer CSharpNullableOverrideComparer = new MemberSignatureComparer(
-            considerName: true,
-            considerExplicitlyImplementedInterfaces: false,
-            considerReturnType: false,
-            considerTypeConstraints: false,
-            considerCallingConvention: false, //ignore static-ness
-            considerRefKindDifferences: true,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames,
-            useSpecialHandlingForNullableTypes: true);
-
-        /// <summary>
         /// This instance checks whether two signatures match including tuples names, in both return type and parameters.
         /// It is used to detect tuple-name-only differences.
         /// </summary>
@@ -203,19 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false, //ignore static-ness
             considerRefKindDifferences: true,
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-
-        /// <summary>
-        /// Same as <see cref="CSharpCustomModifierOverrideComparer"/> except that it specially treats nullable types.  
-        /// </summary>
-        public static readonly MemberSignatureComparer CSharpCustomModifierNullableOverrideComparer = new MemberSignatureComparer(
-            considerName: true,
-            considerExplicitlyImplementedInterfaces: false,
-            considerReturnType: true,
-            considerTypeConstraints: false,
-            considerCallingConvention: false, //ignore static-ness
-            considerRefKindDifferences: true,
-            typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes,
-            useSpecialHandlingForNullableTypes: true);
 
         /// <summary>
         /// If this returns false, then the real override comparer (whichever one is appropriate for the scenario)
@@ -332,8 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Equality options for parameter types and return types (if return is considered).
         private readonly TypeCompareKind _typeComparison;
 
-        private readonly bool _useSpecialHandlingForNullableTypes;
-
         private MemberSignatureComparer(
             bool considerName,
             bool considerExplicitlyImplementedInterfaces,
@@ -341,8 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool considerTypeConstraints,
             bool considerCallingConvention,
             bool considerRefKindDifferences,
-            TypeCompareKind typeComparison = TypeCompareKind.IgnoreDynamic,
-            bool useSpecialHandlingForNullableTypes = false)
+            TypeCompareKind typeComparison = TypeCompareKind.IgnoreDynamic)
         {
             Debug.Assert(!considerExplicitlyImplementedInterfaces || considerName, "Doesn't make sense to consider interfaces separately from name.");
 
@@ -353,7 +311,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _considerCallingConvention = considerCallingConvention;
             _considerRefKindDifferences = considerRefKindDifferences;
             _typeComparison = typeComparison;
-            _useSpecialHandlingForNullableTypes = useSpecialHandlingForNullableTypes;
         }
 
         #region IEqualityComparer<Symbol> Members
@@ -396,38 +353,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            TypeMap typeMap1;
-            TypeMap typeMap2;
-
-            if (arity > 0 && _useSpecialHandlingForNullableTypes)
-            {
-                // We need this special handling in order to avoid forcing resolution of nullable types 
-                // in signature of an overriding member while we are looking for a matching overridden member. 
-                // Doing the resolution in the original signature can send us into an infinite cycle because
-                // constraints must be inherited from the member we are looking for.
-                // It is important to ensure that the fact whether an indexed type parameter we are about to use
-                // is a reference type is inherited from the corresponding type parameter of the possibly overridden
-                // member (which is member2 when _useSpecialHandlingForNullableTypes is true). This will ensure
-                // proper resolution for nullable types in substituted signature of member1, ensuring proper 
-                // comparison of types across both members.
-                ArrayBuilder<TypeParameterSymbol> builder = ArrayBuilder<TypeParameterSymbol>.GetInstance(arity);
-                var typeParameters2 = member2.GetMemberTypeParameters();
-
-                for (int i = arity - 1; i >= 0; i--)
-                {
-                    builder.Add(IndexedTypeParameterSymbolForOverriding.GetTypeParameter(i, typeParameters2[i].IsValueType));
-                }
-
-                var indexed = builder.ToImmutableAndFree();
-
-                typeMap1 = new TypeMap(member1.GetMemberTypeParameters(), indexed, true);
-                typeMap2 = new TypeMap(typeParameters2, indexed, true);
-            }
-            else
-            {
-                typeMap1 = GetTypeMap(member1);
-                typeMap2 = GetTypeMap(member2);
-            }
+            TypeMap typeMap1 = GetTypeMap(member1);
+            TypeMap typeMap2 = GetTypeMap(member2);
 
             if (_considerReturnType && !HaveSameReturnTypes(member1, typeMap1, member2, typeMap2, _typeComparison))
             {

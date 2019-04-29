@@ -332,5 +332,31 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     "EmbedInteropTypes=``"
                 });
         }
+
+        [ConditionalFact(typeof(DotNetSdkAvailable), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/34688")]
+        public void TestDiscoverEditorConfigFiles()
+        {
+            var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
+            var subdir = ProjectDir.CreateDirectory("subdir");
+            var srcFile2 = subdir.CreateFile("lib2.cs").WriteAllText("class D { }");
+            var editorConfigFile2 = subdir.CreateFile(".editorconfig").WriteAllText(@"[*.cs]
+some_prop = some_val");
+            VerifyValues(
+                customProps: null,
+                customTargets: null,
+                targets: new[]
+                {
+                    "CoreCompile"
+                },
+                expressions: new[]
+                {
+                    "@(EditorConfigFiles)"
+                },
+                expectedResults: new[]
+                {
+                    Path.Combine(ProjectDir.Path, ".editorconfig"),
+                    editorConfigFile2.Path
+                });
+        }
     }
 }
