@@ -64,7 +64,7 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
             Margin="0,18,3,0">
-            <vs:DialogButton
+            <Button
                 x:Uid="FinishButton"
                 Click="FinishButton_Click"
                 IsDefault="True"
@@ -73,7 +73,7 @@
                 Content="{Binding ElementName=dialog, Path=Finish}"
                 MinWidth= "{StaticResource ResourceKey=ButtonWidth}"
                 MinHeight="{StaticResource ResourceKey=ButtonHeight}"/>
-            <vs:DialogButton
+            <Button
                 x:Uid="BackButton"
                 IsCancel="True"
                 Padding= "{StaticResource ResourceKey=ButtonPadding}"
