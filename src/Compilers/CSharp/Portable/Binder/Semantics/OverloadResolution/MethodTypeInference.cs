@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectedBounds[methodTypeParameterIndex] == null)
             {
-                collectedBounds[methodTypeParameterIndex] = new HashSet<TypeWithAnnotations>(TypeWithAnnotations.EqualsComparer.Instance);
+                collectedBounds[methodTypeParameterIndex] = new HashSet<TypeWithAnnotations>(TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer);
             }
 
             collectedBounds[methodTypeParameterIndex].Add(addedBound);

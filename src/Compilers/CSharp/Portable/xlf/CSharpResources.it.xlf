@@ -67,6 +67,11 @@
         <target state="translated">L'opzione '{0}' non è valida per /nullable. Deve essere 'disable', 'enable', 'safeonly', 'warnings' o 'safeonlywarnings'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableTypeof">
+        <source>The typeof operator cannot be used on a nullable reference type</source>
+        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">L'operando non è valido per i criteri di ricerca. È richiesto un valore ma è stato trovato '{0}'.</target>
@@ -1510,6 +1515,16 @@
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title">
         <source>Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</source>
         <target state="translated">Il supporto dei valori Null nei vincoli del parametro di tipo non corrisponde ai vincoli per il parametro di tipo nel metodo di interfaccia implementato in modo implicito.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
+        <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
+        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
+        <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
+        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
@@ -4682,8 +4697,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
-        <source>Partial method declarations of '{0}' have inconsistent type parameter constraints</source>
-        <target state="translated">Le dichiarazioni di metodo parziale di '{0}' contengono vincoli incoerenti per i parametri di tipo</target>
+        <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
+        <target state="needs-review-translation">Le dichiarazioni di metodo parziale di '{0}' contengono vincoli incoerenti per i parametri di tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">

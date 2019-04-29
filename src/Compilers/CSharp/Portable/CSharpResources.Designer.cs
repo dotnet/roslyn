@@ -1888,6 +1888,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The typeof operator cannot be used on a nullable reference type.
+        /// </summary>
+        internal static string ERR_BadNullableTypeof {
+            get {
+                return ResourceManager.GetString("ERR_BadNullableTypeof", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Declaration is not valid; use &apos;{0} operator &lt;dest-type&gt; (...&apos; instead.
         /// </summary>
         internal static string ERR_BadOperatorSyntax {
@@ -8188,7 +8197,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partial method declarations of &apos;{0}&apos; have inconsistent type parameter constraints.
+        ///   Looks up a localized string similar to Partial method declarations of &apos;{0}&apos; have inconsistent constraints for type parameter &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_PartialMethodInconsistentConstraints {
             get {
@@ -15328,6 +15337,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title {
             get {
                 return ResourceManager.GetString("WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partial method declarations of &apos;{0}&apos; have inconsistent nullability in constraints for type parameter &apos;{1}&apos;.
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInConstraintsOnPartialImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraintsOnPartialImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partial method declarations have inconsistent nullability in constraints for type parameter.
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title", resourceCulture);
             }
         }
         

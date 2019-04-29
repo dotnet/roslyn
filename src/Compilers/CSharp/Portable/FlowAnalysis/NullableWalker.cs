@@ -1376,6 +1376,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !type.IsNullableTypeOrTypeParameter();
         }
 
+        private static bool RequiresSafetyWarningWhenNullIntroduced(TypeSymbol type)
+        {
+            return
+                type.IsTypeParameterDisallowingAnnotation() &&
+                !type.IsNullableTypeOrTypeParameter();
+        }
+
         public override BoundNode VisitLocal(BoundLocal node)
         {
             var local = node.LocalSymbol;

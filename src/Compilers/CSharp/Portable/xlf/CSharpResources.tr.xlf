@@ -67,6 +67,11 @@
         <target state="translated">/nullable için geçersiz '{0}' seçeneği; 'disable', 'enable', 'safeonly', 'warnings' veya 'safeonlywarnings' olmalıdır</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableTypeof">
+        <source>The typeof operator cannot be used on a nullable reference type</source>
+        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Desen eşleşmesi için işlenen geçersiz. Değer gerekiyordu ancak '{0}' bulundu.</target>
@@ -1511,6 +1516,16 @@
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnImplicitImplementation_Title">
         <source>Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.</source>
         <target state="translated">Tür parametresi için kısıtlamalardaki boş değer atanabilirlik, örtük olarak uygulanan arabirim metodundaki tür parametresi için kısıtlamalarla eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
+        <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
+        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
+        <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
+        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
@@ -4683,8 +4698,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
-        <source>Partial method declarations of '{0}' have inconsistent type parameter constraints</source>
-        <target state="translated">{0}' öğesinin kısmı yöntem bildirimleri tutarsız tür parametresi kısıtlamalarına sahip</target>
+        <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
+        <target state="needs-review-translation">{0}' öğesinin kısmı yöntem bildirimleri tutarsız tür parametresi kısıtlamalarına sahip</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
