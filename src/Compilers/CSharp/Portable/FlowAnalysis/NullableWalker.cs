@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (RequiresSafetyWarningWhenNullIntroduced(targetType.Type))
+            if (RequiresSafetyWarningWhenNullIntroduced(targetType))
             {
                 if (conversion.Kind == ConversionKind.UnsetConversionKind)
                     conversion = this._conversions.ClassifyImplicitConversionFromType(valueType.Type, targetType.Type, ref useSiteDiagnostics);
@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings = false;
             }
 
-            if (reportNullLiteralAssignmentIfNecessary(value, location))
+            if (reportNullLiteralAssignmentIfNecessary(value, location, valueType.ToTypeWithAnnotations()))
             {
                 return true;
             }
@@ -897,7 +897,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Report warning converting null literal to non-nullable reference type.
             // target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
-            bool reportNullLiteralAssignmentIfNecessary(BoundExpression expr, Location location)
+            bool reportNullLiteralAssignmentIfNecessary(BoundExpression expr, Location location, TypeWithAnnotations exprType)
             {
                 if (expr.ConstantValue?.IsNull != true)
                 {
@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // For type parameters that cannot be annotated, the analysis must report those
                 // places where null values first sneak in, like `default`, `null`, and `GetFirstOrDefault`,
                 // as a safety diagnostic.  This is one of those places.
-                if (useLegacyWarnings && !RequiresSafetyWarningWhenNullIntroduced(expr.Type))
+                if (useLegacyWarnings && !RequiresSafetyWarningWhenNullIntroduced(exprType))
                 {
                     ReportNonSafetyDiagnostic(location);
                 }
@@ -933,35 +933,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 default:
                     return false;
-            }
-        }
-
-        // Maybe this method can be replaced by VisitOptionalImplicitConversion or ApplyConversion
-        private void ReportAssignmentWarnings(
-            BoundExpression value,
-            TypeWithAnnotations targetType,
-            TypeWithState valueType,
-            bool useLegacyWarnings)
-        {
-            Debug.Assert(value != null);
-
-            if (this.State.Reachable)
-            {
-                if (!targetType.HasType || valueType.HasNullType)
-                {
-                    return;
-                }
-
-                // Report top-level nullability issues
-                ReportNullableAssignmentIfNecessary(value, targetType, valueType, useLegacyWarnings, AssignmentKind.Assignment);
-
-                // Report nested nullability issues
-                var sourceType = valueType.Type;
-                var destinationType = targetType.Type;
-                if ((object)sourceType != null && IsNullabilityMismatch(destinationType, sourceType))
-                {
-                    ReportNullabilityMismatchInAssignment(value.Syntax, sourceType, destinationType);
-                }
             }
         }
 
@@ -1397,9 +1368,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static bool RequiresSafetyWarningWhenNullIntroduced(TypeSymbol typeOpt)
+        private static bool RequiresSafetyWarningWhenNullIntroduced(TypeWithAnnotations typeWithAnnotations)
         {
-            return typeOpt?.IsTypeParameterDisallowingAnnotation() == true && !typeOpt.IsNullableTypeOrTypeParameter();
+            return
+                typeWithAnnotations is { Type: TypeSymbol type, NullableAnnotation: NullableAnnotation.NotAnnotated } &&
+                type.IsTypeParameterDisallowingAnnotation() &&
+                !type.IsNullableTypeOrTypeParameter();
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
@@ -1655,12 +1629,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 default:
-                    TypeWithState resultType = VisitRvalueWithState(node);
                     Debug.Assert((object)containingSymbol != null);
                     if ((object)containingSymbol != null)
                     {
                         var type = containingSymbol.GetTypeOrReturnType();
-                        ReportAssignmentWarnings(node, type, resultType, useLegacyWarnings: false);
+                        TypeWithState resultType = VisitOptionalImplicitConversion(node, type, useLegacyWarnings: false, trackMembers: true, AssignmentKind.Assignment);
                         TrackNullableStateForAssignment(node, type, containingSlot, resultType, MakeSlot(node));
                     }
                     break;
@@ -2336,7 +2309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftState = this.State.Clone();
             LearnFromNonNullTest(leftOperand, ref leftState);
             LearnFromNullTest(leftOperand, ref this.State);
-            TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand), trackMembers: false, AssignmentKind.Assignment);
+            TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand, targetType), trackMembers: false, AssignmentKind.Assignment);
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
             TypeWithState resultType = GetNullCoalescingResultType(rightResult, targetType.Type);
@@ -2496,14 +2469,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the result type does not allow annotations, then we produce a warning because
             // the result may be null.
-            if (RequiresSafetyWarningWhenNullIntroduced(type))
-            {
-                ReportSafetyDiagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, node.Syntax, node.Type);
-            }
 
             _currentConditionalReceiverVisitResult = default;
             _lastConditionalAccessSlot = previousConditionalAccessSlot;
             SetResultType(node, TypeWithState.Create(type, resultState));
+
+            // A side effect of the above assignment to ResultType is to compute the corresponding TypeWithAnnotations as
+            // this.LvalueResultType, which is what we need to decide if a safety warning is deserved here.
+            var resultTypeWithAnnotations = this.LvalueResultType;
+            if (RequiresSafetyWarningWhenNullIntroduced(resultTypeWithAnnotations))
+            {
+                ReportSafetyDiagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, node.Syntax, node.Type);
+            }
+
             return null;
         }
 
@@ -3255,7 +3233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!argument.IsSuppressed && !reported)
                         {
-                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, parameterWithState, useLegacyWarnings: UseLegacyWarnings(argument));
+                            ReportNullableAssignmentIfNecessary(parameterValue, lValueType, parameterWithState, useLegacyWarnings: UseLegacyWarnings(argument, result.LValueType));
 
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.Type, lValueType.Type, ref useSiteDiagnostics))
@@ -3780,7 +3758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operandType,
                     checkConversion: true,
                     fromExplicitCast: fromExplicitCast,
-                    useLegacyWarnings: fromExplicitCast && !RequiresSafetyWarningWhenNullIntroduced(explicitType.Type),
+                    useLegacyWarnings: fromExplicitCast && !RequiresSafetyWarningWhenNullIntroduced(explicitType),
                     AssignmentKind.Assignment,
                     reportTopLevelWarnings: fromExplicitCast,
                     reportRemainingWarnings: true,
@@ -4258,6 +4236,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.DefaultOrNullLiteral:
+                    if (checkConversion && RequiresSafetyWarningWhenNullIntroduced(targetTypeWithNullability) && !isSuppressed)
+                    {
+                        // For type parameters that cannot be annotated, the analysis must report those
+                        // places where null values first sneak in, like `default`, `null`, and `GetFirstOrDefault`.
+                        // This is one of those places.
+                        ReportSafetyDiagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, node.Syntax, GetTypeAsDiagnosticArgument(targetTypeWithNullability.Type));
+                    }
+
                     checkConversion = false;
                     goto case ConversionKind.Identity;
 
@@ -4286,7 +4272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         operandOpt?.Kind == BoundKind.Literal &&
                         operandOpt.ConstantValue?.IsNull == true &&
                         !isSuppressed &&
-                        RequiresSafetyWarningWhenNullIntroduced(targetType))
+                        RequiresSafetyWarningWhenNullIntroduced(targetTypeWithNullability))
                     {
                         // For type parameters that cannot be annotated, the analysis must report those
                         // places where null values first sneak in, like `default`, `null`, and `GetFirstOrDefault`.
@@ -4419,7 +4405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 if (reportTopLevelWarnings)
                 {
-                    if (RequiresSafetyWarningWhenNullIntroduced(targetType) && conversion.IsImplicit && !conversion.IsDynamic)
+                    if (RequiresSafetyWarningWhenNullIntroduced(targetTypeWithNullability) && conversion.IsImplicit && !conversion.IsDynamic)
                     {
                         // For type parameters that cannot be annotated, the analysis must report those
                         // places where null values first sneak in, like `default`, `null`, and `GetFirstOrDefault`,
@@ -4518,7 +4504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isLiftedConversion)
             {
                 operandType = LiftedReturnType(methodReturnType, operandState);
-                if (RequiresSafetyWarningWhenNullIntroduced(methodReturnType.Type) && operandState == NullableFlowState.MaybeNull)
+                if (RequiresSafetyWarningWhenNullIntroduced(methodReturnType) && operandState == NullableFlowState.MaybeNull)
                 {
                     ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, operandType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target, conversion, location);
                 }
@@ -4741,7 +4727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithState rightType;
                 if (!node.IsRef)
                 {
-                    rightType = VisitOptionalImplicitConversion(right, leftLValueType, UseLegacyWarnings(left), trackMembers: true, AssignmentKind.Assignment);
+                    rightType = VisitOptionalImplicitConversion(right, leftLValueType, UseLegacyWarnings(left, leftLValueType), trackMembers: true, AssignmentKind.Assignment);
                 }
                 else
                 {
@@ -4755,15 +4741,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static bool UseLegacyWarnings(BoundExpression expr)
+        private static bool UseLegacyWarnings(BoundExpression expr, TypeWithAnnotations exprType)
         {
             switch (expr.Kind)
             {
                 case BoundKind.Local:
-                    return expr.GetRefKind() == RefKind.None && !RequiresSafetyWarningWhenNullIntroduced(expr.Type);
+                    return expr.GetRefKind() == RefKind.None && !RequiresSafetyWarningWhenNullIntroduced(exprType);
                 case BoundKind.Parameter:
                     RefKind kind = ((BoundParameter)expr).ParameterSymbol.RefKind;
-                    return kind == RefKind.None && !RequiresSafetyWarningWhenNullIntroduced(expr.Type);
+                    return kind == RefKind.None && !RequiresSafetyWarningWhenNullIntroduced(exprType);
                 default:
                     return false;
             }
@@ -5519,7 +5505,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
-            _ = base.VisitUnaryOperator(node);
+            switch (node.OperatorKind)
+            {
+                case UnaryOperatorKind.BoolLogicalNegation:
+                    VisitCondition(node.Operand);
+                    SetConditionalState(StateWhenFalse, StateWhenTrue);
+                    break;
+                case UnaryOperatorKind.DynamicTrue:
+                    // We cannot use VisitCondition, because the operand is not of type bool.
+                    // Yet we want to keep the result split if it was split.  So we simply visit.
+                    Visit(node.Operand);
+                    break;
+                case UnaryOperatorKind.DynamicLogicalNegation:
+                    // We cannot use VisitCondition, because the operand is not of type bool.
+                    // Yet we want to keep the result split if it was split.  So we simply visit.
+                    Visit(node.Operand);
+                    // If the state is split, the result is `bool` at runtime and we invert it here.
+                    if (IsConditionalState)
+                        SetConditionalState(StateWhenFalse, StateWhenTrue);
+                    break;
+                default:
+                    VisitRvalue(node.Operand);
+                    break;
+            }
+
             var argumentResult = ResultType;
             TypeWithState resultType;
 
@@ -5730,8 +5739,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/33344: this fails to produce an updated tuple type for a default expression
             // (should produce nullable element types for those elements that are of reference types)
             SetResultType(node, TypeWithState.ForType(type));
-
-            if (ResultType.State == NullableFlowState.MaybeNull && RequiresSafetyWarningWhenNullIntroduced(ResultType.Type) && !node.IsSuppressed)
+            if (node.TargetType != null &&
+                RequiresSafetyWarningWhenNullIntroduced(node.TargetType.TypeWithAnnotations) &&
+                !node.IsSuppressed)
             {
                 // For type parameters that cannot be annotated, the analysis must report those
                 // places where null values first sneak in, like `default`, `null`, and `GetFirstOrDefault`.
@@ -5786,7 +5796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     default:
                         resultState = NullableFlowState.MaybeNull;
-                        if (RequiresSafetyWarningWhenNullIntroduced(type))
+                        if (RequiresSafetyWarningWhenNullIntroduced(node.TargetType.TypeWithAnnotations))
                         {
                             ReportSafetyDiagnostic(ErrorCode.WRN_AsOperatorMayReturnNull, node.Syntax, type);
                         }

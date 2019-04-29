@@ -13835,36 +13835,60 @@ partial class C<X>
 }";
             // Note: Errors are reported on A1, A2, ... rather than A1<T>, A2<T, U>, ... See bug #9396.
             CreateCompilation(source).VerifyDiagnostics(
-                // (38,18): error CS0761: Partial method declarations of 'C<X>.A1<T>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A1").WithArguments("C<X>.A1<T>()").WithLocation(38, 18),
-                // (39,18): error CS0761: Partial method declarations of 'C<X>.A2<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A2").WithArguments("C<X>.A2<T, U>()").WithLocation(39, 18),
-                // (40,18): error CS0761: Partial method declarations of 'C<X>.A3<T>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A3").WithArguments("C<X>.A3<T>()").WithLocation(40, 18),
-                // (41,18): error CS0761: Partial method declarations of 'C<X>.A4<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A4").WithArguments("C<X>.A4<T, U>()").WithLocation(41, 18),
-                // (43,18): error CS0761: Partial method declarations of 'C<X>.B1<T>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "B1").WithArguments("C<X>.B1<T>()").WithLocation(43, 18),
-                // (44,18): error CS0761: Partial method declarations of 'C<X>.B2<T>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "B2").WithArguments("C<X>.B2<T>()").WithLocation(44, 18),
-                // (45,18): error CS0761: Partial method declarations of 'C<X>.B3<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "B3").WithArguments("C<X>.B3<T, U>()").WithLocation(45, 18),
-                // (47,18): error CS0761: Partial method declarations of 'C<X>.C1<T>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "C1").WithArguments("C<X>.C1<T>()").WithLocation(47, 18),
-                // (48,18): error CS0761: Partial method declarations of 'C<X>.C2<T>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "C2").WithArguments("C<X>.C2<T>()").WithLocation(48, 18),
-                // (49,18): error CS0761: Partial method declarations of 'C<X>.C3<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "C3").WithArguments("C<X>.C3<T, U>()").WithLocation(49, 18),
-                // (22,18): error CS0761: Partial method declarations of 'C<X>.E1<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "E1").WithArguments("C<X>.E1<T, U>()").WithLocation(22, 18),
-                // (24,18): error CS0761: Partial method declarations of 'C<X>.F1<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "F1").WithArguments("C<X>.F1<T, U>()").WithLocation(24, 18),
-                // (26,18): error CS0761: Partial method declarations of 'C<X>.G1<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "G1").WithArguments("C<X>.G1<T, U>()").WithLocation(26, 18),
-                // (29,18): error CS0761: Partial method declarations of 'C<X>.H2<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "H2").WithArguments("C<X>.H2<T, U>()").WithLocation(29, 18),
-                // (32,18): error CS0761: Partial method declarations of 'C<X>.K1<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "K1").WithArguments("C<X>.K1<T, U>()").WithLocation(32, 18));
+                // (39,18): error CS0761: Partial method declarations of 'C<X>.A2<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void A2<T, U>() where T : struct where U : IB { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A2").WithArguments("C<X>.A2<T, U>()", "U").WithLocation(39, 18),
+                // (40,18): error CS0761: Partial method declarations of 'C<X>.A3<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void A3<T>() where T : IA<IA<T>> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A3").WithArguments("C<X>.A3<T>()", "T").WithLocation(40, 18),
+                // (41,18): error CS0761: Partial method declarations of 'C<X>.A4<T, U>()' have inconsistent constraints for type parameter 'T'
+                //     partial void A4<T, U>() where T : struct, IA<U> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A4").WithArguments("C<X>.A4<T, U>()", "T").WithLocation(41, 18),
+                // (43,18): error CS0761: Partial method declarations of 'C<X>.B1<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void B1<T>() where T : new() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "B1").WithArguments("C<X>.B1<T>()", "T").WithLocation(43, 18),
+                // (44,18): error CS0761: Partial method declarations of 'C<X>.B2<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void B2<T>() where T : class, X, new() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "B2").WithArguments("C<X>.B2<T>()", "T").WithLocation(44, 18),
+                // (45,18): error CS0761: Partial method declarations of 'C<X>.B3<T, U>()' have inconsistent constraints for type parameter 'T'
+                //     partial void B3<T, U>() where T : IB, IA<T> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "B3").WithArguments("C<X>.B3<T, U>()", "T").WithLocation(45, 18),
+                // (47,18): error CS0761: Partial method declarations of 'C<X>.C1<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void C1<T>() { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "C1").WithArguments("C<X>.C1<T>()", "T").WithLocation(47, 18),
+                // (48,18): error CS0761: Partial method declarations of 'C<X>.C2<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void C2<T>() where T : class { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "C2").WithArguments("C<X>.C2<T>()", "T").WithLocation(48, 18),
+                // (49,18): error CS0761: Partial method declarations of 'C<X>.C3<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void C3<T, U>() where U : IA<T> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "C3").WithArguments("C<X>.C3<T, U>()", "U").WithLocation(49, 18),
+                // (22,18): error CS0761: Partial method declarations of 'C<X>.E1<T, U>()' have inconsistent constraints for type parameter 'T'
+                //     partial void E1<T, U>() where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "E1").WithArguments("C<X>.E1<T, U>()", "T").WithLocation(22, 18),
+                // (22,18): error CS0761: Partial method declarations of 'C<X>.E1<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void E1<T, U>() where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "E1").WithArguments("C<X>.E1<T, U>()", "U").WithLocation(22, 18),
+                // (24,18): error CS0761: Partial method declarations of 'C<X>.F1<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void F1<T, U>() where T : class { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "F1").WithArguments("C<X>.F1<T, U>()", "U").WithLocation(24, 18),
+                // (26,18): error CS0761: Partial method declarations of 'C<X>.G1<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void G1<T, U>() where T : class where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "G1").WithArguments("C<X>.G1<T, U>()", "U").WithLocation(26, 18),
+                // (29,18): error CS0761: Partial method declarations of 'C<X>.H2<T, U>()' have inconsistent constraints for type parameter 'T'
+                //     partial void H2<T, U>() where T : class where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "H2").WithArguments("C<X>.H2<T, U>()", "T").WithLocation(29, 18),
+                // (29,18): error CS0761: Partial method declarations of 'C<X>.H2<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void H2<T, U>() where T : class where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "H2").WithArguments("C<X>.H2<T, U>()", "U").WithLocation(29, 18),
+                // (32,18): error CS0761: Partial method declarations of 'C<X>.K1<T, U>()' have inconsistent constraints for type parameter 'T'
+                //     partial void K1<T, U>() where T : class where U : IA<T> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "K1").WithArguments("C<X>.K1<T, U>()", "T").WithLocation(32, 18),
+                // (32,18): error CS0761: Partial method declarations of 'C<X>.K1<T, U>()' have inconsistent constraints for type parameter 'U'
+                //     partial void K1<T, U>() where T : class where U : IA<T> { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "K1").WithArguments("C<X>.K1<T, U>()", "U").WithLocation(32, 18),
+                // (38,18): error CS0761: Partial method declarations of 'C<X>.A1<T>()' have inconsistent constraints for type parameter 'T'
+                //     partial void A1<T>() where T : class { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "A1").WithArguments("C<X>.A1<T>()", "T").WithLocation(38, 18));
         }
 
         [Fact]
@@ -13899,8 +13923,9 @@ namespace N
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (25,22): error CS0761: Partial method declarations of 'N.C.M4<T, U>()' have inconsistent type parameter constraints
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M4").WithArguments("N.C.M4<T, U>()").WithLocation(25, 22));
+                // (25,22): error CS0761: Partial method declarations of 'C.M4<T, U>()' have inconsistent constraints for type parameter 'T'
+                //         partial void M4<T, U>() where T : NIA { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M4").WithArguments("N.C.M4<T, U>()", "T").WithLocation(25, 22));
         }
 
         [Fact]

@@ -188,7 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (inputType.ContainsTypeParameter())
             {
                 convertedExpression = expression;
-                if (!hasErrors)
+                // If the expression does not have a constant value, an error will be reported in the caller
+                if (!hasErrors && expression.ConstantValue is object)
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     if (expression.ConstantValue == ConstantValue.Null)

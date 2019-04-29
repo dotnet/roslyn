@@ -149,6 +149,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal bool HasEnumeratorCancellationAttribute
+        {
+            get
+            {
+                ParameterWellKnownAttributeData attributeData = GetDecodedWellKnownAttributeData();
+                return attributeData?.HasEnumeratorCancellationAttribute == true;
+            }
+        }
+
         private ConstantValue DefaultSyntaxValue
         {
             get
@@ -653,6 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.EnumeratorCancellationAttribute))
             {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasEnumeratorCancellationAttribute = true;
                 ValidateCancellationTokenAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
             }
         }

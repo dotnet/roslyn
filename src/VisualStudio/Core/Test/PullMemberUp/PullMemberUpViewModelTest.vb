@@ -232,6 +232,7 @@ class MyClass : Level1BaseClass, Level1Interface
 
             For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.Symbol.IsKind(SymbolKind.Field))
                 Assert.False(member.IsCheckable)
+                Assert.False(String.IsNullOrEmpty(member.TooltipText))
             Next
         End Function
 
@@ -278,6 +279,7 @@ class MyClass : Level1BaseClass, Level1Interface
             viewModel.SelectedDestination = baseTypeTree(0)
             For Each member In viewModel.Members.Where(Function(memberViewModel) memberViewModel.Symbol.IsKind(SymbolKind.Field))
                 Assert.True(member.IsCheckable)
+                Assert.True(String.IsNullOrEmpty(member.TooltipText))
             Next
         End Function
 

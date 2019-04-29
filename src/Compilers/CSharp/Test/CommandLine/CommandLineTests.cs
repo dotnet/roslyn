@@ -1792,30 +1792,35 @@ class C
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.False(parsedArgs.EmitPdb);
+            Assert.False(parsedArgs.EmitPdbFile);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind);
 
             parsedArgs = DefaultParse(new[] { "/debug-", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.False(parsedArgs.EmitPdb);
+            Assert.False(parsedArgs.EmitPdbFile);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind);
 
             parsedArgs = DefaultParse(new[] { "/debug", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.True(parsedArgs.EmitPdb);
+            Assert.True(parsedArgs.EmitPdbFile);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind);
 
             parsedArgs = DefaultParse(new[] { "/debug+", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.True(parsedArgs.EmitPdb);
+            Assert.True(parsedArgs.EmitPdbFile);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind);
 
             parsedArgs = DefaultParse(new[] { "/debug+", "/debug-", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.False(parsedArgs.EmitPdb);
+            Assert.False(parsedArgs.EmitPdbFile);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind);
 
             parsedArgs = DefaultParse(new[] { "/debug:full", "a.cs" }, WorkingDirectory);
@@ -1829,6 +1834,7 @@ class C
             Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, platformPdbKind);
+            Assert.Equal(Path.Combine(WorkingDirectory, "a.pdb"), parsedArgs.GetPdbFilePath("a.dll"));
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -1841,12 +1847,14 @@ class C
             Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.PortablePdb);
+            Assert.Equal(Path.Combine(WorkingDirectory, "a.pdb"), parsedArgs.GetPdbFilePath("a.dll"));
 
             parsedArgs = DefaultParse(new[] { "/debug:embedded", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.True(parsedArgs.EmitPdb);
             Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Embedded);
+            Assert.Equal(Path.Combine(WorkingDirectory, "a.pdb"), parsedArgs.GetPdbFilePath("a.dll"));
 
             parsedArgs = DefaultParse(new[] { "/debug:PDBONLY", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -1914,14 +1922,23 @@ class C
         {
             var parsedArgs = DefaultParse(new[] { "/pdb:something", "a.cs" }, WorkingDirectory);
             Assert.Equal(Path.Combine(WorkingDirectory, "something.pdb"), parsedArgs.PdbPath);
+            Assert.Equal(Path.Combine(WorkingDirectory, "something.pdb"), parsedArgs.GetPdbFilePath("a.dll"));
+            Assert.False(parsedArgs.EmitPdbFile);
 
-            // No pdb
-            parsedArgs = DefaultParse(new[] { @"/debug", "a.cs" }, WorkingDirectory);
+            parsedArgs = DefaultParse(new[] { "/pdb:something", "/debug:embedded", "a.cs" }, WorkingDirectory);
+            Assert.Equal(Path.Combine(WorkingDirectory, "something.pdb"), parsedArgs.PdbPath);
+            Assert.Equal(Path.Combine(WorkingDirectory, "something.pdb"), parsedArgs.GetPdbFilePath("a.dll"));
+            Assert.False(parsedArgs.EmitPdbFile);
+
+            parsedArgs = DefaultParse(new[] { "/debug", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Null(parsedArgs.PdbPath);
+            Assert.True(parsedArgs.EmitPdbFile);
+            Assert.Equal(Path.Combine(WorkingDirectory, "a.pdb"), parsedArgs.GetPdbFilePath("a.dll"));
 
             parsedArgs = DefaultParse(new[] { "/pdb", "/debug", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("/pdb"));
+            Assert.Equal(Path.Combine(WorkingDirectory, "a.pdb"), parsedArgs.GetPdbFilePath("a.dll"));
 
             parsedArgs = DefaultParse(new[] { "/pdb:", "/debug", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("/pdb:"));
@@ -3312,6 +3329,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal("MyBinary.dll", parsedArgs.OutputFileName);
             Assert.Equal("MyBinary.dll", parsedArgs.CompilationOptions.ModuleName);
             Assert.Equal(@"C:\MyFolder", parsedArgs.OutputDirectory);
+            Assert.Equal(@"C:\MyFolder\MyBinary.dll", parsedArgs.GetOutputFilePath(parsedArgs.OutputFileName));
 
             // Should handle quotes
             parsedArgs = DefaultParse(new[] { @"/out:""C:\My Folder\MyBinary.dll""", "a.cs" }, baseDirectory);
@@ -3328,6 +3346,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal("MyBinary.dll", parsedArgs.OutputFileName);
             Assert.Equal("MyBinary.dll", parsedArgs.CompilationOptions.ModuleName);
             Assert.Equal(baseDirectory, parsedArgs.OutputDirectory);
+            Assert.Equal(Path.Combine(baseDirectory, "MyBinary.dll"), parsedArgs.GetOutputFilePath(parsedArgs.OutputFileName));
 
             // Should expand partially qualified paths
             parsedArgs = DefaultParse(new[] { @"/out:..\MyBinary.dll", "a.cs" }, baseDirectory);

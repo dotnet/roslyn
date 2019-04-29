@@ -1,10 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+    <UseExportProvider>
     Public Class SymbolCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
@@ -16,6 +20,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New SymbolCompletionProvider()
+        End Function
+
+        Protected Overrides Function GetExportProvider() As ExportProvider
+            Return ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(TestExperimentationService))).CreateExportProvider()
         End Function
 
 #Region "StandaloneNamespaceAndTypeSourceTests"
@@ -1347,7 +1355,7 @@ Class C
                 expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
                 sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
                 glyph:=Nothing, matchPriority:=Nothing, hasSuggestionItem:=Nothing,
-                displayTextSuffix:=Nothing, matchingFilters:=Nothing, targetTypedExperimentEnabled:=False)
+                displayTextSuffix:=Nothing, matchingFilters:=Nothing)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
@@ -7987,7 +7995,7 @@ End Namespace"
             Await VerifyItemIsAbsentAsync(source, "FirstOrDefault")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35096"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ThenIncludeSecondArgumentAndMultiArgumentLambdaWithNoLambdaOverlap() As Task
             Dim source = CreateThenIncludeTestCode("0, Function(a, b, c) c.$$",
 "       <System.Runtime.CompilerServices.Extension>
@@ -8163,6 +8171,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilterWithExperimentEnabled() As Task
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, True)
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8172,12 +8181,12 @@ End Module
 End Class"
             Await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter},
-                targetTypedFilterExperimentEnabled:=True)
+                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestNoTargetTypeFilterWithExperimentDisabled() As Task
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, False)
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8187,12 +8196,12 @@ End Class"
 End Class"
             Await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.FieldFilter},
-                targetTypedFilterExperimentEnabled:=False)
+                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.FieldFilter})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilter_NotOnObjectMembers() As Task
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, True)
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8202,8 +8211,7 @@ End Class"
 End Class"
             Await VerifyItemExistsAsync(
                 markup, "GetHashCode",
-                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.MethodFilter},
-                targetTypedFilterExperimentEnabled:=True)
+                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.MethodFilter})
         End Function
     End Class
 End Namespace

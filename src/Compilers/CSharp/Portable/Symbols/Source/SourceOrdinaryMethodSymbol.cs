@@ -181,6 +181,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            var location = this.Locations[0];
+            if (IsAsync)
+            {
+                // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
+                var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+                var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+                if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
+                    (Bodies.blockBody != null || Bodies.arrowBody != null) &&
+                    ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)) &&
+                    !Parameters.Any(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true }))
+                {
+                    // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
+                    diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, location, this);
+                }
+            }
+
             var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
             if (this.RefKind != RefKind.None && returnsVoid)
             {
@@ -190,7 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // set ReturnsVoid flag
             this.SetReturnsVoid(returnsVoid);
 
-            var location = this.Locations[0];
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
 
             // Checks taken from MemberDefiner::defineMethod
@@ -1110,6 +1125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
             var location = GetSyntax().ReturnType.Location;
 
             Debug.Assert(location != null);
@@ -1138,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 PartialMethodChecks(this, implementingPart, diagnostics);
             }
 
-            if (_refKind == RefKind.RefReadOnly || IsDeclaredReadOnly)
+            if (_refKind == RefKind.RefReadOnly)
             {
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -1187,10 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.Locations[0]);
             }
 
-            if (!HaveSameConstraints(definition, implementation))
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation);
-            }
+            PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
             ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
             ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations).Parameters;
@@ -1204,28 +1218,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Returns true if the two partial methods have the same constraints.
-        /// </summary>
-        private static bool HaveSameConstraints(SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
+        private static void PartialMethodConstraintsChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)
         {
-            Debug.Assert(!ReferenceEquals(part1, part2));
-            Debug.Assert(part1.Arity == part2.Arity);
+            Debug.Assert(!ReferenceEquals(definition, implementation));
+            Debug.Assert(definition.Arity == implementation.Arity);
 
-            var typeParameters1 = part1.TypeParameters;
+            var typeParameters1 = definition.TypeParameters;
 
             int arity = typeParameters1.Length;
             if (arity == 0)
             {
-                return true;
+                return;
             }
 
-            var typeParameters2 = part2.TypeParameters;
+            var typeParameters2 = implementation.TypeParameters;
             var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
             var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
             var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
 
-            return MemberSignatureComparer.HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2, includingNullability: true);
+            // Report any mismatched method constraints.
+            for (int i = 0; i < arity; i++)
+            {
+                var typeParameter1 = typeParameters1[i];
+                var typeParameter2 = typeParameters2[i];
+
+                if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation, typeParameter2.Name);
+                }
+                else if (!MemberSignatureComparer.HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, implementation.Locations[0], implementation, typeParameter2.Name);
+                }
+            }
         }
 
         internal override bool CallsAreOmitted(SyntaxTree syntaxTree)
