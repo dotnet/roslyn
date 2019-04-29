@@ -2124,7 +2124,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</value>
   </data>
   <data name="ERR_PartialMethodInconsistentConstraints" xml:space="preserve">
-    <value>Partial method declarations of '{0}' have inconsistent type parameter constraints</value>
+    <value>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</value>
   </data>
   <data name="ERR_PartialMethodToDelegate" xml:space="preserve">
     <value>Cannot create delegate from method '{0}' because it is a partial method without an implementing declaration</value>
@@ -5909,5 +5909,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_OverrideWithConstraints" xml:space="preserve">
     <value>constraints for override and explicit interface implementation methods</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInConstraintsOnPartialImplementation" xml:space="preserve">
+    <value>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title" xml:space="preserve">
+    <value>Partial method declarations have inconsistent nullability in constraints for type parameter</value>
   </data>
 </root>

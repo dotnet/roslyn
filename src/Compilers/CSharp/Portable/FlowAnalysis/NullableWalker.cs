@@ -1155,9 +1155,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Whenever setting the state of a variable, and that variable is not declared at the point the state is being set,
+        /// Whenever assigning a variable, and that variable is not declared at the point the state is being set,
         /// and the new state might be <see cref="NullableFlowState.MaybeNull"/>, this method should be called to perform the
-        /// state setting and to ensure the mutation is visible outside the finally block when the mutation occurs in a finally block.
+        /// state setting and to ensure the mutation is visible outside the finally block when the mutation occurs in a
+        /// finally block.
         /// </summary>
         private void SetStateAndTrackForFinally(ref LocalState state, int slot, NullableFlowState newState)
         {
@@ -1846,8 +1847,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
                     for (int i = 0; i < n; i++)
                     {
-                        var placeholder = placeholders[i];
-                        resultTypes[i] = ApplyConversion(placeholder, placeholder, conversions[i], inferredType, resultTypes[i], checkConversion: true,
+                        var expression = expressions[i];
+                        resultTypes[i] = ApplyConversion(expression, expression, conversions[i], inferredType, resultTypes[i], checkConversion: true,
                             fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
                     }
 
@@ -2272,7 +2273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (slot > 0 && PossiblyNullableType(expressionType))
             {
-                SetStateAndTrackForFinally(ref state, slot, NullableFlowState.MaybeNull);
+                state[slot] = NullableFlowState.MaybeNull;
             }
 
             return slot;
@@ -5505,7 +5506,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
-            _ = base.VisitUnaryOperator(node);
+            switch (node.OperatorKind)
+            {
+                case UnaryOperatorKind.BoolLogicalNegation:
+                    VisitCondition(node.Operand);
+                    SetConditionalState(StateWhenFalse, StateWhenTrue);
+                    break;
+                case UnaryOperatorKind.DynamicTrue:
+                    // We cannot use VisitCondition, because the operand is not of type bool.
+                    // Yet we want to keep the result split if it was split.  So we simply visit.
+                    Visit(node.Operand);
+                    break;
+                case UnaryOperatorKind.DynamicLogicalNegation:
+                    // We cannot use VisitCondition, because the operand is not of type bool.
+                    // Yet we want to keep the result split if it was split.  So we simply visit.
+                    Visit(node.Operand);
+                    // If the state is split, the result is `bool` at runtime and we invert it here.
+                    if (IsConditionalState)
+                        SetConditionalState(StateWhenFalse, StateWhenTrue);
+                    break;
+                default:
+                    VisitRvalue(node.Operand);
+                    break;
+            }
+
             var argumentResult = ResultType;
             TypeWithState resultType;
 

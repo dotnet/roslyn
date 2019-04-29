@@ -30,6 +30,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// to distinguish between the two situations.
         /// </summary>
         ObliviousNullabilityIfReferenceType = 0x40,
+
+        /// <summary>
+        /// All bits involved into describing various aspects of 'class' constraint. 
+        /// </summary>
+        AllReferenceTypeKinds = NullableReferenceType | NotNullableReferenceType,
+
+        /// <summary>
+        /// All bits except those that are involved into describilng various nullability aspects.
+        /// </summary>
+        AllNonNullableKinds = ReferenceType | ValueType | Constructor | Unmanaged,
     }
 
     /// <summary>
@@ -79,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeParameterConstraintClause> otherPartialDeclarations)
         {
 #if DEBUG
-            switch (constraints & (TypeParameterConstraintKind.NullableReferenceType | TypeParameterConstraintKind.NotNullableReferenceType))
+            switch (constraints & TypeParameterConstraintKind.AllReferenceTypeKinds)
             {
                 case TypeParameterConstraintKind.None:
                 case TypeParameterConstraintKind.ReferenceType:
