@@ -4,6 +4,7 @@ trigger:
 - master-vs-deps
 - features/*
 - demos/*
+- releases/*
 - dev16.0
 - dev16.0-vs-deps
 - dev16.1-preview2
@@ -19,6 +20,7 @@ pr:
 - master-vs-deps
 - features/*
 - demos/*
+- releases/*
 - dev16.0
 - dev16.0-vs-deps
 - dev16.1-preview2
