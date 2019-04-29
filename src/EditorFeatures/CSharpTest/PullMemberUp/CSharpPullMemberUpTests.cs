@@ -1732,7 +1732,7 @@ namespace PushUpTest
 
     public class TestClass : Base
     {
-        public void TestMeth[||]od()
+        public override void TestMeth[||]od()
         {
             System.Console.WriteLine(""Hello World"");
         }
@@ -1767,7 +1767,6 @@ namespace PushUpTest
 
     public abstract class TestClass : Base
     {
-        public abstract void TestMethod();
     }
 }";
             await TestWithPullMemberDialogAsync(testText, expected, new (string, bool)[] { ("TestMethod", true) }, index: 0);
