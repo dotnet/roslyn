@@ -105,7 +105,6 @@
          OutputRefAssembly="@(IntermediateRefAssembly)"
          PdbFile="$(PdbFile)"
          Platform="$(PlatformTarget)"
-         PotentialAnalyzerConfigFiles="@(PotentialEditorConfigFiles)"
          Prefer32Bit="$(Prefer32Bit)"
          PreferredUILang="$(PreferredUILang)"
          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
