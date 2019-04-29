@@ -55,23 +55,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         {
             // there is no concurrent call to this method since ISolutionCrawlerProgressReporter will serialize all
             // events to preserve event ordering
-            switch (progressData.Type)
+            switch (progressData.Status)
             {
-                case ProgressData.Status.Started:
+                case ProgressStatus.Started:
                     StartedOrStopped(started: true);
                     break;
-                case ProgressData.Status.Updated:
-                    ProgressUpdated(progressData.FilePath);
+                case ProgressStatus.Updated:
+                    ProgressUpdated(progressData.FilePathOpt);
                     break;
-                case ProgressData.Status.Stoped:
+                case ProgressStatus.Stoped:
                     StartedOrStopped(started: false);
                     break;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(progressData.Type);
+                    throw ExceptionUtilities.UnexpectedValue(progressData.Status);
             }
         }
 
-        private void ProgressUpdated(string filePath)
+        private void ProgressUpdated(string filePathOpt)
         {
             var current = DateTimeOffset.UtcNow;
             if (current - _lastTimeReported < s_minimumInterval)
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
 
             _lastTimeReported = current;
-            ChangeProgress(_taskHandler, filePath != null ? string.Format(ServicesVSResources.Analyzing_0, FileNameUtilities.GetFileName(filePath)) : null);
+            ChangeProgress(_taskHandler, filePathOpt != null ? string.Format(ServicesVSResources.Analyzing_0, FileNameUtilities.GetFileName(filePathOpt)) : null);
         }
 
         private void StartedOrStopped(bool started)

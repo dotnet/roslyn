@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Security.Cryptography;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -27,20 +25,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
     internal struct ProgressData
     {
-        public Status Type { get; }
-        public string FilePath { get; }
+        public ProgressStatus Status { get; }
+        public string FilePathOpt { get; }
 
-        public ProgressData(Status type, string filePath)
+        public ProgressData(ProgressStatus type, string filePathOpt)
         {
-            this.Type = type;
-            this.FilePath = filePath;
+            this.Status = type;
+            this.FilePathOpt = filePathOpt;
         }
+    }
 
-        internal enum Status
-        {
-            Started,
-            Updated,
-            Stoped
-        }
+    internal enum ProgressStatus
+    {
+        Started,
+        Updated,
+        Stoped
     }
 }

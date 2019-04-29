@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _lastReportedFilePath = null;
 
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportStart");
-                    var progressData = new ProgressData(ProgressData.Status.Started, filePath: null);
+                    var progressData = new ProgressData(ProgressStatus.Started, filePathOpt: null);
                     return RaiseEvent(nameof(ProgressChanged), progressData).CompletesAsyncOperation(asyncToken);
                 }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _lastReportedFilePath = null;
 
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportStop");
-                    var progressData = new ProgressData(ProgressData.Status.Stoped, filePath: null);
+                    var progressData = new ProgressData(ProgressStatus.Stoped, filePathOpt: null);
                     return RaiseEvent(nameof(ProgressChanged), progressData).CompletesAsyncOperation(asyncToken);
                 }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _lastReportedFilePath = filePath;
 
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportUpdate");
-                    var progressData = new ProgressData(ProgressData.Status.Updated, filePath);
+                    var progressData = new ProgressData(ProgressStatus.Updated, filePath);
                     return RaiseEvent(nameof(ProgressChanged), progressData).CompletesAsyncOperation(asyncToken);
                 }
 

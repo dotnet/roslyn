@@ -867,11 +867,11 @@ End Class";
 
                 reporter.ProgressChanged += (o, s) =>
                 {
-                    if (s.Type == ProgressData.Status.Started)
+                    if (s.Status == ProgressStatus.Started)
                     {
                         started = true;
                     }
-                    else if (s.Type == ProgressData.Status.Stoped)
+                    else if (s.Status == ProgressStatus.Stoped)
                     {
                         stopped = true;
                     }

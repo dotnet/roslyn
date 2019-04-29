@@ -45,12 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private void OnSolutionCrawlerProgressChanged(object sender, ProgressData progressData)
         {
-            switch (progressData.Type)
+            switch (progressData.Status)
             {
-                case ProgressData.Status.Started:
+                case ProgressStatus.Started:
                     SolutionCrawlerProgressChanged(running: true);
                     break;
-                case ProgressData.Status.Stoped:
+                case ProgressStatus.Stoped:
                     SolutionCrawlerProgressChanged(running: false);
                     break;
             }
