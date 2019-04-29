@@ -166,11 +166,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool IsSerializable => throw new NotImplementedException();
 
-            public bool IsRefLikeType => throw new NotImplementedException();
+            public bool IsRefLikeType => _symbol.IsRefLikeType;
 
             public bool IsUnmanagedType => throw new NotImplementedException();
 
-            public bool IsReadOnly => throw new NotImplementedException();
+            public bool IsReadOnly => _symbol.IsReadOnly;
         }
     }
 }

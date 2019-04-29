@@ -181,6 +181,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            var location = this.Locations[0];
+            if (IsAsync)
+            {
+                // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
+                var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+                var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+                if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
+                    (Bodies.blockBody != null || Bodies.arrowBody != null) &&
+                    ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)) &&
+                    !Parameters.Any(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true }))
+                {
+                    // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
+                    diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, location, this);
+                }
+            }
+
             var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
             if (this.RefKind != RefKind.None && returnsVoid)
             {
@@ -190,7 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // set ReturnsVoid flag
             this.SetReturnsVoid(returnsVoid);
 
-            var location = this.Locations[0];
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
 
             // Checks taken from MemberDefiner::defineMethod
@@ -1110,6 +1125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
             var location = GetSyntax().ReturnType.Location;
 
             Debug.Assert(location != null);
@@ -1138,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 PartialMethodChecks(this, implementingPart, diagnostics);
             }
 
-            if (_refKind == RefKind.RefReadOnly || IsDeclaredReadOnly)
+            if (_refKind == RefKind.RefReadOnly)
             {
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }

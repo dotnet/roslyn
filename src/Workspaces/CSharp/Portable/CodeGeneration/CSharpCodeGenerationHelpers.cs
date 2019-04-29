@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal static void AddAccessibilityModifiers(
             Accessibility accessibility,
-            IList<SyntaxToken> tokens,
+            ArrayBuilder<SyntaxToken> tokens,
             CodeGenerationOptions options,
             Accessibility defaultAccessibility)
         {
