@@ -344,7 +344,6 @@ next:;
             DiagnosticBag diagnostics)
         {
             Debug.Assert(constraintClauses.IsEarly());
-            Debug.Assert(constraintClauses.Length == TypeParameters.Length);
 
             ImmutableArray<TypeParameterConstraintClause> results = MergeConstraintsForPartialDeclarations(constraintClauses, diagnostics);
 
@@ -382,11 +381,13 @@ next:;
         /// </summary>
         private ImmutableArray<TypeParameterConstraintClause> MergeConstraintsForPartialDeclarations(ImmutableArray<TypeParameterConstraintClause> constraintClauses, DiagnosticBag diagnostics)
         {
-            var typeParameters = TypeParameters;
-
             ArrayBuilder<TypeParameterConstraintClause> builder = null;
+            var typeParameters = TypeParameters;
+            int arity = typeParameters.Length;
 
-            for (int i = 0; i < typeParameters.Length; i++)
+            Debug.Assert(constraintClauses.Length == arity);
+
+            for (int i = 0; i < arity; i++)
             {
                 var constraint = constraintClauses[i];
 
@@ -398,13 +399,13 @@ next:;
                 TypeParameterConstraintKind mergedKind = constraint.Constraints;
                 ImmutableArray<TypeWithAnnotations> originalConstraintTypes = constraint.ConstraintTypes;
                 ArrayBuilder<TypeWithAnnotations> mergedConstraintTypes = null;
-                SmallDictionary<TypeWithAnnotations, int> mergedConstraintTypesMap = null;
+                SmallDictionary<TypeWithAnnotations, int> originalConstraintTypesMap = null;
 
                 // Constraints defined on multiple partial declarations.
                 // Report any mismatched constraints.
                 foreach (var other in constraint.OtherPartialDeclarations)
                 {
-                    if (!mergeConstraints(ref mergedKind, originalConstraintTypes, ref mergedConstraintTypesMap, ref mergedConstraintTypes, other))
+                    if (!mergeConstraints(ref mergedKind, originalConstraintTypes, ref originalConstraintTypesMap, ref mergedConstraintTypes, other))
                     {
                         // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
                         diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
@@ -449,7 +450,7 @@ next:;
             return constraintClauses;
 
             static bool mergeConstraints(ref TypeParameterConstraintKind mergedKind, ImmutableArray<TypeWithAnnotations> originalConstraintTypes,
-                                         ref SmallDictionary<TypeWithAnnotations, int> mergedConstraintTypesMap, ref ArrayBuilder<TypeWithAnnotations> mergedConstraintTypes,
+                                         ref SmallDictionary<TypeWithAnnotations, int> originalConstraintTypesMap, ref ArrayBuilder<TypeWithAnnotations> mergedConstraintTypes,
                                          TypeParameterConstraintClause clause)
             {
                 bool result = true;
@@ -502,15 +503,15 @@ next:;
                     return false;
                 }
 
-                mergedConstraintTypesMap ??= toDictionary(originalConstraintTypes);
-                SmallDictionary<TypeWithAnnotations, int> constraintTypes2 = toDictionary(clause.ConstraintTypes);
+                originalConstraintTypesMap ??= toDictionary(originalConstraintTypes);
+                SmallDictionary<TypeWithAnnotations, int> clauseConstraintTypesMap = toDictionary(clause.ConstraintTypes);
 
-                foreach (int index1 in mergedConstraintTypesMap.Values)
+                foreach (int index1 in originalConstraintTypesMap.Values)
                 {
                     TypeWithAnnotations constraintType1 = mergedConstraintTypes?[index1] ?? originalConstraintTypes[index1];
                     int index2;
 
-                    if (!constraintTypes2.TryGetValue(constraintType1, out index2))
+                    if (!clauseConstraintTypesMap.TryGetValue(constraintType1, out index2))
                     {
                         // No matching type
                         result = false;
@@ -539,9 +540,9 @@ next:;
                     }
                 }
 
-                foreach (var constraintType in constraintTypes2.Keys)
+                foreach (var constraintType in clauseConstraintTypesMap.Keys)
                 {
-                    if (!mergedConstraintTypesMap.ContainsKey(constraintType))
+                    if (!originalConstraintTypesMap.ContainsKey(constraintType))
                     {
                         result = false;
                         break;

@@ -92115,6 +92115,219 @@ partial class C<T> where T : I1<string, string
         }
 
         [Fact]
+        public void PartialClassWithConstraints_15()
+        {
+            var source =
+@"
+interface I1
+{
+}
+
+interface I2
+{
+}
+
+#nullable enable
+
+partial class C<T> where T : I1?, 
+#nullable disable
+                                  I2
+{
+}
+
+#nullable enable
+
+partial class C<T> where T : I1, I2?
+{
+}
+";
+
+            var comp1 = CreateCompilation(new[] { source });
+            comp1.VerifyDiagnostics(
+                // (12,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T> where T : I1?, 
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(12, 15)
+                );
+
+            var c = comp1.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.Equal("I1?", t.ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            Assert.Equal("I2?", t.ConstraintTypesNoUseSiteDiagnostics[1].ToTestDisplayString(true));
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_16()
+        {
+            var source =
+@"
+interface I1
+{
+}
+
+interface I2
+{
+}
+
+#nullable enable
+
+partial class C<T> where T : I1, 
+#nullable disable
+                                 I2
+{
+}
+
+#nullable enable
+
+partial class C<T> where T : I1?, I2
+{
+}
+";
+
+            var comp1 = CreateCompilation(new[] { source });
+            comp1.VerifyDiagnostics(
+                // (12,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T> where T : I1, 
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(12, 15)
+                );
+
+            var c = comp1.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.Equal("I1!", t.ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            Assert.Equal("I2!", t.ConstraintTypesNoUseSiteDiagnostics[1].ToTestDisplayString(true));
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_17()
+        {
+            var source =
+@"
+interface I1
+{
+}
+
+interface I2
+{
+}
+
+#nullable disable
+
+partial class C<T> where T : I1, 
+#nullable enable
+                                 I2?
+{
+}
+
+partial class C<T> where T : I1?, I2
+{
+}
+";
+
+            var comp1 = CreateCompilation(new[] { source });
+            comp1.VerifyDiagnostics(
+                // (12,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T> where T : I1, 
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(12, 15)
+                );
+
+            var c = comp1.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.Equal("I1?", t.ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            Assert.Equal("I2?", t.ConstraintTypesNoUseSiteDiagnostics[1].ToTestDisplayString(true));
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_18()
+        {
+            var source =
+@"
+interface I1
+{
+}
+
+interface I2
+{
+}
+
+#nullable disable
+
+partial class C<T> where T : I1, 
+#nullable enable
+                                 I2
+{
+}
+
+partial class C<T> where T : I1, I2?
+{
+}
+";
+
+            var comp1 = CreateCompilation(new[] { source });
+            comp1.VerifyDiagnostics(
+                // (12,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T> where T : I1, 
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(12, 15)
+                );
+
+            var c = comp1.GlobalNamespace.GetTypeMember("C");
+            TypeParameterSymbol t = c.TypeParameters[0];
+            Assert.Equal("I1!", t.ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString(true));
+            Assert.Equal("I2!", t.ConstraintTypesNoUseSiteDiagnostics[1].ToTestDisplayString(true));
+        }
+
+        [Fact]
+        public void PartialInterfacesWithConstraints_01()
+        {
+            var source =
+@"
+#nullable enable
+
+interface I1
+{
+}
+
+partial interface I1<in T> where T : I1
+{}
+
+partial interface I1<in T> where T : I1?
+{}
+
+partial interface I2<in T> where T : I1?
+{}
+
+partial interface I2<in T> where T : I1
+{}
+
+partial interface I3<out T> where T : I1
+{}
+
+partial interface I3<out T> where T : I1?
+{}
+
+partial interface I4<out T> where T : I1?
+{}
+
+partial interface I4<out T> where T : I1
+{}
+";
+
+            var comp1 = CreateCompilation(new[] { source });
+            comp1.VerifyDiagnostics(
+                // (8,19): error CS0265: Partial declarations of 'I1<T>' have inconsistent constraints for type parameter 'T'
+                // partial interface I1<in T> where T : I1
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<T>", "T").WithLocation(8, 19),
+                // (14,19): error CS0265: Partial declarations of 'I2<T>' have inconsistent constraints for type parameter 'T'
+                // partial interface I2<in T> where T : I1?
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I2").WithArguments("I2<T>", "T").WithLocation(14, 19),
+                // (20,19): error CS0265: Partial declarations of 'I3<T>' have inconsistent constraints for type parameter 'T'
+                // partial interface I3<out T> where T : I1
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I3").WithArguments("I3<T>", "T").WithLocation(20, 19),
+                // (26,19): error CS0265: Partial declarations of 'I4<T>' have inconsistent constraints for type parameter 'T'
+                // partial interface I4<out T> where T : I1?
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I4").WithArguments("I4<T>", "T").WithLocation(26, 19)
+                );
+        }
+
+        [Fact]
         public void PartialMethodsWithConstraints_01()
         {
             var source1 =
