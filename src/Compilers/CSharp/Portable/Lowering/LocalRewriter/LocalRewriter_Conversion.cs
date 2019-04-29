@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion.UnderlyingConversions[0],
                     type.GetNullableUnderlyingType(),
                     @checked));
-            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, type);
             BoundExpression conditionalExpression = RewriteConditionalOperator(
                 syntax: syntax,
                 rewrittenCondition: condition,
@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (NullableNeverHasValue(operand))
             {
-                return new BoundDefaultExpression(syntax, null, type);
+                return new BoundDefaultExpression(syntax, type);
             }
 
             // Second, a trickier optimization. If the conversion is "(T?)(new S?(x))" then

@@ -4726,11 +4726,12 @@ class C
         public void DisposeAsyncInBadState()
         {
             string source = @"
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 class C
 {
-    static async System.Collections.Generic.IAsyncEnumerable<int> M(CancellationToken token)
+    static async System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token)
     {
         yield return 1;
         while (true)
@@ -4767,7 +4768,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "DisposeAsync threw. Already cancelled");
         }
@@ -5349,7 +5350,11 @@ class C
     }
 }";
             var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (24,67): error CS8425: Async-iterator 'C.Iter(int, CancellationToken)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
+                //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, CancellationToken token1) // no attribute set
+                Diagnostic(ErrorCode.WRN_UndecoratedCancellationTokenParameter, "Iter").WithArguments("C.Iter(int, System.Threading.CancellationToken)").WithLocation(24, 67)
+                );
             CompileAndVerify(comp, expectedOutput: "42 43 REACHED 44");
         }
 
@@ -5723,6 +5728,9 @@ class C
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using System.Runtime.CompilerServices;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Runtime.CompilerServices;").WithLocation(2, 1),
+                // (7,67): error CS8425: Async-iterator 'C.Iter(int, CancellationToken)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
+                //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token1)
+                Diagnostic(ErrorCode.WRN_UndecoratedCancellationTokenParameter, "Iter").WithArguments("C.Iter(int, System.Threading.CancellationToken)").WithLocation(7, 67),
                 // (7,84): error CS0246: The type or namespace name 'EnumeratorCancellationAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token1)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "EnumeratorCancellation").WithArguments("EnumeratorCancellationAttribute").WithLocation(7, 84),
@@ -5823,7 +5831,7 @@ public class C : Base
         if (!await enumerator.MoveNextAsync()) throw null;
         System.Console.Write($""{enumerator.Current}""); // 42
     }
-    public override async System.Collections.Generic.IAsyncEnumerable<int> Iter(CancellationToken token1, int value)
+    public override async System.Collections.Generic.IAsyncEnumerable<int> Iter(CancellationToken token1, int value) // 1
     {
         await Task.Yield();
         token1.ThrowIfCancellationRequested();
@@ -5833,7 +5841,11 @@ public class C : Base
 }";
             // The overridden method lacks the EnumeratorCancellation attribute
             var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (28,76): error CS8425: Async-iterator 'C.Iter(CancellationToken, int)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
+                //     public override async System.Collections.Generic.IAsyncEnumerable<int> Iter(CancellationToken token1, int value) // 1
+                Diagnostic(ErrorCode.WRN_UndecoratedCancellationTokenParameter, "Iter").WithArguments("C.Iter(System.Threading.CancellationToken, int)").WithLocation(28, 76)
+                );
             CompileAndVerify(comp, expectedOutput: "Reached 42");
         }
 
@@ -5847,7 +5859,7 @@ using System.Threading;
 using System.Threading.Tasks;
 public class Base
 {
-    public virtual async System.Collections.Generic.IAsyncEnumerable<int> Iter(CancellationToken token1, int value)
+    public virtual async System.Collections.Generic.IAsyncEnumerable<int> Iter(CancellationToken token1, int value) // 1
     {
         yield return value++;
         await Task.Yield();
@@ -5887,8 +5899,126 @@ public class C : Base
 }";
             // The overridden method has the EnumeratorCancellation attribute
             var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,75): error CS8425: Async-iterator 'Base.Iter(CancellationToken, int)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
+                //     public virtual async System.Collections.Generic.IAsyncEnumerable<int> Iter(CancellationToken token1, int value) // 1
+                Diagnostic(ErrorCode.WRN_UndecoratedCancellationTokenParameter, "Iter").WithArguments("Base.Iter(System.Threading.CancellationToken, int)").WithLocation(8, 75)
+                );
             CompileAndVerify(comp, expectedOutput: "42 Cancelled");
+        }
+
+        [Fact, WorkItem(35165, "https://github.com/dotnet/roslyn/issues/35165")]
+        public void CancellationTokenParameter_MethodWithoutBody()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Threading;
+public abstract class C
+{
+    public abstract async System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token); // 1
+    public abstract System.Collections.Generic.IAsyncEnumerable<int> M2([EnumeratorCancellation] CancellationToken token); // 2
+}
+public interface I
+{
+    System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token); // 3
+}
+public partial class C2
+{
+    public delegate System.Collections.Generic.IAsyncEnumerable<int> Delegate([EnumeratorCancellation] CancellationToken token); // 4
+    partial System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token); // 5
+    partial async System.Collections.Generic.IAsyncEnumerable<int> M2([EnumeratorCancellation] CancellationToken token); // 6
+}
+";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
+            comp.VerifyDiagnostics(
+                // (6,76): error CS1994: The 'async' modifier can only be used in methods that have a body.
+                //     public abstract async System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token); // 1
+                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M").WithLocation(6, 76),
+                // (7,74): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
+                //     public abstract System.Collections.Generic.IAsyncEnumerable<int> M2([EnumeratorCancellation] CancellationToken token); // 2
+                Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("token").WithLocation(7, 74),
+                // (11,57): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
+                //     System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token); // 3
+                Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("token").WithLocation(11, 57),
+                // (15,80): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
+                //     public delegate System.Collections.Generic.IAsyncEnumerable<int> Delegate([EnumeratorCancellation] CancellationToken token); // 4
+                Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("token").WithLocation(15, 80),
+                // (16,62): error CS0766: Partial methods must have a void return type
+                //     partial System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token); // 5
+                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M").WithLocation(16, 62),
+                // (16,65): warning CS8424: The EnumeratorCancellationAttribute applied to parameter 'token' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable
+                //     partial System.Collections.Generic.IAsyncEnumerable<int> M([EnumeratorCancellation] CancellationToken token); // 5
+                Diagnostic(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, "EnumeratorCancellation").WithArguments("token").WithLocation(16, 65),
+                // (17,68): error CS0766: Partial methods must have a void return type
+                //     partial async System.Collections.Generic.IAsyncEnumerable<int> M2([EnumeratorCancellation] CancellationToken token); // 6
+                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M2").WithLocation(17, 68)
+                );
+        }
+
+        [Fact, WorkItem(35166, "https://github.com/dotnet/roslyn/issues/35166")]
+        public void CancellationTokenParameter_ParameterWithoutAttribute()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+public class C
+{
+    public async System.Collections.Generic.IAsyncEnumerable<int> M1(CancellationToken token) // 1
+    {
+        yield return 1;
+        await Task.Yield();
+    }
+    public async System.Collections.Generic.IAsyncEnumerable<int> M2(CancellationToken token, CancellationToken token2) // 2
+    {
+        yield return 1;
+        await Task.Yield();
+    }
+    public async System.Collections.Generic.IAsyncEnumerable<int> M3(CancellationToken token, [EnumeratorCancellation] CancellationToken token2)
+    {
+        yield return 1;
+        await Task.Yield();
+    }
+    async Task<int> M4(CancellationToken token)
+    {
+        await Task.Yield();
+        return 1;
+    }
+}
+public abstract class C2
+{
+    public abstract async System.Collections.Generic.IAsyncEnumerable<int> M(CancellationToken token); // 3
+    public abstract System.Collections.Generic.IAsyncEnumerable<int> M2(CancellationToken token);
+}
+public interface I
+{
+    System.Collections.Generic.IAsyncEnumerable<int> M(CancellationToken token);
+}
+public partial class C3
+{
+    public delegate System.Collections.Generic.IAsyncEnumerable<int> Delegate(CancellationToken token);
+    partial System.Collections.Generic.IAsyncEnumerable<int> M(CancellationToken token); // 4
+    partial async System.Collections.Generic.IAsyncEnumerable<int> M2(CancellationToken token); // 5
+}
+";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
+            comp.VerifyDiagnostics(
+                // (7,67): error CS8425: Async-iterator 'C.M1(CancellationToken)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
+                //     public async System.Collections.Generic.IAsyncEnumerable<int> M1(CancellationToken token) // 1
+                Diagnostic(ErrorCode.WRN_UndecoratedCancellationTokenParameter, "M1").WithArguments("C.M1(System.Threading.CancellationToken)").WithLocation(7, 67),
+                // (12,67): error CS8425: Async-iterator 'C.M2(CancellationToken, CancellationToken)' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable<>.GetAsyncEnumerator' will be unconsumed
+                //     public async System.Collections.Generic.IAsyncEnumerable<int> M2(CancellationToken token, CancellationToken token2) // 2
+                Diagnostic(ErrorCode.WRN_UndecoratedCancellationTokenParameter, "M2").WithArguments("C.M2(System.Threading.CancellationToken, System.Threading.CancellationToken)").WithLocation(12, 67),
+                // (30,76): error CS1994: The 'async' modifier can only be used in methods that have a body.
+                //     public abstract async System.Collections.Generic.IAsyncEnumerable<int> M(CancellationToken token); // 3
+                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M").WithLocation(30, 76),
+                // (40,62): error CS0766: Partial methods must have a void return type
+                //     partial System.Collections.Generic.IAsyncEnumerable<int> M(CancellationToken token); // 4
+                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M").WithLocation(40, 62),
+                // (41,68): error CS0766: Partial methods must have a void return type
+                //     partial async System.Collections.Generic.IAsyncEnumerable<int> M2(CancellationToken token); // 5
+                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M2").WithLocation(41, 68)
+                );
         }
     }
 }

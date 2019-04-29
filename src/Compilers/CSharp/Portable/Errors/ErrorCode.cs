@@ -1600,6 +1600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticLocalFunctionCannotCaptureThis = 8422,
         ERR_AttributeNotOnEventAccessor = 8423,
         WRN_UnconsumedEnumeratorCancellationAttributeUsage = 8424,
+        WRN_UndecoratedCancellationTokenParameter = 8425,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1669,7 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
         WRN_ConditionalAccessMayReturnNull = 8638,
-        // Unused 8639
+        ERR_BadNullableTypeof = 8639,
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
         ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
@@ -1698,6 +1699,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ReadOnlyModMissingAccessor = 8664,
         ERR_OverrideRefConstraintNotSatisfied = 8665,
         ERR_OverrideValConstraintNotSatisfied = 8666,
+
+        WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
 
         ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 

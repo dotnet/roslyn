@@ -9,11 +9,6 @@
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- 
-      Mono crashing on symbol tests
-      https://github.com/dotnet/roslyn/issues/34646
-    -->
-    <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />

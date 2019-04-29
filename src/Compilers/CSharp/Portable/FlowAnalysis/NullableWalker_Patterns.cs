@@ -528,8 +528,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var nodeForSyntax = expressions[i];
                 // Report top-level warnings
-                _ = ApplyConversion(nodeForSyntax, operandOpt: nodeForSyntax, Conversion.Identity, targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
-                    checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
+                _ = ApplyConversion(nodeForSyntax, operandOpt: nodeForSyntax, conversions[i], targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
+                    checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false, reportTopLevelWarnings: true);
             }
 
             conversions.Free();

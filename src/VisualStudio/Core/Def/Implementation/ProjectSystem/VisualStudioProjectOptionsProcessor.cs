@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
@@ -19,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Gate to guard all mutable fields in this class.
         /// The lock hierarchy means you are allowed to call out of this class and into <see cref="_project"/> while holding the lock.
         /// </summary>
-        private object _gate = new object();
+        private readonly object _gate = new object();
         private string _commandLine = "";
         private CommandLineArguments _commandLineArgumentsForCommandLine;
         private string _explicitRuleSetFilePath;
@@ -226,8 +228,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                // The IRuleSetFile held by _ruleSetFile is now out of date. Our model is we now request a new one which will have up-to-date values.
+                // The IRuleSetFile held by _ruleSetFile is now out of date. We'll dispose our old one first so as to let go of any old cached values.
+                // Then, we must reparse: in the case where the command line we have from the project system includes a /ruleset, the computation of the
+                // effective values was potentially done by the act of parsing the command line. Even though the command line didn't change textually,
+                // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
+                // includes in the IDE so we can be watching for changes again.
                 DisposeOfRuleSetFile_NoLock();
+                ReparseCommandLine_NoLock();
                 UpdateProjectOptions_NoLock();
             }
         }
