@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (thisAnnotation.IsOblivious() || otherAnnotation.IsOblivious())
                     {
-                        if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0)
+                        if ((comparison & TypeCompareKind.ObliviousNullableModifierMatchesAny) == 0)
                         {
                             return false;
                         }
@@ -404,10 +404,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed class EqualsComparer : EqualityComparer<TypeWithAnnotations>
         {
-            internal static readonly EqualsComparer Instance = new EqualsComparer();
+            internal static readonly EqualsComparer ConsiderEverythingComparer = new EqualsComparer(TypeCompareKind.ConsiderEverything);
+            internal static readonly EqualsComparer IgnoreNullableModifiersForReferenceTypesComparer = new EqualsComparer(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
+            internal static readonly EqualsComparer UnknownNullableModifierMatchesAnyComparer = new EqualsComparer(TypeCompareKind.UnknownNullableModifierMatchesAny);
 
-            private EqualsComparer()
+            private readonly TypeCompareKind _compareKind;
+
+            private EqualsComparer(TypeCompareKind compareKind)
             {
+                _compareKind = compareKind;
             }
 
             public override int GetHashCode(TypeWithAnnotations obj)
@@ -425,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return !y.HasType;
                 }
-                return x.Equals(y, TypeCompareKind.ConsiderEverything);
+                return x.Equals(y, _compareKind);
             }
         }
 

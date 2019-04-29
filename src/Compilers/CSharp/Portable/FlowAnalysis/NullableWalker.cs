@@ -5505,7 +5505,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
-            _ = base.VisitUnaryOperator(node);
+            switch (node.OperatorKind)
+            {
+                case UnaryOperatorKind.BoolLogicalNegation:
+                    VisitCondition(node.Operand);
+                    SetConditionalState(StateWhenFalse, StateWhenTrue);
+                    break;
+                case UnaryOperatorKind.DynamicTrue:
+                    // We cannot use VisitCondition, because the operand is not of type bool.
+                    // Yet we want to keep the result split if it was split.  So we simply visit.
+                    Visit(node.Operand);
+                    break;
+                case UnaryOperatorKind.DynamicLogicalNegation:
+                    // We cannot use VisitCondition, because the operand is not of type bool.
+                    // Yet we want to keep the result split if it was split.  So we simply visit.
+                    Visit(node.Operand);
+                    // If the state is split, the result is `bool` at runtime and we invert it here.
+                    if (IsConditionalState)
+                        SetConditionalState(StateWhenFalse, StateWhenTrue);
+                    break;
+                default:
+                    VisitRvalue(node.Operand);
+                    break;
+            }
+
             var argumentResult = ResultType;
             TypeWithState resultType;
 
