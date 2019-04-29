@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjName = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -15,8 +16,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicLineCommit(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicLineCommit))
+        public BasicLineCommit(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicLineCommit))
         {
         }
 
@@ -76,7 +77,7 @@ End Module");
             VisualStudio.Editor.Verify.CaretPosition(16);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20991"), Trait(Traits.Feature, Traits.Features.LineCommit)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
         void CommitOnSave()
         {
             VisualStudio.Editor.SetText(@"Module Module1
@@ -87,7 +88,7 @@ End Module
 
             VisualStudio.Editor.PlaceCaret("(", charsOffset: 1);
             VisualStudio.Editor.SendKeys("x   as   integer", VirtualKey.Tab);
-            VisualStudio.ExecuteCommand("File.SaveSelectedItems");
+            VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.S, ShiftState.Ctrl));
             VisualStudio.Editor.Verify.TextContains(@"Sub Main(x As Integer)");
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_Undo);
             VisualStudio.Editor.Verify.TextContains(@"Sub Main(x   As   Integer)");
@@ -107,7 +108,7 @@ End Module");
             VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
             VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb"); // Work around https://github.com/dotnet/roslyn/issues/18488
             VisualStudio.Editor.SendKeys("                  ");
-            VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
+            VisualStudio.SolutionExplorer.CloseCodeFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
             VisualStudio.Editor.Verify.TextContains(@"
     Sub M()
     End Sub
@@ -130,7 +131,7 @@ End Module");
                 VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
                 VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb"); // Work around https://github.com/dotnet/roslyn/issues/18488
                 VisualStudio.Editor.SendKeys("                  ");
-                VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
+                VisualStudio.SolutionExplorer.CloseCodeFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
                 VisualStudio.Editor.Verify.TextContains(@"
     Sub M()
      End Sub

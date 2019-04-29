@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     [Name("CSharp Snippets")]
     [Order(After = CodeAnalysis.Editor.PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    [Order(After = CodeAnalysis.Editor.PredefinedCommandHandlerNames.IntelliSense)]
+    [Order(After = CodeAnalysis.Editor.PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
     internal sealed class SnippetCommandHandler :
         AbstractSnippetCommandHandler,
         ICommandHandler<SurroundWithCommandArgs>

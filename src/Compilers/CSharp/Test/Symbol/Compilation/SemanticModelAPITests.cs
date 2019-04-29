@@ -17,6 +17,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SemanticTests : CSharpTestBase
     {
         [Fact]
+        public void PatternIndexAndRangeIndexers()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+class C
+{
+    int Length => 0;
+    int this[int i] => i;
+    char Slice(int i, int j) => 'a';
+    void M()
+    {
+        _ = this[^0];
+        _ = this[0..];
+    }
+}");
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var accesses = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToList();
+            var indexerAccess = accesses[0];
+
+            var typeInfo = model.GetTypeInfo(indexerAccess);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+            var symbolInfo = model.GetSymbolInfo(indexerAccess);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            indexerAccess = accesses[1];
+
+            typeInfo = model.GetTypeInfo(indexerAccess);
+            Assert.Equal(SpecialType.System_Char, typeInfo.Type.SpecialType);
+            symbolInfo = model.GetSymbolInfo(indexerAccess);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact]
         public void RefReassignSymbolInfo()
         {
             var comp = CreateCompilation(@"
@@ -297,7 +336,7 @@ class A : L
             var r = b.GetTypeMembers("R", 0).Single();
             var q = r.GetTypeMembers("Q", 0).Single();
             var v = a.GetMembers("v").Single() as FieldSymbol;
-            var s = v.Type.TypeSymbol;
+            var s = v.Type;
             Assert.Equal("B.R.Q.S", s.ToTestDisplayString());
             var sbase = s.BaseType();
             Assert.Equal("B.R.Q", sbase.ToTestDisplayString());
@@ -535,7 +574,7 @@ class Program
             var model = compilation.GetSemanticModel(tree1);
 
             var info = model.GetSymbolInfo(type);
-            Assert.Equal<Symbol>(compilation.GetSpecialType(SpecialType.System_String), (info.Symbol as ArrayTypeSymbol).ElementType.TypeSymbol);
+            Assert.Equal<Symbol>(compilation.GetSpecialType(SpecialType.System_String), (info.Symbol as ArrayTypeSymbol).ElementType);
         }
 
         [Fact]
@@ -625,7 +664,7 @@ class B {}
 
             var xDecl = mainDecl.Members[0] as FieldDeclarationSyntax;
             var xSym = mainType.GetMembers("x").Single() as FieldSymbol;
-            Assert.Equal<ISymbol>(abType, xSym.Type.TypeSymbol);
+            Assert.Equal<ISymbol>(abType, xSym.Type);
             var info = model.GetSymbolInfo((xDecl.Declaration.Type as QualifiedNameSyntax).Right);
             Assert.Equal(abType, info.Symbol);
         }
@@ -1546,7 +1585,7 @@ class Q
             var classQ = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Q");
             var fieldQ = classQ.GetMember<FieldSymbol>("q");
 
-            Assert.Equal(classQ, fieldQ.Type.TypeSymbol);
+            Assert.Equal(classQ, fieldQ.Type);
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -1614,7 +1653,7 @@ class C
             Assert.NotNull(local);
             Assert.Equal("z", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
-            Assert.Equal("Int32", ((LocalSymbol)local).Type.Name);
+            Assert.Equal("Int32", ((LocalSymbol)local).TypeWithAnnotations.Type.Name);
 
             var typeInfo = speculativeModel.GetTypeInfo(localDecl.Declaration.Type);
             Assert.NotNull(typeInfo.Type);
@@ -1667,7 +1706,7 @@ class C
             Assert.NotNull(local);
             Assert.Equal("z", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
-            Assert.Equal("Int32", ((LocalSymbol)local).Type.Name);
+            Assert.Equal("Int32", ((LocalSymbol)local).TypeWithAnnotations.Type.Name);
 
             // same name local
             statement = SyntaxFactory.ParseStatement(@"string y = null;");
@@ -1680,7 +1719,7 @@ class C
             Assert.NotNull(local);
             Assert.Equal("y", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
-            Assert.Equal("String", ((LocalSymbol)local).Type.Name);
+            Assert.Equal("String", ((LocalSymbol)local).TypeWithAnnotations.Type.Name);
         }
 
         [Fact]
@@ -3571,7 +3610,7 @@ class Derived : Test
             var expr = identifier.FirstAncestorOrSelf<ArgumentSyntax>().Parent.Parent;
 
             var exprInfo = model.GetSymbolInfo(expr);
-            var firstParamType = ((Symbol)exprInfo.CandidateSymbols.Single()).GetParameterTypes().First().TypeSymbol;
+            var firstParamType = ((Symbol)exprInfo.CandidateSymbols.Single()).GetParameterTypes().First().Type;
             Assert.Equal(actionType, firstParamType);
 
             var identifierInfo = model.GetTypeInfo(identifier);

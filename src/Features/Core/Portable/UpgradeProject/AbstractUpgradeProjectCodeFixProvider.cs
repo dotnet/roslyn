@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         public abstract bool IsUpgrade(ParseOptions projectOptions, string newVersion);
         public abstract string UpgradeThisProjectResource { get; }
         public abstract string UpgradeAllProjectsResource { get; }
-        public abstract string AddBetaIfNeeded(string version);
 
         public override FixAllProvider GetFixAllProvider()
         {
@@ -40,19 +39,28 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
             var project = context.Document.Project;
             var solution = project.Solution;
             var newVersion = SuggestedVersion(context.Diagnostics);
+
             var result = new List<CodeAction>();
             var language = project.Language;
 
-            var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, AddBetaIfNeeded(newVersion));
-            var fixOneProject = new ParseOptionsChangeAction(fixOneProjectTitle,
+            var upgradeableProjects = solution.Projects.Where(p => CanUpgrade(p, language, newVersion)).AsImmutable();
+
+            if (upgradeableProjects.Length == 0)
+            {
+                return ImmutableArray<CodeAction>.Empty;
+            }
+
+            var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);
+            var fixOneProject = new ProjectOptionsChangeAction(fixOneProjectTitle,
                 _ => Task.FromResult(UpgradeProject(project, newVersion)));
 
             result.Add(fixOneProject);
-            if (solution.Projects.Count(p => CanUpgrade(p, language, newVersion)) > 1)
-            {
-                var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, AddBetaIfNeeded(newVersion));
 
-                var fixAllProjects = new ParseOptionsChangeAction(fixAllProjectsTitle,
+            if (upgradeableProjects.Length > 1)
+            {
+                var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
+
+                var fixAllProjects = new ProjectOptionsChangeAction(fixAllProjectsTitle,
                     ct => Task.FromResult(UpgradeAllProjects(solution, language, newVersion, ct)));
 
                 result.Add(fixAllProjects);
@@ -84,9 +92,9 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         }
     }
 
-    internal class ParseOptionsChangeAction : SolutionChangeAction
+    internal class ProjectOptionsChangeAction : SolutionChangeAction
     {
-        public ParseOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+        public ProjectOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
             : base(title, createChangedSolution, equivalenceKey: null)
         {
         }

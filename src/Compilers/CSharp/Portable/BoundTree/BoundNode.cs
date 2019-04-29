@@ -22,12 +22,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             HasErrors = 1 << 0,
             CompilerGenerated = 1 << 1,
+            IsSuppressed = 1 << 2,
+
+            // Bit 3: 1 if the node has maybe-null state, 0 if the node is not null
+            // Bits 4 and 5: 01 if the node is not annotated, 10 if the node is annotated, 11 if the node is disabled
+            TopLevelFlowStateMaybeNull = 1 << 3,
+            TopLevelNotAnnotated = 1 << 4,
+            TopLevelAnnotated = 1 << 5,
+            TopLevelDisabled = TopLevelAnnotated | TopLevelNotAnnotated,
+            TopLevelAnnotationMask = TopLevelDisabled,
 #if DEBUG
             /// <summary>
             /// Captures the fact that consumers of the node already checked the state of the WasCompilerGenerated bit.
             /// Allows to assert on attempts to set WasCompilerGenerated bit after that.
             /// </summary>
-            WasCompilerGeneratedIsChecked = 1 << 2,
+            WasCompilerGeneratedIsChecked = 1 << 6,
+            WasTopLevelNullabilityChecked = 1 << 7,
 #endif
         }
 
@@ -69,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
                 var expression = this as BoundExpression;
-                return expression != null && !ReferenceEquals(expression.Type, null) && expression.Type.IsErrorType();
+                return expression?.Type?.IsErrorType() == true;
             }
         }
 
@@ -97,6 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return Syntax?.SyntaxTree;
             }
+        }
+
+        protected void CopyAttributes(BoundNode original)
+        {
+            this.WasCompilerGenerated = original.WasCompilerGenerated;
+
+            Debug.Assert(original is BoundExpression || !original.IsSuppressed);
+            this.IsSuppressed = original.IsSuppressed;
         }
 
         /// <remarks>
@@ -149,6 +167,97 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Top level nullability for the node. This should not be used by flow analysis.
+        /// </summary>
+        [DebuggerHidden]
+        protected NullabilityInfo TopLevelNullability
+        {
+            get
+            {
+#if DEBUG
+                _attributes |= BoundNodeAttributes.WasTopLevelNullabilityChecked;
+#endif
+
+                // This is broken out into a separate property so the debugger can display the
+                // top level nullability without setting the _attributes flag and interferring
+                // with the normal operation of tests.
+                return TopLevelNullabilityCore;
+            }
+            set
+            {
+#if DEBUG
+                Debug.Assert((_attributes & BoundNodeAttributes.WasTopLevelNullabilityChecked) == 0,
+                    "bound node nullability should not be set after reading it");
+#endif
+                _attributes &= ~(BoundNodeAttributes.TopLevelAnnotationMask | BoundNodeAttributes.TopLevelFlowStateMaybeNull);
+
+                _attributes |= value.Annotation switch
+                {
+                    CodeAnalysis.NullableAnnotation.Annotated => BoundNodeAttributes.TopLevelAnnotated,
+                    CodeAnalysis.NullableAnnotation.NotAnnotated => BoundNodeAttributes.TopLevelNotAnnotated,
+                    CodeAnalysis.NullableAnnotation.Disabled => BoundNodeAttributes.TopLevelDisabled,
+                    var a => throw ExceptionUtilities.UnexpectedValue(a),
+                };
+
+                switch (value.FlowState)
+                {
+                    case CodeAnalysis.NullableFlowState.MaybeNull:
+                        _attributes |= BoundNodeAttributes.TopLevelFlowStateMaybeNull;
+                        break;
+
+                    case CodeAnalysis.NullableFlowState.NotNull:
+                        // Not needed: unset is NotNull
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(value.FlowState);
+                }
+            }
+        }
+
+        /// <summary>
+        /// This is for debugger display use only: <see cref="TopLevelNullability"/> will set the BoundNodeAttributes.WasTopLevelNullabilityChecked
+        /// bit in the boundnode properties, which will break debugging. This allows the debugger to display the current value without setting the bit.
+        /// </summary>
+        private NullabilityInfo TopLevelNullabilityCore
+        {
+            get
+            {
+                if ((_attributes & BoundNodeAttributes.TopLevelAnnotationMask) == 0)
+                {
+                    return default;
+                }
+
+                var annotation = (_attributes & BoundNodeAttributes.TopLevelAnnotationMask) switch
+                {
+                    BoundNodeAttributes.TopLevelAnnotated => CodeAnalysis.NullableAnnotation.Annotated,
+                    BoundNodeAttributes.TopLevelNotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
+                    BoundNodeAttributes.TopLevelDisabled => CodeAnalysis.NullableAnnotation.Disabled,
+                    var mask => throw ExceptionUtilities.UnexpectedValue(mask)
+                };
+
+                var flowState = (_attributes & BoundNodeAttributes.TopLevelFlowStateMaybeNull) == 0 ? CodeAnalysis.NullableFlowState.NotNull : CodeAnalysis.NullableFlowState.MaybeNull;
+
+                return new NullabilityInfo(annotation, flowState);
+            }
+        }
+
+        public bool IsSuppressed
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.IsSuppressed) != 0;
+            }
+            protected set
+            {
+                Debug.Assert((_attributes & BoundNodeAttributes.IsSuppressed) == 0, "flag should not be set twice or reset");
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.IsSuppressed;
+                }
+            }
+        }
 
         public BoundKind Kind
         {

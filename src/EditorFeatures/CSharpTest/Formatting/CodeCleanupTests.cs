@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -41,18 +40,16 @@ class Program
 ";
 
             var expected = @"using System;
-class Program
+
+internal class Program
 {
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
         Console.WriteLine();
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
-                (CodeCleanupOptions.RemoveUnusedImports, enabled: true),
-                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
+            return AssertCodeCleanupResult(expected, code);
         }
 
         [Fact]
@@ -73,20 +70,17 @@ class Program
 
             var expected = @"using System;
 using System.Collections.Generic;
-class Program
+
+internal class Program
 {
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
-        var list = new List<int>();
+        List<int> list = new List<int>();
         Console.WriteLine(list.Count);
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
-                (CodeCleanupOptions.SortImports, enabled: true),
-                (CodeCleanupOptions.ApplyImplicitExplicitTypePreferences, enabled: false),
-                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
+            return AssertCodeCleanupResult(expected, code);
         }
 
         [Fact]
@@ -103,9 +97,9 @@ class Program
     }
 }
 ";
-            var expected = @"class Program
+            var expected = @"internal class Program
 {
-    void Method()
+    private void Method()
     {
         int a = 0;
         if (a > 0)
@@ -115,10 +109,7 @@ class Program
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
-                (CodeCleanupOptions.AddRemoveBracesForSingleLineControlStatements, enabled: true),
-                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
+            return AssertCodeCleanupResult(expected, code);
         }
 
         [Fact]
@@ -133,17 +124,14 @@ class Program
     }
 }
 ";
-            var expected = @"class Program
+            var expected = @"internal class Program
 {
-    void Method()
+    private void Method()
     {
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
-                (CodeCleanupOptions.RemoveUnusedVariables, enabled: true),
-                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: false));
+            return AssertCodeCleanupResult(expected, code);
         }
 
         [Fact]
@@ -162,16 +150,13 @@ class Program
 {
     private void Method()
     {
-        int a;
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, enabled: true),
-                (CodeCleanupOptions.AddAccessibilityModifiers, enabled: true));
+            return AssertCodeCleanupResult(expected, code);
         }
 
-        protected static async Task AssertCodeCleanupResult(string expected, string code, params (PerLanguageOption<bool> option, bool enabled)[] options)
+        protected static async Task AssertCodeCleanupResult(string expected, string code)
         {
             var exportProvider = ExportProviderCache
                 .GetOrCreateExportProviderFactory(
@@ -180,14 +165,6 @@ class Program
 
             using (var workspace = TestWorkspace.CreateCSharp(code, exportProvider: exportProvider))
             {
-                if (options != null)
-                {
-                    foreach (var option in options)
-                    {
-                        workspace.Options = workspace.Options.WithChangedOption(option.option, LanguageNames.CSharp, option.enabled);
-                    }
-                }
-
                 // register this workspace to solution crawler so that analyzer service associate itself with given workspace
                 var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
                 incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
@@ -197,8 +174,7 @@ class Program
 
                 var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
-                var docOptions = await document.GetOptionsAsync(CancellationToken.None).ConfigureAwait(false);
-                var enabledDiagnostics = codeCleanupService.GetEnabledDiagnostics(docOptions);
+                var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
                 var newDoc = await codeCleanupService.CleanupAsync(
                     document, enabledDiagnostics, new ProgressTracker(), CancellationToken.None);

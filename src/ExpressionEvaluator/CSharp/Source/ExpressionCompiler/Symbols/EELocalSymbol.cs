@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     internal sealed class EELocalSymbol : EELocalSymbolBase
     {
         private readonly MethodSymbol _method;
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
 
         private readonly LocalDeclarationKind _declarationKind;
         private readonly bool _isCompilerGenerated;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             bool isPinned,
             bool isCompilerGenerated,
             bool canScheduleToStack)
-            : this(method, locations, nameOpt, ordinal, declarationKind, TypeSymbolWithAnnotations.Create(type), refKind, isPinned, isCompilerGenerated, canScheduleToStack)
+            : this(method, locations, nameOpt, ordinal, declarationKind, TypeWithAnnotations.Create(type), refKind, isPinned, isCompilerGenerated, canScheduleToStack)
         {
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             string nameOpt,
             int ordinal,
             LocalDeclarationKind declarationKind,
-            TypeSymbolWithAnnotations type,
+            TypeWithAnnotations type,
             RefKind refKind,
             bool isPinned,
             bool isCompilerGenerated,
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _method; }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }

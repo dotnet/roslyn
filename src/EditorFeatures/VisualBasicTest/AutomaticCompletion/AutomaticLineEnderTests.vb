@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
@@ -119,13 +120,13 @@ End Class</code>)
         Public Sub TestDim_After_MalformedStatement()
             Test(<code>Class C
     Sub Method()
-        Dim _ ' test
+        Dim _  test
 
         $$
     End Sub
 End Class</code>, <code>Class C
     Sub Method()
-        Dim _ ' test
+        Dim _  test
 $$
     End Sub
 End Class</code>)
@@ -234,6 +235,26 @@ End Module
 Module M
     Sub Main()
         Dim _ $$
+    End Sub
+End Module
+</code>)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
+        Public Sub TestWithLineContinuationCommentsAfterLineContinuation()
+            Test(
+<code>
+Module M
+    Sub Main()
+        Dim _ ' Test
+            $$
+    End Sub
+End Module
+</code>,
+<code>
+Module M
+    Sub Main()
+        Dim _ ' Test$$
     End Sub
 End Module
 </code>)

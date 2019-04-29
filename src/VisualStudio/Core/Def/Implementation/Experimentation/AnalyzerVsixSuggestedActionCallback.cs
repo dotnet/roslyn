@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         private bool IsCandidate()
         {
-            // if this user ever participated in the experiement and then uninstall the vsix, then
+            // if this user ever participated in the experiment and then uninstall the vsix, then
             // this user will never be candidate again.
             if (_workspace.Options.GetOption(AnalyzerABTestOptions.ParticipatedInExperiment))
             {

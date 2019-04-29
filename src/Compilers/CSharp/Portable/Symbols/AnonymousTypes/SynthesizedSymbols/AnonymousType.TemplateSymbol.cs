@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -72,52 +71,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _nameAndIndex = null;
 
                 int fieldsCount = typeDescr.Fields.Length;
+                int membersCount = fieldsCount * 3 + 1;
 
                 // members
-                Symbol[] members = new Symbol[fieldsCount * 3 + 1];
-                int memberIndex = 0;
+                var membersBuilder = ArrayBuilder<Symbol>.GetInstance(membersCount);
+                var propertiesBuilder = ArrayBuilder<AnonymousTypePropertySymbol>.GetInstance(fieldsCount);
+                var typeParametersBuilder = ArrayBuilder<TypeParameterSymbol>.GetInstance(fieldsCount);
 
-                // The array storing property symbols to be used in 
-                // generation of constructor and other methods
-                if (fieldsCount > 0)
+                // Process fields
+                for (int fieldIndex = 0; fieldIndex < fieldsCount; fieldIndex++)
                 {
-                    AnonymousTypePropertySymbol[] propertiesArray = new AnonymousTypePropertySymbol[fieldsCount];
-                    TypeParameterSymbol[] typeParametersArray = new TypeParameterSymbol[fieldsCount];
+                    AnonymousTypeField field = typeDescr.Fields[fieldIndex];
 
-                    // Process fields
-                    for (int fieldIndex = 0; fieldIndex < fieldsCount; fieldIndex++)
-                    {
-                        AnonymousTypeField field = typeDescr.Fields[fieldIndex];
+                    // Add a type parameter
+                    AnonymousTypeParameterSymbol typeParameter =
+                        new AnonymousTypeParameterSymbol(this, fieldIndex, GeneratedNames.MakeAnonymousTypeParameterName(field.Name));
+                    typeParametersBuilder.Add(typeParameter);
 
-                        // Add a type parameter
-                        AnonymousTypeParameterSymbol typeParameter =
-                            new AnonymousTypeParameterSymbol(this, fieldIndex, GeneratedNames.MakeAnonymousTypeParameterName(field.Name));
-                        typeParametersArray[fieldIndex] = typeParameter;
+                    // Add a property
+                    AnonymousTypePropertySymbol property = new AnonymousTypePropertySymbol(this, field, TypeWithAnnotations.Create(typeParameter), fieldIndex);
+                    propertiesBuilder.Add(property);
 
-                        // Add a property
-                        AnonymousTypePropertySymbol property = new AnonymousTypePropertySymbol(this, field, TypeSymbolWithAnnotations.Create(typeParameter));
-                        propertiesArray[fieldIndex] = property;
-
-                        // Property related symbols
-                        members[memberIndex++] = property;
-                        members[memberIndex++] = property.BackingField;
-                        members[memberIndex++] = property.GetMethod;
-                    }
-
-                    _typeParameters = typeParametersArray.AsImmutable();
-                    this.Properties = propertiesArray.AsImmutable();
+                    // Property related symbols
+                    membersBuilder.Add(property);
+                    membersBuilder.Add(property.BackingField);
+                    membersBuilder.Add(property.GetMethod);
                 }
-                else
-                {
-                    _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
-                    this.Properties = ImmutableArray<AnonymousTypePropertySymbol>.Empty;
-                }
+
+                _typeParameters = typeParametersBuilder.ToImmutableAndFree();
+                this.Properties = propertiesBuilder.ToImmutableAndFree();
 
                 // Add a constructor
-                members[memberIndex++] = new AnonymousTypeConstructorSymbol(this, this.Properties);
-                _members = members.AsImmutable();
-
-                Debug.Assert(memberIndex == _members.Length);
+                membersBuilder.Add(new AnonymousTypeConstructorSymbol(this, this.Properties));
+                _members = membersBuilder.ToImmutableAndFree();
+                Debug.Assert(membersCount == _members.Length);
 
                 // fill nameToSymbols map
                 foreach (var symbol in _members)
@@ -126,11 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // special members: Equals, GetHashCode, ToString
-                MethodSymbol[] specialMembers = new MethodSymbol[3];
-                specialMembers[0] = new AnonymousTypeEqualsMethodSymbol(this);
-                specialMembers[1] = new AnonymousTypeGetHashCodeMethodSymbol(this);
-                specialMembers[2] = new AnonymousTypeToStringMethodSymbol(this);
-                this.SpecialMembers = specialMembers.AsImmutable();
+                this.SpecialMembers = ImmutableArray.Create<MethodSymbol>(
+                    new AnonymousTypeEqualsMethodSymbol(this),
+                    new AnonymousTypeGetHashCodeMethodSymbol(this),
+                    new AnonymousTypeToStringMethodSymbol(this));
             }
 
             internal AnonymousTypeKey GetAnonymousTypeKey()
@@ -216,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-            internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+            internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
             {
                 get { return GetTypeParametersAsTypeArguments(); }
             }
@@ -293,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override bool IsReadOnly
+            public sealed override bool IsReadOnly
             {
                 get { return false; }
             }

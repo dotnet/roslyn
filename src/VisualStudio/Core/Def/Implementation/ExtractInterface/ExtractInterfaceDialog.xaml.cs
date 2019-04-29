@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -16,12 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
     internal partial class ExtractInterfaceDialog : DialogWindow
     {
         private readonly ExtractInterfaceDialogViewModel _viewModel;
-
-        /// <summary>
-        /// For test purposes only. The integration tests need to know when the dialog is up and
-        /// ready for automation.
-        /// </summary>
-        internal static event Action TEST_DialogLoaded;
 
         // Expose localized strings for binding
         public string ExtractInterfaceDialogTitle { get { return ServicesVSResources.Extract_Interface; } }
@@ -47,22 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             DataContext = viewModel;
 
             Loaded += ExtractInterfaceDialog_Loaded;
-            IsVisibleChanged += ExtractInterfaceDialog_IsVisibleChanged;
         }
 
         private void ExtractInterfaceDialog_Loaded(object sender, RoutedEventArgs e)
         {
             interfaceNameTextBox.Focus();
             interfaceNameTextBox.SelectAll();
-        }
-
-        private void ExtractInterfaceDialog_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if ((bool)e.NewValue)
-            {
-                IsVisibleChanged -= ExtractInterfaceDialog_IsVisibleChanged;
-                TEST_DialogLoaded?.Invoke();
-            }
         }
 
         private void SetCommandBindings()
@@ -139,6 +122,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             {
                 item.IsChecked = !allChecked;
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly ExtractInterfaceDialog _dialog;
+
+            public TestAccessor(ExtractInterfaceDialog dialog)
+            {
+                _dialog = dialog;
+            }
+
+            public Button OKButton => _dialog.OKButton;
+
+            public Button CancelButton => _dialog.CancelButton;
+
+            public Button SelectAllButton => _dialog.SelectAllButton;
+
+            public Button DeselectAllButton => _dialog.DeselectAllButton;
+
+            public RadioButton DestinationCurrentFileSelectionRadioButton => _dialog.DestinationCurrentFileSelectionRadioButton;
+
+            public RadioButton DestinationNewFileSelectionRadioButton => _dialog.DestinationNewFileSelectionRadioButton;
+
+            public TextBox FileNameTextBox => _dialog.fileNameTextBox;
+
+            public ListView Members => _dialog.Members;
         }
     }
 }

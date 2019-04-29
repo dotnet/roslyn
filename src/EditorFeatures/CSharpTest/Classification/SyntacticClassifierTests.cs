@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2103,7 +2104,7 @@ void M()
                 Punctuation.Colon,
                 Identifier("A"),
                 Punctuation.CloseBracket,
-                Method("C"),
+                Class("C"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -2131,7 +2132,7 @@ void M()
                 Identifier("A"),
                 Punctuation.CloseBracket,
                 Operators.Tilde,
-                Method("C"),
+                Class("C"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -2551,6 +2552,12 @@ namespace MyNamespace
         private void method(params object[] args)
         {
         }
+
+        private string aMethod(object o) => o switch
+        {
+            int => string.Empty,
+            _ when true => throw new System.Exception()
+        };
     }
 
     interface Bar
@@ -2558,6 +2565,7 @@ namespace MyNamespace
     }
 }
 #endregion TaoRegion",
+                new[] { new CSharpParseOptions(LanguageVersion.CSharp8) },
                 Keyword("using"),
                 Identifier("System"),
                 Punctuation.Semicolon,
@@ -2671,7 +2679,7 @@ namespace MyNamespace
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Keyword("public"),
-                Method("Goo"),
+                Class("Goo"),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Parameter("i"),
@@ -2948,7 +2956,7 @@ namespace MyNamespace
                 Field("field"),
                 Punctuation.Semicolon,
                 Keyword("public"),
-                Method("Baz"),
+                Class("Baz"),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Parameter("i"),
@@ -3022,6 +3030,36 @@ namespace MyNamespace
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
+                Keyword("private"),
+                Keyword("string"),
+                Method("aMethod"),
+                Punctuation.OpenParen,
+                Keyword("object"),
+                Parameter("o"),
+                Punctuation.CloseParen,
+                Operators.EqualsGreaterThan,
+                Identifier("o"),
+                ControlKeyword("switch"),
+                Punctuation.OpenCurly,
+                Keyword("int"),
+                Operators.EqualsGreaterThan,
+                Keyword("string"),
+                Operators.Dot,
+                Identifier("Empty"),
+                Punctuation.Comma,
+                Keyword("_"),
+                ControlKeyword("when"),
+                Keyword("true"),
+                Operators.EqualsGreaterThan,
+                ControlKeyword("throw"),
+                Keyword("new"),
+                Identifier("System"),
+                Operators.Dot,
+                Identifier("Exception"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.CloseCurly,
+                Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Keyword("interface"),
                 Interface("Bar"),
@@ -4640,6 +4678,54 @@ int F = int.TryParse(""1"", out int x) ? x : -1;
                 Operators.Dot,
                 Identifier("Console"),
                 Punctuation.Semicolon);
+        }
+
+        [WorkItem(33039, "https://github.com/dotnet/roslyn/issues/33039")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ForEachVariableStatement()
+        {
+            await TestInMethodAsync(@"
+foreach (var (x, y) in new[] { (1, 2) });
+",
+                ControlKeyword("foreach"),
+                Punctuation.OpenParen,
+                Identifier("var"),
+                Punctuation.OpenParen,
+                Local("x"),
+                Punctuation.Comma,
+                Local("y"),
+                Punctuation.CloseParen,
+                ControlKeyword("in"),
+                Keyword("new"),
+                Punctuation.OpenBracket,
+                Punctuation.CloseBracket,
+                Punctuation.OpenCurly,
+                Punctuation.OpenParen,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen,
+                Punctuation.CloseCurly,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task CatchDeclarationStatement()
+        {
+            await TestInMethodAsync(@"
+try { } catch (Exception ex) { }
+",
+                ControlKeyword("try"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                ControlKeyword("catch"),
+                Punctuation.OpenParen,
+                Identifier("Exception"),
+                Local("ex"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
         }
     }
 }

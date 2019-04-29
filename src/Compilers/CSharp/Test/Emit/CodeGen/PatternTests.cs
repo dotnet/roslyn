@@ -1970,6 +1970,7 @@ static class Program
 }");
         }
 
+        // https://github.com/dotnet/roslyn/issues/35010 Support deconstruction assignment
         [Fact]
         public void DoNotShareInputForMutatingWhenClause()
         {
@@ -2129,6 +2130,260 @@ static class C {
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 38)
                 );
+        }
+
+        [Fact, WorkItem(32774, "https://github.com/dotnet/roslyn/issues/32774")]
+        public void BadCode_32774()
+        {
+            var source = @"
+public class Class1
+{
+    static void Main()
+    {
+        System.Console.WriteLine(SwitchCaseThatFails(12.123));
+    }
+
+    public static bool SwitchCaseThatFails(object someObject)
+    {
+        switch (someObject)
+        {
+            case IObject x when x.SubObject != null:
+                return false;
+            case IOtherObject x:
+                return false;
+            case double x:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public interface IObject
+    {
+        IObject SubObject { get; }
+    }
+
+    public interface IOtherObject { }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"True";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("Class1.SwitchCaseThatFails",
+@"{
+  // Code size       97 (0x61)
+  .maxstack  1
+  .locals init (Class1.IObject V_0, //x
+                Class1.IOtherObject V_1, //x
+                double V_2, //x
+                object V_3,
+                object V_4,
+                bool V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.3
+  IL_0007:  ldloc.3
+  IL_0008:  isinst     ""Class1.IObject""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  brtrue.s   IL_003c
+  IL_0011:  br.s       IL_001f
+  IL_0013:  ldloc.3
+  IL_0014:  isinst     ""Class1.IOtherObject""
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  brtrue.s   IL_004b
+  IL_001d:  br.s       IL_0059
+  IL_001f:  ldloc.3
+  IL_0020:  isinst     ""Class1.IOtherObject""
+  IL_0025:  stloc.1
+  IL_0026:  ldloc.1
+  IL_0027:  brtrue.s   IL_004b
+  IL_0029:  br.s       IL_002b
+  IL_002b:  ldloc.3
+  IL_002c:  isinst     ""double""
+  IL_0031:  brfalse.s  IL_0059
+  IL_0033:  ldloc.3
+  IL_0034:  unbox.any  ""double""
+  IL_0039:  stloc.2
+  IL_003a:  br.s       IL_0052
+  IL_003c:  ldloc.0
+  IL_003d:  callvirt   ""Class1.IObject Class1.IObject.SubObject.get""
+  IL_0042:  brtrue.s   IL_0046
+  IL_0044:  br.s       IL_0013
+  IL_0046:  ldc.i4.0
+  IL_0047:  stloc.s    V_5
+  IL_0049:  br.s       IL_005e
+  IL_004b:  br.s       IL_004d
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.s    V_5
+  IL_0050:  br.s       IL_005e
+  IL_0052:  br.s       IL_0054
+  IL_0054:  ldc.i4.1
+  IL_0055:  stloc.s    V_5
+  IL_0057:  br.s       IL_005e
+  IL_0059:  ldc.i4.0
+  IL_005a:  stloc.s    V_5
+  IL_005c:  br.s       IL_005e
+  IL_005e:  ldloc.s    V_5
+  IL_0060:  ret
+}");
+        }
+
+        // Possible test helper bug on Linux; see https://github.com/dotnet/roslyn/issues/33356
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void SwitchExpressionSequencePoints()
+        {
+            string source = @"
+public class Program
+{
+    public static void Main()
+    {
+        int i = 0;
+        var y = (i switch
+        {
+            0 => new Program(),
+            1 => new Program(),
+            _ => new Program(),
+        }).Chain();
+        y.Chain2();
+    }
+    public Program Chain() => this;
+    public Program Chain2() => this;
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugExe);
+            v.VerifyIL(qualifiedMethodName: "Program.Main",
+@"{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (int V_0, //i
+                Program V_1, //y
+                Program V_2,
+                Program V_3)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: int i = 0;
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  // sequence point: var y = (i s ...   }).Chain()
+  IL_0003:  ldloc.0
+  IL_0004:  brfalse.s  IL_000e
+  IL_0006:  br.s       IL_0008
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  beq.s      IL_0016
+  IL_000c:  br.s       IL_001e
+  IL_000e:  newobj     ""Program..ctor()""
+  IL_0013:  stloc.2
+  IL_0014:  br.s       IL_0026
+  IL_0016:  newobj     ""Program..ctor()""
+  IL_001b:  stloc.2
+  IL_001c:  br.s       IL_0026
+  IL_001e:  newobj     ""Program..ctor()""
+  IL_0023:  stloc.2
+  IL_0024:  br.s       IL_0026
+  IL_0026:  ldloc.2
+  IL_0027:  stloc.3
+  IL_0028:  ldloc.3
+  IL_0029:  callvirt   ""Program Program.Chain()""
+  IL_002e:  stloc.1
+  // sequence point: y.Chain2();
+  IL_002f:  ldloc.1
+  IL_0030:  callvirt   ""Program Program.Chain2()""
+  IL_0035:  pop
+  // sequence point: }
+  IL_0036:  ret
+}
+", sequencePoints: "Program.Main", source: source);
+        }
+
+        [Fact, WorkItem(33675, "https://github.com/dotnet/roslyn/issues/33675")]
+        public void ParsingParenthesizedExpressionAsPatternOfExpressionSwitch()
+        {
+            var source = @"
+public class Class1
+{
+    static void Main()
+    {
+        System.Console.Write(M(42));
+        System.Console.Write(M(41));
+    }
+
+    static bool M(object o)
+    {
+        const int X = 42;
+        return o switch { (X) => true, _ => false };
+    }
+}";
+            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
+            {
+                var compilation = CreateCompilation(source, options: options);
+                compilation.VerifyDiagnostics();
+                var expectedOutput = @"TrueFalse";
+                var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                if (options.OptimizationLevel == OptimizationLevel.Debug)
+                {
+                    compVerifier.VerifyIL("Class1.M",
+@"{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (bool V_0,
+                int V_1,
+                bool V_2,
+                bool V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_001b
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""int""
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.s   42
+  IL_0013:  beq.s      IL_0017
+  IL_0015:  br.s       IL_001b
+  IL_0017:  ldc.i4.1
+  IL_0018:  stloc.0
+  IL_0019:  br.s       IL_001f
+  IL_001b:  ldc.i4.0
+  IL_001c:  stloc.0
+  IL_001d:  br.s       IL_001f
+  IL_001f:  ldloc.0
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.2
+  IL_0022:  stloc.3
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.3
+  IL_0026:  ret
+}");
+                }
+                else
+                {
+                    compVerifier.VerifyIL("Class1.M",
+@"{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""int""
+  IL_0006:  brfalse.s  IL_0016
+  IL_0008:  ldarg.0
+  IL_0009:  unbox.any  ""int""
+  IL_000e:  ldc.i4.s   42
+  IL_0010:  bne.un.s   IL_0016
+  IL_0012:  ldc.i4.1
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0018
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+}");
+                }
+            }
         }
     }
 }

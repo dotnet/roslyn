@@ -644,7 +644,7 @@ class C
 
             TestAnonymousTypePropertySymbol(model,
                                 tree.FindNodeOrTokenByKind(SyntaxKind.AnonymousObjectMemberDeclarator, 2).AsNode(),
-                                "System.String? <anonymous type: System.Int32 a, System.String b>.b { get; }");
+                                "System.String <anonymous type: System.Int32 a, System.String b>.b { get; }");
         }
 
         [Fact]
@@ -665,7 +665,7 @@ class C
 
             TestAnonymousTypePropertySymbol(model,
                                             tree.FindNodeOrTokenByKind(SyntaxKind.AnonymousObjectMemberDeclarator, 1).AsNode(),
-                                            "error? <anonymous type: error a, System.Int32 $1, System.Int32 b, error c>.a { get; }");
+                                            "error <anonymous type: error a, System.Int32 $1, System.Int32 b, error c>.a { get; }");
 
             TestAnonymousTypePropertySymbol(model,
                                             tree.FindNodeOrTokenByKind(SyntaxKind.AnonymousObjectMemberDeclarator, 2).AsNode(),
@@ -677,7 +677,7 @@ class C
 
             TestAnonymousTypePropertySymbol(model,
                                             tree.FindNodeOrTokenByKind(SyntaxKind.AnonymousObjectMemberDeclarator, 4).AsNode(),
-                                            "error? <anonymous type: error a, System.Int32 $1, System.Int32 b, error c>.c { get; }");
+                                            "error <anonymous type: error a, System.Int32 $1, System.Int32 b, error c>.c { get; }");
         }
 
         private void TestAnonymousTypePropertySymbol(SemanticModel model, SyntaxNode node, string name)
@@ -944,7 +944,7 @@ namespace N1.N2
             var fieldDecl = (FieldDeclarationSyntax)typeDecl.Members[0];
             var fSymbol = model.GetDeclaredSymbol(fieldDecl.Declaration.Variables[0]) as FieldSymbol;
             Assert.Equal("field", fSymbol.Name);
-            Assert.Equal("T", fSymbol.Type.TypeSymbol.Name);
+            Assert.Equal("T", fSymbol.Type.Name);
             Assert.Equal<ISymbol>(structSymbol, fSymbol.ContainingSymbol);
             Assert.Null(model.GetDeclaredSymbol(fieldDecl));
 
@@ -969,8 +969,8 @@ namespace N1.N2
             var memDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
             var mSymbol = model.GetDeclaredSymbol(memDecl) as MethodSymbol;
             Assert.Equal("ReturnEnum", mSymbol.Name);
-            Assert.Equal("N1.N2.St<System.Object>.Em", mSymbol.ReturnType.TypeSymbol.ToTestDisplayString());
-            Assert.Equal<ISymbol>(enumSymbol, mSymbol.ReturnType.TypeSymbol.OriginalDefinition);
+            Assert.Equal("N1.N2.St<System.Object>.Em", mSymbol.ReturnType.ToTestDisplayString());
+            Assert.Equal<ISymbol>(enumSymbol, mSymbol.ReturnType.OriginalDefinition);
 
             typeDecl = (TypeDeclarationSyntax)nsDecl.Members[1];
             memDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
@@ -978,7 +978,7 @@ namespace N1.N2
             Assert.Equal(2, mSymbol.Parameters.Length);
             Assert.Equal("p1", mSymbol.Parameters[0].Name);
             Assert.Equal("St", mSymbol.Parameters[0].Type.Name);
-            Assert.Equal<ISymbol>(structSymbol, mSymbol.Parameters[1].Type.TypeSymbol.OriginalDefinition);
+            Assert.Equal<ISymbol>(structSymbol, mSymbol.Parameters[1].Type.OriginalDefinition);
             // CC
             var psym = model.GetDeclaredSymbol(memDecl.ParameterList.Parameters[0]);
             Assert.Equal(SymbolKind.Parameter, psym.Kind);
@@ -1276,7 +1276,7 @@ namespace System
             var someMemberInC = (MemberDeclarationSyntax)typeDeclC.Members[0];
 
             var namesInC = model.LookupNames(someMemberInC.SpanStart);
-            Assert.Equal(15, namesInC.Count); // everything in System.Object is included, with an uncertain count
+            Assert.Equal(13, namesInC.Count); // everything with exception of protected members in System.Object is included, with an uncertain count
             Assert.Contains("A", namesInC);
             Assert.Contains("B", namesInC);
             Assert.Contains("C", namesInC);
@@ -1868,11 +1868,11 @@ static class S
             // Get types for A<int> and B<string>.
             var symbols = model.LookupSymbols(methodStart, null, name: "a");
             CheckSymbolsUnordered(symbols, "A<int> a");
-            var typeA = ((ParameterSymbol)symbols[0]).Type.TypeSymbol;
+            var typeA = ((ParameterSymbol)symbols[0]).Type;
             Assert.NotNull(typeA);
             symbols = model.LookupSymbols(methodStart, null, name: "b");
             CheckSymbolsUnordered(symbols, "B<string> b");
-            var typeB = ((ParameterSymbol)symbols[0]).Type.TypeSymbol;
+            var typeB = ((ParameterSymbol)symbols[0]).Type;
             Assert.NotNull(typeB);
 
             Func<ISymbol, bool> isExtensionMethod = symbol =>
@@ -1933,11 +1933,11 @@ static class E
             CheckSymbolsUnordered(symbols, "void E.F<T>(T t)");
 
             // Type satisfying constraint.
-            symbols = model.LookupSymbols(position, container: method.Parameters[0].Type.TypeSymbol, name: "F", includeReducedExtensionMethods: true);
+            symbols = model.LookupSymbols(position, container: method.Parameters[0].Type, name: "F", includeReducedExtensionMethods: true);
             CheckSymbolsUnordered(symbols, "void A.F<A>()");
 
             // Type not satisfying constraint.
-            symbols = model.LookupSymbols(position, container: method.Parameters[1].Type.TypeSymbol, name: "F", includeReducedExtensionMethods: true);
+            symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
             CheckSymbolsUnordered(symbols);
 
             // Same tests as above but with position outside of
@@ -1973,11 +1973,11 @@ static class E
             CheckSymbols(symbols);
 
             // Type satisfying constraint.
-            symbols = model.LookupSymbols(position, container: method.Parameters[0].Type.TypeSymbol, name: "F", includeReducedExtensionMethods: true);
+            symbols = model.LookupSymbols(position, container: method.Parameters[0].Type, name: "F", includeReducedExtensionMethods: true);
             CheckSymbolsUnordered(symbols, "void A.F<A>()");
 
             // Type not satisfying constraint.
-            symbols = model.LookupSymbols(position, container: method.Parameters[1].Type.TypeSymbol, name: "F", includeReducedExtensionMethods: true);
+            symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
             CheckSymbols(symbols);
         }
 
@@ -2005,7 +2005,7 @@ class C
             // Get type for object[].
             var symbols = model.LookupSymbols(methodStart, null, name: "o");
             CheckSymbolsUnordered(symbols, "object[] o");
-            var type = ((ParameterSymbol)symbols[0]).Type.TypeSymbol;
+            var type = ((ParameterSymbol)symbols[0]).Type;
             Assert.NotNull(type);
 
             // Extension method overloads for o.First.

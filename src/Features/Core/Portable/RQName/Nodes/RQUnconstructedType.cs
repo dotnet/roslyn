@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         }
     }
 
-    internal struct RQUnconstructedTypeInfo
+    internal readonly struct RQUnconstructedTypeInfo
     {
         public readonly string TypeName;
         public readonly int TypeVariableCount;

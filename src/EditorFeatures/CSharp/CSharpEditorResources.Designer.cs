@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpEditorResources {
@@ -61,11 +61,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Complete statement on ;.
+        /// </summary>
+        internal static string Complete_statement_on_semicolon {
+            get {
+                return ResourceManager.GetString("Complete_statement_on_semicolon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fix interpolated verbatim string.
         /// </summary>
         internal static string Fix_interpolated_verbatim_string {
             get {
                 return ResourceManager.GetString("Fix_interpolated_verbatim_string", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Misplaced using directive.
+        /// </summary>
+        internal static string Misplaced_using_directive {
+            get {
+                return ResourceManager.GetString("Misplaced_using_directive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move misplaced using directives.
+        /// </summary>
+        internal static string Move_misplaced_using_directives {
+            get {
+                return ResourceManager.GetString("Move_misplaced_using_directives", resourceCulture);
             }
         }
         
@@ -93,6 +120,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         internal static string Split_string {
             get {
                 return ResourceManager.GetString("Split_string", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using directives must be placed inside of a namespace declaration.
+        /// </summary>
+        internal static string Using_directives_must_be_placed_inside_of_a_namespace_declaration {
+            get {
+                return ResourceManager.GetString("Using_directives_must_be_placed_inside_of_a_namespace_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using directives must be placed outside of a namespace declaration.
+        /// </summary>
+        internal static string Using_directives_must_be_placed_outside_of_a_namespace_declaration {
+            get {
+                return ResourceManager.GetString("Using_directives_must_be_placed_outside_of_a_namespace_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Moving using directives may change code meaning..
+        /// </summary>
+        internal static string Warning_colon_Moving_using_directives_may_change_code_meaning {
+            get {
+                return ResourceManager.GetString("Warning_colon_Moving_using_directives_may_change_code_meaning", resourceCulture);
             }
         }
     }

@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
             End Get
         End Property
 
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            Return WellKnownFixAllProviders.BatchFixer
+        End Function
+
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
 

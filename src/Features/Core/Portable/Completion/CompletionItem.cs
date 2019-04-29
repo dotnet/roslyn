@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -76,12 +77,22 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItemRules Rules { get; }
 
         /// <summary>
-        /// The <see cref="Document"/> that this <see cref="CompletionItem"/> was
-        /// created for.  Not available to clients.  Only used by the Completion
-        /// subsystem itself for things like being able to go back to the originating
-        /// Document when doing things like getting descriptions.
+        /// The name of the <see cref="CompletionProvider"/> that created this 
+        /// <see cref="CompletionItem"/>. Not available to clients. Only used by 
+        /// the Completion subsystem itself for things like getting description text
+        /// and making additional change during commit.
         /// </summary>
-        internal Document Document { get; set; }
+        internal string ProviderName { get; set; }
+
+        /// <summary>
+        /// Indicate whether this <see cref="CompletionItem"/> is cached and reused across completion sessions. 
+        /// This might be used by completion system for things like deciding whether it can safaly cache and reuse
+        /// other data correspodning to this item.
+        ///
+        /// TODO: Revisit the approach we used for caching VS items.
+        ///       https://github.com/dotnet/roslyn/issues/35160
+        /// </summary>
+        internal bool IsCached { get; set; }
 
         private CompletionItem(
             string displayText,
@@ -169,6 +180,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="rules">The rules that declare how this item should behave.</param>
         /// <returns></returns>
         [Obsolete("Use the Create overload that does not take a span", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static CompletionItem Create(
             string displayText,
             string filterText,
@@ -238,13 +250,17 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: newRules,
                 displayTextPrefix: newDisplayTextPrefix,
                 displayTextSuffix: newDisplayTextSuffix,
-                inlineDescription: newInlineDescription);
+                inlineDescription: newInlineDescription)
+            {
+                ProviderName = ProviderName
+            };
         }
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Span"/> property changed.
         /// </summary>
         [Obsolete("Not used anymore.  CompletionList.Span is used to control the span used for filtering.", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public CompletionItem WithSpan(TextSpan span)
         {
             return this;

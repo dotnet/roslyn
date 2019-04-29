@@ -10,6 +10,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend Module SyntaxHelpers
+        Friend ReadOnly ParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersionFacts.CurrentVersion)
+
         ''' <summary>
         ''' Parse expression. Returns null if there are any errors.
         ''' </summary>
@@ -152,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Function ParseDebuggerExpressionInternal(source As SourceText, consumeFullText As Boolean) As InternalSyntax.ExpressionSyntax
-            Using scanner As New InternalSyntax.Scanner(source, VisualBasicParseOptions.Default, isScanningForExpressionCompiler:=True) ' NOTE: Default options should be enough
+            Using scanner As New InternalSyntax.Scanner(source, ParseOptions, isScanningForExpressionCompiler:=True) ' NOTE: Default options should be enough
                 Using p = New InternalSyntax.Parser(scanner)
                     p.GetNextToken()
                     Dim node = p.ParseExpression()
@@ -163,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Function ParseDebuggerStatement(text As String) As StatementSyntax
-            Using scanner As New InternalSyntax.Scanner(SourceText.From(text), VisualBasicParseOptions.Default, isScanningForExpressionCompiler:=True) ' NOTE: Default options should be enough
+            Using scanner As New InternalSyntax.Scanner(SourceText.From(text), ParseOptions, isScanningForExpressionCompiler:=True) ' NOTE: Default options should be enough
                 Using p = New InternalSyntax.Parser(scanner)
                     p.GetNextToken()
                     Dim node = p.ParseStatementInMethodBody()
@@ -176,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         <Extension>
         Private Function CreateSyntaxTree(root As InternalSyntax.VisualBasicSyntaxNode) As SyntaxTree
-            Return VisualBasicSyntaxTree.Create(DirectCast(root.CreateRed(Nothing, 0), VisualBasicSyntaxNode))
+            Return VisualBasicSyntaxTree.Create(DirectCast(root.CreateRed(Nothing, 0), VisualBasicSyntaxNode), ParseOptions)
         End Function
 
         <Extension>

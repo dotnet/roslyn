@@ -651,7 +651,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     Locals: [System.Int32? y]
@@ -669,7 +668,6 @@ Block[B0] - Entry
                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
                       Pattern: 
                         IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y') (InputType: System.Int32?, DeclaredSymbol: System.Int32? y, MatchesNull: True)
-
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b2 = x2 is 1;')
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b2 = x2 is 1')
@@ -683,15 +681,14 @@ Block[B0] - Entry
                         IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32)
                           Value: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
         Next (Regular) Block[B2]
             Leaving: {R1}
 }
-
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
+
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
@@ -710,12 +707,47 @@ class C
     }/*</bind>*/
 }
 ";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IBlockOperation (1 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  Locals: Local_1: (System.Int32 X, System.Int32 Y) p
+    Local_2: System.Int32 z
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = x is (1 ...  var z } p;')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = x is (1 ... : var z } p')
+        Left: 
+          IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+        Right: 
+          IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x is (1, _) ... : var z } p')
+            Value: 
+              IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32 X, System.Int32 Y)?) (Syntax: 'x')
+            Pattern: 
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '(1, _) { It ... : var z } p') (InputType: (System.Int32 X, System.Int32 Y)?, DeclaredSymbol: (System.Int32 X, System.Int32 Y) p, MatchedType: (System.Int32 X, System.Int32 Y), DeconstructSymbol: null)
+                DeconstructionSubpatterns (2):
+                    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32)
+                      Value: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Item1: var z')
+                      Member: 
+                        IFieldReferenceOperation: System.Int32 (System.Int32 X, System.Int32 Y).Item1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Item1')
+                          Instance Receiver: 
+                            IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: (System.Int32 X, System.Int32 Y), IsImplicit) (Syntax: 'Item1')
+                      Pattern: 
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: True)
+";
+
+            VerifyOperationTreeForTest<BlockSyntax>(compilation, expectedOperationTree);
+
             string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     Locals: [(System.Int32 X, System.Int32 Y) p] [System.Int32 z]
@@ -739,17 +771,105 @@ Block[B0] - Entry
                                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                               IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32)
                           PropertySubpatterns (1):
-                            MatchedSymbol: System.Int32 (System.Int32 X, System.Int32 Y).Item1, Pattern: 
-                                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: True)
-
+                              IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Item1: var z')
+                                Member: 
+                                  IFieldReferenceOperation: System.Int32 (System.Int32 X, System.Int32 Y).Item1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Item1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: (System.Int32 X, System.Int32 Y), IsImplicit) (Syntax: 'Item1')
+                                Pattern: 
+                                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: True)
         Next (Regular) Block[B2]
             Leaving: {R1}
 }
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)";
 
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedFlowGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_NoControlFlow_03()
+        {
+            string source = @"
+class C
+{
+    void M((int X, (int Y, int Z))? tuple, bool b)
+    /*<bind>*/{
+        b = tuple is (1, _) { Item1: var x, Item2: { Y: 1, Z: var z } } p;
+    }/*</bind>*/
+}
+";
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [(System.Int32 X, (System.Int32 Y, System.Int32 Z)) p] [System.Int32 x] [System.Int32 z]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = tuple i ... ar z } } p;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = tuple i ... var z } } p')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'tuple is (1 ... var z } } p')
+                      Value: 
+                        IParameterReferenceOperation: tuple (OperationKind.ParameterReference, Type: (System.Int32 X, (System.Int32 Y, System.Int32 Z))?) (Syntax: 'tuple')
+                      Pattern: 
+                        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '(1, _) { It ... var z } } p') (InputType: (System.Int32 X, (System.Int32 Y, System.Int32 Z))?, DeclaredSymbol: (System.Int32 X, (System.Int32 Y, System.Int32 Z)) p, MatchedType: (System.Int32 X, (System.Int32 Y, System.Int32 Z)), DeconstructSymbol: null)
+                          DeconstructionSubpatterns (2):
+                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32)
+                                Value: 
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                              IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: (System.Int32 Y, System.Int32 Z))
+                          PropertySubpatterns (2):
+                              IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Item1: var x')
+                                Member: 
+                                  IFieldReferenceOperation: System.Int32 (System.Int32 X, (System.Int32 Y, System.Int32 Z)).Item1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Item1')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: (System.Int32 X, (System.Int32 Y, System.Int32 Z)), IsImplicit) (Syntax: 'Item1')
+                                Pattern: 
+                                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: True)
+                              IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Item2: { Y: ...  Z: var z }')
+                                Member: 
+                                  IFieldReferenceOperation: (System.Int32 Y, System.Int32 Z) (System.Int32 X, (System.Int32 Y, System.Int32 Z)).Item2 (OperationKind.FieldReference, Type: (System.Int32 Y, System.Int32 Z)) (Syntax: 'Item2')
+                                    Instance Receiver: 
+                                      IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: (System.Int32 X, (System.Int32 Y, System.Int32 Z)), IsImplicit) (Syntax: 'Item2')
+                                Pattern: 
+                                  IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ Y: 1, Z: var z }') (InputType: (System.Int32 Y, System.Int32 Z), DeclaredSymbol: null, MatchedType: (System.Int32 Y, System.Int32 Z), DeconstructSymbol: null)
+                                    DeconstructionSubpatterns (0)
+                                    PropertySubpatterns (2):
+                                        IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Y: 1')
+                                          Member: 
+                                            IFieldReferenceOperation: System.Int32 (System.Int32 Y, System.Int32 Z).Y (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Y')
+                                              Instance Receiver: 
+                                                IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: (System.Int32 Y, System.Int32 Z), IsImplicit) (Syntax: 'Y')
+                                          Pattern: 
+                                            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32)
+                                              Value: 
+                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                        IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Z: var z')
+                                          Member: 
+                                            IFieldReferenceOperation: System.Int32 (System.Int32 Y, System.Int32 Z).Z (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Z')
+                                              Instance Receiver: 
+                                                IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: (System.Int32 Y, System.Int32 Z), IsImplicit) (Syntax: 'Z')
+                                          Pattern: 
+                                            IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: True)
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
+
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
@@ -882,12 +1002,185 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'tu
             Value: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
       PropertySubpatterns (1):
-        MatchedSymbol: System.Int32 (System.Int32 X, System.Int32 Y).Item1, Pattern: 
-            IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: False)
+          IPropertySubpatternOperation (OperationKind.None, Type: null) (Syntax: 'Item1: int x')
+            Member: 
+              IFieldReferenceOperation: System.Int32 (System.Int32 X, System.Int32 Y).Item1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Item1')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: (System.Int32 X, System.Int32 Y), IsImplicit) (Syntax: 'Item1')
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: False)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_BadRecursivePattern_01()
+        {
+            string source = @"
+class C
+{
+    void M((int X, int Y) tuple, bool b)
+    {
+        if (/*<bind>*/tuple is (1, 2) { NotFound: int x } y/*</bind>*/) { }
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'tuple is (1 ... : int x } y')
+  Value: 
+    IParameterReferenceOperation: tuple (OperationKind.ParameterReference, Type: (System.Int32 X, System.Int32 Y)) (Syntax: 'tuple')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '(1, 2) { No ... : int x } y') (InputType: (System.Int32 X, System.Int32 Y), DeclaredSymbol: (System.Int32 X, System.Int32 Y) y, MatchedType: (System.Int32 X, System.Int32 Y), DeconstructSymbol: null)
+      DeconstructionSubpatterns (2):
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32)
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '2') (InputType: System.Int32)
+            Value: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.None, Type: null, IsInvalid) (Syntax: 'NotFound: int x')
+            Member: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'NotFound')
+                Children(0)
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: ?, DeclaredSymbol: System.Int32 x, MatchesNull: False)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(6,41): error CS0117: '(int X, int Y)' does not contain a definition for 'NotFound'
+                //         if (/*<bind>*/tuple is (1, 2) { NotFound: int x } y/*</bind>*/) { }
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "NotFound").WithArguments("(int X, int Y)", "NotFound").WithLocation(6, 41)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_BadRecursivePattern_02()
+        {
+            var vbSource = @"
+Public Class C1
+    Public Property Prop(index As Integer) As Integer
+        Get
+            Return 1
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+";
+
+            var vbCompilation = CreateVisualBasicCompilation(vbSource);
+
+            var source = @"
+class C
+{
+    void M1(object o, bool b)
+    {
+        b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
+    }
+}";
+
+            var compilation = CreateCompilation(source, new[] { vbCompilation.EmitToImageReference() });
+            compilation.VerifyDiagnostics(
+                // (6,33): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: Prop[1] }'
+                //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "Prop[1]").WithArguments("Prop[1]").WithLocation(6, 33),
+                // (6,33): error CS0103: The name 'Prop' does not exist in the current context
+                //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Prop").WithArguments("Prop").WithLocation(6, 33),
+                // (6,40): error CS1003: Syntax error, ',' expected
+                //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(6, 40),
+                // (6,42): error CS1003: Syntax error, ',' expected
+                //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "var").WithArguments(",", "").WithLocation(6, 42));
+
+            var expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is C1 { P ... 1]: var x }')
+  Value: 
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'C1 { Prop[1]: var x }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: C1, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (2):
+          IPropertySubpatternOperation (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Prop[1]')
+            Member: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Prop[1]')
+                Children(0)
+            Pattern: 
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: 'Prop[1]') (InputType: ?)
+                Value: 
+                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Prop[1]')
+                    Children(2):
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Prop')
+                          Children(0)
+          IPropertySubpatternOperation (OperationKind.None, Type: null, IsInvalid) (Syntax: 'var x')
+            Member: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'var x')
+                Children(0)
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x') (InputType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
+";
+
+            VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_BadRecursivePattern_03()
+        {
+            var vbSource = @"
+Public Class C1
+    Public Property Prop(index As Integer) As Integer
+        Get
+            Return 1
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+";
+
+            var vbCompilation = CreateVisualBasicCompilation(vbSource);
+
+            var source = @"
+class C
+{
+    void M1(object o, bool b)
+    {
+        b = /*<bind>*/o is C1 { Prop: var x }/*</bind>*/;
+    }
+}";
+
+            var compilation = CreateCompilation(source, new[] { vbCompilation.EmitToImageReference() });
+            compilation.VerifyDiagnostics(
+                // (6,33): error CS0154: The property or indexer 'Prop' cannot be used in this context because it lacks the get accessor
+                //         b = /*<bind>*/o is C1 { Prop: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Prop").WithArguments("Prop").WithLocation(6, 33));
+
+            var expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o is C1 { Prop: var x }')
+  Value: 
+    IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'C1 { Prop: var x }') (InputType: System.Object, DeclaredSymbol: null, MatchedType: C1, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Prop: var x')
+            Member: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Prop')
+                Children(0)
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
+";
+
+            VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]

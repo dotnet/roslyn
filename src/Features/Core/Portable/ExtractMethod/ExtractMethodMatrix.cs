@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             s_matrix.Add(new Key(dataFlowIn: true, dataFlowOut: true, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: true, readOutside: true, writtenOutside: true), VariableStyle.Ref);
         }
 
-        private struct Key : IEquatable<Key>
+        private readonly struct Key : IEquatable<Key>
         {
             public bool DataFlowIn { get; }
             public bool DataFlowOut { get; }

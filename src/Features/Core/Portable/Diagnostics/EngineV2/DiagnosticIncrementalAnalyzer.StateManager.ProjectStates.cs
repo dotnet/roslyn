@@ -92,9 +92,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseProjectAnalyzerReferenceChangedIfNeeded(project, newAnalyzersPerReference, newMap);
 
                     // update cache. 
-                    // add and update is same since this method will not be called concurrently.
-                    var entry = _stateMap.AddOrUpdate(project.Id,
-                        _ => new Entry(project.AnalyzerReferences, newAnalyzersPerReference, newMap), (_1, _2) => new Entry(project.AnalyzerReferences, newAnalyzersPerReference, newMap));
+                    var entry = new Entry(project.AnalyzerReferences, newAnalyzersPerReference, newMap);
+                    _stateMap[project.Id] = entry;
 
                     VerifyDiagnosticStates(entry.AnalyzerMap.Values);
 
@@ -228,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     StateManager.VerifyDiagnosticStates(hostStates.Concat(stateSets));
                 }
 
-                private struct Entry
+                private readonly struct Entry
                 {
                     public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
                     public readonly ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> MapPerReferences;

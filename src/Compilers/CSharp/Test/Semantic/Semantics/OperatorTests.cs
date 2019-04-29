@@ -3127,7 +3127,7 @@ class C
                 select edge.Key.Text + ": " + (node.Value != null ? node.Value.ToString() : "<null>"));
         }
 
-        private static string FormatTypeArgumentList(ImmutableArray<TypeSymbolWithAnnotations>? arguments)
+        private static string FormatTypeArgumentList(ImmutableArray<TypeWithAnnotations>? arguments)
         {
             if (arguments == null || arguments.Value.IsEmpty)
             {
@@ -3141,7 +3141,7 @@ class C
                 {
                     s += ", ";
                 }
-                s += arguments.Value[i].TypeSymbol.ToString();
+                s += arguments.Value[i].Type.ToString();
             }
 
             return s + ">";
@@ -3154,7 +3154,7 @@ class C
                 let node = edge.Value
                 where node.Text == "dynamicMemberAccess"
                 let name = node["name"]
-                let typeArguments = node["typeArgumentsOpt"].Value as ImmutableArray<TypeSymbolWithAnnotations>?
+                let typeArguments = node["typeArgumentsOpt"].Value as ImmutableArray<TypeWithAnnotations>?
                 select name.Value.ToString() + FormatTypeArgumentList(typeArguments));
         }
 
@@ -5183,7 +5183,7 @@ class Program
 
         [WorkItem(543294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543294")]
         [Fact()]
-        public void TestIsOperatorWithTypeParameter()
+        public void TestIsOperatorWithTypeParameter_01()
         {
             var source = @"
 using System;
@@ -5213,6 +5213,64 @@ class Program
                 // (13,18): warning CS0184: The given expression is never of the provided ('T') type
                 //         bool b = Main() is T;
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "Main() is T").WithArguments("T"));
+        }
+
+        [Fact]
+        [WorkItem(34679, "https://github.com/dotnet/roslyn/issues/34679")]
+        public void TestIsOperatorWithTypeParameter_02()
+        {
+            var source = @"
+class A<T>
+{
+    public virtual void M1<S>(S x) where S : T { }
+}
+
+class C : A<int?>
+{
+
+    static void Main()
+    {
+        var x = new C();
+        int? y = null;
+        x.M1(y);
+        x.Test(y);
+        y = 0;
+        x.M1(y);
+        x.Test(y);
+    }
+
+    void Test(int? x)
+    {
+        if (x is System.ValueType)
+        {
+            System.Console.WriteLine(""Test if"");
+        }
+        else
+        {
+            System.Console.WriteLine(""Test else"");
+        }
+    }
+
+    public override void M1<S>(S x)
+    {
+        if (x is System.ValueType)
+        {
+            System.Console.WriteLine(""M1 if"");
+        }
+        else
+        {
+            System.Console.WriteLine(""M1 else"");
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"M1 else
+Test else
+M1 if
+Test if");
         }
 
         [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
@@ -6546,7 +6604,7 @@ class Program
             comp.VerifyDiagnostics();
 
             var expectedOperator = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S1").GetMembers(WellKnownMemberNames.EqualityOperatorName).
-                OfType<MethodSymbol>().Single(m => m.ParameterTypes[0].Equals(m.ParameterTypes[1], TypeCompareKind.ConsiderEverything));
+                OfType<MethodSymbol>().Single(m => m.ParameterTypesWithAnnotations[0].Equals(m.ParameterTypesWithAnnotations[1], TypeCompareKind.ConsiderEverything));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -7153,7 +7211,7 @@ public class RubyTime
             Assert.False(symbol1.CanBeReferencedByName);
             Assert.Null(symbol1.DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
-            Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters[0].Type.TypeSymbol);
+            Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters[0].Type);
             Assert.Equal(0, symbol1.Locations.Length);
             Assert.Null(symbol1.GetDocumentationCommentId());
             Assert.Equal("", symbol1.GetDocumentationCommentXml());
@@ -7703,20 +7761,20 @@ class Module1
                 {
                     if (leftType.IsPointerType())
                     {
-                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, symbol1.Parameters[1].Type.TypeSymbol, leftType);
-                        Assert.True(symbol1.Parameters[1].Type.TypeSymbol.IsIntegralType());
+                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, symbol1.Parameters[1].Type, leftType);
+                        Assert.True(symbol1.Parameters[1].Type.IsIntegralType());
                     }
                     else
                     {
-                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, symbol1.Parameters[0].Type.TypeSymbol, rightType, rightType);
-                        Assert.True(symbol1.Parameters[0].Type.TypeSymbol.IsIntegralType());
+                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, symbol1.Parameters[0].Type, rightType, rightType);
+                        Assert.True(symbol1.Parameters[0].Type.IsIntegralType());
                     }
                 }
                 else if (op == BinaryOperatorKind.Subtraction &&
                     (leftType.IsPointerType() && (rightType.IsIntegralType() || rightType.IsCharType())))
                 {
-                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].Type.TypeSymbol, leftType);
-                    Assert.True(symbol1.Parameters[1].Type.TypeSymbol.IsIntegralType());
+                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].Type, leftType);
+                    Assert.True(symbol1.Parameters[1].Type.IsIntegralType());
                 }
                 else if (op == BinaryOperatorKind.Subtraction && leftType.IsPointerType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
@@ -7922,21 +7980,21 @@ class Module1
             Assert.Null(symbol1.DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
 
-            Assert.True(TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2) ||
-                TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2));
+            Assert.True(TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type, TypeCompareKind.ConsiderEverything2) ||
+                TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type, TypeCompareKind.ConsiderEverything2));
 
             int match = 0;
-            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.ReturnType, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }
 
-            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }
 
-            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }

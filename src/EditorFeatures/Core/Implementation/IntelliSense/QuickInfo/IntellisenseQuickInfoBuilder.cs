@@ -41,21 +41,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 firstLineElements.Add(new ImageElement(warningGlyph.GetImageId()));
             }
 
+            var elements = new List<object>();
             var descSection = quickInfoItem.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.Description);
             if (descSection != null)
             {
-                firstLineElements.Add(Helpers.BuildClassifiedTextElement(descSection.TaggedParts));
+                var isFirstElement = true;
+                foreach (var element in Helpers.BuildClassifiedTextElements(descSection.TaggedParts))
+                {
+                    if (isFirstElement)
+                    {
+                        isFirstElement = false;
+                        firstLineElements.Add(element);
+                    }
+                    else
+                    {
+                        // If the description section contains multiple paragraphs, the second and additional paragraphs
+                        // are not wrapped in firstLineElements (they are normal paragraphs).
+                        elements.Add(element);
+                    }
+                }
             }
 
-            var elements = new List<object>
+            elements.Insert(0, new ContainerElement(ContainerElementStyle.Wrapped, firstLineElements));
+
+            var documentationCommentSection = quickInfoItem.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.DocumentationComments);
+            if (documentationCommentSection != null)
             {
-                new ContainerElement(ContainerElementStyle.Wrapped, firstLineElements)
-            };
+                var isFirstElement = true;
+                foreach (var element in Helpers.BuildClassifiedTextElements(documentationCommentSection.TaggedParts))
+                {
+                    if (isFirstElement)
+                    {
+                        isFirstElement = false;
+
+                        // Stack the first paragraph of the documentation comments with the last line of the description
+                        // to avoid vertical padding between the two.
+                        var lastElement = elements[elements.Count - 1];
+                        elements[elements.Count - 1] = new ContainerElement(
+                            ContainerElementStyle.Stacked,
+                            lastElement,
+                            element);
+                    }
+                    else
+                    {
+                        elements.Add(element);
+                    }
+                }
+            }
 
             // Add the remaining sections as Stacked style
             elements.AddRange(
-                quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description)
-                                      .Select(s => Helpers.BuildClassifiedTextElement(s.TaggedParts)));
+                quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description && s.Kind != QuickInfoSectionKinds.DocumentationComments)
+                                      .SelectMany(s => Helpers.BuildClassifiedTextElements(s.TaggedParts)));
 
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any())
@@ -63,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var classifiedSpanList = new List<ClassifiedSpan>();
                 foreach (var span in quickInfoItem.RelatedSpans)
                 {
-                    var classifiedSpans = await EditorClassifier.GetClassifiedSpansAsync(document, span, cancellationToken).ConfigureAwait(false);
+                    var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, span, cancellationToken).ConfigureAwait(false);
                     classifiedSpanList.AddRange(classifiedSpans);
                 }
 
@@ -79,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
 
             var content = new ContainerElement(
-                                ContainerElementStyle.Stacked,
+                                ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
                                 elements);
 
             return new IntellisenseQuickInfoItem(trackingSpan, content);

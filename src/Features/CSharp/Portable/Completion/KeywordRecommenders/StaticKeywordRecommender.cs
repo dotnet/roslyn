@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, s_validGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return context.IsTypeDeclarationContext(
                 validModifiers: s_validTypeModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken);
         }

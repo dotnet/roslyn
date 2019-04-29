@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -2373,6 +2373,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_ComClassReservedDispIdZero1() As String
             Get
                 Return ResourceManager.GetString("ERR_ComClassReservedDispIdZero1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Please use language version {0} or greater to use comments after line continuation character..
+        '''</summary>
+        Friend ReadOnly Property ERR_CommentsAfterLineContinuationNotAvailable1() As String
+            Get
+                Return ResourceManager.GetString("ERR_CommentsAfterLineContinuationNotAvailable1", resourceCulture)
             End Get
         End Property
         
@@ -6810,7 +6819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Line continuation character &apos;_&apos; must be preceded by at least one white space and must be the last character on the line..
+        '''  Looks up a localized string similar to The line continuation character &apos;_&apos; must be preceded by at least one white space and it must be followed by a comment or the &apos;_&apos; must be the last character on the line..
         '''</summary>
         Friend ReadOnly Property ERR_LineContWithCommentOrNoPrecSpace() As String
             Get
@@ -7418,6 +7427,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_MultilineLambdasCannotContainOnError() As String
             Get
                 Return ResourceManager.GetString("ERR_MultilineLambdasCannotContainOnError", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Multiple analyzer config files cannot be in the same directory (&apos;{0}&apos;)..
+        '''</summary>
+        Friend ReadOnly Property ERR_MultipleAnalyzerConfigsInSameDir() As String
+            Get
+                Return ResourceManager.GetString("ERR_MultipleAnalyzerConfigsInSameDir", resourceCulture)
             End Get
         End Property
         
@@ -12041,6 +12059,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_CollectionInitializers() As String
             Get
                 Return ResourceManager.GetString("FEATURE_CollectionInitializers", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to comments after line continuation.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_CommentsAfterLineContinuation() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_CommentsAfterLineContinuation", resourceCulture)
             End Get
         End Property
         

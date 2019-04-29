@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             workspace.Options = workspace.Options.WithChangedOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp, new CodeStyleOption<bool>(false, NotificationOption.Error))
                                                  .WithChangedOption(CodeStyleOptions.QualifyMethodAccess, LanguageNames.VisualBasic, new CodeStyleOption<bool>(true, NotificationOption.Warning))
-                                                 .WithChangedOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion))
+                                                 .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion))
                                                  .WithChangedOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, new CodeStyleOption<bool>(true, NotificationOption.Silent));
 
             await VerifyOptionSetsAsync(workspace, LanguageNames.CSharp).ConfigureAwait(false);
@@ -605,6 +605,43 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
                     Assert.Equal(sourceText.ToString(), newText.ToString());
+                }
+            }
+        }
+
+        [Fact]
+        public void TestCompilationOptions_NullableAndImport()
+        {
+            var csharpOptions = CSharp.CSharpCompilation.Create("dummy").Options.WithNullableContextOptions(CSharp.NullableContextOptions.SafeOnly).WithMetadataImportOptions(MetadataImportOptions.All);
+            var vbOptions = VisualBasic.VisualBasicCompilation.Create("dummy").Options.WithMetadataImportOptions(MetadataImportOptions.Internal);
+
+            var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies);
+
+            var workspace = new AdhocWorkspace(hostServices);
+            var serializer = workspace.Services.GetService<ISerializerService>();
+
+            VerifyOptions(csharpOptions);
+            VerifyOptions(vbOptions);
+
+            void VerifyOptions(CompilationOptions originalOptions)
+            {
+                using (var stream = SerializableBytes.CreateWritableStream())
+                {
+                    using (var objectWriter = new ObjectWriter(stream))
+                    {
+                        serializer.Serialize(originalOptions, objectWriter, CancellationToken.None);
+                    }
+
+                    stream.Position = 0;
+                    using (var objectReader = ObjectReader.TryGetReader(stream))
+                    {
+                        var recoveredOptions = serializer.Deserialize<CompilationOptions>(originalOptions.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+
+                        var original = serializer.CreateChecksum(originalOptions, CancellationToken.None);
+                        var recovered = serializer.CreateChecksum(recoveredOptions, CancellationToken.None);
+
+                        Assert.Equal(original, recovered);
+                    }
                 }
             }
         }

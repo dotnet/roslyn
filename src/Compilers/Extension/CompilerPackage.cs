@@ -75,6 +75,7 @@ namespace Roslyn.Compilers.Extension
 
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.DiscoverEditorConfigFiles"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
 </Project>");
 
             // This targets content we want to be included later since the project file might touch UseSharedCompilation
@@ -152,7 +153,18 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
                 throw new Exception($"Unrecognized Visual Studio Version: {dte.Version}");
             }
 
-            return parts[0] + ".0";
+            int majorVersion = int.Parse(parts[0]);
+
+            if (majorVersion >= 16)
+            {
+                // Starting in Visual Studio 2019, the folder is just called "Current". See
+                // https://github.com/Microsoft/msbuild/issues/4149 for further commentary.
+                return "Current";
+            }
+            else
+            {
+                return majorVersion + ".0";
+            }
         }
 
         private async Task<string> GetMSBuildPathAsync(CancellationToken cancellationToken)
