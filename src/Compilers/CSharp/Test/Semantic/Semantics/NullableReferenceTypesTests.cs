@@ -47692,8 +47692,10 @@ class C
                 );
         }
 
-        [Fact, WorkItem(33526, "https://github.com/dotnet/roslyn/issues/33526")]
-        public void ConditionalAccessIsAPureTest_InFinally()
+        [Fact]
+        [WorkItem(33526, "https://github.com/dotnet/roslyn/issues/33526")]
+        [WorkItem(34018, "https://github.com/dotnet/roslyn/issues/34018")]
+        public void ConditionalAccessIsAPureTest_InFinally_01()
         {
             var source = @"
 class C
@@ -47709,15 +47711,40 @@ class C
                 o.ToString();
         }
 
-        o.ToString(); // 1
+        o.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (15,9): warning CS8602: Dereference of a possibly null reference.
-                //         o.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(15, 9)
-                );
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34018, "https://github.com/dotnet/roslyn/issues/34018")]
+        public void ConditionalAccessIsAPureTest_InFinally_02()
+        {
+            var source = @"
+class C
+{
+    void F()
+    {
+        C? c = null;
+        try
+        {
+            c = new C();
+        }
+        finally
+        {
+            if (c != null) c.Cleanup();
+        }
+
+        c.Operation(); // ok
+    }
+
+    void Cleanup() {}
+    void Operation() {}
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(33526, "https://github.com/dotnet/roslyn/issues/33526")]
@@ -91429,7 +91456,9 @@ class G<T>
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "g").WithArguments("G<string?>", "G<string>").WithLocation(17, 24));
         }
 
-        [Fact, WorkItem(33446, "https://github.com/dotnet/roslyn/issues/33446")]
+        [Fact]
+        [WorkItem(33446, "https://github.com/dotnet/roslyn/issues/33446")]
+        [WorkItem(34018, "https://github.com/dotnet/roslyn/issues/34018")]
         public void NullInferencesInFinallyClause()
         {
             var source =
@@ -91461,7 +91490,7 @@ class G<T>
             if (node is null) {} else {}
         }
 
-        node.ToString(); // 2
+        node.ToString();
     }
     static void M3()
     {
@@ -91475,7 +91504,7 @@ class G<T>
             node ??= node;
         }
 
-        node.ToString(); // 3
+        node.ToString();
     }
     static void M4()
     {
@@ -91495,7 +91524,7 @@ class G<T>
             }
         }
 
-        node.ToString(); // 4
+        node.ToString();
     }
     static void M5()
     {
@@ -91515,7 +91544,7 @@ class G<T>
             }
         }
 
-        node.ToString(); // 5
+        node.ToString();
     }
     static void M6()
     {
@@ -91529,14 +91558,14 @@ class G<T>
             (node, _) = (null, node);
         }
 
-        node.ToString(); // 6
+        node.ToString(); // 2
     }
     static void MN1()
     {
         Node? node = null;
         Mout(out node);
         if (node == null) {} else {}
-        node.ToString(); // 7
+        node.ToString(); // 3
     }
     static void MN2()
     {
@@ -91550,38 +91579,22 @@ class G<T>
             if (node == null) {} else {}
         }
 
-        node.ToString(); // 8
+        node.ToString();
     }
     static void Mout(out Node node) => node = null!;
 }
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/pull/33929: Once we report one of the (NOT YET) warnings, we should report the other
             comp.VerifyDiagnostics(
                 // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         node.Next.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node.Next").WithLocation(15, 9),
-                // (29,9): warning CS8602: Dereference of a possibly null reference.
-                //         node.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(29, 9),
-                // (43,9): warning CS8602: Dereference of a possibly null reference.
-                //         node.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(43, 9),
-                // (63,9): warning CS8602: Dereference of a possibly null reference.
-                //         node.ToString(); // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(63, 9),
-                // (83,9): warning CS8602: Dereference of a possibly null reference.
-                //         node.ToString(); // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(83, 9),
                 // (97,9): warning CS8602: Dereference of a possibly null reference.
-                //         node.ToString(); // 6
+                //         node.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(97, 9),
                 // (104,9): warning CS8602: Dereference of a possibly null reference.
-                //         node.ToString(); // 7
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(104, 9),
-                // (118,9): warning CS8602: Dereference of a possibly null reference.
-                //         node.ToString(); // 8
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(118, 9));
+                //         node.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(104, 9));
         }
 
         [Fact, WorkItem(32934, "https://github.com/dotnet/roslyn/issues/32934")]
