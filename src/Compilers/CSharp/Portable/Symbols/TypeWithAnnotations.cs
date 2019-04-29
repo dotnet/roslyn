@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             internal static readonly EqualsComparer ConsiderEverythingComparer = new EqualsComparer(TypeCompareKind.ConsiderEverything);
             internal static readonly EqualsComparer IgnoreNullableModifiersForReferenceTypesComparer = new EqualsComparer(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-            internal static readonly EqualsComparer UnknownNullableModifierMatchesAnyComparer = new EqualsComparer(TypeCompareKind.UnknownNullableModifierMatchesAny);
+            internal static readonly EqualsComparer UnknownNullableModifierMatchesAnyComparer = new EqualsComparer(TypeCompareKind.ObliviousNullableModifierMatchesAny);
 
             private readonly TypeCompareKind _compareKind;
 
