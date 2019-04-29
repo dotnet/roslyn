@@ -73197,7 +73197,7 @@ class Outer
             var source = @"
 class Outer
 {
-    void M<T>(dynamic? x)
+    void M1<T>(dynamic? x)
     {
         if (x == null) return;
         T y;
@@ -73205,20 +73205,293 @@ class Outer
         y = (T)x;
         y.ToString();
     }
+    void M2<T>(dynamic? x)
+    {
+        if (x != null) return;
+        T y;
+        y = x; // 1
+        y = (T)x; // 2
+        y.ToString(); // 3
+    }
+    void M3<T>(dynamic? x)
+    {
+        if (x != null)
+        {
+            T y;
+            y = x;
+            y = (T)x;
+            y.ToString();
+        }
+        else
+        {
+            T y;
+            y = x; // 4
+            y = (T)x; // 5
+            y.ToString(); // 6
+        }
+    }
+    void M4<T>(dynamic? x)
+    {
+        if (x == null)
+        {
+            T y;
+            y = x; // 7
+            y = (T)x; // 8
+            y.ToString(); // 9
+        }
+        else
+        {
+            T y;
+            y = x;
+            y = (T)x;
+            y.ToString();
+        }
+    }
+    void M5<T>(dynamic? x)
+    {
+        // Since `||` here could be a user-defined `operator |` invocation,
+        // no reasonable inferences can be made.
+        if (x == null || false)
+        {
+            T y;
+            y = x; // 10
+            y = (T)x; // 11
+            y.ToString(); // 12
+        }
+        else
+        {
+            T y;
+            y = x; // 13
+            y = (T)x; // 14
+            y.ToString(); // 15
+        }
+    }
+    void M6<T>(dynamic? x)
+    {
+        // Since `&&` here could be a user-defined `operator &` invocation,
+        // no reasonable inferences can be made.
+        if (x == null && true)
+        {
+            T y;
+            y = x; // 16
+            y = (T)x; // 17
+            y.ToString(); // 18
+        }
+        else
+        {
+            T y;
+            y = x; // 19
+            y = (T)x; // 20
+            y.ToString(); // 21
+        }
+    }
+    void M7<T>(dynamic? x)
+    {
+        if (!(x == null))
+        {
+            T y;
+            y = x;
+            y = (T)x;
+            y.ToString();
+        }
+        else
+        {
+            T y;
+            y = x; // 22
+            y = (T)x; // 23
+            y.ToString(); // 24
+        }
+    }
+    void M8<T>(dynamic? x)
+    {
+        if (!(x != null))
+        {
+            T y;
+            y = x; // 25
+            y = (T)x; // 26
+            y.ToString(); // 27
+        }
+        else
+        {
+            T y;
+            y = x;
+            y = (T)x;
+            y.ToString();
+        }
+    }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/30939 - ErrorCode.WRN_ConvertingNullableToNonNullable/ErrorCode.WRN_NullReferenceReceiver warnings are not expected
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
-                // (8,13): warning CS8601: Possible null reference assignment.
-                //         y = x;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(8, 13),
-                // (9,13): warning CS8601: Possible null reference assignment.
-                //         y = (T)x;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(9, 13),
-                // (10,9): warning CS8602: Dereference of a possibly null reference.
-                //         y.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(10, 9)
-                );
+                // (16,13): warning CS8601: Possible null reference assignment.
+                //         y = x; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(16, 13),
+                // (17,13): warning CS8601: Possible null reference assignment.
+                //         y = (T)x; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(17, 13),
+                // (18,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(18, 9),
+                // (32,17): warning CS8601: Possible null reference assignment.
+                //             y = x; // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(32, 17),
+                // (33,17): warning CS8601: Possible null reference assignment.
+                //             y = (T)x; // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(33, 17),
+                // (34,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(34, 13),
+                // (42,17): warning CS8601: Possible null reference assignment.
+                //             y = x; // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(42, 17),
+                // (43,17): warning CS8601: Possible null reference assignment.
+                //             y = (T)x; // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(43, 17),
+                // (44,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(44, 13),
+                // (61,17): warning CS8601: Possible null reference assignment.
+                //             y = x; // 10
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(61, 17),
+                // (62,17): warning CS8601: Possible null reference assignment.
+                //             y = (T)x; // 11
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(62, 17),
+                // (63,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 12
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(63, 13),
+                // (68,17): warning CS8601: Possible null reference assignment.
+                //             y = x; // 13
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(68, 17),
+                // (69,17): warning CS8601: Possible null reference assignment.
+                //             y = (T)x; // 14
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(69, 17),
+                // (70,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 15
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(70, 13),
+                // (80,17): warning CS8601: Possible null reference assignment.
+                //             y = x; // 16
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(80, 17),
+                // (81,17): warning CS8601: Possible null reference assignment.
+                //             y = (T)x; // 17
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(81, 17),
+                // (82,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 18
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(82, 13),
+                // (87,17): warning CS8601: Possible null reference assignment.
+                //             y = x; // 19
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(87, 17),
+                // (88,17): warning CS8601: Possible null reference assignment.
+                //             y = (T)x; // 20
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(88, 17),
+                // (89,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 21
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(89, 13),
+                // (104,17): warning CS8601: Possible null reference assignment.
+                //             y = x; // 22
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(104, 17),
+                // (105,17): warning CS8601: Possible null reference assignment.
+                //             y = (T)x; // 23
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(105, 17),
+                // (106,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 24
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(106, 13),
+                // (114,17): warning CS8601: Possible null reference assignment.
+                //             y = x; // 25
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(114, 17),
+                // (115,17): warning CS8601: Possible null reference assignment.
+                //             y = (T)x; // 26
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "(T)x").WithLocation(115, 17),
+                // (116,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 27
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(116, 13));
+        }
+
+        [Fact]
+        [WorkItem(30939, "https://github.com/dotnet/roslyn/issues/30939")]
+        public void DynamicControlTest()
+        {
+            var source = @"
+class Outer
+{
+    void M1(dynamic? x)
+    {
+        if (x == null) return;
+        string y;
+        y = x;
+        y = (string)x;
+        y.ToString();
+    }
+    void M2(dynamic? x)
+    {
+        if (x != null) return;
+        string y;
+        y = x; // 1
+        y = (string)x; // 2
+        y.ToString(); // 3
+    }
+    void M3(dynamic? x)
+    {
+        if (x != null)
+        {
+            string y;
+            y = x;
+            y = (string)x;
+            y.ToString();
+        }
+        else
+        {
+            string y;
+            y = x; // 4
+            y = (string)x; // 5
+            y.ToString(); // 6
+        }
+    }
+    void M4(dynamic? x)
+    {
+        if (x == null)
+        {
+            string y;
+            y = x; // 7
+            y = (string)x; // 8
+            y.ToString(); // 9
+        }
+        else
+        {
+            string y;
+            y = x;
+            y = (string)x;
+            y.ToString();
+        }
+    }
+}
+";
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (16,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = x; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(16, 13),
+                // (17,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = (string)x; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)x").WithLocation(17, 13),
+                // (18,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(18, 9),
+                // (32,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             y = x; // 4
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(32, 17),
+                // (33,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             y = (string)x; // 5
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)x").WithLocation(33, 17),
+                // (34,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(34, 13),
+                // (42,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             y = x; // 7
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(42, 17),
+                // (43,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             y = (string)x; // 8
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)x").WithLocation(43, 17),
+                // (44,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(44, 13));
         }
 
         [Fact]
