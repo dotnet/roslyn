@@ -51492,6 +51492,35 @@ class C
         {
         }
     }
+
+    void M3<TEnumerator>(TEnumerator e) where TEnumerator : IEnumerator
+    {
+        var enumerable1 = Create(e);
+        foreach (var i in enumerable1)
+        {
+        }
+
+        e = default; // 4
+        var enumerable2 = Create(e);
+        foreach (var i in enumerable2) // No warning here, safety warning was issued at 4
+        {
+        }
+    }
+
+    void M4<TEnumerator>(TEnumerator e) where TEnumerator : IEnumerator?
+    {
+        var enumerable1 = Create(e);
+        foreach (var i in enumerable1) // 5
+        {
+        }
+
+        if (e == null) return;
+        var enumerable2 = Create(e);
+        foreach (var i in enumerable2) // 6
+        {
+        }
+    }
+
     static Enumerable<T> Create<T>(T t) where T : IEnumerator? => throw null!;
 }
 
@@ -51510,7 +51539,16 @@ class Enumerable<T> where T : IEnumerator?
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "enumerable2").WithLocation(14, 27),
                 // (22,27): warning CS8602: Dereference of a possibly null reference.
                 //         foreach (var i in enumerable1) // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "enumerable1").WithLocation(22, 27));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "enumerable1").WithLocation(22, 27),
+                // (40,13): warning CS8653: A default expression introduces a null value when 'TEnumerator' is a non-nullable reference type.
+                //         e = default; // 4
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("TEnumerator").WithLocation(40, 13),
+                // (50,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var i in enumerable1) // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "enumerable1").WithLocation(50, 27),
+                // (56,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var i in enumerable2) // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "enumerable2").WithLocation(56, 27));
         }
 
         [Fact]
@@ -51735,6 +51773,36 @@ class C
         }
 
         [Fact]
+        [WorkItem(33257, "https://github.com/dotnet/roslyn/issues/33257")]
+        public void ForEach_Span()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M1(Span<string> s1, Span<string?> s2)
+    {
+        foreach (var s in s1)
+        {
+            s.ToString();
+        }
+        foreach (var s in s2)
+        {
+            s.ToString(); // 1
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8602: Dereference of a possibly null reference.
+                //             s.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13));
+        }
+
+        [Fact]
+        [WorkItem(35151, "https://github.com/dotnet/roslyn/issues/35151")]
         public void ForEach_StringNotIEnumerable()
         {
             // In some frameworks, System.String doesn't implement IEnumerable, but for compat reasons the compiler

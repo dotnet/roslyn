@@ -5411,30 +5411,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var resultTypeWithState = VisitRvalueWithState(expr);
             SetAnalyzedNullability(expr, _visitResult);
-            TypeWithAnnotations targetTypeWithAnnotation;
+            TypeWithAnnotations targetTypeWithAnnotations;
 
             if (conversion.IsIdentity ||
                 (conversion.Kind == ConversionKind.ExplicitReference && resultTypeWithState.Type.SpecialType == SpecialType.System_String))
             {
                 // This is case 3 or 6.
-                targetTypeWithAnnotation = resultTypeWithState.ToTypeWithAnnotations();
+                targetTypeWithAnnotations = resultTypeWithState.ToTypeWithAnnotations();
             }
             else if (conversion.IsImplicit)
             {
-                bool isAsync = ((CommonForEachStatementSyntax)node.Syntax).AwaitKeyword != default;
+                bool isAsync = node.AwaitOpt != null;
                 if (node.Expression.Type.SpecialType == SpecialType.System_Collections_IEnumerable)
                 {
                     // If this is a conversion to IEnumerable (non-generic), nothing to do. This is cases 1, 2, and 5.
-                    targetTypeWithAnnotation = TypeWithAnnotations.Create(node.Expression.Type);
+                    targetTypeWithAnnotations = TypeWithAnnotations.Create(node.Expression.Type);
                 }
                 else if (ForEachLoopBinder.IsIEnumerableT(node.Expression.Type.OriginalDefinition, isAsync, compilation))
                 {
                     // This is case 4. We need to look for the IEnumerable<T> that this reinferred expression implements,
                     // so that we pick up any nested type substitutions that could have occurred.
                     HashSet<DiagnosticInfo> ignoredUseSiteDiagnostics = null;
-                    targetTypeWithAnnotation = TypeWithAnnotations.Create(ForEachLoopBinder.GetIEnumerableOfT(resultTypeWithState.Type, isAsync, compilation, ref ignoredUseSiteDiagnostics, out bool foundMultiple));
+                    targetTypeWithAnnotations = TypeWithAnnotations.Create(ForEachLoopBinder.GetIEnumerableOfT(resultTypeWithState.Type, isAsync, compilation, ref ignoredUseSiteDiagnostics, out bool foundMultiple));
                     Debug.Assert(!foundMultiple);
-                    Debug.Assert(!(targetTypeWithAnnotation.Type is null));
+                    Debug.Assert(targetTypeWithAnnotations.HasType);
                 }
                 else
                 {
@@ -5453,7 +5453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Expression,
                 expr,
                 conversion,
-                targetTypeWithAnnotation,
+                targetTypeWithAnnotations,
                 resultTypeWithState,
                 checkConversion: true,
                 fromExplicitCast: false,
@@ -5492,11 +5492,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
             TypeWithAnnotations sourceType;
-            TypeWithState sourceState;
             if (node.EnumeratorInfoOpt == null)
             {
                 sourceType = default;
-                sourceState = sourceType.ToTypeWithState();
             }
             else
             {
@@ -5524,9 +5522,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var currentProperty = (MethodSymbol)AsMemberOfType(getEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.CurrentPropertyGetter);
                     sourceType = currentProperty.ReturnTypeWithAnnotations;
                 }
-
-                sourceState = sourceType.ToTypeWithState();
             }
+
+            TypeWithState sourceState = sourceType.ToTypeWithState();
 
 #pragma warning disable IDE0055 // Fix formatting
             var variableLocation = node.Syntax switch

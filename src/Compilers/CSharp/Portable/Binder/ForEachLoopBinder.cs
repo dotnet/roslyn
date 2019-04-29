@@ -494,8 +494,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (builder.CollectionConversion.IsImplicit &&
                  (IsIEnumerable(builder.CollectionType) ||
                   IsIEnumerableT(builder.CollectionType.OriginalDefinition, IsAsync, Compilation))) ||
-                // To compat behavior, we can enumerate over System.String even if it's not IEnumerable. That will
-                // store an explicit reference conversion in the bound nodes, but that conversion won't be emitted.
+                // For compat behavior, we can enumerate over System.String even if it's not IEnumerable. That will
+                // result in an explicit reference conversion in the bound nodes, but that conversion won't be emitted.
                 (builder.CollectionConversion.Kind == ConversionKind.ExplicitReference && collectionExpr.Type.SpecialType == SpecialType.System_String));
 
             return new BoundForEachStatement(
