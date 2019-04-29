@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
 
             if (changedDocuments.Any(id => newSolution.GetDocument(id).HasInfoChanged(oldSolution.GetDocument(id))) ||
-                changedAdditionalDocuments.Any(id => newSolution.GetDocument(id).HasInfoChanged(oldSolution.GetDocument(id))))
+                changedAdditionalDocuments.Any(id => newSolution.GetAdditionalDocument(id).HasInfoChanged(oldSolution.GetAdditionalDocument(id))))
             {
                 return null;
             }
