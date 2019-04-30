@@ -88908,6 +88908,37 @@ class Program
         }
 
         [Fact]
+        public void Deconstruction_31()
+        {
+            var source = @"
+class Pair<T, U>
+{
+    public void Deconstruct(out T t, out U u) => throw null!;
+}
+
+class Program
+{
+    static Pair<T, U> CreatePair<T, U>(T t, U u) => new Pair<T, U>();
+
+    static void F(string? x, object? y)
+    {
+        if (x == null) return;
+        var p = CreatePair(x, CreatePair(x, y));
+        object? z;
+        (z, (x, y)) = p;
+        x.ToString(); // ok
+        y.ToString(); // warning
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (18,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(18, 9)
+                );
+        }
+
+        [Fact]
         public void Deconstruction_ExtensionMethod_01()
         {
             var source =
@@ -89061,6 +89092,41 @@ class Program
                 // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         z.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(15, 9)
+                );
+        }
+
+
+        [Fact]
+        [WorkItem(33006, "https://github.com/dotnet/roslyn/issues/33006")]
+        public void Deconstruction_ExtensionMethod_06()
+        {
+            var source =
+@"class Pair<T, U>
+{
+}
+static class E
+{
+    internal static void Deconstruct<T, U>(this Pair<T, U>? p, out T t, out U u) => throw null!;
+}
+class Program
+{
+    static Pair<T, U> CreatePair<T, U>(T t, U u) => new Pair<T, U>();
+
+    static void F(string? x, object? y)
+    {
+        if (x == null) return;
+        var p = CreatePair(x, CreatePair(x, y));
+        object? z;
+        (z, (x, y)) = p;
+        x.ToString(); // ok
+        y.ToString(); // warning
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(19, 9)
                 );
         }
 

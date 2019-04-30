@@ -4838,7 +4838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (deconstructMethod.IsGenericMethod)
                         {
                             // re-infer the deconstruct parameters based on the 'this' parameter 
-                            ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n);
+                            ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n + 1);
                             placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResultWithAnnotations));
                             for (int i = 0; i < n; i++)
                             {
