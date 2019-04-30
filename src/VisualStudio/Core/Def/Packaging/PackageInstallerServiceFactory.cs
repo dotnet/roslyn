@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _packageSourceProvider = packageSourceProvider;
         }
 
-        public async ValueTask<ImmutableArray<PackageSource>> GetPackageSourcesAsync(CancellationToken cancellationToken)
+        public ImmutableArray<PackageSource> GetPackageSources()
         {
             var packageSources = _packageSources;
             if (packageSources != null)
@@ -100,9 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-
                 packageSources = _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
                     .Select(r => new PackageSource(r.Key, r.Value))
                     .ToImmutableArrayOrEmpty();
