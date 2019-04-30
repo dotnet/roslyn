@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type = type.WithTypeAndModifiers(
                             CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.Type, type.Type, this.ContainingAssembly),
                             overriddenPropertyType.CustomModifiers);
-                        _lazyType = default;
+                        _lazyType.InterlockedReset();
                         _lazyType.InterlockedInitialize(type);
                     }
 

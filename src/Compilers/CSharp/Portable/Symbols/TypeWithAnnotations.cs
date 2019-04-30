@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// <summary>
             /// True if the fields of the builder are unset.
             /// </summary>
-            internal bool IsDefault => _defaultType is null && _nullableAnnotation == 0 && (_extensions == null || _extensions == Extensions.Default);
+            internal bool IsDefault => _extensions == null;
 
             /// <summary>
             /// Set the fields of the builder.
@@ -50,13 +50,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </remarks>
             internal bool InterlockedInitialize(TypeWithAnnotations type)
             {
-                if ((object)_defaultType != null)
+                if (!IsDefault)
                 {
                     return false;
                 }
                 _nullableAnnotation = type.NullableAnnotation;
-                Interlocked.CompareExchange(ref _extensions, type._extensions, null);
-                return (object)Interlocked.CompareExchange(ref _defaultType, type.DefaultType, null) == null;
+                Interlocked.CompareExchange(ref _defaultType, type.DefaultType, null);
+                return Interlocked.CompareExchange(ref _extensions, type._extensions ?? Extensions.Default, null) is null;
+            }
+
+            internal void InterlockedReset()
+            {
+                _nullableAnnotation = 0;
+                Interlocked.Exchange(ref _defaultType, null);
+                Interlocked.Exchange(ref _extensions, null);
             }
 
             /// <summary>
