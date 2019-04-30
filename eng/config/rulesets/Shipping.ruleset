@@ -9,6 +9,7 @@
     <Rule Id="CA1018" Action="None" />
     <Rule Id="CA1028" Action="None" />
     <Rule Id="CA1030" Action="None" />
+    <Rule Id="CA1031" Action="None" /> <!-- Do not catch general exception types -->
     <Rule Id="CA1032" Action="None" />
     <Rule Id="CA1034" Action="None" />
     <Rule Id="CA1036" Action="None" />
