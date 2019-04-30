@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">Brak</target>
+        <target state="translated">brak</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|CommandName">

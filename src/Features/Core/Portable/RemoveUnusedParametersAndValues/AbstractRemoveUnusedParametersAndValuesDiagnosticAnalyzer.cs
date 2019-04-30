@@ -94,11 +94,25 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
 
         /// <summary>
+        /// Indicates if we should bail from removable assignment analysis for the given
+        /// symbol write operation.
+        /// Removable assignment analysis determines if the assigned value for the symbol write
+        /// has no side effects and can be removed without changing the semantics.
+        /// </summary>
+        protected virtual bool ShouldBailOutFromRemovableAssignmentAnalysis(IOperation unusedSymbolWriteOperation)
+            => false;
+
+        /// <summary>
         /// Indicates if the given expression statement operation has an explicit "Call" statement syntax indicating explicit discard.
         /// For example, VB "Call" statement.
         /// </summary>
         /// <returns></returns>
         protected abstract bool IsCallStatement(IExpressionStatementOperation expressionStatement);
+
+        /// <summary>
+        /// Indicates if the given operation is an expression of an expression body.
+        /// </summary>
+        protected abstract bool IsExpressionOfExpressionBody(IExpressionStatementOperation expressionStatement);
 
         /// <summary>
         /// Method to compute well-known diagnostic property maps for different comnbinations of diagnostic properties.
@@ -299,5 +313,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             Debug.Assert(TryGetUnusedValuePreference(diagnostic, out _));
             return diagnostic.Properties.ContainsKey(IsRemovableAssignmentKey);
         }
+
+        /// <summary>
+        /// Returns true for symbols whose name starts with an underscore and
+        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
+        /// These are treated as special discard symbol names.
+        /// </summary>
+        private static bool IsSymbolWithSpecialDiscardName(ISymbol symbol)
+            => symbol.Name.StartsWith("_") &&
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
     }
 }

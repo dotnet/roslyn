@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (symbolInfo.CandidateReason == CandidateReason.Ambiguous)
+            if (symbolInfo.CandidateReason == CandidateReason.Ambiguous ||
+                symbolInfo.CandidateReason == CandidateReason.MemberGroup)
             {
                 return TryClassifyAmbiguousSymbol(name, symbolInfo, semanticModel, result, cancellationToken);
             }
@@ -257,6 +258,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         private static string GetClassificationForMethod(IMethodSymbol methodSymbol)
         {
+            // Classify constructors by their containing type. We do not need to worry about
+            // destructors because their declaration is handled by syntactic classification
+            // and they cannot be invoked, so their is no usage to semantically classify.
+            if (methodSymbol.MethodKind == MethodKind.Constructor)
+            {
+                return methodSymbol.ContainingType?.GetClassification() ?? ClassificationTypeNames.MethodName;
+            }
+
             // Note: We only classify an extension method if it is in reduced form.
             // If an extension method is called as a static method invocation (e.g. Enumerable.Select(...)),
             // it is classified as an ordinary method.

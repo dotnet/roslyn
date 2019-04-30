@@ -223,6 +223,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     return false;
                 }
 
+                // Ignore special parameter names for methods that need a specific signature.
+                // For example, methods used as a delegate in a different type or project.
+                // This also serves as a convenient way to suppress instances of unused parameter diagnostic
+                // without disabling the diagnostic completely.
+                // We ignore parameter names that start with an underscore and are optionally followed by an integer,
+                // such as '_', '_1', '_2', etc.
+                if (IsSymbolWithSpecialDiscardName(parameter))
+                {
+                    return false;
+                }
+
                 return true;
             }
         }

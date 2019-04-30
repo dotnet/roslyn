@@ -6,6 +6,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.Shell
 Imports Roslyn.Utilities
 Imports System.IO
+Imports Moq
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
     Public NotInheritable Class MockHierarchy
@@ -19,6 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private _projectName As String
         Private _projectBinPath As String
         Private ReadOnly _projectCapabilities As String
+        Private ReadOnly _projectMock As Mock(Of EnvDTE.Project) = New Mock(Of EnvDTE.Project)(MockBehavior.Strict)
 
         Private ReadOnly _eventSinks As New Dictionary(Of UInteger, IVsHierarchyEvents)
         Private ReadOnly _hierarchyItems As New Dictionary(Of UInteger, String)
@@ -102,6 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function GetProperty(itemid As UInteger, propid As Integer, ByRef pvar As Object) As Integer Implements IVsHierarchy.GetProperty
+
             If propid = __VSHPROPID.VSHPROPID_ProjectName Then
                 pvar = _projectName
                 Return VSConstants.S_OK
@@ -113,6 +116,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                     pvar = "References"
                     Return VSConstants.S_OK
                 End If
+            ElseIf propid = __VSHPROPID.VSHPROPID_ExtObject Then
+                Dim projectItemMock As Mock(Of EnvDTE.ProjectItem) = New Mock(Of EnvDTE.ProjectItem)(MockBehavior.Strict)
+                projectItemMock.SetupGet(Function(m) m.ContainingProject).Returns(_projectMock.Object)
+                projectItemMock.SetupGet(Function(m) m.FileNames(1)).Returns(_hierarchyItems(itemid))
+
+                pvar = projectItemMock.Object
+                Return VSConstants.S_OK
             End If
 
             Return VSConstants.E_NOTIMPL

@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
@@ -14,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     /// </summary>
     internal partial class FormattingOptionPageControl : AbstractOptionPageControl
     {
-        public FormattingOptionPageControl(IServiceProvider serviceProvider) : base(serviceProvider)
+        public FormattingOptionPageControl(OptionStore optionStore) : base(optionStore)
         {
             InitializeComponent();
 

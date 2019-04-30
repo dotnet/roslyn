@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
-                    case IRecursivePatternOperation _:
+                    case IOperation iop when iop.GetType().GetInterfaces().Any(i => i.Name == "IRecursivePatternOperation"):
                         // A declaration pattern within a recursive pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             if (operation.Parent is IAssignmentOperation assignmentOperation &&
                 assignmentOperation.Target == operation)
             {
-                return operation.Parent.Kind == OperationKind.CompoundAssignment
+                return operation.Parent.IsAnyCompoundAssignment()
                     ? ValueUsageInfo.ReadWrite
                     : ValueUsageInfo.Write;
             }
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis
                      operation.Parent is ITypeOfOperation ||
                      operation.Parent is ISizeOfOperation)
             {
-                return ValueUsageInfo.NameOnly;
+                return ValueUsageInfo.Name;
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {
@@ -173,6 +174,25 @@ namespace Microsoft.CodeAnalysis
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Retursn true if the given operation is a regular compound assignment,
+        /// i.e. <see cref="ICompoundAssignmentOperation"/> such as <code>a += b</code>,
+        /// or a special null coalescing compoud assignment, i.e. <see cref="ICoalesceAssignmentOperation"/>
+        /// such as <code>a ??= b</code>.
+        /// </summary>
+        public static bool IsAnyCompoundAssignment(this IOperation operation)
+        {
+            switch (operation)
+            {
+                case ICompoundAssignmentOperation _:
+                case ICoalesceAssignmentOperation _:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
     }
 }

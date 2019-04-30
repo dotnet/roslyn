@@ -1485,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// is a constructed type with a nullable reference type present in its type argument tree,
         /// returns a synthesized NullableAttribute with encoded nullable transforms array.
         /// </summary>
-        internal SynthesizedAttributeData SynthesizeNullableAttribute(Symbol symbol, TypeSymbolWithAnnotations type)
+        internal SynthesizedAttributeData SynthesizeNullableAttribute(Symbol symbol, TypeWithAnnotations type)
         {
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
             {
@@ -1515,11 +1515,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 foreach (byte flag in flagsBuilder)
                 {
-                    Debug.Assert(flag == (byte)NullableAnnotation.Unknown || flag == (byte)NullableAnnotation.NotAnnotated || flag == (byte)NullableAnnotation.Annotated);
+                    Debug.Assert(flag == (byte)NullableAnnotation.Oblivious || flag == (byte)NullableAnnotation.NotAnnotated || flag == (byte)NullableAnnotation.Annotated);
                     constantsBuilder.Add(new TypedConstant(byteType, TypedConstantKind.Primitive, flag));
                 }
 
-                var byteArray = ArrayTypeSymbol.CreateSZArray(byteType.ContainingAssembly, TypeSymbolWithAnnotations.Create(byteType));
+                var byteArray = ArrayTypeSymbol.CreateSZArray(byteType.ContainingAssembly, TypeWithAnnotations.Create(byteType));
                 constructor = WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags;
                 arguments = ImmutableArray.Create(new TypedConstant(byteArray, constantsBuilder.ToImmutableAndFree()));
             }

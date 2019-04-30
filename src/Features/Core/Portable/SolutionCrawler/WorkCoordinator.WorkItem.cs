@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         private partial class WorkCoordinator
         {
             // this is internal only type
-            private struct WorkItem
+            private readonly struct WorkItem
             {
                 // project related workitem
                 public readonly ProjectId ProjectId;

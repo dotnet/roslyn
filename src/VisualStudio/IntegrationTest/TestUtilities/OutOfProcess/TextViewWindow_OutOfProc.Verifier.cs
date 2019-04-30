@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     if (blockUntilComplete)
                     {
                         // wait for action to complete
-                        _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+                        _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
                     }
                 }
             }
@@ -92,9 +92,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             public void CurrentTokenType(string tokenType)
             {
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Classification);
+                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
+                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.DiagnosticService);
+                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Classification);
                 var actualTokenTypes = _textViewWindow.GetCurrentClassifications();
                 Assert.Equal(actualTokenTypes.Length, 1);
                 Assert.Contains(tokenType, actualTokenTypes[0]);

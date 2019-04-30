@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.BinaryExpression
     internal class CSharpBinaryExpressionWrapper : AbstractBinaryExpressionWrapper<BinaryExpressionSyntax>
     {
         public CSharpBinaryExpressionWrapper()
-            : base(CSharpSyntaxFactsService.Instance, CSharpPrecedenceService.Instance)
+            : base(CSharpIndentationService.Instance, CSharpSyntaxFactsService.Instance, CSharpPrecedenceService.Instance)
         {
         }
 

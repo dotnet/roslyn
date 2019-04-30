@@ -9,12 +9,14 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 Imports Microsoft.VisualStudio.Text.Editor
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
     <Export(GetType(VSCommanding.ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name("XmlTagCompletionCommandHandler")>
     <Order(Before:=PredefinedCommandHandlerNames.Completion)>
+    <Order(Before:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class XmlTagCompletionCommandHandler
         Inherits AbstractXmlTagCompletionCommandHandler
 

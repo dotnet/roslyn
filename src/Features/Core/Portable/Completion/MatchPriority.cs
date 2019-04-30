@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// 
         /// With no filter text, this item (or the first item alphabetically 
         /// with this priority) should always be selected.
-        /// test
+        ///
         /// This is used for specific IDE scenarios like "Object creation preselection"
         /// or "Enum preselection" or "Completion list tag preselection".
         /// </summary>

@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isUsed)
             {
-                var tupleType = TupleTypeSymbol.Create(locationOpt: null, elementTypes: builder.SelectAsArray(e => TypeSymbolWithAnnotations.Create(e.Type)),
+                var tupleType = TupleTypeSymbol.Create(locationOpt: null, elementTypesWithAnnotations: builder.SelectAsArray(e => TypeWithAnnotations.Create(e.Type)),
                     elementLocations: default, elementNames: default,
-                    compilation: _compilation, shouldCheckConstraints: false, errorPositions: default);
+                    compilation: _compilation, shouldCheckConstraints: false, includeNullability: false, errorPositions: default);
 
                 return new BoundTupleLiteral(right.Syntax, argumentNamesOpt: default, inferredNamesOpt: default,
                     arguments: builder.ToImmutableAndFree(), type: tupleType);
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(expression.Type.IsTupleType);
             var tupleType = expression.Type;
-            var tupleElementTypes = tupleType.TupleElementTypes;
+            var tupleElementTypes = tupleType.TupleElementTypesWithAnnotations;
 
             var numElements = tupleElementTypes.Length;
 
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var outLocals = ArrayBuilder<BoundExpression>.GetInstance(outputPlaceholders.Length);
             foreach (var outputPlaceholder in outputPlaceholders)
             {
-                var localSymbol = new SynthesizedLocal(_factory.CurrentFunction, TypeSymbolWithAnnotations.Create(outputPlaceholder.Type), SynthesizedLocalKind.LoweringTemp);
+                var localSymbol = new SynthesizedLocal(_factory.CurrentFunction, TypeWithAnnotations.Create(outputPlaceholder.Type), SynthesizedLocalKind.LoweringTemp);
 
                 var localBound = new BoundLocal(target.Syntax, localSymbol, constantValueOpt: null, type: outputPlaceholder.Type)
                 { WasCompilerGenerated = true };

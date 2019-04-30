@@ -9435,7 +9435,7 @@ AssemblyName
 Imports System
 
 Public Structure TestStruct(Of X)
-    ''' <see cref="Global.TestStruct(Of KKK).  operator+(integer, TestStruct(Of kkk))"/>
+    ''' <see cref="Global.TestStruct(Of ZZZ).  operator+(integer, TestStruct(Of zzz))"/>
     Public Shared field As Integer
 
     Public Shared Operator +(a As Integer, b As TestStruct(Of X)) As String
@@ -9472,17 +9472,17 @@ AssemblyName
 
             Dim info = model.GetSymbolInfo(crefNodes(0))
             Assert.NotNull(info.Symbol)
-            Assert.Equal("Function TestStruct(Of KKK).op_Addition(a As System.Int32, b As TestStruct(Of KKK)) As System.String", info.Symbol.ToTestDisplayString())
+            Assert.Equal("Function TestStruct(Of ZZZ).op_Addition(a As System.Int32, b As TestStruct(Of ZZZ)) As System.String", info.Symbol.ToTestDisplayString())
 
             CheckAllNames(model, crefNodes(0),
-                          New NameSyntaxInfo("Global.TestStruct(Of KKK).  operator+", {"Function TestStruct(Of KKK).op_Addition(a As System.Int32, b As TestStruct(Of KKK)) As System.String"}, {}),
-                          New NameSyntaxInfo("Global.TestStruct(Of KKK)", {"TestStruct(Of KKK)"}, {"TestStruct(Of KKK)"}),
+                          New NameSyntaxInfo("Global.TestStruct(Of ZZZ).  operator+", {"Function TestStruct(Of ZZZ).op_Addition(a As System.Int32, b As TestStruct(Of ZZZ)) As System.String"}, {}),
+                          New NameSyntaxInfo("Global.TestStruct(Of ZZZ)", {"TestStruct(Of ZZZ)"}, {"TestStruct(Of ZZZ)"}),
                           New NameSyntaxInfo("Global", {"Global"}, {}),
-                          New NameSyntaxInfo("TestStruct(Of KKK)", {"TestStruct(Of KKK)"}, {"TestStruct(Of KKK)"}),
-                          New NameSyntaxInfo("KKK", {"KKK"}, {"KKK"}),
-                          New NameSyntaxInfo("operator+", {"Function TestStruct(Of KKK).op_Addition(a As System.Int32, b As TestStruct(Of KKK)) As System.String"}, {}),
-                          New NameSyntaxInfo("TestStruct(Of kkk)", {"TestStruct(Of KKK)"}, {"TestStruct(Of KKK)"}),
-                          New NameSyntaxInfo("kkk", {"KKK"}, {"KKK"}))
+                          New NameSyntaxInfo("TestStruct(Of ZZZ)", {"TestStruct(Of ZZZ)"}, {"TestStruct(Of ZZZ)"}),
+                          New NameSyntaxInfo("ZZZ", {"ZZZ"}, {"ZZZ"}),
+                          New NameSyntaxInfo("operator+", {"Function TestStruct(Of ZZZ).op_Addition(a As System.Int32, b As TestStruct(Of ZZZ)) As System.String"}, {}),
+                          New NameSyntaxInfo("TestStruct(Of zzz)", {"TestStruct(Of ZZZ)"}, {"TestStruct(Of ZZZ)"}),
+                          New NameSyntaxInfo("zzz", {"ZZZ"}, {"ZZZ"}))
         End Sub
 
         <Fact>

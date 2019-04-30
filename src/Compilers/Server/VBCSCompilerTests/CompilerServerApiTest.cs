@@ -344,21 +344,15 @@ class Hello
                     var source = new TaskCompletionSource<bool>();
                     var thread = new Thread(_ =>
                     {
-                        Mutex mutex = null;
                         try
                         {
-                            Assert.True(Mutex.TryOpenExisting(mutexName, out mutex));
-                            Assert.False(mutex.WaitOne(millisecondsTimeout: 0));
+                            Assert.True(BuildServerConnection.WasServerMutexOpen(mutexName));
                             source.SetResult(true);
                         }
                         catch (Exception ex)
                         {
                             source.SetException(ex);
                             throw;
-                        }
-                        finally
-                        {
-                            mutex?.Dispose();
                         }
                     });
 
@@ -541,6 +535,40 @@ class Hello
                 var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
                 Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
             }
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(33452, "https://github.com/dotnet/roslyn/issues/33452")]
+        public void QuotePipeName_Desktop()
+        {
+            var serverInfo = BuildServerConnection.GetServerProcessInfo(@"q:\tools", "name with space");
+            Assert.Equal(@"q:\tools\VBCSCompiler.exe", serverInfo.processFilePath);
+            Assert.Equal(@"q:\tools\VBCSCompiler.exe", serverInfo.toolFilePath);
+            Assert.Equal(@"""-pipename:name with space""", serverInfo.commandLineArguments);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(33452, "https://github.com/dotnet/roslyn/issues/33452")]
+        public void QuotePipeName_CoreClr()
+        {
+            var toolDir = ExecutionConditionUtil.IsWindows
+                ? @"q:\tools"
+                : "/tools";
+            var serverInfo = BuildServerConnection.GetServerProcessInfo(toolDir, "name with space");
+            var vbcsFilePath = Path.Combine(toolDir, "VBCSCompiler.dll");
+            Assert.Equal(vbcsFilePath, serverInfo.toolFilePath);
+            Assert.Equal($@"exec ""{vbcsFilePath}"" ""-pipename:name with space""", serverInfo.commandLineArguments);
+        }
+
+        [Theory]
+        [InlineData(@"name with space.T.basename", "name with space", true, "basename")]
+        [InlineData(@"ha_ha.T.basename", @"ha""ha", true, "basename")]
+        [InlineData(@"jared.T.ha_ha", @"jared", true, @"ha""ha")]
+        [InlineData(@"jared.F.ha_ha", @"jared", false, @"ha""ha")]
+        [InlineData(@"jared.F.ha_ha", @"jared", false, @"ha\ha")]
+        public void GetPipeNameCore(string expectedName, string userName, bool isAdmin, string basePipeName)
+        {
+            Assert.Equal(expectedName, BuildServerConnection.GetPipeNameCore(userName, isAdmin, basePipeName));
         }
     }
 }

@@ -17,8 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
         private readonly IPrecedenceService _precedenceService;
 
         protected AbstractBinaryExpressionWrapper(
+            IBlankLineIndentationService indentationService,
             ISyntaxFactsService syntaxFacts,
-            IPrecedenceService precedenceService)
+            IPrecedenceService precedenceService) : base(indentationService)
         {
             _syntaxFacts = syntaxFacts;
             _precedenceService = precedenceService;

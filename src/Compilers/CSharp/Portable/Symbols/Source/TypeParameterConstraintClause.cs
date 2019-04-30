@@ -20,6 +20,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Unmanaged = 0x08,
         NullableReferenceType = ReferenceType | 0x10,
         NotNullableReferenceType = ReferenceType | 0x20,
+
+        /// <summary>
+        /// Type parameter has no type constraints, including `struct`, `class`, `unmanaged` and is declared in a context 
+        /// where nullable annotations are disabled.
+        /// Cannot be combined with <see cref="ReferenceType"/>, <see cref="ValueType"/> or <see cref="Unmanaged"/>.
+        /// Note, presence of this flag suppresses generation of Nullable attribute on the corresponding type parameter.
+        /// This imitates the shape of metadata produced by pre-nullable compilers. Metadata import is adjusted accordingly
+        /// to distinguish between the two situations.
+        /// </summary>
+        ObliviousNullabilityIfReferenceType = 0x40,
+
+        /// <summary>
+        /// All bits involved into describing various aspects of 'class' constraint. 
+        /// </summary>
+        AllReferenceTypeKinds = NullableReferenceType | NotNullableReferenceType,
+
+        /// <summary>
+        /// All bits except those that are involved into describilng various nullability aspects.
+        /// </summary>
+        AllNonNullableKinds = ReferenceType | ValueType | Constructor | Unmanaged,
     }
 
     /// <summary>
@@ -30,32 +50,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static readonly TypeParameterConstraintClause Empty = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.None,
-            ImmutableArray<TypeSymbolWithAnnotations>.Empty,
+            ImmutableArray<TypeWithAnnotations>.Empty,
+            typeConstraintsSyntax: default,
+            otherPartialDeclarations: ImmutableArray<TypeParameterConstraintClause>.Empty);
+
+        internal static readonly TypeParameterConstraintClause ObliviousNullabilityIfReferenceType = new TypeParameterConstraintClause(
+            TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType,
+            ImmutableArray<TypeWithAnnotations>.Empty,
             typeConstraintsSyntax: default,
             otherPartialDeclarations: ImmutableArray<TypeParameterConstraintClause>.Empty);
 
         internal static TypeParameterConstraintClause Create(
             TypeParameterConstraintKind constraints,
-            ImmutableArray<TypeSymbolWithAnnotations> constraintTypes,
+            ImmutableArray<TypeWithAnnotations> constraintTypes,
             ImmutableArray<TypeConstraintSyntax> typeConstraintsSyntax = default)
         {
             Debug.Assert(!constraintTypes.IsDefault);
-            if (constraints == TypeParameterConstraintKind.None && constraintTypes.IsEmpty)
+            if (constraintTypes.IsEmpty)
             {
-                Debug.Assert(typeConstraintsSyntax.IsDefault);
-                return Empty;
+                switch (constraints)
+                {
+                    case TypeParameterConstraintKind.None:
+                        Debug.Assert(typeConstraintsSyntax.IsDefault);
+                        return Empty;
+
+                    case TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType:
+                        Debug.Assert(typeConstraintsSyntax.IsDefault);
+                        return ObliviousNullabilityIfReferenceType;
+                }
             }
             return new TypeParameterConstraintClause(constraints, constraintTypes, typeConstraintsSyntax, otherPartialDeclarations: ImmutableArray<TypeParameterConstraintClause>.Empty);
         }
 
         private TypeParameterConstraintClause(
             TypeParameterConstraintKind constraints,
-            ImmutableArray<TypeSymbolWithAnnotations> constraintTypes,
+            ImmutableArray<TypeWithAnnotations> constraintTypes,
             ImmutableArray<TypeConstraintSyntax> typeConstraintsSyntax,
             ImmutableArray<TypeParameterConstraintClause> otherPartialDeclarations)
         {
 #if DEBUG
-            switch (constraints & (TypeParameterConstraintKind.NullableReferenceType | TypeParameterConstraintKind.NotNullableReferenceType))
+            switch (constraints & TypeParameterConstraintKind.AllReferenceTypeKinds)
             {
                 case TypeParameterConstraintKind.None:
                 case TypeParameterConstraintKind.ReferenceType:
@@ -66,6 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ExceptionUtilities.UnexpectedValue(constraints); // This call asserts.
                     break;
             }
+
+            Debug.Assert((constraints & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) == 0 ||
+                         (constraints & ~(TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor)) == 0);
 #endif 
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
@@ -74,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public readonly TypeParameterConstraintKind Constraints;
-        public readonly ImmutableArray<TypeSymbolWithAnnotations> ConstraintTypes;
+        public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
 
         /// <summary>
         /// Syntax for the constraint types. Populated from early constraint checking step only.
@@ -87,9 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal readonly ImmutableArray<TypeParameterConstraintClause> OtherPartialDeclarations;
 
-        internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty;
+        internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty && OtherPartialDeclarations.ContainsOnlyEmptyConstraintClauses();
 
-        internal bool IsEarly => !TypeConstraintsSyntax.IsDefault;
+        internal bool IsEarly => !TypeConstraintsSyntax.IsDefault || !OtherPartialDeclarations.IsEmpty;
 
         internal TypeParameterConstraintClause AddPartialDeclaration(TypeParameterConstraintClause other)
         {
@@ -102,6 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsEarly(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
             return constraintClauses.Any(clause => clause.IsEarly);
+        }
+
+        internal static bool ContainsOnlyEmptyConstraintClauses(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        {
+            return constraintClauses.All(clause => clause.IsEmpty);
         }
     }
 }

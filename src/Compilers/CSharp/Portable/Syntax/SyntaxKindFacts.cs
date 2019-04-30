@@ -1630,6 +1630,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "$\"";
                 case SyntaxKind.InterpolatedStringEndToken:
                     return "\"";
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                    return "$@\"";
                 case SyntaxKind.UnderscoreToken:
                     return "_";
                 case SyntaxKind.VarKeyword:

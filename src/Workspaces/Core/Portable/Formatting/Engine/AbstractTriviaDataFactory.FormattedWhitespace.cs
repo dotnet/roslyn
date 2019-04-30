@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             public override void Format(
-                FormattingContext context, ChainedFormattingRules formattingRules, Action<int, TriviaData> formattingResultApplier, CancellationToken cancellationToken, int tokenPairIndex = TokenPairIndexNotNeeded)
+                FormattingContext context, ChainedFormattingRules formattingRules, Action<int, TokenStream, TriviaData> formattingResultApplier, CancellationToken cancellationToken, int tokenPairIndex = TokenPairIndexNotNeeded)
             {
                 throw new NotImplementedException();
             }

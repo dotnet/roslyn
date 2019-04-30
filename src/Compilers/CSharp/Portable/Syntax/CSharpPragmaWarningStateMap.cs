@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     internal class CSharpPragmaWarningStateMap : AbstractWarningStateMap<PragmaWarningState>
     {
-        public CSharpPragmaWarningStateMap(SyntaxTree syntaxTree) :
-            base(syntaxTree)
+        public CSharpPragmaWarningStateMap(SyntaxTree syntaxTree, bool isGeneratedCode) :
+            base(syntaxTree, isGeneratedCode)
         {
         }
 
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             GetAllPragmaWarningDirectives(syntaxTree, directives);
 
             // Create the pragma warning map.
-            WarningStateMapEntry[] result = CreatePragmaWarningStateEntries(directives);
+            WarningStateMapEntry[] result = CreatePragmaWarningStateEntries(directives, _isGeneratedCode);
             directives.Free();
 
             return result;
@@ -91,18 +91,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         // Given the ordered list of all pragma warning and nullable directives in the syntax tree, return a list of mapping entries, 
         // containing the cumulative set of warnings that are disabled for that point in the source.
         // This mapping also contains a global warning option, accumulated of all #pragma up to the current line position.
-        private static WarningStateMapEntry[] CreatePragmaWarningStateEntries(ArrayBuilder<DirectiveTriviaSyntax> directiveList)
+        private static WarningStateMapEntry[] CreatePragmaWarningStateEntries(ArrayBuilder<DirectiveTriviaSyntax> directiveList, bool isGeneratedCode)
         {
             var entries = new WarningStateMapEntry[directiveList.Count + 1];
-            var current = new WarningStateMapEntry(0, PragmaWarningState.Default, null);
             var index = 0;
-            entries[index] = current;
+
+            // Captures the mapping of a warning number to the reporting option, accumulated of all #pragma up to the current directive.
+            var accumulatedSpecificWarningState = ImmutableDictionary.Create<string, PragmaWarningState>();
 
             // Captures the general reporting option, accumulated of all #pragma up to the current directive.
             var accumulatedGeneralWarningState = PragmaWarningState.Default;
 
-            // Captures the mapping of a warning number to the reporting option, accumulated of all #pragma up to the current directive.
-            var accumulatedSpecificWarningState = ImmutableDictionary.Create<string, PragmaWarningState>();
+            // Generated files have a default nullable warning state that is "disabled".
+            if (isGeneratedCode)
+            {
+                accumulatedNullableWarningState(SyntaxKind.DisableKeyword);
+            }
+
+            var current = new WarningStateMapEntry(0, PragmaWarningState.Default, accumulatedSpecificWarningState);
+            entries[index] = current;
 
             while (index < directiveList.Count)
             {
@@ -114,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                     if (currentPragmaDirective.NullableKeyword.IsKind(SyntaxKind.NullableKeyword))
                     {
-                        accumulatedNullableWarningState(currentPragmaDirective.DisableOrRestoreKeyword);
+                        accumulatedNullableWarningState(currentPragmaDirective.DisableOrRestoreKeyword.Kind());
                     }
                     else
                     {
@@ -176,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 else
                 {
                     var currentNullableDirective = (NullableDirectiveTriviaSyntax)currentDirective;
-                    accumulatedNullableWarningState(currentNullableDirective.SettingToken);
+                    accumulatedNullableWarningState(currentNullableDirective.SettingToken.Kind());
                 }
 
                 current = new WarningStateMapEntry(currentDirective.Location.SourceSpan.End, accumulatedGeneralWarningState, accumulatedSpecificWarningState);
@@ -194,12 +201,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             return entries;
 
-            void accumulatedNullableWarningState(SyntaxToken nullableAction)
+            void accumulatedNullableWarningState(SyntaxKind nullableAction)
             {
                 PragmaWarningState safetyState;
                 PragmaWarningState nonSafetyState;
 
-                switch (nullableAction.Kind())
+                switch (nullableAction)
                 {
                     case SyntaxKind.DisableKeyword:
                         safetyState = PragmaWarningState.Disabled;
@@ -222,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         break;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(nullableAction.Kind());
+                        throw ExceptionUtilities.UnexpectedValue(nullableAction);
                 }
 
                 var builder = ArrayBuilder<KeyValuePair<string, PragmaWarningState>>.GetInstance(ErrorFacts.NullableFlowAnalysisSafetyWarnings.Count + ErrorFacts.NullableFlowAnalysisNonSafetyWarnings.Count);

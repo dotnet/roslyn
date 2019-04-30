@@ -286,6 +286,13 @@ Imports S |
 |</MethodBody>, s_expectedKeywords)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>test = "F" _ ' Test
+|</MethodBody>, s_expectedKeywords)
+        End Function
+
         <WorkItem(975804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/975804")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterIncompleteObjectCreationTest() As Task

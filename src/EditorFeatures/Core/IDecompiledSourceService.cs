@@ -14,9 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// into the given document
         /// </summary>
         /// <param name="document">The document to generate source into</param>
+        /// <param name="symbolCompilation">The <see cref="Compilation"/> in which symbol is resolved.</param>
         /// <param name="symbol">The symbol to generate source for</param>
         /// <param name="cancellationToken">To cancel document operations</param>
         /// <returns>The updated document</returns>
-        Task<Document> AddSourceToAsync(Document document, ISymbol symbol, CancellationToken cancellationToken);
+        Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken);
     }
 }

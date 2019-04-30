@@ -86,6 +86,29 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
             protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync();
 
+            protected string GetSmartIndentationAfter(SyntaxNodeOrToken nodeOrToken)
+            {
+                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), NewLine));
+                newSourceText = newSourceText.WithChanges(
+                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + NewLine.Length, newSourceText.Length), ""));
+                var newDocument = OriginalDocument.WithText(newSourceText);
+
+                var indentationService = Wrapper.IndentationService;
+                var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;
+                var desiredIndentation = indentationService.GetBlankLineIndentation(
+                    newDocument, originalLineNumber + 1,
+                    FormattingOptions.IndentStyle.Smart,
+                    CancellationToken);
+
+                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
+                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
+
+                var indent = baseOffsetInLine + desiredIndentation.Offset;
+
+                var indentString = indent.CreateIndentationString(UseTabs, TabSize);
+                return indentString;
+            }
+
             /// <summary>
             /// Try to create a CodeAction representing these edits.  Can return <see langword="null"/> in several 
             /// cases, including:
@@ -273,8 +296,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
                     // Otherwise, sort items and add to the resultant list
                     var sorted = WrapItemsAction.SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction>.CastUp(wrappingActions));
+
+                    // Make our code action low priority.  This option will be offered *a lot*, and 
+                    // much of  the time will not be something the user particularly wants to do.  
+                    // It should be offered after all other normal refactorings.
                     result.Add(new CodeActionWithNestedActions(
-                        wrappingActions[0].ParentTitle, sorted, group.IsInlinable));
+                        wrappingActions[0].ParentTitle, sorted,
+                        group.IsInlinable, CodeActionPriority.Low));
                 }
 
                 // Finally, sort the topmost list we're building and return that.  This ensures that

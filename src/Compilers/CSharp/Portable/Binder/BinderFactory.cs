@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Unless this is interactive retrieving a binder for global statements
             // at the very top-level (i.e. in a completely empty file) use
             // node.Parent to maintain existing behavior.
-            if (!InScript || node.Kind() != SyntaxKind.CompilationUnit)
+            if ((!InScript || node.Kind() != SyntaxKind.CompilationUnit) && node.Parent != null)
             {
                 node = node.Parent;
             }

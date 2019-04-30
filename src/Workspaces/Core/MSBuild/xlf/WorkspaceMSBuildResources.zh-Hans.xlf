@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Found_project_reference_without_a_matching_metadata_reference_0">
         <source>Found project reference without a matching metadata reference: {0}</source>
-        <target state="new">Found project reference without a matching metadata reference: {0}</target>
+        <target state="translated">找到了项目引用但没有匹配的元数据引用: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
         <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="translated">处理文件“{0}”时，Msbuild 失败，消息: {1}</target>
+        <target state="translated">处理文件“{0}”时 Msbuild 失败，出现消息: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_does_not_contain_0_target">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Unresolved_metadata_reference_removed_from_project_0">
         <source>Unresolved metadata reference removed from project: {0}</source>
-        <target state="new">Unresolved metadata reference removed from project: {0}</target>
+        <target state="translated">已从项目中删除未解析的元数据引用: {0}</target>
         <note />
       </trans-unit>
     </body>

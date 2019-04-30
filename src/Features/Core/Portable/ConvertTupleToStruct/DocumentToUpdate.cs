@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 {
-    internal struct DocumentToUpdate
+    internal readonly struct DocumentToUpdate
     {
         /// <summary>
         /// The document to update.

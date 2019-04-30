@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
     Friend Class SmartTokenFormatterCommandHandler
         Inherits AbstractSmartTokenFormatterCommandHandler
 
-        Private ReadOnly _formattingRules As IEnumerable(Of IFormattingRule)
+        Private ReadOnly _formattingRules As IEnumerable(Of AbstractFormattingRule)
 
         <ImportingConstructor()>
         Public Sub New(undoHistoryRegistry As ITextUndoHistoryRegistry,
@@ -30,19 +30,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                        editorOperationsFactoryService)
         End Sub
 
-        Protected Overrides Function GetFormattingRules(document As Document, position As Integer) As IEnumerable(Of IFormattingRule)
+        Protected Overrides Function GetFormattingRules(document As Document, position As Integer) As IEnumerable(Of AbstractFormattingRule)
             Dim ws = document.Project.Solution.Workspace
             Dim formattingRuleFactory = ws.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
             Return {New SpecialFormattingRule(), formattingRuleFactory.CreateRule(document, position)}.Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
 
-        Protected Overrides Function CreateSmartTokenFormatter(optionSet As OptionSet, formattingRules As IEnumerable(Of IFormattingRule), root As SyntaxNode) As ISmartTokenFormatter
+        Protected Overrides Function CreateSmartTokenFormatter(optionSet As OptionSet, formattingRules As IEnumerable(Of AbstractFormattingRule), root As SyntaxNode) As ISmartTokenFormatter
             Return New SmartTokenFormatter(optionSet, formattingRules, DirectCast(root, CompilationUnitSyntax))
         End Function
 
         Protected Overrides Function UseSmartTokenFormatter(root As SyntaxNode,
                                                             line As TextLine,
-                                                            formattingRules As IEnumerable(Of IFormattingRule),
+                                                            formattingRules As IEnumerable(Of AbstractFormattingRule),
                                                             options As OptionSet,
                                                             cancellationToken As CancellationToken) As Boolean
             Return VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(

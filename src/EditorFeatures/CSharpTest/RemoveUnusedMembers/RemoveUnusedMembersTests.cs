@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -928,6 +929,19 @@ class MyClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(33765, "https://github.com/dotnet/roslyn/issues/33765")]
+        public async Task GenericFieldInNameOf()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass<T>
+{
+    private T [|_goo|];
+    private string _goo2 = nameof(MyClass<int>._goo);
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [WorkItem(31581, "https://github.com/dotnet/roslyn/issues/31581")]
         public async Task MethodInNameOf()
         {
@@ -937,6 +951,19 @@ class MyClass
     private void [|M|]() { }
     private string _goo = nameof(M);
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(33765, "https://github.com/dotnet/roslyn/issues/33765")]
+        public async Task GenericMethodInNameOf()
+        {
+            await TestDiagnosticMissingAsync(
+@"class MyClass<T>
+{
+    private void [|M|]() { }
+    private string _goo2 = nameof(MyClass<int>.M);
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1051,9 +1078,10 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(33994, "https://github.com/dotnet/roslyn/issues/33994")]
         public async Task PropertyIsOnlyWritten()
         {
-            await TestDiagnosticsAsync(
+            var source =
 @"class MyClass
 {
     private int [|P|] { get; set; }
@@ -1061,8 +1089,15 @@ class C
     {
         P = 0;
     }
-}",
-    expected: Diagnostic("IDE0052"));
+}";
+            var testParameters = new TestParameters(retainNonFixableDiagnostics: true);
+            using (var workspace = CreateWorkspaceFromOptions(source, testParameters))
+            {
+                var diagnostics = await GetDiagnosticsAsync(workspace, testParameters).ConfigureAwait(false);
+                diagnostics.Verify(Diagnostic("IDE0052", "P").WithLocation(3, 17));
+                var expectedMessage = string.Format(FeaturesResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P");
+                Assert.Equal(expectedMessage, diagnostics.Single().GetMessage());
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -2085,6 +2120,26 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(32727, "https://github.com/dotnet/roslyn/issues/32727")]
+        public async Task NestedStructLayoutTypeWithReference()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System.Runtime.InteropServices;
+
+class Program
+{
+    private const int [|MAX_PATH|] = 260;
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ProcessEntry32
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = MAX_PATH)]
+        public string szExeFile;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FixAllFields_Document()
         {
             await TestInRegularAndScriptAsync(
@@ -2241,6 +2296,58 @@ static class MyClass3
         </Document>
     </Project>
 </Workspace>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        public async Task UsedExtensionMethod_ReferencedFromPartialMethod()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+static partial class B
+{
+    static partial void PartialMethod();
+}
+        </Document>
+        <Document>
+static partial class B
+{
+    static partial void PartialMethod()
+    {
+        UsedMethod();
+    }
+
+    private static void [|UsedMethod|]() { }
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
+        public async Task FieldIsRead_NullCoalesceAssignment()
+        {
+            await TestDiagnosticMissingAsync(@"
+public class MyClass
+{
+    private MyClass [|_field|];
+    public MyClass Property => _field ??= new MyClass();
+}", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [Fact, WorkItem(32842, "https://github.com/dotnet/roslyn/issues/32842")]
+        public async Task FieldIsNotRead_NullCoalesceAssignment()
+        {
+            await TestDiagnosticsAsync(@"
+public class MyClass
+{
+    private MyClass [|_field|];
+    public void M() => _field ??= new MyClass();
+}", new TestParameters(retainNonFixableDiagnostics: true, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)),
+    expected: Diagnostic("IDE0052"));
         }
     }
 }

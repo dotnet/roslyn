@@ -43,14 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
         };
 
-        internal NamingStyleOptionPageControl(IServiceProvider serviceProvider, INotificationService notificationService, string languageName)
-            : base(serviceProvider)
+        internal NamingStyleOptionPageControl(OptionStore optionStore, INotificationService notificationService, string languageName)
+            : base(optionStore)
         {
             _languageName = languageName;
             _notificationService = notificationService;
 
             InitializeComponent();
-            LoadSettings();
+            OnLoad();
         }
 
         private NamingStyleOptionPageViewModel.NamingRuleViewModel CreateItemWithNoSelections()
@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             }
         }
 
-        internal override void SaveSettings()
+        internal override void OnSave()
         {
             var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
             var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
@@ -177,17 +177,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 namingStyles.ToImmutableAndFree(),
                 namingRules.ToImmutableAndFree());
 
-            var oldOptions = OptionService.GetOptions();
-            var newOptions = oldOptions.WithChangedOption(SimplificationOptions.NamingPreferences, _languageName, info);
-            OptionService.SetOptions(newOptions);
-            OptionLogger.Log(oldOptions, newOptions);
+            OptionStore.SetOption(SimplificationOptions.NamingPreferences, _languageName, info);
         }
 
-        internal override void LoadSettings()
+        internal override void OnLoad()
         {
-            base.LoadSettings();
+            base.OnLoad();
 
-            var preferences = OptionService.GetOption(SimplificationOptions.NamingPreferences, _languageName);
+            var preferences = OptionStore.GetOption(SimplificationOptions.NamingPreferences, _languageName);
             if (preferences == null)
             {
                 return;

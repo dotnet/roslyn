@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class TypeSubstitutedLocalSymbol : LocalSymbol
     {
         private readonly LocalSymbol _originalVariable;
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
         private readonly Symbol _containingSymbol;
 
-        public TypeSubstitutedLocalSymbol(LocalSymbol originalVariable, TypeSymbolWithAnnotations type, Symbol containingSymbol)
+        public TypeSubstitutedLocalSymbol(LocalSymbol originalVariable, TypeWithAnnotations type, Symbol containingSymbol)
         {
             Debug.Assert(originalVariable != null);
-            Debug.Assert(!type.IsNull);
+            Debug.Assert(type.HasType);
             Debug.Assert(containingSymbol != null);
 
             _originalVariable = originalVariable;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalVariable.Locations; }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }

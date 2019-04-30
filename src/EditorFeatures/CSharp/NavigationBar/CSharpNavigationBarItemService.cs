@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
     [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.CSharp), Shared]
     internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
     {
+        private static readonly SymbolDisplayFormat s_typeFormat =
+            SymbolDisplayFormat.CSharpErrorMessageFormat.AddGenericsOptions(SymbolDisplayGenericsOptions.IncludeVariance);
+
         private static readonly SymbolDisplayFormat s_memberFormat =
             new SymbolDisplayFormat(
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                                   SymbolDisplayParameterOptions.IncludeName |
                                   SymbolDisplayParameterOptions.IncludeDefaultValue |
                                   SymbolDisplayParameterOptions.IncludeParamsRefOut,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
 
         public override async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
@@ -174,9 +177,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 
             return null;
         }
-
-        private static readonly SymbolDisplayFormat s_typeFormat =
-            SymbolDisplayFormat.CSharpErrorMessageFormat.AddGenericsOptions(SymbolDisplayGenericsOptions.IncludeVariance);
 
         private static bool IsAccessor(ISymbol member)
         {

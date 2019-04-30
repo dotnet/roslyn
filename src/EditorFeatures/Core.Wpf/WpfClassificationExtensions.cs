@@ -66,14 +66,21 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             ClassificationTypeMap typeMap)
         {
             var inlines = parts.ToInlines(formatMap, typeMap);
-            return inlines.ToTextBlock(formatMap, typeMap);
+            return inlines.ToTextBlock(formatMap);
         }
 
+        [Obsolete("Use 'public static TextBlock ToTextBlock(this IEnumerable <Inline> inlines, IClassificationFormatMap formatMap, bool wrap = true)' instead")]
         public static TextBlock ToTextBlock(
             this IEnumerable<Inline> inlines,
             IClassificationFormatMap formatMap,
             ClassificationTypeMap typeMap,
             string classificationFormatMap = null,
+            bool wrap = true)
+            => inlines.ToTextBlock(formatMap, wrap);
+
+        public static TextBlock ToTextBlock(
+            this IEnumerable<Inline> inlines,
+            IClassificationFormatMap formatMap,
             bool wrap = true)
         {
             var textBlock = new TextBlock

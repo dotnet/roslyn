@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Types identified by the algorithm in the spec (8.8.4).
         public readonly TypeSymbol CollectionType;
         // public readonly TypeSymbol EnumeratorType; // redundant - return type of GetEnumeratorMethod
-        public readonly TypeSymbolWithAnnotations ElementType;
+        public readonly TypeWithAnnotations ElementTypeWithAnnotations;
+        public TypeSymbol ElementType => ElementTypeWithAnnotations.Type;
 
         // Members required by the "pattern" based approach.  Also populated for other approaches.
         public readonly MethodSymbol GetEnumeratorMethod;
@@ -45,11 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ForEachEnumeratorInfo(
             TypeSymbol collectionType,
-            TypeSymbolWithAnnotations elementType,
+            TypeWithAnnotations elementType,
             MethodSymbol getEnumeratorMethod,
             MethodSymbol currentPropertyGetter,
             MethodSymbol moveNextMethod,
-            bool needsDisposeMethod,
+            bool needsDisposal,
             AwaitableInfo disposeAwaitableInfo,
             MethodSymbol disposeMethod,
             Conversion collectionConversion,
@@ -58,17 +59,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinderFlags location)
         {
             Debug.Assert((object)collectionType != null, "Field 'collectionType' cannot be null");
-            Debug.Assert(!elementType.IsNull, "Field 'elementType' cannot be null");
+            Debug.Assert(elementType.HasType, "Field 'elementType' cannot be null");
             Debug.Assert((object)getEnumeratorMethod != null, "Field 'getEnumeratorMethod' cannot be null");
             Debug.Assert((object)currentPropertyGetter != null, "Field 'currentPropertyGetter' cannot be null");
             Debug.Assert((object)moveNextMethod != null, "Field 'moveNextMethod' cannot be null");
 
             this.CollectionType = collectionType;
-            this.ElementType = elementType;
+            this.ElementTypeWithAnnotations = elementType;
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.CurrentPropertyGetter = currentPropertyGetter;
             this.MoveNextMethod = moveNextMethod;
-            this.NeedsDisposal = needsDisposeMethod;
+            this.NeedsDisposal = needsDisposal;
             this.DisposeAwaitableInfo = disposeAwaitableInfo;
             this.DisposeMethod = disposeMethod;
             this.CollectionConversion = collectionConversion;
@@ -81,7 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct Builder
         {
             public TypeSymbol CollectionType;
-            public TypeSymbolWithAnnotations ElementType;
+            public TypeWithAnnotations ElementTypeWithAnnotations;
+            public TypeSymbol ElementType => ElementTypeWithAnnotations.Type;
 
             public MethodSymbol GetEnumeratorMethod;
             public MethodSymbol CurrentPropertyGetter;
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new ForEachEnumeratorInfo(
                     CollectionType,
-                    ElementType,
+                    ElementTypeWithAnnotations,
                     GetEnumeratorMethod,
                     CurrentPropertyGetter,
                     MoveNextMethod,

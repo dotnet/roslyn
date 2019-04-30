@@ -326,20 +326,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitArrayType(ArrayTypeSymbol symbol)
             {
-                var otherElementType = (TypeSymbol)this.Visit(symbol.ElementType.TypeSymbol);
+                var otherElementType = (TypeSymbol)this.Visit(symbol.ElementType);
                 if ((object)otherElementType == null)
                 {
                     // For a newly added type, there is no match in the previous generation, so it could be null.
                     return null;
                 }
-                var otherModifiers = VisitCustomModifiers(symbol.ElementType.CustomModifiers);
+                var otherModifiers = VisitCustomModifiers(symbol.ElementTypeWithAnnotations.CustomModifiers);
 
                 if (symbol.IsSZArray)
                 {
-                    return ArrayTypeSymbol.CreateSZArray(_otherAssembly, symbol.ElementType.WithTypeAndModifiers(otherElementType, otherModifiers));
+                    return ArrayTypeSymbol.CreateSZArray(_otherAssembly, symbol.ElementTypeWithAnnotations.WithTypeAndModifiers(otherElementType, otherModifiers));
                 }
 
-                return ArrayTypeSymbol.CreateMDArray(_otherAssembly, symbol.ElementType.WithTypeAndModifiers(otherElementType, otherModifiers), symbol.Rank, symbol.Sizes, symbol.LowerBounds);
+                return ArrayTypeSymbol.CreateMDArray(_otherAssembly, symbol.ElementTypeWithAnnotations.WithTypeAndModifiers(otherElementType, otherModifiers), symbol.Rank, symbol.Sizes, symbol.LowerBounds);
             }
 
             public override Symbol VisitEvent(EventSymbol symbol)
@@ -469,13 +469,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     var otherTypeArguments = typeArguments.SelectAsArray((t, v) =>
                                                                             {
-                                                                                var newType = (TypeSymbol)v.Visit(t.TypeSymbol);
+                                                                                var newType = (TypeSymbol)v.Visit(t.Type);
 
                                                                                 if ((object)newType == null)
                                                                                 {
                                                                                     // For a newly added type, there is no match in the previous generation, so it could be null.
                                                                                     translationFailed = true;
-                                                                                    newType = t.TypeSymbol;
+                                                                                    newType = t.Type;
                                                                                 }
 
                                                                                 return t.WithTypeAndModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers));
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 else if (sourceType.IsTupleType)
                 {
                     var otherDef = (NamedTypeSymbol)this.Visit(sourceType.TupleUnderlyingType);
-                    if ((object)otherDef == null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(sourceType.TupleElementTypes.Length))
+                    if ((object)otherDef == null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(sourceType.TupleElementTypesWithAnnotations.Length))
                     {
                         return null;
                     }
@@ -547,14 +547,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitPointerType(PointerTypeSymbol symbol)
             {
-                var otherPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType.TypeSymbol);
+                var otherPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType);
                 if ((object)otherPointedAtType == null)
                 {
                     // For a newly added type, there is no match in the previous generation, so it could be null.
                     return null;
                 }
-                var otherModifiers = VisitCustomModifiers(symbol.PointedAtType.CustomModifiers);
-                return new PointerTypeSymbol(symbol.PointedAtType.WithTypeAndModifiers(otherPointedAtType, otherModifiers));
+                var otherModifiers = VisitCustomModifiers(symbol.PointedAtTypeWithAnnotations.CustomModifiers);
+                return new PointerTypeSymbol(symbol.PointedAtTypeWithAnnotations.WithTypeAndModifiers(otherPointedAtType, otherModifiers));
             }
 
             public override Symbol VisitProperty(PropertySymbol symbol)
@@ -675,23 +675,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private bool AreArrayTypesEqual(ArrayTypeSymbol type, ArrayTypeSymbol other)
             {
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
-                Debug.Assert(type.ElementType.CustomModifiers.IsEmpty);
-                Debug.Assert(other.ElementType.CustomModifiers.IsEmpty);
+                Debug.Assert(type.ElementTypeWithAnnotations.CustomModifiers.IsEmpty);
+                Debug.Assert(other.ElementTypeWithAnnotations.CustomModifiers.IsEmpty);
 
                 return type.HasSameShapeAs(other) &&
-                    AreTypesEqual(type.ElementType.TypeSymbol, other.ElementType.TypeSymbol);
+                    AreTypesEqual(type.ElementType, other.ElementType);
             }
 
             private bool AreEventsEqual(EventSymbol @event, EventSymbol other)
             {
                 Debug.Assert(StringOrdinalComparer.Equals(@event.Name, other.Name));
-                return _comparer.Equals(@event.Type.TypeSymbol, other.Type.TypeSymbol);
+                return _comparer.Equals(@event.Type, other.Type);
             }
 
             private bool AreFieldsEqual(FieldSymbol field, FieldSymbol other)
             {
                 Debug.Assert(StringOrdinalComparer.Equals(field.Name, other.Name));
-                return _comparer.Equals(field.Type.TypeSymbol, other.Type.TypeSymbol);
+                return _comparer.Equals(field.Type, other.Type);
             }
 
             private bool AreMethodsEqual(MethodSymbol method, MethodSymbol other)
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 method = SubstituteTypeParameters(method);
                 other = SubstituteTypeParameters(other);
 
-                return _comparer.Equals(method.ReturnType.TypeSymbol, other.ReturnType.TypeSymbol) &&
+                return _comparer.Equals(method.ReturnType, other.ReturnType) &&
                     method.RefKind.Equals(other.RefKind) &&
                     method.Parameters.SequenceEqual(other.Parameters, AreParametersEqual) &&
                     method.TypeParameters.SequenceEqual(other.TypeParameters, AreTypesEqual);
@@ -728,14 +728,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(StringOrdinalComparer.Equals(type.Name, other.Name));
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
-                Debug.Assert(type.TypeArgumentsNoUseSiteDiagnostics.All(t => t.CustomModifiers.IsEmpty));
-                Debug.Assert(other.TypeArgumentsNoUseSiteDiagnostics.All(t => t.CustomModifiers.IsEmpty));
+                Debug.Assert(type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.All(t => t.CustomModifiers.IsEmpty));
+                Debug.Assert(other.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.All(t => t.CustomModifiers.IsEmpty));
 
                 // Tuple types should be unwrapped to their underlying type before getting here (see MatchSymbols.VisitNamedType)
                 Debug.Assert(!type.IsTupleType);
                 Debug.Assert(!other.IsTupleType);
 
-                return type.TypeArgumentsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsNoUseSiteDiagnostics, AreTypesEqual);
+                return type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics, AreTypesEqual);
             }
 
             private bool AreParametersEqual(ParameterSymbol parameter, ParameterSymbol other)
@@ -743,22 +743,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(parameter.Ordinal == other.Ordinal);
                 return StringOrdinalComparer.Equals(parameter.MetadataName, other.MetadataName) &&
                     (parameter.RefKind == other.RefKind) &&
-                    _comparer.Equals(parameter.Type.TypeSymbol, other.Type.TypeSymbol);
+                    _comparer.Equals(parameter.Type, other.Type);
             }
 
             private bool ArePointerTypesEqual(PointerTypeSymbol type, PointerTypeSymbol other)
             {
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
-                Debug.Assert(type.PointedAtType.CustomModifiers.IsEmpty);
-                Debug.Assert(other.PointedAtType.CustomModifiers.IsEmpty);
+                Debug.Assert(type.PointedAtTypeWithAnnotations.CustomModifiers.IsEmpty);
+                Debug.Assert(other.PointedAtTypeWithAnnotations.CustomModifiers.IsEmpty);
 
-                return AreTypesEqual(type.PointedAtType.TypeSymbol, other.PointedAtType.TypeSymbol);
+                return AreTypesEqual(type.PointedAtType, other.PointedAtType);
             }
 
             private bool ArePropertiesEqual(PropertySymbol property, PropertySymbol other)
             {
                 Debug.Assert(StringOrdinalComparer.Equals(property.MetadataName, other.MetadataName));
-                return _comparer.Equals(property.Type.TypeSymbol, other.Type.TypeSymbol) &&
+                return _comparer.Equals(property.Type, other.Type) &&
                     property.RefKind.Equals(other.RefKind) &&
                     property.Parameters.SequenceEqual(other.Parameters, AreParametersEqual);
             }
@@ -778,11 +778,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return true;
             }
 
-            private bool AreTypesEqual(TypeSymbolWithAnnotations type, TypeSymbolWithAnnotations other)
+            private bool AreTypesEqual(TypeWithAnnotations type, TypeWithAnnotations other)
             {
                 Debug.Assert(type.CustomModifiers.IsDefaultOrEmpty);
                 Debug.Assert(other.CustomModifiers.IsDefaultOrEmpty);
-                return AreTypesEqual(type.TypeSymbol, other.TypeSymbol);
+                return AreTypesEqual(type.Type, other.Type);
             }
 
             private bool AreTypesEqual(TypeSymbol type, TypeSymbol other)
@@ -879,15 +879,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitArrayType(ArrayTypeSymbol symbol)
             {
-                var translatedElementType = (TypeSymbol)this.Visit(symbol.ElementType.TypeSymbol);
-                var translatedModifiers = VisitCustomModifiers(symbol.ElementType.CustomModifiers);
+                var translatedElementType = (TypeSymbol)this.Visit(symbol.ElementType);
+                var translatedModifiers = VisitCustomModifiers(symbol.ElementTypeWithAnnotations.CustomModifiers);
 
                 if (symbol.IsSZArray)
                 {
-                    return ArrayTypeSymbol.CreateSZArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, symbol.ElementType.WithTypeAndModifiers(translatedElementType, translatedModifiers));
+                    return ArrayTypeSymbol.CreateSZArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, symbol.ElementTypeWithAnnotations.WithTypeAndModifiers(translatedElementType, translatedModifiers));
                 }
 
-                return ArrayTypeSymbol.CreateMDArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, symbol.ElementType.WithTypeAndModifiers(translatedElementType, translatedModifiers), symbol.Rank, symbol.Sizes, symbol.LowerBounds);
+                return ArrayTypeSymbol.CreateMDArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, symbol.ElementTypeWithAnnotations.WithTypeAndModifiers(translatedElementType, translatedModifiers), symbol.Rank, symbol.Sizes, symbol.LowerBounds);
             }
 
             public override Symbol VisitDynamicType(DynamicTypeSymbol symbol)
@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if ((object)originalDef != type)
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => t.WithTypeAndModifiers((TypeSymbol)v.Visit(t.TypeSymbol),
+                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => t.WithTypeAndModifiers((TypeSymbol)v.Visit(t.Type),
                                                                                                                                                   v.VisitCustomModifiers(t.CustomModifiers)),
                                                                                                                  this);
 
@@ -928,9 +928,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitPointerType(PointerTypeSymbol symbol)
             {
-                var translatedPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType.TypeSymbol);
-                var translatedModifiers = VisitCustomModifiers(symbol.PointedAtType.CustomModifiers);
-                return new PointerTypeSymbol(symbol.PointedAtType.WithTypeAndModifiers(translatedPointedAtType, translatedModifiers));
+                var translatedPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType);
+                var translatedModifiers = VisitCustomModifiers(symbol.PointedAtTypeWithAnnotations.CustomModifiers);
+                return new PointerTypeSymbol(symbol.PointedAtTypeWithAnnotations.WithTypeAndModifiers(translatedPointedAtType, translatedModifiers));
             }
 
             public override Symbol VisitTypeParameter(TypeParameterSymbol symbol)

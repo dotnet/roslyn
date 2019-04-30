@@ -90,14 +90,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var newType = VisitType(local.Type.TypeSymbol);
-            if (TypeSymbol.Equals(newType, local.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
+            var newType = VisitType(local.Type);
+            if (TypeSymbol.Equals(newType, local.Type, TypeCompareKind.ConsiderEverything2))
             {
                 newLocal = local;
             }
             else
             {
-                newLocal = new TypeSubstitutedLocalSymbol(local, TypeSymbolWithAnnotations.Create(newType), CurrentMethod);
+                newLocal = new TypeSubstitutedLocalSymbol(local, TypeWithAnnotations.Create(newType), CurrentMethod);
                 localMap.Add(local, newLocal);
             }
 
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override TypeSymbol VisitType(TypeSymbol type)
         {
-            return TypeMap.SubstituteType(type).TypeSymbol;
+            return TypeMap.SubstituteType(type).Type;
         }
 
         public override BoundNode VisitMethodInfo(BoundMethodInfo node)
@@ -262,13 +262,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             //  for generic methods we need to construct the method to be actually called
             Debug.Assert(methodBeingCalled.IsGenericMethod);
-            var typeArgs = methodBeingCalled.TypeArguments;
+            var typeArgs = methodBeingCalled.TypeArgumentsWithAnnotations;
             Debug.Assert(typeArgs.Length == newMethod.Arity);
 
-            var visitedTypeArgs = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(typeArgs.Length);
+            var visitedTypeArgs = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArgs.Length);
             foreach (var typeArg in typeArgs)
             {
-                visitedTypeArgs.Add(typeArg.WithTypeAndModifiers(VisitType(typeArg.TypeSymbol), typeArg.CustomModifiers));
+                visitedTypeArgs.Add(typeArg.WithTypeAndModifiers(VisitType(typeArg.Type), typeArg.CustomModifiers));
             }
 
             return newMethod.Construct(visitedTypeArgs.ToImmutableAndFree());
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             LocalSymbol replacementLocal;
             if (this.localMap.TryGetValue(node.LocalSymbol, out replacementLocal))
             {
-                return new BoundLocal(node.Syntax, replacementLocal, node.ConstantValueOpt, replacementLocal.Type.TypeSymbol, node.HasErrors);
+                return new BoundLocal(node.Syntax, replacementLocal, node.ConstantValueOpt, replacementLocal.Type, node.HasErrors);
             }
 
             return base.VisitLocal(node);
@@ -515,11 +515,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)newType == oldType)
                 {
                     //  tuple type symbol was not rewritten
-                    return constructedFrom.ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArguments));
+                    return constructedFrom.ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArgumentsWithAnnotations));
                 }
 
                 Debug.Assert(newType.IsTupleType);
-                Debug.Assert(oldType.TupleElementTypes.Length == newType.TupleElementTypes.Length);
+                Debug.Assert(oldType.TupleElementTypesWithAnnotations.Length == newType.TupleElementTypesWithAnnotations.Length);
 
                 //  get a new method by position
                 var oldMembers = oldType.GetMembers();
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if ((object)constructedFrom == oldMembers[i])
                     {
-                        return ((MethodSymbol)newMembers[i]).ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArguments));
+                        return ((MethodSymbol)newMembers[i]).ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArgumentsWithAnnotations));
                     }
                 }
 
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //  Method of a regular type
                 return ((MethodSymbol)method.OriginalDefinition)
                     .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly())
-                    .ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArguments));
+                    .ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArgumentsWithAnnotations));
             }
         }
 
@@ -672,12 +672,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
             }
 
-            internal override TypeSymbol IteratorElementType
+            internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
             {
                 get
                 {
                     // BaseMethodWrapperSymbol should not be rewritten by the IteratorRewriter
-                    return null;
+                    return default;
                 }
             }
         }

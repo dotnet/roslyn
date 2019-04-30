@@ -180,6 +180,17 @@ Property P As Integer
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<ClassDeclaration>
+Property P As Integer
+    Get
+        Exit _ ' Test
+ |
+</ClassDeclaration>, "Property")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterIteratorTest() As Task
             Await VerifyRecommendationsContainAsync(<ClassDeclaration>Iterator |</ClassDeclaration>, "Property")
         End Function

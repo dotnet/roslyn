@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
 
-        protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
+        protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         protected abstract Task<SyntaxNode> UpdatePropertyAsync(
             Document propertyDocument, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,

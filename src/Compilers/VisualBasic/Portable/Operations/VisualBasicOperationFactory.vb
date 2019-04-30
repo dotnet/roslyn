@@ -590,7 +590,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Dim valueConversion = New Conversion(Conversions.Identity)
 
-            If boundBinaryConditionalExpression.Type <> boundBinaryConditionalExpression.TestExpression.Type Then
+            If Not TypeSymbol.Equals(boundBinaryConditionalExpression.Type, boundBinaryConditionalExpression.TestExpression.Type, TypeCompareKind.ConsiderEverything) Then
                 Dim convertedTestExpression As BoundExpression = boundBinaryConditionalExpression.ConvertedTestExpression
                 If convertedTestExpression IsNot Nothing Then
                     If convertedTestExpression.Kind = BoundKind.Conversion Then
@@ -676,7 +676,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Dim boundOperand = GetConversionOperand(boundConversionOrCast)
             If boundOperand.Syntax Is boundConversionOrCast.Syntax Then
-                If boundOperand.Kind = BoundKind.ConvertedTupleLiteral AndAlso boundOperand.Type = boundConversionOrCast.Type Then
+                If boundOperand.Kind = BoundKind.ConvertedTupleLiteral AndAlso TypeSymbol.Equals(boundOperand.Type, boundConversionOrCast.Type, TypeCompareKind.ConsiderEverything) Then
                     ' Erase this conversion, this is an artificial conversion added on top of BoundConvertedTupleLiteral
                     ' in Binder.ReclassifyTupleLiteral
                     Return Create(boundOperand)
@@ -926,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' does not match the type of the containing type.
             If (boundLateMemberAccess.ContainerTypeOpt IsNot Nothing AndAlso
                 (boundLateMemberAccess.ReceiverOpt Is Nothing OrElse
-                 boundLateMemberAccess.ContainerTypeOpt <> boundLateMemberAccess.ReceiverOpt.Type)) Then
+                 Not TypeSymbol.Equals(boundLateMemberAccess.ContainerTypeOpt, boundLateMemberAccess.ReceiverOpt.Type, TypeCompareKind.ConsiderEverything))) Then
                 containingType = boundLateMemberAccess.ContainerTypeOpt
             End If
             Dim syntax As SyntaxNode = boundLateMemberAccess.Syntax

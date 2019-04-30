@@ -2483,32 +2483,43 @@ class Program
     }
 }
 ";
+
+            var baseExpected = new[]
+            {
+                // (6,9): error CS0106: The modifier 'const' is not valid for this item
+                //         const void LocalConst()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
+                // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
+                //         readonly void LocalReadonly()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9),
+                // (15,9): error CS0106: The modifier 'volatile' is not valid for this item
+                //         volatile void LocalVolatile()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(15, 9)
+            };
+
+            var extra = new[]
+            {
+                // (9,9): error CS8652: The feature 'static local functions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static void LocalStatic()
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static local functions").WithLocation(9, 9),
+            };
+
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0106: The modifier 'const' is not valid for this item
-                //         const void LocalConst()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
-                // (9,9): error CS8370: Feature 'static local functions' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         static void LocalStatic()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "static").WithArguments("static local functions", "8.0").WithLocation(9, 9),
-                // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
-                //         readonly void LocalReadonly()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9),
-                // (15,9): error CS0106: The modifier 'volatile' is not valid for this item
-                //         volatile void LocalVolatile()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(15, 9));
+                baseExpected.Concat(extra).ToArray());
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault);
+            comp.VerifyDiagnostics(
+                baseExpected.Concat(extra).ToArray());
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (6,9): error CS0106: The modifier 'const' is not valid for this item
-                //         const void LocalConst()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
-                // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
-                //         readonly void LocalReadonly()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9),
-                // (15,9): error CS0106: The modifier 'volatile' is not valid for this item
-                //         volatile void LocalVolatile()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(15, 9));
+            comp.VerifyDiagnostics(baseExpected);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(baseExpected);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(baseExpected);
         }
 
         [Fact]
@@ -4476,91 +4487,6 @@ class Program
             // The conflict between the local function and the parameter is not reported,
             // for backwards compatibility.
             comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void ShadowNames_LambdaInsideLocalFunction_01()
-        {
-            var source =
-@"#pragma warning disable 0219
-#pragma warning disable 8321
-using System;
-class Program
-{
-    static void M()
-    {
-        void F1()
-        {
-            object x = null;
-            Action a1 = () => { int x = 0; };
-        }
-        void F2<T>()
-        {
-            Action a2 = () => { int T = 0; };
-        }
-    }
-}";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
-            verifyDiagnostics();
-
-            comp = CreateCompilation(source);
-            verifyDiagnostics();
-
-            void verifyDiagnostics()
-            {
-                comp.VerifyDiagnostics(
-                    // (11,37): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                    //             Action a1 = () => { int x = 0; };
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 37),
-                    // (15,37): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                    //             Action a2 = () => { int T = 0; };
-                    Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(15, 37));
-            }
-        }
-
-        [Fact]
-        public void ShadowNames_LambdaInsideLocalFunction_02()
-        {
-            var source =
-@"#pragma warning disable 0219
-#pragma warning disable 8321
-using System;
-class Program
-{
-    static void M<T>()
-    {
-        object x = null;
-        void F()
-        {
-            Action<int> a1 = (int x) =>
-            {
-                Action b1 = () => { int T = 0; };
-            };
-            Action a2 = () =>
-            {
-                int x = 0;
-                Action<int> b2 = (int T) => { };
-            };
-        }
-    }
-}";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(
-                // (11,35): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //             Action<int> a1 = (int x) =>
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(11, 35),
-                // (13,41): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //                 Action b1 = () => { int T = 0; };
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(13, 41),
-                // (17,21): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //                 int x = 0;
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(17, 21),
-                // (18,39): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                //                 Action<int> b2 = (int T) => { };
-                Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(18, 39));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics();

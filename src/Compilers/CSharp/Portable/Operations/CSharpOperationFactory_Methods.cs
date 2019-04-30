@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private static readonly IConvertibleConversion s_boxedIdentityConversion = Conversion.Identity;
 
-        private static Optional<object> ConvertToOptional(ConstantValue value)
+        internal static Optional<object> ConvertToOptional(ConstantValue value)
         {
             return value != null && !value.IsBad ? new Optional<object>(value.Value) : default(Optional<object>);
         }

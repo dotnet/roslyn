@@ -15,6 +15,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var reducedFrom = reducedMethod.ReducedFrom;
             CheckReducedExtensionMethod(reducedMethod, reducedFrom);
-            Assert.Equal(reducedMethod.CallsiteReducedFromMethod.Parameters[0].Type.TypeSymbol, reducedMethod.ReceiverType);
+            Assert.Equal(reducedMethod.CallsiteReducedFromMethod.Parameters[0].Type, reducedMethod.ReceiverType);
 
             var constructedFrom = reducedMethod.ConstructedFrom;
             CheckConstructedMethod(reducedMethod, constructedFrom);
@@ -285,6 +286,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
         {
+            // When nullable analysis does not require a feature flag, this can be removed so that we
+            // don't need to create an extra compilation
+            if (compilation.Feature("run-nullable-analysis") != "true")
+            {
+                compilation = compilation.WithAdditionalFeatures(("run-nullable-analysis", "true"));
+            }
+
             if (tree == null)
             {
                 foreach (var syntaxTree in compilation.SyntaxTrees)
@@ -305,36 +313,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var annotationsByMethod = allAnnotations.GroupBy(annotation => annotation.Expression.Ancestors().OfType<BaseMethodDeclarationSyntax>().First()).ToArray();
             foreach (var annotations in annotationsByMethod)
             {
-                var method = (MethodSymbol)model.GetDeclaredSymbol(annotations.Key);
-                var diagnostics = DiagnosticBag.GetInstance();
-                var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
-                var dictionary = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
-                NullableWalker.Analyze(
-                    compilation,
-                    method,
-                    block,
-                    diagnostics,
-                    callbackOpt: (BoundExpression expr, TypeSymbolWithAnnotations exprType) => dictionary[expr.Syntax] = exprType);
-                diagnostics.Free();
+                var methodSyntax = annotations.Key;
+                var method = model.GetDeclaredSymbol(methodSyntax);
+
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
-                var actualTypes = annotations.SelectAsArray(annotation => toDisplayString(annotation.Expression));
+                var actualTypes = annotations.SelectAsArray(annotation =>
+                    {
+                        var typeInfo = model.GetTypeInfo(annotation.Expression);
+                        Assert.NotEqual(CodeAnalysis.NullableAnnotation.NotApplicable, typeInfo.Nullability.Annotation);
+                        Assert.NotEqual(CodeAnalysis.NullableFlowState.NotApplicable, typeInfo.Nullability.FlowState);
+                        // https://github.com/dotnet/roslyn/issues/35035: After refactoring symboldisplay, we should be able to just call something like typeInfo.Type.ToDisplayString(typeInfo.Nullability.FlowState, TypeWithState.TestDisplayFormat)
+                        return TypeWithState.Create((TypeSymbol)typeInfo.Type, typeInfo.Nullability.FlowState.ToInternalFlowState()).ToTypeWithAnnotations().ToDisplayString(TypeWithAnnotations.TestDisplayFormat);
+                    });
                 // Consider reporting the correct source with annotations on mismatch.
                 AssertEx.Equal(expectedTypes, actualTypes, message: method.ToTestDisplayString());
-
-                foreach (var entry in dictionary.Values.Where(v => !v.IsNull))
-                {
-                    // Result types cannot have nested types that are unspeakables
-                    Assert.Null(entry.VisitType(typeOpt: null,
-                        typeWithAnnotationsPredicateOpt: (tswa, a, b) => !tswa.Equals(entry, TypeCompareKind.ConsiderEverything) && !tswa.NullableAnnotation.IsSpeakable(),
-                        typePredicateOpt: (ts, _, b) => false, arg: (object)null, canDigThroughNullable: true));
-                }
-
-                string toDisplayString(SyntaxNode syntaxOpt)
-                {
-                    return (syntaxOpt != null) && dictionary.TryGetValue(syntaxOpt, out var type) ?
-                        (type.IsNull ? "<null>" : type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat)) :
-                        null;
-                }
             }
 
             ImmutableArray<(ExpressionSyntax Expression, string Text)> getAnnotations()

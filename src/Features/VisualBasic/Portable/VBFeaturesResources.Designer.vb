@@ -1601,6 +1601,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Make &apos;{0}&apos; inheritable.
+        '''</summary>
+        Friend ReadOnly Property Make_0_inheritable() As String
+            Get
+                Return ResourceManager.GetString("Make_0_inheritable", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Make Async Function.
         '''</summary>
         Friend ReadOnly Property Make_Async_Function() As String

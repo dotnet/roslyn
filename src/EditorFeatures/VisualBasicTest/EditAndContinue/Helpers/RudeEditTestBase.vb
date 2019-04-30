@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim diagnostics = New List(Of RudeEditDiagnostic)()
 
             Dim oldHasStateMachineSuspensionPoint = False, newHasStateMachineSuspensionPoint = False
-            Dim match = Analyzer.ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)(), diagnostics, oldHasStateMachineSuspensionPoint, newHasStateMachineSuspensionPoint)
+            Dim match = Analyzer.GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)(), diagnostics, oldHasStateMachineSuspensionPoint, newHasStateMachineSuspensionPoint)
             Dim needsSyntaxMap = oldHasStateMachineSuspensionPoint AndAlso newHasStateMachineSuspensionPoint
 
             Assert.Equal(stateMachine <> StateMachineKind.None, needsSyntaxMap)

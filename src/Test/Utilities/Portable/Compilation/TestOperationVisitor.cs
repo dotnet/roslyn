@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)
         {
             Assert.Equal(OperationKind.VariableDeclaration, operation.Kind);
-            IEnumerable<IOperation> children = operation.Declarators;
+            IEnumerable<IOperation> children = operation.IgnoredDimensions.Concat(operation.Declarators);
             var initializer = operation.Initializer;
 
             if (initializer != null)
@@ -1151,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.Children);
         }
 
-        public override void VisitRecursivePattern(IRecursivePatternOperation operation)
+        internal override void VisitRecursivePattern(IRecursivePatternOperation operation)
         {
             Assert.Equal(OperationKind.RecursivePattern, operation.Kind);
             VisitPatternCommon(operation);
@@ -1186,25 +1186,38 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             foreach (var subpat in operation.PropertySubpatterns)
             {
-                var (symbol, pattern) = subpat;
-                switch (symbol)
-                {
-                    case null: // error case
-                        break;
-                    case IFieldSymbol field:
-                    case IPropertySymbol prop:
-                    case IErrorTypeSymbol error:
-                        break;
-                    default:
-                        Assert.True(false, $"Unexpected symbol {symbol}");
-                        break;
-                }
+                Assert.True(subpat is IPropertySubpatternOperation);
             }
 
             IEnumerable<IOperation> children = operation.DeconstructionSubpatterns.Cast<IOperation>();
-            children = children.Concat(operation.PropertySubpatterns.Select(x => x.Item2));
+            children = children.Concat(operation.PropertySubpatterns);
 
             AssertEx.Equal(children, operation.Children);
+        }
+
+        internal override void VisitPropertySubpattern(IPropertySubpatternOperation operation)
+        {
+            Assert.NotNull(operation.Pattern);
+            var children = new IOperation[] { operation.Member, operation.Pattern };
+            AssertEx.Equal(children, operation.Children);
+
+            if (operation.Member.Kind == OperationKind.Invalid)
+            {
+                return;
+            }
+
+            Assert.True(operation.Member is IMemberReferenceOperation);
+            var member = (IMemberReferenceOperation)operation.Member;
+            switch (member.Member)
+            {
+                case IFieldSymbol field:
+                case IPropertySymbol prop:
+                case IErrorTypeSymbol error:
+                    break;
+                case var symbol:
+                    Assert.True(false, $"Unexpected symbol {symbol}");
+                    break;
+            }
         }
 
         public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
@@ -1421,12 +1434,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.True(operation.Local.IsStatic);
         }
 
-        public override void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
-        {
-            Assert.Equal(OperationKind.FromEndIndex, operation.Kind);
-            Assert.Same(operation.Operand, operation.Children.Single());
-        }
-
         public override void VisitRangeOperation(IRangeOperation operation)
         {
             Assert.Equal(OperationKind.Range, operation.Kind);
@@ -1446,13 +1453,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             Assert.Equal(index, children.Length);
-        }
-
-        public override void VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation)
-        {
-            Assert.Equal(OperationKind.SuppressNullableWarning, operation.Kind);
-            Assert.NotNull(operation.Expression);
-            Assert.Same(operation.Expression, operation.Children.Single());
         }
 
         public override void VisitReDim(IReDimOperation operation)

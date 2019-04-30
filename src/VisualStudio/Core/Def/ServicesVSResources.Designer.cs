@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ServicesVSResources {
@@ -122,6 +122,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string _1_reference {
             get {
                 return ResourceManager.GetString("_1_reference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A new namespace will be created.
+        /// </summary>
+        internal static string A_new_namespace_will_be_created {
+            get {
+                return ResourceManager.GetString("A_new_namespace_will_be_created", resourceCulture);
             }
         }
         
@@ -607,6 +616,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Classifications.
+        /// </summary>
+        internal static string Classifications {
+            get {
+                return ResourceManager.GetString("Classifications", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Close.
         /// </summary>
         internal static string Close {
@@ -897,6 +915,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable nullable reference analysis IDE features.
+        /// </summary>
+        internal static string Enable_nullable_reference_analysis_IDE_features {
+            get {
+                return ResourceManager.GetString("Enable_nullable_reference_analysis_IDE_features", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to --- End of inner exception stack trace ---.
         /// </summary>
         internal static string End_of_inner_exception_stack {
@@ -1066,15 +1093,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Failed_to_create_document_in_miscellaneous_files_project {
             get {
                 return ResourceManager.GetString("Failed_to_create_document_in_miscellaneous_files_project", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Field preferences:.
-        /// </summary>
-        internal static string Field_preferences_colon {
-            get {
-                return ResourceManager.GetString("Field_preferences_colon", resourceCulture);
             }
         }
         
@@ -1434,11 +1452,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Live code analysis.
+        ///   Looks up a localized string similar to Live analysis.
         /// </summary>
-        internal static string Live_code_analysis {
+        internal static string Live_analysis {
             get {
-                return ResourceManager.GetString("Live_code_analysis", resourceCulture);
+                return ResourceManager.GetString("Live_analysis", resourceCulture);
             }
         }
         
@@ -1542,6 +1560,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifier preferences:.
+        /// </summary>
+        internal static string Modifier_preferences_colon {
+            get {
+                return ResourceManager.GetString("Modifier_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifiers (must match all).
         /// </summary>
         internal static string Modifiers_must_match_all {
@@ -1596,6 +1623,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move to Namespace.
+        /// </summary>
+        internal static string Move_to_namespace {
+            get {
+                return ResourceManager.GetString("Move_to_namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move up.
         /// </summary>
         internal static string Move_up {
@@ -1619,6 +1655,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Name_colon2 {
             get {
                 return ResourceManager.GetString("Name_colon2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Namespace.
+        /// </summary>
+        internal static string Namespace {
+            get {
+                return ResourceManager.GetString("Namespace", resourceCulture);
             }
         }
         
@@ -1930,15 +1975,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Perform editor _feature analysis in external process (experimental).
-        /// </summary>
-        internal static string Perform_editor_feature_analysis_in_external_process {
-            get {
-                return ResourceManager.GetString("Perform_editor_feature_analysis_in_external_process", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Pick members.
         /// </summary>
         internal static string Pick_members {
@@ -2119,11 +2155,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer readonly.
+        ///   Looks up a localized string similar to Prefer readonly fields.
         /// </summary>
-        internal static string Prefer_readonly {
+        internal static string Prefer_readonly_fields {
             get {
-                return ResourceManager.GetString("Prefer_readonly", resourceCulture);
+                return ResourceManager.GetString("Prefer_readonly_fields", resourceCulture);
             }
         }
         
@@ -2133,6 +2169,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_simple_default_expression {
             get {
                 return ResourceManager.GetString("Prefer_simple_default_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer simple &apos;using&apos; statement.
+        /// </summary>
+        internal static string Prefer_simple_using_statement {
+            get {
+                return ResourceManager.GetString("Prefer_simple_using_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer static local functions.
+        /// </summary>
+        internal static string Prefer_static_local_functions {
+            get {
+                return ResourceManager.GetString("Prefer_static_local_functions", resourceCulture);
             }
         }
         
@@ -2377,6 +2431,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename {0} to {1}.
+        /// </summary>
+        internal static string Rename_0_to_1 {
+            get {
+                return ResourceManager.GetString("Rename_0_to_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reorder.
         /// </summary>
         internal static string Reorder {
@@ -2512,7 +2575,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Select Dependents.
+        ///   Looks up a localized string similar to Select _Dependents.
         /// </summary>
         internal static string Select_Dependents {
             get {
@@ -2566,7 +2629,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Select Public.
+        ///   Looks up a localized string similar to Select _Public.
         /// </summary>
         internal static string Select_Public {
             get {
@@ -2598,6 +2661,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Severity_colon {
             get {
                 return ResourceManager.GetString("Severity_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show completion list.
+        /// </summary>
+        internal static string Show_completion_list {
+            get {
+                return ResourceManager.GetString("Show_completion_list", resourceCulture);
             }
         }
         
@@ -2782,6 +2854,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Target Namespace:.
+        /// </summary>
+        internal static string Target_Namespace_colon {
+            get {
+                return ResourceManager.GetString("Target_Namespace_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The analyzer assembly &apos;{0}&apos; has changed. Diagnostics may be incorrect until Visual Studio is restarted..
         /// </summary>
         internal static string The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted {
@@ -2820,11 +2901,29 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This is an invalid namespace.
+        /// </summary>
+        internal static string This_is_an_invalid_namespace {
+            get {
+                return ResourceManager.GetString("This_is_an_invalid_namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This item cannot be deleted because it is used by an existing Naming Rule..
         /// </summary>
         internal static string This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule {
             get {
                 return ResourceManager.GetString("This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This workspace does not support updating Visual Basic compilation options..
+        /// </summary>
+        internal static string This_workspace_does_not_support_updating_Visual_Basic_compilation_options {
+            get {
+                return ResourceManager.GetString("This_workspace_does_not_support_updating_Visual_Basic_compilation_options", resourceCulture);
             }
         }
         
@@ -3009,6 +3108,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Unused_value_is_explicitly_assigned_to_discard {
             get {
                 return ResourceManager.GetString("Unused_value_is_explicitly_assigned_to_discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use enhanced colors for C# and Basic.
+        /// </summary>
+        internal static string Use_enhanced_colors_for_C_and_Basic {
+            get {
+                return ResourceManager.GetString("Use_enhanced_colors_for_C_and_Basic", resourceCulture);
             }
         }
         

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, object argument)
         {
-            return new VariableDeclarationOperation(VisitArray(operation.Declarators), Visit(operation.Initializer), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new VariableDeclarationOperation(VisitArray(operation.Declarators), Visit(operation.Initializer), VisitArray(operation.IgnoredDimensions), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitConversion(IConversionOperation operation, object argument)
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
-        public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, object argument)
+        internal override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, object argument)
         {
             return new RecursivePatternOperation(
                 operation.InputType,
@@ -547,6 +547,16 @@ namespace Microsoft.CodeAnalysis.Operations
                 ((Operation)operation).OwningSemanticModel,
                 operation.Syntax,
                 operation.IsImplicit);
+        }
+
+        internal override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, object argument)
+        {
+            return new PropertySubpatternOperation(
+                semanticModel: ((Operation)operation).OwningSemanticModel,
+                operation.Syntax,
+                operation.IsImplicit,
+                Visit(operation.Member),
+                Visit(operation.Pattern));
         }
 
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, object argument)
@@ -625,19 +635,9 @@ namespace Microsoft.CodeAnalysis.Operations
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, object argument)
-        {
-            return new FromEndIndexOperation(operation.IsLifted, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol, operation.IsImplicit);
-        }
-
         public override IOperation VisitRangeOperation(IRangeOperation operation, object argument)
         {
             return new RangeOperation(operation.IsLifted, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.Method, operation.IsImplicit);
-        }
-
-        public override IOperation VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation, object argument)
-        {
-            return new SuppressNullableWarningOperation(((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, Visit(operation.Expression), operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitReDim(IReDimOperation operation, object argument)

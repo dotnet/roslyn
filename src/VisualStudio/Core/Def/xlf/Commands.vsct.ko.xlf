@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">없음</target>
+        <target state="translated">None</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|CommandName">

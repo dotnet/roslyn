@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LoweredDynamicOperation MakeDynamicMemberInvocation(
             string name,
             BoundExpression loweredReceiver,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
+            ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             ImmutableArray<BoundExpression> loweredArguments,
             ImmutableArray<string> argumentNames,
             ImmutableArray<RefKind> refKinds,
@@ -237,9 +237,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Literal(name),
 
                 // type arguments:
-                typeArguments.IsDefaultOrEmpty ?
+                typeArgumentsWithAnnotations.IsDefaultOrEmpty ?
                     _factory.Null(_factory.WellKnownArrayType(WellKnownType.System_Type)) :
-                    _factory.ArrayOrEmpty(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArguments)),
+                    _factory.ArrayOrEmpty(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArgumentsWithAnnotations)),
 
                 // context:
                 _factory.TypeofDynamicOperationContextType(),
@@ -650,13 +650,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var callSiteFieldAccess = _factory.Field(null, callSiteField);
             var callSiteArguments = GetCallSiteArguments(callSiteFieldAccess, loweredReceiver, loweredArguments, loweredRight);
 
-            var nullCallSite = _factory.Null(callSiteField.Type.TypeSymbol);
+            var nullCallSite = _factory.Null(callSiteField.Type);
 
             var siteInitialization = _factory.Conditional(
                 _factory.ObjectEqual(callSiteFieldAccess, nullCallSite),
                 _factory.AssignmentExpression(callSiteFieldAccess, _factory.Call(null, callSiteFactoryMethod, binderConstruction)),
                 nullCallSite,
-                callSiteField.Type.TypeSymbol);
+                callSiteField.Type);
 
             var siteInvocation = _factory.Call(
                 _factory.Field(callSiteFieldAccess, callSiteTargetField),

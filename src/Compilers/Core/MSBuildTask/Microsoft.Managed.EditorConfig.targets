@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <PropertyGroup>
+    <!-- Default this to false until the ".editorconfig in compiler" feature is no longer experimental.
+         At that point this PropertyGroup can simply be deleted. -->
+    <DiscoverEditorConfigFiles Condition="'$(DiscoverEditorConfigFiles)' == ''">false</DiscoverEditorConfigFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PotentialEditorConfigFiles Include="@(Compile->GetPathsOfAllDirectoriesAbove()->Combine('.editorconfig'))" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    <EditorConfigFiles Include="@(PotentialEditorConfigFiles->Exists())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+  </ItemGroup>
+  
+</Project>

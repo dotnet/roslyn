@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
 
             IntegrationTestServiceCommands.Initialize(this);
         }
