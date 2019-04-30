@@ -9,8 +9,10 @@ using TestResources.NetFX;
 
 namespace Test.Utilities
 {
-    internal static class AdditionalMetadataReferences
+    public static class AdditionalMetadataReferences
     {
+        public static readonly MetadataReference SystemComponentModelCompositionReference = MetadataReference.CreateFromFile(typeof(System.ComponentModel.Composition.ExportAttribute).Assembly.Location);
+        public static readonly MetadataReference SystemCompositionReference = MetadataReference.CreateFromFile(typeof(System.Composition.ExportAttribute).Assembly.Location);
         internal static readonly MetadataReference SystemXmlReference = MetadataReference.CreateFromFile(typeof(System.Xml.XmlDocument).Assembly.Location);
         internal static readonly MetadataReference SystemXmlDataReference = MetadataReference.CreateFromFile(typeof(System.Data.Rule).Assembly.Location);
         internal static readonly MetadataReference CSharpSymbolsReference = MetadataReference.CreateFromFile(typeof(CSharpCompilation).Assembly.Location);
