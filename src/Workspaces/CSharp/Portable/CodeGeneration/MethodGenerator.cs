@@ -202,38 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var returnTypeAttributes = method.GetReturnTypeAttributes();
 
-            if (method.ReturnType.IsReferenceType)
-            {
-                if (!(method.ReturnType is ITypeParameterSymbol returnTypeParameter) ||
-                    returnTypeParameter.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.NotAnnotated)
-                {
-                    var newAttributes = returnTypeAttributes.RemoveAll(IsAllowNullOrMaybeNullAttribute);
-                    if (newAttributes.Length != returnTypeAttributes.Length)
-                    {
-                        returnTypeAttributes = newAttributes;
-                        if (returnNullableAnnotation == NullableAnnotation.NotAnnotated)
-                        {
-                            returnNullableAnnotation = NullableAnnotation.Annotated;
-                        }
-                    }
-
-                    newAttributes = returnTypeAttributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
-                    if (newAttributes.Length != returnTypeAttributes.Length)
-                    {
-                        returnTypeAttributes = newAttributes;
-                        if (returnNullableAnnotation == NullableAnnotation.Annotated)
-                        {
-                            returnNullableAnnotation = NullableAnnotation.NotAnnotated;
-                        }
-                    }
-                }
-            }
-            else if (method.ReturnType.IsValueType)
-            {
-                returnTypeAttributes = method.ReturnNullableAnnotation == NullableAnnotation.Annotated
-                    ? returnTypeAttributes.RemoveAll(IsAllowNullOrMaybeNullAttribute)
-                    : returnTypeAttributes.RemoveAll(IsNullableFlowAnalysisAttribute);
-            }
+            AdjustNullableAnnotationByAttributes(method.ReturnType, ref returnTypeAttributes, ref returnNullableAnnotation, isParameter: false);
 
             attributes.AddRange(AttributeGenerator.GenerateAttributeLists(returnTypeAttributes, options, SyntaxFactory.Token(SyntaxKind.ReturnKeyword)));
 

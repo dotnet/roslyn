@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -21,6 +22,67 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class CSharpCodeGenerationHelpers
     {
+        public static void AdjustNullableAnnotationByAttributes(ITypeSymbol type, ref ImmutableArray<AttributeData> attributes, ref NullableAnnotation nullableAnnotation, bool isParameter)
+        {
+            if (type.IsReferenceType)
+            {
+                if (!(type is ITypeParameterSymbol typeParameter) ||
+                    typeParameter.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.NotAnnotated)
+                {
+                    // For [AllowNull]/[MaybeNull], add the nullable annotation.
+                    // ([AllowNull] string?) -> (string?)
+                    // ([AllowNull] string)  -> (string?)
+                    var newAttributes = attributes.RemoveAll(IsAllowNullOrMaybeNullAttribute);
+                    if (newAttributes.Length != attributes.Length)
+                    {
+                        attributes = newAttributes;
+                        if (nullableAnnotation == NullableAnnotation.NotAnnotated)
+                        {
+                            nullableAnnotation = NullableAnnotation.Annotated;
+                        }
+                    }
+
+                    if (isParameter)
+                    {
+                        // The compiler does not allow parameter nullabilities to differ.
+                        // - ([DisallowNull] string?) -> (string)
+                        // + ([DisallowNull] string?) -> ([DisallowNull] string?)
+                        // ([DisallowNull] string)  -> (string)
+                        if (nullableAnnotation == NullableAnnotation.NotAnnotated)
+                        {
+                            attributes = attributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
+                        }
+                    }
+                    else
+                    {
+                        // For [DisallowNull]/[NotNull], remove the nullable annotation.
+                        // ([DisallowNull] string?) -> (string)
+                        // ([DisallowNull] string)  -> (string)
+                        newAttributes = attributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
+                        if (newAttributes.Length != attributes.Length)
+                        {
+                            attributes = newAttributes;
+                            if (nullableAnnotation == NullableAnnotation.Annotated)
+                            {
+                                nullableAnnotation = NullableAnnotation.NotAnnotated;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (type.IsValueType)
+            {
+                // Nullable<T> and T are incompatible in signature. Don't change the nullable annotation.
+                // ([AllowNull] int?)    -> (int?)
+                // ([DisallowNull] int?) -> ([DisallowNull] int?)
+                // ([AllowNull] int)     -> (int)
+                // ([DisallowNull] int)  -> (int)
+                attributes = nullableAnnotation == NullableAnnotation.Annotated
+                    ? attributes.RemoveAll(IsAllowNullOrMaybeNullAttribute)
+                    : attributes.RemoveAll(IsNullableFlowAnalysisAttribute);
+            }
+        }
+
         public static TDeclarationSyntax ConditionallyAddFormattingAnnotationTo<TDeclarationSyntax>(
             TDeclarationSyntax result,
             SyntaxList<MemberDeclarationSyntax> members) where TDeclarationSyntax : MemberDeclarationSyntax

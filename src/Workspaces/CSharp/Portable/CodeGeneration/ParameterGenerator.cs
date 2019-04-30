@@ -8,10 +8,11 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-using Microsoft.CodeAnalysis.PooledObjects;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
+using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
@@ -154,33 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var attributes = parameter.GetAttributes();
 
-            if (parameter.Type.IsReferenceType)
-            {
-                if (!(parameter.Type is ITypeParameterSymbol parameterTypeParameter) ||
-                    parameterTypeParameter.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.NotAnnotated)
-                {
-                    var newAttributes = attributes.RemoveAll(IsAllowNullOrMaybeNullAttribute);
-                    if (newAttributes.Length != attributes.Length)
-                    {
-                        attributes = newAttributes;
-                        if (nullableAnnotation == NullableAnnotation.NotAnnotated)
-                        {
-                            nullableAnnotation = NullableAnnotation.Annotated;
-                        }
-                    }
-
-                    if (nullableAnnotation == NullableAnnotation.NotAnnotated)
-                    {
-                        attributes = attributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
-                    }
-                }
-            }
-            else if (parameter.Type.IsValueType)
-            {
-                attributes = parameter.NullableAnnotation == NullableAnnotation.Annotated
-                    ? attributes.RemoveAll(IsAllowNullOrMaybeNullAttribute)
-                    : attributes.RemoveAll(IsNullableFlowAnalysisAttribute);
-            }
+            AdjustNullableAnnotationByAttributes(parameter.Type, ref attributes, ref nullableAnnotation, isParameter: true);
 
             if (attributes.Length == 0)
             {
