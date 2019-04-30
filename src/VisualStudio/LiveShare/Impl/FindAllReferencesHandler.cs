@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 referenceGroup.Definition = await ProtocolConversions.DocumentSpanToLocationWithTextAsync(definition.SourceSpans.First(), text, cancellationToken).ConfigureAwait(false);
                 referenceGroup.DefinitionIcon = new ImageElement(definition.Tags.GetFirstGlyph().GetImageId());
 
-                var locationWithTexts = new List<LSP.LocationWithText>();
+                var locationWithTexts = new ArrayBuilder<LSP.LocationWithText>();
                 foreach (var reference in references)
                 {
                     var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(reference.SourceSpan, context.CancellationToken).ConfigureAwait(false);
@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                     locationWithTexts.Add(locationWithText);
                 }
 
-                referenceGroup.References = locationWithTexts.ToArray();
+                referenceGroup.References = locationWithTexts.ToArrayAndFree();
                 referenceGroups.Add(referenceGroup);
             }
 

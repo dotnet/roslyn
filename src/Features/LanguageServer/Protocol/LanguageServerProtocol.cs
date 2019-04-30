@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _requestHandlers = CreateMethodToHandlerMap(requestHandlers);
         }
 
-        private ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
+        private static ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
         {
             var requestHandlerDictionary = new Dictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>>();
             foreach (var lazyHandler in requestHandlers)
@@ -253,19 +252,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public async Task<LSP.InitializeResult> InitializeAsync(Solution solution, LSP.InitializeParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             return await ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Answers a preview code action request by returning the text edits for a specific code action.
-        /// </summary>
-        /// <param name="solution">the solution containing the document.</param>
-        /// <param name="request">the code action location and title to preview.</param>
-        /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>a list of text edits for the code action result.</returns>
-        public async Task<LSP.TextEdit[]> PreviewCodeActionsAsync(Solution solution, RunCodeActionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<RunCodeActionParams, LSP.TextEdit[]>(RoslynMethods.CodeActionPreviewName, solution, request, clientCapabilities, cancellationToken)
                 .ConfigureAwait(false);
         }
 

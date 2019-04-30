@@ -1,21 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    [Shared]
-    [ExportLspMethod(RoslynMethods.CodeActionPreviewName)]
-    internal class PreviewCodeActionsHandler : CodeActionsHandlerBase, IRequestHandler<RunCodeActionParams, LSP.TextEdit[]>
+    [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, RoslynMethods.CodeActionPreviewName)]
+    internal class PreviewCodeActionsHandler : CodeActionsHandlerBase, ILspRequestHandler<RunCodeActionParams, LSP.TextEdit[], Solution>
     {
         [ImportingConstructor]
         public PreviewCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService)
@@ -23,11 +26,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<LSP.TextEdit[]> HandleRequestAsync(Solution solution, RunCodeActionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public async Task<LSP.TextEdit[]> HandleAsync(RunCodeActionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             var edits = ArrayBuilder<LSP.TextEdit>.GetInstance();
-
+            var solution = requestContext.Context;
             var codeActions = await GetCodeActionsAsync(solution,
                                                         request.TextDocument.Uri,
                                                         request.Range,

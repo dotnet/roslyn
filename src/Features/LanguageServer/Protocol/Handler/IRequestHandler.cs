@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Top level type for LSP request handler.
     /// </summary>
-    interface IRequestHandler
+    internal interface IRequestHandler
     {
     }
 
-    interface IRequestHandler<RequestType, ResponseType> : IRequestHandler
+    internal interface IRequestHandler<RequestType, ResponseType> : IRequestHandler
     {
         Task<ResponseType> HandleRequestAsync(Solution solution, RequestType request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken);
     }

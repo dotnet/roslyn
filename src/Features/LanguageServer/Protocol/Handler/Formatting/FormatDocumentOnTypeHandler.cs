@@ -5,7 +5,9 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -17,16 +19,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentOnTypeFormattingParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            var edits = new List<TextEdit>();
+            var edits = new ArrayBuilder<TextEdit>();
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document != null)
             {
                 var formattingService = document.Project.LanguageServices.GetService<IEditorFormattingService>();
                 var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
+                if (string.IsNullOrEmpty(request.Character))
+                {
+                    return edits.ToArrayAndFree();
+                }
+
                 IList<TextChange> textChanges;
                 // Formatting on new lines must be handled differently.
-                if (request.Character == "\n")
+                if (SyntaxFacts.IsNewLine(request.Character[0]))
                 {
                     textChanges = await formattingService.GetFormattingChangesOnReturnAsync(document, position, cancellationToken).ConfigureAwait(false);
                 }
@@ -42,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
-            return edits.ToArray();
+            return edits.ToArrayAndFree();
         }
     }
 }

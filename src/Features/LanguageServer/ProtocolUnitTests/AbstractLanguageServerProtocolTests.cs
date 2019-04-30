@@ -4,11 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -219,16 +217,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 },
                 Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null
             };
-
-        // Private procted because RunCodeActionParams is internal.
-        private protected static RunCodeActionParams CreateRunCodeActionParams(LSP.Location location, string title)
-            => new RunCodeActionParams()
-            {
-                Range = location.Range,
-                TextDocument = CreateTextDocumentIdentifier(location.Uri),
-                Title = title
-            };
-
 
         /// <summary>
         /// Creates a solution with a document.

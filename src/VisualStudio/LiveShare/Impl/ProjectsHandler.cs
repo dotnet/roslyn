@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
@@ -19,11 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     {
         public async Task<CustomProtocol.Project[]> HandleAsync(object param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var projects = new List<CustomProtocol.Project>();
+            var projects = new ArrayBuilder<CustomProtocol.Project>();
             var solution = requestContext.Context;
             foreach (var project in solution.Projects)
             {
-                var externalUris = new List<Uri>();
+                var externalUris = new ArrayBuilder<Uri>();
                 foreach (var sourceFile in project.Documents)
                 {
                     var uri = new Uri(sourceFile.FilePath);
@@ -32,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                         externalUris.Add(uri);
                     }
                 }
-                await requestContext.ProtocolConverter.RegisterExternalFilesAsync(externalUris.ToArray()).ConfigureAwait(false);
+                await requestContext.ProtocolConverter.RegisterExternalFilesAsync(externalUris.ToArrayAndFree()).ConfigureAwait(false);
 
                 var lspProject = new CustomProtocol.Project
                 {
@@ -44,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 projects.Add(lspProject);
             }
 
-            return projects.ToArray();
+            return projects.ToArrayAndFree();
         }
     }
 }

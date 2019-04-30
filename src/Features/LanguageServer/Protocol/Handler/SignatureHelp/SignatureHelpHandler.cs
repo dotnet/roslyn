@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (items != null)
                 {
-                    var sigInfos = new List<LSP.SignatureInformation>();
+                    var sigInfos = new ArrayBuilder<LSP.SignatureInformation>();
 
                     foreach (var item in items.Items)
                     {
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         ActiveSignature = GetActiveSignature(items),
                         ActiveParameter = items.ArgumentIndex,
-                        Signatures = sigInfos.ToArray()
+                        Signatures = sigInfos.ToArrayAndFree()
                     };
 
                     return sigHelp;
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
         private ClassifiedTextElement GetSignatureClassifiedText(SignatureHelpItem item)
         {
-            var taggedTexts = new List<TaggedText>();
+            var taggedTexts = new ArrayBuilder<TaggedText>();
 
             taggedTexts.AddRange(item.PrefixDisplayParts);
 
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             taggedTexts.AddRange(item.SuffixDisplayParts);
             taggedTexts.AddRange(item.DescriptionParts);
 
-            return new ClassifiedTextElement(taggedTexts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
+            return new ClassifiedTextElement(taggedTexts.ToArrayAndFree().Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
         }
     }
 }

@@ -10,8 +10,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    // TODO - Use method name from VS language server package once updated.
-    [ExportLspMethod("textDocument/foldingRange")]
+    [ExportLspMethod(Methods.TextDocumentFoldingRangeName)]
     internal class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
         public async Task<FoldingRange[]> HandleRequestAsync(Solution solution, FoldingRangeParams request,

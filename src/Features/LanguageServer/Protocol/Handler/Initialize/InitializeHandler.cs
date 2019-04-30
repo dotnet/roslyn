@@ -11,31 +11,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(Methods.InitializeName)]
     internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeResult>
     {
-        public Task<InitializeResult> HandleRequestAsync(Solution solution, InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        private static readonly InitializeResult s_initializeResult = new InitializeResult
         {
-            var result = new InitializeResult
+            Capabilities = new ServerCapabilities
             {
-                Capabilities = new ServerCapabilities
-                {
-                    DefinitionProvider = true,
-                    ReferencesProvider = true,
-                    ImplementationProvider = true,
-                    CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
-                    HoverProvider = true,
-                    SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
-                    CodeActionProvider = true,
-                    DocumentSymbolProvider = true,
-                    WorkspaceSymbolProvider = true,
-                    DocumentFormattingProvider = true,
-                    DocumentRangeFormattingProvider = true,
-                    DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
-                    DocumentHighlightProvider = true,
-                    RenameProvider = true,
-                    ExecuteCommandProvider = new ExecuteCommandOptions()
-                }
-            };
+                DefinitionProvider = true,
+                ReferencesProvider = true,
+                ImplementationProvider = true,
+                CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
+                HoverProvider = true,
+                SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
+                CodeActionProvider = true,
+                DocumentSymbolProvider = true,
+                WorkspaceSymbolProvider = true,
+                DocumentFormattingProvider = true,
+                DocumentRangeFormattingProvider = true,
+                DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
+                DocumentHighlightProvider = true,
+                RenameProvider = true,
+                ExecuteCommandProvider = new ExecuteCommandOptions()
+            }
+        };
 
-            return Task.FromResult(result);
-        }
+        public Task<InitializeResult> HandleRequestAsync(Solution solution, InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => Task.FromResult(s_initializeResult);
     }
 }

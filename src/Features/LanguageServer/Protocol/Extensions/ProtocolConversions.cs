@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
@@ -14,6 +16,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal static class ProtocolConversions
     {
+        public static readonly Dictionary<string, LSP.CompletionItemKind> RoslynTagToCompletionItemKind = new Dictionary<string, LSP.CompletionItemKind>()
+        {
+            { WellKnownTags.Public, LSP.CompletionItemKind.Keyword },
+            { WellKnownTags.Protected, LSP.CompletionItemKind.Keyword },
+            { WellKnownTags.Private, LSP.CompletionItemKind.Keyword },
+            { WellKnownTags.Internal, LSP.CompletionItemKind.Keyword },
+            { WellKnownTags.File, LSP.CompletionItemKind.File },
+            { WellKnownTags.Project, LSP.CompletionItemKind.File },
+            { WellKnownTags.Folder, LSP.CompletionItemKind.Folder },
+            { WellKnownTags.Assembly, LSP.CompletionItemKind.File },
+            { WellKnownTags.Class, LSP.CompletionItemKind.Class },
+            { WellKnownTags.Constant, LSP.CompletionItemKind.Constant },
+            { WellKnownTags.Delegate, LSP.CompletionItemKind.Function },
+            { WellKnownTags.Enum, LSP.CompletionItemKind.Enum },
+            { WellKnownTags.EnumMember, LSP.CompletionItemKind.EnumMember },
+            { WellKnownTags.Event, LSP.CompletionItemKind.Event },
+            { WellKnownTags.ExtensionMethod, LSP.CompletionItemKind.Method },
+            { WellKnownTags.Field, LSP.CompletionItemKind.Field },
+            { WellKnownTags.Interface, LSP.CompletionItemKind.Interface },
+            { WellKnownTags.Intrinsic, LSP.CompletionItemKind.Text },
+            { WellKnownTags.Keyword, LSP.CompletionItemKind.Keyword },
+            { WellKnownTags.Label, LSP.CompletionItemKind.Text },
+            { WellKnownTags.Local, LSP.CompletionItemKind.Variable },
+            { WellKnownTags.Namespace, LSP.CompletionItemKind.Text },
+            { WellKnownTags.Method, LSP.CompletionItemKind.Method },
+            { WellKnownTags.Module, LSP.CompletionItemKind.Module },
+            { WellKnownTags.Operator, LSP.CompletionItemKind.Operator },
+            { WellKnownTags.Parameter, LSP.CompletionItemKind.Value },
+            { WellKnownTags.Property, LSP.CompletionItemKind.Property },
+            { WellKnownTags.RangeVariable, LSP.CompletionItemKind.Variable },
+            { WellKnownTags.Reference, LSP.CompletionItemKind.Reference },
+            { WellKnownTags.Structure, LSP.CompletionItemKind.Struct },
+            { WellKnownTags.TypeParameter, LSP.CompletionItemKind.TypeParameter },
+            { WellKnownTags.Snippet, LSP.CompletionItemKind.Snippet },
+            { WellKnownTags.Error, LSP.CompletionItemKind.Text },
+            { WellKnownTags.Warning, LSP.CompletionItemKind.Text },
+            { WellKnownTags.StatusInformation, LSP.CompletionItemKind.Text },
+            { WellKnownTags.AddReference, LSP.CompletionItemKind.Text },
+            { WellKnownTags.NuGet, LSP.CompletionItemKind.Text }
+        };
+
         public static LinePosition PositionToLinePosition(LSP.Position position)
         {
             return new LinePosition(position.Line, position.Character);

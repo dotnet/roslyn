@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 
@@ -55,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                     .GetProjectChanges()
                     .SelectMany(p => p.GetChangedDocuments());
 
-                var documentEdits = new List<TextDocumentEdit>();
+                var documentEdits = new ArrayBuilder<TextDocumentEdit>();
                 foreach (var docId in changedDocuments)
                 {
                     var oldDoc = solution.GetDocument(docId);
@@ -71,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                     documentEdits.Add(textDocumentEdit);
                 }
 
-                workspaceEdit = new WorkspaceEdit { DocumentChanges = documentEdits.ToArray() };
+                workspaceEdit = new WorkspaceEdit { DocumentChanges = documentEdits.ToArrayAndFree() };
             }
 
             return workspaceEdit;

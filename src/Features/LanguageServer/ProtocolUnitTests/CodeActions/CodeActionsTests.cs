@@ -83,7 +83,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                         CommandIdentifier = "Roslyn.RunCodeAction",
                         Arguments = new object[]
                         {
-                            CreateRunCodeActionParams(location, title)
+                            new RunCodeActionParams()
+                            {
+                                Range = location.Range,
+                                TextDocument = CreateTextDocumentIdentifier(location.Uri),
+                                Title = title
+                            }
                         }
                     }
                 }

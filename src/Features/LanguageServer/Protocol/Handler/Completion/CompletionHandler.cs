@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Tags;
 using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -60,21 +59,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             foreach (var tag in tags)
             {
-                if (Enum.TryParse<LSP.CompletionItemKind>(tag, out var kind))
+                if (ProtocolConversions.RoslynTagToCompletionItemKind.TryGetValue(tag, out var completionItemKind))
                 {
-                    return kind;
-                }
-                else if (tag == WellKnownTags.Local || tag == WellKnownTags.Parameter)
-                {
-                    return LSP.CompletionItemKind.Variable;
-                }
-                else if (tag == WellKnownTags.Structure)
-                {
-                    return LSP.CompletionItemKind.Struct;
-                }
-                else if (tag == WellKnownTags.Delegate)
-                {
-                    return LSP.CompletionItemKind.Function;
+                    return completionItemKind;
                 }
             }
 

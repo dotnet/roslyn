@@ -139,13 +139,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             static async Task<DocumentSymbol[]> GetChildrenAsync(IEnumerable<NavigationBarItem> items, Compilation compilation, SyntaxTree tree,
                 SourceText text, CancellationToken cancellationToken)
             {
-                var list = new List<DocumentSymbol>();
+                var list = new ArrayBuilder<DocumentSymbol>();
                 foreach (var item in items)
                 {
                     list.Add(await GetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false));
                 }
 
-                return list.ToArray();
+                return list.ToArrayAndFree();
             }
 
             static async Task<ISymbol> GetSymbolAsync(Location location, Compilation compilation, CancellationToken cancellationToken)

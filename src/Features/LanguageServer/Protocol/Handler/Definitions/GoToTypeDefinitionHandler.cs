@@ -9,8 +9,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    // TODO - Use method name from VS language server package once updated.
-    [ExportLspMethod("textDocument/typeDefinition")]
+    [ExportLspMethod(LSP.Methods.TextDocumentTypeDefinitionName)]
     internal class GoToTypeDefinitionHandler : GoToDefinitionHandlerBase, IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
         [ImportingConstructor]

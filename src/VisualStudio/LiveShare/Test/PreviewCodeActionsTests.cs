@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
-    public class PreviewCodeActionsTests : AbstractLanguageServerProtocolTests
+    public class PreviewCodeActionsTests : AbstractLiveShareRequestHandlerTests
     {
         [Fact]
         public async Task TestPreviewCodeActionsAsync()
@@ -24,12 +24,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var (solution, locations) = CreateTestSolution(markup);
             var expected = CreateTextEdit("var", locations["edit"].First().Range);
 
-            var results = await RunPreviewCodeActionsAsync(solution, locations["caret"].First(), "Use implicit type");
+            var results = await TestHandleAsync<RunCodeActionParams, LSP.TextEdit[]>(solution, CreateRunCodeActionParams(locations["caret"].First(), "Use implicit type"));
             AssertCollectionsEqual(new LSP.TextEdit[] { expected }, results, AssertTextEditsEqual);
         }
 
-        private static async Task<LSP.TextEdit[]> RunPreviewCodeActionsAsync(Solution solution, LSP.Location caret, string title)
-            => await GetLanguageServer(solution).PreviewCodeActionsAsync(solution, CreateRunCodeActionParams(caret, title), new LSP.ClientCapabilities(), CancellationToken.None);
+        private static RunCodeActionParams CreateRunCodeActionParams(LSP.Location location, string title)
+            => new RunCodeActionParams()
+            {
+                Range = location.Range,
+                TextDocument = CreateTextDocumentIdentifier(location.Uri),
+                Title = title
+            };
 
         private static LSP.TextEdit CreateTextEdit(string text, LSP.Range range)
             => new LSP.TextEdit()
