@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// A collection of type parameter constraints, populated when
         /// constraints for the first type parameter are requested.
-        /// Initialized in two steps. Hold a copy if accessing during initialization.
         /// </summary>
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
 
@@ -230,31 +229,14 @@ next:;
 
         /// <summary>
         /// Returns the constraint clause for the given type parameter.
-        /// The `early` parameter indicates whether the clauses can be from the first phase of constraint
-        /// checking where the constraint types may still contain invalid or duplicate types.
         /// </summary>
-        internal TypeParameterConstraintClause GetTypeParameterConstraintClause(bool early, int ordinal)
+        internal TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
         {
             var clauses = _lazyTypeParameterConstraints;
             if (clauses.IsDefault)
             {
-                // Early step.
                 var diagnostics = DiagnosticBag.GetInstance();
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraintsEarly(diagnostics)))
-                {
-                    this.AddDeclarationDiagnostics(diagnostics);
-                }
-                diagnostics.Free();
-                clauses = _lazyTypeParameterConstraints;
-            }
-
-            if (!early && clauses.IsEarly())
-            {
-                // Late step.
-                var diagnostics = DiagnosticBag.GetInstance();
-                var constraints = MakeTypeParameterConstraintsLate(clauses, diagnostics);
-                Debug.Assert(!constraints.IsEarly());
-                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, clauses) == clauses)
+                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
@@ -265,7 +247,7 @@ next:;
             return (clauses.Length > 0) ? clauses[ordinal] : TypeParameterConstraintClause.Empty;
         }
 
-        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraintsEarly(DiagnosticBag diagnostics)
+        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(DiagnosticBag diagnostics)
         {
             var typeParameters = this.TypeParameters;
             var results = ImmutableArray<TypeParameterConstraintClause>.Empty;
@@ -283,6 +265,9 @@ next:;
                         break;
                     }
                 }
+
+                SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
+                ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>> otherPartialClauses = null;
 
                 foreach (var decl in declaration.Declarations)
                 {
@@ -313,7 +298,7 @@ next:;
                         Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
                         binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
 
-                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, diagnostics);
+                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, ref isValueTypeOverride, diagnostics);
                     }
 
                     Debug.Assert(constraints.Length == arity);
@@ -324,34 +309,18 @@ next:;
                     }
                     else
                     {
-                        // Merge in the other partial declaration constraints so all
-                        // partial declarations can be checked in late step.
-                        results = results.ZipAsArray(constraints, (x, y) => x.AddPartialDeclaration(y));
+                        (otherPartialClauses ??= ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>>.GetInstance()).Add(constraints);
                     }
                 }
+
+                results = MergeConstraintsForPartialDeclarations(results, otherPartialClauses, isValueTypeOverride, diagnostics);
 
                 if (results.ContainsOnlyEmptyConstraintClauses())
                 {
                     results = ImmutableArray<TypeParameterConstraintClause>.Empty;
                 }
-            }
 
-            return results;
-        }
-
-        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraintsLate(
-            ImmutableArray<TypeParameterConstraintClause> constraintClauses,
-            DiagnosticBag diagnostics)
-        {
-            Debug.Assert(constraintClauses.IsEarly());
-
-            ImmutableArray<TypeParameterConstraintClause> results = MergeConstraintsForPartialDeclarations(constraintClauses, diagnostics);
-
-            results = ConstraintsHelper.MakeTypeParameterConstraintsLate(TypeParameters, results, diagnostics);
-
-            if (results.ContainsOnlyEmptyConstraintClauses())
-            {
-                results = ImmutableArray<TypeParameterConstraintClause>.Empty;
+                otherPartialClauses?.Free();
             }
 
             return results;
@@ -379,8 +348,16 @@ next:;
         /// <summary>
         /// Note, only nullability aspects are merged if possible, other mismatches are treated as failures.
         /// </summary>
-        private ImmutableArray<TypeParameterConstraintClause> MergeConstraintsForPartialDeclarations(ImmutableArray<TypeParameterConstraintClause> constraintClauses, DiagnosticBag diagnostics)
+        private ImmutableArray<TypeParameterConstraintClause> MergeConstraintsForPartialDeclarations(ImmutableArray<TypeParameterConstraintClause> constraintClauses,
+                                                                                                     ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>> otherPartialClauses,
+                                                                                                     SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverride,
+                                                                                                     DiagnosticBag diagnostics)
         {
+            if (otherPartialClauses == null)
+            {
+                return constraintClauses;
+            }
+
             ArrayBuilder<TypeParameterConstraintClause> builder = null;
             var typeParameters = TypeParameters;
             int arity = typeParameters.Length;
@@ -391,11 +368,6 @@ next:;
             {
                 var constraint = constraintClauses[i];
 
-                if (constraint.OtherPartialDeclarations.IsEmpty)
-                {
-                    continue;
-                }
-
                 TypeParameterConstraintKind mergedKind = constraint.Constraints;
                 ImmutableArray<TypeWithAnnotations> originalConstraintTypes = constraint.ConstraintTypes;
                 ArrayBuilder<TypeWithAnnotations> mergedConstraintTypes = null;
@@ -403,13 +375,19 @@ next:;
 
                 // Constraints defined on multiple partial declarations.
                 // Report any mismatched constraints.
-                foreach (var other in constraint.OtherPartialDeclarations)
+                bool report = false;
+                foreach (ImmutableArray<TypeParameterConstraintClause> otherPartialConstraints in otherPartialClauses)
                 {
-                    if (!mergeConstraints(ref mergedKind, originalConstraintTypes, ref originalConstraintTypesMap, ref mergedConstraintTypes, other))
+                    if (!mergeConstraints(ref mergedKind, originalConstraintTypes, ref originalConstraintTypesMap, ref mergedConstraintTypes, otherPartialConstraints[i], isValueTypeOverride))
                     {
-                        // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
-                        diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
+                        report = true;
                     }
+                }
+
+                if (report)
+                {
+                    // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
+                    diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
                 }
 
                 if (constraint.Constraints != mergedKind || mergedConstraintTypes != null)
@@ -426,7 +404,7 @@ next:;
 
                         for (int j = 0; j < originalConstraintTypes.Length; j++)
                         {
-                            Debug.Assert(TypeWithAnnotations.EqualsComparer.UnknownNullableModifierMatchesAnyComparer.Equals(originalConstraintTypes[j], mergedConstraintTypes[j]));
+                            Debug.Assert(originalConstraintTypes[j].Equals(mergedConstraintTypes[j], TypeCompareKind.UnknownNullableModifierMatchesAny, isValueTypeOverride));
                         }
                     }
 #endif
@@ -437,8 +415,7 @@ next:;
                     }
 
                     builder[i] = TypeParameterConstraintClause.Create(mergedKind,
-                                                                      mergedConstraintTypes?.ToImmutableAndFree() ?? originalConstraintTypes,
-                                                                      constraint.TypeConstraintsSyntax);
+                                                                      mergedConstraintTypes?.ToImmutableAndFree() ?? originalConstraintTypes);
                 }
             }
 
@@ -451,7 +428,7 @@ next:;
 
             static bool mergeConstraints(ref TypeParameterConstraintKind mergedKind, ImmutableArray<TypeWithAnnotations> originalConstraintTypes,
                                          ref SmallDictionary<TypeWithAnnotations, int> originalConstraintTypesMap, ref ArrayBuilder<TypeWithAnnotations> mergedConstraintTypes,
-                                         TypeParameterConstraintClause clause)
+                                         TypeParameterConstraintClause clause, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverride)
             {
                 bool result = true;
 
@@ -503,8 +480,9 @@ next:;
                     return false;
                 }
 
-                originalConstraintTypesMap ??= toDictionary(originalConstraintTypes);
-                SmallDictionary<TypeWithAnnotations, int> clauseConstraintTypesMap = toDictionary(clause.ConstraintTypes);
+                originalConstraintTypesMap ??= toDictionary(originalConstraintTypes,
+                                                            new TypeWithAnnotations.EqualsComparer(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes, isValueTypeOverride));
+                SmallDictionary<TypeWithAnnotations, int> clauseConstraintTypesMap = toDictionary(clause.ConstraintTypes, originalConstraintTypesMap.Comparer);
 
                 foreach (int index1 in originalConstraintTypesMap.Values)
                 {
@@ -520,14 +498,14 @@ next:;
 
                     TypeWithAnnotations constraintType2 = clause.ConstraintTypes[index2];
 
-                    if (!TypeWithAnnotations.EqualsComparer.UnknownNullableModifierMatchesAnyComparer.Equals(constraintType1, constraintType2))
+                    if (!constraintType1.Equals(constraintType2, TypeCompareKind.UnknownNullableModifierMatchesAny, isValueTypeOverride))
                     {
                         // Nullability mismatch that doesn't involve oblivious
                         result = false;
                         continue;
                     }
 
-                    if (!TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer.Equals(constraintType1, constraintType2))
+                    if (!constraintType1.Equals(constraintType2, TypeCompareKind.ConsiderEverything, isValueTypeOverride))
                     {
                         // Mismatch with oblivious, merge
                         if (mergedConstraintTypes == null)
@@ -552,9 +530,9 @@ next:;
                 return result;
             }
 
-            static SmallDictionary<TypeWithAnnotations, int> toDictionary(ImmutableArray<TypeWithAnnotations> constraintTypes)
+            static SmallDictionary<TypeWithAnnotations, int> toDictionary(ImmutableArray<TypeWithAnnotations> constraintTypes, IEqualityComparer<TypeWithAnnotations> comparer)
             {
-                var result = new SmallDictionary<TypeWithAnnotations, int>(TypeWithAnnotations.EqualsComparer.IgnoreNullableModifiersForReferenceTypesComparer);
+                var result = new SmallDictionary<TypeWithAnnotations, int>(comparer);
 
                 for (int i = constraintTypes.Length - 1; i >= 0; i--)
                 {

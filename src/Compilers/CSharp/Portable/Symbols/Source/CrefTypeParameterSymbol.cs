@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -87,8 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _ordinal; }
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
+            Debug.Assert(isValueTypeOverrideOpt == null);
+
             if (ReferenceEquals(this, t2))
             {
                 return true;
@@ -167,11 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool early)
+        internal override void EnsureAllConstraintsAreResolved()
         {
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
             return ImmutableArray<TypeWithAnnotations>.Empty;
         }

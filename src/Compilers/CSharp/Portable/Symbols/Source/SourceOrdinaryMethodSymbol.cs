@@ -228,8 +228,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Binder.CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_OverrideWithConstraints, diagnostics,
                                                     syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
 
+                    SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
                     declaredConstraints = signatureBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks).
                                               BindTypeParameterConstraintClauses(this, _typeParameters, syntax.TypeParameterList, syntax.ConstraintClauses,
+                                                                                 ref isValueTypeOverride,
                                                                                  diagnostics, isForOverride: true);
                 }
 
@@ -567,19 +569,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
         {
-            var clauses = _lazyTypeParameterConstraints;
-            if (clauses.IsDefault)
+            if (_lazyTypeParameterConstraints.IsDefault)
             {
-                // Early step.
                 var diagnostics = DiagnosticBag.GetInstance();
                 var syntax = GetSyntax();
                 var withTypeParametersBinder =
                     this.DeclaringCompilation
                     .GetBinderFactory(syntax.SyntaxTree)
                     .GetBinder(syntax.ReturnType, syntax, this);
-                var constraints = this.MakeTypeParameterConstraintsEarly(
+                var constraints = this.MakeTypeParameterConstraints(
                     withTypeParametersBinder,
                     TypeParameters,
                     syntax.TypeParameterList,
@@ -587,20 +587,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.Identifier.GetLocation(),
                     diagnostics);
                 if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, constraints))
-                {
-                    this.AddDeclarationDiagnostics(diagnostics);
-                }
-                diagnostics.Free();
-                clauses = _lazyTypeParameterConstraints;
-            }
-
-            if (!early && clauses.IsEarly())
-            {
-                // Late step.
-                var diagnostics = DiagnosticBag.GetInstance();
-                var constraints = ConstraintsHelper.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
-                Debug.Assert(!constraints.IsEarly());
-                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, clauses) == clauses)
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }

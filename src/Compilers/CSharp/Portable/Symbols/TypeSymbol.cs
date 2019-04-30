@@ -128,9 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer =
                                                                   new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
-        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableComparer =
-                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.AllNullableIgnoreOptions));
-
         internal static readonly EqualityComparer<TypeSymbol> EqualsCLRSignatureComparer = new TypeSymbolComparer(TypeCompareKind.CLRSignatureCompareOptions);
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -300,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// You can ignore custom modifiers, ignore the distinction between object and dynamic, or ignore tuple element names differences.
         /// </param>
         /// <returns>True if the types are equivalent.</returns>
-        internal virtual bool Equals(TypeSymbol t2, TypeCompareKind compareKind = TypeCompareKind.ConsiderEverything)
+        internal virtual bool Equals(TypeSymbol t2, TypeCompareKind compareKind, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             return ReferenceEquals(this, t2);
         }
@@ -1915,14 +1912,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public static bool Equals(TypeSymbol left, TypeSymbol right, TypeCompareKind comparison)
+        public static bool Equals(TypeSymbol left, TypeSymbol right, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             if (left is null)
             {
                 return right is null;
             }
 
-            return left.Equals(right, comparison);
+            return left.Equals(right, comparison, isValueTypeOverrideOpt);
         }
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]

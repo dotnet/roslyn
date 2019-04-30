@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // These object are unique (per index).
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             return ReferenceEquals(this, t2);
         }
@@ -166,11 +166,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool early)
+        internal override void EnsureAllConstraintsAreResolved()
         {
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
             return ImmutableArray<TypeWithAnnotations>.Empty;
         }

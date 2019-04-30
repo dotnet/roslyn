@@ -90,8 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
+            Debug.Assert(isValueTypeOverrideOpt == null);
+
             if ((object)t2 == (object)this)
             {
                 return true;

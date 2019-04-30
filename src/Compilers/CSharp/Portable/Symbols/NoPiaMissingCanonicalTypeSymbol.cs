@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             return ReferenceEquals(this, t2);
         }

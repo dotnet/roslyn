@@ -62480,9 +62480,6 @@ partial interface I1<TF1> where TF1 : object?, new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (7,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 39),
@@ -62493,7 +62490,7 @@ partial interface I1<TF1> where TF1 : object?, new()
 
             i1 = comp2.GlobalNamespace.GetTypeMember("I1");
             tf1 = i1.TypeParameters[0];
-            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.False(tf1.IsNotNullableIfReferenceType);
             Assert.True(tf1.HasConstructorConstraint);
 
             var source3 =
@@ -62510,9 +62507,6 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (7,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 44),
@@ -62523,7 +62517,7 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
 
             i1 = comp3.GlobalNamespace.GetTypeMember("I1");
             tf1 = i1.TypeParameters[0];
-            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.False(tf1.IsNotNullableIfReferenceType);
 
             TypeParameterSymbol tf2 = i1.TypeParameters[1];
             Assert.Null(tf2.IsNotNullableIfReferenceType);
@@ -62570,9 +62564,6 @@ partial interface I1<TF1> where TF1 : object?, new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (7,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 39)
@@ -62597,9 +62588,6 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (7,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 44)
@@ -62657,9 +62645,6 @@ partial interface I1<TF1> where TF1 : object?, new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (8,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 39)
@@ -62667,7 +62652,7 @@ partial interface I1<TF1> where TF1 : object?, new()
 
             i1 = comp2.GlobalNamespace.GetTypeMember("I1");
             tf1 = i1.TypeParameters[0];
-            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.False(tf1.IsNotNullableIfReferenceType);
             Assert.True(tf1.HasConstructorConstraint);
 
             var source3 =
@@ -62685,9 +62670,6 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (8,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 44)
@@ -62695,7 +62677,7 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
 
             i1 = comp3.GlobalNamespace.GetTypeMember("I1");
             tf1 = i1.TypeParameters[0];
-            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.False(tf1.IsNotNullableIfReferenceType);
 
             TypeParameterSymbol tf2 = i1.TypeParameters[1];
             Assert.False(tf2.IsNotNullableIfReferenceType);
@@ -62748,9 +62730,6 @@ partial interface I1<TF1> where TF1 : object?, new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (8,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 39),
@@ -62779,9 +62758,6 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (8,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 44),
@@ -62842,9 +62818,6 @@ partial interface I1<TF1> where TF1 : new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (3,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39),
@@ -62872,9 +62845,6 @@ partial interface I1<TF1, TF2> where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (3,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44),
@@ -62932,9 +62902,6 @@ partial interface I1<TF1> where TF1 : new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (3,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39)
@@ -62959,9 +62926,6 @@ partial interface I1<TF1, TF2> where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (3,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44)
@@ -63022,9 +62986,6 @@ partial interface I1<TF1> where TF1 : new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (3,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39),
@@ -63053,9 +63014,6 @@ partial interface I1<TF1, TF2> where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (3,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44),
@@ -63118,9 +63076,6 @@ partial interface I1<TF1> where TF1 : new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (3,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39)
@@ -63147,9 +63102,6 @@ partial interface I1<TF1, TF2> where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (3,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44)
@@ -66611,9 +66563,15 @@ class C
                 // (15,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static U?[] F1<T, U>() where U : T => throw null!; // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?").WithLocation(15, 12),
+                // (17,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     static U?[] F3<T, U>() where T : struct where U : T => throw null!;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?").WithLocation(17, 12),
                 // (17,23): error CS0456: Type parameter 'T' has the 'struct' constraint so 'T' cannot be used as a constraint for 'U'
                 //     static U?[] F3<T, U>() where T : struct where U : T => throw null!;
                 Diagnostic(ErrorCode.ERR_ConWithValCon, "U").WithArguments("U", "T").WithLocation(17, 23),
+                // (19,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     static U?[] F5<T, U>() where T : unmanaged where U : T => throw null!;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?").WithLocation(19, 12),
                 // (19,23): error CS8379: Type parameter 'T' has the 'unmanaged' constraint so 'T' cannot be used as a constraint for 'U'
                 //     static U?[] F5<T, U>() where T : unmanaged where U : T => throw null!;
                 Diagnostic(ErrorCode.ERR_ConWithUnmanagedCon, "U").WithArguments("U", "T").WithLocation(19, 23),

@@ -454,14 +454,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
         {
-            var clauses = _lazyTypeParameterConstraints;
-            if (clauses.IsDefault)
+            if (_lazyTypeParameterConstraints.IsDefault)
             {
-                // Early step.
                 var diagnostics = DiagnosticBag.GetInstance();
-                var constraints = this.MakeTypeParameterConstraintsEarly(
+                var constraints = this.MakeTypeParameterConstraints(
                     _binder,
                     TypeParameters,
                     _syntax.TypeParameterList,
@@ -471,24 +469,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 lock (_declarationDiagnostics)
                 {
                     if (_lazyTypeParameterConstraints.IsDefault)
-                    {
-                        _declarationDiagnostics.AddRange(diagnostics);
-                        _lazyTypeParameterConstraints = constraints;
-                    }
-                }
-                diagnostics.Free();
-                clauses = _lazyTypeParameterConstraints;
-            }
-
-            if (!early && clauses.IsEarly())
-            {
-                // Late step.
-                var diagnostics = DiagnosticBag.GetInstance();
-                var constraints = ConstraintsHelper.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
-                Debug.Assert(!constraints.IsEarly());
-                lock (_declarationDiagnostics)
-                {
-                    if (_lazyTypeParameterConstraints.IsEarly())
                     {
                         _declarationDiagnostics.AddRange(diagnostics);
                         _lazyTypeParameterConstraints = constraints;
