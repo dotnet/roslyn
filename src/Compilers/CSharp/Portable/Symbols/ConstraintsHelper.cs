@@ -1150,12 +1150,12 @@ hasRelatedInterfaces:
 
         private static bool IsReferenceType(TypeParameterSymbol typeParameter, ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
-            return typeParameter.HasReferenceTypeConstraint || typeParameter.IsReferenceTypeFromConstraintTypes(constraintTypes, ConsList<TypeParameterSymbol>.Empty);
+            return typeParameter.HasReferenceTypeConstraint || typeParameter.IsReferenceTypeFromConstraintTypes(constraintTypes);
         }
 
         private static bool IsValueType(TypeParameterSymbol typeParameter, ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
-            return typeParameter.HasValueTypeConstraint || typeParameter.IsValueTypeFromConstraintTypes(constraintTypes, ConsList<TypeParameterSymbol>.Empty);
+            return typeParameter.HasValueTypeConstraint || typeParameter.IsValueTypeFromConstraintTypes(constraintTypes);
         }
 
         private static TypeParameterDiagnosticInfo GenerateConflictingConstraintsError(TypeParameterSymbol typeParameter, TypeSymbol deducedBase, bool classConflict)
