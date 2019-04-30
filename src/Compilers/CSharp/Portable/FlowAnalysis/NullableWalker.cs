@@ -321,7 +321,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var variableBySlot = initialState.VariableBySlot;
                 nextVariableSlot = variableBySlot.Length;
+#pragma warning disable 8619
                 foreach (var (variable, slot) in initialState.VariableSlot)
+#pragma warning enable 8619
                 {
                     Debug.Assert(slot < nextVariableSlot);
                     _variableSlot.Add(variable, slot);
@@ -4424,11 +4426,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var operandTypeArg = GetTypeAsDiagnosticArgument(operandType.Type);
                     if (assignmentKind == AssignmentKind.Argument)
                     {
-                        ReportNullabilityMismatchInArgument(location, operandType.Type, target!, targetType, forOutput: false);
+                        ReportNullabilityMismatchInArgument(location, operandTypeArg, target!, targetType, forOutput: false);
                     }
                     else
                     {
-                        ReportNullabilityMismatchInAssignment(location, GetTypeAsDiagnosticArgument(operandType.Type), targetType);
+                        ReportNullabilityMismatchInAssignment(location, operandTypeArg, targetType);
                     }
                 }
             }
@@ -5203,12 +5205,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Report warning passing argument where nested nullability does not match
         /// parameter (e.g.: calling `void F(object[] o)` with `F(new[] { maybeNull })`).
         /// </summary>
-        private void ReportNullabilityMismatchInArgument(SyntaxNode argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType, bool forOutput)
+        private void ReportNullabilityMismatchInArgument(SyntaxNode argument, object argumentType, ParameterSymbol parameter, TypeSymbol parameterType, bool forOutput)
         {
             ReportNullabilityMismatchInArgument(argument.GetLocation(), argumentType, parameter, parameterType, forOutput);
         }
 
-        private void ReportNullabilityMismatchInArgument(Location argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType, bool forOutput)
+        private void ReportNullabilityMismatchInArgument(Location argument, object argumentType, ParameterSymbol parameter, TypeSymbol parameterType, bool forOutput)
         {
             ReportSafetyDiagnostic(forOutput ? ErrorCode.WRN_NullabilityMismatchInArgumentForOutput : ErrorCode.WRN_NullabilityMismatchInArgument,
                 argument, argumentType, parameterType,
