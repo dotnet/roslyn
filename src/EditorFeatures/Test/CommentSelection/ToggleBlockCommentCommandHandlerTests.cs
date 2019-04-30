@@ -890,6 +890,30 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        public void AddComment_WithProjectionBuffer()
+        {
+            var surfaceMarkup = @"&lt; html &gt;@{|S1:|}";
+            var csharpMarkup =
+@"
+{|S1:class C
+{
+    void M()
+    {
+        [|var i = 1;|]
+    }
+}|}";
+            var expected =
+@"&lt; html &gt;@class C
+{
+    void M()
+    {
+        [|/*var i = 1;*/|]
+    }
+}";
+            ToggleCommentWithProjectionBuffer(surfaceMarkup, csharpMarkup, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
         public void RemoveComment_AtBeginningOfFile()
         {
             var markup = @"[|/**/|]";
@@ -1362,6 +1386,30 @@ class C
 }";
 
             ToggleComment(markup, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        public void RemoveComment_WithProjectionBuffer()
+        {
+            var surfaceMarkup = @"&lt; html &gt;@{|S1:|}";
+            var csharpMarkup =
+@"
+{|S1:class C
+{
+    void M()
+    {
+        [|/*var i = 1;*/|]
+    }
+}|}";
+            var expected =
+@"&lt; html &gt;@class C
+{
+    void M()
+    {
+        [|var i = 1;|]
+    }
+}";
+            ToggleCommentWithProjectionBuffer(surfaceMarkup, csharpMarkup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
