@@ -213,13 +213,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              forStatement.OperatorsOpt, positiveFlag)
 
             Dim startLabel = MakeStart_Label( rewrittenControlVariable.ExpressionSymbol.Name )
-            'Dim startLabel = GenerateLabel("start")
             Dim ifConditionGotoStart As BoundStatement = New BoundConditionalGoto(
                 blockSyntax,
                 rewrittenCondition,
                 True,
                 startLabel)
-
+            '
+            ' Example:
+            '
             ' For i as Integer = 3 To 6 step 2
             '    body
             ' Next
@@ -238,11 +239,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '     i += 2
             '   postIncrement:
             '     if i <= 6 goto start
-
+            '
             '   exit:
             ' }
-
-
+            '
+            '
             'optimization for a case where limit and initial value are constant and the first 
             'iteration is definite so we can simply drop through without initial branch
 
@@ -290,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ifConditionGotoStart = SyntheticBoundNodeFactory.HiddenSequencePoint(ifConditionGotoStart)
             End If
             statements.Add(ifConditionGotoStart)
-            Dim exitlbl = forStatement.ExitLabel 'GenerateLabel(forStatement.ExitLabel.Name)
+            Dim exitlbl = forStatement.ExitLabel
             statements.Add(New BoundLabelStatement(blockSyntax, exitlbl))
 
             Dim localSymbol = forStatement.DeclaredOrInferredLocalOpt
@@ -307,12 +308,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function MakePostIncrement_Label(name As String) As GeneratedLabelSymbol
-            Dim LabelName = "PostIncrement_"& If(name IsNot Nothing, name, String.Empty)
+            Dim LabelName = $"PostIncrement_{ If(name IsNot Nothing, name, String.Empty) }"
             Return GenerateLabel(name)
         End Function
 
         Private Function MakeStart_Label(name As String) As GeneratedLabelSymbol
-            Dim LabelName = "start_" & If(name IsNot Nothing, name, String.Empty) 
+            Dim LabelName = $"start_{ If(name IsNot Nothing, name, String.Empty) }"
             Return GenerateLabel(name)
         End Function
 
@@ -514,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                 arguments, Compilation.GetSpecialType(SpecialType.System_Boolean), hasErrors:=True)
             End If
 
-            Dim startLabel = GenerateLabel("start")
+            Dim startLabel = MakeStart_Label(rewrittenControlVariable.ExpressionSymbol.Name)
 
             ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
             ' the containing method is edited while the invoked function is being executed.
