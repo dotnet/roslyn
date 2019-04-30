@@ -89747,6 +89747,120 @@ class Program
         }
 
         [Fact]
+        public void Deconstruction_28()
+        {
+            var source =
+@"class Program
+{
+    public void Deconstruct(out int x, out int y) => throw null!;
+
+    static void F(Program? p)
+    {
+        var (x, y) = p; // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,22): warning CS8602: Dereference of a possibly null reference.
+                //         var (x, y) = p; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "p").WithLocation(7, 22)
+                );
+        }
+
+        [Fact]
+        public void Deconstruction_29()
+        {
+            var source =
+@"class Pair<T, U>
+{
+    internal void Deconstruct(out T t, out U u) => throw null!;
+}
+class Program
+{
+    static void F(Pair<object?, Pair<object, object?>?> p)
+    {
+        (object? x, (object y, object? z)) = p; // 1
+        x.ToString(); // 2
+        y.ToString(); 
+        z.ToString(); // 3
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,9): warning CS8602: Dereference of a possibly null reference.
+                //         (object? x, (object y, object? z)) = p; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(object? x, (object y, object? z)) = p").WithLocation(9, 9),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         z.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void Deconstruction_30()
+        {
+            var source = @"
+class Pair<T, U>
+{
+    public void Deconstruct(out T t, out U u) => throw null!;
+}
+
+class Program
+{
+    static Pair<T, U> CreatePair<T, U>(T t, U u) => new Pair<T, U>();
+
+    static void F(string? x, object? y)
+    {
+        if (x == null) return;
+        var p = CreatePair(x, y);
+        (x, y) = p;
+        x.ToString(); // ok
+        y.ToString(); // warning
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(17, 9)
+                );
+        }
+
+        [Fact]
+        public void Deconstruction_31()
+        {
+            var source = @"
+class Pair<T, U>
+{
+    public void Deconstruct(out T t, out U u) => throw null!;
+}
+
+class Program
+{
+    static Pair<T, U> CreatePair<T, U>(T t, U u) => new Pair<T, U>();
+
+    static void F(string? x, object? y)
+    {
+        if (x == null) return;
+        var p = CreatePair(x, CreatePair(x, y));
+        object? z;
+        (z, (x, y)) = p;
+        x.ToString(); // ok
+        y.ToString(); // warning
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (18,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(18, 9)
+                );
+        }
+
+        [Fact]
         public void Deconstruction_ExtensionMethod_01()
         {
             var source =
@@ -89795,8 +89909,11 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33006: Infer nullability of type arguments.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 9)
+                );
         }
 
         [Fact]
@@ -89821,9 +89938,118 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33006: Check nullability of `this`
-            // for generic `Deconstruct` method and infer nullability of type arguments.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,34): warning CS8604: Possible null reference argument for parameter 'p' in 'void E.Deconstruct<object, object>(Pair<object, object> p, out object t, out object u)'.
+                //         (object? x, object? y) = p; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p").WithArguments("p", "void E.Deconstruct<object, object>(Pair<object, object> p, out object t, out object u)").WithLocation(12, 34),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33006, "https://github.com/dotnet/roslyn/issues/33006")]
+        public void Deconstruction_ExtensionMethod_04()
+        {
+            var source =
+@"class Pair<T, U>
+{
+}
+static class E
+{
+    internal static void Deconstruct<T, U>(this Pair<T, U> p, out T t, out U u) => throw null!;
+}
+class Program
+{
+    static void F(Pair<object?, Pair<object, object?>?> p)
+    {
+        (object? x, (object y, object? z)) = p; // 1
+        x.ToString(); // 2
+        y.ToString(); 
+        z.ToString(); // 3
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8604: Possible null reference argument for parameter 'p' in 'void E.Deconstruct<object, object>(Pair<object, object> p, out object t, out object u)'.
+                //         (object? x, (object y, object? z)) = p; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(object? x, (object y, object? z)) = p").WithArguments("p", "void E.Deconstruct<object, object>(Pair<object, object> p, out object t, out object u)").WithLocation(12, 9),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 9),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
+                //         z.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33006, "https://github.com/dotnet/roslyn/issues/33006")]
+        public void Deconstruction_ExtensionMethod_05()
+        {
+            var source =
+@"class Pair<T, U>
+{
+}
+static class E
+{
+    internal static void Deconstruct<T, U>(this Pair<T, U>? p, out T t, out U u) => throw null!;
+}
+class Program
+{
+    static void F(Pair<object?, Pair<object, object?>> p)
+    {
+        (object? x, (object y, object? z)) = p; 
+        x.ToString(); // 1
+        y.ToString(); 
+        z.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 9),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
+                //         z.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(15, 9)
+                );
+        }
+
+
+        [Fact]
+        [WorkItem(33006, "https://github.com/dotnet/roslyn/issues/33006")]
+        public void Deconstruction_ExtensionMethod_06()
+        {
+            var source =
+@"class Pair<T, U>
+{
+}
+static class E
+{
+    internal static void Deconstruct<T, U>(this Pair<T, U>? p, out T t, out U u) => throw null!;
+}
+class Program
+{
+    static Pair<T, U> CreatePair<T, U>(T t, U u) => new Pair<T, U>();
+
+    static void F(string? x, object? y)
+    {
+        if (x == null) return;
+        var p = CreatePair(x, CreatePair(x, y));
+        object? z;
+        (z, (x, y)) = p;
+        x.ToString(); // ok
+        y.ToString(); // warning
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(19, 9)
+                );
         }
 
         [Fact]
@@ -89842,17 +90068,73 @@ static class E
 }
 class Program
 {
-    static void F(Pair<object, object?> p)
+    static void F(Pair<object?, object> p)
     {
         var (x, y) = p; // 1
-        x.ToString();
-        y.ToString(); // 2
+        x.ToString(); // 2
+        y.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33006: Check nullability constraints
-            // for generic `Deconstruct` method.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (14,22): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.Deconstruct<T, U>(Pair<T, U>, out T, out U)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         var (x, y) = p; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "p").WithArguments("E.Deconstruct<T, U>(Pair<T, U>, out T, out U)", "T", "object?").WithLocation(14, 22),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33006, "https://github.com/dotnet/roslyn/issues/33006")]
+        public void Deconstruction_ExtensionMethod_ConstraintWarning_Nested()
+        {
+            var source =
+@"class Pair<T, U> where T : class?
+{
+}
+class Pair2<T, U> where U : class?
+{
+}
+static class E
+{
+    internal static void Deconstruct<T, U>(this Pair<T, U> p, out T t, out U u)
+        where T : class
+        => throw null!;
+
+    internal static void Deconstruct<T, U>(this Pair2<T, U> p, out T t, out U u)
+        where U : class
+        => throw null!;
+}
+class Program
+{
+    static void F(Pair<object?, Pair2<object, object?>?> p)
+    {
+        var (x, (y, z)) = p; // 1, 2, 3
+        x.ToString(); // 4
+        y.ToString();  
+        z.ToString(); // 5
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (21,9): warning CS8604: Possible null reference argument for parameter 'p' in 'void E.Deconstruct<object, object>(Pair2<object, object> p, out object t, out object u)'.
+                //         var (x, (y, z)) = p; // 1, 2, 3
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "var (x, (y, z)) = p").WithArguments("p", "void E.Deconstruct<object, object>(Pair2<object, object> p, out object t, out object u)").WithLocation(21, 9),
+                // (21,27): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.Deconstruct<T, U>(Pair<T, U>, out T, out U)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         var (x, (y, z)) = p; // 1, 2, 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "p").WithArguments("E.Deconstruct<T, U>(Pair<T, U>, out T, out U)", "T", "object?").WithLocation(21, 27),
+                // (21,27): warning CS8634: The type 'object?' cannot be used as type parameter 'U' in the generic type or method 'E.Deconstruct<T, U>(Pair2<T, U>, out T, out U)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         var (x, (y, z)) = p; // 1, 2, 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "p").WithArguments("E.Deconstruct<T, U>(Pair2<T, U>, out T, out U)", "U", "object?").WithLocation(21, 27),
+                // (22,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(22, 9),
+                // (24,9): warning CS8602: Dereference of a possibly null reference.
+                //         z.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(24, 9)
+                );
         }
 
         [Fact]
