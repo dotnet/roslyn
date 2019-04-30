@@ -2172,7 +2172,7 @@ abstract class B
 
 class D : B
 {
-    int X => 7;
+    override int X => 7;
 }";
             await TestWithPullMemberDialogAsync(testText, expected, selection: new[] { ("X", true) }, index: 1);
         }
@@ -2248,7 +2248,7 @@ namespace PushUpTest
 
     public class TestClass : BaseClass
     {
-        public event EventHandler Event1
+        public override event EventHandler Event1
         {
             add
             {
