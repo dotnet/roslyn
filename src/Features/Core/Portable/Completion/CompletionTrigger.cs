@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// <summary>
     /// The action that triggered completion to start.
     /// </summary>
-    public struct CompletionTrigger
+    public readonly struct CompletionTrigger
     {
         /// <summary>
         /// The reason that completion was started.

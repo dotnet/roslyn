@@ -18,6 +18,8 @@ namespace Roslyn.Test.Utilities
         Empty,
 
         NetStandard20,
+        NetStandard30,
+        NetStandardLatest = NetStandard30,
         WinRT,
 
         /// <summary>
@@ -52,6 +54,7 @@ namespace Roslyn.Test.Utilities
         Mscorlib46Extended,
         Mscorlib461,
         Mscorlib461Extended,
+        DesktopLatestExtended = Mscorlib461Extended,
     }
 
     public static class TargetFrameworkUtil
@@ -76,8 +79,9 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> Mscorlib46References => ImmutableArray.Create(TestBase.MscorlibRef_v46);
         public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
         public static ImmutableArray<MetadataReference> Mscorlib461References => ImmutableArray.Create<MetadataReference>(Net461.mscorlibRef);
-        public static ImmutableArray<MetadataReference> Mscorlib461ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlibRef, Net461.SystemRef, Net461.SystemCoreRef, Net461.SystemValueTupleRef, Net461.SystemRuntimeRef);
+        public static ImmutableArray<MetadataReference> Mscorlib461ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlibRef, Net461.SystemRef, Net461.SystemCoreRef, Net461.SystemValueTupleRef, Net461.SystemRuntimeRef, Net461.netstandardRef);
         public static ImmutableArray<MetadataReference> NetStandard20References => ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemCoreRef, NetStandard20.SystemDynamicRuntimeRef);
+        public static ImmutableArray<MetadataReference> NetStandard30References => ImmutableArray.Create<MetadataReference>(NetStandard30.NetStandard, NetStandard30.MscorlibRef, NetStandard30.SystemRuntimeRef, NetStandard30.SystemCoreRef, NetStandard30.SystemDynamicRuntimeRef, NetStandard30.SystemConsoleRef);
         public static ImmutableArray<MetadataReference> WinRTReferences => ImmutableArray.Create(TestBase.WinRtRefs);
         public static ImmutableArray<MetadataReference> StandardReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : Mscorlib46ExtendedReferences;
         public static ImmutableArray<MetadataReference> StandardAndCSharpReferences => StandardReferences.Add(StandardCSharpReference);
@@ -103,6 +107,7 @@ namespace Roslyn.Test.Utilities
                 case TargetFramework.Mscorlib461: return Mscorlib46References;
                 case TargetFramework.Mscorlib461Extended: return Mscorlib461ExtendedReferences;
                 case TargetFramework.NetStandard20: return NetStandard20References;
+                case TargetFramework.NetStandard30: return NetStandard30References;
                 case TargetFramework.WinRT: return WinRTReferences;
                 case TargetFramework.Standard: return StandardReferences;
                 case TargetFramework.StandardAndCSharp: return StandardAndCSharpReferences;

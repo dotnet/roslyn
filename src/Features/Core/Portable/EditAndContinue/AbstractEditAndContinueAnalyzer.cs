@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Syntax Analysis 
 
-        internal void AnalyzeSyntax(
+        private void AnalyzeSyntax(
             EditScript<SyntaxNode> script,
             Dictionary<SyntaxNode, EditKind> editMap,
             SourceText oldText,
@@ -704,8 +704,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        // internal for testing
-        internal void AnalyzeUnchangedDocument(
+        private void AnalyzeUnchangedDocument(
             ImmutableArray<ActiveStatement> oldActiveStatements,
             SourceText newText,
             SyntaxNode newRoot,
@@ -762,8 +761,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             updatedTrackingSpans.Free();
         }
 
-        // internal for testing
-        internal struct ActiveNode
+        internal readonly struct ActiveNode
         {
             public readonly SyntaxNode OldNode;
             public readonly SyntaxNode NewTrackedNodeOpt;
@@ -783,8 +781,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        // internal for testing
-        internal struct LambdaInfo
+        internal readonly struct LambdaInfo
         {
             public readonly List<int> ActiveNodeIndices;
             public readonly Match<SyntaxNode> Match;
@@ -808,7 +805,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal struct UpdatedMemberInfo
+        internal readonly struct UpdatedMemberInfo
         {
             // Index in top edit script.
             public readonly int EditOrdinal;
@@ -1160,9 +1157,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// Calculates a syntax map of the entire method body including all lambda bodies it contains (recursively).
-        /// Internal for testing.
         /// </summary>
-        internal BidirectionalMap<SyntaxNode> ComputeMap(
+        private BidirectionalMap<SyntaxNode> ComputeMap(
             Match<SyntaxNode> bodyMatch,
             ActiveNode[] activeNodes,
             ref Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas,
@@ -1285,8 +1281,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return lambdaBodyMatch;
         }
 
-        // internal for testing
-        internal Match<SyntaxNode> ComputeBodyMatch(
+        private Match<SyntaxNode> ComputeBodyMatch(
             SyntaxNode oldBody,
             SyntaxNode newBody,
             ActiveNode[] activeNodes,
@@ -1864,8 +1859,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Trivia Analysis
 
-        // internal for testing
-        internal void AnalyzeTrivia(
+        private void AnalyzeTrivia(
             SourceText oldSource,
             SourceText newSource,
             Match<SyntaxNode> topMatch,
@@ -2068,7 +2062,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private struct ConstructorEdit
+        private readonly struct ConstructorEdit
         {
             public readonly INamedTypeSymbol OldType;
 
@@ -2084,8 +2078,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        // internal for testing
-        internal void AnalyzeSemantics(
+        private void AnalyzeSemantics(
             EditScript<SyntaxNode> editScript,
             Dictionary<SyntaxNode, EditKind> editMap,
             SourceText oldText,
@@ -3788,5 +3781,96 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         #endregion
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AbstractEditAndContinueAnalyzer _abstractEditAndContinueAnalyzer;
+
+            public TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
+            {
+                _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
+            }
+
+            internal void AnalyzeSyntax(
+                EditScript<SyntaxNode> script,
+                Dictionary<SyntaxNode, EditKind> editMap,
+                SourceText oldText,
+                SourceText newText,
+                DocumentId documentId,
+                IActiveStatementTrackingService trackingServiceOpt,
+                ImmutableArray<ActiveStatement> oldActiveStatements,
+                [Out] ActiveStatement[] newActiveStatements,
+                [Out] ImmutableArray<LinePositionSpan>[] newExceptionRegions,
+                [Out] List<UpdatedMemberInfo> updatedMethods,
+                [Out] List<RudeEditDiagnostic> diagnostics)
+            {
+                _abstractEditAndContinueAnalyzer.AnalyzeSyntax(script, editMap, oldText, newText, documentId, trackingServiceOpt, oldActiveStatements, newActiveStatements, newExceptionRegions, updatedMethods, diagnostics);
+            }
+
+            internal void AnalyzeUnchangedDocument(
+                ImmutableArray<ActiveStatement> oldActiveStatements,
+                SourceText newText,
+                SyntaxNode newRoot,
+                DocumentId documentId,
+                IActiveStatementTrackingService trackingServiceOpt,
+                [In, Out] ActiveStatement[] newActiveStatements,
+                [In, Out] ImmutableArray<LinePositionSpan>[] newExceptionRegionsOpt)
+            {
+                _abstractEditAndContinueAnalyzer.AnalyzeUnchangedDocument(oldActiveStatements, newText, newRoot, documentId, trackingServiceOpt, newActiveStatements, newExceptionRegionsOpt);
+            }
+
+            internal BidirectionalMap<SyntaxNode> ComputeMap(
+                Match<SyntaxNode> bodyMatch,
+                ActiveNode[] activeNodes,
+                ref Dictionary<SyntaxNode, LambdaInfo> lazyActiveOrMatchedLambdas,
+                List<RudeEditDiagnostic> diagnostics)
+            {
+                return _abstractEditAndContinueAnalyzer.ComputeMap(bodyMatch, activeNodes, ref lazyActiveOrMatchedLambdas, diagnostics);
+            }
+
+            internal Match<SyntaxNode> ComputeBodyMatch(
+                SyntaxNode oldBody,
+                SyntaxNode newBody,
+                ActiveNode[] activeNodes,
+                List<RudeEditDiagnostic> diagnostics,
+                out bool oldHasStateMachineSuspensionPoint,
+                out bool newHasStateMachineSuspensionPoint)
+            {
+                return _abstractEditAndContinueAnalyzer.ComputeBodyMatch(oldBody, newBody, activeNodes, diagnostics, out oldHasStateMachineSuspensionPoint, out newHasStateMachineSuspensionPoint);
+            }
+
+            internal void AnalyzeTrivia(
+                SourceText oldSource,
+                SourceText newSource,
+                Match<SyntaxNode> topMatch,
+                Dictionary<SyntaxNode, EditKind> editMap,
+                [Out] List<KeyValuePair<SyntaxNode, SyntaxNode>> triviaEdits,
+                [Out] List<LineChange> lineEdits,
+                [Out] List<RudeEditDiagnostic> diagnostics,
+                CancellationToken cancellationToken)
+            {
+                _abstractEditAndContinueAnalyzer.AnalyzeTrivia(oldSource, newSource, topMatch, editMap, triviaEdits, lineEdits, diagnostics, cancellationToken);
+            }
+
+            internal void AnalyzeSemantics(
+                EditScript<SyntaxNode> editScript,
+                Dictionary<SyntaxNode, EditKind> editMap,
+                SourceText oldText,
+                ImmutableArray<ActiveStatement> oldActiveStatements,
+                List<KeyValuePair<SyntaxNode, SyntaxNode>> triviaEdits,
+                List<UpdatedMemberInfo> updatedMembers,
+                SemanticModel oldModel,
+                SemanticModel newModel,
+                [Out] List<SemanticEdit> semanticEdits,
+                [Out] List<RudeEditDiagnostic> diagnostics,
+                out Diagnostic firstDeclarationErrorOpt,
+                CancellationToken cancellationToken)
+            {
+                _abstractEditAndContinueAnalyzer.AnalyzeSemantics(editScript, editMap, oldText, oldActiveStatements, triviaEdits, updatedMembers, oldModel, newModel, semanticEdits, diagnostics, out firstDeclarationErrorOpt, cancellationToken);
+            }
+        }
     }
 }

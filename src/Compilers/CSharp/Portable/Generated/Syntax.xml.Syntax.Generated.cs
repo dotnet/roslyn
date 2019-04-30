@@ -2501,9 +2501,99 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
   }
 
+  /// <summary>Class which represents the syntax node for type clause in base expression.</summary>
+  public sealed partial class BaseExpressionTypeClauseSyntax : CSharpSyntaxNode
+  {
+    private TypeSyntax baseType;
+
+    internal BaseExpressionTypeClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    /// <summary>Gets the open paren token.</summary>
+    public SyntaxToken OpenParenToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BaseExpressionTypeClauseSyntax)this.Green).openParenToken, this.Position, 0); }
+    }
+
+    /// <summary>Gets the base type syntax.</summary>
+    public TypeSyntax BaseType 
+    {
+        get
+        {
+            return this.GetRed(ref this.baseType, 1);
+        }
+    }
+
+    /// <summary>Gets the close paren token.</summary>
+    public SyntaxToken CloseParenToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BaseExpressionTypeClauseSyntax)this.Green).closeParenToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 1: return this.GetRed(ref this.baseType, 1);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 1: return this.baseType;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitBaseExpressionTypeClause(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitBaseExpressionTypeClause(this);
+    }
+
+    public BaseExpressionTypeClauseSyntax Update(SyntaxToken openParenToken, TypeSyntax baseType, SyntaxToken closeParenToken)
+    {
+        if (openParenToken != this.OpenParenToken || baseType != this.BaseType || closeParenToken != this.CloseParenToken)
+        {
+            var newNode = SyntaxFactory.BaseExpressionTypeClause(openParenToken, baseType, closeParenToken);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public BaseExpressionTypeClauseSyntax WithOpenParenToken(SyntaxToken openParenToken)
+    {
+        return this.Update(openParenToken, this.BaseType, this.CloseParenToken);
+    }
+
+    public BaseExpressionTypeClauseSyntax WithBaseType(TypeSyntax baseType)
+    {
+        return this.Update(this.OpenParenToken, baseType, this.CloseParenToken);
+    }
+
+    public BaseExpressionTypeClauseSyntax WithCloseParenToken(SyntaxToken closeParenToken)
+    {
+        return this.Update(this.OpenParenToken, this.BaseType, closeParenToken);
+    }
+  }
+
   /// <summary>Class which represents the syntax node for a base expression.</summary>
   public sealed partial class BaseExpressionSyntax : InstanceExpressionSyntax
   {
+    private BaseExpressionTypeClauseSyntax typeClause;
+
     internal BaseExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
         : base(green, parent, position)
     {
@@ -2515,10 +2605,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
       get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BaseExpressionSyntax)this.Green).token, this.Position, 0); }
     }
 
+    public BaseExpressionTypeClauseSyntax TypeClause 
+    {
+        get
+        {
+            return this.GetRed(ref this.typeClause, 1);
+        }
+    }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
         {
+            case 1: return this.GetRed(ref this.typeClause, 1);
             default: return null;
         }
     }
@@ -2526,6 +2625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         switch (index)
         {
+            case 1: return this.typeClause;
             default: return null;
         }
     }
@@ -2540,11 +2640,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitBaseExpression(this);
     }
 
-    public BaseExpressionSyntax Update(SyntaxToken token)
+    public BaseExpressionSyntax Update(SyntaxToken token, BaseExpressionTypeClauseSyntax typeClause)
     {
-        if (token != this.Token)
+        if (token != this.Token || typeClause != this.TypeClause)
         {
-            var newNode = SyntaxFactory.BaseExpression(token);
+            var newNode = SyntaxFactory.BaseExpression(token, typeClause);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -2556,7 +2656,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public BaseExpressionSyntax WithToken(SyntaxToken token)
     {
-        return this.Update(token);
+        return this.Update(token, this.TypeClause);
+    }
+
+    public BaseExpressionSyntax WithTypeClause(BaseExpressionTypeClauseSyntax typeClause)
+    {
+        return this.Update(this.Token, typeClause);
     }
   }
 

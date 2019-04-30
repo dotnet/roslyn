@@ -185,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
                 boundNamedArguments, resultKind, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
         }
+
         private CSharpAttributeData GetAttribute(BoundAttribute boundAttribute, DiagnosticBag diagnostics)
         {
             var attributeType = (NamedTypeSymbol)boundAttribute.Type;
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)attributeType != null);
 
-            NullableWalker.AnalyzeIfNeeded(Compilation, boundAttribute, diagnostics);
+            NullableWalker.AnalyzeIfNeeded(Compilation, boundAttribute, Conversions, diagnostics);
 
             bool hasErrors = boundAttribute.HasAnyErrors;
 
@@ -365,6 +366,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol namedArgumentNameSymbol = BindNamedAttributeArgumentName(namedArgument, attributeType, diagnostics, out wasError, out resultKind);
 
             ReportDiagnosticsIfObsolete(diagnostics, namedArgumentNameSymbol, namedArgument, hasBaseReceiver: false);
+
+            if (namedArgumentNameSymbol.Kind == SymbolKind.Property)
+            {
+                var propertySymbol = (PropertySymbol)namedArgumentNameSymbol;
+                var setMethod = propertySymbol.GetOwnOrInheritedSetMethod();
+                if (setMethod != null)
+                {
+                    ReportDiagnosticsIfObsolete(diagnostics, setMethod, namedArgument, hasBaseReceiver: false);
+                }
+            }
 
             Debug.Assert(resultKind == LookupResultKind.Viable || wasError);
 

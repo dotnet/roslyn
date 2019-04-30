@@ -9193,5 +9193,26 @@ unsafe class C
                 //         int* f = &(s_f.Buf[0]);
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&(s_f.Buf[0])").WithLocation(17, 18));
         }
+
+        [Fact, WorkItem(34693, "https://github.com/dotnet/roslyn/issues/34693")]
+        public void Repro_34693()
+        {
+            var csharp = @"
+namespace Interop
+{
+    public unsafe struct PROPVARIANT
+    {
+        public CAPROPVARIANT ca;
+    }
+
+    public unsafe struct CAPROPVARIANT
+    {
+        public uint cElems;
+        public PROPVARIANT* pElems;
+    }
+}";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
     }
 }

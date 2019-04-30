@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct ILDelta
+    internal readonly struct ILDelta
     {
         public readonly byte[] Value;
 

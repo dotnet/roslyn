@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDelegateCreationExpression removeDelegate = new BoundDelegateCreationExpression(
                 syntax: syntax,
                 argument: delegateCreationArgument,
-                methodOpt: eventSymbol.RemoveMethod,
+                methodOpt: AdjustMethodForBaseInterfaceCall(rewrittenReceiverOpt, eventSymbol.RemoveMethod),
                 isExtensionMethod: false,
                 type: actionType);
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundDelegateCreationExpression addDelegate = new BoundDelegateCreationExpression(
                     syntax: syntax,
                     argument: delegateCreationArgument,
-                    methodOpt: eventSymbol.AddMethod,
+                    methodOpt: AdjustMethodForBaseInterfaceCall(rewrittenReceiverOpt, eventSymbol.AddMethod),
                     isExtensionMethod: false,
                     type: func2Type);
 

@@ -1688,7 +1688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(methodContainingType.IsVerifierValue(), "only struct calls can be readonly");
 
-            if (methodContainingType.IsReadOnly && method.MethodKind != MethodKind.Constructor)
+            if (method.IsEffectivelyReadOnly && method.MethodKind != MethodKind.Constructor)
             {
                 return true;
             }

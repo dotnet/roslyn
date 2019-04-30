@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// VersionStamp should be only used to compare versions returned by same API.
     /// </summary>
-    public struct VersionStamp : IEquatable<VersionStamp>, IObjectWritable
+    public readonly struct VersionStamp : IEquatable<VersionStamp>, IObjectWritable
     {
         public static VersionStamp Default => default;
 
@@ -239,22 +239,35 @@ namespace Microsoft.CodeAnalysis
             return globalVersion;
         }
 
-        /// <summary>
-        /// True if this VersionStamp is newer than the specified one.
-        /// </summary>
-        internal bool TestOnly_IsNewerThan(VersionStamp version)
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
         {
-            if (_utcLastModified > version._utcLastModified)
+            private readonly VersionStamp _versionStamp;
+
+            public TestAccessor(in VersionStamp versionStamp)
             {
-                return true;
+                _versionStamp = versionStamp;
             }
 
-            if (_utcLastModified == version._utcLastModified)
+            /// <summary>
+            /// True if this VersionStamp is newer than the specified one.
+            /// </summary>
+            internal bool IsNewerThan(in VersionStamp version)
             {
-                return GetGlobalVersion(this) > GetGlobalVersion(version);
-            }
+                if (_versionStamp._utcLastModified > version._utcLastModified)
+                {
+                    return true;
+                }
 
-            return false;
+                if (_versionStamp._utcLastModified == version._utcLastModified)
+                {
+                    return GetGlobalVersion(_versionStamp) > GetGlobalVersion(version);
+                }
+
+                return false;
+            }
         }
     }
 }

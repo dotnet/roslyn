@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool CanContainNull(this TypeSymbol type)
         {
             // unbound type parameters might contain null, even though they cannot be *assigned* null.
-            return !type.IsValueType || type.IsNullableType();
+            return !type.IsValueType || type.IsNullableTypeOrTypeParameter();
         }
 
         public static bool CanBeConst(this TypeSymbol typeSymbol)
@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Assuming that nullable annotations are enabled:
         /// T => true
         /// T where T : struct => false
         /// T where T : class => false
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Assuming that nullable annotations are enabled:
         /// T => true
         /// T where T : struct => false
         /// T where T : class => false
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
             var typeParameter = (TypeParameterSymbol)type;
-            return !typeParameter.IsValueType && typeParameter.IsNotNullableIfReferenceType != true;
+            return !typeParameter.IsValueType && typeParameter.IsNotNullableIfReferenceType == false;
         }
 
         public static bool IsNonNullableValueType(this TypeSymbol typeArgument)
@@ -590,15 +592,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// traversal stops and that type is returned from this method. Otherwise if traversal
         /// completes without the predicate returning true for any type, this method returns null.
         /// </summary>
+        /// <param name="useDefaultType">If true, use <see cref="TypeWithAnnotations.DefaultType"/>
+        /// instead of <see cref="TypeWithAnnotations.Type"/> to avoid early resolution of nullable types</param>
         public static TypeSymbol VisitType<T>(
             this TypeWithAnnotations typeWithAnnotationsOpt,
             TypeSymbol typeOpt,
             Func<TypeWithAnnotations, T, bool, bool> typeWithAnnotationsPredicateOpt,
             Func<TypeSymbol, T, bool, bool> typePredicateOpt,
             T arg,
-            bool canDigThroughNullable = false)
+            bool canDigThroughNullable = false,
+            bool useDefaultType = false)
         {
             Debug.Assert(typeWithAnnotationsOpt.HasType == (typeOpt is null));
+            Debug.Assert(canDigThroughNullable == false || useDefaultType == false, "digging through nullable will cause early resolution of nullable types");
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
@@ -606,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             while (true)
             {
-                TypeSymbol current = typeOpt ?? typeWithAnnotationsOpt.Type;
+                TypeSymbol current = typeOpt ?? (useDefaultType ? typeWithAnnotationsOpt.DefaultType : typeWithAnnotationsOpt.Type);
                 bool isNestedNamedType = false;
 
                 // Visit containing types from outer-most to inner-most.
@@ -622,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = VisitType(default, containingType, typeWithAnnotationsPredicateOpt, typePredicateOpt, arg, canDigThroughNullable);
+                                var result = VisitType(default, containingType, typeWithAnnotationsPredicateOpt, typePredicateOpt, arg, canDigThroughNullable, useDefaultType);
                                 if ((object)result != null)
                                 {
                                     return result;
@@ -681,7 +687,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 typeWithAnnotationsPredicateOpt,
                                 typePredicateOpt,
                                 arg,
-                                canDigThroughNullable);
+                                canDigThroughNullable,
+                                useDefaultType);
                             if ((object)result != null)
                             {
                                 return result;

@@ -89,11 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            if (this.IsInterface)
-            {
-                return ImmutableArray<SynthesizedExplicitImplementationForwardingMethod>.Empty;
-            }
-
             var synthesizedImplementations = ArrayBuilder<SynthesizedExplicitImplementationForwardingMethod>.GetInstance();
 
             // NOTE: We can't iterator over this collection directly, since it is not ordered.  Instead we 
@@ -111,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                HasBaseTypeDeclaringInterfaceResult? hasBaseTypeDeclaringInterface = null;
+                HasBaseTypeDeclaringInterfaceResult? hasBaseClassDeclaringInterface = null;
 
                 foreach (var interfaceMember in @interface.GetMembersUnordered())
                 {
@@ -124,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case SymbolKind.Method:
                         case SymbolKind.Property:
                         case SymbolKind.Event:
-                            if (interfaceMember.IsStatic)
+                            if (!interfaceMember.IsImplementableInterfaceMember())
                             {
                                 continue;
                             }
@@ -133,7 +128,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             continue;
                     }
 
-                    var implementingMemberAndDiagnostics = this.FindImplementationForInterfaceMemberWithDiagnostics(interfaceMember);
+                    SymbolAndDiagnostics implementingMemberAndDiagnostics;
+
+                    if (this.IsInterface)
+                    {
+                        MultiDictionary<Symbol, Symbol>.ValueSet explicitImpl = this.GetExplicitImplementationForInterfaceMember(interfaceMember);
+
+                        switch (explicitImpl.Count)
+                        {
+                            case 0:
+                                continue; // There is no requirement to implement anything in an interface
+                            case 1:
+                                implementingMemberAndDiagnostics = new SymbolAndDiagnostics(explicitImpl.Single(), ImmutableArray<Diagnostic>.Empty);
+                                break;
+                            default:
+                                Diagnostic diag = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_DuplicateExplicitImpl, interfaceMember), this.Locations[0]);
+                                implementingMemberAndDiagnostics = new SymbolAndDiagnostics(null, ImmutableArray.Create(diag));
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        implementingMemberAndDiagnostics = this.FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfaceMember);
+                    }
+
                     var implementingMember = implementingMemberAndDiagnostics.Symbol;
                     var synthesizedImplementation = this.SynthesizeInterfaceMemberImplementation(implementingMemberAndDiagnostics, interfaceMember);
 
@@ -212,11 +230,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // (though we'd have to be careful about losing diagnostics and we might produce fewer bridge methods).
                                 // However, this approach has the advantage that there is no cost unless we encounter a base type that
                                 // claims to implement an interface, but we can't figure out how (i.e. free in nearly all cases).
-                                hasBaseTypeDeclaringInterface = hasBaseTypeDeclaringInterface ?? HasBaseTypeDeclaringInterface(@interface);
+                                hasBaseClassDeclaringInterface = hasBaseClassDeclaringInterface ?? HasBaseClassDeclaringInterface(@interface);
+
+                                HasBaseTypeDeclaringInterfaceResult matchResult = hasBaseClassDeclaringInterface.GetValueOrDefault();
+
+                                if (matchResult != HasBaseTypeDeclaringInterfaceResult.ExactMatch &&
+                                    wasImplementingMemberFound && implementingMember.ContainingType.IsInterface)
+                                {
+                                    HasBaseInterfaceDeclaringInterface(implementingMember.ContainingType, @interface, ref matchResult);
+                                }
 
                                 // If a base type from metadata declares that it implements the interface, we'll just trust it.
                                 // (See fFoundImport in SymbolPreparer::CheckInterfaceMethodImplementation.)
-                                switch (hasBaseTypeDeclaringInterface.GetValueOrDefault())
+                                switch (matchResult)
                                 {
                                     case HasBaseTypeDeclaringInterfaceResult.NoMatch:
                                         {
@@ -248,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         break;
 
                                     default:
-                                        throw ExceptionUtilities.UnexpectedValue(hasBaseTypeDeclaringInterface.GetValueOrDefault());
+                                        throw ExceptionUtilities.UnexpectedValue(matchResult);
                                 }
                             }
 
@@ -335,7 +361,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            Symbol implementingPropertyOrEvent = this.FindImplementationForInterfaceMemberWithDiagnostics(interfacePropertyOrEvent).Symbol;
+            Symbol implementingPropertyOrEvent;
+
+            if (this.IsInterface)
+            {
+                MultiDictionary<Symbol, Symbol>.ValueSet explicitImpl = this.GetExplicitImplementationForInterfaceMember(interfacePropertyOrEvent);
+
+                switch (explicitImpl.Count)
+                {
+                    case 0:
+                        return true;
+                    case 1:
+                        implementingPropertyOrEvent = explicitImpl.Single();
+                        break;
+                    default:
+                        implementingPropertyOrEvent = null;
+                        break;
+                }
+            }
+            else
+            {
+                implementingPropertyOrEvent = this.FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfacePropertyOrEvent).Symbol;
+            }
 
             // If the property or event wasn't implemented, then we'd prefer to report diagnostics about that.
             if ((object)implementingPropertyOrEvent == null)
@@ -361,28 +408,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ExactMatch,
         }
 
-        private HasBaseTypeDeclaringInterfaceResult HasBaseTypeDeclaringInterface(NamedTypeSymbol @interface)
+        private HasBaseTypeDeclaringInterfaceResult HasBaseClassDeclaringInterface(NamedTypeSymbol @interface)
         {
             HasBaseTypeDeclaringInterfaceResult result = HasBaseTypeDeclaringInterfaceResult.NoMatch;
 
             for (NamedTypeSymbol currType = this.BaseTypeNoUseSiteDiagnostics; (object)currType != null; currType = currType.BaseTypeNoUseSiteDiagnostics)
             {
-                MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet set = currType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[@interface];
-
-                if (set.Count != 0)
+                if (DeclaresBaseInterface(currType, @interface, ref result))
                 {
-                    if (set.Contains(@interface))
-                    {
-                        return HasBaseTypeDeclaringInterfaceResult.ExactMatch;
-                    }
-                    else if (result == HasBaseTypeDeclaringInterfaceResult.NoMatch && set.Contains(@interface, TypeSymbol.EqualsIgnoringNullableComparer))
-                    {
-                        result = HasBaseTypeDeclaringInterfaceResult.IgnoringNullableMatch;
-                    }
+                    break;
                 }
             }
 
             return result;
+        }
+
+        static private bool DeclaresBaseInterface(NamedTypeSymbol currType, NamedTypeSymbol @interface, ref HasBaseTypeDeclaringInterfaceResult result)
+        {
+            MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet set = currType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[@interface];
+
+            if (set.Count != 0)
+            {
+                if (set.Contains(@interface))
+                {
+                    result = HasBaseTypeDeclaringInterfaceResult.ExactMatch;
+                    return true;
+                }
+                else if (result == HasBaseTypeDeclaringInterfaceResult.NoMatch && set.Contains(@interface, TypeSymbol.EqualsIgnoringNullableComparer))
+                {
+                    result = HasBaseTypeDeclaringInterfaceResult.IgnoringNullableMatch;
+                }
+            }
+
+            return false;
+        }
+
+        private void HasBaseInterfaceDeclaringInterface(NamedTypeSymbol baseInterface, NamedTypeSymbol @interface, ref HasBaseTypeDeclaringInterfaceResult matchResult)
+        {
+            // Let's check for the trivial case first
+            if (DeclaresBaseInterface(baseInterface, @interface, ref matchResult))
+            {
+                return;
+            }
+
+            foreach (var interfaceType in this.AllInterfacesNoUseSiteDiagnostics)
+            {
+                if ((object)interfaceType == baseInterface)
+                {
+                    continue;
+                }
+
+                if (interfaceType.Equals(baseInterface, TypeCompareKind.CLRSignatureCompareOptions) &&
+                    DeclaresBaseInterface(interfaceType, @interface, ref matchResult))
+                {
+                    return;
+                }
+            }
         }
 
         private void CheckMembersAgainstBaseType(
@@ -1163,6 +1244,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>Synthesized implementation or null if not needed.</returns>
         private SynthesizedExplicitImplementationForwardingMethod SynthesizeInterfaceMemberImplementation(SymbolAndDiagnostics implementingMemberAndDiagnostics, Symbol interfaceMember)
         {
+            if (interfaceMember.DeclaredAccessibility != Accessibility.Public)
+            {
+                // Non-public interface members cannot be implemented implicitly,
+                // appropriate errors are reported elsewhere. Let's not synthesize
+                // forwarding methods, or modify metadata virtualness of the
+                // implementing methods.
+                return null;
+            }
+
             foreach (Diagnostic diagnostic in implementingMemberAndDiagnostics.Diagnostics)
             {
                 if (diagnostic.Severity == DiagnosticSeverity.Error)
@@ -1181,6 +1271,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             MethodSymbol interfaceMethod = (MethodSymbol)interfaceMember;
             MethodSymbol implementingMethod = (MethodSymbol)implementingMember;
+
+            // Interface properties/events with non-public accessors cannot be implemented implicitly,
+            // appropriate errors are reported elsewhere. Let's not synthesize
+            // forwarding methods, or modify metadata virtualness of the
+            // implementing accessors, even for public ones.
+            if (interfaceMethod.AssociatedSymbol?.IsEventOrPropertyWithImplementableNonPublicAccessor() == true)
+            {
+                return null;
+            }
 
             //explicit implementations are always respected by the CLR
             if (implementingMethod.ExplicitInterfaceImplementations.Contains(interfaceMethod, ExplicitInterfaceImplementationTargetMemberEqualityComparer.Instance))

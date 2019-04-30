@@ -162,9 +162,6 @@
   </Node>
 
   <Node Name="BoundTypeExpression" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
     <Field Name="AliasOpt" Type="AliasSymbol" Null="allow"/>
 
     <!-- 
@@ -206,6 +203,9 @@
 
     <!-- The provided dimensions in an array type expression where dimensions were provided in error. -->
     <Field Name="BoundDimensionsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
+
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="TypeWithAnnotations" Type="TypeWithAnnotations" Null="allow"/>
   </Node>
 
   <!-- 
@@ -357,7 +357,7 @@
     <Field Name="Right" Type="BoundExpression"/>
   </AbstractNode>
 
-  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase">
+  <Node Name="BoundBinaryOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
@@ -379,7 +379,7 @@
     <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
 
-  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase">
+  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="LogicalOperator" Type="MethodSymbol"/>
     <Field Name="TrueOperator" Type="MethodSymbol"/>
@@ -591,6 +591,7 @@
   <Node Name="BoundDefaultExpression" Base="BoundExpression">
     <!-- Type is null in the case of a default literal, and non-null for default(T). -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="TargetType" Type="BoundTypeExpression" Null="allow" SkipInVisitor="true"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 
@@ -1069,6 +1070,7 @@
   <Node Name="BoundBaseReference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="ExplicitBaseReferenceOpt" Type="BoundTypeExpression" Null="allow"/>
   </Node>
 
   <Node Name="BoundLocal" Base="BoundExpression">
@@ -1231,10 +1233,10 @@
     <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
   </Node>
   <Node Name="BoundDagNonNullTest" Base="BoundDagTest">
-    <!--Check that the input is not null.-->
+    <!--Check that the input is not null. Used as part of a type test.-->
   </Node>
-  <Node Name="BoundDagNullTest" Base="BoundDagTest">
-    <!--Check that the input is null.-->
+  <Node Name="BoundDagExplicitNullTest" Base="BoundDagTest">
+    <!--Check that the input is null. Used when an explicit null test appears in source.-->
   </Node>
   <Node Name="BoundDagValueTest" Base="BoundDagTest">
     <!--Check that the input is the same as the given constant value (other than null).-->
@@ -1741,6 +1743,15 @@
     <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
     <Field Name="BinderOpt" Type="Binder" Null="allow"/>
     <Field Name="UseSetterForDefaultArgumentGeneration" Type="bool"/>
+  </Node>
+
+  <Node Name="BoundIndexOrRangePatternIndexerAccess" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
+
+    <Field Name="Receiver" Type="BoundExpression" Null="disallow" />
+    <Field Name="LengthOrCountProperty" Type="PropertySymbol" Null="disallow" />
+    <Field Name="PatternSymbol" Type="Symbol" Null="disallow" />
+    <Field Name="Argument" Type="BoundExpression" Null="disallow" />
   </Node>
 
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">

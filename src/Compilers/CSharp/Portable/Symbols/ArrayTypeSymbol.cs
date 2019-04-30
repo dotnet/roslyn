@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsReadOnly
+        public sealed override bool IsReadOnly
         {
             get
             {
@@ -478,6 +478,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ITypeSymbol IArrayTypeSymbol.ElementType
         {
             get { return this.ElementType; }
+        }
+
+        CodeAnalysis.NullableAnnotation IArrayTypeSymbol.ElementNullableAnnotation
+        {
+            get => ElementTypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
         }
 
         ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers

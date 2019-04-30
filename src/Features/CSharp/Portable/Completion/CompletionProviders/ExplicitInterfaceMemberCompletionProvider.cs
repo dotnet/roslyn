@@ -93,7 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 foreach (var member in members)
                 {
-                    if (member.IsAccessor())
+                    if (member.IsAccessor() || member.Kind == SymbolKind.NamedType || !(member.IsAbstract || member.IsVirtual) ||
+                        !semanticModel.IsAccessible(node.SpanStart, member))
                     {
                         continue;
                     }

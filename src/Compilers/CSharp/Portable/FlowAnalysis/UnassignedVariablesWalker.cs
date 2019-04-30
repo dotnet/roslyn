@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class UnassignedVariablesWalker : DefiniteAssignmentPass
     {
         private UnassignedVariablesWalker(CSharpCompilation compilation, Symbol member, BoundNode node)
-            : base(compilation, member, node, new NeverEmptyStructTypeCache())
+            : base(compilation, member, node, EmptyStructTypeCache.CreateNeverEmpty())
         {
         }
 
