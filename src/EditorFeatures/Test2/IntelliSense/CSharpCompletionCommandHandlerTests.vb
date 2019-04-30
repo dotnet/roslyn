@@ -4851,6 +4851,55 @@ class C
             End Using
         End Function
 
+        ' Implementation for the Modern completion only
+        <InlineData(CompletionImplementation.Modern)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSendCommitIfUniqueWithIntelliCodeAndDuplicateItemsFromIntelliCode(completionImplementation As CompletionImplementation) As Task
+            Dim provider = New IntelliCodeMockWeirdProvider()
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        var s = "";
+        s.Len$$
+    }
+}
+                              </Document>, {provider})
+
+                state.SendCommitUniqueCompletionListItem()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        ' Implementation for the Modern completion only
+        <InlineData(CompletionImplementation.Modern)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSendCommitIfUniqueInInsertionSessionWithIntelliCodeAndDuplicateItemsFromIntelliCode(completionImplementation As CompletionImplementation) As Task
+            Dim provider = New IntelliCodeMockWeirdProvider()
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        var s = "";
+        s$$
+    }
+}
+                              </Document>, {provider})
+
+                state.SendTypeChars(".len")
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll({"Length", "★ Length3", "★ Length2"})
+                state.SendCommitUniqueCompletionListItem()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
@@ -4896,6 +4945,24 @@ class C
                 context.AddItem(CompletionItem.Create(displayText:="Length", filterText:="Length"))
                 context.AddItem(CompletionItem.Create(displayText:="ToString()", filterText:="ToString"))
                 context.AddItem(CompletionItem.Create(displayText:="First()", filterText:="First"))
+                Return Task.CompletedTask
+            End Function
+
+            Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean
+                Return True
+            End Function
+        End Class
+
+        ' Simulates a situation where IntelliCode provides items not included into the Rolsyn original list.
+        ' We want to ignore these items in CommitIfUnique.
+        ' This situation should not happen. Tests with this provider were added to cover protective scenarios.
+        Private Class IntelliCodeMockWeirdProvider
+            Inherits CompletionProvider
+
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                context.AddItem(CompletionItem.Create(displayText:="★ Length2", filterText:="Length2"))
+                context.AddItem(CompletionItem.Create(displayText:="Length", filterText:="Length"))
+                context.AddItem(CompletionItem.Create(displayText:="★ Length3", filterText:="Length3"))
                 Return Task.CompletedTask
             End Function
 

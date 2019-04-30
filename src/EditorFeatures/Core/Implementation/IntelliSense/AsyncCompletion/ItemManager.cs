@@ -269,6 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Ask the language to determine which of the *matched* items it wants to select.
             var matchingItems = itemsInList.Where(r => r.FilterResult.MatchedFilterText)
                                            .Select(t => t.FilterResult.CompletionItem)
+                                           .Where(r => !r.DisplayText.StartsWith("★"))
                                            .AsImmutable();
 
             var chosenItems = filterMethod(matchingItems, filterText);
@@ -291,8 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 selectedItemIndex = itemsInList.IndexOf(i => Equals(i.FilterResult.CompletionItem, bestItem));
                 if (selectedItemIndex > -1 &&
-                    bestItem != null &&
-                    matchingItems.Where(r => !r.DisplayText.StartsWith("★")).Count() == 1 &&
+                    matchingItems.Length == 1 &&
                     filterText.Length > 0)
                 {
                     uniqueItem = highlightedList[selectedItemIndex].CompletionItem;
