@@ -473,10 +473,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Note: we're creating a new label for the while loop that get's used for the initial jump from the 
             ' beginning of the loop to the condition to check it for the first time.
             ' Also: see while body creation above
+
+            Dim postIncrementLabel = MakePostIncrement_Label(forEachStatement.ControlVariable.ToString())
             Dim boundWhileStatement = RewriteWhileStatement(forEachStatement,
                                                             VisitExpressionNode(boundCondition),
                                                             rewrittenBodyBlock,
-                                                            New GeneratedLabelSymbol("postIncrement"),
+                                                            postIncrementLabel,
                                                             forEachStatement.ExitLabel)
             Return DirectCast(boundWhileStatement, BoundStatementList)
         End Function
@@ -624,7 +626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundWhileStatement = RewriteWhileStatement(node,
                                                             VisitExpressionNode(enumeratorInfo.MoveNext),
                                                             rewrittenBodyBlock,
-                                                            New GeneratedLabelSymbol("MoveNextLabel"),
+                                                            Make_MoveNextLabel(node.ControlVariable.ToString()),
                                                             node.ExitLabel)
 
             Dim visitedWhile = DirectCast(boundWhileStatement, BoundStatementList)
@@ -676,7 +678,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             RemovePlaceholderReplacement(enumeratorInfo.EnumeratorPlaceholder)
         End Sub
-
+        Private Function Make_MoveNextLabel(name As String) As GeneratedLabelSymbol
+            Dim LabelName = $"MoveNextLabel_{ If(name IsNot Nothing, name, String.Empty) }"
+            Return GenerateLabel(name)
+        End Function
         ''' <summary>
         ''' Depending on whether the bound local's type is, implements or inherits IDisposable for sure, or might implement it,
         ''' this function returns the statements to call Dispose on the bound local.

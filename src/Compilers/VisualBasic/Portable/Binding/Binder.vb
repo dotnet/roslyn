@@ -834,6 +834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overridable Function GetExitLabel(exitSyntaxKind As SyntaxKind, controlVariable As String) As LabelSymbol
             If controlVariable Is Nothing THen Return Nothing
+            If m_containingBinder Is Nothing Then Return Nothing
             Return m_containingBinder.GetExitLabel(exitSyntaxKind, controlVariable)
    End Function
 
@@ -848,6 +849,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overridable Function GetContinueLabel(continueSyntaxKind As SyntaxKind, controlVariable As string) As LabelSymbol
             If controlVariable Is Nothing THen Return Nothing
+            IF m_containingBinder Is Nothing Then Return Nothing
             Return m_containingBinder.GetContinueLabel(continueSyntaxKind, controlVariable)
         End Function
         ''' <summary>

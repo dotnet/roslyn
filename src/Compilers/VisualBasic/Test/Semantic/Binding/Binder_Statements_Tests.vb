@@ -889,7 +889,7 @@ Module M1
               End If
               Console.WriteLine("Exiting")
               Exit For i
-              Console.WriteLine($"Loop j Block End ({i})")
+              Console.WriteLine($"Loop j Block End ({j})")
             Next j
             Console.WriteLine("After Loop j")
             Console.WriteLine($"Loop i Block End ({i})")
@@ -908,6 +908,59 @@ Loop j Block Start (0)
 Exiting
 After Loop i
 ]]>)
+#If False Then
+            ' Examine produce code
+            Dim d = result.Dump()
+            Console.WriteLine(d)
+#End If
+        End Sub
+
+        Public Sub ContinueAndExitForEachWithIdentifier()
+           Dim result AS CompilationVerifier = nothing
+                Result = CompileAndVerify(
+<compilation name="ExitContinueForLoop1">
+    <file name="a.vb">
+Imports System        
+Module M1
+    Sub Main()
+        Dim xs = {0, 1, 2}
+        Dim ys = {0, 1, 2}
+        dim continueLoop as Boolean = true
+        For Each x In xs
+            Console.WriteLine($"Loop x Block Start ({x})")
+            For Each y In ys
+              Console.WriteLine($"Loop y Block Start ({y})")
+              If continueLoop Then
+                Console.WriteLine("Continuing")
+                continueLoop = false
+                Continue For x
+              End If
+              Console.WriteLine("Exiting")
+              Exit For x
+              Console.WriteLine($"Loop y Block End ({y})")
+            Next y
+            Console.WriteLine("After Loop y")
+            Console.WriteLine($"Loop x Block End ({x})")
+        Next   
+        Console.WriteLine("After Loop x") 
+    End Sub
+End Module
+    </file>
+</compilation>,
+    expectedOutput:=<![CDATA[
+Loop x Block Start (0)
+Loop y Block Start (0)
+Continuing
+Loop x Block Start (1)
+Loop y Block Start (0)
+Exiting
+After Loop x
+]]>)
+#If False Then
+            ' Examine produce code
+            Dim d = result.Dump()
+            Console.WriteLine(d)
+#End If
         End Sub
 
         <Fact>
