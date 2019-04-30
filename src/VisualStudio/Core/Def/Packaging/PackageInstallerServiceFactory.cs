@@ -53,10 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
         private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
 
-        // We refer to the package services through proxy types so that we can
-        // delay loading their DLLs until we actually need them.
-        private IPackageServicesProxy _packageServices;
-
         private ImmutableArray<PackageSource> _packageSources;
 
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
@@ -107,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                packageSources = _packageServices.GetSources(includeUnOfficial: true, includeDisabled: false)
+                packageSources = _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
                     .Select(r => new PackageSource(r.Key, r.Value))
                     .ToImmutableArrayOrEmpty();
             }
@@ -129,11 +125,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public event EventHandler PackageSourcesChanged;
 
-        private bool IsEnabled => _packageServices != null;
+        private bool IsEnabled
+        {
+            get
+            {
+                return _packageInstallerServices != null
+                    && _packageInstaller != null
+                    && _packageUninstaller != null
+                    && _packageSourceProvider != null;
+            }
+        }
 
         bool IPackageInstallerService.IsEnabled(ProjectId projectId)
         {
-            if (_packageServices == null)
+            if (!IsEnabled)
             {
                 return false;
             }
@@ -152,20 +157,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // Our service has been enabled.  Now load the VS package dlls.
             var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
 
-            if (_packageInstallerServices == null ||
-                _packageInstaller == null ||
-                _packageUninstaller == null ||
-                _packageSourceProvider == null)
+            if (!IsEnabled)
             {
                 return;
             }
 
-            _packageServices = new PackageServicesProxy(
-                _packageInstallerServices, _packageInstaller, _packageUninstaller, _packageSourceProvider);
-
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _packageServices.SourcesChanged += OnSourceProviderSourcesChanged;
+            _packageSourceProvider.Value.SourcesChanged += OnSourceProviderSourcesChanged;
         }
 
         protected override void StartWorking()
@@ -202,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // The 'workspace == _workspace' line is probably not necessary. However, we include 
             // it just to make sure that someone isn't trying to install a package into a workspace
             // other than the VisualStudioWorkspace.
-            if (workspace == _workspace && _workspace != null && _packageServices != null)
+            if (workspace == _workspace && _workspace != null && IsEnabled)
             {
                 var projectId = documentId.ProjectId;
                 var dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(SDTE));
@@ -232,18 +231,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             try
             {
-                if (!_packageServices.IsPackageInstalled(dteProject, packageName))
+                if (!_packageInstallerServices.Value.IsPackageInstalled(dteProject, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0, packageName);
 
                     if (versionOpt == null)
                     {
-                        _packageServices.InstallLatestPackage(
+                        _packageInstaller.Value.InstallLatestPackage(
                             source, dteProject, packageName, includePrerelease, ignoreDependencies: false);
                     }
                     else
                     {
-                        _packageServices.InstallPackage(
+                        _packageInstaller.Value.InstallPackage(
                             source, dteProject, packageName, versionOpt, ignoreDependencies: false);
                     }
 
@@ -283,11 +282,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-                if (_packageServices.IsPackageInstalled(dteProject, packageName))
+                if (_packageInstallerServices.Value.IsPackageInstalled(dteProject, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0, packageName);
                     var installedVersion = GetInstalledVersion(packageName, dteProject);
-                    _packageServices.UninstallPackage(dteProject, packageName, removeDependencies: true);
+                    _packageUninstaller.Value.UninstallPackage(dteProject, packageName, removeDependencies: true);
 
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0_completed,
                         GetStatusBarText(packageName, installedVersion));
@@ -318,7 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-                var installedPackages = _packageServices.GetInstalledPackages(dteProject);
+                var installedPackages = _packageInstallerServices.Value.GetInstalledPackages(dteProject);
                 var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
                 return metadata?.VersionString;
             }
@@ -414,7 +413,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             // If we've been disconnected, then there's no point proceeding.
-            if (_workspace == null || _packageServices == null)
+            if (_workspace == null || !IsEnabled)
             {
                 return;
             }
@@ -508,7 +507,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // Calling into NuGet.  Assume they may fail for any reason.
             try
             {
-                var installedPackageMetadata = _packageServices.GetInstalledPackages(dteProject);
+                var installedPackageMetadata = _packageInstallerServices.Value.GetInstalledPackages(dteProject);
                 foreach (var metadata in installedPackageMetadata)
                 {
                     if (metadata.VersionString != null)
@@ -677,61 +676,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 return 0;
             }
-        }
-
-        private class PackageServicesProxy : IPackageServicesProxy
-        {
-            private readonly Lazy<IVsPackageInstaller2> _packageInstaller;
-            private readonly Lazy<IVsPackageInstallerServices> _packageInstallerServices;
-            private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
-            private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
-
-            public PackageServicesProxy(
-                Lazy<IVsPackageInstallerServices> packageInstallerServices,
-                Lazy<IVsPackageInstaller2> packageInstaller,
-                Lazy<IVsPackageUninstaller> packageUninstaller,
-                Lazy<IVsPackageSourceProvider> packageSourceProvider)
-            {
-                _packageInstallerServices = packageInstallerServices;
-                _packageInstaller = packageInstaller;
-                _packageUninstaller = packageUninstaller;
-                _packageSourceProvider = packageSourceProvider;
-            }
-
-            public event EventHandler SourcesChanged
-            {
-                add
-                {
-                    _packageSourceProvider.Value.SourcesChanged += value;
-                }
-
-                remove
-                {
-                    _packageSourceProvider.Value.SourcesChanged -= value;
-                }
-            }
-
-            public IEnumerable<PackageMetadata> GetInstalledPackages(EnvDTE.Project project)
-            {
-                return _packageInstallerServices.Value.GetInstalledPackages(project)
-                                  .Select(m => new PackageMetadata(m.Id, m.VersionString))
-                                  .ToList();
-            }
-
-            public bool IsPackageInstalled(EnvDTE.Project project, string id)
-                => _packageInstallerServices.Value.IsPackageInstalled(project, id);
-
-            public void InstallPackage(string source, EnvDTE.Project project, string packageId, string version, bool ignoreDependencies)
-                => _packageInstaller.Value.InstallPackage(source, project, packageId, version, ignoreDependencies);
-
-            public void InstallLatestPackage(string source, EnvDTE.Project project, string packageId, bool includePrerelease, bool ignoreDependencies)
-                => _packageInstaller.Value.InstallLatestPackage(source, project, packageId, includePrerelease, ignoreDependencies);
-
-            public IEnumerable<KeyValuePair<string, string>> GetSources(bool includeUnOfficial, bool includeDisabled)
-                => _packageSourceProvider.Value.GetSources(includeUnOfficial, includeDisabled);
-
-            public void UninstallPackage(EnvDTE.Project project, string packageId, bool removeDependencies)
-                => _packageUninstaller.Value.UninstallPackage(project, packageId, removeDependencies);
         }
     }
 }
