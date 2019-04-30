@@ -515,8 +515,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
             for (int i = 0; i < numSwitchArms; i++)
             {
-                var placeholder = placeholders[i];
-                resultTypes[i] = ApplyConversion(placeholder, placeholder, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
+                var expression = expressions[i];
+                resultTypes[i] = ApplyConversion(expression, expression, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
                     fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
             }
 

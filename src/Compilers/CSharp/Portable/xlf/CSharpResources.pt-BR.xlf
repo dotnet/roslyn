@@ -1517,6 +1517,16 @@
         <target state="translated">A anulabilidade em restrições para parâmetro de tipo não corresponde às restrições para parâmetro de tipo em método de interface implicitamente implementado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
+        <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
+        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
+        <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
+        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
         <source>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</source>
         <target state="translated">A nulidade dos tipos de referência no especificador de interface explícito não corresponde à interface implementada pelo tipo.</target>
@@ -4687,8 +4697,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
-        <source>Partial method declarations of '{0}' have inconsistent type parameter constraints</source>
-        <target state="translated">As declarações de método parcial "{0}" têm restrições de parâmetro de tipo inconsistentes</target>
+        <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
+        <target state="needs-review-translation">As declarações de método parcial "{0}" têm restrições de parâmetro de tipo inconsistentes</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">

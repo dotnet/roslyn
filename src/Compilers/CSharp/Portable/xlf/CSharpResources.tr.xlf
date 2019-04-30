@@ -1518,6 +1518,16 @@
         <target state="translated">Tür parametresi için kısıtlamalardaki boş değer atanabilirlik, örtük olarak uygulanan arabirim metodundaki tür parametresi için kısıtlamalarla eşleşmiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
+        <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
+        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
+        <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
+        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
         <source>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</source>
         <target state="translated">Açık arabirim belirticisindeki başvuru türlerinin boş değer atanabilirliği, tür tarafından uygulanan arabirimle eşleşmiyor.</target>
@@ -4688,8 +4698,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
-        <source>Partial method declarations of '{0}' have inconsistent type parameter constraints</source>
-        <target state="translated">{0}' öğesinin kısmı yöntem bildirimleri tutarsız tür parametresi kısıtlamalarına sahip</target>
+        <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
+        <target state="needs-review-translation">{0}' öğesinin kısmı yöntem bildirimleri tutarsız tür parametresi kısıtlamalarına sahip</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">

@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            switch (constraints & (TypeParameterConstraintKind.NullableReferenceType | TypeParameterConstraintKind.NotNullableReferenceType))
+            switch (constraints & TypeParameterConstraintKind.AllReferenceTypeKinds)
             {
                 case TypeParameterConstraintKind.NullableReferenceType:
                     return true;
