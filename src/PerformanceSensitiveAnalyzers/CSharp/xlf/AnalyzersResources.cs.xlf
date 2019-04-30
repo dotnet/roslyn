@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../AnalyzersResources.resx">
     <body>
-      <trans-unit id="AnonymousNewObjectRuleTitleAndMessage">
-        <source>Explicit new anonymous object allocation</source>
-        <target state="new">Explicit new anonymous object allocation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ClosureCaptureRuleMessage">
         <source>The compiler will emit a class that will hold this as a field to allow capturing of this closure</source>
         <target state="new">The compiler will emit a class that will hold this as a field to allow capturing of this closure</target>
@@ -37,16 +32,6 @@
         <target state="new">Delegate on struct instance caused a boxing allocation</target>
         <note />
       </trans-unit>
-      <trans-unit id="ImplicitArrayCreationRuleTitleAndMessage">
-        <source>Implicit new array creation allocation</source>
-        <target state="new">Implicit new array creation allocation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InitializerCreationRuleTitleAndMessage">
-        <source>Initializer reference type allocation</source>
-        <target state="new">Initializer reference type allocation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleMessage">
         <source>Considering moving this out of the generic method</source>
         <target state="new">Considering moving this out of the generic method</target>
@@ -57,11 +42,6 @@
         <target state="new">Lambda or anonymous method in a generic method allocates a delegate instance</target>
         <note />
       </trans-unit>
-      <trans-unit id="LetCauseRuleTitleAndMessage">
-        <source>Let clause induced allocation</source>
-        <target state="new">Let clause induced allocation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleMessage">
         <source>This will allocate a delegate instance</source>
         <target state="new">This will allocate a delegate instance</target>
@@ -70,16 +50,6 @@
       <trans-unit id="MethodGroupAllocationRuleTitle">
         <source>Delegate allocation from a method group</source>
         <target state="new">Delegate allocation from a method group</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NewArrayRuleTitleAndMessage">
-        <source>Explicit new array type allocation</source>
-        <target state="new">Explicit new array type allocation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NewObjectRuleTitleAndMessage">
-        <source>Explicit new reference type allocation</source>
-        <target state="new">Explicit new reference type allocation</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">

@@ -1,20 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Analyzers.FixAnalyzers;
-using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Test.Utilities;
+using System.Threading.Tasks;
 using Xunit;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.Analyzers.FixAnalyzers.FixerWithFixAllAnalyzer,
+    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers.FixerWithFixAllFix>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.Analyzers.FixAnalyzers.FixerWithFixAllAnalyzer,
+    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers.FixerWithFixAllFix>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
 {
-    public class FixerWithFixAllFixerTests : CodeFixTestBase
+    public class FixerWithFixAllFixerTests
     {
         #region CSharp tests
 
         [Fact]
-        public void CSharp_VerifyFix_NonSealedType()
+        public async Task CSharp_VerifyFix_NonSealedType()
         {
             var source = @"
 using System;
@@ -23,7 +25,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
-class C1 : CodeFixProvider
+class {|RS1016:C1|} : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
     {
@@ -59,7 +61,7 @@ class C1 : CodeFixProvider
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var codeAction1_1 = CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document));        
+        var codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document))|};        
         return null;
     }
 
@@ -70,11 +72,11 @@ class C1 : CodeFixProvider
 }
 ";
 
-            VerifyCSharpFix(source, fixedSource);
+            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
         }
 
         [Fact]
-        public void CSharp_VerifyFix_SealedType()
+        public async Task CSharp_VerifyFix_SealedType()
         {
             var source = @"
 using System;
@@ -83,7 +85,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
-sealed class C1 : CodeFixProvider
+sealed class {|RS1016:C1|} : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
     {
@@ -119,7 +121,7 @@ sealed class C1 : CodeFixProvider
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var codeAction1_1 = CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document));        
+        var codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document))|};        
         return null;
     }
 
@@ -130,11 +132,11 @@ sealed class C1 : CodeFixProvider
 }
 ";
 
-            VerifyCSharpFix(source, fixedSource);
+            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
         }
 
         [Fact]
-        public void CSharp_NoDiagnostic()
+        public async Task CSharp_NoDiagnostic()
         {
             var source = @"
 using System;
@@ -160,7 +162,7 @@ class C1 : CodeFixProvider
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var codeAction1_1 = CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document));        
+        var codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document))|};        
         return null;
     }
 }
@@ -182,16 +184,16 @@ class C2 : CodeFixProvider
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var codeAction1_1 = CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document));        
+        var codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document))|};        
         return null;
     }
 }
 ";
-            VerifyCSharpFix(source, source);
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [Fact]
-        public void CSharp_VerifyFixAll()
+        public async Task CSharp_VerifyFixAll()
         {
             var source = @"
 using System;
@@ -200,7 +202,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 
-sealed class C1 : CodeFixProvider
+sealed class {|RS1016:C1|} : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
     {
@@ -217,7 +219,7 @@ sealed class C1 : CodeFixProvider
     }
 }
 
-sealed class C2 : CodeFixProvider
+sealed class {|RS1016:C2|} : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
     {
@@ -253,7 +255,7 @@ sealed class C1 : CodeFixProvider
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var codeAction1_1 = CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document));        
+        var codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document))|};        
         return null;
     }
 
@@ -275,7 +277,7 @@ sealed class C2 : CodeFixProvider
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var codeAction1_1 = CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document));        
+        var codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", _ => Task.FromResult(context.Document))|};        
         return null;
     }
 
@@ -286,7 +288,7 @@ sealed class C2 : CodeFixProvider
 }
 ";
 
-            VerifyCSharpFix(source, fixedSource);
+            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
         }
 
         #endregion
@@ -294,7 +296,7 @@ sealed class C2 : CodeFixProvider
         #region VisualBasic tests
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/23410")]
-        public void VisualBasic_VerifyFix_NonSealedType()
+        public async Task VisualBasic_VerifyFix_NonSealedType()
         {
             var source = @"
 Imports System
@@ -313,7 +315,7 @@ Class C1
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
+		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
 		Return Nothing
 	End Function
 
@@ -339,7 +341,7 @@ Class C1
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
+		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
 		Return Nothing
 	End Function
 
@@ -348,11 +350,11 @@ Class C1
     End Function
 End Class
 ";
-            VerifyBasicFix(source, fixedSource);
+            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
         }
 
         [Fact]
-        public void VisualBasic_VerifyFix_SealedType()
+        public async Task VisualBasic_VerifyFix_SealedType()
         {
             var source = @"
 Imports System
@@ -371,7 +373,7 @@ NotInheritable Class C1
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
+		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
 		Return Nothing
 	End Function
 
@@ -397,7 +399,7 @@ NotInheritable Class C1
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
+		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
 		Return Nothing
 	End Function
 
@@ -406,11 +408,11 @@ NotInheritable Class C1
     End Function
 End Class
 ";
-            VerifyBasicFix(source, fixedSource);
+            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
         }
 
         [Fact]
-        public void VisualBasic_NoDiagnostic()
+        public async Task VisualBasic_NoDiagnostic()
         {
             var source = @"
 Imports System
@@ -429,7 +431,7 @@ Class C1
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
+		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
 		Return Nothing
 	End Function
 
@@ -448,7 +450,7 @@ Class C2
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
+		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
 		Return Nothing
 	End Function
 
@@ -457,11 +459,11 @@ Class C2
     End Function
 End Class
 ";
-            VerifyBasicFix(source, source);
+            await VerifyVB.VerifyCodeFixAsync(source, source);
         }
 
         [Fact]
-        public void VisualBasic_VerifyFixAll()
+        public async Task VisualBasic_VerifyFixAll()
         {
             var source = @"
 Imports System
@@ -480,7 +482,7 @@ NotInheritable Class C1
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
+		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
 		Return Nothing
 	End Function
 
@@ -499,7 +501,7 @@ NotInheritable Class C2
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
+		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
 		Return Nothing
 	End Function
 
@@ -525,7 +527,7 @@ NotInheritable Class C1
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
+		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
 		Return Nothing
 	End Function
 
@@ -544,7 +546,7 @@ NotInheritable Class C2
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
+		Dim codeAction1_1 = {|RS1010:CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))|}
 		Return Nothing
 	End Function
 
@@ -553,29 +555,10 @@ NotInheritable Class C2
     End Function
 End Class
 ";
-            VerifyBasicFix(source, fixedSource);
+
+            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
         }
 
         #endregion
-
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
-        {
-            return new FixerWithFixAllFix();
-        }
-
-        protected override CodeFixProvider GetBasicCodeFixProvider()
-        {
-            return new FixerWithFixAllFix();
-        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new FixerWithFixAllAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new FixerWithFixAllAnalyzer();
-        }
     }
 }

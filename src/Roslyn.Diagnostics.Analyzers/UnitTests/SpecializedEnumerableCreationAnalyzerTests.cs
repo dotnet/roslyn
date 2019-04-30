@@ -106,7 +106,7 @@ class C
                 GetCSharpResultAt(7, 44, SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule));
         }
 
-        [Fact(Skip = "855425")]
+        [Fact]
         public async Task ReturnLinqEmptyEnumerableWithinExpressionCSharp()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
@@ -244,7 +244,7 @@ End Class
                 GetBasicResultAt(9, 25, SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule));
         }
 
-        [Fact(Skip = "855425")]
+        [Fact]
         public async Task ReturnLinqEmptyEnumerableWithinExpressionBasic()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
@@ -256,7 +256,7 @@ Class C
         Return If(True, Enumerable.Empty(Of Integer)(), Nothing)
     End Function
     Function M2() As IEnumerable(Of Integer)
-        Return If(True, Enumerable.Empty(Of Integer)())
+        Return If({|BC33107:True|}, Enumerable.Empty(Of Integer)())
     End Function
 End Class
 " + _basicSpecializedCollectionsDefinition,

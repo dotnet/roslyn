@@ -215,17 +215,17 @@ namespace Test.Utilities
 
         /// <param name="isAssertEnabled">Indicates that unit test assertions are enabled for non-matches.</param>
         /// <returns>True if actual matches expected, false otherwise.</returns>
-        private static bool VerifyDiagnosticLocation(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Location actual, FileLinePositionSpan expected, bool isAssertEnabled)
+        private static bool VerifyDiagnosticLocation(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Location actual, DiagnosticLocation expected, bool isAssertEnabled)
         {
             FileLinePositionSpan actualSpan = actual.GetLineSpan();
 
             if (isAssertEnabled)
             {
-                Assert.True(actualSpan.Path == expected.Path || (actualSpan.Path != null && actualSpan.Path.Contains("Test0.") && expected.Path.Contains("Test.")),
+                Assert.True(actualSpan.Path == expected.Span.Path || (actualSpan.Path != null && actualSpan.Path.Contains("Test0.") && expected.Span.Path.Contains("Test.")),
                     string.Format("Expected diagnostic to be in file \"{0}\" was actually in file \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
-                        expected.Path, actualSpan.Path, FormatDiagnostics(analyzer, diagnostic)));
+                        expected.Span.Path, actualSpan.Path, FormatDiagnostics(analyzer, diagnostic)));
             }
-            else if (!(actualSpan.Path == expected.Path || (actualSpan.Path != null && actualSpan.Path.Contains("Test0.") && expected.Path.Contains("Test."))))
+            else if (!(actualSpan.Path == expected.Span.Path || (actualSpan.Path != null && actualSpan.Path.Contains("Test0.") && expected.Span.Path.Contains("Test."))))
             {
                 return false;
             }
@@ -233,15 +233,15 @@ namespace Test.Utilities
             Microsoft.CodeAnalysis.Text.LinePosition actualLinePosition = actualSpan.StartLinePosition;
 
             // Only check line position if there is an actual line in the real diagnostic
-            if (expected.StartLinePosition.Line > 0)
+            if (expected.Span.StartLinePosition.Line > 0)
             {
-                if (actualLinePosition.Line != expected.StartLinePosition.Line)
+                if (actualLinePosition.Line != expected.Span.StartLinePosition.Line)
                 {
                     if (isAssertEnabled)
                     {
                         Assert.True(false,
                             string.Format("Expected diagnostic to be on line \"{0}\" was actually on line \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
-                                expected.StartLinePosition.Line + 1, actualLinePosition.Line + 1, FormatDiagnostics(analyzer, diagnostic)));
+                                expected.Span.StartLinePosition.Line + 1, actualLinePosition.Line + 1, FormatDiagnostics(analyzer, diagnostic)));
                     }
                     else
                     {
@@ -251,15 +251,15 @@ namespace Test.Utilities
             }
 
             // Only check column position if there is an actual column position in the real diagnostic
-            if (expected.StartLinePosition.Character > 0)
+            if (expected.Span.StartLinePosition.Character > 0)
             {
-                if (actualLinePosition.Character != expected.StartLinePosition.Character)
+                if (actualLinePosition.Character != expected.Span.StartLinePosition.Character)
                 {
                     if (isAssertEnabled)
                     {
                         Assert.True(false,
                             string.Format("Expected diagnostic to start at column \"{0}\" was actually at column \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
-                                expected.StartLinePosition.Character + 1, actualLinePosition.Character + 1, FormatDiagnostics(analyzer, diagnostic)));
+                                expected.Span.StartLinePosition.Character + 1, actualLinePosition.Character + 1, FormatDiagnostics(analyzer, diagnostic)));
                     }
                     else
                     {

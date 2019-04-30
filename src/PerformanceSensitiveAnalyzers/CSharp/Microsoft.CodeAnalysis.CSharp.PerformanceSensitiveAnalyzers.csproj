@@ -7,6 +7,9 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisVersion)" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.csproj" />
   </ItemGroup>
 </Project>

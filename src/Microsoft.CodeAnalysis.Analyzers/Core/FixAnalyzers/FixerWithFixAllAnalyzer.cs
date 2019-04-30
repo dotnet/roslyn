@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -71,7 +72,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(CreateCodeActionEquivalenceKeyRule, OverrideCodeActionEquivalenceKeyRule, OverrideGetFixAllProviderRule);
 
+#pragma warning disable RS1026 // Enable concurrent execution
         public override void Initialize(AnalysisContext context)
+#pragma warning restore RS1026 // Enable concurrent execution
         {
             // TODO: Make analyzer thread-safe.
             //context.EnableConcurrentExecution();

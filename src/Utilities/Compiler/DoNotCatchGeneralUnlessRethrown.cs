@@ -131,7 +131,7 @@ namespace Analyzer.Utilities
 
             public override void VisitThrow(IThrowOperation operation)
             {
-                if (operation.Exception == null && _seenRethrowInCatchClauses.Count > 0 && !_seenRethrowInCatchClauses.Peek())
+                if (_seenRethrowInCatchClauses.Count > 0 && !_seenRethrowInCatchClauses.Peek())
                 {
                     _seenRethrowInCatchClauses.Pop();
                     _seenRethrowInCatchClauses.Push(true);
@@ -147,7 +147,7 @@ namespace Analyzer.Utilities
 
             private static bool IsGenericCatch(ICatchClauseOperation operation)
             {
-                return operation.ExceptionType == null;
+                return operation.ExceptionDeclarationOrExpression == null;
             }
 
             private static bool MightBeFilteringBasedOnTheCaughtException(ICatchClauseOperation operation)

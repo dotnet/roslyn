@@ -86,7 +86,7 @@ namespace Test.Utilities
             return GetResultAt(VisualBasicDefaultFilePath, line, column, rule, messageArguments);
         }
 
-        protected static DiagnosticResult GetBasicResultAt(IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        protected static DiagnosticResult GetBasicResultAt(IEnumerable<(int line, int column)> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
         {
             return GetResultAt(VisualBasicDefaultFilePath, lineColumnPairs, rule, messageArguments);
         }
@@ -106,14 +106,9 @@ namespace Test.Utilities
             return GetResultAt(CSharpDefaultFilePath, line, column, rule, messageArguments);
         }
 
-        protected static DiagnosticResult GetCSharpResultAt(IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        protected static DiagnosticResult GetCSharpResultAt(IEnumerable<(int line, int column)> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
         {
             return GetResultAt(CSharpDefaultFilePath, lineColumnPairs, rule, messageArguments);
-        }
-
-        protected static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string additionalFilePath, DiagnosticDescriptor rule, params object[] messageArguments)
-        {
-            return GetResultAt(additionalFilePath, line, column, rule, messageArguments);
         }
 
         private static DiagnosticResult GetResultAt(string path, int line, int column, string id, string message)
@@ -137,12 +132,12 @@ namespace Test.Utilities
             return new DiagnosticResult(rule).WithLocation(path, line, column).WithArguments(messageArguments);
         }
 
-        private static DiagnosticResult GetResultAt(string path, IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        private static DiagnosticResult GetResultAt(string path, IEnumerable<(int line, int column)> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
         {
             DiagnosticResult result = new DiagnosticResult(rule).WithArguments(messageArguments);
-            foreach (Tuple<int, int> pair in lineColumnPairs)
+            foreach (var (line, column) in lineColumnPairs)
             {
-                result = result.WithLocation(path, pair.Item1, pair.Item2);
+                result = result.WithLocation(path, line, column);
             }
 
             return result;
@@ -192,11 +187,6 @@ namespace Test.Utilities
         protected void VerifyCSharp(string source, ReferenceFlags referenceFlags, params DiagnosticResult[] expected)
         {
             Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), referenceFlags, DefaultTestValidationMode, compilationOptions: null, parseOptions: null, expected: expected);
-        }
-
-        protected void VerifyCSharp(string source, TestValidationMode validationMode, CompilationOptions compilationOptions = null, ParseOptions parseOptions = null, params DiagnosticResult[] expected)
-        {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), validationMode, false, ReferenceFlags.None, compilationOptions, parseOptions, expected: expected);
         }
 
         protected void VerifyCSharp(string source, ReferenceFlags referenceFlags, TestValidationMode validationMode = DefaultTestValidationMode, params DiagnosticResult[] expected)
@@ -313,7 +303,7 @@ namespace Test.Utilities
         protected TestAdditionalDocument GetAdditionalTextFile(string fileName, string text) =>
             new TestAdditionalDocument(fileName, text);
 
-        private static Tuple<Document[], bool, TextSpan?[]> GetDocumentsAndSpans(FileAndSource[] sources, string language, CompilationOptions compilationOptions, ParseOptions parseOptions, ReferenceFlags referenceFlags = ReferenceFlags.None, string projectName = TestProjectName, bool allowUnsafeCode = false)
+        private static (Document[] documents, bool useSpans, TextSpan?[] spans) GetDocumentsAndSpans(FileAndSource[] sources, string language, CompilationOptions compilationOptions, ParseOptions parseOptions, ReferenceFlags referenceFlags = ReferenceFlags.None, string projectName = TestProjectName, bool allowUnsafeCode = false)
         {
             Assert.True(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic, "Unsupported language");
 
@@ -337,7 +327,7 @@ namespace Test.Utilities
             Document[] documents = project.Documents.ToArray();
             Assert.Equal(sources.Length, documents.Length);
 
-            return Tuple.Create(documents, useSpans, spans);
+            return (documents, useSpans, spans);
         }
 
         protected static Document CreateDocument(string source, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, bool allowUnsafeCode = false)
@@ -345,9 +335,9 @@ namespace Test.Utilities
             return CreateProject(new[] { source }.ToFileAndSource(), language, referenceFlags, allowUnsafeCode: allowUnsafeCode).Documents.First();
         }
 
-        protected static Document[] CreateDocuments(string[] sources, string language = LanguageNames.CSharp, bool allowUnsafeCode = false)
+        protected static Document[] CreateDocuments(string[] sources, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, bool allowUnsafeCode = false)
         {
-            return CreateProject(sources.ToFileAndSource(), language, allowUnsafeCode: allowUnsafeCode).Documents.ToArray();
+            return CreateProject(sources.ToFileAndSource(), language, referenceFlags, allowUnsafeCode: allowUnsafeCode).Documents.ToArray();
         }
 
         protected static Project CreateProject(string[] sources, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, Solution addToSolution = null)
@@ -393,6 +383,7 @@ namespace Test.Utilities
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDirectoryServices)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXaml)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.PresentationFramework)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebExtensions)
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, parseOptions)
                 .GetProject(projectId);
@@ -400,7 +391,7 @@ namespace Test.Utilities
             // Enable Flow-Analysis feature on the project
             parseOptions = project.ParseOptions.WithFeatures(
                 project.ParseOptions.Features.Concat(
-                    SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create("flow-analysis", "true"))));
+                    new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
             project = project.WithParseOptions(parseOptions);
 
             if ((referenceFlags & ReferenceFlags.RemoveCodeAnalysis) != ReferenceFlags.RemoveCodeAnalysis)
@@ -443,10 +434,7 @@ namespace Test.Utilities
 
         protected static Diagnostic[] GetSortedDiagnostics(FileAndSource[] sources, string language, DiagnosticAnalyzer analyzer, CompilationOptions compilationOptions, ParseOptions parseOptions, TestValidationMode validationMode = DefaultTestValidationMode, ReferenceFlags referenceFlags = ReferenceFlags.None, bool allowUnsafeCode = false, string projectName = TestProjectName, IEnumerable<TestAdditionalDocument> additionalFiles = null)
         {
-            Tuple<Document[], bool, TextSpan?[]> documentsAndUseSpan = GetDocumentsAndSpans(sources, language, compilationOptions, parseOptions, referenceFlags, projectName, allowUnsafeCode);
-            Document[] documents = documentsAndUseSpan.Item1;
-            bool useSpans = documentsAndUseSpan.Item2;
-            TextSpan?[] spans = documentsAndUseSpan.Item3;
+            var (documents, useSpans, spans) = GetDocumentsAndSpans(sources, language, compilationOptions, parseOptions, referenceFlags, projectName, allowUnsafeCode);
             return GetSortedDiagnostics(analyzer, documents, useSpans ? spans : null, validationMode, additionalFiles);
         }
 
@@ -469,7 +457,7 @@ namespace Test.Utilities
             }
 
             var analyzerOptions = additionalFiles != null ? new AnalyzerOptions(additionalFiles.ToImmutableArray<AdditionalText>()) : null;
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+            List<Diagnostic> diagnostics = new List<Diagnostic>();
             foreach (Project project in projects)
             {
                 Compilation compilation = project.GetCompilationAsync().Result;
@@ -510,7 +498,6 @@ namespace Test.Utilities
             }
 
             Diagnostic[] results = diagnostics.AsEnumerable().OrderBy(d => d.Location.SourceSpan.Start).ToArray();
-            diagnostics.Free();
             return results;
         }
 
@@ -614,8 +601,8 @@ namespace Test.Utilities
                     .WithSpecificDiagnosticOptions(
                         analyzer
                             .SupportedDiagnostics
-                            .Select(x => KeyValuePairUtil.Create(x.Id, ReportDiagnostic.Default))
-                            .ToImmutableDictionaryOrEmpty()));
+                            .Select(x => new KeyValuePair<string, ReportDiagnostic>(x.Id, ReportDiagnostic.Default))
+                            .ToImmutableDictionary()));
         }
 
         protected static FileAndSource GetEditorConfigAdditionalFile(string source)

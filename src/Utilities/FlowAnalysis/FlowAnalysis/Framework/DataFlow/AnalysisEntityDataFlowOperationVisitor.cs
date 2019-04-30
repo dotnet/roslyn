@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue> assignedValueOpt)
         {
-            Debug.Assert(analysisEntity.SymbolOpt == parameter);
+            Debug.Assert(Equals(analysisEntity.SymbolOpt, parameter));
             if (assignedValueOpt != null)
             {
                 SetAbstractValueForAssignment(analysisEntity, assignedValueOpt.Operation, assignedValueOpt.Value);
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
         {
-            Debug.Assert(analysisEntity.SymbolOpt == parameter);
+            Debug.Assert(Equals(analysisEntity.SymbolOpt, parameter));
             if (parameter.RefKind != RefKind.None)
             {
                 SetAbstractValue(analysisEntity, GetDefaultValueForParameterOnExit(analysisEntity.Type));

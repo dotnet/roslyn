@@ -263,7 +263,7 @@ namespace Analyzer.Utilities.Extensions
             if (method.ContainingType.IsDisposable(iDisposable))
             {
                 if (IsDisposeImplementation(method, iDisposable) ||
-                    (method.ContainingType == iDisposable &&
+                    (Equals(method.ContainingType, iDisposable) &&
                      method.HasDisposeMethodSignature()))
                 {
                     return DisposeMethodKind.Dispose;
@@ -414,7 +414,7 @@ namespace Analyzer.Utilities.Extensions
             // Local functions.
             IBlockOperation ComputeTopmostOperationBlock(IMethodSymbol unused)
             {
-                if (method.ContainingAssembly != compilation.Assembly)
+                if (!Equals(method.ContainingAssembly, compilation.Assembly))
                 {
                     return null;
                 }
@@ -477,7 +477,7 @@ namespace Analyzer.Utilities.Extensions
         {
             for (var i = 0; i < methodSymbol.Parameters.Length; i++)
             {
-                if (parameterSymbol == methodSymbol.Parameters[i])
+                if (Equals(parameterSymbol, methodSymbol.Parameters[i]))
                 {
                     return i;
                 }
@@ -509,5 +509,30 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool HasParameterWithDelegateType(this IMethodSymbol methodSymbol)
             => methodSymbol.Parameters.Any(p => p.Type.TypeKind == TypeKind.Delegate);
+
+        /// <summary>
+        /// Find out if the method overrides from target virtual method of a certain type
+        /// or it is the virtual method itself.
+        /// </summary>
+        /// <param name="methodSymbol">The method</param>
+        /// <param name="typeSymbol">The type has virtual method</param>
+        public static bool IsOverrideOrVirtualMethodOf(this IMethodSymbol methodSymbol, INamedTypeSymbol typeSymbol)
+        {
+            if (methodSymbol == null)
+            {
+                return false;
+            }
+            else
+            {
+                if (methodSymbol.ContainingType.Equals(typeSymbol))
+                {
+                    return true;
+                }
+                else
+                {
+                    return IsOverrideOrVirtualMethodOf(methodSymbol.OverriddenMethod, typeSymbol);
+                }
+            }
+        }
     }
 }

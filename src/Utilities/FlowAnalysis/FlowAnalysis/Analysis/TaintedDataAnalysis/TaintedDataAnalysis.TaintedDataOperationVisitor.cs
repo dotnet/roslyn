@@ -74,7 +74,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             protected override bool HasAnyAbstractValue(TaintedDataAnalysisData data)
             {
-                return this.CurrentAnalysisData.HasAnyAbstractValue;
+                return data.HasAnyAbstractValue;
             }
 
             protected override TaintedDataAnalysisData MergeAnalysisData(TaintedDataAnalysisData value1, TaintedDataAnalysisData value2)
@@ -394,7 +394,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             /// <summary>
             /// Determines if the instance method call returns tainted data.
             /// </summary>
-            /// <param name="wellKnownTypeProvider">Well known types cache.</param>
             /// <param name="method">Instance method being called.</param>
             /// <returns>True if the method returns tainted data, false otherwise.</returns>
             private bool IsSanitizingMethod(IMethodSymbol method)

@@ -8,6 +8,9 @@
     <NoWarn>$(NoWarn);CA2007</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="$(MicrosoftCodeAnalysisVersion)" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\Test.Utilities\Test.Utilities.csproj" />
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.csproj" />
     <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.csproj" />

@@ -9,7 +9,7 @@
     <Compile Include="$(PerformanceSensitiveAttributePath)" Visible="false" />
     
     <!-- Make sure the source file is embedded in PDB to support Source Link -->
-    <EmbeddedFiles Include="$(PerformanceSensitiveAttributePath)" />
+    <EmbeddedFiles Condition="'$(DebugType)' != 'none'" Include="$(PerformanceSensitiveAttributePath)" />
   </ItemGroup>
 
 </Project>

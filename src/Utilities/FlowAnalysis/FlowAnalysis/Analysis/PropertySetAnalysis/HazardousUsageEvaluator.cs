@@ -35,7 +35,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// Initializes a <see cref="HazardousUsageEvaluator"/> that evaluates a method invocation with an argument of the type being tracked by PropertySetAnalysis.
         /// </summary>
         /// <param name="instanceTypeName">Name of the instance that the method is invoked on.</param>
-        /// <param name="methodName">Name of the method within <see cref="instanceTypeName"/>.</param>
+        /// <param name="methodName">Name of the method within <paramref name="instanceTypeName"/>.</param>
         /// <param name="parameterNameOfPropertySetObject">Name of the method parameter containing the type being tracked by PropertySetAnalysis.</param>
         /// <param name="evaluator">Evaluation callback.</param>
         public HazardousUsageEvaluator(string instanceTypeName, string methodName, string parameterNameOfPropertySetObject, EvaluationCallback evaluator)
