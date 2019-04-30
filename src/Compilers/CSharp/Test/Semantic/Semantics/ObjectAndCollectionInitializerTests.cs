@@ -93,7 +93,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'y = 0')
             Left: 
-              IPropertyReferenceOperation: System.Int32 MemberInitializerTest.y { readonly get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
+              IPropertyReferenceOperation: System.Int32 MemberInitializerTest.y { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
                 Instance Receiver: 
                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: MemberInitializerTest, IsImplicit) (Syntax: 'y')
             Right: 

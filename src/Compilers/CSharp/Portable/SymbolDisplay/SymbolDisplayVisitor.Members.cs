@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddAccessibility(method);
                 }
 
-                if (!property.ShouldDisplayReadOnly() && method.ShouldDisplayReadOnly())
+                if (!property.ShouldDisplayReadOnly() && method.ShouldDisplayReadOnly(property))
                 {
                     AddReadOnlyIfRequired();
                 }

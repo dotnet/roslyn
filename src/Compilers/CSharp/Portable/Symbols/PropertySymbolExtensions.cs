@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If at least one accessor is present and all present accessors are readonly, the property should be marked readonly.
             return property.ContainingType?.IsReadOnly == false &&
                 (getMethod is object || setMethod is object) &&
-                getMethod?.IsDeclaredReadOnly != false &&
-                setMethod?.IsDeclaredReadOnly != false;
+                getMethod?.IsExplicitlyReadOnly(property) != false &&
+                setMethod?.IsExplicitlyReadOnly(property) != false;
         }
     }
 }
