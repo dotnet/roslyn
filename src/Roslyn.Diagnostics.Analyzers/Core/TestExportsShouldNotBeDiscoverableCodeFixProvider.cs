@@ -91,6 +91,12 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
+            if (partNotDiscoverableAttributeSymbol is null)
+            {
+                // This can only get hit if ExportAttribute is available but PartNotDiscoverableAttribute is missing.
+                return document;
+            }
+
             var newDeclaration = generator.AddAttributes(declaration, generator.Attribute(generator.TypeExpression(partNotDiscoverableAttributeSymbol)));
             return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
         }

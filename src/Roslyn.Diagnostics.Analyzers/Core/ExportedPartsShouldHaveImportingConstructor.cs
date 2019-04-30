@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -53,6 +54,16 @@ namespace Roslyn.Diagnostics.Analyzers
                     return;
                 }
 
+                if (exportAttributeV1 is object && importingConstructorAttributeV1 is null)
+                {
+                    throw new InvalidOperationException("Found MEF v1 ExportAttribute, but could not find the corresponding ImportingConstructorAttribute.");
+                }
+
+                if (exportAttributeV2 is object && importingConstructorAttributeV2 is null)
+                {
+                    throw new InvalidOperationException("Found MEF v2 ExportAttribute, but could not find the corresponding ImportingConstructorAttribute.");
+                }
+
                 compilationContext.RegisterSymbolAction(symbolContext =>
                 {
                     var namedType = (INamedTypeSymbol)symbolContext.Symbol;
@@ -83,8 +94,12 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 if (constructor.IsImplicitlyDeclared)
                 {
-                    // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.ImplicitConstructor, namedType.Name));
+                    if (exportAttributeApplication.ApplicationSyntaxReference is object)
+                    {
+                        // '{0}' is MEF-exported and should have a single importing constructor of the correct form
+                        context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.ImplicitConstructor, namedType.Name));
+                    }
+
                     continue;
                 }
 

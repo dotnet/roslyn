@@ -79,7 +79,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             if (!namedTypeAttributes.Any(ad =>
                 ad.AttributeClass.Name == nameof(PartNotDiscoverableAttribute)
-                && ad.AttributeClass.ContainingNamespace.Equals(exportAttributeOpt.ContainingNamespace)))
+                && Equals(ad.AttributeClass.ContainingNamespace, exportAttributeOpt.ContainingNamespace)))
             {
                 // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
                 context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
