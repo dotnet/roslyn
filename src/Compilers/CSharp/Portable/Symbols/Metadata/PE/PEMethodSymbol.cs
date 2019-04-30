@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private bool IsDestructor => this.MethodKind == MethodKind.Destructor;
 
-        public override bool ReturnsVoid => this.ReturnType.SpecialType == SpecialType.System_Void;
+        public override bool ReturnsVoid => this.ReturnType.IsVoidType();
 
         internal override int ParameterCount
         {

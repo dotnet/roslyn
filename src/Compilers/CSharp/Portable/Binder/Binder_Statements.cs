@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     declTypeOpt = TypeWithAnnotations.Create(initializerType);
 
-                    if (declTypeOpt.SpecialType == SpecialType.System_Void)
+                    if (declTypeOpt.IsVoidType())
                     {
                         Error(localDiagnostics, ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, declarator, declTypeOpt.Type);
                         declTypeOpt = TypeWithAnnotations.Create(CreateErrorType("var"));
@@ -1254,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MethodSymbol GetFixedPatternMethodOpt(BoundExpression initializer, DiagnosticBag additionalDiagnostics)
         {
-            if (initializer.Type.SpecialType == SpecialType.System_Void)
+            if (initializer.Type.IsVoidType())
             {
                 return null;
             }
@@ -1384,7 +1384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return op1.FailInference(this, diagnostics);
             }
 
-            if (inferredType.SpecialType == SpecialType.System_Void)
+            if (inferredType.IsVoidType())
             {
                 diagnostics.Add(ErrorCode.ERR_VoidAssignment, op1.Syntax.Location);
             }
@@ -2615,7 +2615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // on a lambda expression of unknown return type.
             if ((object)retType != null)
             {
-                if (retType.SpecialType == SpecialType.System_Void || IsTaskReturningAsyncMethod())
+                if (retType.IsVoidType() || IsTaskReturningAsyncMethod())
                 {
                     if (arg != null)
                     {
@@ -2624,7 +2624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object)lambda != null)
                         {
                             // Error case: void-returning or async task-returning method or lambda with "return x;" 
-                            var errorCode = retType.SpecialType == SpecialType.System_Void
+                            var errorCode = retType.IsVoidType()
                                 ? ErrorCode.ERR_RetNoObjectRequiredLambda
                                 : ErrorCode.ERR_TaskRetNoObjectRequiredLambda;
 
@@ -2640,7 +2640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // Error case: void-returning or async task-returning method or lambda with "return x;" 
-                            var errorCode = retType.SpecialType == SpecialType.System_Void
+                            var errorCode = retType.IsVoidType()
                                 ? ErrorCode.ERR_RetNoObjectRequired
                                 : ErrorCode.ERR_TaskRetNoObjectRequired;
 
@@ -2668,7 +2668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // Check that the returned expression is not void.
-                if ((object)arg?.Type != null && arg.Type.SpecialType == SpecialType.System_Void)
+                if ((object)arg?.Type != null && arg.Type.IsVoidType())
                 {
                     Error(diagnostics, ErrorCode.ERR_CantReturnVoid, expressionSyntax);
                 }
@@ -3010,7 +3010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, errorCode, syntax);
                     statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 }
-                else if (returnType.SpecialType == SpecialType.System_Void || IsTaskReturningAsyncMethod())
+                else if (returnType.IsVoidType() || IsTaskReturningAsyncMethod())
                 {
                     // If the return type is void then the expression is required to be a legal
                     // statement expression.

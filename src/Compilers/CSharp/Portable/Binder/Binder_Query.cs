@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, yExpression.Display);
                     yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(yExpression), CreateErrorType());
                 }
-                else if (!yExpression.HasAnyErrors && yExpression.Type.SpecialType == SpecialType.System_Void)
+                else if (!yExpression.HasAnyErrors && yExpression.Type.IsVoidType())
                 {
                     Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, yExpression.Type);
                     yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(yExpression), yExpression.Type);
@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
             }
-            else if (receiver.Type.SpecialType == SpecialType.System_Void)
+            else if (receiver.Type.IsVoidType())
             {
                 if (!receiver.HasAnyErrors && !node.HasErrors)
                 {

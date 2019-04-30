@@ -359,6 +359,7 @@ public class C
         }
 
         [Fact]
+        [WorkItem(35034, "https://github.com/dotnet/roslyn/issues/35034")]
         public void MethodDeclarationReceiver()
         {
             var source = @"

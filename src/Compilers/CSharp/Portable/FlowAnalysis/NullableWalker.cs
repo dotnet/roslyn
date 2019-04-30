@@ -1347,7 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var returnType = (_methodSignatureOpt ?? method).ReturnTypeWithAnnotations;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
 
-            if (returnType.SpecialType == SpecialType.System_Void)
+            if (returnType.IsVoidType())
             {
                 type = default;
                 return false;
@@ -1373,6 +1373,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return
                 typeWithAnnotations is { Type: TypeSymbol type, NullableAnnotation: NullableAnnotation.NotAnnotated } &&
+                type.IsTypeParameterDisallowingAnnotation() &&
+                !type.IsNullableTypeOrTypeParameter();
+        }
+
+        private static bool RequiresSafetyWarningWhenNullIntroduced(TypeSymbol type)
+        {
+            return
                 type.IsTypeParameterDisallowingAnnotation() &&
                 !type.IsNullableTypeOrTypeParameter();
         }
@@ -2457,32 +2464,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LearnFromNonNullTest(receiver, ref this.State);
             }
 
-            var accessExpressionType = VisitRvalueWithState(node.AccessExpression);
+            var accessTypeWithAnnotations = VisitLvalueWithAnnotations(node.AccessExpression);
+            TypeSymbol accessType = accessTypeWithAnnotations.Type;
             Join(ref this.State, ref receiverState);
 
-            // Per LDM 2019-02-13 decision, the result of a conditional access might be null even if
-            // both the receiver and right-hand-side are believed not to be null.
-            NullableFlowState resultState = NullableFlowState.MaybeNull;
-
-            // https://github.com/dotnet/roslyn/issues/29956 Use flow analysis type rather than node.Type
-            // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
-            TypeSymbol type = node.Type;
+            var oldType = node.Type;
+            var resultType =
+                oldType.IsVoidType() || oldType.IsErrorType() ? oldType :
+                oldType.IsNullableType() && !accessType.IsNullableType() ? MakeNullableOf(accessTypeWithAnnotations) :
+                accessType;
 
             // If the result type does not allow annotations, then we produce a warning because
             // the result may be null.
-
-            _currentConditionalReceiverVisitResult = default;
-            _lastConditionalAccessSlot = previousConditionalAccessSlot;
-            SetResultType(node, TypeWithState.Create(type, resultState));
-
-            // A side effect of the above assignment to ResultType is to compute the corresponding TypeWithAnnotations as
-            // this.LvalueResultType, which is what we need to decide if a safety warning is deserved here.
-            var resultTypeWithAnnotations = this.LvalueResultType;
-            if (RequiresSafetyWarningWhenNullIntroduced(resultTypeWithAnnotations))
+            if (RequiresSafetyWarningWhenNullIntroduced(resultType))
             {
-                ReportSafetyDiagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, node.Syntax, node.Type);
+                ReportSafetyDiagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, node.Syntax, accessType);
             }
 
+            // Per LDM 2019-02-13 decision, the result of a conditional access "may be null" even if
+            // both the receiver and right-hand-side are believed not to be null.
+            SetResultType(node, TypeWithState.Create(resultType, NullableFlowState.MaybeNull));
+            _currentConditionalReceiverVisitResult = default;
+            _lastConditionalAccessSlot = previousConditionalAccessSlot;
             return null;
         }
 
@@ -4535,11 +4538,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeWithState LiftedReturnType(TypeWithAnnotations returnType, NullableFlowState operandState)
         {
             bool typeNeedsLifting = returnType.Type.IsNonNullableValueType();
-            TypeSymbol type = typeNeedsLifting
-                ? compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(returnType))
-                : returnType.Type;
+            TypeSymbol type = typeNeedsLifting ? MakeNullableOf(returnType) : returnType.Type;
             NullableFlowState state = returnType.ToTypeWithState().State.Join(operandState);
             return TypeWithState.Create(type, state);
+        }
+
+        private TypeSymbol MakeNullableOf(TypeWithAnnotations underlying)
+        {
+            return compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(underlying));
         }
 
         private TypeWithState ClassifyAndApplyConversion(
@@ -4795,6 +4801,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!conversion.DeconstructionInfo.IsDefault)
             {
                 VisitRvalue(right);
+                var rightResult = ResultType;
+                var rightResultWithAnnotations = rightResult.ToTypeWithAnnotations();
 
                 var invocation = conversion.DeconstructionInfo.Invocation as BoundCall;
                 var deconstructMethod = invocation?.Method;
@@ -4804,14 +4812,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!invocation.InvokedAsExtensionMethod)
                     {
                         _ = CheckPossibleNullReceiver(right);
+
+                        // update the deconstruct method with any inferred type parameters of the containing type
+                        if (deconstructMethod.OriginalDefinition != deconstructMethod)
+                        {
+                            deconstructMethod = deconstructMethod.OriginalDefinition.AsMember((NamedTypeSymbol)rightResult.Type);
+                        }
                     }
                     else
                     {
-                        // https://github.com/dotnet/roslyn/issues/33006: Check nullability of `this` argument.
-                    }
+                        // Check nullability for `this` parameter
+                        var parameter = deconstructMethod.Parameters[0];
+                        VisitArgumentConversion(
+                                right, conversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations,
+                                new VisitArgumentResult(new VisitResult(rightResult, rightResultWithAnnotations), stateForLambda: default),
+                                extensionMethodThisArgument: true);
 
-                    // https://github.com/dotnet/roslyn/issues/33006: Update `Deconstruct` method
-                    // based on inferred receiver type, and check constraints.
+                        if (deconstructMethod.IsGenericMethod)
+                        {
+                            // re-infer the deconstruct parameters based on the 'this' parameter 
+                            ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n + 1);
+                            placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResultWithAnnotations));
+                            for (int i = 0; i < n; i++)
+                            {
+                                placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
+                            }
+                            deconstructMethod = InferMethodTypeArguments(invocation, deconstructMethod, placeholderArgs.ToImmutableAndFree());
+
+                            // check the constraints remain valid with the re-inferred parameter types
+                            if (ConstraintsHelper.RequiresChecking(deconstructMethod))
+                            {
+                                CheckMethodConstraints(invocation.Syntax, deconstructMethod);
+                            }
+                        }
+                    }
 
                     var parameters = deconstructMethod.Parameters;
                     int offset = invocation.InvokedAsExtensionMethod ? 1 : 0;
@@ -4820,15 +4854,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int i = 0; i < n; i++)
                     {
                         var variable = variables[i];
+                        var parameter = parameters[i + offset];
                         var underlyingConversion = conversion.UnderlyingConversions[i];
                         var nestedVariables = variable.NestedVariables;
                         if (nestedVariables != null)
                         {
-                            VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: invocation.Arguments[i]);
+                            var nestedRight = CreatePlaceholderIfNecessary(invocation.Arguments[i + offset], parameter.TypeWithAnnotations);
+                            VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: nestedRight);
                         }
                         else
                         {
-                            var parameter = parameters[i + offset];
                             VisitArgumentConversion(
                                 variable.Expression, underlyingConversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations,
                                 new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
@@ -4921,9 +4956,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NestedVariables = null;
             }
 
-            internal DeconstructionVariable(ArrayBuilder<DeconstructionVariable> nestedVariables)
+            internal DeconstructionVariable(BoundExpression expression, ArrayBuilder<DeconstructionVariable> nestedVariables)
             {
-                Expression = null;
+                Expression = expression;
                 Type = default;
                 NestedVariables = nestedVariables;
             }
@@ -4945,7 +4980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.TupleLiteral:
                     case BoundKind.ConvertedTupleLiteral:
-                        return new DeconstructionVariable(GetDeconstructionAssignmentVariables((BoundTupleExpression)expr));
+                        return new DeconstructionVariable(expr, GetDeconstructionAssignmentVariables((BoundTupleExpression)expr));
                     default:
                         Visit(expr);
                         return new DeconstructionVariable(expr, LvalueResultType);
@@ -5364,20 +5399,112 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitForEachExpression(BoundForEachStatement node)
         {
-            var expr = node.Expression;
-            // Need to remove any implicit conversions from this expression and call ApplyConversion
-            // ourselves. https://github.com/dotnet/roslyn/issues/35151
-            VisitRvalue(expr);
+            if (node.Expression.Kind != BoundKind.Conversion)
+            {
+                // If we're in this scenario, there was a binding error, and we should suppress any further warnings.
+                Debug.Assert(node.HasErrors);
+                VisitRvalue(node.Expression);
+                return;
+            }
+
+            var (expr, conversion) = RemoveConversion(node.Expression, includeExplicitConversions: false);
+
+            // There are 7 ways that a foreach can be created:
+            //    1. The collection type is an array type. For this, initial binding will generate an implicit reference conversion to
+            //       IEnumerable, and we do not need to do any reinferring of enumerators here.
+            //    2. The collection type is dynamic. For this we do the same as 1.
+            //    3. The collection type implements the GetEnumerator pattern. For this, there is an identity conversion. Because
+            //       this identity conversion uses nested types from initial binding, we cannot trust them and must instead use
+            //       the type of the expression returned from VisitResult to reinfer the enumerator information.
+            //    4. The collection type implements IEnumerable<T>. Only a few cases can hit this without being caught by number 3,
+            //       such as a type with a private implementation of IEnumerable<T>, or a type parameter constrained to that type.
+            //       In these cases, there will be an implicit conversion to IEnumerable<T>, but this will use types from
+            //       initial binding. For this scenario, we need to look through the list of implemented interfaces on the type and
+            //       find the version of IEnumerable<T> that it has after nullable analysis, as type substitution could have changed
+            //       nested nullability of type paramters. See ForEach_22 for a concrete example of this.
+            //    5. The collection type implements IEnumerable (non-generic). Because this version isn't generic, we don't need to
+            //       do any reinference, and the existing conversion can stand as is.
+            //    6. The target framework's System.String doesn't implement IEnumerable. This is a compat case: System.String normally
+            //       does implement IEnumerable, but there are certain target frameworks where this isn't the case. The compiler will
+            //       still emit code for foreach in these scenarios.
+            //    7. Some binding error occurred, and some other error has already been reported. Usually this doesn't have any kind
+            //       of conversion on top, but if there was an explicit conversion in code then we could get past the initial check
+            //       for a BoundConversion node.
+
+            var resultTypeWithState = VisitRvalueWithState(expr);
+            SetAnalyzedNullability(expr, _visitResult);
+            TypeWithAnnotations targetTypeWithAnnotations;
+
+            if (conversion.IsIdentity ||
+                (conversion.Kind == ConversionKind.ExplicitReference && resultTypeWithState.Type.SpecialType == SpecialType.System_String))
+            {
+                // This is case 3 or 6.
+                targetTypeWithAnnotations = resultTypeWithState.ToTypeWithAnnotations();
+            }
+            else if (conversion.IsImplicit)
+            {
+                bool isAsync = node.AwaitOpt != null;
+                if (node.Expression.Type.SpecialType == SpecialType.System_Collections_IEnumerable)
+                {
+                    // If this is a conversion to IEnumerable (non-generic), nothing to do. This is cases 1, 2, and 5.
+                    targetTypeWithAnnotations = TypeWithAnnotations.Create(node.Expression.Type);
+                }
+                else if (ForEachLoopBinder.IsIEnumerableT(node.Expression.Type.OriginalDefinition, isAsync, compilation))
+                {
+                    // This is case 4. We need to look for the IEnumerable<T> that this reinferred expression implements,
+                    // so that we pick up any nested type substitutions that could have occurred.
+                    HashSet<DiagnosticInfo> ignoredUseSiteDiagnostics = null;
+                    targetTypeWithAnnotations = TypeWithAnnotations.Create(ForEachLoopBinder.GetIEnumerableOfT(resultTypeWithState.Type, isAsync, compilation, ref ignoredUseSiteDiagnostics, out bool foundMultiple));
+                    Debug.Assert(!foundMultiple);
+                    Debug.Assert(targetTypeWithAnnotations.HasType);
+                }
+                else
+                {
+                    // This is case 7. There was not a successful binding, as a successful binding will _always_ generate one of the
+                    // above conversions. Just return, as we want to suppress further errors.
+                    return;
+                }
+            }
+            else
+            {
+                // This is also case 7.
+                return;
+            }
+
+            var convertedResult = ApplyConversion(
+                node.Expression,
+                expr,
+                conversion,
+                targetTypeWithAnnotations,
+                resultTypeWithState,
+                checkConversion: true,
+                fromExplicitCast: false,
+                useLegacyWarnings: false,
+                AssignmentKind.Assignment);
+
             bool reportedDiagnostic = CheckPossibleNullReceiver(expr);
+
+            SetResultType(node.Expression, convertedResult);
+            TrackInferredTypesThroughConversions(node.Expression, expr, _visitResult);
+
+            if (resultTypeWithState.Type.IsArray() ||
+                (conversion.Kind == ConversionKind.ExplicitReference &&
+                 resultTypeWithState.Type.SpecialType == SpecialType.System_String))
+            {
+                // If we're iterating over an array type, VisitForEachIterationVariables will need the array type to calculate
+                // the reinferred element type of the foreach, even though we use the IEnumerator pattern for arrays.
+                // If we're iterating over a string that was explicitly converted, then it doesn't implement IEnumerable and
+                // VisitForEachIterationVariables will need to explicitly set the type of the iteration variables to char.
+                SetResultType(expression: null, resultTypeWithState);
+            }
 
             if (reportedDiagnostic || node.EnumeratorInfoOpt == null)
             {
                 return;
             }
 
-            // Reinfer enumerator type based on the return type of visiting expr
-            // https://github.com/dotnet/roslyn/issues/35151
-            var enumeratorReturnType = node.EnumeratorInfoOpt.GetEnumeratorMethod.ReturnTypeWithAnnotations.ToTypeWithState();
+            var getEnumeratorMethod = (MethodSymbol)AsMemberOfType(convertedResult.Type, node.EnumeratorInfoOpt.GetEnumeratorMethod);
+            var enumeratorReturnType = getEnumeratorMethod.ReturnTypeWithAnnotations.ToTypeWithState();
             if (enumeratorReturnType.State == NullableFlowState.MaybeNull)
             {
                 ReportSafetyDiagnostic(ErrorCode.WRN_NullReferenceReceiver, expr.Syntax.GetLocation());
@@ -5386,8 +5513,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
-            // declare and assign all iteration variables
-            TypeWithAnnotations sourceType = node.EnumeratorInfoOpt?.ElementTypeWithAnnotations ?? default;
+            TypeWithAnnotations sourceType;
+            if (node.EnumeratorInfoOpt == null)
+            {
+                sourceType = default;
+            }
+            else
+            {
+                var inferredCollectionType = ResultType.Type;
+
+                if (inferredCollectionType is ArrayTypeSymbol arrayType)
+                {
+                    // Even though arrays use the IEnumerator pattern, we use the array element type as the foreach target type, so
+                    // directly get our source type from there instead of doing method reinference.
+                    sourceType = arrayType.ElementTypeWithAnnotations;
+                }
+                else if (inferredCollectionType.SpecialType == SpecialType.System_String)
+                {
+                    // There are frameworks where System.String does not implement IEnumerable, but we still lower it to a for loop
+                    // using the indexer over the individual characters anyway. So the type must be not annotated char.
+                    sourceType = TypeWithAnnotations.Create(node.EnumeratorInfoOpt.ElementType, NullableAnnotation.NotAnnotated);
+                }
+                else
+                {
+                    // Reinfer the return type of the node.Expression.GetEnumerator().Current property, so that if
+                    // the collection changed nested generic types we pick up those changes. ResultType should have been
+                    // set by VisitForEachExpression, called just before this.
+                    Debug.Assert(ResultType.Type.Equals(node.EnumeratorInfoOpt.CollectionType, TypeCompareKind.AllNullableIgnoreOptions));
+                    var getEnumeratorMethod = (MethodSymbol)AsMemberOfType(inferredCollectionType, node.EnumeratorInfoOpt.GetEnumeratorMethod);
+                    var currentProperty = (MethodSymbol)AsMemberOfType(getEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.CurrentPropertyGetter);
+                    sourceType = currentProperty.ReturnTypeWithAnnotations;
+                }
+            }
+
             TypeWithState sourceState = sourceType.ToTypeWithState();
 
 #pragma warning disable IDE0055 // Fix formatting
@@ -5399,6 +5557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
 #pragma warning restore IDE0055 // Fix formatting
 
+            // declare and assign all iteration variables
             foreach (var iterationVariable in node.IterationVariables)
             {
                 var state = NullableFlowState.NotNull;
@@ -6218,9 +6377,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        public override BoundNode VisitExpressionWithNullability(BoundExpressionWithNullability node)
         {
-            SetNotNullResult(node);
+            var typeWithAnnotations = TypeWithAnnotations.Create(node.Type, node.NullableAnnotation);
+            SetResult(node.Expression, typeWithAnnotations.ToTypeWithState(), typeWithAnnotations);
             return null;
         }
 
