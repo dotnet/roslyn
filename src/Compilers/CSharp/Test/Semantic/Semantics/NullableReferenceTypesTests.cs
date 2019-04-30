@@ -464,14 +464,13 @@ class C
     static List<T> L<T>(T t) => null!;
 }", options: WithNonNullTypesTrue());
 
-            // Missing warning on foreach (we should re-infer the enumerator and Current)
-            // https://github.com/dotnet/roslyn/issues/33257
-
             comp.VerifyDiagnostics(
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
-                //         L(o)[0].ToString(); // Should get a warning
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "L(o)[0]").WithLocation(7, 9)
-                );
+                //         L(o)[0].ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "L(o)[0]").WithLocation(7, 9),
+                // (10,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 13));
         }
 
         [Fact, WorkItem(29964, "https://github.com/dotnet/roslyn/issues/29964")]
@@ -51197,10 +51196,7 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(IEnumerable<object>)default").WithLocation(10, 27),
                 // (10,27): warning CS8602: Dereference of a possibly null reference.
                 //         foreach (var y in (IEnumerable<object>)default) // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable<object>)default").WithLocation(10, 27),
-                // (13,27): warning CS8602: Dereference of a possibly null reference.
-                //         foreach (var z in default(IEnumerable)) // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(IEnumerable)").WithLocation(13, 27));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable<object>)default").WithLocation(10, 27));
         }
 
         [WorkItem(23493, "https://github.com/dotnet/roslyn/issues/23493")]
@@ -51523,6 +51519,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(35151, "https://github.com/dotnet/roslyn/issues/35151")]
         public void ForEach_19()
         {
             var source =
@@ -51557,6 +51554,35 @@ class C
         {
         }
     }
+
+    void M3<TEnumerator>(TEnumerator e) where TEnumerator : IEnumerator
+    {
+        var enumerable1 = Create(e);
+        foreach (var i in enumerable1)
+        {
+        }
+
+        e = default; // 4
+        var enumerable2 = Create(e);
+        foreach (var i in enumerable2) // No warning here, safety warning was issued at 4
+        {
+        }
+    }
+
+    void M4<TEnumerator>(TEnumerator e) where TEnumerator : IEnumerator?
+    {
+        var enumerable1 = Create(e);
+        foreach (var i in enumerable1) // 5
+        {
+        }
+
+        if (e == null) return;
+        var enumerable2 = Create(e);
+        foreach (var i in enumerable2) // 6
+        {
+        }
+    }
+
     static Enumerable<T> Create<T>(T t) where T : IEnumerator? => throw null!;
 }
 
@@ -51566,11 +51592,399 @@ class Enumerable<T> where T : IEnumerator?
 }";
 
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/35151 Report diagnostics on 2 and 3
             comp.VerifyDiagnostics(
                 // (12,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         e = null; // 1
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 13));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 13),
+                // (14,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var i in enumerable2) // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "enumerable2").WithLocation(14, 27),
+                // (22,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var i in enumerable1) // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "enumerable1").WithLocation(22, 27),
+                // (40,13): warning CS8653: A default expression introduces a null value when 'TEnumerator' is a non-nullable reference type.
+                //         e = default; // 4
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("TEnumerator").WithLocation(40, 13),
+                // (50,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var i in enumerable1) // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "enumerable1").WithLocation(50, 27),
+                // (56,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var i in enumerable2) // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "enumerable2").WithLocation(56, 27));
+        }
+
+        [Fact]
+        [WorkItem(35151, "https://github.com/dotnet/roslyn/issues/35151")]
+        public void ForEach_20()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+class C
+{
+    void M1(string e)
+    {
+        var enumerable1 = Create(e);
+        foreach (var s in enumerable1)
+        {
+            s.ToString();
+        }
+
+        e = null; // 1
+        var enumerable2 = Create(e);
+        foreach (var s in enumerable2)
+        {
+            s.ToString(); // 2
+        }
+    }
+
+    void M2(string? e)
+    {
+        var enumerable1 = Create(e);
+        foreach (var s in enumerable1)
+        {
+            s.ToString(); // 3
+        }
+
+        if (e == null) return;
+        var enumerable2 = Create(e);
+        foreach (var s in enumerable2)
+        {
+            s.ToString();
+        }
+    }
+    static Enumerable<IEnumerator<U>, U> Create<U>(U u) => throw null!;
+}
+
+class Enumerable<T, U> where T : IEnumerator<U>?
+{
+    public T GetEnumerator() => throw null!;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         e = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 13),
+                // (17,13): warning CS8602: Dereference of a possibly null reference.
+                //             s.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(17, 13),
+                // (26,13): warning CS8602: Dereference of a possibly null reference.
+                //             s.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(26, 13));
+        }
+
+        [Fact]
+        [WorkItem(35151, "https://github.com/dotnet/roslyn/issues/35151")]
+        public void ForEach_21()
+        {
+            var source =
+@"
+using System.Collections;
+using System.Collections.Generic;
+
+class C
+{
+    void M1(string e)
+    {
+        var enumerable1 = Create(e);
+        foreach (var s in enumerable1)
+        {
+            s.ToString();
+        }
+
+        e = null; // 1
+        var enumerable2 = Create(e);
+        foreach (var s in enumerable2)
+        {
+            s.ToString(); // 2
+        }
+    }
+
+    void M2(string? e)
+    {
+        var enumerable1 = Create(e);
+        foreach (var s in enumerable1)
+        {
+            s.ToString(); // 3
+        }
+
+        if (e == null) return;
+        var enumerable2 = Create(e);
+        foreach (var s in enumerable2)
+        {
+            s.ToString();
+        }
+    }
+    static Enumerable<T> Create<T>(T t) => throw null!;
+}
+
+class Enumerable<T> : IEnumerable<T>
+{
+    public IEnumerator<T> GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         e = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(15, 13),
+                // (19,13): warning CS8602: Dereference of a possibly null reference.
+                //             s.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(19, 13),
+                // (28,13): warning CS8602: Dereference of a possibly null reference.
+                //             s.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(28, 13));
+        }
+
+        [Fact]
+        [WorkItem(35151, "https://github.com/dotnet/roslyn/issues/35151")]
+        public void ForEach_22()
+        {
+            var source =
+@"
+using System.Collections;
+using System.Collections.Generic;
+
+class C
+{
+    void M1(string e)
+    {
+        var enumerable1 = Create(e);
+        foreach (var s in enumerable1)
+        {
+            s.ToString();
+        }
+
+        e = null; // 1
+        var enumerable2 = Create(e);
+        foreach (var s in enumerable2)
+        {
+            s.ToString(); // 2
+        }
+    }
+
+    void M2(string? e)
+    {
+        var enumerable1 = Create(e);
+        foreach (var s in enumerable1)
+        {
+            s.ToString(); // 3
+        }
+
+        if (e == null) return;
+        var enumerable2 = Create(e);
+        foreach (var s in enumerable2)
+        {
+            s.ToString();
+        }
+    }
+    static Enumerable<T> Create<T>(T t) => throw null!;
+}
+
+class Enumerable<T> : IEnumerable<T>
+{
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         e = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(15, 13),
+                // (19,13): warning CS8602: Dereference of a possibly null reference.
+                //             s.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(19, 13),
+                // (28,13): warning CS8602: Dereference of a possibly null reference.
+                //             s.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(28, 13));
+        }
+
+        [Fact]
+        [WorkItem(33257, "https://github.com/dotnet/roslyn/issues/33257")]
+        [WorkItem(35151, "https://github.com/dotnet/roslyn/issues/35151")]
+        public void ForEach_23()
+        {
+            var source = @"
+class C
+{
+    void M(string? s)
+    {
+        var l1 = new[] { s };
+        foreach (var x in l1)
+        {
+            x.ToString(); // 1
+        }
+
+        if (s == null) return;
+        var l2 = new[] { s };
+        foreach (var x in l2)
+        {
+            x.ToString();
+        }
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 13));
+        }
+
+        [Fact]
+        [WorkItem(33257, "https://github.com/dotnet/roslyn/issues/33257")]
+        public void ForEach_Span()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M1(Span<string> s1, Span<string?> s2)
+    {
+        foreach (var s in s1)
+        {
+            s.ToString();
+        }
+        foreach (var s in s2)
+        {
+            s.ToString(); // 1
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8602: Dereference of a possibly null reference.
+                //             s.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13));
+        }
+
+        [Fact]
+        [WorkItem(35151, "https://github.com/dotnet/roslyn/issues/35151")]
+        public void ForEach_StringNotIEnumerable()
+        {
+            // In some frameworks, System.String doesn't implement IEnumerable, but for compat reasons the compiler
+            // will still allow foreach'ing over these strings.
+
+            var systemSource = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Char
+    {
+        public string ToString() => throw null!;
+    }
+
+    public class String
+    {
+        public int Length { get; }
+
+        [System.Runtime.CompilerServices.IndexerName(""Chars"")]
+        public char this[int i] => throw null!;
+    }
+
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+
+    public abstract class Attribute
+    {
+        protected Attribute() { }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    using System;
+
+    public sealed class IndexerNameAttribute: Attribute
+    {
+        public IndexerNameAttribute(String indexerName)
+        {}
+    }
+}
+
+namespace System.Reflection {
+
+    using System;
+
+    public sealed class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(String memberName) 
+        {}
+    }
+}
+
+namespace System.Collections
+{
+    public interface IEnumerable
+    {
+        IEnumerator GetEnumerator();
+    }
+
+    public interface IEnumerator
+    {
+        object Current { get; }
+        bool MoveNext();
+    }
+}";
+
+            var source = @"
+class C
+{
+    void M(string s, string? s2)
+    {
+        foreach (var c in s)
+        {
+            c.ToString();
+        }
+
+        s = null; // 1
+        foreach (var c in s) // 2
+        {
+            c.ToString();
+        }
+
+        foreach (var c in s2) // 3
+        {
+            c.ToString();
+        }
+
+        foreach (var c in (string)null) // 4
+        {
+        }
+    }
+}";
+
+            var comp = CreateEmptyCompilation(new[] { source, systemSource }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         s = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 13),
+                // (12,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var c in s) // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(12, 27),
+                // (17,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var c in s2) // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(17, 27),
+                // (22,27): error CS0186: Use of null is not valid in this context
+                //         foreach (var c in (string)null) // 4
+                Diagnostic(ErrorCode.ERR_NullNotValid, "(string)null").WithLocation(22, 27),
+                // (22,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (var c in (string)null) // 4
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(22, 27),
+                // (22,27): warning CS8602: Dereference of a possibly null reference.
+                //         foreach (var c in (string)null) // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(string)null").WithLocation(22, 27));
         }
 
         [Fact]
