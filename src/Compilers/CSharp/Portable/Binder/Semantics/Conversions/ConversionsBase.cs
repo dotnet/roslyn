@@ -1368,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type2 != null);
 
             // Note, when we are paying attention to nullability, we ignore oblivious mismatch.
-            // See TypeCompareKind.UnknownNullableModifierMatchesAny
+            // See TypeCompareKind.ObliviousNullableModifierMatchesAny
             var compareKind = includeNullability ?
                 TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes :
                 TypeCompareKind.AllIgnoreOptions;

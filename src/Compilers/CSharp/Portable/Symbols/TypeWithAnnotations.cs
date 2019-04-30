@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((comparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0)
             {
                 if (otherAnnotation != thisAnnotation &&
-                    ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0 || (!thisAnnotation.IsOblivious() && !otherAnnotation.IsOblivious())))
+                    ((comparison & TypeCompareKind.ObliviousNullableModifierMatchesAny) == 0 || (!thisAnnotation.IsOblivious() && !otherAnnotation.IsOblivious())))
                 {
                     if (!HasType)
                     {

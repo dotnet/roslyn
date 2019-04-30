@@ -404,7 +404,7 @@ next:;
 
                         for (int j = 0; j < originalConstraintTypes.Length; j++)
                         {
-                            Debug.Assert(originalConstraintTypes[j].Equals(mergedConstraintTypes[j], TypeCompareKind.UnknownNullableModifierMatchesAny, isValueTypeOverride));
+                            Debug.Assert(originalConstraintTypes[j].Equals(mergedConstraintTypes[j], TypeCompareKind.ObliviousNullableModifierMatchesAny, isValueTypeOverride));
                         }
                     }
 #endif
@@ -498,7 +498,7 @@ next:;
 
                     TypeWithAnnotations constraintType2 = clause.ConstraintTypes[index2];
 
-                    if (!constraintType1.Equals(constraintType2, TypeCompareKind.UnknownNullableModifierMatchesAny, isValueTypeOverride))
+                    if (!constraintType1.Equals(constraintType2, TypeCompareKind.ObliviousNullableModifierMatchesAny, isValueTypeOverride))
                     {
                         // Nullability mismatch that doesn't involve oblivious
                         result = false;
