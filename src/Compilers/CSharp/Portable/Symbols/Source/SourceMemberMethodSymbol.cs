@@ -1641,7 +1641,7 @@ done:
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (IsDeclaredReadOnly)
+            if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
