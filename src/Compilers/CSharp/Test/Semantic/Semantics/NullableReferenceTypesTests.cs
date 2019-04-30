@@ -94705,5 +94705,136 @@ class C
                 //                         return s; // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "s").WithLocation(14, 32));
         }
+
+        [Fact, WorkItem(29956, "https://github.com/dotnet/roslyn/issues/29956")]
+        public void ConditionalExpression_InferredResultType()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+class C
+{
+    void Test1(object? x)
+    {
+        M(x)?.Self()/*T:Box<object?>?*/;
+        M(x)?.Value()/*T:object?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<object!>?*/;
+        M(x)?.Value()/*T:object?*/;
+    }
+
+    void Test2<T>(T x)
+    {
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:void*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:void*/;
+    }
+
+    void Test3(int x)
+    {
+        M(x)?.Self()/*T:Box<int>?*/;
+        M(x)?.Value()/*T:int?*/;
+        if (x == null) return; // 1
+        M(x)?.Self()/*T:Box<int>?*/;
+        M(x)?.Value()/*T:int?*/;
+    }
+
+    void Test4(int? x)
+    {
+        M(x)?.Self()/*T:Box<int?>?*/;
+        M(x)?.Value()/*T:int?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<int?>?*/;
+        M(x)?.Value()/*T:int?*/;
+    }
+
+    void Test5<T>(T? x) where T : class
+    {
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    void Test6<T>(T x) where T : struct
+    {
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return; // 2
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    void Test7<T>(T? x) where T : struct
+    {
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    void Test8<T>(T x) where T : class
+    {
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    void Test9<T>(T x) where T : class
+    {
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x != null) return;
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    static Box<T> M<T>(T t) => new Box<T>(t);
+}
+
+class Box<T>
+{
+    public Box<T> Self() => this;
+    public T Value() => throw null!;
+    public Box(T value) { }
+}
+");
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (26,13): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
+                //         if (x == null) return; // 1
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "x == null").WithArguments("false", "int", "int?").WithLocation(26, 13),
+                // (53,13): error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
+                //         if (x == null) return; // 2
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == null").WithArguments("==", "T", "<null>").WithLocation(53, 13));
+        }
+
+        [Fact, WorkItem(35075, "https://github.com/dotnet/roslyn/issues/35075")]
+        public void ConditionalExpression_TypeParameterConstrainedToNullableValueType()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+class C<T>
+{
+    public virtual void M<U>(B x, U y) where U : T { }
+}
+
+class B : C<int?>
+{
+    public override void M<U>(B x, U y)
+    {
+        var z = x?.Test(y)/*T:U?*/;
+        z = null;
+    }
+
+    T Test<T>(T x) => throw null!;
+}");
+            c.VerifyTypes();
+            // Per https://github.com/dotnet/roslyn/issues/35075 errors should be expected
+            c.VerifyDiagnostics();
+        }
     }
 }

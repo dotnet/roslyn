@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
+            var returnsVoid = _lazyReturnType.IsVoidType();
             if (this.RefKind != RefKind.None && returnsVoid)
             {
                 Debug.Assert(returnTypeSyntax.HasErrors);
