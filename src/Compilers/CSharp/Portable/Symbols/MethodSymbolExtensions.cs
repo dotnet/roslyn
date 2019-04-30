@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static bool ShouldDisplayReadOnly(this IMethodSymbol method, IPropertySymbol propertyOpt = null) =>
-            method is MethodSymbol m && m.IsExplicitlyReadOnly(propertyOpt);
+            method is MethodSymbol m && m.IsExplicitlyReadOnly(propertyOpt) && m.ContainingType?.IsReadOnly == false;
 
         internal static bool IsExplicitlyReadOnly(this MethodSymbol accessor, IPropertySymbol propertyOpt)
         {

@@ -7247,7 +7247,7 @@ readonly struct X
                 SymbolDisplayPartKind.Keyword);
 
             Verify(members[5].ToDisplayParts(format),
-                "int X.P3 { get; readonly set; }",
+                "int X.P3 { get; set; }",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
@@ -7258,8 +7258,6 @@ readonly struct X
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
@@ -7277,9 +7275,7 @@ readonly struct X
                 SymbolDisplayPartKind.Keyword);
 
             Verify(members[7].ToDisplayParts(format),
-                "readonly void X.P3.set",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+                "void X.P3.set",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
