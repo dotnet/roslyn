@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -66,7 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// which currently sets the property's type twice in error scenarios.
             /// We should be able to remove this method by fixing https://github.com/dotnet/roslyn/issues/35381
             /// </summary>
-            internal void InterlockedReset()
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            internal void InterlockedDangerousReset()
             {
                 Interlocked.Exchange(ref _nullableAnnotation, 0);
                 Interlocked.Exchange(ref _defaultType, null);
