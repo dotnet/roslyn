@@ -678,10 +678,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             RemovePlaceholderReplacement(enumeratorInfo.EnumeratorPlaceholder)
         End Sub
+
         Private Function Make_MoveNextLabel(name As String) As GeneratedLabelSymbol
-            Dim LabelName = $"MoveNextLabel_{ If(name IsNot Nothing, name, String.Empty) }"
-            Return GenerateLabel(name)
+            Dim LabelName = $"MoveNextLabel_{If(name, String.Empty)}"
+            Return GenerateLabel(LabelName)
         End Function
+
         ''' <summary>
         ''' Depending on whether the bound local's type is, implements or inherits IDisposable for sure, or might implement it,
         ''' this function returns the statements to call Dispose on the bound local.

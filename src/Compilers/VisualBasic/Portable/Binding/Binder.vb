@@ -836,7 +836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If controlVariable Is Nothing THen Return Nothing
             If m_containingBinder Is Nothing Then Return Nothing
             Return m_containingBinder.GetExitLabel(exitSyntaxKind, controlVariable)
-   End Function
+        End Function
 
         ''' <summary>
         ''' Get the label that a Continue XXX statement should branch to, or Nothing if we are
@@ -844,7 +844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' is the SyntaxKind for the exit statement that would target the label (e.g. SyntaxKind.ContinueDoStatement).
         ''' </summary>
         Public Overridable Function GetContinueLabel(continueSyntaxKind As SyntaxKind) As LabelSymbol
-      Return m_containingBinder.GetContinueLabel(continueSyntaxKind)
+            Return m_containingBinder.GetContinueLabel(continueSyntaxKind)
         End Function
 
         Public Overridable Function GetContinueLabel(continueSyntaxKind As SyntaxKind, controlVariable As string) As LabelSymbol

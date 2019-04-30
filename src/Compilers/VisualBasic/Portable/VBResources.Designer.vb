@@ -5936,6 +5936,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Continue statement has an invalid loop identifier {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidContinueStatement() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidContinueStatement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Date constant is not valid..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidDate() As String
@@ -6076,6 +6085,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_InvalidEnumBase() As String
             Get
                 Return ResourceManager.GetString("ERR_InvalidEnumBase", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Exit statement has an invalid loop identifier {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidExitStatement() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidExitStatement", resourceCulture)
             End Get
         End Property
         

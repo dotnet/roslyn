@@ -5549,4 +5549,10 @@
   <data name="FEATURE_ContinueExitWithIdentifier" xml:space="preserve">
     <value>`Continue For` and `Exit For` with loop identifier.</value>
   </data>
+  <data name="ERR_InvalidContinueStatement" xml:space="preserve">
+    <value>Continue statement has an invalid loop identifier {0}</value>
+  </data>
+  <data name="ERR_InvalidExitStatement" xml:space="preserve">
+    <value>Exit statement has an invalid loop identifier {0}</value>
+  </data>
 </root>

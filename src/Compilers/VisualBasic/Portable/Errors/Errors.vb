@@ -2025,5 +2025,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_UnconstrainedTypeParameterInConditional
         FEATURE_CommentsAfterLineContinuation
         FEATURE_ContinueExitWithIdentifier
+        ERR_InvalidExitStatement
+        ERR_InvalidContinueStatement
     End Enum
 End Namespace
