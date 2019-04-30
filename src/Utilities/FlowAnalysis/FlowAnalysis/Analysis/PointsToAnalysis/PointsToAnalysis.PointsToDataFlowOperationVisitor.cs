@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         if (analysisEntity.SymbolOpt?.Kind == SymbolKind.Field)
                         {
                             // Ref/Out field argument is considered escaped.
-                            HandleEscapingOperation(operation, operation.Value);
+                            HandleEscapingOperation(operation, operation);
                         }
                     }
                 }
@@ -338,8 +338,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 base.ProcessReturnValue(returnValue);
 
-                // Escape the return value, if not currently analyzing an invoked method.
-                if (returnValue != null && DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null)
+                // Escape the return value in following cases:
+                //  1. We are not analyzing an invoked method during interprocedural analysis.
+                //  2. We are analyzing an async method, where returned value is wrapped in a task.
+                if (returnValue != null &&
+                    (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null ||
+                     OwningSymbol is IMethodSymbol method && method.IsAsync))
                 {
                     HandleEscapingOperation(escapingOperation: returnValue, escapedInstance: returnValue, _escapedReturnValueLocationsBuilder);
                 }
@@ -574,16 +578,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 Debug.Assert(escapingOperation != null);
                 Debug.Assert(escapedInstance != null);
 
-                PointsToAbstractValue escapedInstancePointsToValue;
-                if (AnalysisEntityFactory.TryCreate(escapedInstance, out var escapedEntityOpt))
-                {
-                    escapedInstancePointsToValue = GetAbstractValue(escapedEntityOpt);
-                }
-                else
-                {
-                    escapedInstancePointsToValue = GetPointsToAbstractValue(escapedInstance);
-                }
-
+                PointsToAbstractValue escapedInstancePointsToValue = GetPointsToAbstractValue(escapedInstance);
+                AnalysisEntityFactory.TryCreate(escapedInstance, out var escapedEntityOpt);
                 HandleEscapingLocations(escapingOperation, builder, escapedEntityOpt, escapedInstancePointsToValue);
             }
 
@@ -712,7 +708,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public override PointsToAbstractValue VisitAwait(IAwaitOperation operation, object argument)
             {
                 _ = base.VisitAwait(operation, argument);
-                return PointsToAbstractValue.Unknown;
+
+                if (ShouldBeTracked(operation.Type))
+                {
+                    AbstractLocation location = AbstractLocation.CreateAllocationLocation(operation, operation.Type, DataFlowAnalysisContext);
+                    return PointsToAbstractValue.Create(location, mayBeNull: true);
+                }
+                else
+                {
+                    return PointsToAbstractValue.NoLocation;
+                }
             }
 
             public override PointsToAbstractValue VisitIsType(IIsTypeOperation operation, object argument)

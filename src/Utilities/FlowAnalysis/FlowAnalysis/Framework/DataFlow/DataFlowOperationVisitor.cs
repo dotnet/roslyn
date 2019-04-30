@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             if (WellKnownTypeProvider.Contract != null &&
                 operation.Parent is IInvocationOperation invocation &&
-                invocation.TargetMethod.ContainingType == WellKnownTypeProvider.Contract &&
+                Equals(invocation.TargetMethod.ContainingType, WellKnownTypeProvider.Contract) &&
                 invocation.TargetMethod.IsStatic &&
                 invocation.Arguments[0] == operation)
             {
@@ -3053,6 +3053,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             var value = Visit(operation.ReturnedValue, argument);
             ProcessReturnValue(operation.ReturnedValue);
+
+            if (OwningSymbol is IMethodSymbol method && method.IsAsync)
+            {
+                // Returned value is wrapped in a task in an async method.
+                // We conservatively assume task has an unknown/maybe value.
+                return ValueDomain.UnknownOrMayBeValue;
+            }
+
             return value;
         }
 
