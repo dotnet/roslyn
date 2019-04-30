@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 
         public override void Initialize(AnalysisContext context)
         {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+
             foreach (var analyzer in _analyzers)
             {
                 analyzer.Initialize(context);

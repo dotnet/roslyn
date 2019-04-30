@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// it is not allowed one to implement both DocumentDiagnosticAnalzyer and DiagnosticAnalyzer
         /// </summary>
+#pragma warning disable RS1025 // Configure generated code analysis
         public sealed override void Initialize(AnalysisContext context)
+#pragma warning restore RS1025 // Configure generated code analysis
         {
         }
 

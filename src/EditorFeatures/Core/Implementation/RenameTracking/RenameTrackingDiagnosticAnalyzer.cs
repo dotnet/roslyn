@@ -27,7 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             => true;
 
         public override void Initialize(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+
+            context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+        }
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
