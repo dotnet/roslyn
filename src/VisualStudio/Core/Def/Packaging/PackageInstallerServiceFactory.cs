@@ -48,9 +48,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly SVsServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
+        private readonly Lazy<IVsPackageInstallerServices> _packageInstallerServices;
+        private readonly Lazy<IVsPackageInstaller2> _packageInstaller;
+        private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
+        private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
+
         // We refer to the package services through proxy types so that we can
         // delay loading their DLLs until we actually need them.
         private IPackageServicesProxy _packageServices;
+
+        private ImmutableArray<PackageSource> _packageSources;
 
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
 
@@ -69,7 +76,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
             SVsServiceProvider serviceProvider,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            [Import(AllowDefault = true)] Lazy<IVsPackageInstallerServices> packageInstallerServices,
+            [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2> packageInstaller,
+            [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller> packageUninstaller,
+            [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider> packageSourceProvider)
             : base(threadingContext, workspace, SymbolSearchOptions.Enabled,
                               SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                               SymbolSearchOptions.SuggestForTypesInNuGetPackages)
@@ -77,9 +88,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _workspace = workspace;
             _serviceProvider = serviceProvider;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
+            _packageInstallerServices = packageInstallerServices;
+            _packageInstaller = packageInstaller;
+            _packageUninstaller = packageUninstaller;
+            _packageSourceProvider = packageSourceProvider;
         }
 
-        public ImmutableArray<PackageSource> PackageSources { get; private set; } = ImmutableArray<PackageSource>.Empty;
+        public async ValueTask<ImmutableArray<PackageSource>> GetPackageSourcesAsync(CancellationToken cancellationToken)
+        {
+            var packageSources = _packageSources;
+            if (packageSources != null)
+            {
+                return packageSources;
+            }
+
+            try
+            {
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                packageSources = _packageServices.GetSources(includeUnOfficial: true, includeDisabled: false)
+                    .Select(r => new PackageSource(r.Key, r.Value))
+                    .ToImmutableArrayOrEmpty();
+            }
+            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
+            {
+                // These exceptions can happen when the nuget.config file is broken.
+                packageSources = ImmutableArray<PackageSource>.Empty;
+            }
+
+            var previousPackageSources = ImmutableInterlocked.InterlockedCompareExchange(ref _packageSources, packageSources, default);
+            if (previousPackageSources != null)
+            {
+                // Another thread already initialized _packageSources
+                packageSources = previousPackageSources;
+            }
+
+            return packageSources;
+        }
 
         public event EventHandler PackageSourcesChanged;
 
@@ -106,21 +152,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // Our service has been enabled.  Now load the VS package dlls.
             var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
 
-            var packageInstallerServices = componentModel.GetExtensions<IVsPackageInstallerServices>().FirstOrDefault();
-            var packageInstaller = componentModel.GetExtensions<IVsPackageInstaller2>().FirstOrDefault();
-            var packageUninstaller = componentModel.GetExtensions<IVsPackageUninstaller>().FirstOrDefault();
-            var packageSourceProvider = componentModel.GetExtensions<IVsPackageSourceProvider>().FirstOrDefault();
-
-            if (packageInstallerServices == null ||
-                packageInstaller == null ||
-                packageUninstaller == null ||
-                packageSourceProvider == null)
+            if (_packageInstallerServices == null ||
+                _packageInstaller == null ||
+                _packageUninstaller == null ||
+                _packageSourceProvider == null)
             {
                 return;
             }
 
             _packageServices = new PackageServicesProxy(
-                packageInstallerServices, packageInstaller, packageUninstaller, packageSourceProvider);
+                _packageInstallerServices, _packageInstaller, _packageUninstaller, _packageSourceProvider);
 
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
@@ -143,26 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
         {
-            if (!this.IsForeground())
-            {
-                this.InvokeBelowInputPriorityAsync(() => OnSourceProviderSourcesChanged(sender, e));
-                return;
-            }
-
-            this.AssertIsForeground();
-
-            try
-            {
-                PackageSources = _packageServices.GetSources(includeUnOfficial: true, includeDisabled: false)
-                    .Select(r => new PackageSource(r.Key, r.Value))
-                    .ToImmutableArrayOrEmpty();
-            }
-            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
-            {
-                // These exceptions can happen when the nuget.config file is broken.
-                PackageSources = ImmutableArray<PackageSource>.Empty;
-            }
-
+            _packageSources = default;
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -659,16 +681,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private class PackageServicesProxy : IPackageServicesProxy
         {
-            private readonly IVsPackageInstaller2 _packageInstaller;
-            private readonly IVsPackageInstallerServices _packageInstallerServices;
-            private readonly IVsPackageSourceProvider _packageSourceProvider;
-            private readonly IVsPackageUninstaller _packageUninstaller;
+            private readonly Lazy<IVsPackageInstaller2> _packageInstaller;
+            private readonly Lazy<IVsPackageInstallerServices> _packageInstallerServices;
+            private readonly Lazy<IVsPackageSourceProvider> _packageSourceProvider;
+            private readonly Lazy<IVsPackageUninstaller> _packageUninstaller;
 
             public PackageServicesProxy(
-                IVsPackageInstallerServices packageInstallerServices,
-                IVsPackageInstaller2 packageInstaller,
-                IVsPackageUninstaller packageUninstaller,
-                IVsPackageSourceProvider packageSourceProvider)
+                Lazy<IVsPackageInstallerServices> packageInstallerServices,
+                Lazy<IVsPackageInstaller2> packageInstaller,
+                Lazy<IVsPackageUninstaller> packageUninstaller,
+                Lazy<IVsPackageSourceProvider> packageSourceProvider)
             {
                 _packageInstallerServices = packageInstallerServices;
                 _packageInstaller = packageInstaller;
@@ -680,36 +702,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 add
                 {
-                    _packageSourceProvider.SourcesChanged += value;
+                    _packageSourceProvider.Value.SourcesChanged += value;
                 }
 
                 remove
                 {
-                    _packageSourceProvider.SourcesChanged -= value;
+                    _packageSourceProvider.Value.SourcesChanged -= value;
                 }
             }
 
             public IEnumerable<PackageMetadata> GetInstalledPackages(EnvDTE.Project project)
             {
-                return _packageInstallerServices.GetInstalledPackages(project)
+                return _packageInstallerServices.Value.GetInstalledPackages(project)
                                   .Select(m => new PackageMetadata(m.Id, m.VersionString))
                                   .ToList();
             }
 
             public bool IsPackageInstalled(EnvDTE.Project project, string id)
-                => _packageInstallerServices.IsPackageInstalled(project, id);
+                => _packageInstallerServices.Value.IsPackageInstalled(project, id);
 
             public void InstallPackage(string source, EnvDTE.Project project, string packageId, string version, bool ignoreDependencies)
-                => _packageInstaller.InstallPackage(source, project, packageId, version, ignoreDependencies);
+                => _packageInstaller.Value.InstallPackage(source, project, packageId, version, ignoreDependencies);
 
             public void InstallLatestPackage(string source, EnvDTE.Project project, string packageId, bool includePrerelease, bool ignoreDependencies)
-                => _packageInstaller.InstallLatestPackage(source, project, packageId, includePrerelease, ignoreDependencies);
+                => _packageInstaller.Value.InstallLatestPackage(source, project, packageId, includePrerelease, ignoreDependencies);
 
             public IEnumerable<KeyValuePair<string, string>> GetSources(bool includeUnOfficial, bool includeDisabled)
-                => _packageSourceProvider.GetSources(includeUnOfficial, includeDisabled);
+                => _packageSourceProvider.Value.GetSources(includeUnOfficial, includeDisabled);
 
             public void UninstallPackage(EnvDTE.Project project, string packageId, bool removeDependencies)
-                => _packageUninstaller.UninstallPackage(project, packageId, removeDependencies);
+                => _packageUninstaller.Value.UninstallPackage(project, packageId, removeDependencies);
         }
     }
 }
