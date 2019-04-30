@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Analyzer.Utilities;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
@@ -10,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
 {
-    public class UseReturnValueFromImmutableObjectMethodTests : CodeFixTestBase
+    public class UseReturnValueFromImmutableObjectMethodTests : DiagnosticAnalyzerTestBase
     {
         [Fact]
         public void CSharpVerifyDiagnostics()
@@ -93,17 +92,7 @@ namespace ConsoleApplication1
             VerifyCSharp(source);
         }
 
-        protected override CodeFixProvider GetBasicCodeFixProvider()
-        {
-            return null;
-        }
-
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return null;
-        }
-
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
             return null;
         }

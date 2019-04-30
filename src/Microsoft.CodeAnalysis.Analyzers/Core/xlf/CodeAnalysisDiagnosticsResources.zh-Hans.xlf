@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
-        <source>Compare symbols correctly</source>
-        <target state="new">Compare symbols correctly</target>
+        <source>Symbols should be compared for equality, not identity.</source>
+        <target state="new">Symbols should be compared for equality, not identity.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
@@ -20,6 +20,46 @@
       <trans-unit id="CompareSymbolsCorrectlyTitle">
         <source>Compare symbols correctly</source>
         <target state="new">Compare symbols correctly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisDescription">
+        <source>Configure generated code analysis</source>
+        <target state="new">Configure generated code analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
+        <source>Configure generated code analysis</source>
+        <target state="new">Configure generated code analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisMessage">
+        <source>Configure generated code analysis</source>
+        <target state="new">Configure generated code analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisTitle">
+        <source>Configure generated code analysis</source>
+        <target state="new">Configure generated code analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionDescription">
+        <source>Enable concurrent execution</source>
+        <target state="new">Enable concurrent execution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionFix">
+        <source>Enable concurrent execution</source>
+        <target state="new">Enable concurrent execution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionMessage">
+        <source>Enable concurrent execution</source>
+        <target state="new">Enable concurrent execution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionTitle">
+        <source>Enable concurrent execution</source>
+        <target state="new">Enable concurrent execution</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAttributeMessage">

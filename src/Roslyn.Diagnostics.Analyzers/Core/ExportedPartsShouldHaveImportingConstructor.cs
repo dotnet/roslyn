@@ -114,7 +114,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             foreach (var constructor in nonImportingConstructors)
             {
-                var properties = constructor == missingImportingConstructor ? ScenarioProperties.MissingAttribute : ScenarioProperties.MultipleConstructors;
+                var properties = Equals(constructor, missingImportingConstructor) ? ScenarioProperties.MissingAttribute : ScenarioProperties.MultipleConstructors;
 
                 // '{0}' is MEF-exported and should have a single importing constructor of the correct form
                 context.ReportDiagnostic(Diagnostic.Create(Rule, constructor.DeclaringSyntaxReferences.First().GetSyntax().GetLocation(), properties, namedType.Name));

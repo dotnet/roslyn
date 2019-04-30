@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
             }.RunAsync();
         }
 
-        [Theory]
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/31720")]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task NotMarkedObsolete_VisualBasic(string mefNamespace)

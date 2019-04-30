@@ -55,6 +55,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return;
             }
 
+            // Allow user-defined operators
+            if (binary.OperatorMethod?.ContainingSymbol is INamedTypeSymbol containingType
+                && containingType.SpecialType != SpecialType.System_Object)
+            {
+                return;
+            }
+
             // If either operand is 'null' or 'default', do not analyze
             if (binary.LeftOperand.HasNullConstantValue() || binary.RightOperand.HasNullConstantValue())
             {
@@ -63,6 +70,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             if (!IsSymbolType(binary.LeftOperand, symbolType)
                 && !IsSymbolType(binary.RightOperand, symbolType))
+            {
+                return;
+            }
+
+            if (binary.Language == LanguageNames.VisualBasic)
+            {
+                if (IsSymbolClassType(binary.LeftOperand) || IsSymbolClassType(binary.RightOperand))
+                {
+                    return;
+                }
+            }
+
+            if (IsExplicitCastToObject(binary.LeftOperand) || IsExplicitCastToObject(binary.RightOperand))
             {
                 return;
             }
@@ -91,6 +111,40 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
 
             return false;
+        }
+
+        private static bool IsSymbolClassType(IOperation operation)
+        {
+            if (operation.Type is object)
+            {
+                if (operation.Type.TypeKind == TypeKind.Class
+                    && operation.Type.SpecialType != SpecialType.System_Object)
+                {
+                    return true;
+                }
+            }
+
+            if (operation is IConversionOperation conversion)
+            {
+                return IsSymbolClassType(conversion.Operand);
+            }
+
+            return false;
+        }
+
+        private static bool IsExplicitCastToObject(IOperation operation)
+        {
+            if (!(operation is IConversionOperation conversion))
+            {
+                return false;
+            }
+
+            if (conversion.IsImplicit)
+            {
+                return false;
+            }
+
+            return conversion.Type?.SpecialType == SpecialType.System_Object;
         }
     }
 }

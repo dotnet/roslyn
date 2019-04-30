@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -79,7 +82,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     wellKnownTypeProvider,
                     interproceduralAnalysisConfig,
                     interproceduralAnalysisPredicateOpt: null,
-                    pessimisticAnalysis);
+                    pessimisticAnalysis,
+                    performCopyAnalysis: false);
                 valueContentAnalysisResultOpt = null;
             }
             else
@@ -90,7 +94,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     wellKnownTypeProvider,
                     interproceduralAnalysisConfig,
                     out var copyAnalysisResult,
-                    out pointsToAnalysisResult);
+                    out pointsToAnalysisResult,
+                    pessimisticAnalysis,
+                    performCopyAnalysis: false);
             }
 
             var analysisContext = PropertySetAnalysisContext.Create(
@@ -109,6 +115,80 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 hazardousUsageEvaluators);
             var result = GetOrComputeResultForAnalysisContext(analysisContext);
             return result.HazardousUsages;
+        }
+
+        public static PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> BatchGetOrComputeHazardousUsages(
+            Compilation compilation,
+            IEnumerable<(IOperation Operation, ISymbol ContainingSymbol)> rootOperationsNeedingAnalysis,
+            string typeToTrackMetadataName,
+            ConstructorMapper constructorMapper,
+            PropertyMapperCollection propertyMappers,
+            HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
+            bool pessimisticAnalysis = false)
+        {
+            PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> allResults = null;
+
+            foreach ((IOperation Operation, ISymbol ContainingSymbol) in rootOperationsNeedingAnalysis)
+            {
+                ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> dfaResult =
+                    PropertySetAnalysis.GetOrComputeHazardousUsages(
+                        Operation.GetEnclosingControlFlowGraph(),
+                        compilation,
+                        ContainingSymbol,
+                        typeToTrackMetadataName,
+                        constructorMapper,
+                        propertyMappers,
+                        hazardousUsageEvaluators,
+                        interproceduralAnalysisConfig,
+                        pessimisticAnalysis);
+                if (dfaResult.IsEmpty)
+                {
+                    continue;
+                }
+
+                if (allResults == null)
+                {
+                    allResults = PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.GetInstance();
+                }
+
+                foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp
+                    in dfaResult)
+                {
+                    if (allResults.TryGetValue(kvp.Key, out HazardousUsageEvaluationResult existingValue))
+                    {
+                        allResults[kvp.Key] = PropertySetAnalysis.MergeHazardousUsageEvaluationResult(existingValue, kvp.Value);
+                    }
+                    else
+                    {
+                        allResults.Add(kvp.Key, kvp.Value);
+                    }
+                }
+            }
+
+            return allResults;
+        }
+
+        /// <summary>
+        /// When there are multiple hazardous usage evaluations for the same exact code, this prioritizes Flagged over MaybeFlagged, and MaybeFlagged over Unflagged.
+        /// </summary>
+        /// <param name="r1">First evaluation result.</param>
+        /// <param name="r2">Second evaluation result.</param>
+        /// <returns>Prioritized result.</returns>
+        public static HazardousUsageEvaluationResult MergeHazardousUsageEvaluationResult(HazardousUsageEvaluationResult r1, HazardousUsageEvaluationResult r2)
+        {
+            if (r1 == HazardousUsageEvaluationResult.Flagged || r2 == HazardousUsageEvaluationResult.Flagged)
+            {
+                return HazardousUsageEvaluationResult.Flagged;
+            }
+            else if (r1 == HazardousUsageEvaluationResult.MaybeFlagged || r2 == HazardousUsageEvaluationResult.MaybeFlagged)
+            {
+                return HazardousUsageEvaluationResult.MaybeFlagged;
+            }
+            else
+            {
+                return HazardousUsageEvaluationResult.Unflagged;
+            }
         }
 
         private static PropertySetAnalysisResult GetOrComputeResultForAnalysisContext(PropertySetAnalysisContext analysisContext)

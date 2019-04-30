@@ -263,6 +263,9 @@ namespace Analyzer.Utilities
         public const string SystemDirectoryServicesActiveDirectoryADSearcher = "System.DirectoryServices.ActiveDirectory.ADSearcher";
         public const string SystemDirectoryServicesDirectorySearcher = "System.DirectoryServices.DirectorySearcher";
         public const string SystemDirectoryDirectoryEntry = "System.DirectoryServices.DirectoryEntry";
+        public const string SystemWebScriptSerializationJavaScriptSerializer = "System.Web.Script.Serialization.JavaScriptSerializer";
+        public const string SystemWebScriptSerializationJavaScriptTypeResolver = "System.Web.Script.Serialization.JavaScriptTypeResolver";
+        public const string SystemWebScriptSerializationSimpleTypeResolver = "System.Web.Script.Serialization.SimpleTypeResolver";
         public const string SystemWebUIPageTheme = "System.Web.UI.PageTheme";
         public const string SystemWebUITemplateControl = "System.Web.UI.TemplateControl";
         public const string SystemWebUIWebControlsXmlDataSource = "System.Web.UI.WebControls.XmlDataSource";
@@ -290,5 +293,9 @@ namespace Analyzer.Utilities
         public const string SystemXmlXPathXPathDocument = "System.Xml.XPath.XPathDocument";
         public const string SystemIODirectoryInfo = "System.IO.DirectoryInfo";
         public const string SystemIOLogLogStore = "System.IO.Log.LogStore";
+        public const string SystemSecurityCryptographyPasswordDeriveBytes = "System.Security.Cryptography.PasswordDeriveBytes";
+        public const string SystemSecurityCryptographyRfc2898DeriveBytes = "System.Security.Cryptography.Rfc2898DeriveBytes";
+        public const string SystemXmlXslXslTransform = "System.Xml.Xsl.XslTransform";
+        public const string MicrosoftWindowsAzureStorageCloudStorageAccount = "Microsoft.WindowsAzure.Storage.CloudStorageAccount";
     }
 }

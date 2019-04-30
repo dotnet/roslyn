@@ -34,8 +34,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            // TODO: Make the analyzer thread-safe
-            //context.EnableConcurrentExecution();
+            context.EnableConcurrentExecution();
 
             // We need to analyze generated code, but don't intend to report diagnostics on generated code.
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);

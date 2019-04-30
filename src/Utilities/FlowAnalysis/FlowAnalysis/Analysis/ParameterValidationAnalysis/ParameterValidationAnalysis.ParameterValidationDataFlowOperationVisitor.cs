@@ -59,8 +59,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             protected override void ResetCurrentAnalysisData() => ResetAnalysisData(CurrentAnalysisData);
 
-            private bool IsTrackedLocation(AbstractLocation location) =>
-                location.SymbolOpt is IParameterSymbol parameter && parameter.Type.IsReferenceType && parameter.ContainingSymbol == OwningSymbol;
+            private bool IsTrackedLocation(AbstractLocation location)
+            {
+                return CurrentAnalysisData.ContainsKey(location) ||
+                    location.SymbolOpt is IParameterSymbol parameter &&
+                    parameter.Type.IsReferenceType &&
+                    Equals(parameter.ContainingSymbol, GetBottomOfStackOwningSymbol());
+
+                ISymbol GetBottomOfStackOwningSymbol()
+                {
+                    if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null)
+                    {
+                        return OwningSymbol;
+                    }
+
+                    return DataFlowAnalysisContext.InterproceduralAnalysisDataOpt.MethodsBeingAnalyzed
+                        .Single(m => m.InterproceduralAnalysisDataOpt == null)
+                        .OwningSymbol;
+                }
+            }
 
             private bool IsNotOrMaybeValidatedLocation(AbstractLocation location) =>
                 CurrentAnalysisData.TryGetValue(location, out var value) &&
@@ -78,7 +95,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             protected override void SetAbstractValueForAssignment(IOperation target, IOperation assignedValueOperation, ParameterValidationAbstractValue assignedValue, bool mayBeAssignment = false)
             {
-                // We are only tracking default parameter locations.
+                // If we are assigning to parameter, mark it as validated on this path.
+                if (target is IParameterReferenceOperation)
+                {
+                    MarkValidatedLocations(target);
+                }
             }
 
             protected override void SetAbstractValueForTupleElementAssignment(AnalysisEntity tupleElementEntity, IOperation assignedValueOperation, ParameterValidationAbstractValue assignedValue)
@@ -118,6 +139,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     }
                 }
             }
+
+            private void MarkValidatedLocations(IOperation operation)
+                => SetAbstractValue(GetNotValidatedLocations(operation), ParameterValidationAbstractValue.Validated);
 
             private IEnumerable<AbstractLocation> GetNotValidatedLocations(IOperation operation)
             {
@@ -263,7 +287,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                         arguments.Length == 1)
                     {
                         // string.IsNullOrXXX check.
-                        SetAbstractValue(GetNotValidatedLocations(arguments[0]), ParameterValidationAbstractValue.Validated);
+                        MarkValidatedLocations(arguments[0]);
                     }
                 }
                 else if (targetMethod.Parameters.Length > 0 &&
@@ -274,19 +298,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     // FxCop compat: special cases handled by FxCop.
                     //  1. First argument of type System.Runtime.Serialization.SerializationInfo to System.Exception.GetObjectData or its override is validated.
                     //  2. First argument of type System.Runtime.Serialization.SerializationInfo to constructor of System.Exception or its subtype is validated.
-                    if (targetMethod.Parameters[0].Type == WellKnownTypeProvider.SerializationInfo)
+                    if (Equals(targetMethod.Parameters[0].Type, WellKnownTypeProvider.SerializationInfo))
                     {
                         switch (targetMethod.MethodKind)
                         {
                             case MethodKind.Ordinary:
                                 if (targetMethod.Name.Equals("GetObjectData", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    SetAbstractValue(GetNotValidatedLocations(arguments[0]), ParameterValidationAbstractValue.Validated);
+                                    MarkValidatedLocations(arguments[0]);
                                 }
                                 break;
 
                             case MethodKind.Constructor:
-                                SetAbstractValue(GetNotValidatedLocations(arguments[0]), ParameterValidationAbstractValue.Validated);
+                                MarkValidatedLocations(arguments[0]);
                                 break;
                         }
                     }
@@ -336,11 +360,67 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                             var syntaxNode = kvp.Value;
                             if (!_hazardousParameterUsageBuilderOpt.ContainsKey(parameter))
                             {
-                                HandleHazardousOperation(syntaxNode, notValidatedLocations.Where(l => l.SymbolOpt == parameter));
+                                HandleHazardousOperation(syntaxNode, notValidatedLocations.Where(l => Equals(l.SymbolOpt, parameter)));
                             }
                         }
                     }
                 }
+            }
+
+            public override ParameterValidationAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object argument)
+            {
+                var value = base.VisitBinaryOperatorCore(operation, argument);
+
+                // Mark a location as validated on paths where we know it is non-null.
+                //     if (x != null)
+                //     {
+                //         // Validated on this path
+                //     }
+
+                // if (x != null)
+                // {
+                //      // This code path
+                // }
+                var isNullNotEqualsOnWhenTrue = FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue &&
+                    (operation.OperatorKind == BinaryOperatorKind.NotEquals || operation.OperatorKind == BinaryOperatorKind.ObjectValueNotEquals);
+
+                // if (x == null) { ... }
+                // else
+                // {
+                //      // This code path
+                // }
+                var isNullEqualsOnWhenFalse = FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse &&
+                    (operation.OperatorKind == BinaryOperatorKind.Equals || operation.OperatorKind == BinaryOperatorKind.ObjectValueEquals);
+
+                if (isNullNotEqualsOnWhenTrue || isNullEqualsOnWhenFalse)
+                {
+                    if (GetNullAbstractValue(operation.RightOperand) == NullAbstractValue.Null)
+                    {
+                        // if (x != null)
+                        MarkValidatedLocations(operation.LeftOperand);
+                    }
+                    else if (GetNullAbstractValue(operation.LeftOperand) == NullAbstractValue.Null)
+                    {
+                        // if (null != x)
+                        MarkValidatedLocations(operation.RightOperand);
+                    }
+                }
+
+                return value;
+            }
+
+            public override ParameterValidationAbstractValue VisitIsNull(IIsNullOperation operation, object argument)
+            {
+                var value = base.VisitIsNull(operation, argument);
+
+                // Mark a location as validated on paths where we know it is non-null.
+                // See comments in VisitBinaryOperatorCore override above for further details.
+                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse)
+                {
+                    MarkValidatedLocations(operation.Operand);
+                }
+
+                return value;
             }
 
             #endregion
