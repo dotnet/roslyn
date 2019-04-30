@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private TextWriter _errorOutput;
         private readonly object _outputGuard;
         private readonly object _errorOutputGuard;
+        private bool _isDisposing;
 
         internal event Action<bool> ProcessStarting;
 
@@ -170,11 +171,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         return null;
                     }
 
-                    lock (_outputGuard)
-                    {
-                        _output.WriteLine(InteractiveHostResources.Attempt_to_connect_to_process_Sharp_0_failed_retrying, newProcessId);
-                    }
-
+                    Execute(_output, _outputGuard, writer => writer.WriteLine(InteractiveHostResources.Attempt_to_connect_to_process_Sharp_0_failed_retrying, newProcessId));
                     cancellationToken.ThrowIfCancellationRequested();
                 }
 
@@ -221,11 +218,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             if (!alive)
             {
                 string errorString = process.StandardError.ReadToEnd();
-                lock (_errorOutputGuard)
+                Execute(_errorOutput, _errorOutputGuard, writer =>
                 {
                     _errorOutput.WriteLine(InteractiveHostResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, hostPath, process.ExitCode);
                     _errorOutput.WriteLine(errorString);
-                }
+                });
             }
 
             return alive;
@@ -239,6 +236,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         // Dispose may be called anytime.
         public void Dispose()
         {
+            _isDisposing = true;
             DisposeChannel();
             SetOutput(TextWriter.Null);
             SetErrorOutput(TextWriter.Null);
@@ -298,10 +296,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             var writer = error ? _errorOutput : _output;
             var guard = error ? _errorOutputGuard : _outputGuard;
-            lock (guard)
-            {
-                writer.Write(buffer, 0, count);
-            }
+
+            Execute(writer, guard, writer => writer.Write(buffer, 0, count));
         }
 
         private LazyRemoteService CreateRemoteService(InteractiveHostOptions options, bool skipInitialization)
@@ -329,10 +325,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             if (exitCode.HasValue)
             {
-                lock (_errorOutputGuard)
-                {
-                    _errorOutput.WriteLine(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, exitCode.Value);
-                }
+                Execute(_errorOutput, _errorOutputGuard, writer => writer.WriteLine(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, exitCode.Value));
             }
         }
 
@@ -374,10 +367,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
                 }
 
-                lock (_errorOutputGuard)
-                {
-                    _errorOutput.WriteLine(InteractiveHostResources.Unable_to_create_hosting_process);
-                }
+                Execute(_errorOutput, _errorOutputGuard, writer => writer.WriteLine(InteractiveHostResources.Unable_to_create_hosting_process));
             }
             catch (OperationCanceledException)
             {
@@ -390,6 +380,30 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
 
             return default(InitializedRemoteService);
+        }
+
+        private void Execute(TextWriter writer, object guard, Action<TextWriter> action)
+        {
+            const int TimeoutInMs = 100;
+            var tokenSource = new CancellationTokenSource();
+            var cancellationToken = tokenSource.Token;
+            var task = new Task(() => action(writer), cancellationToken);
+            while (true)
+            {
+                if (_isDisposing)
+                {
+                    tokenSource.Cancel();
+                    return;
+                }
+
+                lock (guard)
+                {
+                    if (task.Wait(TimeoutInMs))
+                    {
+                        return;
+                    }
+                }
+            }
         }
 
         private async Task<TResult> Async<TResult>(Action<Service, RemoteAsyncOperation<TResult>> action)
