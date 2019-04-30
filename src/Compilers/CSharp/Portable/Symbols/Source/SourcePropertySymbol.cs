@@ -248,6 +248,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type = type.WithTypeAndModifiers(
                             CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.Type, type.Type, this.ContainingAssembly),
                             overriddenPropertyType.CustomModifiers);
+
+                        // Although we only do this in error scenarios, it is undesirable to mutate the symbol by setting its type twice.
+                        // Tracked by https://github.com/dotnet/roslyn/issues/35381
                         _lazyType.InterlockedReset();
                         _lazyType.InterlockedInitialize(type);
                     }

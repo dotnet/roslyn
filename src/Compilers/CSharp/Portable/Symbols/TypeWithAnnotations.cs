@@ -24,18 +24,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal struct Builder
         {
             private TypeSymbol _defaultType;
-            private NullableAnnotation _nullableAnnotation;
+            private int _nullableAnnotation;
             private Extensions _extensions;
 
             /// <summary>
             /// The underlying type, unless overridden by _extensions.
             /// </summary>
-            internal TypeSymbol DefaultType => _defaultType;
+            internal TypeSymbol DefaultType => Volatile.Read(ref _defaultType);
 
             /// <summary>
             /// True if the fields of the builder are unset.
             /// </summary>
-            internal bool IsDefault => _extensions == null;
+            internal bool IsDefault => Volatile.Read(ref _extensions) == null;
 
             /// <summary>
             /// Set the fields of the builder.
@@ -54,14 +54,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return false;
                 }
-                _nullableAnnotation = type.NullableAnnotation;
+                Interlocked.CompareExchange(ref _nullableAnnotation, (int)type.NullableAnnotation, 0);
                 Interlocked.CompareExchange(ref _defaultType, type.DefaultType, null);
-                return Interlocked.CompareExchange(ref _extensions, type._extensions ?? Extensions.Default, null) is null;
+                bool wasFirst = Interlocked.CompareExchange(ref _extensions, type._extensions ?? Extensions.Default, null) is null;
+                Debug.Assert(wasFirst || (_extensions == (type._extensions ?? Extensions.Default) && _nullableAnnotation == (int)type.NullableAnnotation && _defaultType.Equals(type.DefaultType)));
+                return wasFirst;
             }
 
+            /// <summary>
+            /// We should not be adding any new usages of this method. The only one is currently in SourcePropertySymbol,
+            /// which currently sets the property's type twice in error scenarios.
+            /// We should be able to remove this method by fixing https://github.com/dotnet/roslyn/issues/35381
+            /// </summary>
             internal void InterlockedReset()
             {
-                _nullableAnnotation = 0;
+                Interlocked.Exchange(ref _nullableAnnotation, 0);
                 Interlocked.Exchange(ref _defaultType, null);
                 Interlocked.Exchange(ref _extensions, null);
             }
@@ -73,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return IsDefault ?
                     default :
-                    new TypeWithAnnotations(_defaultType, _nullableAnnotation, _extensions);
+                    new TypeWithAnnotations(Volatile.Read(ref _defaultType), (NullableAnnotation)Volatile.Read(ref _nullableAnnotation), Volatile.Read(ref _extensions));
             }
 
             internal string GetDebuggerDisplay() => ToType().GetDebuggerDisplay();
@@ -765,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private abstract class Extensions
         {
-            internal static readonly Extensions Default = new NonLazyType(ImmutableArray<CustomModifier>.Empty);
+            internal static readonly Extensions Default = new NonLazyType(customModifiers: ImmutableArray<CustomModifier>.Empty);
 
             internal static Extensions Create(ImmutableArray<CustomModifier> customModifiers)
             {
