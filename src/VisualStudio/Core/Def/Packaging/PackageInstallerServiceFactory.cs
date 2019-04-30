@@ -92,6 +92,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public ImmutableArray<PackageSource> GetPackageSources()
         {
+            // Only read from _packageSources once, since OnSourceProviderSourcesChanged could reset it to default at
+            // any time while this method is running.
             var packageSources = _packageSources;
             if (packageSources != null)
             {
@@ -101,8 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             try
             {
                 packageSources = _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false)
-                    .Select(r => new PackageSource(r.Key, r.Value))
-                    .ToImmutableArrayOrEmpty();
+                    .SelectAsArray(r => new PackageSource(r.Key, r.Value));
             }
             catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
             {
@@ -151,9 +152,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         protected override void EnableService()
         {
-            // Our service has been enabled.  Now load the VS package dlls.
-            var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
-
             if (!IsEnabled)
             {
                 return;
