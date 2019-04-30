@@ -868,9 +868,10 @@ After Loop
 ]]>)
         End Sub
 
-        <Fact>
-        Public Sub ExitContinueForLoop1()
-            CompileAndVerify(
+        <Fact(DisplayName:="ContinueAndExitForWithIdentifier")>
+        Public Sub ContinueAndExitForWithIdentifier()
+           Dim result AS CompilationVerifier = nothing
+                Result = CompileAndVerify(
 <compilation name="ExitContinueForLoop1">
     <file name="a.vb">
 Imports System        
@@ -880,7 +881,7 @@ Module M1
         For i = 0 To 2
             Console.WriteLine($"Loop i Block Start ({i})")
             For j = 0 To 2
-              Console.WriteLine($"Loop j Block Start ({i})")
+              Console.WriteLine($"Loop j Block Start ({j})")
               If continueLoop Then
                 Console.WriteLine("Continuing")
                 continueLoop = false

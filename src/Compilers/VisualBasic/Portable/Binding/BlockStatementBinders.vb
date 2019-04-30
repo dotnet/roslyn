@@ -58,14 +58,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function GetContinueLabel(continueSyntaxKind As SyntaxKind, controlVariable As String) As LabelSymbol
-            Dim found = If(controlVariable Is Nothing, Nothing, me.Locals.FirstOrDefault(Function(i) i.Name=controlVariable))
-            If  _continueKind = continueSyntaxKind AndAlso controlVariable IsNot Nothing Then
-                If found IsNot Nothing Then
-                Return _continueLabel
-                Else
-                Return ContainingBinder.GetContinueLabel(continueSyntaxKind, controlVariable)
-                End If
-            ElseIf _continueKind = continueSyntaxKind Then
+            ' If there isn't a controlVariable, use existing function, that does't check the local variables.
+            If controlVariable Is Nothing Then
+                Return GetContinueLabel(continueSyntaxKind)
+            End If
+            ' Is there a matching local with the control variable?
+            Dim found = If(controlVariable Is Nothing, Nothing, Locals.FirstOrDefault(Function(label) label.Name = controlVariable))
+            If _continueKind = continueSyntaxKind AndAlso found IsNot Nothing Then
                 Return _continueLabel
             Else
                 Return ContainingBinder.GetContinueLabel(continueSyntaxKind, controlVariable)
@@ -73,18 +72,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function GetExitLabel(exitSyntaxKind As SyntaxKind, controlVariable As String) As LabelSymbol
-            Dim found =  If(controlVariable Is Nothing, Nothing,me.Locals.FirstOrDefault(Function(i)  i.Name=controlVariable))
-            If _exitKind = exitSyntaxKind AndAlso controlVariable IsNot Nothing Then
-                If found IsNot Nothing Then
-                    Return _continueLabel
-                Else
-                    REturn ContainingBinder.GetExitLabel(exitSyntaxKind, controlVariable)
-                    End if
-            Else If _exitKind = exitSyntaxKind Then
+            ' If there isn't a controlVariable, use existing function, that does't check the local variables.
+            If controlVariable Is Nothing Then 
+                Return GetExitLabel(exitSyntaxKind)
+            End If
+
+            Dim found = If(controlVariable Is Nothing, Nothing, Locals.FirstOrDefault(Function(label) label.Name = controlVariable))
+            If _exitKind = exitSyntaxKind AndAlso found IsNot Nothing Then
                 Return _exitLabel
             Else
                 Return ContainingBinder.GetExitLabel(exitSyntaxKind, controlVariable)
-            End If
+            End if
         End Function
 
         Public Overrides Function GetExitLabel(exitSyntaxKind As SyntaxKind) As LabelSymbol
