@@ -156,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Completion_SymbolCompletionProvider_GetItemsWorker,
         Completion_KeywordCompletionProvider_GetItemsWorker,
         Completion_SnippetCompletionProvider_GetItemsWorker_CSharp,
+        Completion_TypeImportCompletionProvider_GetCompletionItemsAsync,
 
         SignatureHelp_ModelComputation_ComputeModelInBackground,
         SignatureHelp_ModelComputation_UpdateModelInBackground,
@@ -451,5 +452,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         GraphQuery_IsCalledBy,
         GraphQuery_IsUsedBy,
         GraphQuery_Overrides,
+
+        Intellisense_AsyncCompletion_Data,
     }
 }

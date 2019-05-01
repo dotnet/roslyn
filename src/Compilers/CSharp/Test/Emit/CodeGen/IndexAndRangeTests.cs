@@ -17,6 +17,474 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
 
         [Fact]
+        public void SpanTaskReturn()
+        {
+            var src = @"
+using System;
+using System.Threading.Tasks;
+class C
+{
+    static void Throws(Action a)
+    {
+        try
+        {
+            a();
+        }
+        catch
+        {
+            Console.WriteLine(""throws"");
+        }
+    }
+
+    public static void Main()
+    {
+        string s = ""abcd"";
+        Throws(() => { var span = new Span<char>(s.ToCharArray())[0..10]; });
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "throws");
+        }
+
+        [Fact]
+        public void PatternIndexSetter()
+        {
+            var src = @"
+using System;
+struct S
+{
+    public int F;
+    public int Length => 1;
+    public int this[int i]
+    {
+        get => F;
+        set { F = value; }
+    }
+}
+class C
+{
+    static void Main()
+    {
+        S s = new S();
+        s.F = 0;
+        Console.WriteLine(s[^1]);
+        s[^1] = 2;
+        Console.WriteLine(s[^1]);
+        Console.WriteLine(s.F);
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"0
+2
+2");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size      135 (0x87)
+  .maxstack  3
+  .locals init (S V_0, //s
+                int V_1,
+                int V_2,
+                System.Index V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldc.i4.0
+  IL_000b:  stfld      ""int S.F""
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  dup
+  IL_0013:  call       ""int S.Length.get""
+  IL_0018:  stloc.1
+  IL_0019:  ldc.i4.1
+  IL_001a:  ldc.i4.1
+  IL_001b:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0020:  stloc.3
+  IL_0021:  ldloca.s   V_3
+  IL_0023:  ldloc.1
+  IL_0024:  call       ""int System.Index.GetOffset(int)""
+  IL_0029:  stloc.2
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""int S.this[int].get""
+  IL_0030:  call       ""void System.Console.WriteLine(int)""
+  IL_0035:  ldloca.s   V_0
+  IL_0037:  dup
+  IL_0038:  call       ""int S.Length.get""
+  IL_003d:  stloc.2
+  IL_003e:  ldc.i4.1
+  IL_003f:  ldc.i4.1
+  IL_0040:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0045:  stloc.3
+  IL_0046:  ldloca.s   V_3
+  IL_0048:  ldloc.2
+  IL_0049:  call       ""int System.Index.GetOffset(int)""
+  IL_004e:  stloc.1
+  IL_004f:  ldloc.1
+  IL_0050:  ldc.i4.2
+  IL_0051:  call       ""void S.this[int].set""
+  IL_0056:  ldloca.s   V_0
+  IL_0058:  dup
+  IL_0059:  call       ""int S.Length.get""
+  IL_005e:  stloc.1
+  IL_005f:  ldc.i4.1
+  IL_0060:  ldc.i4.1
+  IL_0061:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0066:  stloc.3
+  IL_0067:  ldloca.s   V_3
+  IL_0069:  ldloc.1
+  IL_006a:  call       ""int System.Index.GetOffset(int)""
+  IL_006f:  stloc.2
+  IL_0070:  ldloc.2
+  IL_0071:  call       ""int S.this[int].get""
+  IL_0076:  call       ""void System.Console.WriteLine(int)""
+  IL_007b:  ldloc.0
+  IL_007c:  ldfld      ""int S.F""
+  IL_0081:  call       ""void System.Console.WriteLine(int)""
+  IL_0086:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternIndexerRefReturn()
+        {
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Span<int> s = new int[] { 2, 4, 5, 6 };
+        Console.WriteLine(s[^2]);
+        ref int x = ref s[^2];
+        Console.WriteLine(x);
+        s[^2] = 9;
+        Console.WriteLine(s[^2]);
+        Console.WriteLine(x);
+    }
+}", TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"5
+5
+9
+9");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size      188 (0xbc)
+  .maxstack  4
+  .locals init (System.Span<int> V_0, //s
+                int V_1,
+                int V_2,
+                System.Index V_3,
+                int V_4,
+                int V_5)
+  IL_0000:  ldc.i4.4
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.D033850C1A3F6F1209A6CD84146E8561DDC73C79""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  call       ""System.Span<int> System.Span<int>.op_Implicit(int[])""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  dup
+  IL_001a:  call       ""int System.Span<int>.Length.get""
+  IL_001f:  stloc.1
+  IL_0020:  ldc.i4.2
+  IL_0021:  ldc.i4.1
+  IL_0022:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0027:  stloc.3
+  IL_0028:  ldloca.s   V_3
+  IL_002a:  ldloc.1
+  IL_002b:  call       ""int System.Index.GetOffset(int)""
+  IL_0030:  stloc.2
+  IL_0031:  ldloc.2
+  IL_0032:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0037:  ldind.i4
+  IL_0038:  call       ""void System.Console.WriteLine(int)""
+  IL_003d:  ldloca.s   V_0
+  IL_003f:  dup
+  IL_0040:  call       ""int System.Span<int>.Length.get""
+  IL_0045:  stloc.2
+  IL_0046:  ldc.i4.2
+  IL_0047:  ldc.i4.1
+  IL_0048:  newobj     ""System.Index..ctor(int, bool)""
+  IL_004d:  stloc.3
+  IL_004e:  ldloca.s   V_3
+  IL_0050:  ldloc.2
+  IL_0051:  call       ""int System.Index.GetOffset(int)""
+  IL_0056:  stloc.1
+  IL_0057:  ldloc.1
+  IL_0058:  call       ""ref int System.Span<int>.this[int].get""
+  IL_005d:  dup
+  IL_005e:  ldind.i4
+  IL_005f:  call       ""void System.Console.WriteLine(int)""
+  IL_0064:  ldloca.s   V_0
+  IL_0066:  dup
+  IL_0067:  call       ""int System.Span<int>.Length.get""
+  IL_006c:  stloc.s    V_4
+  IL_006e:  ldc.i4.2
+  IL_006f:  ldc.i4.1
+  IL_0070:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0075:  stloc.3
+  IL_0076:  ldloca.s   V_3
+  IL_0078:  ldloc.s    V_4
+  IL_007a:  call       ""int System.Index.GetOffset(int)""
+  IL_007f:  stloc.s    V_5
+  IL_0081:  ldloc.s    V_5
+  IL_0083:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0088:  ldc.i4.s   9
+  IL_008a:  stind.i4
+  IL_008b:  ldloca.s   V_0
+  IL_008d:  dup
+  IL_008e:  call       ""int System.Span<int>.Length.get""
+  IL_0093:  stloc.s    V_5
+  IL_0095:  ldc.i4.2
+  IL_0096:  ldc.i4.1
+  IL_0097:  newobj     ""System.Index..ctor(int, bool)""
+  IL_009c:  stloc.3
+  IL_009d:  ldloca.s   V_3
+  IL_009f:  ldloc.s    V_5
+  IL_00a1:  call       ""int System.Index.GetOffset(int)""
+  IL_00a6:  stloc.s    V_4
+  IL_00a8:  ldloc.s    V_4
+  IL_00aa:  call       ""ref int System.Span<int>.this[int].get""
+  IL_00af:  ldind.i4
+  IL_00b0:  call       ""void System.Console.WriteLine(int)""
+  IL_00b5:  ldind.i4
+  IL_00b6:  call       ""void System.Console.WriteLine(int)""
+  IL_00bb:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternIndexAndRangeSpanChar()
+        {
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        ReadOnlySpan<char> s = ""abcdefg"";
+        Console.WriteLine(s[^2]);
+        var index = ^1;
+        Console.WriteLine(s[index]);
+        s = s[^2..];
+        Console.WriteLine(s[0]);
+        Console.WriteLine(s[1]);
+    }
+}", TestOptions.ReleaseExe); ;
+            var verifier = CompileAndVerify(comp, expectedOutput: @"f
+g
+f
+g");
+            verifier.VerifyIL(@"C.Main", @"
+{
+  // Code size      193 (0xc1)
+  .maxstack  4
+  .locals init (System.ReadOnlySpan<char> V_0, //s
+                System.Index V_1, //index
+                int V_2,
+                int V_3,
+                System.Index V_4,
+                System.ReadOnlySpan<char> V_5,
+                System.Range V_6,
+                int V_7)
+  IL_0000:  ldstr      ""abcdefg""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  dup
+  IL_000e:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0013:  stloc.2
+  IL_0014:  ldc.i4.2
+  IL_0015:  ldc.i4.1
+  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
+  IL_001b:  stloc.s    V_4
+  IL_001d:  ldloca.s   V_4
+  IL_001f:  ldloc.2
+  IL_0020:  call       ""int System.Index.GetOffset(int)""
+  IL_0025:  stloc.3
+  IL_0026:  ldloc.3
+  IL_0027:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_002c:  ldind.u2
+  IL_002d:  call       ""void System.Console.WriteLine(char)""
+  IL_0032:  ldloca.s   V_1
+  IL_0034:  ldc.i4.1
+  IL_0035:  ldc.i4.1
+  IL_0036:  call       ""System.Index..ctor(int, bool)""
+  IL_003b:  ldloca.s   V_0
+  IL_003d:  dup
+  IL_003e:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0043:  stloc.3
+  IL_0044:  ldloca.s   V_1
+  IL_0046:  ldloc.3
+  IL_0047:  call       ""int System.Index.GetOffset(int)""
+  IL_004c:  stloc.2
+  IL_004d:  ldloc.2
+  IL_004e:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0053:  ldind.u2
+  IL_0054:  call       ""void System.Console.WriteLine(char)""
+  IL_0059:  ldloc.0
+  IL_005a:  stloc.s    V_5
+  IL_005c:  ldloca.s   V_5
+  IL_005e:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0063:  stloc.2
+  IL_0064:  ldc.i4.2
+  IL_0065:  ldc.i4.1
+  IL_0066:  newobj     ""System.Index..ctor(int, bool)""
+  IL_006b:  call       ""System.Range System.Range.StartAt(System.Index)""
+  IL_0070:  stloc.s    V_6
+  IL_0072:  ldloca.s   V_6
+  IL_0074:  call       ""System.Index System.Range.Start.get""
+  IL_0079:  stloc.s    V_4
+  IL_007b:  ldloca.s   V_4
+  IL_007d:  ldloc.2
+  IL_007e:  call       ""int System.Index.GetOffset(int)""
+  IL_0083:  stloc.3
+  IL_0084:  ldloca.s   V_6
+  IL_0086:  call       ""System.Index System.Range.End.get""
+  IL_008b:  stloc.s    V_4
+  IL_008d:  ldloca.s   V_4
+  IL_008f:  ldloc.2
+  IL_0090:  call       ""int System.Index.GetOffset(int)""
+  IL_0095:  stloc.s    V_7
+  IL_0097:  ldloca.s   V_5
+  IL_0099:  ldloc.3
+  IL_009a:  ldloc.s    V_7
+  IL_009c:  ldloc.3
+  IL_009d:  sub
+  IL_009e:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)""
+  IL_00a3:  stloc.0
+  IL_00a4:  ldloca.s   V_0
+  IL_00a6:  ldc.i4.0
+  IL_00a7:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_00ac:  ldind.u2
+  IL_00ad:  call       ""void System.Console.WriteLine(char)""
+  IL_00b2:  ldloca.s   V_0
+  IL_00b4:  ldc.i4.1
+  IL_00b5:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_00ba:  ldind.u2
+  IL_00bb:  call       ""void System.Console.WriteLine(char)""
+  IL_00c0:  ret
+}");
+        }
+
+        [Fact]
+        public void PatternIndexAndRangeSpanInt()
+        {
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+class C
+{
+    static void Main()
+    {
+        Span<int> s = new int[] { 2, 4, 5, 6 };
+        Console.WriteLine(s[^2]);
+        var index = ^1;
+        Console.WriteLine(s[index]);
+        s = s[^2..];
+        Console.WriteLine(s[0]);
+        Console.WriteLine(s[1]);
+    }
+}", TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"5
+6
+5
+6");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size      205 (0xcd)
+  .maxstack  4
+  .locals init (System.Span<int> V_0, //s
+                System.Index V_1, //index
+                int V_2,
+                int V_3,
+                System.Index V_4,
+                System.Span<int> V_5,
+                System.Range V_6,
+                int V_7)
+  IL_0000:  ldc.i4.4
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.D033850C1A3F6F1209A6CD84146E8561DDC73C79""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  call       ""System.Span<int> System.Span<int>.op_Implicit(int[])""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  dup
+  IL_001a:  call       ""int System.Span<int>.Length.get""
+  IL_001f:  stloc.2
+  IL_0020:  ldc.i4.2
+  IL_0021:  ldc.i4.1
+  IL_0022:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0027:  stloc.s    V_4
+  IL_0029:  ldloca.s   V_4
+  IL_002b:  ldloc.2
+  IL_002c:  call       ""int System.Index.GetOffset(int)""
+  IL_0031:  stloc.3
+  IL_0032:  ldloc.3
+  IL_0033:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0038:  ldind.i4
+  IL_0039:  call       ""void System.Console.WriteLine(int)""
+  IL_003e:  ldloca.s   V_1
+  IL_0040:  ldc.i4.1
+  IL_0041:  ldc.i4.1
+  IL_0042:  call       ""System.Index..ctor(int, bool)""
+  IL_0047:  ldloca.s   V_0
+  IL_0049:  dup
+  IL_004a:  call       ""int System.Span<int>.Length.get""
+  IL_004f:  stloc.3
+  IL_0050:  ldloca.s   V_1
+  IL_0052:  ldloc.3
+  IL_0053:  call       ""int System.Index.GetOffset(int)""
+  IL_0058:  stloc.2
+  IL_0059:  ldloc.2
+  IL_005a:  call       ""ref int System.Span<int>.this[int].get""
+  IL_005f:  ldind.i4
+  IL_0060:  call       ""void System.Console.WriteLine(int)""
+  IL_0065:  ldloc.0
+  IL_0066:  stloc.s    V_5
+  IL_0068:  ldloca.s   V_5
+  IL_006a:  call       ""int System.Span<int>.Length.get""
+  IL_006f:  stloc.2
+  IL_0070:  ldc.i4.2
+  IL_0071:  ldc.i4.1
+  IL_0072:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0077:  call       ""System.Range System.Range.StartAt(System.Index)""
+  IL_007c:  stloc.s    V_6
+  IL_007e:  ldloca.s   V_6
+  IL_0080:  call       ""System.Index System.Range.Start.get""
+  IL_0085:  stloc.s    V_4
+  IL_0087:  ldloca.s   V_4
+  IL_0089:  ldloc.2
+  IL_008a:  call       ""int System.Index.GetOffset(int)""
+  IL_008f:  stloc.3
+  IL_0090:  ldloca.s   V_6
+  IL_0092:  call       ""System.Index System.Range.End.get""
+  IL_0097:  stloc.s    V_4
+  IL_0099:  ldloca.s   V_4
+  IL_009b:  ldloc.2
+  IL_009c:  call       ""int System.Index.GetOffset(int)""
+  IL_00a1:  stloc.s    V_7
+  IL_00a3:  ldloca.s   V_5
+  IL_00a5:  ldloc.3
+  IL_00a6:  ldloc.s    V_7
+  IL_00a8:  ldloc.3
+  IL_00a9:  sub
+  IL_00aa:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
+  IL_00af:  stloc.0
+  IL_00b0:  ldloca.s   V_0
+  IL_00b2:  ldc.i4.0
+  IL_00b3:  call       ""ref int System.Span<int>.this[int].get""
+  IL_00b8:  ldind.i4
+  IL_00b9:  call       ""void System.Console.WriteLine(int)""
+  IL_00be:  ldloca.s   V_0
+  IL_00c0:  ldc.i4.1
+  IL_00c1:  call       ""ref int System.Span<int>.this[int].get""
+  IL_00c6:  ldind.i4
+  IL_00c7:  call       ""void System.Console.WriteLine(int)""
+  IL_00cc:  ret
+}");
+        }
+
+        [Fact]
         public void RealIndexersPreferredToPattern()
         {
             var src = @"

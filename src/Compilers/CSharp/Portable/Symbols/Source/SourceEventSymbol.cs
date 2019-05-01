@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, location, Name);
             }
-            else if (this.Type.SpecialType == SpecialType.System_Void)
+            else if (this.Type.IsVoidType())
             {
                 // Diagnostic reported by parser.
             }

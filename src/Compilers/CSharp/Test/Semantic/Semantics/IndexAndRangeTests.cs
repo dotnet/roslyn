@@ -16,6 +16,105 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private const string RangeAllSignature = "System.Range System.Range.All.get";
 
         [Fact]
+        public void PatternIndexRangeLangVer()
+        {
+            var src = @"
+using System;
+struct S
+{
+    public int Length => 0;
+    public int Slice(int x, int y) => 0;
+}
+class C
+{
+    void M(string s, Index i, Range r)
+    {
+        _ = s[i];
+        _ = s[r];
+        _ = new S()[r];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics();
+            comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = s[i];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s[i]").WithArguments("index operator").WithLocation(12, 13),
+                // (13,13): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = s[r];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s[r]").WithArguments("index operator").WithLocation(13, 13),
+                // (14,13): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = new S()[r];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()[r]").WithArguments("index operator").WithLocation(14, 13));
+        }
+
+        [Fact]
+        public void SpanPatternRangeDelegate()
+        {
+            var src = @"
+using System;
+class C
+{
+    void Throws<T>(Func<T> f) { }
+    public static void Main()
+    {
+        string s = ""abcd"";
+        Throws(() => new Span<char>(s.ToCharArray())[0..1]);
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0306: The type 'Span<char>' may not be used as a type argument
+                //         Throws(() => new Span<char>(s.ToCharArray())[0..1]);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Throws").WithArguments("System.Span<char>").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void PatternIndexNoRefIndexer()
+        {
+            var src = @"
+struct S
+{
+    public int Length => 0;
+    public int this[int i] => 0;
+}
+class C
+{
+    void M(S s)
+    {
+        ref readonly int x = ref s[^2];
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyDiagnostics(
+                // (11,34): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         ref readonly int x = ref s[^2];
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithArguments("S.this[int]").WithLocation(11, 34));
+        }
+
+        [Fact]
+        public void PatternRangeSpanNoReturn()
+        {
+            var src = @"
+using System;
+class C
+{
+    Span<int> M()
+    {
+        Span<int> s1 = stackalloc int[10];
+        Span<int> s2 = s1[0..2];
+        return s2;
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s2;
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(9, 16));
+        }
+
+        [Fact]
         public void PatternIndexAndRangeLengthInaccessible()
         {
             var src = @"
@@ -122,9 +221,9 @@ class C
 }";
             var comp = CreateCompilationWithIndexAndRange(src);
             comp.VerifyDiagnostics(
-                // (12,15): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                // (12,13): error CS0271: The property or indexer 'B.this[int]' cannot be used in this context because the get accessor is inaccessible
                 //         _ = b[^0];
-                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(12, 15),
+                Diagnostic(ErrorCode.ERR_InaccessibleGetter, "b[^0]").WithArguments("B.this[int]").WithLocation(12, 13),
                 // (13,15): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
                 //         _ = b[0..];
                 Diagnostic(ErrorCode.ERR_BadArgType, "0..").WithArguments("1", "System.Range", "int").WithLocation(13, 15)

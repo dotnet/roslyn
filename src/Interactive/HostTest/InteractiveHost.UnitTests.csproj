@@ -41,9 +41,6 @@
     <ProjectReference Include="..\DesktopHost\InteractiveHost64.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Roslyn.InteractiveWindow.UnitTests" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />

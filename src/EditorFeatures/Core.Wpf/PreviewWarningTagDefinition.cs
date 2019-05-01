@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.Tags
     {
         public PreviewWarningTagDefinition()
         {
-            // this.Border = new Pen(Brushes.Yellow, thickness: 1.5);
-            this.BackgroundColor = Colors.Yellow;
+            this.Border = new Pen(new SolidColorBrush(Color.FromRgb(230, 117, 64)), thickness: 1.5);
             this.DisplayName = EditorFeaturesResources.Preview_Warning;
             this.ZOrder = 10;
         }

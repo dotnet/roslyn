@@ -1752,6 +1752,12 @@ End Class]]></text>.NormalizedValue(),
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestDateLiteral() As Task
+            Await TestInMethodAsync("Dim f = #8/23/1970 $$3:45:39 AM#",
+                                    MainDescription("Structure System.DateTime"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTrueKeyword() As Task
             Await TestInMethodAsync("Dim f = True$$",
                                     MainDescription("Structure System.Boolean"))
@@ -1768,6 +1774,22 @@ End Class]]></text>.NormalizedValue(),
         Public Async Function TestNothingLiteral() As Task
             Await TestInMethodAsync("Dim f As String = Nothing$$",
                                     MainDescription("Class System.String"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteralWithNoType() As Task
+            Await TestInMethodAsync("Dim f = Nothing$$",
+                                    MainDescription("Class System.Object"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteralFieldDimOptionStrict() As Task
+            Await TestAsync("
+Option Strict On
+Class C
+    Dim f = Nothing$$
+End Class",
+                            MainDescription("Class System.Object"))
         End Function
 
         ''' <Remarks>

@@ -16,10 +16,15 @@ using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
-    using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
-
     internal sealed class CompletionPresenterSession : ForegroundThreadAffinitizedObject, ICompletionPresenterSession
     {
+        /// <summary>
+        /// Used to allow us to stash away the original ITextSnapshot to an ICompletionSession
+        /// when we make it.  We can use this later to recover the original Document and provide
+        /// completion descriptions.
+        /// </summary>
+        public static readonly object TextSnapshotKey = new object();
+
         internal static readonly object Key = new object();
 
         private readonly ICompletionBroker _completionBroker;
@@ -74,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         }
 
         public void PresentItems(
+            ITextSnapshot textSnapshot,
             ITrackingSpan triggerSpan,
             IList<RoslynCompletion.CompletionItem> completionItems,
             RoslynCompletion.CompletionItem selectedItem,
@@ -132,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // so that we can call back into ourselves, get the items and add it to the
                 // session.
                 _editorSessionOpt.Properties.AddProperty(Key, this);
+                _editorSessionOpt.Properties.AddProperty(TextSnapshotKey, textSnapshot);
                 _editorSessionOpt.Start();
             }
 

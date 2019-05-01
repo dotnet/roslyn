@@ -16,14 +16,17 @@
          but gets included in lots of output items like VSIX. -->
     <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.1' AND '$(TargetFramework)' != 'netcoreapp3.0'">false</GenerateRuntimeConfigurationFiles>
 
-    <!-- Place VS insertion (CoreXT) packages to a separate directory -->
-    <PackageOutputPath Condition="'$(IsVisualStudioInsertionPackage)' == 'true'">$(DevDivPackagesDir)</PackageOutputPath>
-
     <!-- 
       When building a .NET Core exe make sure to include the template runtimeconfig.json file 
       which has all of our global settings 
     -->
     <UserRuntimeConfig Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(OutputType)' == 'Exe'">$(RepositoryEngineeringDir)config\runtimeconfig.template.json</UserRuntimeConfig>
+
+    <!-- 
+      Bootstrap compiler should run as a 32 bit process on our 32 bit test runs. This will validate
+      the legacy JIT ability to handle the compiler. 
+    -->
+    <PlatformTarget Condition="'$(OutputType)' == 'Exe' AND '$(TargetFramework)' == 'net472' AND '$(BOOTSTRAP32)' == 'true'">x86</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">

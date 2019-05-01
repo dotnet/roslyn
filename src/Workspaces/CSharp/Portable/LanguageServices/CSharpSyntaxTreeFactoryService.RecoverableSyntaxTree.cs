@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,9 +50,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _cacheKey = original._cacheKey;
                 }
 
-                internal static SyntaxTree CreateRecoverableTree(AbstractSyntaxTreeFactoryService service, ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, CompilationUnitSyntax root)
+                internal static SyntaxTree CreateRecoverableTree(
+                    AbstractSyntaxTreeFactoryService service,
+                    ProjectId cacheKey,
+                    string filePath,
+                    ParseOptions options,
+                    ValueSource<TextAndVersion> text,
+                    Encoding encoding,
+                    CompilationUnitSyntax root,
+                    ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
                 {
-                    return new RecoverableSyntaxTree(service, cacheKey, root, new SyntaxTreeInfo(filePath, options, text, encoding, root.FullSpan.Length));
+                    return new RecoverableSyntaxTree(
+                        service,
+                        cacheKey,
+                        root,
+                        new SyntaxTreeInfo(
+                            filePath,
+                            options,
+                            text,
+                            encoding,
+                            root.FullSpan.Length,
+                            diagnosticOptions ?? EmptyDiagnosticOptions));
                 }
 
                 public override string FilePath
@@ -61,6 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     get { return (CSharpParseOptions)_info.Options; }
                 }
+
+                public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => _info.DiagnosticOptions;
 
                 public override int Length
                 {
@@ -159,6 +182,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return new RecoverableSyntaxTree(this, _info.WithFilePath(path));
+                }
+
+                public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
+                {
+                    if (options == null)
+                    {
+                        options = EmptyDiagnosticOptions;
+                    }
+
+                    if (ReferenceEquals(_info.DiagnosticOptions, options))
+                    {
+                        return this;
+                    }
+
+                    return new RecoverableSyntaxTree(this, _info.WithDiagnosticOptions(options));
                 }
             }
         }

@@ -1,14 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// A version of ITableDataSource who knows how to connect them to Roslyn solution crawler for live information.
     /// </summary>
@@ -46,9 +43,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             SolutionCrawlerProgressChanged(reporter.InProgress);
         }
 
-        private void OnSolutionCrawlerProgressChanged(object sender, bool running)
+        private void OnSolutionCrawlerProgressChanged(object sender, ProgressData progressData)
         {
-            SolutionCrawlerProgressChanged(running);
+            switch (progressData.Status)
+            {
+                case ProgressStatus.Started:
+                    SolutionCrawlerProgressChanged(running: true);
+                    break;
+                case ProgressStatus.Stoped:
+                    SolutionCrawlerProgressChanged(running: false);
+                    break;
+            }
         }
 
         private void SolutionCrawlerProgressChanged(bool running)

@@ -1599,8 +1599,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticLocalFunctionCannotCaptureVariable = 8421,
         ERR_StaticLocalFunctionCannotCaptureThis = 8422,
         ERR_AttributeNotOnEventAccessor = 8423,
+        WRN_UnconsumedEnumeratorCancellationAttributeUsage = 8424,
+        WRN_UndecoratedCancellationTokenParameter = 8425,
+        // available range
+
         #region diagnostics introduced for recursive patterns
-        // 8501, // available
         ERR_WrongNumberOfSubpatterns = 8502,
         ERR_PropertyPatternNameMissing = 8503,
         ERR_MissingPattern = 8504,
@@ -1634,7 +1637,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceReturn = 8603,
         WRN_NullReferenceArgument = 8604,
         WRN_UnboxPossibleNull = 8605,
-        // Unused 8606-8607
+        WRN_NullReferenceIterationVariable = 8606,
+        // Unused 8607
         WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
         WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
@@ -1666,7 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
         WRN_ConditionalAccessMayReturnNull = 8638,
-        // Unused 8639
+        ERR_BadNullableTypeof = 8639,
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
         ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
@@ -1683,6 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_DefaultExpressionMayIntroduceNullT = 8653,
         WRN_NullLiteralMayIntroduceNullT = 8654,
         WRN_SwitchExpressionNotExhaustiveForNull = 8655,
+
         WRN_ImplicitCopyInReadOnlyMember = 8656,
         ERR_StaticMemberCantBeReadOnly = 8657,
         ERR_AutoSetterCantBeReadOnly = 8658,
@@ -1692,7 +1697,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FieldLikeEventCantBeReadOnly = 8662,
         ERR_PartialMethodReadOnlyDifference = 8663,
         ERR_ReadOnlyModMissingAccessor = 8664,
+        ERR_OverrideRefConstraintNotSatisfied = 8665,
+        ERR_OverrideValConstraintNotSatisfied = 8666,
 
+        WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
+
+        ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8701,
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8702,

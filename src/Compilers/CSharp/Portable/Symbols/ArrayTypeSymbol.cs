@@ -480,6 +480,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.ElementType; }
         }
 
+        CodeAnalysis.NullableAnnotation IArrayTypeSymbol.ElementNullableAnnotation
+        {
+            get => ElementTypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+        }
+
         ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers
         {
             get { return this.ElementTypeWithAnnotations.CustomModifiers; }

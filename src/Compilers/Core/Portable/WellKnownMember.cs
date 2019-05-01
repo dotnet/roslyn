@@ -491,6 +491,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_SwitchExpressionException__ctor,
         System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
 
+        System_Threading_CancellationToken__Equals,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

@@ -130,6 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override bool? IsNotNullableIfReferenceType => null;
+
         public override bool HasUnmanagedTypeConstraint
         {
             get { return false; }

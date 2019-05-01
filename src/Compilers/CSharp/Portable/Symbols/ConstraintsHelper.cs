@@ -352,13 +352,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this Symbol containingSymbol,
             Binder binder,
             ImmutableArray<TypeParameterSymbol> typeParameters,
+            TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
             Location location,
             DiagnosticBag diagnostics)
         {
-            if (typeParameters.Length == 0 || constraintClauses.Count == 0)
+            if (typeParameters.Length == 0)
             {
                 return ImmutableArray<TypeParameterConstraintClause>.Empty;
+            }
+
+            if (constraintClauses.Count == 0)
+            {
+                ImmutableArray<TypeParameterConstraintClause> defaultClauses = binder.GetDefaultTypeParameterConstraintClauses(typeParameterList);
+
+                return defaultClauses.ContainsOnlyEmptyConstraintClauses() ? ImmutableArray<TypeParameterConstraintClause>.Empty : defaultClauses;
             }
 
             // Wrap binder from factory in a generic constraints specific binder
@@ -366,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
             binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
 
-            return binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, constraintClauses, diagnostics);
+            return binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses, diagnostics);
         }
 
         /// <summary>
@@ -394,32 +402,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeParameterConstraintClause constraintClause,
             DiagnosticBag diagnostics)
         {
-            Symbol containingSymbol = typeParameter.ContainingSymbol;
-
-            var constraintTypeBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             var constraintTypes = constraintClause.ConstraintTypes;
-            int n = constraintTypes.Length;
-            for (int i = 0; i < n; i++)
+
+            if (!constraintClause.TypeConstraintsSyntax.IsDefault)
             {
-                var constraintType = constraintTypes[i];
-                var syntax = constraintClause.TypeConstraintsSyntax[i];
-                // Only valid constraint types are included in ConstraintTypes
-                // since, in general, it may be difficult to support all invalid types.
-                // In the future, we may want to include some invalid types
-                // though so the public binding API has the most information.
-                if (Binder.IsValidConstraint(typeParameter.Name, syntax, constraintType, constraintClause.Constraints, constraintTypeBuilder, diagnostics))
+                Symbol containingSymbol = typeParameter.ContainingSymbol;
+
+                var constraintTypeBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                int n = constraintTypes.Length;
+
+                for (int i = 0; i < n; i++)
                 {
-                    containingSymbol.CheckConstraintTypeVisibility(syntax.Location, constraintType, diagnostics);
-                    constraintTypeBuilder.Add(constraintType);
+                    var constraintType = constraintTypes[i];
+                    var syntax = constraintClause.TypeConstraintsSyntax[i];
+                    // Only valid constraint types are included in ConstraintTypes
+                    // since, in general, it may be difficult to support all invalid types.
+                    // In the future, we may want to include some invalid types
+                    // though so the public binding API has the most information.
+                    if (Binder.IsValidConstraint(typeParameter.Name, syntax, constraintType, constraintClause.Constraints, constraintTypeBuilder, diagnostics))
+                    {
+                        containingSymbol.CheckConstraintTypeVisibility(syntax.Location, constraintType, diagnostics);
+                        constraintTypeBuilder.Add(constraintType);
+                    }
                 }
-            }
 
-            if (constraintTypeBuilder.Count < n)
-            {
-                constraintTypes = constraintTypeBuilder.ToImmutable();
-            }
+                if (constraintTypeBuilder.Count < n)
+                {
+                    constraintTypes = constraintTypeBuilder.ToImmutable();
+                }
 
-            constraintTypeBuilder.Free();
+                constraintTypeBuilder.Free();
+            }
 
             // Verify constraints on any other partial declarations.
             foreach (var otherClause in constraintClause.OtherPartialDeclarations)
@@ -918,7 +931,7 @@ hasRelatedInterfaces:
                 return true;
             }
 
-            if (typeArgument.Type.IsPointerType() || typeArgument.IsRestrictedType() || typeArgument.SpecialType == SpecialType.System_Void)
+            if (typeArgument.Type.IsPointerType() || typeArgument.IsRestrictedType() || typeArgument.IsVoidType())
             {
                 // "The type '{0}' may not be used as a type argument"
                 diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_BadTypeArgument, typeArgument.Type)));
@@ -1137,12 +1150,12 @@ hasRelatedInterfaces:
 
         private static bool IsReferenceType(TypeParameterSymbol typeParameter, ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
-            return typeParameter.HasReferenceTypeConstraint || typeParameter.IsReferenceTypeFromConstraintTypes(constraintTypes, ConsList<TypeParameterSymbol>.Empty);
+            return typeParameter.HasReferenceTypeConstraint || typeParameter.IsReferenceTypeFromConstraintTypes(constraintTypes);
         }
 
         private static bool IsValueType(TypeParameterSymbol typeParameter, ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
-            return typeParameter.HasValueTypeConstraint || typeParameter.IsValueTypeFromConstraintTypes(constraintTypes, ConsList<TypeParameterSymbol>.Empty);
+            return typeParameter.HasValueTypeConstraint || typeParameter.IsValueTypeFromConstraintTypes(constraintTypes);
         }
 
         private static TypeParameterDiagnosticInfo GenerateConflictingConstraintsError(TypeParameterSymbol typeParameter, TypeSymbol deducedBase, bool classConflict)
