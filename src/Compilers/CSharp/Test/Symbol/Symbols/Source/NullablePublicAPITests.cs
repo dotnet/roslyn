@@ -727,5 +727,103 @@ class C
                 }, SyntaxKind.IdentifierName);
             }
         }
+
+        [Fact]
+        [WorkItem(32661, "https://github.com/dotnet/roslyn/issues/32661")]
+        public void SuppressedTypelessExpressionNullability()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M()
+    {
+        Delegate d1 = () => {}!;
+        d1 = null!;
+        d1 = default!;
+        d1 = M!;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+            var notNull = new NullabilityInfo(PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.NotNull);
+            var notApplicable = new NullabilityInfo(PublicNullableAnnotation.NotApplicable, PublicNullableFlowState.NotApplicable);
+            var delegateType = comp.GetSpecialType(SpecialType.System_Delegate);
+
+            var suppressions = root.DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().Where(p => p.IsKind(SyntaxKind.SuppressNullableWarningExpression)).ToArray();
+
+            AssertSuppressionNullability(model, suppressions[0], null, delegateType, notNull, notApplicable); // d1 = () => {}!
+            AssertSuppressionNullability(model, suppressions[1], null, delegateType, notNull, notNull); // d1 = null!
+            AssertSuppressionNullability(model, suppressions[2], delegateType, delegateType, notNull, notNull); // d1 = default!
+            AssertSuppressionNullability(model, suppressions[3], null, delegateType, notNull, notNull); // d1 = M!
+        }
+
+        [Fact]
+        [WorkItem(32661, "https://github.com/dotnet/roslyn/issues/32661")]
+        public void SuppressedTypedExpressionNullability()
+        {
+            var source = @"
+#pragma warning disable CS0219
+class C
+{
+    void M(string? s)
+    {
+        object o = s!;
+        string s1 = o!;
+        int? i = 1!;
+        D? d = this!;
+    }
+}
+class D
+{
+    public static implicit operator D?(C c) => throw null!;
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            comp.VerifyDiagnostics(
+                // (8,21): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
+                //         string s1 = o!;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "string").WithLocation(8, 21));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+            var notNull = new NullabilityInfo(PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.NotNull);
+            var @null = new NullabilityInfo(PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
+            var notApplicable = new NullabilityInfo(PublicNullableAnnotation.NotApplicable, PublicNullableFlowState.NotApplicable);
+            var objectType = comp.GetSpecialType(SpecialType.System_Object);
+            var stringType = comp.GetSpecialType(SpecialType.System_String);
+            var intType = comp.GetSpecialType(SpecialType.System_Int32);
+            var nullableTType = comp.GetSpecialType(SpecialType.System_Nullable_T);
+            var nullableIntType = nullableTType.Construct(intType);
+            var cType = comp.GetTypeByMetadataName("C");
+            var dType = comp.GetTypeByMetadataName("D");
+
+            var suppressions = root.DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().Where(p => p.IsKind(SyntaxKind.SuppressNullableWarningExpression)).ToArray();
+            AssertSuppressionNullability(model, suppressions[0], stringType, objectType, notNull, notNull); // o = s!
+            AssertSuppressionNullability(model, suppressions[1], objectType, stringType, notNull, notNull); // s1 = o!
+            AssertSuppressionNullability(model, suppressions[2], intType, nullableIntType, new NullabilityInfo(PublicNullableAnnotation.Annotated, PublicNullableFlowState.NotNull), notNull); // i = 1!
+            AssertSuppressionNullability(model, suppressions[3], cType, dType, notNull, notNull); // d = this!
+        }
+
+        private static void AssertSuppressionNullability(SemanticModel model, PostfixUnaryExpressionSyntax suppression, INamedTypeSymbol childType, INamedTypeSymbol type, NullabilityInfo nullability, NullabilityInfo childNullability)
+        {
+            var typeInfo = model.GetTypeInfo(suppression);
+            var childInfo = model.GetTypeInfo(suppression.Operand);
+
+            Assert.Equal(nullability, typeInfo.Nullability);
+            Assert.Equal(nullability, typeInfo.ConvertedNullability);
+            Assert.Equal(type, typeInfo.Type);
+            Assert.Equal(type, typeInfo.ConvertedType);
+            Assert.Equal(childNullability, childInfo.Nullability);
+            Assert.Equal(nullability, childInfo.ConvertedNullability);
+            Assert.Equal(childType, childInfo.Type);
+            Assert.Equal(type, childInfo.ConvertedType);
+        }
     }
 }

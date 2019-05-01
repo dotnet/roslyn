@@ -876,7 +876,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return GetTypeInfoWorker(expression, cancellationToken);
+            var info = GetTypeInfoWorker(expression, cancellationToken);
+
+            // If the expression is suppressed, we always use the converted information. To get the information of the original expression,
+            // the user should be passing in the underlying expression.
+            if (expression.Kind() == SyntaxKind.SuppressNullableWarningExpression)
+            {
+                info = new CSharpTypeInfo(info.ConvertedType, info.ConvertedType, info.ConvertedNullability, info.ConvertedNullability, info.ImplicitConversion);
+            }
+
+            return info;
         }
 
         /// <summary>
