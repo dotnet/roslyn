@@ -5557,55 +5557,73 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
 #pragma warning restore IDE0055 // Fix formatting
 
-            // declare and assign all iteration variables
-            foreach (var iterationVariable in node.IterationVariables)
+            if (!(node.DeconstructionOpt is null))
             {
-                var state = NullableFlowState.NotNull;
-                if (!sourceState.HasNullType)
-                {
-                    TypeWithAnnotations destinationType = iterationVariable.TypeWithAnnotations;
+                var assignment = node.DeconstructionOpt.DeconstructionAssignment;
 
-                    if (iterationVariable.IsRef)
-                    {
-                        // foreach (ref DestinationType variable in collection)
-                        if (IsNullabilityMismatch(sourceType, destinationType))
-                        {
-                            var foreachSyntax = (ForEachStatementSyntax)node.Syntax;
-                            ReportNullabilityMismatchInAssignment(foreachSyntax.Type, sourceType, destinationType);
-                        }
-                        state = sourceState.State;
-                    }
-                    else
-                    {
-                        // foreach (DestinationType variable in collection)
-                        // foreach (var variable in collection)
-                        // foreach (var (..., ...) in collection)
-                        // and asynchronous variants
-                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                        Conversion conversion = node.ElementConversion.Kind == ConversionKind.UnsetConversionKind
-                            ? _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref useSiteDiagnostics)
-                            : node.ElementConversion;
-                        TypeWithState result = ApplyConversion(
-                            node.IterationVariableType,
-                            operandOpt: null,
-                            conversion,
-                            destinationType,
-                            sourceState,
-                            checkConversion: true,
-                            fromExplicitCast: !conversion.IsImplicit,
-                            useLegacyWarnings: false,
-                            AssignmentKind.ForEachIterationVariable,
-                            reportTopLevelWarnings: true,
-                            reportRemainingWarnings: true,
-                            location: variableLocation);
-                        state = result.State;
-                    }
+                // update the assignment if we've updated the source type
+                if (!(sourceType.Type is null) && !assignment.Type.Equals(sourceType.Type, TypeCompareKind.ConsiderEverything2))
+                {
+                    var right = assignment.Right;
+                    var rightExpression = right.Operand as BoundDeconstructValuePlaceholder;
+                    rightExpression = rightExpression.Update(rightExpression.ValEscape, sourceType.Type);
+                    right = right.Update(rightExpression, right.Conversion, right.IsBaseConversion, right.Checked, right.ExplicitCastInCode, right.ConstantValueOpt, right.ConversionGroupOpt, sourceType.Type);
+                    assignment = node.DeconstructionOpt.DeconstructionAssignment.Update(assignment.Left, right, assignment.IsUsed, sourceType.Type);
                 }
 
-                int slot = GetOrCreateSlot(iterationVariable);
-                if (slot > 0)
+                // Visit the assignment as a deconstruction
+                Visit(assignment);
+            }
+            else
+            {
+                foreach (var iterationVariable in node.IterationVariables)
                 {
-                    this.State[slot] = state;
+                    var state = NullableFlowState.NotNull;
+                    if (!sourceState.HasNullType)
+                    {
+                        TypeWithAnnotations destinationType = iterationVariable.TypeWithAnnotations;
+
+                        if (iterationVariable.IsRef)
+                        {
+                            // foreach (ref DestinationType variable in collection)
+                            if (IsNullabilityMismatch(sourceType, destinationType))
+                            {
+                                var foreachSyntax = (ForEachStatementSyntax)node.Syntax;
+                                ReportNullabilityMismatchInAssignment(foreachSyntax.Type, sourceType, destinationType);
+                            }
+                            state = sourceState.State;
+                        }
+                        else
+                        {
+                            // foreach (DestinationType variable in collection)
+                            // foreach (var variable in collection)
+                            // and asynchronous variants
+                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                            Conversion conversion = node.ElementConversion.Kind == ConversionKind.UnsetConversionKind
+                                ? _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref useSiteDiagnostics)
+                                : node.ElementConversion;
+                            TypeWithState result = ApplyConversion(
+                                node.IterationVariableType,
+                                operandOpt: null,
+                                conversion,
+                                destinationType,
+                                sourceState,
+                                checkConversion: true,
+                                fromExplicitCast: !conversion.IsImplicit,
+                                useLegacyWarnings: false,
+                                AssignmentKind.ForEachIterationVariable,
+                                reportTopLevelWarnings: true,
+                                reportRemainingWarnings: true,
+                                location: variableLocation);
+                            state = result.State;
+                        }
+                    }
+
+                    int slot = GetOrCreateSlot(iterationVariable);
+                    if (slot > 0)
+                    {
+                        this.State[slot] = state;
+                    }
                 }
             }
 
@@ -6381,6 +6399,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var typeWithAnnotations = TypeWithAnnotations.Create(node.Type, node.NullableAnnotation);
             SetResult(node.Expression, typeWithAnnotations.ToTypeWithState(), typeWithAnnotations);
+            return null;
+        }
+
+        public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        {
+            SetNotNullResult(node);
             return null;
         }
 
