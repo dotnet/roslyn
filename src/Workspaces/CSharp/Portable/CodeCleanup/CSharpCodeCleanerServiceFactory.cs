@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
     [ExportLanguageServiceFactory(typeof(ICodeCleanerService), LanguageNames.CSharp), Shared]
     internal class CSharpCodeCleanerServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpCodeCleanerServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
         {
             return new CSharpCodeCleanerService();

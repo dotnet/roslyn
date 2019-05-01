@@ -74,6 +74,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     [ExportOptionProvider, Shared]
     internal class InternalFeatureOnOffOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public InternalFeatureOnOffOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             InternalFeatureOnOffOptions.BraceMatching,
             InternalFeatureOnOffOptions.Classification,

@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// </summary>
         private object _mruUpdateLock = new object();
 
+        [ImportingConstructor]
+        public RecentItemsManager()
+        {
+        }
+
         public ImmutableArray<string> RecentItems { get; private set; } = ImmutableArray<string>.Empty;
 
         public void MakeMostRecentItem(string item)

@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Host), Shared]
     internal partial class TemporaryStorageServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public TemporaryStorageServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var textFactory = workspaceServices.GetService<ITextFactoryService>();

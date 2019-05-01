@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
     [ExportLanguageService(typeof(ISyntaxKindsService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpSyntaxKindsService : ISyntaxKindsService
     {
+        [ImportingConstructor]
+        public CSharpSyntaxKindsService()
+        {
+        }
+
         public int IfKeyword => (int)SyntaxKind.IfKeyword;
         public int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;

@@ -15,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
 
         Private Const Underscore As String = "_"
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Friend Overrides Function GetProperty(token As SyntaxToken) As SyntaxNode
             Dim containingProperty = token.Parent.FirstAncestorOrSelf(Of PropertyStatementSyntax)
             If containingProperty Is Nothing Then
