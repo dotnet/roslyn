@@ -92,6 +92,12 @@ namespace Roslyn.Diagnostics.Analyzers
             ImmutableArray<IMethodSymbol> nonImportingConstructors = ImmutableArray<IMethodSymbol>.Empty;
             foreach (var constructor in namedType.Constructors)
             {
+                if (constructor.IsStatic)
+                {
+                    // Ignore static constructors
+                    continue;
+                }
+
                 if (constructor.IsImplicitlyDeclared)
                 {
                     if (exportAttributeApplication.ApplicationSyntaxReference is object)
