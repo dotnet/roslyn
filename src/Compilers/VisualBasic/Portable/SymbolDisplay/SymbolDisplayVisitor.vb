@@ -96,7 +96,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SymbolDisplayPartKind.ErrorTypeName,
                      SymbolDisplayPartKind.LabelName,
                      SymbolDisplayPartKind.EventName,
-                     SymbolDisplayPartKind.RangeVariableName
+                     SymbolDisplayPartKind.RangeVariableName,
+                     SymbolDisplayPartKind.ConstantName,
+                     SymbolDisplayPartKind.StaticClassName,
+                     SymbolDisplayPartKind.StaticConstantName,
+                     SymbolDisplayPartKind.StaticEventName,
+                     SymbolDisplayPartKind.StaticFieldName,
+                     SymbolDisplayPartKind.StaticMethodName,
+                     SymbolDisplayPartKind.StaticPropertyName
                     Return True
                 Case Else
                     Return False

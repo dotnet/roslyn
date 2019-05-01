@@ -10,6 +10,12 @@ const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Usage = "Usage" -> 
 const Microsoft.CodeAnalysis.TextTags.Constant = "Constant" -> string
 const Microsoft.CodeAnalysis.TextTags.EnumMember = "EnumMember" -> string
 const Microsoft.CodeAnalysis.TextTags.ExtensionMethod = "ExtensionMethod" -> string
+const Microsoft.CodeAnalysis.TextTags.StaticClass = "StaticClass" -> string
+const Microsoft.CodeAnalysis.TextTags.StaticConstant = "StaticConstant" -> string
+const Microsoft.CodeAnalysis.TextTags.StaticEvent = "StaticEvent" -> string
+const Microsoft.CodeAnalysis.TextTags.StaticField = "StaticField" -> string
+const Microsoft.CodeAnalysis.TextTags.StaticMethod = "StaticMethod" -> string
+const Microsoft.CodeAnalysis.TextTags.StaticProperty = "StaticProperty" -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.DisplayTextPrefix.get -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.DisplayTextSuffix.get -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.WithDisplayTextPrefix(string displayTextPrefix) -> Microsoft.CodeAnalysis.Completion.CompletionItem

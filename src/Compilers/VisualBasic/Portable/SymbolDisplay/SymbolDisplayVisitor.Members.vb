@@ -27,9 +27,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If symbol.ContainingType.TypeKind = TypeKind.Enum Then
                 builder.Add(CreatePart(SymbolDisplayPartKind.EnumMemberName, symbol, symbol.Name, visitedParents))
             ElseIf symbol.IsConst Then
-                builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, symbol.Name, visitedParents))
+                Dim symbolKind = If(symbol.IsStatic, SymbolDisplayPartKind.StaticConstantName, SymbolDisplayPartKind.ConstantName)
+                builder.Add(CreatePart(symbolKind, symbol, symbol.Name, visitedParents))
             Else
-                builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, symbol.Name, visitedParents))
+                Dim symbolKind = If(symbol.IsStatic, SymbolDisplayPartKind.StaticFieldName, SymbolDisplayPartKind.FieldName)
+                builder.Add(CreatePart(symbolKind, symbol, symbol.Name, visitedParents))
             End If
 
             If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType) AndAlso
@@ -99,7 +101,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 includedContainingType = True
             End If
 
-            builder.Add(CreatePart(SymbolDisplayPartKind.PropertyName, symbol, symbol.Name, includedContainingType))
+            Dim symbolKind = If(symbol.IsStatic, SymbolDisplayPartKind.StaticPropertyName, SymbolDisplayPartKind.PropertyName)
+            builder.Add(CreatePart(symbolKind, symbol, symbol.Name, includedContainingType))
 
             If symbol.Parameters.Length > 0 Then
                 If format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeParameters) Then
@@ -135,7 +138,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 visitedParents = True
             End If
 
-            builder.Add(CreatePart(SymbolDisplayPartKind.EventName, symbol, symbol.Name, visitedParents))
+            Dim symbolKind = If(symbol.IsStatic, SymbolDisplayPartKind.StaticEventName, SymbolDisplayPartKind.EventName)
+            builder.Add(CreatePart(symbolKind, symbol, symbol.Name, visitedParents))
 
             Dim sourceSymbol = TryCast(symbol, SourceEventSymbol)
             If sourceSymbol IsNot Nothing AndAlso sourceSymbol.IsTypeInferred Then
@@ -319,7 +323,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case symbol.MethodKind
                 Case MethodKind.Ordinary, MethodKind.DelegateInvoke, MethodKind.DeclareMethod
-                    builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name, visitedParents))
+                    Dim symbolKind = If(symbol.IsStatic, SymbolDisplayPartKind.StaticMethodName, SymbolDisplayPartKind.MethodName)
+                    builder.Add(CreatePart(symbolKind, symbol, symbol.Name, visitedParents))
 
                 Case MethodKind.ReducedExtension
                     ' Note: Extension methods invoked off of their static class will be tagged as methods.

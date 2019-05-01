@@ -4976,8 +4976,7 @@ end interface"
 
             Await TestInClassAsync(code,
                 Keyword("Const"),
-                Constant("Number"),
-                [Static]("Number"),
+                StaticConstant("Number"),
                 Operators.Equals,
                 Number("42"))
         End Function
@@ -5017,8 +5016,7 @@ Dim y$ = x$"
 
             Await TestInClassAsync(code,
                 Keyword("Const"),
-                Constant("x$"),
-                [Static]("x$"),
+                StaticConstant("x$"),
                 Operators.Equals,
                 [String]("""23"""),
                 Keyword("Dim"),

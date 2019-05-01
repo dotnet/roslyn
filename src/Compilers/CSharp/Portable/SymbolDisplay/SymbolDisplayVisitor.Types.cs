@@ -531,7 +531,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Submission:
                 case TypeKind.Module:
                 case TypeKind.Class:
-                    return SymbolDisplayPartKind.ClassName;
+                    return symbol.IsStatic
+                        ? SymbolDisplayPartKind.StaticClassName
+                        : SymbolDisplayPartKind.ClassName;
                 case TypeKind.Delegate:
                     return SymbolDisplayPartKind.DelegateName;
                 case TypeKind.Enum:

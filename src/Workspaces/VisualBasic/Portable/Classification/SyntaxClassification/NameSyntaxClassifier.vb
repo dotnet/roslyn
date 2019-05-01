@@ -83,10 +83,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
             If TryClassifyMyNamespace(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
                 result.Add(classifiedSpan)
             ElseIf TryClassifySymbol(node, symbol, semanticModel, cancellationToken, classifiedSpan) Then
-                result.Add(classifiedSpan)
 
-                ' Additionally classify static symbols
-                TryClassifyStaticSymbol(symbol, classifiedSpan.TextSpan, result)
+                ' If the symbol is static, then replace the classified span with one using the static classification type.
+                If (symbol IsNot Nothing And symbol.IsStatic) Then
+                    classifiedSpan = New ClassifiedSpan(
+                        ClassifierHelper.GetStaticClassificationTypeName(classifiedSpan.ClassificationType), classifiedSpan.TextSpan)
+                End If
+
+                result.Add(classifiedSpan)
             End If
         End Sub
 

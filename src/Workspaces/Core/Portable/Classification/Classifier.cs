@@ -172,6 +172,18 @@ namespace Microsoft.CodeAnalysis.Classification
                     return SymbolDisplayPartKind.NamespaceName;
                 case ClassificationTypeNames.EventName:
                     return SymbolDisplayPartKind.EventName;
+                case ClassificationTypeNames.StaticClassName:
+                    return SymbolDisplayPartKind.StaticClassName;
+                case ClassificationTypeNames.StaticConstantName:
+                    return SymbolDisplayPartKind.StaticConstantName;
+                case ClassificationTypeNames.StaticEventName:
+                    return SymbolDisplayPartKind.StaticEventName;
+                case ClassificationTypeNames.StaticFieldName:
+                    return SymbolDisplayPartKind.StaticFieldName;
+                case ClassificationTypeNames.StaticMethodName:
+                    return SymbolDisplayPartKind.StaticMethodName;
+                case ClassificationTypeNames.StaticPropertyName:
+                    return SymbolDisplayPartKind.StaticPropertyName;
             }
         }
     }

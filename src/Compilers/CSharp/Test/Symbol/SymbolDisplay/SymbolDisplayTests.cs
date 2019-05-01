@@ -191,7 +191,7 @@ namespace N1 {
                 findSymbol,
                 format,
                 "M",
-                SymbolDisplayPartKind.MethodName);
+                SymbolDisplayPartKind.StaticMethodName);
         }
 
         [Fact]
@@ -262,7 +262,7 @@ namespace N1 {
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.StaticMethodName, //M
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
@@ -320,7 +320,7 @@ namespace N1 {
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName, //C2
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.StaticMethodName, //M
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.TypeParameterName, //TSource
                 SymbolDisplayPartKind.Punctuation,
@@ -441,7 +441,7 @@ namespace N1 {
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName, //C2
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.StaticMethodName, //M
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.TypeParameterName, //TSource
                 SymbolDisplayPartKind.Punctuation,
@@ -509,7 +509,7 @@ namespace N1 {
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName, //C2
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.StaticMethodName, //M
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.TypeParameterName, //TSource
                 SymbolDisplayPartKind.Punctuation,
@@ -2042,7 +2042,7 @@ static class C {
                 findSymbol,
                 format,
                 "M()",
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation);
         }
@@ -2072,7 +2072,7 @@ static class C {
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation);
         }
@@ -2100,7 +2100,7 @@ static class C {
                 "void M()",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation);
         }
@@ -2222,7 +2222,7 @@ static class C {
                 findSymbol,
                 format,
                 "M(this Object self, ref Int16 s, Int32 i = 1, params String[] args)",
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -2648,23 +2648,23 @@ class C1 {
                 "int modopt(IsConst) [] modopt(IsConst) Method1111(int modopt(IsConst) [] modopt(IsConst) a)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
@@ -2673,7 +2673,7 @@ class C1 {
                 "int modopt(IsConst) [] Method1000(int[] a)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
@@ -2693,7 +2693,7 @@ class C1 {
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
@@ -2714,7 +2714,7 @@ class C1 {
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
@@ -2734,7 +2734,7 @@ class C1 {
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
@@ -2777,12 +2777,12 @@ class C1 {
                 "int modopt(IsConst) [] modopt(IsConst) Property11",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.PropertyName);
 
@@ -2790,7 +2790,7 @@ class C1 {
                 "int modopt(IsConst) [] Property10",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
@@ -2803,7 +2803,7 @@ class C1 {
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.PropertyName);
 
@@ -2838,12 +2838,12 @@ class C1 {
                 "int modopt(IsConst) [] modopt(IsConst) field11",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.FieldName);
 
@@ -2851,7 +2851,7 @@ class C1 {
                 "int modopt(IsConst) [] field10",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
@@ -2864,7 +2864,7 @@ class C1 {
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.FieldName);
 
@@ -2899,15 +2899,15 @@ class C1 {
                 "void F3(int modopt(int) modopt(IsConst) modopt(IsConst) p)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
-                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName, SymbolDisplayPartKind.Punctuation, //modopt
+                InternalSymbolDisplayPartKind.Other, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.Punctuation, //modopt
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
@@ -3677,7 +3677,7 @@ struct S
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.ConstantName,
+                SymbolDisplayPartKind.StaticConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
@@ -3721,7 +3721,7 @@ class C {
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.ConstantName,
+                SymbolDisplayPartKind.StaticConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
@@ -3768,7 +3768,7 @@ class C {
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,
-                SymbolDisplayPartKind.ConstantName,
+                SymbolDisplayPartKind.StaticConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
@@ -3922,7 +3922,7 @@ class C
                 findSymbol,
                 format,
                 "Goo(DateTime d)",
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
@@ -5889,7 +5889,7 @@ class B
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
@@ -5904,7 +5904,7 @@ class B
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
@@ -5960,7 +5960,7 @@ class B
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -5973,7 +5973,7 @@ class B
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
@@ -6030,7 +6030,7 @@ class C
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName);
+                SymbolDisplayPartKind.StaticFieldName);
             Verify(
                 SymbolDisplay.ToDisplayParts(member, formatWithNullableModifier),
                 "static object?[,][] F1",
@@ -6044,7 +6044,7 @@ class C
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName);
+                SymbolDisplayPartKind.StaticFieldName);
             Verify(
                 SymbolDisplay.ToDisplayParts(member, formatWithBothModifiers),
                 "static object?[]![,]! F1",
@@ -6060,7 +6060,7 @@ class C
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.FieldName);
+                SymbolDisplayPartKind.StaticFieldName);
 
             member = comp.GetMember("C.F2");
             Verify(
@@ -6223,7 +6223,7 @@ class B
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
@@ -6256,7 +6256,7 @@ class B
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation,

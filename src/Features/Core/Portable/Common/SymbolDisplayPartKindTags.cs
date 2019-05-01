@@ -70,6 +70,18 @@ namespace Microsoft.CodeAnalysis
                     return TextTags.ExtensionMethod;
                 case SymbolDisplayPartKind.ConstantName:
                     return TextTags.Constant;
+                case SymbolDisplayPartKind.StaticClassName:
+                    return TextTags.StaticClass;
+                case SymbolDisplayPartKind.StaticConstantName:
+                    return TextTags.StaticConstant;
+                case SymbolDisplayPartKind.StaticEventName:
+                    return TextTags.StaticEvent;
+                case SymbolDisplayPartKind.StaticFieldName:
+                    return TextTags.StaticField;
+                case SymbolDisplayPartKind.StaticMethodName:
+                    return TextTags.StaticMethod;
+                case SymbolDisplayPartKind.StaticPropertyName:
+                    return TextTags.StaticProperty;
                 default:
                     return string.Empty;
             }

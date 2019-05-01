@@ -138,6 +138,24 @@ namespace Microsoft.CodeAnalysis
                 case TextTags.Constant:
                     return ClassificationTypeNames.ConstantName;
 
+                case TextTags.StaticClass:
+                    return ClassificationTypeNames.StaticClassName;
+
+                case TextTags.StaticConstant:
+                    return ClassificationTypeNames.StaticConstantName;
+
+                case TextTags.StaticEvent:
+                    return ClassificationTypeNames.StaticEventName;
+
+                case TextTags.StaticField:
+                    return ClassificationTypeNames.StaticFieldName;
+
+                case TextTags.StaticMethod:
+                    return ClassificationTypeNames.StaticMethodName;
+
+                case TextTags.StaticProperty:
+                    return ClassificationTypeNames.StaticPropertyName;
+
                 case TextTags.Alias:
                 case TextTags.Assembly:
                 case TextTags.ErrorType:
@@ -346,6 +364,36 @@ namespace Microsoft.CodeAnalysis
         public static void AddTypeParameterName(this IList<TaggedText> parts, string text)
         {
             parts.Add(new TaggedText(TextTags.TypeParameter, text));
+        }
+
+        public static void AddStaticClassName(this IList<TaggedText> parts, string text)
+        {
+            parts.Add(new TaggedText(TextTags.StaticClass, text));
+        }
+
+        public static void AddStaticConstantName(this IList<TaggedText> parts, string text)
+        {
+            parts.Add(new TaggedText(TextTags.StaticConstant, text));
+        }
+
+        public static void AddStaticEventName(this IList<TaggedText> parts, string text)
+        {
+            parts.Add(new TaggedText(TextTags.StaticEvent, text));
+        }
+
+        public static void AddStaticFieldName(this IList<TaggedText> parts, string text)
+        {
+            parts.Add(new TaggedText(TextTags.StaticField, text));
+        }
+
+        public static void AddStaticMethodName(this IList<TaggedText> parts, string text)
+        {
+            parts.Add(new TaggedText(TextTags.StaticMethod, text));
+        }
+
+        public static void AddStaticPropertyName(this IList<TaggedText> parts, string text)
+        {
+            parts.Add(new TaggedText(TextTags.StaticProperty, text));
         }
     }
 }

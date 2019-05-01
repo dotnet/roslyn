@@ -1783,15 +1783,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Symbol - Static.
-        /// </summary>
-        internal static string Symbol_Static {
-            get {
-                return ResourceManager.GetString("Symbol_Static", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Text Buffer Change.
         /// </summary>
         internal static string Text_Buffer_Change {
@@ -2044,6 +2035,51 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User Members - Static Constants.
+        /// </summary>
+        internal static string User_Members_Static_Constants {
+            get {
+                return ResourceManager.GetString("User_Members_Static_Constants", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Static Events.
+        /// </summary>
+        internal static string User_Members_Static_Events {
+            get {
+                return ResourceManager.GetString("User_Members_Static_Events", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Static Fields.
+        /// </summary>
+        internal static string User_Members_Static_Fields {
+            get {
+                return ResourceManager.GetString("User_Members_Static_Fields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Static Methods.
+        /// </summary>
+        internal static string User_Members_Static_Methods {
+            get {
+                return ResourceManager.GetString("User_Members_Static_Methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Static Properties.
+        /// </summary>
+        internal static string User_Members_Static_Properties {
+            get {
+                return ResourceManager.GetString("User_Members_Static_Properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User Types - Classes.
         /// </summary>
         internal static string User_Types_Classes {
@@ -2085,6 +2121,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string User_Types_Modules {
             get {
                 return ResourceManager.GetString("User_Types_Modules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Members - Static Classes.
+        /// </summary>
+        internal static string User_Types_Static_Classes {
+            get {
+                return ResourceManager.GetString("User_Types_Static_Classes", resourceCulture);
             }
         }
         

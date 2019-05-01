@@ -880,13 +880,28 @@ Do you want to proceed?</value>
   <data name="Keyword_Control" xml:space="preserve">
     <value>Keyword - Control</value>
   </data>
-  <data name="Symbol_Static" xml:space="preserve">
-    <value>Symbol - Static</value>
-  </data>
   <data name="Operator_Overloaded" xml:space="preserve">
     <value>Operator - Overloaded</value>
   </data>
   <data name="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail" xml:space="preserve">
     <value>Operation is not ready for "{0}" yet. See bottom left corner for more details.</value>
+  </data>
+  <data name="User_Types_Static_Classes" xml:space="preserve">
+    <value>User Members - Static Classes</value>
+  </data>
+  <data name="User_Members_Static_Constants" xml:space="preserve">
+    <value>User Members - Static Constants</value>
+  </data>
+  <data name="User_Members_Static_Events" xml:space="preserve">
+    <value>User Members - Static Events</value>
+  </data>
+  <data name="User_Members_Static_Fields" xml:space="preserve">
+    <value>User Members - Static Fields</value>
+  </data>
+  <data name="User_Members_Static_Methods" xml:space="preserve">
+    <value>User Members - Static Methods</value>
+  </data>
+  <data name="User_Members_Static_Properties" xml:space="preserve">
+    <value>User Members - Static Properties</value>
   </data>
 </root>

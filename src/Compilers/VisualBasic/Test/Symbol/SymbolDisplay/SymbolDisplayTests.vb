@@ -202,7 +202,7 @@ end namespace
                 findSymbol,
                 format,
                 "M",
-                {SymbolDisplayPartKind.MethodName})
+                {SymbolDisplayPartKind.StaticMethodName})
         End Sub
 
         <Fact()>
@@ -431,7 +431,7 @@ end namespace
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Space,
@@ -492,7 +492,7 @@ end namespace
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ModuleName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -616,7 +616,7 @@ end namespace
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ModuleName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -688,7 +688,7 @@ end namespace
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ModuleName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -759,7 +759,7 @@ end namespace
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ModuleName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -1102,7 +1102,7 @@ end namespace
                     SymbolDisplayPartKind.Space,
                     SymbolDisplayPartKind.Keyword,
                     SymbolDisplayPartKind.Space,
-                    SymbolDisplayPartKind.MethodName,
+                    SymbolDisplayPartKind.StaticMethodName,
                     SymbolDisplayPartKind.Punctuation,
                     SymbolDisplayPartKind.ParameterName,
                     SymbolDisplayPartKind.Space,
@@ -1133,7 +1133,7 @@ end namespace
                     SymbolDisplayPartKind.Space,
                     SymbolDisplayPartKind.Keyword,
                     SymbolDisplayPartKind.Space,
-                    SymbolDisplayPartKind.MethodName,
+                    SymbolDisplayPartKind.StaticMethodName,
                     SymbolDisplayPartKind.Punctuation,
                     SymbolDisplayPartKind.ParameterName,
                     SymbolDisplayPartKind.Space,
@@ -1161,7 +1161,7 @@ end namespace
                     SymbolDisplayPartKind.Space,
                     SymbolDisplayPartKind.Keyword,
                     SymbolDisplayPartKind.Space,
-                    SymbolDisplayPartKind.MethodName,
+                    SymbolDisplayPartKind.StaticMethodName,
                     SymbolDisplayPartKind.Punctuation,
                     SymbolDisplayPartKind.ParameterName,
                     SymbolDisplayPartKind.Space,
@@ -1928,7 +1928,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -1969,7 +1969,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation})
         End Sub
@@ -2005,7 +2005,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -2038,7 +2038,7 @@ End Class
                 findSymbol,
                 format,
                 "M", {
-                SymbolDisplayPartKind.MethodName})
+                SymbolDisplayPartKind.StaticMethodName})
         End Sub
 
         <Fact()>
@@ -2139,7 +2139,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.ConstantName,
+                SymbolDisplayPartKind.StaticConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -2191,7 +2191,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.ConstantName,
+                SymbolDisplayPartKind.StaticConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -2247,7 +2247,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.ConstantName,
+                SymbolDisplayPartKind.StaticConstantName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
@@ -3019,7 +3019,7 @@ End Class
                 {
                     SymbolDisplayPartKind.Keyword,
                     SymbolDisplayPartKind.Space,
-                    SymbolDisplayPartKind.MethodName,
+                    SymbolDisplayPartKind.StaticMethodName,
                     SymbolDisplayPartKind.Punctuation,
                     SymbolDisplayPartKind.Punctuation,
                     SymbolDisplayPartKind.Space,
@@ -3059,7 +3059,7 @@ End Class
                     {
                         SymbolDisplayPartKind.Keyword,
                         SymbolDisplayPartKind.Space,
-                        SymbolDisplayPartKind.MethodName,
+                        SymbolDisplayPartKind.StaticMethodName,
                         SymbolDisplayPartKind.Punctuation,
                         SymbolDisplayPartKind.Punctuation
                     })
@@ -4039,7 +4039,7 @@ End Module
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation}, minimal:=True)
         End Sub
@@ -4086,7 +4086,7 @@ End Module
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation}, minimal:=True)
 
@@ -4355,7 +4355,7 @@ End Module
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation}, minimal:=True)
         End Sub
@@ -4540,7 +4540,7 @@ End Module
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
-                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.StaticMethodName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Punctuation},
                 useSpeculativeSemanticModel:=True,

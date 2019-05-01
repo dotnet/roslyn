@@ -79,13 +79,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             var symbol = TryGetSymbol(name, symbolInfo, semanticModel);
             if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
             {
-                result.Add(classifiedSpan);
-
-                if (classifiedSpan.ClassificationType != ClassificationTypeNames.Keyword)
+                // If the symbol is static, then replace the classified span with one using the static classification type.
+                if (symbol != null && symbol.IsStatic)
                 {
-                    // Additionally classify static symbols
-                    TryClassifyStaticSymbol(symbol, classifiedSpan.TextSpan, result);
+                    classifiedSpan = new ClassifiedSpan(
+                        ClassifierHelper.GetStaticClassificationTypeName(classifiedSpan.ClassificationType), classifiedSpan.TextSpan);
                 }
+
+                result.Add(classifiedSpan);
 
                 return true;
             }

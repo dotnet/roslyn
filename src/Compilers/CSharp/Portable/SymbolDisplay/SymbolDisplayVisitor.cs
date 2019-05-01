@@ -78,6 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolDisplayPartKind.LocalName:
                 case SymbolDisplayPartKind.NamespaceName:
                 case SymbolDisplayPartKind.ParameterName:
+                case SymbolDisplayPartKind.ConstantName:
+                case SymbolDisplayPartKind.EventName:
+                case SymbolDisplayPartKind.StaticClassName:
+                case SymbolDisplayPartKind.StaticConstantName:
+                case SymbolDisplayPartKind.StaticEventName:
+                case SymbolDisplayPartKind.StaticFieldName:
+                case SymbolDisplayPartKind.StaticMethodName:
+                case SymbolDisplayPartKind.StaticPropertyName:
                     return true;
                 default:
                     return false;

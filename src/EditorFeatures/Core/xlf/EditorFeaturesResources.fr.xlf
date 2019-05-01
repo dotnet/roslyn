@@ -92,11 +92,6 @@
         <target state="translated">Chaîne - caractère d'échappement</target>
         <note />
       </trans-unit>
-      <trans-unit id="Symbol_Static">
-        <source>Symbol - Static</source>
-        <target state="translated">Symbole - statique</target>
-        <note />
-      </trans-unit>
       <trans-unit id="User_Members_Constants">
         <source>User Members - Constants</source>
         <target state="translated">Membres utilisateurs - constantes</target>
@@ -152,6 +147,31 @@
         <target state="translated">Membres utilisateurs - propriétés</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Members_Static_Constants">
+        <source>User Members - Static Constants</source>
+        <target state="new">User Members - Static Constants</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Static_Events">
+        <source>User Members - Static Events</source>
+        <target state="new">User Members - Static Events</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Static_Fields">
+        <source>User Members - Static Fields</source>
+        <target state="new">User Members - Static Fields</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Static_Methods">
+        <source>User Members - Static Methods</source>
+        <target state="new">User Members - Static Methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Static_Properties">
+        <source>User Members - Static Properties</source>
+        <target state="new">User Members - Static Properties</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Classes">
         <source>User Types - Classes</source>
         <target state="translated">Types d'utilisateurs - Classes</target>
@@ -170,6 +190,11 @@
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">Types d'utilisateurs - Interfaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Static_Classes">
+        <source>User Members - Static Classes</source>
+        <target state="new">User Members - Static Classes</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">

@@ -210,6 +210,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     [ClassificationTypeNames.OperatorOverloaded] = ImmutableArray.Create(DarkThemePlainText, DarkThemeOperator),
                     [ClassificationTypeNames.ParameterName] = ImmutableArray.Create(DarkThemePlainText),
                     [ClassificationTypeNames.PropertyName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.StaticClassName] = ImmutableArray.Create(DarkThemePlainText, DarkThemeClass),
+                    [ClassificationTypeNames.StaticConstantName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.StaticEventName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.StaticFieldName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.StaticMethodName] = ImmutableArray.Create(DarkThemePlainText),
+                    [ClassificationTypeNames.StaticPropertyName] = ImmutableArray.Create(DarkThemePlainText),
                     [ClassificationTypeNames.StructName] = ImmutableArray.Create(DarkThemeClass),
                     [ClassificationTypeNames.TypeParameterName] = ImmutableArray.Create(DarkThemeEnum),
                 }.ToImmutableDictionary();
@@ -243,14 +249,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     [ClassificationTypeNames.OperatorOverloaded] = ImmutableArray.Create(LightThemePlainText),
                     [ClassificationTypeNames.ParameterName] = ImmutableArray.Create(LightThemePlainText),
                     [ClassificationTypeNames.PropertyName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.StaticClassName] = ImmutableArray.Create(LightThemePlainText, LightThemeClass, ExtraContrastThemeClass),
+                    [ClassificationTypeNames.StaticConstantName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.StaticEventName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.StaticFieldName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.StaticMethodName] = ImmutableArray.Create(LightThemePlainText),
+                    [ClassificationTypeNames.StaticPropertyName] = ImmutableArray.Create(LightThemePlainText),
                     [ClassificationTypeNames.StructName] = ImmutableArray.Create(LightThemeClass, ExtraContrastThemeClass),
                     [ClassificationTypeNames.TypeParameterName] = ImmutableArray.Create(LightThemeClass, ExtraContrastThemeClass),
                 }.ToImmutableDictionary();
 
             // When we build our classification map we will need to look at all the classifications with foreground color as
             // well as the static symbol classification that does not have a foreground.
-            private static readonly ImmutableArray<string> Classifications =
-                DarkThemeDefaultForeground.Keys.Concat(new[] { ClassificationTypeNames.StaticSymbol }).ToImmutableArray();
+            private static readonly ImmutableArray<string> Classifications = DarkThemeDefaultForeground.Keys.ToImmutableArray();
 
             public EnhancedColorApplier(IServiceProvider serviceProvider)
             {
@@ -280,7 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, DarkThemeOperator);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ControlKeyword, DarkThemeKeyword);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.StructName, DarkThemeClass);
-                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticSymbol, DefaultForegroundColor, DefaultBackgroundColor);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticMethodName, DarkThemeIdentifier);
                 }
                 else
                 {
@@ -291,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ExtensionMethodName, LightThemeIdentifier);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, LightThemeOperator);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ControlKeyword, LightThemeKeyword);
-                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticSymbol, DefaultForegroundColor, DefaultBackgroundColor);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticMethodName, LightThemeIdentifier);
                 }
             }
 
@@ -317,7 +328,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, DarkThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ControlKeyword, DarkThemeControlKeywordPurple);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.StructName, DarkThemeStructMint);
-                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticSymbol, DefaultForegroundColor, DefaultBackgroundColor);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticMethodName, DarkThemeMethodYellow);
                 }
                 else
                 {
@@ -328,7 +339,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ExtensionMethodName, LightThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, LightThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ControlKeyword, LightThemeControlKeywordPurple);
-                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticSymbol, DefaultForegroundColor, DefaultBackgroundColor);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticMethodName, LightThemeMethodYellow);
                 }
             }
 
@@ -349,7 +360,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             {
                 colorItemMap[classification].Foreground = foreground;
                 colorItemMap[classification].Background = background;
-                colorItemMap[classification].Bold = isBold;
+                // colorItemMap[classification].Bold = isBold;
             }
 
             /// <summary>

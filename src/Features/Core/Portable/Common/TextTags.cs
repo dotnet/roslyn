@@ -39,5 +39,11 @@ namespace Microsoft.CodeAnalysis
         public const string EnumMember = nameof(EnumMember);
         public const string ExtensionMethod = nameof(ExtensionMethod);
         public const string Constant = nameof(Constant);
+        public const string StaticClass = nameof(StaticClass);
+        public const string StaticConstant = nameof(StaticConstant);
+        public const string StaticEvent = nameof(StaticEvent);
+        public const string StaticField = nameof(StaticField);
+        public const string StaticMethod = nameof(StaticMethod);
+        public const string StaticProperty = nameof(StaticProperty);
     }
 }

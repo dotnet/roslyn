@@ -74,13 +74,25 @@ namespace Microsoft.CodeAnalysis
         /// When an extension method is in it's non-reduced form it will be will be marked as MethodName.
         /// </remarks>
         ExtensionMethodName = 29,
-        /// <summary>The name of a field or local constant.</summary>
+        /// <summary>The name of a local constant.</summary>
         ConstantName = 30,
+        /// <summary>The name of a static class.</summary>
+        StaticClassName = 31,
+        /// <summary>The name of a field constant.</summary>
+        StaticConstantName = 32,
+        /// <summary>The name of a static event.</summary>
+        StaticEventName = 33,
+        /// <summary>The name of a static field.</summary>
+        StaticFieldName = 34,
+        /// <summary>The name of a static method.</summary>
+        StaticMethodName = 35,
+        /// <summary>The name of a static property.</summary>
+        StaticPropertyName = 36,
     }
 
     internal static class InternalSymbolDisplayPartKind
     {
-        private const SymbolDisplayPartKind @base = SymbolDisplayPartKind.ConstantName + 1;
+        private const SymbolDisplayPartKind @base = SymbolDisplayPartKind.StaticPropertyName + 1;
         public const SymbolDisplayPartKind Arity = @base + 0;
         public const SymbolDisplayPartKind Other = @base + 1;
     }
@@ -89,7 +101,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal static bool IsValid(this SymbolDisplayPartKind value)
         {
-            return (value >= SymbolDisplayPartKind.AliasName && value <= SymbolDisplayPartKind.ConstantName) ||
+            return (value >= SymbolDisplayPartKind.AliasName && value <= SymbolDisplayPartKind.StaticPropertyName) ||
                 (value >= InternalSymbolDisplayPartKind.Arity && value <= InternalSymbolDisplayPartKind.Other);
         }
     }

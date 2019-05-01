@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
         internal readonly ClassificationTypeDefinition UserMembersConstantsTypeDefinition;
         #endregion
-        #region User Memebers - Locals
+        #region User Members - Locals
         [Export]
         [Name(ClassificationTypeNames.LocalName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
@@ -154,6 +154,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.LabelName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
         internal readonly ClassificationTypeDefinition UserMembersLabelsTypeDefinition;
+        #endregion
+
+        // Static classification types set their BaseDefinitions to be the non-static
+        // classification definition so that they inherit styling.
+        #region User Types - Static Classes
+        [Export]
+        [Name(ClassificationTypeNames.StaticClassName)]
+        [BaseDefinition(ClassificationTypeNames.ClassName)]
+        internal readonly ClassificationTypeDefinition UserTypeStaticClassesTypeDefinition;
+        #endregion
+        #region User Members - Static Constants
+        [Export]
+        [Name(ClassificationTypeNames.StaticConstantName)]
+        [BaseDefinition(ClassificationTypeNames.ConstantName)]
+        internal readonly ClassificationTypeDefinition UserMembersStaticConstantsTypeDefinition;
+        #endregion
+        #region User Members - Static Events
+        [Export]
+        [Name(ClassificationTypeNames.StaticEventName)]
+        [BaseDefinition(ClassificationTypeNames.EventName)]
+        internal readonly ClassificationTypeDefinition UserMembersStaticEventsTypeDefinition;
+        #endregion
+        #region User Members - Static Fields
+        [Export]
+        [Name(ClassificationTypeNames.StaticFieldName)]
+        [BaseDefinition(ClassificationTypeNames.FieldName)]
+        internal readonly ClassificationTypeDefinition UserMembersStaticFieldsTypeDefinition;
+        #endregion
+        #region User Members - Static Methods
+        [Export]
+        [Name(ClassificationTypeNames.StaticMethodName)]
+        [BaseDefinition(ClassificationTypeNames.MethodName)]
+        internal readonly ClassificationTypeDefinition UserMembersStaticMethodsTypeDefinition;
+        #endregion
+        #region User Members - Static Properties
+        [Export]
+        [Name(ClassificationTypeNames.StaticPropertyName)]
+        [BaseDefinition(ClassificationTypeNames.PropertyName)]
+        internal readonly ClassificationTypeDefinition UserMembersStaticPropertiesTypeDefinition;
         #endregion
 
         #region XML Doc Comments - Attribute Name 
@@ -329,13 +368,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralText)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition XmlLiteralTextTypeDefinition;
-        #endregion
-
-        #region Static Symbol
-        [Export]
-        [Name(ClassificationTypeNames.StaticSymbol)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition StaticSymbolTypeDefinition;
         #endregion
 
         #region Operator - Overloaded

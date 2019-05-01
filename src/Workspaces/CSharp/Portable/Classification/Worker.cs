@@ -97,14 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 if (type != null)
                 {
-                    AddClassification(span, type);
-
-                    // Additionally classify static symbols
+                    // Determine if we should classify as a static symbol and update the type
                     if (token.Kind() == SyntaxKind.IdentifierToken
                         && ClassificationHelpers.IsStaticallyDeclared(token))
                     {
-                        AddClassification(span, ClassificationTypeNames.StaticSymbol);
+                        type = ClassifierHelper.GetStaticClassificationTypeName(type);
                     }
+
+                    AddClassification(span, type);
                 }
             }
 

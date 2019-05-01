@@ -42,14 +42,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
                 await classificationService.AddSemanticClassificationsAsync(document, span, semanticSpans, cancellationToken).ConfigureAwait(false);
 
-                // MergeClassifiedSpans will ultimately filter multiple classifications for the same
-                // span down to one. We know that additive classifications are there just to 
-                // provide additional information about the true classification. We will remove
-                // additive ClassifiedSpans until we have support for additive classifications
-                // in classified spans. https://github.com/dotnet/roslyn/issues/32770
-                RemoveAdditiveSpans(syntaxSpans);
-                RemoveAdditiveSpans(semanticSpans);
-
                 var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span);
                 return classifiedSpans;
             }
@@ -57,18 +49,6 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 ListPool<ClassifiedSpan>.Free(syntaxSpans);
                 ListPool<ClassifiedSpan>.Free(semanticSpans);
-            }
-        }
-
-        private static void RemoveAdditiveSpans(List<ClassifiedSpan> spans)
-        {
-            for (var i = spans.Count - 1; i >= 0; i--)
-            {
-                var span = spans[i];
-                if (ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType))
-                {
-                    spans.RemoveAt(i);
-                }
             }
         }
 
@@ -135,11 +115,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
                 if (i > 0 && intersection != null)
                 {
-                    var isAdditiveClassification = spans[i - 1].TextSpan == span.TextSpan &&
-                        ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType);
-
-                    // Additive classifications are intended to overlap so do not ignore it.
-                    if (!isAdditiveClassification && spans[i - 1].TextSpan.End > intersection.Value.Start)
+                    if (spans[i - 1].TextSpan.End > intersection.Value.Start)
                     {
                         // This span isn't strictly after the previous span.  Ignore it.
                         intersection = null;
@@ -221,5 +197,17 @@ namespace Microsoft.CodeAnalysis.Classification
             // want them to override actual good syntax spans.
             return partAndSpan.ClassificationType == ClassificationTypeNames.Text;
         }
+
+        public static string GetStaticClassificationTypeName(string classificationTypeName)
+            => classificationTypeName switch
+            {
+                ClassificationTypeNames.ClassName => ClassificationTypeNames.StaticClassName,
+                ClassificationTypeNames.ConstantName => ClassificationTypeNames.StaticConstantName,
+                ClassificationTypeNames.EventName => ClassificationTypeNames.StaticEventName,
+                ClassificationTypeNames.FieldName => ClassificationTypeNames.StaticFieldName,
+                ClassificationTypeNames.MethodName => ClassificationTypeNames.StaticMethodName,
+                ClassificationTypeNames.PropertyName => ClassificationTypeNames.StaticPropertyName,
+                _ => classificationTypeName
+            };
     }
 }

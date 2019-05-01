@@ -84,14 +84,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 type = If(type, ClassificationHelpers.GetClassification(token))
 
                 If type IsNot Nothing Then
-                    AddClassification(token.Span, type)
-
-                    ' Additionally classify static symbols
+                    ' Determine if we should classify as a static symbol and update the type
                     If token.Kind() = SyntaxKind.IdentifierToken AndAlso
                         ClassificationHelpers.IsStaticallyDeclared(token) Then
-
-                        AddClassification(span, ClassificationTypeNames.StaticSymbol)
+                        type = ClassifierHelper.GetStaticClassificationTypeName(type)
                     End If
+
+                    AddClassification(token.Span, type)
                 End If
             End If
 

@@ -79,8 +79,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.EventName);
 
         [DebuggerStepThrough]
-        public static FormattedClassification Static(string text)
-            => New(text, ClassificationTypeNames.StaticSymbol);
+        public static FormattedClassification StaticClass(string text)
+            => New(text, ClassificationTypeNames.StaticClassName);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification StaticConstant(string text)
+            => New(text, ClassificationTypeNames.StaticConstantName);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification StaticEvent(string text)
+            => New(text, ClassificationTypeNames.StaticEventName);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification StaticField(string text)
+            => New(text, ClassificationTypeNames.StaticFieldName);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification StaticMethod(string text)
+            => New(text, ClassificationTypeNames.StaticMethodName);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification StaticProperty(string text)
+            => New(text, ClassificationTypeNames.StaticPropertyName);
 
         [DebuggerStepThrough]
         public static FormattedClassification String(string text)

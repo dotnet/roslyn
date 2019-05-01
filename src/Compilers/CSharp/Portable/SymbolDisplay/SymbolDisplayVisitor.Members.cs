@@ -56,11 +56,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (symbol.IsConst)
             {
-                builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, symbol.Name));
+                var symbolKind = symbol.IsStatic
+                    ? SymbolDisplayPartKind.StaticConstantName
+                    : SymbolDisplayPartKind.ConstantName;
+                builder.Add(CreatePart(symbolKind, symbol, symbol.Name));
             }
             else
             {
-                builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, symbol.Name));
+                var symbolKind = symbol.IsStatic
+                    ? SymbolDisplayPartKind.StaticFieldName
+                    : SymbolDisplayPartKind.FieldName;
+                builder.Add(CreatePart(symbolKind, symbol, symbol.Name));
             }
 
             if (this.isFirstSymbolVisited &&
@@ -141,18 +147,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddExplicitInterfaceIfRequired(symbol.ExplicitInterfaceImplementations);
             }
 
+            var symbolKind = symbol.IsStatic
+                ? SymbolDisplayPartKind.StaticPropertyName
+                : SymbolDisplayPartKind.PropertyName;
+
             if (symbol.IsIndexer)
             {
                 AddKeyword(SyntaxKind.ThisKeyword);
             }
             else if (getMemberNameWithoutInterfaceName)
             {
-                this.builder.Add(CreatePart(SymbolDisplayPartKind.PropertyName, symbol,
+                this.builder.Add(CreatePart(symbolKind, symbol,
                     ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(symbol.Name)));
             }
             else
             {
-                this.builder.Add(CreatePart(SymbolDisplayPartKind.PropertyName, symbol, symbol.Name));
+                this.builder.Add(CreatePart(symbolKind, symbol, symbol.Name));
             }
 
             if (this.format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeParameters) && symbol.Parameters.Any())
@@ -202,16 +212,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddEventName(IEventSymbol symbol)
         {
+            var symbolKind = symbol.IsStatic
+                ? SymbolDisplayPartKind.StaticEventName
+                : SymbolDisplayPartKind.EventName;
+
             if (symbol.Name.LastIndexOf('.') > 0)
             {
                 AddExplicitInterfaceIfRequired(symbol.ExplicitInterfaceImplementations);
 
-                this.builder.Add(CreatePart(SymbolDisplayPartKind.EventName, symbol,
+                this.builder.Add(CreatePart(symbolKind, symbol,
                     ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(symbol.Name)));
             }
             else
             {
-                this.builder.Add(CreatePart(SymbolDisplayPartKind.EventName, symbol, symbol.Name));
+                this.builder.Add(CreatePart(symbolKind, symbol, symbol.Name));
             }
         }
 
@@ -349,6 +363,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.MethodKind)
             {
                 case MethodKind.Ordinary:
+                    var symbolKind = symbol.IsStatic
+                        ? SymbolDisplayPartKind.StaticMethodName
+                        : SymbolDisplayPartKind.MethodName;
+
+                    //containing type will be the delegate type, name will be Invoke
+                    builder.Add(CreatePart(symbolKind, symbol, symbol.Name));
+                    break;
+
                 case MethodKind.DelegateInvoke:
                 case MethodKind.LocalFunction:
                     {

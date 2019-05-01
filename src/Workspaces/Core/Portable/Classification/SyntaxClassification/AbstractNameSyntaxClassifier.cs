@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+﻿using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Classification.Classifiers
 {
@@ -73,42 +71,6 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
             }
 
             return symbol;
-        }
-
-        protected void TryClassifyStaticSymbol(
-            ISymbol symbol,
-            TextSpan span,
-            ArrayBuilder<ClassifiedSpan> result)
-        {
-            if (symbol is null || !symbol.IsStatic)
-            {
-                return;
-            }
-
-            if (symbol.IsEnumMember())
-            {
-                // EnumMembers are not classified as static since there is no
-                // instance equivalent of the concept and they have their own
-                // classification type.
-                return;
-            }
-
-            if (symbol.IsNamespace())
-            {
-                // Namespace names are not classified as static since there is no
-                // instance equivalent of the concept and they have their own
-                // classification type.
-                return;
-            }
-
-            if (symbol.IsLocalFunction())
-            {
-                // Local function names are not classified as static since the
-                // the symbol returning true for IsStatic is an implementation detail.
-                return;
-            }
-
-            result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
         }
     }
 }
