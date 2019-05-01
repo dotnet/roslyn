@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 var newSymbol = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.SpanStart, memberCref, speculativeBindingOption).Symbol;
 
-                if (newSymbol == oldSymbol)
+                if (Equals(newSymbol, oldSymbol))
                 {
                     // Copy Trivia and Annotations
                     memberCref = memberCref.WithLeadingTrivia(crefSyntax.GetLeadingTrivia());

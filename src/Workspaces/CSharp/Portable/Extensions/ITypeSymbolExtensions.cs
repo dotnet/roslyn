@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 foreach (var applicableUsing in applicableUsings)
                 {
                     var alias = semanticModel.GetOriginalSemanticModel().GetDeclaredSymbol(applicableUsing, cancellationToken);
-                    if (alias != null && alias.Target == type)
+                    if (alias != null && Equals(alias.Target, type))
                     {
                         return alias;
                     }
