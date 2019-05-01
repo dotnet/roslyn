@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // Ensure we are not invoked for merged namespace symbol, but instead for constituent namespace scoped to the source assembly.
                 var ns = (INamespaceSymbol)context.Symbol;
-                if (ns.ContainingAssembly != context.Compilation.Assembly || ns.ConstituentNamespaces.Length > 1)
+                if (!Equals(ns.ContainingAssembly, context.Compilation.Assembly) || ns.ConstituentNamespaces.Length > 1)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(Rule, ns.Locations[0]));
                 }

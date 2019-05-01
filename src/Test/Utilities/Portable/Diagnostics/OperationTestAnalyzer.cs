@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                             {
                                 ISimpleAssignmentOperation setupAssignment = (ISimpleAssignmentOperation)((IExpressionStatementOperation)setup).Operation;
                                 if (setupAssignment.Target.Kind == OperationKind.LocalReference &&
-                                    ((ILocalReferenceOperation)setupAssignment.Target).Local == testVariable &&
+                                    Equals(((ILocalReferenceOperation)setupAssignment.Target).Local, testVariable) &&
                                     setupAssignment.Value.ConstantValue.HasValue &&
                                     setupAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
                                 {
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 ISimpleAssignmentOperation advanceAssignment = (ISimpleAssignmentOperation)advanceExpression;
 
                 if (advanceAssignment.Target.Kind == OperationKind.LocalReference &&
-                    ((ILocalReferenceOperation)advanceAssignment.Target).Local == testVariable &&
+                    Equals(((ILocalReferenceOperation)advanceAssignment.Target).Local, testVariable) &&
                     advanceAssignment.Value.Kind == OperationKind.Binary &&
                     advanceAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
                 {
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     IBinaryOperation advanceOperation = (IBinaryOperation)advanceAssignment.Value;
                     if (advanceOperation.OperatorMethod == null &&
                         advanceOperation.LeftOperand.Kind == OperationKind.LocalReference &&
-                        ((ILocalReferenceOperation)advanceOperation.LeftOperand).Local == testVariable &&
+                        Equals(((ILocalReferenceOperation)advanceOperation.LeftOperand).Local, testVariable) &&
                         advanceOperation.RightOperand.ConstantValue.HasValue &&
                         advanceOperation.RightOperand.Type.SpecialType == SpecialType.System_Int32)
                     {
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 ICompoundAssignmentOperation advanceAssignment = (ICompoundAssignmentOperation)advanceExpression;
 
                 if (advanceAssignment.Target.Kind == OperationKind.LocalReference &&
-                    ((ILocalReferenceOperation)advanceAssignment.Target).Local == testVariable &&
+                    Equals(((ILocalReferenceOperation)advanceAssignment.Target).Local, testVariable) &&
                     advanceAssignment.Value.ConstantValue.HasValue &&
                     advanceAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
                 {
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 IIncrementOrDecrementOperation advanceAssignment = (IIncrementOrDecrementOperation)advanceExpression;
 
                 if (advanceAssignment.Target.Kind == OperationKind.LocalReference &&
-                    ((ILocalReferenceOperation)advanceAssignment.Target).Local == testVariable)
+                    Equals(((ILocalReferenceOperation)advanceAssignment.Target).Local, testVariable))
                 {
                     // Advance binary operation is known to involve a reference to the local used in the test and a constant.
                     advanceIncrementOpt = new Optional<object>(1);

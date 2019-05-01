@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 bool success = true;
                 foreach (INamedTypeSymbol testType in types)
                 {
-                    if (type != testType)
+                    if (!Equals(type, testType))
                     {
                         if (!DerivesFrom(testType, type))
                         {

@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 IFieldSymbol targetField = fieldReference.Field;
 
-                if (staticConstructorType != null && targetField.IsStatic && targetField.ContainingType == staticConstructorType)
+                if (staticConstructorType != null && targetField.IsStatic && Equals(targetField.ContainingType, staticConstructorType))
                 {
                     return;
                 }
