@@ -135,15 +135,20 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsDisposable(this ITypeSymbol type, INamedTypeSymbol iDisposable)
             => type.IsReferenceType && (Equals(type, iDisposable) || type.ImplementsIDisposable(iDisposable));
 
+        /// <summary>
+        /// Gets all attributes directly applied to the type or inherited from a base type.
+        /// </summary>
+        /// <param name="type">The type symbol.</param>
+        /// <param name="attributeUsageAttribute">The compilation symbol for <see cref="AttributeUsageAttribute"/>.</param>
         public static IEnumerable<AttributeData> GetApplicableAttributes(this INamedTypeSymbol type, INamedTypeSymbol attributeUsageAttribute)
         {
             var attributes = new List<AttributeData>();
-            var includeInherited = true;
+            var onlyIncludeInherited = false;
 
             while (type != null)
             {
                 var current = type.GetAttributes();
-                if (includeInherited || attributeUsageAttribute is null)
+                if (!onlyIncludeInherited || attributeUsageAttribute is null)
                 {
                     attributes.AddRange(current);
                 }
@@ -161,7 +166,7 @@ namespace Analyzer.Utilities.Extensions
                 }
 
                 type = type.BaseType;
-                includeInherited = false;
+                onlyIncludeInherited = true;
             }
 
             return attributes;
