@@ -5,6 +5,11 @@
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
     
+    <!-- 
+      Transitive references get passed to all VS command line tools related to VSIX, VSCT, etc ... processsing. 
+      These tools don't have RSP files and the full set of transitive references end up overflowing the allowed 
+      command line length for Windows. These projects must manually specify references to avoid this overflow.
+    -->
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
   </PropertyGroup>
 
