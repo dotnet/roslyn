@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var arrayType = symbol;
-            while (arrayType != null && arrayType != underlyingType)
+            while (arrayType != null && !Equals(arrayType, underlyingType))
             {
                 if (!this.isFirstSymbolVisited)
                 {
