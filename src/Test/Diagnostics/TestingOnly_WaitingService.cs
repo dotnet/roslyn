@@ -15,7 +15,9 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
     {
         private readonly AsynchronousOperationListenerProvider _provider;
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         [ImportingConstructor]
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
         private TestingOnly_WaitingService(IAsynchronousOperationListenerProvider provider)
         {
             _provider = (AsynchronousOperationListenerProvider)provider;
