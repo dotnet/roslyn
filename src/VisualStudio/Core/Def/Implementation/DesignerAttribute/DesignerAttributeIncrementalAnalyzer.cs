@@ -210,6 +210,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
+            var hierarchy = workspace.GetHierarchy(document.Project.Id);
+            if (hierarchy == null)
+            {
+                // make sure the project still exists in VS.
+                // since we are running under async call, it is possible that when we run
+                // project is already removed from VS.
+                return;
+            }
+
             var updateService = await GetUpdateServiceIfCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (updateService != null)
             {
@@ -224,12 +233,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 var documentId = document.Id;
                 _notificationService.RegisterNotification(() =>
                 {
-                    var hierarchy = workspace.GetHierarchy(documentId.ProjectId);
-                    if (hierarchy == null)
-                    {
-                        return;
-                    }
-
                     uint itemId = hierarchy.TryGetItemId(document.FilePath);
 
                     if (itemId == VSConstants.VSITEMID_NIL)
