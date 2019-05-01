@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using System.ComponentModel;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             /// <remarks>
             /// This method guarantees: fields will be set once; exactly one caller is
-            /// returned true; and IsNull will return true until all fields are initialized.
+            /// returned true; and IsDefault will return true until all fields are initialized.
             /// This method does not guarantee that all fields will be set by the same
             /// caller. Instead, the expectation is that all callers will attempt to initialize
             /// the builder with equivalent TypeWithAnnotations instances where
@@ -55,10 +55,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return false;
                 }
+
                 Interlocked.CompareExchange(ref _nullableAnnotation, (int)type.NullableAnnotation, 0);
                 Interlocked.CompareExchange(ref _defaultType, type.DefaultType, null);
+
+                // Because _extensions always gets a non-null value when the struct is initialized, we use it
+                // as a flag to signal that the initialization is complete. This means _extensions should be
+                // initialized last.
                 bool wasFirst = Interlocked.CompareExchange(ref _extensions, type._extensions ?? Extensions.Default, null) is null;
-                Debug.Assert(wasFirst || (_extensions == (type._extensions ?? Extensions.Default) && _nullableAnnotation == (int)type.NullableAnnotation && _defaultType.Equals(type.DefaultType)));
+
+                Debug.Assert(_extensions == (type._extensions ?? Extensions.Default));
+                Debug.Assert(_nullableAnnotation == (int)type.NullableAnnotation);
+                Debug.Assert(_defaultType.Equals(type.DefaultType));
                 return wasFirst;
             }
 
