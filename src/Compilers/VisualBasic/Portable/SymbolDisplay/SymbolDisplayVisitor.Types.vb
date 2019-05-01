@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Not format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandNullable) Then
-                    If ITypeSymbolHelpers.IsNullableType(symbol) AndAlso symbol IsNot symbol.OriginalDefinition Then
+                    If ITypeSymbolHelpers.IsNullableType(symbol) AndAlso Not Equals(symbol, symbol.OriginalDefinition) Then
                         symbol.TypeArguments(0).Accept(Me.NotFirstVisitor())
                         AddPunctuation(SyntaxKind.QuestionToken)
                         Return
