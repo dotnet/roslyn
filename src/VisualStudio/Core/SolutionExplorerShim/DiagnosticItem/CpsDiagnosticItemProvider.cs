@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -30,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private Workspace _workspace;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CpsDiagnosticItemProvider(
             [Import(typeof(AnalyzersCommandHandler))]IAnalyzersCommandHandler commandHandler,
             [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)

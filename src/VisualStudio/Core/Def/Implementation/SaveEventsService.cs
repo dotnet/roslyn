@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
@@ -27,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IVsTextManager _textManager;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SaveEventsService(
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ICommandHandlerServiceFactory commandHandlerServiceFactory,

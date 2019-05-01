@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing
     internal partial class CSharpOrganizingService : AbstractOrganizingService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpOrganizingService(
             [ImportMany]IEnumerable<Lazy<ISyntaxOrganizer, LanguageMetadata>> organizers)
             : base(organizers.Where(o => o.Metadata.Language == LanguageNames.CSharp).Select(o => o.Value))

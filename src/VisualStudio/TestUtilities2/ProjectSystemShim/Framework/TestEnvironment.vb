@@ -23,6 +23,7 @@ Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
+Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
@@ -77,6 +78,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Inherits VisualStudioWorkspaceImpl
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New(exportProvider As Composition.ExportProvider)
                 MyBase.New(exportProvider, exportProvider.GetExportedValue(Of MockServiceProvider))
             End Sub
@@ -152,6 +154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Public MockMonitorSelection As IVsMonitorSelection
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New(exportProvider As Composition.ExportProvider)
                 _exportProvider = exportProvider
             End Sub

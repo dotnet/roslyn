@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
     internal class VisualStudioGenerateTypeOptionsServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioGenerateTypeOptionsServiceFactory()
         {
         }

@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking
         Implements IRenameTrackingLanguageHeuristicsService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

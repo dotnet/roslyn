@@ -1199,6 +1199,7 @@ End Class";
         private class TestLanguageServiceA : ITestLanguageService
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public TestLanguageServiceA()
             {
             }
@@ -1208,6 +1209,7 @@ End Class";
         private class TestLanguageServiceB : ITestLanguageService
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public TestLanguageServiceB()
             {
             }

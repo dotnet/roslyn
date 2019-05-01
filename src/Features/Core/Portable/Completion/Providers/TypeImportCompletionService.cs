@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             = new ConcurrentDictionary<ProjectId, ReferenceCacheEntry>();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeImportCompletionService()
         {
         }

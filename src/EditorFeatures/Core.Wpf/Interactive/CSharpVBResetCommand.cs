@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Editor.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow;
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly IStandardClassificationService _registry;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ResetCommand(IStandardClassificationService registry)
         {
             _registry = registry;

@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         private const int ImplicitCacheTimeoutInMS = 10000;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioProjectCacheHostServiceFactory()
         {
         }

@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared ReadOnly s_defaultOptions As New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild:=False)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

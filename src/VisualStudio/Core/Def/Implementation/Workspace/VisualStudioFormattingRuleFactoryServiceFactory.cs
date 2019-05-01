@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal sealed class VisualStudioFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioFormattingRuleFactoryServiceFactory()
         {
         }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CaseCorrection
     internal class CSharpCaseCorrectionService : AbstractCaseCorrectionService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCaseCorrectionService()
         {
         }

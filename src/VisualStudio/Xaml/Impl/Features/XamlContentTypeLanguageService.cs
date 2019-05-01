@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Xaml.Features
@@ -11,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features
         private readonly IContentTypeRegistryService _contentTypeRegistry;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
         {
             _contentTypeRegistry = contentTypeRegistry;

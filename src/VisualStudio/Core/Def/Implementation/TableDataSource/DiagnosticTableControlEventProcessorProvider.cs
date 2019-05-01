@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
@@ -19,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticTableControlEventProcessorProvider(
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService)
         {

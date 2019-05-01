@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
@@ -10,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSemanticQuickInfoProvider()
         {
         }

@@ -44,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpProgressionLanguageService()
         {
         }

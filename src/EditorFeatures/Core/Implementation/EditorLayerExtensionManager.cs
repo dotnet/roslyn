@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor
         private readonly List<IExtensionErrorHandler> _errorHandlers;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorLayerExtensionManager(
             [ImportMany]IEnumerable<IExtensionErrorHandler> errorHandlers)
         {

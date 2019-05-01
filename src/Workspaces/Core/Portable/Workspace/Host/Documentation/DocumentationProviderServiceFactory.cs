@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class DocumentationProviderServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentationProviderServiceFactory()
         {
         }

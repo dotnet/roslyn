@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         private readonly char[] _supportedChars = ";{}#nte:)".ToCharArray();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpEditorFormattingService()
         {
         }

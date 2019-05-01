@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -22,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
         private uint _cookie = 0;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RuleSetEventHandler(
             [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider)
         {

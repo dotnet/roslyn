@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal partial class TemporaryStorageServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TemporaryStorageServiceFactory()
         {
         }

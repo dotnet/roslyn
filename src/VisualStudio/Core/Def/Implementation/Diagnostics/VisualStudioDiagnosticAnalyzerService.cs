@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -19,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly IDiagnosticAnalyzerService _diagnosticService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticAnalyzerService(VisualStudioWorkspace workspace, IDiagnosticAnalyzerService diagnosticService)
         {
             _workspace = workspace;

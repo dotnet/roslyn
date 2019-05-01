@@ -761,6 +761,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             public const string TestLanguage = nameof(TestLanguage);
 
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public NullLanguageService()
             {
             }

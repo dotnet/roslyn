@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
     internal class CSharpGoToDefinitionSymbolService : AbstractGoToDefinitionSymbolService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpGoToDefinitionSymbolService()
         {
         }

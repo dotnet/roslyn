@@ -10,6 +10,7 @@ using System.Linq;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.CodeAnalysis;
@@ -64,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private bool _allowProjectSystemOperations = true;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AnalyzersCommandHandler(
             AnalyzerItemsTracker tracker,
             AnalyzerReferenceManager analyzerReferenceManager,

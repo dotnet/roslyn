@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PreviewSolutionCrawlerRegistrationServiceFactory(IDiagnosticAnalyzerService analyzerService, IAsynchronousOperationListenerProvider listenerProvider)
         {
             // this service is directly tied to DiagnosticAnalyzerService and

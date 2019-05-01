@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Xaml;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -41,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         internal ICommandHandlerServiceFactory CommandHandlerServiceFactory { get; }
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlTextViewCreationListener(
             [Import(typeof(SVsServiceProvider))] System.IServiceProvider services,
             ICommandHandlerServiceFactory commandHandlerServiceFactory,

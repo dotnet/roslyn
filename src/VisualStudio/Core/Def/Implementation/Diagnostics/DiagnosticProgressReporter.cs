@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.TaskStatusCenter;
 using Roslyn.Utilities;
@@ -27,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private volatile ITaskHandler _taskHandler;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TaskCenterSolutionAnalysisProgressReporter(
             SVsTaskStatusCenterService taskStatusCenterService,
             IDiagnosticService diagnosticService,

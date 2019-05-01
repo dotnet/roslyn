@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -319,6 +320,7 @@ class { }
             Implements SVsServiceProvider
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 

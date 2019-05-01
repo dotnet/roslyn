@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     internal class CSharpEditorClassificationService : AbstractClassificationService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpEditorClassificationService()
         {
         }

@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpReplacePropertyWithMethodsService()
         {
         }

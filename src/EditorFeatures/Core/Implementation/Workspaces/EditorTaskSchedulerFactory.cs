@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorTaskSchedulerFactory(IAsynchronousOperationListenerProvider listenerProvider)
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);

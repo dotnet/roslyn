@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectInfoServ
             new Lazy<IProjectInfoService>(() => new DefaultProjectInfoService());
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultProjectInfoServiceFactory()
         {
         }

@@ -213,6 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public class PersistentStorageServiceFactory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public PersistentStorageServiceFactory()
             {
             }

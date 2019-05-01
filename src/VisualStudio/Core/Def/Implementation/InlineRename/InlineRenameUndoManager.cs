@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioInlineRenameUndoManagerServiceFactory(
             InlineRenameService inlineRenameService,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)

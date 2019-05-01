@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -57,6 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private readonly DebuggeeModuleInfoCache _baselineMetadata;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DebuggeeModuleMetadataProvider()
         {
             _baselineMetadata = new DebuggeeModuleInfoCache();

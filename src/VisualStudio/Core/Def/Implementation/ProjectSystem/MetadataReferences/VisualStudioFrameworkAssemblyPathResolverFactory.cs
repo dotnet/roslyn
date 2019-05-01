@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioFrameworkAssemblyPathResolverFactory(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
         {
             _threadingContext = threadingContext;

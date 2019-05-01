@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 using Microsoft.VisualStudio.Shell;
 
@@ -15,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticListTableCommandHandler(
             IVisualStudioSuppressionFixService suppressionFixService,
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService)

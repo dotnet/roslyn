@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
         private readonly IEnumerable<Lazy<ICommandHandler, OrderableContentTypeMetadata>> _commandHandlers;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CommandHandlerServiceFactory(
             [ImportMany] IEnumerable<Lazy<ICommandHandler, OrderableContentTypeMetadata>> commandHandlers)
         {

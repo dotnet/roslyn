@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Implements ISyntaxKindsService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

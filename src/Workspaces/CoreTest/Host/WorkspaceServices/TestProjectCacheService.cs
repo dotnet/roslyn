@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
     public class TestProjectCacheService : IProjectCacheHostService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestProjectCacheService()
         {
         }

@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Options.Providers
 
@@ -11,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         Implements IOptionProvider
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

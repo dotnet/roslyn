@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
@@ -12,6 +14,7 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
     internal class ProjectionSpanTagDefinition : MarkerFormatDefinition
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectionSpanTagDefinition()
         {
             this.Border = new Pen(Brushes.DarkBlue, thickness: 1.5);

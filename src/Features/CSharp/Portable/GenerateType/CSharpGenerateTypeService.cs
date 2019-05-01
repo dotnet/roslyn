@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpGenerateTypeService()
         {
         }

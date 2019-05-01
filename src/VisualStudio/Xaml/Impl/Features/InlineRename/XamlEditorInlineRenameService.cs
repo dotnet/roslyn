@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
         private readonly IXamlRenameInfoService _renameService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlEditorInlineRenameService(IXamlRenameInfoService renameService)
         {
             _renameService = renameService;

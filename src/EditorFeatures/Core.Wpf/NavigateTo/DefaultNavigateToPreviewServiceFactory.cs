@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             new Lazy<INavigateToPreviewService>(() => new DefaultNavigateToPreviewService());
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultNavigateToPreviewServiceFactory()
         {
         }

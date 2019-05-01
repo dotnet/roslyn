@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 
@@ -29,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public const string ColumnName = nameof(SymbolUsageInfo);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FindUsagesValueUsageInfoColumnDefinition()
         {
         }

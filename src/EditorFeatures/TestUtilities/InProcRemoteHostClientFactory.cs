@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
     internal class RemoteHostOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoteHostOptionsProvider()
         {
         }
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
     internal class InProcRemoteHostClientFactory : IRemoteHostClientFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InProcRemoteHostClientFactory()
         {
         }

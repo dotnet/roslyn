@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly IContentTypeRegistryService _contentTypeRegistry;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public NoCompilationContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
         {
             _contentTypeRegistry = contentTypeRegistry;

@@ -119,6 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Implements IClassificationService
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 

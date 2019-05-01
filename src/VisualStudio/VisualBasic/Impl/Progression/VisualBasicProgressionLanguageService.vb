@@ -15,6 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
         Implements IProgressionLanguageService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

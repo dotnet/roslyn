@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         private MoveToNamespaceOptionsResult _optionsResult = DefaultOptions;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestMoveToNamespaceOptionsService()
         {
         }

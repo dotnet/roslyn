@@ -11,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateEqualsAndGetHashCodeFromMem
         Inherits AbstractGenerateEqualsAndGetHashCodeService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

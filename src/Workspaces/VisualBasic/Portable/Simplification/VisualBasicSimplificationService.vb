@@ -29,6 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 New VisualBasicInferredMemberNameReducer())
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
             MyBase.New(s_reducers)
         End Sub

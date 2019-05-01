@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Options.EditorConfig
 {
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
         public static bool ShouldUseNativeEditorConfigSupport = Environment.GetEnvironmentVariable("ROSLYN_EDITORCONFIG_SUPPORT") == "native";
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorConfigDocumentOptionsProviderFactory()
         {
         }

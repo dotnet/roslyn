@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ImmutableArray<IDocumentOptionsProviderFactory> _documentOptionsProviderFactories;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TemporaryWorkspaceOptionsServiceFactory(
             [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)

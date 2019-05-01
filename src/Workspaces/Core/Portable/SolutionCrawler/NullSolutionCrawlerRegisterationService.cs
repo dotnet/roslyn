@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     internal partial class NullSolutionCrawlerRegistrationService : ISolutionCrawlerRegistrationService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public NullSolutionCrawlerRegistrationService()
         {
         }

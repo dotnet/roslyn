@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
         Inherits AbstractImplementAbstractClassService(Of ClassBlockSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

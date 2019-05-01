@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MoveDeclarationNearReference
             VariableDeclaratorSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

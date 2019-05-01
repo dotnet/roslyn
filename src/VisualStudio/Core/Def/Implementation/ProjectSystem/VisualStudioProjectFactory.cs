@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         // TODO: remove the AllowDefault = true on HostDiagnosticUpdateSource by making it a proper mock
         public VisualStudioProjectFactory(
             VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,

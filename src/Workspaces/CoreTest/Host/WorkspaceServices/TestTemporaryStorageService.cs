@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
     internal sealed class TestTemporaryStorageService : ITemporaryStorageService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestTemporaryStorageService()
         {
         }

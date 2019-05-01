@@ -6,6 +6,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -28,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     internal sealed class ProjectTelemetryIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectTelemetryIncrementalAnalyzerProvider()
         {
         }

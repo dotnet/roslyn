@@ -21,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioRuleSetManagerFactory(
             FileChangeWatcherProvider fileChangeWatcherProvider,
             IForegroundNotificationService foregroundNotificationService,

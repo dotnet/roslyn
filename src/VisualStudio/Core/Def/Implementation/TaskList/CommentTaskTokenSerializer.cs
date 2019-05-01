@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -20,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private string _lastCommentTokenCache = null;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CommentTaskTokenSerializer(
             VisualStudioWorkspace workspace,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)

@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     internal sealed class TestFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestFormattingRuleFactoryServiceFactory()
         {
         }

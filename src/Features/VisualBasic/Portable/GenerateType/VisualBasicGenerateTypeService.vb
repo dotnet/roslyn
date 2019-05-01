@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
         Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

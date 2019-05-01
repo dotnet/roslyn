@@ -5,6 +5,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
@@ -17,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private readonly IEditAndContinueService _editAndContinueService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioActiveStatementTracker(IEditAndContinueService editAndContinueService)
         {
             _editAndContinueService = editAndContinueService;

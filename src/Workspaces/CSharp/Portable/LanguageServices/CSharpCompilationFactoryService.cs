@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild: false);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCompilationFactoryService()
         {
         }

@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
     internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpDeclaredSymbolInfoFactoryService()
         {
         }

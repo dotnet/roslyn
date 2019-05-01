@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         private readonly List<Lazy<IHighlighter, LanguageMetadata>> _highlighters;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public HighlightingService(
             [ImportMany] IEnumerable<Lazy<IHighlighter, LanguageMetadata>> highlighters)
         {

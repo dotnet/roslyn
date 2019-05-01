@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Completion
     internal class CompletionHelperServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionHelperServiceFactory()
         {
         }

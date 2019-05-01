@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         private readonly GlobalUndoService _singleton;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InteractiveGlobalUndoServiceFactory(ITextUndoHistoryRegistry undoHistoryRegistry)
         {
             _singleton = new GlobalUndoService(undoHistoryRegistry);

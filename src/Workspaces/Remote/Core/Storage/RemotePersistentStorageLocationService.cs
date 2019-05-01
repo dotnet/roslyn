@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
         private readonly Dictionary<SolutionId, string> _idToStorageLocation = new Dictionary<SolutionId, string>();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemotePersistentStorageLocationService()
         {
         }

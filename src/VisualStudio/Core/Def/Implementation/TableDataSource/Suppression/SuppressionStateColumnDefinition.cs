@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 
@@ -21,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private static readonly string[] s_defaultFilters = new[] { ServicesVSResources.Active, ServicesVSResources.NotApplicable, ServicesVSResources.Suppressed };
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SuppressionStateColumnDefinition()
         {
         }

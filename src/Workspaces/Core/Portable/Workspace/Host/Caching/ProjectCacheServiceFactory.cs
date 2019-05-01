@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal class ProjectCacheServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectCacheServiceFactory()
         {
         }

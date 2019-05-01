@@ -13,6 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

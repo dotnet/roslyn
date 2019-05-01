@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -12,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Host.HostContext
         private const string VisualBasicProjectType = "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}";
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectTypeLookupService()
         {
         }

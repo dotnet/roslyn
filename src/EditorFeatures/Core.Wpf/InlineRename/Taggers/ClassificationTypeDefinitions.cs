@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
@@ -26,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private class InlineRenameFieldFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public InlineRenameFieldFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Inline_Rename_Field_Text;

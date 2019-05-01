@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     internal class NoCompilationLanguageServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public NoCompilationLanguageServiceFactory()
         {
         }

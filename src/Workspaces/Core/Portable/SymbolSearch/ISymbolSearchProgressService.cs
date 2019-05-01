@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     internal class DefaultSymbolSearchProgressService : ISymbolSearchProgressService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultSymbolSearchProgressService()
         {
         }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Execution
         private static readonly IAnalyzerAssemblyLoader s_loader = new NullLoader();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ReferenceSerializationServiceFactory()
         {
         }

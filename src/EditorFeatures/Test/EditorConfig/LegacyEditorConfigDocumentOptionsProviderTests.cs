@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.CodingConventions;
@@ -72,6 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigStorageLocation
         private class MockFileWatcher : IFileWatcher
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public MockFileWatcher()
             {
             }

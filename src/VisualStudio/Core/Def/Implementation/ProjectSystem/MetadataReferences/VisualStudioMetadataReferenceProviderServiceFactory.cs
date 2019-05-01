@@ -13,6 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal sealed class VsMetadataServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VsMetadataServiceFactory()
         {
         }

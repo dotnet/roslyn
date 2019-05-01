@@ -20,6 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
         Implements IBreakpointResolutionService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

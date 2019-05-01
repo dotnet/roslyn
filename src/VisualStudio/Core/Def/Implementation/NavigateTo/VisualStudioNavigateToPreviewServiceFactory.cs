@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
             new Lazy<INavigateToPreviewService>(() => new VisualStudioNavigateToPreviewService());
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioNavigateToPreviewServiceFactory()
         {
         }

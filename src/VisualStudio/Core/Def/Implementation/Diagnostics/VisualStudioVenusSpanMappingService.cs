@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly VisualStudioWorkspaceImpl _workspace;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioVenusSpanMappingService(VisualStudioWorkspaceImpl workspace)
         {
             _workspace = workspace;

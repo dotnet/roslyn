@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.ErrorLogger
     internal class WorkspaceErrorLogger : IErrorLoggerService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public WorkspaceErrorLogger()
         {
         }

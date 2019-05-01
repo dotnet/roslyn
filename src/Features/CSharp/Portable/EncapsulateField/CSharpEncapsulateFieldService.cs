@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
     internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpEncapsulateFieldService()
         {
         }

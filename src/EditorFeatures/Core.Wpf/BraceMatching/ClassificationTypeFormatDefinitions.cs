@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
@@ -17,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         private class BraceMatchingFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public BraceMatchingFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Brace_Matching;

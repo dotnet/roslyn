@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Notification
         private static EditorDialogService s_singleton;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorNotificationServiceFactory()
         {
         }

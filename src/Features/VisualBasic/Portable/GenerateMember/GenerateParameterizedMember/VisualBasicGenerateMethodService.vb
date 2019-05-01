@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
         Inherits AbstractGenerateMethodService(Of VisualBasicGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

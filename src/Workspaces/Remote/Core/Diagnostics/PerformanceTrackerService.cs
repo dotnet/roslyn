@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         public event EventHandler SnapshotAdded;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PerformanceTrackerService() :
             this(DefaultMinLOFValue, DefaultAverageThreshold, DefaultStddevThreshold)
         {

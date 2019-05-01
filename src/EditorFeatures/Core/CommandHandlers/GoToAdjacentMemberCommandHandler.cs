@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public string DisplayName => EditorFeaturesResources.Go_To_Adjacent_Member;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService)
         {
             _outliningManagerService = outliningManagerService;

@@ -11,6 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal sealed class WorkspaceCacheService : IWorkspaceCacheService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public WorkspaceCacheService()
         {
         }

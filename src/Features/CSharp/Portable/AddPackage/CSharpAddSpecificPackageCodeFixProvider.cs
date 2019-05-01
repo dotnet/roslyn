@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddPackage
 {
@@ -13,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddPackage
         private const string CS8179 = nameof(CS8179); // Predefined type 'System.ValueTuple`2' is not defined or imported
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpAddSpecificPackageCodeFixProvider()
         {
         }

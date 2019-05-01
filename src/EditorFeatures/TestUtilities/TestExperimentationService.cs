@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Experiments;
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private Dictionary<string, bool> _experimentsOptionValues = new Dictionary<string, bool>();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestExperimentationService()
         {
         }

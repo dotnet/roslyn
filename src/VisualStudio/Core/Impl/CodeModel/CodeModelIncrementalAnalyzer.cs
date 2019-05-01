@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -23,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private readonly ProjectCodeModelFactory _projectCodeModelFactory;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeModelIncrementalAnalyzerProvider(
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider,

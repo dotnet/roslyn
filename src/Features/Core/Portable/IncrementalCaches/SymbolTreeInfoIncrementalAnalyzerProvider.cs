@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SymbolTreeInfoIncrementalAnalyzerProvider()
         {
         }

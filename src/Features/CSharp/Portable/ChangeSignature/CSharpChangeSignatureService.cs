@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.SimpleLambdaExpression);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpChangeSignatureService()
         {
         }

@@ -18,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Inherits AbstractAddImportFeatureService(Of SimpleNameSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

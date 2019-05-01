@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis
     internal sealed class TrivialTemporaryStorageService : ITemporaryStorageService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TrivialTemporaryStorageService()
         {
         }

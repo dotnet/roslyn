@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences
 {
@@ -41,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
         private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = new Dictionary<string, CancellationTokenSource>();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FileWatchedPortableExecutableReferenceFactory(
             Lazy<VisualStudioWorkspace> visualStudioWorkspace,
             FileChangeWatcherProvider fileChangeWatcherProvider)

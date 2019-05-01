@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
         Inherits AbstractEncapsulateFieldService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

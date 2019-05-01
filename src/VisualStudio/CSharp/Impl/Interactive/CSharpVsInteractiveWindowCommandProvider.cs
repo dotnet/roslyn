@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -24,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
         private readonly System.IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVsInteractiveWindowCommandProvider(
             ICommandHandlerServiceFactory commandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,

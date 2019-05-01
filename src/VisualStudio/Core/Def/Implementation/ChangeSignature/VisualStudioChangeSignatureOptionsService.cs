@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
@@ -17,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly ClassificationTypeMap _classificationTypeMap;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioChangeSignatureOptionsService(IClassificationFormatMapService classificationFormatMapService, ClassificationTypeMap classificationTypeMap)
         {
             _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");

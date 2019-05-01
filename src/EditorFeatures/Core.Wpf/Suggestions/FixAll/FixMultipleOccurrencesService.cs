@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FixMultipleOccurrencesService(
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,

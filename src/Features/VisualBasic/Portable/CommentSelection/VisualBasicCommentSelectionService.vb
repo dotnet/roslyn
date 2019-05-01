@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommentSelection
         Inherits AbstractCommentSelectionService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal class FixAllGetFixesService : IFixAllGetFixesService, IWorkspaceServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FixAllGetFixesService()
         {
         }
