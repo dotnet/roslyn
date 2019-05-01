@@ -10,7 +10,7 @@
       These tools don't have RSP files and the full set of transitive references end up overflowing the allowed 
       command line length for Windows. These projects must manually specify references to avoid this overflow.
     -->
-    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+    <DisableTransitiveProjectReferences Condition="'$(IsVsixProject)' == 'true'">true</DisableTransitiveProjectReferences>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
