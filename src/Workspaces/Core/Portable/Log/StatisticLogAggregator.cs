@@ -35,18 +35,18 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
             public void AddDataPoint(int value)
             {
-                _count++;
-                _total += value;
-
-                if (value > _maximum)
+                if (_count == 0 || value > _maximum)
                 {
                     _maximum = value;
                 }
 
-                if (value < _mininum)
+                if (_count == 0 || value < _mininum)
                 {
                     _mininum = value;
                 }
+
+                _count++;
+                _total += value;
             }
 
             public StatisticResult GetStatisticResult()
