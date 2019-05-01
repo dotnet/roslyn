@@ -13,6 +13,7 @@ using EnvDTE;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
@@ -39,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         private bool _hasTextViewOpened;
 
         [ImportingConstructor]
-        [Obsolete]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EnhancedColorExperiment(IThreadingContext threadingContext, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
             : base(threadingContext)
         {
