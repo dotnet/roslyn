@@ -283,8 +283,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
-        <source>The EnumeratorCancellationAttribute cannot be used on multiple parameters</source>
-        <target state="new">The EnumeratorCancellationAttribute cannot be used on multiple parameters</target>
+        <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
+        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">

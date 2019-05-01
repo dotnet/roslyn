@@ -6007,6 +6007,39 @@ class C
         }
 
         [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenParameter_TwoDefaultTokens()
+        {
+            string source = @"
+using static System.Console;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    {
+        var enumerable = Iter(default);
+        await using var enumerator = enumerable.GetAsyncEnumerator(default);
+
+        if (!await enumerator.MoveNextAsync()) throw null;
+        System.Console.Write($""{enumerator.Current} ""); // 1
+
+        if (await enumerator.MoveNextAsync()) throw null;
+    }
+
+    static async System.Collections.Generic.IAsyncEnumerable<int> Iter([EnumeratorCancellation] CancellationToken token)
+    {
+        if (!token.Equals(default)) Write(""SKIPPED"");
+        yield return 1;
+        await Task.Yield();
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1");
+        }
+
+        [Fact, WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
         public void CancellationTokenParameter_WrongParameterType()
         {
             string source = @"
@@ -6151,7 +6184,7 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
             comp.VerifyDiagnostics(
-                // (7,67): error CS8426: The EnumeratorCancellationAttribute cannot be used on multiple parameters
+                // (7,67): error CS8426: The attribute [EnumeratorCancellation] cannot be used on multiple parameters
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> Iter(int value, [EnumeratorCancellation] CancellationToken token1, [EnumeratorCancellation] CancellationToken token2)
                 Diagnostic(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, "Iter").WithLocation(7, 67)
                 );

@@ -190,8 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
                     (Bodies.blockBody != null || Bodies.arrowBody != null))
                 {
-                    if (ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)) &&
-                        enumeratorCancellationCount == 0)
+                    if (enumeratorCancellationCount == 0 &&
+                        ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)))
                     {
                         // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
                         // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
