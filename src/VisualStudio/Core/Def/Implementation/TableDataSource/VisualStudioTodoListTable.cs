@@ -22,9 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         // only for test
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         public VisualStudioTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
             base(workspace, todoListProvider, IdentifierString, provider)
         {
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
     }
 }

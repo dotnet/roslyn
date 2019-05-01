@@ -39,10 +39,12 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
         }
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService)
         {
             _pickMembersService_forTestingPurposes = pickMembersService;
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

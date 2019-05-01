@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         }
 
         // internal for testing
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         internal PerformanceTrackerService(double minLOFValue, double averageThreshold, double stddevThreshold)
         {
             _minLOFValue = minLOFValue;
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _gate = new object();
             _queue = new PerformanceQueue(SampleSize);
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
         public void AddSnapshot(IEnumerable<AnalyzerPerformanceInfo> snapshot, int unitCount)
         {

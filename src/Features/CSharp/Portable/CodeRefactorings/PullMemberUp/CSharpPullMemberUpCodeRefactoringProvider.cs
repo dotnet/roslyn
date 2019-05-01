@@ -13,12 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.PullMemberUp)), Shared]
     internal class CSharpPullMemberUpCodeRefactoringProvider : AbstractPullMemberUpRefactoringProvider
     {
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         /// <summary>
         /// Test purpose only.
         /// </summary>
         public CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService service) : base(service)
         {
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
         [ImportingConstructor]
         public CSharpPullMemberUpCodeRefactoringProvider() : base(null)

@@ -48,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
         }
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         /// <summary>
         /// internal for testing
         /// </summary>
@@ -72,6 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             registrationService.Register(this);
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
         public event EventHandler<BuildProgress> BuildProgressChanged;
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;

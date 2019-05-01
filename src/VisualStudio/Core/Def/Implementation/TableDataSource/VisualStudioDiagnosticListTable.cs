@@ -57,20 +57,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return _errorList.AreOtherErrorSourceEntriesShown ? (ITableDataSource)_liveTableSource : _buildTableSource;
         }
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         /// this is for test only
         internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
             this(workspace, diagnosticService, errorSource: null, provider)
         {
             AddInitialTableSource(workspace.CurrentSolution, _liveTableSource);
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         /// this is for test only
         internal VisualStudioDiagnosticListTable(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider) :
             this(workspace, diagnosticService: null, errorSource, provider)
         {
             AddInitialTableSource(workspace.CurrentSolution, _buildTableSource);
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         private VisualStudioDiagnosticListTable(
             Workspace workspace,
             IDiagnosticService diagnosticService,
@@ -81,6 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
             _buildTableSource = new BuildTableDataSource(workspace, errorSource);
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
         protected override void AddTableSourceIfNecessary(Solution solution)
         {

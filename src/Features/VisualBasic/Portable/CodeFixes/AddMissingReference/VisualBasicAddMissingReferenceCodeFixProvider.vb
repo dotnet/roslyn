@@ -21,10 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddMissingReference
         Public Sub New()
         End Sub
 
+#Disable Warning RS0034 ' Exported parts should have [ImportingConstructor]
         ''' <summary>For testing purposes only (so that tests can pass in mock values)</summary> 
         Friend Sub New(
             installerService As IPackageInstallerService,
             symbolSearchService As ISymbolSearchService)
+#Enable Warning RS0034 ' Exported parts should have [ImportingConstructor]
             MyBase.New(installerService, symbolSearchService)
         End Sub
 

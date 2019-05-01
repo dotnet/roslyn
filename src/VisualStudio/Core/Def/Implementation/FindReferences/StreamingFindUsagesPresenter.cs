@@ -56,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         }
 
         // Test only
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         public StreamingFindUsagesPresenter(
             Workspace workspace,
             ExportProvider exportProvider)
@@ -68,7 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                   exportProvider.GetExportedValues<ITableColumnDefinition>())
         {
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         private StreamingFindUsagesPresenter(
             Workspace workspace,
             IThreadingContext threadingContext,
@@ -88,6 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
             _customColumns = columns.OfType<AbstractFindUsagesCustomColumnDefinition>().ToImmutableArray();
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
         public void ClearAll()
         {

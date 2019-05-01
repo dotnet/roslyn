@@ -101,11 +101,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Public Sub New()
         End Sub
 
+#Disable Warning RS0034 ' Exported parts should have [ImportingConstructor]
         ''' <summary>	
         ''' For testing purposes so that tests can pass in mocks for these values.	
         ''' </summary>	
         Friend Sub New(installerService As IPackageInstallerService,
                        searchService As ISymbolSearchService)
+#Enable Warning RS0034 ' Exported parts should have [ImportingConstructor]
             MyBase.New(installerService, searchService)
         End Sub
 

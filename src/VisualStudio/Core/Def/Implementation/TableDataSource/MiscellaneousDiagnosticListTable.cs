@@ -26,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             ConnectWorkspaceEvents();
         }
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         /// this is for test only
         internal MiscellaneousDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
             base(workspace, diagnosticService, provider)
@@ -33,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
             AddInitialTableSource(workspace.CurrentSolution, _source);
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
         protected override void AddTableSourceIfNecessary(Solution solution)
         {

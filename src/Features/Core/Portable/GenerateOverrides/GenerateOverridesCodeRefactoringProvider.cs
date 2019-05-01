@@ -22,10 +22,12 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
         {
         }
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         public GenerateOverridesCodeRefactoringProvider(IPickMembersService pickMembersService)
         {
             _pickMembersService_forTestingPurposes = pickMembersService;
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

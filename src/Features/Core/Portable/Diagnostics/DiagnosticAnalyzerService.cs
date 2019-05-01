@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         // protected for testing purposes.
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         protected DiagnosticAnalyzerService(
             Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> workspaceAnalyzerPackages,
             IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader,
@@ -51,10 +52,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             : this(new HostAnalyzerManager(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, primaryWorkspace), hostDiagnosticUpdateSource, registrationService, listener)
         {
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
         public IAsynchronousOperationListener Listener => _listener;
 
         // protected for testing purposes.
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         protected DiagnosticAnalyzerService(
             HostAnalyzerManager hostAnalyzerManager,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
@@ -65,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _listener = listener ?? AsynchronousOperationListenerProvider.NullListener;
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
         public ImmutableArray<DiagnosticAnalyzer> GetDiagnosticAnalyzers(Project project)
         {

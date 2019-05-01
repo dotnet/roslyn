@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddMissingReference
         {
         }
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         /// <summary>For testing purposes only (so that tests can pass in mock values)</summary> 
         internal CSharpAddMissingReferenceCodeFixProvider(
             IPackageInstallerService installerService,
@@ -31,5 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddMissingReference
             : base(installerService, symbolSearchService)
         {
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
     }
 }

@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         {
         }
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         /// <summary>
         /// For testing purposes only.
         /// </summary>
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         {
             _pickMembersService_forTesting = pickMembersService_forTesting;
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

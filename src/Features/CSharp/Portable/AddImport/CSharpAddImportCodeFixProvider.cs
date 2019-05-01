@@ -156,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         {
         }
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         /// <summary>For testing purposes only (so that tests can pass in mock values)</summary> 
         internal CSharpAddImportCodeFixProvider(
             IPackageInstallerService installerService,
@@ -163,5 +164,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             : base(installerService, symbolSearchService)
         {
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
     }
 }

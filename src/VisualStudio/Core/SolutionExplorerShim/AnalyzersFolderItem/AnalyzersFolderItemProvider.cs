@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _commandHandler = commandHandler;
         }
 
+#pragma warning disable RS0034 // Exported parts should have [ImportingConstructor]
         /// <summary>
         /// Constructor for use only in unit tests. Bypasses MEF to set the project mapper, workspace and glyph service.
         /// </summary>
@@ -46,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _workspace = workspace;
             _commandHandler = commandHandler;
         }
+#pragma warning restore RS0034 // Exported parts should have [ImportingConstructor]
 
         protected override IAttachedCollectionSource CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
         {
