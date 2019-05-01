@@ -288,4 +288,15 @@
       <FileWrites Include="$(_UpdatedApplicationManifestPath)"/>
     </ItemGroup>
   </Target>
+
+  <!-- 
+    Checks assumptions made by TestUsingOptimizedRunner function in build.ps1.
+  -->
+  <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build">
+    <Error Text="Unit test project TargetFileName must end with '.UnitTests.dll': '$(TargetFileName)'"
+           Condition="$(IsUnitTestProject) != $(TargetFileName.EndsWith('.UnitTests.dll'))" />
+
+    <Error Text="Unit test project TargetFileName must end with '.IntegrationTests.dll': '$(TargetFileName)'"
+           Condition="$(IsIntegrationTestProject) != $(TargetFileName.EndsWith('.IntegrationTests.dll'))" />
+  </Target>
 </Project>
