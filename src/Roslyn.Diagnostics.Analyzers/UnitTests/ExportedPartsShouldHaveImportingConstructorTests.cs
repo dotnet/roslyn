@@ -68,6 +68,63 @@ End Class
         [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
+        public async Task ExportAttributeNotInherited_CSharp(string mefNamespace)
+        {
+            var source = $@"
+using {mefNamespace};
+
+[Export]
+class C {{
+    [ImportingConstructor]
+    public C() {{ }}
+}}
+
+class D : C {{ }}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task ExportAttributeNotInherited_VisualBasic(string mefNamespace)
+        {
+            var source = $@"
+Imports {mefNamespace}
+
+<Export>
+Class C
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+
+Class D
+    Inherits C
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
         public async Task InstanceAndImplicitStaticConstructor_CSharp(string mefNamespace)
         {
             var source = $@"

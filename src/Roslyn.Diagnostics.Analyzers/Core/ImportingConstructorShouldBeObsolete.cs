@@ -50,6 +50,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var importingConstructorAttributeV1 = compilationContext.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportingConstructorAttribute");
                 var exportAttributeV2 = compilationContext.Compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
                 var importingConstructorAttributeV2 = compilationContext.Compilation.GetTypeByMetadataName("System.Composition.ImportingConstructorAttribute");
+                var attributeUsageAttribute = WellKnownTypes.AttributeUsageAttribute(compilationContext.Compilation);
 
                 if (exportAttributeV1 is null && exportAttributeV2 is null)
                 {
@@ -60,7 +61,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 compilationContext.RegisterSymbolAction(symbolContext =>
                 {
                     var namedType = (INamedTypeSymbol)symbolContext.Symbol;
-                    var namedTypeAttributes = namedType.GetApplicableAttributes();
+                    var namedTypeAttributes = namedType.GetApplicableAttributes(attributeUsageAttribute);
 
                     AnalyzeSymbolForAttribute(ref symbolContext, obsoleteAttribute, exportAttributeV1, importingConstructorAttributeV1, namedType, namedTypeAttributes);
                     AnalyzeSymbolForAttribute(ref symbolContext, obsoleteAttribute, exportAttributeV2, importingConstructorAttributeV2, namedType, namedTypeAttributes);

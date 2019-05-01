@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             protected abstract void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext);
 
-            protected bool HasDiagnosticAnalyzerAttribute(INamedTypeSymbol namedType)
+            protected bool HasDiagnosticAnalyzerAttribute(INamedTypeSymbol namedType, INamedTypeSymbol attributeUsageAttribute)
             {
-                foreach (AttributeData attribute in namedType.GetApplicableAttributes())
+                foreach (AttributeData attribute in namedType.GetApplicableAttributes(attributeUsageAttribute))
                 {
                     if (attribute.AttributeClass.DerivesFrom(DiagnosticAnalyzerAttribute))
                     {
