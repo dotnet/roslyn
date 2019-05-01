@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 // check whether we can use the data as it is (can happen when re-using persisted data from previous VS session)
                 if (CheckVersions(document, textVersion, projectVersion, existingData))
                 {
-                    await RegisterDesignerAttributeAsync(document, existingData.DesignerAttributeArgument, cancellationToken).ConfigureAwait(false);
+                    RegisterDesignerAttribute(document, existingData.DesignerAttributeArgument, cancellationToken);
                     return;
                 }
             }
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<IProjectItemDesignerTypeUpdateService> GetUpdateServiceIfCpsProjectAsync(Project project, CancellationToken cancellationToken)
+        private IProjectItemDesignerTypeUpdateService GetUpdateServiceIfCpsProjectFromForegroundThread(Project project, CancellationToken cancellationToken)
         {
             if (_cpsProjects.TryGetValue(project.Id, out var value))
             {
@@ -139,15 +139,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             }
 
             var vsWorkspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
-
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
-
             if (!vsWorkspace.IsCPSProject(project))
             {
                 _cpsProjects.TryAdd(project.Id, null);
                 return null;
             }
+
+            AssertIsForeground();
 
             var vsProject = (IVsProject)vsWorkspace.GetHierarchy(project.Id);
             if (ErrorHandler.Failed(vsProject.GetItemContext((uint)VSConstants.VSITEMID.Root, out var projectServiceProvider)))
@@ -189,10 +187,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var data = new Data(textVersion, semanticVersion, designerAttributeArgumentOpt.Value);
             await _state.PersistAsync(document, data, cancellationToken).ConfigureAwait(false);
 
-            await RegisterDesignerAttributeAsync(document, designerAttributeArgumentOpt.Value, cancellationToken).ConfigureAwait(false);
+            RegisterDesignerAttribute(document, designerAttributeArgumentOpt.Value, cancellationToken);
         }
 
-        private async Task RegisterDesignerAttributeAsync(Document document, string designerAttributeArgument, CancellationToken cancellationToken)
+        private void RegisterDesignerAttribute(Document document, string designerAttributeArgument, CancellationToken cancellationToken)
         {
             if (!_state.Update(document.Id, designerAttributeArgument))
             {
@@ -210,37 +208,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
-            if (workspace.GetHierarchy(document.Project.Id) == null)
+            var documentId = document.Id;
+            _notificationService.RegisterNotification(() =>
             {
-                // make sure the project still exists in VS.
-                // since we are running under async call, it is possible that when we run
-                // project is already removed from VS.
-                return;
-            }
-
-            var updateService = await GetUpdateServiceIfCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            if (updateService != null)
-            {
-                // we track work by async token but doesn't explicitly wait for it. and update service is free-thread service,
-                // no need to switch to UI thread to use it
-                var asyncToken = _listener.BeginAsyncOperation("RegisterDesignerAttribute");
-                _ = updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument)
-                                 .ReportNonFatalErrorAsync().CompletesAsyncOperation(asyncToken);
-            }
-            else
-            {
-                var documentId = document.Id;
-                _notificationService.RegisterNotification(() =>
+                var hierarchy = workspace.GetHierarchy(documentId.ProjectId);
+                if (hierarchy == null)
                 {
-                    var hierarchy = workspace.GetHierarchy(document.Project.Id);
-                    if (hierarchy == null)
-                    {
-                        // make sure the project still exists in VS.
-                        // since we are running under async call, it is possible that when we run
-                        // project is already removed from VS.
-                        return;
-                    }
+                    // make sure the project still exists in VS.
+                    // since we are running under async call, it is possible that when we run
+                    // project is already removed from VS.
+                    return;
+                }
 
+                var updateService = GetUpdateServiceIfCpsProjectFromForegroundThread(document.Project, cancellationToken);
+                if (updateService != null)
+                {
+                    // we track work by async token but doesn't explicitly wait for it. and update service is free-thread service,
+                    // no need to switch to UI thread to use it
+                    var asyncToken = _listener.BeginAsyncOperation("RegisterDesignerAttribute");
+                    _ = updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument)
+                                     .ReportNonFatalErrorAsync().CompletesAsyncOperation(asyncToken);
+                }
+                else
+                {
                     uint itemId = hierarchy.TryGetItemId(document.FilePath);
 
                     if (itemId == VSConstants.VSITEMID_NIL)
@@ -274,8 +264,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                         //
                         // just swallow it. don't crash VS.
                     }
-                }, _listener.BeginAsyncOperation("RegisterDesignerAttribute"));
-            }
+                }
+            }, _listener.BeginAsyncOperation("RegisterDesignerAttribute"));
         }
 
         private IVSMDDesignerService GetDesignerFromForegroundThread()
