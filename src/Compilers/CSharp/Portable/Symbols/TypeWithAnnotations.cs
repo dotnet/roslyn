@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SpecialType SpecialType => _extensions.GetSpecialType(DefaultType);
         public Cci.PrimitiveTypeCode PrimitiveTypeCode => Type.PrimitiveTypeCode;
 
-        public bool IsVoid =>
+        public bool IsVoidType() =>
             _extensions.IsVoid(DefaultType);
         public bool IsSZArray() =>
             _extensions.IsSZArray(DefaultType);
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (thisAnnotation.IsOblivious() || otherAnnotation.IsOblivious())
                     {
-                        if ((comparison & TypeCompareKind.UnknownNullableModifierMatchesAny) == 0)
+                        if ((comparison & TypeCompareKind.ObliviousNullableModifierMatchesAny) == 0)
                         {
                             return false;
                         }
@@ -404,10 +404,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed class EqualsComparer : EqualityComparer<TypeWithAnnotations>
         {
-            internal static readonly EqualsComparer Instance = new EqualsComparer();
+            internal static readonly EqualsComparer ConsiderEverythingComparer = new EqualsComparer(TypeCompareKind.ConsiderEverything);
+            internal static readonly EqualsComparer IgnoreNullableModifiersForReferenceTypesComparer = new EqualsComparer(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
+            internal static readonly EqualsComparer UnknownNullableModifierMatchesAnyComparer = new EqualsComparer(TypeCompareKind.ObliviousNullableModifierMatchesAny);
 
-            private EqualsComparer()
+            private readonly TypeCompareKind _compareKind;
+
+            private EqualsComparer(TypeCompareKind compareKind)
             {
+                _compareKind = compareKind;
             }
 
             public override int GetHashCode(TypeWithAnnotations obj)
@@ -425,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return !y.HasType;
                 }
-                return x.Equals(y, TypeCompareKind.ConsiderEverything);
+                return x.Equals(y, _compareKind);
             }
         }
 
@@ -817,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override SpecialType GetSpecialType(TypeSymbol typeSymbol) => typeSymbol.SpecialType;
             internal override bool IsRestrictedType(TypeSymbol typeSymbol, bool ignoreSpanLikeTypes) => typeSymbol.IsRestrictedType(ignoreSpanLikeTypes);
             internal override bool IsStatic(TypeSymbol typeSymbol) => typeSymbol.IsStatic;
-            internal override bool IsVoid(TypeSymbol typeSymbol) => typeSymbol.SpecialType == SpecialType.System_Void;
+            internal override bool IsVoid(TypeSymbol typeSymbol) => typeSymbol.IsVoidType();
             internal override bool IsSZArray(TypeSymbol typeSymbol) => typeSymbol.IsSZArray();
 
             internal override TypeSymbol GetNullableUnderlyingTypeOrSelf(TypeSymbol typeSymbol) => typeSymbol.StrippedType();

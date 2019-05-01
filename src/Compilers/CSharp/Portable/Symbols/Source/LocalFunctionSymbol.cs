@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Debug.Assert(_refKind == RefKind.None
-                || returnType.SpecialType != SpecialType.System_Void
+                || !returnType.IsVoidType()
                 || returnTypeSyntax.HasErrors);
 
             lock (_declarationDiagnostics)
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool ReturnsVoid => ReturnType.SpecialType == SpecialType.System_Void;
+        public override bool ReturnsVoid => ReturnType.IsVoidType();
 
         public override int Arity => TypeParameters.Length;
 

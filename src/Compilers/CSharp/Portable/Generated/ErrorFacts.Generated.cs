@@ -228,6 +228,7 @@
                 case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                 case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
+                case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
                     return true;
                 default:
                     return false;

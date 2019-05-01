@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
+            var returnsVoid = _lazyReturnType.IsVoidType();
             if (this.RefKind != RefKind.None && returnsVoid)
             {
                 Debug.Assert(returnTypeSyntax.HasErrors);
@@ -1204,10 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodParamsDifference, implementation.Locations[0]);
             }
 
-            if (!HaveSameConstraints(definition, implementation))
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation);
-            }
+            PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
             ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
             ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations).Parameters;
@@ -1221,28 +1218,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Returns true if the two partial methods have the same constraints.
-        /// </summary>
-        private static bool HaveSameConstraints(SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
+        private static void PartialMethodConstraintsChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)
         {
-            Debug.Assert(!ReferenceEquals(part1, part2));
-            Debug.Assert(part1.Arity == part2.Arity);
+            Debug.Assert(!ReferenceEquals(definition, implementation));
+            Debug.Assert(definition.Arity == implementation.Arity);
 
-            var typeParameters1 = part1.TypeParameters;
+            var typeParameters1 = definition.TypeParameters;
 
             int arity = typeParameters1.Length;
             if (arity == 0)
             {
-                return true;
+                return;
             }
 
-            var typeParameters2 = part2.TypeParameters;
+            var typeParameters2 = implementation.TypeParameters;
             var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
             var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
             var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
 
-            return MemberSignatureComparer.HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2, includingNullability: true);
+            // Report any mismatched method constraints.
+            for (int i = 0; i < arity; i++)
+            {
+                var typeParameter1 = typeParameters1[i];
+                var typeParameter2 = typeParameters2[i];
+
+                if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation, typeParameter2.Name);
+                }
+                else if (!MemberSignatureComparer.HaveSameNullabilityInConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
+                {
+                    diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation, implementation.Locations[0], implementation, typeParameter2.Name);
+                }
+            }
         }
 
         internal override bool CallsAreOmitted(SyntaxTree syntaxTree)

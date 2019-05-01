@@ -276,6 +276,7 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
+                        case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation:
