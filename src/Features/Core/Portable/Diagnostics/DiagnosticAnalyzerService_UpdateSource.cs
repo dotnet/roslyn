@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly EventMap _eventMap;
         private readonly SimpleTaskQueue _eventQueue;
 
+        [SuppressMessage("RoslyDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Private constructor used for deterministic field initialization")]
         private DiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService) : this()
         {
             _eventMap = new EventMap();
