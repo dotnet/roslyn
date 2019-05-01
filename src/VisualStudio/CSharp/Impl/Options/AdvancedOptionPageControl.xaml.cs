@@ -11,14 +11,20 @@ using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.ValidateFormatString;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     internal partial class AdvancedOptionPageControl : AbstractOptionPageControl
     {
-        public AdvancedOptionPageControl(OptionStore optionStore) : base(optionStore)
+        private EnhancedColorExperiment _enhancedColors;
+
+        public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel) : base(optionStore)
         {
+            _enhancedColors = componentModel.GetService<EnhancedColorExperiment>();
+
             InitializeComponent();
 
             BindToFullSolutionAnalysisOption(Enable_full_solution_analysis, LanguageNames.CSharp);
@@ -67,6 +73,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Show_completion_list, RegularExpressionsOptions.ProvideRegexCompletions, LanguageNames.CSharp);
 
             BindToOption(Use_enhanced_colors, FeatureOnOffOptions.UseEnhancedColors);
+        }
+
+        private void Apply_enhanced_colors_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            // The value -1 represents 'use default colors'
+            var useEnhancedColors = OptionStore.GetOption(FeatureOnOffOptions.UseEnhancedColors) != -1;
+            _enhancedColors.ApplyThemeColors(useEnhancedColors);
         }
     }
 }

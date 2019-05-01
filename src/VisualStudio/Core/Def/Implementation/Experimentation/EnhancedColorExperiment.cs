@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Classification;
@@ -24,6 +25,7 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 {
     [Export(typeof(IWpfTextViewConnectionListener))]
+    [Export(typeof(EnhancedColorExperiment))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Analyzable)]
     internal class EnhancedColorExperiment : ForegroundThreadAffinitizedObject, IWpfTextViewConnectionListener, IDisposable
@@ -36,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         private ISettingsManager _settingsManager;
 
         private bool _isDisposed = false;
-        private bool _hasTextViewOpened;
+        private int _hasInitialized = 0;
 
         [ImportingConstructor]
         [Obsolete]
@@ -57,18 +59,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         {
             AssertIsForeground();
 
-            if (!_hasTextViewOpened)
+            if (_hasInitialized == 0)
             {
-                _hasTextViewOpened = true;
+                TryInitialize();
 
+                VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, UpdateThemeColors);
+            }
+        }
+
+        private void TryInitialize()
+        {
+            if (Interlocked.Exchange(ref _hasInitialized, 1) == 0)
+            {
                 _colorApplier = new EnhancedColorApplier(_serviceProvider);
                 _settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
 
                 // We need to update the theme whenever the Preview Setting changes or the VS Theme changes.
                 _settingsManager.GetSubset(UseEnhancedColorsSetting).SettingChangedAsync += UseEnhancedColorsSettingChangedAsync;
                 VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
-
-                VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, UpdateThemeColors);
             }
         }
 
@@ -91,6 +99,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
         {
             AssertIsForeground();
 
+            // Get the preview feature flag value.
+            var useEnhancedColorsSetting = _settingsManager.GetValueOrDefault(UseEnhancedColorsSetting, defaultValue: 0);
+
+            // useEnhancedColorsSetting
+            //  0 -> use enhanced colors.
+            //  1 -> use enhanced colors.
+            // -1 -> don't use enhanced colors.
+
+            // Try to set colors appropriately. We will only set colors if the user
+            // has not customized colors and we consider ourselves the color owner.
+            ApplyThemeColors(useEnhancedColorsSetting != -1);
+        }
+
+        internal void ApplyThemeColors(bool useEnhancedColors)
+        {
+            AssertIsForeground();
+
             // Simply return if we were queued to run during shutdown.
             if (_isDisposed)
             {
@@ -103,25 +128,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 return;
             }
 
+            TryInitialize();
+
             var currentThemeId = GetThemeId();
 
-            // Get the preview feature flag value.
-            var useEnhancedColorsSetting = _settingsManager.GetValueOrDefault(UseEnhancedColorsSetting, defaultValue: 0);
-
-            // useEnhancedColorsSetting
-            //  0 -> use enhanced colors.
-            //  1 -> use enhanced colors.
-            // -1 -> don't use enhanced colors.
-
-            // Try to set colors appropriately. We will only set colors if the user
-            // has not customized colors and we consider ourselves the color owner.
-            if (useEnhancedColorsSetting != -1)
+            if (useEnhancedColors)
             {
-                _colorApplier.TrySetEnhancedColors(currentThemeId);
+                _colorApplier.TrySetEnhancedColors(currentThemeId, alwaysApply: true);
             }
             else
             {
-                _colorApplier.TrySetDefaultColors(currentThemeId);
+                _colorApplier.TrySetDefaultColors(currentThemeId, alwaysApply: true);
             }
         }
 
@@ -257,14 +274,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 _dte = (DTE)serviceProvider.GetService(typeof(DTE));
             }
 
-            public void TrySetDefaultColors(Guid themeId)
+            public void TrySetDefaultColors(Guid themeId, bool alwaysApply)
             {
                 var colorItemMap = GetColorItemMap();
 
                 // We consider ourselves the owner of the colors and set
                 // default colors only when every classification we are
                 // updating matches our enhanced color for the current theme.
-                if (!AreColorsEnhanced(colorItemMap, themeId))
+                if (!alwaysApply && !AreColorsEnhanced(colorItemMap, themeId))
                 {
                     return;
                 }
@@ -295,14 +312,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 }
             }
 
-            public void TrySetEnhancedColors(Guid themeId)
+            public void TrySetEnhancedColors(Guid themeId, bool alwaysApply)
             {
                 var colorItemMap = GetColorItemMap();
 
                 // We consider ourselves the owner of the colors and set
                 // enhanced colors only when every classification we are
                 // updating matches their default color for the current theme.
-                if (!AreColorsDefaulted(colorItemMap, themeId))
+                if (!alwaysApply && !AreColorsDefaulted(colorItemMap, themeId))
                 {
                     return;
                 }

@@ -223,5 +223,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Use_enhanced_colors_for_C_and_Basic As String =
             ServicesVSResources.Use_enhanced_colors_for_C_and_Basic
+
+        Public ReadOnly Property Option_Apply_Colors As String =
+            ServicesVSResources.Apply_Colors
     End Module
 End Namespace

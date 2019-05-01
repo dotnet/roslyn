@@ -37,6 +37,11 @@
         <target state="translated">Применить схему назначения клавиш "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_Colors">
+        <source>Apply Colors</source>
+        <target state="new">Apply Colors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">Избегайте операторов-выражений, неявно игнорирующих значение.</target>

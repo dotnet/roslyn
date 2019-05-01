@@ -1222,4 +1222,7 @@ I agree to all of the foregoing:</value>
   <data name="Rename_0_to_1" xml:space="preserve">
     <value>Rename {0} to {1}</value>
   </data>
+  <data name="Apply_Colors" xml:space="preserve">
+    <value>Apply Colors</value>
+  </data>
 </root>

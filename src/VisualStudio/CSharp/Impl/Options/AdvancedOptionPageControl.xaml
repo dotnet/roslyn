@@ -120,6 +120,12 @@
                 <StackPanel>
                     <CheckBox x:Name="Use_enhanced_colors"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Use_enhanced_colors_for_C_and_Basic}" />
+                    <Button x:Name="Apply_enhanced_colors"
+                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Apply_Colors}"
+                            Click="Apply_enhanced_colors_Click"
+                            HorizontalAlignment="Left"
+                            Width="75"
+                            Height="23" />
                 </StackPanel>
             </GroupBox>
 

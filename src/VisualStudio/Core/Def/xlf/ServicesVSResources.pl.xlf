@@ -37,6 +37,11 @@
         <target state="translated">Zastosuj schemat mapowania klawiszy „{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_Colors">
+        <source>Apply Colors</source>
+        <target state="new">Apply Colors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">Unikaj instrukcji wyrażeń, które niejawnie ignorują wartość</target>

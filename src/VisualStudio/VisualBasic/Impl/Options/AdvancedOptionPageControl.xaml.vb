@@ -10,13 +10,19 @@ Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.ValidateFormatString
+Imports Microsoft.VisualStudio.ComponentModelHost
+Imports Microsoft.VisualStudio.LanguageServices.Experimentation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
-        Public Sub New(optionStore As OptionStore)
+        Private _enhancedColors As EnhancedColorExperiment
+
+        Public Sub New(optionStore As OptionStore, componentModel As IComponentModel)
             MyBase.New(optionStore)
+
+            _enhancedColors = componentModel.GetService(Of EnhancedColorExperiment)()
 
             InitializeComponent()
 
@@ -65,6 +71,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Show_completion_list, RegularExpressionsOptions.ProvideRegexCompletions, LanguageNames.VisualBasic)
 
             BindToOption(Use_enhanced_colors, FeatureOnOffOptions.UseEnhancedColors)
+        End Sub
+
+
+        Private Sub Apply_enhanced_colors_Click(sender As Object, e As System.Windows.RoutedEventArgs)
+            ' The value -1 represents 'use default colors'
+            Dim useEnhancedColors = OptionStore.GetOption(FeatureOnOffOptions.UseEnhancedColors) <> -1
+            _enhancedColors.ApplyThemeColors(useEnhancedColors)
         End Sub
     End Class
 End Namespace

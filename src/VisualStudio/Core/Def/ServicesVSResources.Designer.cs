@@ -362,6 +362,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Apply Colors.
+        /// </summary>
+        internal static string Apply_Colors {
+            get {
+                return ResourceManager.GetString("Apply_Colors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Applying remove suppressions fix....
         /// </summary>
         internal static string Applying_remove_suppressions_fix {

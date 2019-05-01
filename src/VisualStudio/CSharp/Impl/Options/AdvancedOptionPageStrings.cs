@@ -189,5 +189,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Use_enhanced_colors_for_C_and_Basic =>
             ServicesVSResources.Use_enhanced_colors_for_C_and_Basic;
+
+        public static string Option_Apply_Colors =>
+            ServicesVSResources.Apply_Colors;
     }
 }
