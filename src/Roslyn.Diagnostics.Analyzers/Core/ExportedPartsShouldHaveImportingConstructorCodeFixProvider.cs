@@ -75,7 +75,18 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var exportAttribute = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
             var exportAttributeSymbol = semanticModel.GetSymbolInfo(exportAttribute, cancellationToken).Symbol?.ContainingType;
-            var importingConstructorAttributeSymbol = exportAttributeSymbol?.ContainingNamespace.GetTypeMembers(nameof(ImportingConstructorAttribute)).FirstOrDefault();
+            INamedTypeSymbol importingConstructorAttributeSymbol = null;
+            while (exportAttributeSymbol is object)
+            {
+                importingConstructorAttributeSymbol = exportAttributeSymbol.ContainingNamespace?.GetTypeMembers(nameof(ImportingConstructorAttribute)).FirstOrDefault();
+                if (importingConstructorAttributeSymbol is object)
+                {
+                    break;
+                }
+
+                exportAttributeSymbol = exportAttributeSymbol.BaseType;
+            }
+
             if (importingConstructorAttributeSymbol is null)
             {
                 return document;
