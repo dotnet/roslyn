@@ -1034,8 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (overriddenMethod is null ||
                     overridingMethod is null ||
                     compilation is null ||
-                    ((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)
-                        ?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) != true)
+                    !compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes))
                 {
                     // Don't do any validation if the nullable feature is not enabled or
                     // the override is not written directly in source

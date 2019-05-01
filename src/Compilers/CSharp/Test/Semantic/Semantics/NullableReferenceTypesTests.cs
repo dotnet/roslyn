@@ -13561,6 +13561,41 @@ class E : D
         }
 
         [Fact]
+        public void OverrideConstraintVariance()
+        {
+            var src = @"
+using System.Collections.Generic;
+class A
+{
+    public virtual List<T>? M<T>(List<T>? t) => null!;
+}
+class B : A
+{
+    public override List<T> M<T>(List<T> t) => null!;
+}
+class C : B
+{
+    public override List<T>? M<T>(List<T>? t) => null!;
+}
+class D : C
+{
+    public override List<T> M<T>(List<T> t) => null!;
+}
+";
+            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,29): warning CS8610: Nullability of reference types in type of parameter 't' doesn't match overridden member.
+                //     public override List<T> M<T>(List<T> t) => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("t").WithLocation(9, 29),
+                // (13,30): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override List<T>? M<T>(List<T>? t) => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M").WithLocation(13, 30),
+                // (17,29): warning CS8610: Nullability of reference types in type of parameter 't' doesn't match overridden member.
+                //     public override List<T> M<T>(List<T> t) => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("t").WithLocation(17, 29));
+        }
+
+        [Fact]
         public void Implementing_07()
         {
             var source = @"
