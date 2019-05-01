@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis
             CommitWithTypeImportCompletionEnabled,
             CommitTypeImportCompletionItem,
 
+            RoslynCompletionItemsCached,
+            VSCompletionItemsCacheHit,
+
             // For targeted type completion
             SessionHasTargetTypeFilterEnabled,
 
@@ -29,6 +32,12 @@ namespace Microsoft.CodeAnalysis
             CommitWithTargetTypeCompletionExperimentEnabled,
             CommitItemWithTargetTypeFilter,
         }
+
+        internal static void LogRoslynCompletionItemsCached(int count) =>
+            s_logAggregator.IncreaseCountBy((int)ActionInfo.RoslynCompletionItemsCached, count);
+
+        internal static void LogVSCompletionItemsCacheHit(int count) =>
+            s_logAggregator.IncreaseCountBy((int)ActionInfo.VSCompletionItemsCacheHit, count);
 
         internal static void LogSessionWithTypeImportCompletionEnabled() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithTypeImportCompletionEnabled);
