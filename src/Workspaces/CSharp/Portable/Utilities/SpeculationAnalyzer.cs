@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     {
                         // With the current implementation of the C# binder, this is impossible, but it's probably not wise to
                         // depend on an implementation detail of another layer.
-                        return originalExpressionType != newExpressionType;
+                        return (object)originalExpressionType != newExpressionType;
                     }
 
                     var originalConversion = this.OriginalSemanticModel.ClassifyConversion(originalOtherPartOfConditional, originalExpressionType);
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             if (originalConvertedType == null || newConvertedType == null)
             {
-                return originalConvertedType != newConvertedType;
+                return (object)originalConvertedType != newConvertedType;
             }
 
             var originalConversion = this.OriginalSemanticModel.ClassifyConversion(originalIsOrAsExpression.Left, originalConvertedType, isExplicitInSource: true);

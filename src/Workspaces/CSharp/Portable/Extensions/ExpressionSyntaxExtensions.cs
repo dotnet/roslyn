@@ -1028,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (x is null || y is null)
                 {
-                    return x == y;
+                    return (object)x == y;
                 }
 
                 return x.OriginalDefinition.Equals(y.OriginalDefinition);

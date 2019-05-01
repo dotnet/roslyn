@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public bool HaveSameSignature(ISymbol symbol1, ISymbol symbol2, bool caseSensitive)
         {
             // NOTE - we're deliberately using reference equality here for speed.
-            if (symbol1 == symbol2)
+            if ((object)symbol1 == symbol2)
             {
                 return true;
             }
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public bool HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(ISymbol symbol1, ISymbol symbol2, bool caseSensitive)
         {
             // NOTE - we're deliberately using reference equality here for speed.
-            if (symbol1 == symbol2)
+            if ((object)symbol1 == symbol2)
             {
                 return true;
             }

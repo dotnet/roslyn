@@ -607,7 +607,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Sub
 
             Public Function Compare(x As ISymbol, y As ISymbol) As Integer Implements IComparer(Of ISymbol).Compare
-                If x Is y Then
+                If ReferenceEquals(x, y) Then
                     Return 0
                 End If
 
