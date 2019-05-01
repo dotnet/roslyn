@@ -4,7 +4,6 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>Vsix</RoslynProjectType>
     <IsShipping>false</IsShipping>
 
     <!-- VSIX -->

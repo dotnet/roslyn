@@ -1,19 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
-  <PropertyGroup>
-    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
-  </PropertyGroup>
-
-  <Import Project="VisualStudio.targets"/>
+<Project>
+  <Import Project="VisualStudio.targets" Condition="'$(IsVsixProject)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
 
-    <!-- Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
-         but gets included in lots of output items like VSIX. -->
+    <!-- 
+      Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
+      but gets included in lots of output items like VSIX.
+    -->
     <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.1' AND '$(TargetFramework)' != 'netcoreapp3.0'">false</GenerateRuntimeConfigurationFiles>
 
     <!-- 

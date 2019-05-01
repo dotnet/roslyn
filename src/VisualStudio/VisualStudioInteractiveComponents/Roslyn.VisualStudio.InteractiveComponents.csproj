@@ -12,7 +12,6 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.InteractiveComponents</RootNamespace>
-    <RoslynProjectType>Vsix</RoslynProjectType>
     <TargetFramework>net472</TargetFramework>
 
     <!-- VSIX -->

@@ -3,8 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
-    <RoslynProjectType>SourcePackage</RoslynProjectType>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>  
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <DebugType>none</DebugType>
     <GenerateDependencyFile>false</GenerateDependencyFile>
 
