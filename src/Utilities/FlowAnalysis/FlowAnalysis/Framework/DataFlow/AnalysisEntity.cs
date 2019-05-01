@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(instanceLocation != null);
             Debug.Assert(instanceLocation.Locations.Count == 1);
             Debug.Assert(instanceLocation.Locations.Single().CreationOpt == null);
-            Debug.Assert(instanceLocation.Locations.Single().SymbolOpt == typeSymbol);
+            Debug.Assert(Equals(instanceLocation.Locations.Single().SymbolOpt, typeSymbol));
 
             return new AnalysisEntity(typeSymbol, instanceLocation, isThisOrMeInstance: true);
         }

@@ -263,7 +263,7 @@ namespace Analyzer.Utilities.Extensions
             if (method.ContainingType.IsDisposable(iDisposable))
             {
                 if (IsDisposeImplementation(method, iDisposable) ||
-                    (method.ContainingType == iDisposable &&
+                    (Equals(method.ContainingType, iDisposable) &&
                      method.HasDisposeMethodSignature()))
                 {
                     return DisposeMethodKind.Dispose;
@@ -414,7 +414,7 @@ namespace Analyzer.Utilities.Extensions
             // Local functions.
             IBlockOperation ComputeTopmostOperationBlock(IMethodSymbol unused)
             {
-                if (method.ContainingAssembly != compilation.Assembly)
+                if (!Equals(method.ContainingAssembly, compilation.Assembly))
                 {
                     return null;
                 }
@@ -477,7 +477,7 @@ namespace Analyzer.Utilities.Extensions
         {
             for (var i = 0; i < methodSymbol.Parameters.Length; i++)
             {
-                if (parameterSymbol == methodSymbol.Parameters[i])
+                if (Equals(parameterSymbol, methodSymbol.Parameters[i]))
                 {
                     return i;
                 }

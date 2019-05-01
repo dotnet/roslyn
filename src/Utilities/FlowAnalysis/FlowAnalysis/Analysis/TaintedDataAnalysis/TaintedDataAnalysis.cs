@@ -51,7 +51,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 wellKnownTypeProvider,
                 interproceduralAnalysisConfig,
                 interproceduralAnalysisPredicateOpt: null,
-                pessimisticAnalysis: true);
+                pessimisticAnalysis: true,
+                performCopyAnalysis: false);
 
             TaintedDataAnalysisContext analysisContext = TaintedDataAnalysisContext.Create(
                 TaintedDataAbstractValueDomain.Default,

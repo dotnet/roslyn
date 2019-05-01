@@ -198,4 +198,58 @@
   <data name="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage" xml:space="preserve">
     <value>'{0}' is exported with MEFv2 and hence must be marked as Shared</value>
   </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorDescription" xml:space="preserve">
+    <value>Exported parts should have [ImportingConstructor]</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorMessage" xml:space="preserve">
+    <value>'{0}' is MEF-exported and should have a single importing constructor of the correct form</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorTitle" xml:space="preserve">
+    <value>Exported parts should have [ImportingConstructor]</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteDescription" xml:space="preserve">
+    <value>Importing constructor should be [Obsolete]</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteMessage" xml:space="preserve">
+    <value>Importing constructor should be [Obsolete]</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteTitle" xml:space="preserve">
+    <value>Importing constructor should be [Obsolete]</value>
+  </data>
+  <data name="TestExportsShouldNotBeDiscoverableDescription" xml:space="preserve">
+    <value>Test exports should not be discoverable</value>
+  </data>
+  <data name="TestExportsShouldNotBeDiscoverableMessage" xml:space="preserve">
+    <value>'{0}' is exported for test purposes and should be marked PartNotDiscoverable</value>
+  </data>
+  <data name="TestExportsShouldNotBeDiscoverableTitle" xml:space="preserve">
+    <value>Test exports should not be discoverable</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor" xml:space="preserve">
+    <value>Explicitly define the importing constructor</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute" xml:space="preserve">
+    <value>Add 'ImportingConstructor' attribute</value>
+  </data>
+  <data name="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor" xml:space="preserve">
+    <value>Make constructor public</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse" xml:space="preserve">
+    <value>Set ObsoleteAttribute.Error to true</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription" xml:space="preserve">
+    <value>Use correct ObsoleteAttribute message</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute" xml:space="preserve">
+    <value>Add ObsoleteAttribute</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription" xml:space="preserve">
+    <value>Configure ObsoleteAttribute for importing constructor</value>
+  </data>
+  <data name="ImportingConstructorShouldBeObsoleteCodeFix_MissingError" xml:space="preserve">
+    <value>Set ObsoleteAttribute.Error to true</value>
+  </data>
+  <data name="TestExportsShouldNotBeDiscoverableCodeFix" xml:space="preserve">
+    <value>Apply PartNotDiscoverableAttribute</value>
+  </data>
 </root>

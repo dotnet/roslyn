@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Analyzer.Utilities;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
@@ -11,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
-    public class UnsupportedSymbolKindArgumentRuleTests : CodeFixTestBase
+    public class UnsupportedSymbolKindArgumentRuleTests : DiagnosticAnalyzerTestBase
     {
         [Fact]
         public void CSharp_VerifyDiagnostic()
@@ -244,16 +243,6 @@ End Class
 ";
 
             VerifyBasic(source, TestValidationMode.AllowCompileErrors);
-        }
-
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
-        {
-            return null;
-        }
-
-        protected override CodeFixProvider GetBasicCodeFixProvider()
-        {
-            return null;
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

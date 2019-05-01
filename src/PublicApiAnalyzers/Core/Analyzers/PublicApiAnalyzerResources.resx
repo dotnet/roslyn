@@ -168,4 +168,10 @@
   <data name="OverloadWithOptionalParametersShouldHaveMostParametersMessage" xml:space="preserve">
     <value>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</value>
   </data>
+  <data name="PublicImplicitGetAccessor" xml:space="preserve">
+    <value>implicit get-accessor for {0}</value>
+  </data>
+  <data name="PublicImplicitSetAccessor" xml:space="preserve">
+    <value>implicit set-accessor for {0}</value>
+  </data>
 </root>

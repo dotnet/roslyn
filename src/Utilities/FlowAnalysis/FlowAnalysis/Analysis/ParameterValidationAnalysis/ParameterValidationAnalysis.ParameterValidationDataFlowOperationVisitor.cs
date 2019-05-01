@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 return CurrentAnalysisData.ContainsKey(location) ||
                     location.SymbolOpt is IParameterSymbol parameter &&
                     parameter.Type.IsReferenceType &&
-                    parameter.ContainingSymbol == GetBottomOfStackOwningSymbol();
+                    Equals(parameter.ContainingSymbol, GetBottomOfStackOwningSymbol());
 
                 ISymbol GetBottomOfStackOwningSymbol()
                 {
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     // FxCop compat: special cases handled by FxCop.
                     //  1. First argument of type System.Runtime.Serialization.SerializationInfo to System.Exception.GetObjectData or its override is validated.
                     //  2. First argument of type System.Runtime.Serialization.SerializationInfo to constructor of System.Exception or its subtype is validated.
-                    if (targetMethod.Parameters[0].Type == WellKnownTypeProvider.SerializationInfo)
+                    if (Equals(targetMethod.Parameters[0].Type, WellKnownTypeProvider.SerializationInfo))
                     {
                         switch (targetMethod.MethodKind)
                         {
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                             var syntaxNode = kvp.Value;
                             if (!_hazardousParameterUsageBuilderOpt.ContainsKey(parameter))
                             {
-                                HandleHazardousOperation(syntaxNode, notValidatedLocations.Where(l => l.SymbolOpt == parameter));
+                                HandleHazardousOperation(syntaxNode, notValidatedLocations.Where(l => Equals(l.SymbolOpt, parameter)));
                             }
                         }
                     }
