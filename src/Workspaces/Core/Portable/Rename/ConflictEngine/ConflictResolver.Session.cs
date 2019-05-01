@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 if (conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex].IsOverriddenFromMetadata)
                                 {
                                     var overridingSymbol = await SymbolFinder.FindSymbolAtPositionAsync(solution.GetDocument(newLocation.SourceTree), newLocation.SourceSpan.Start, cancellationToken: _cancellationToken).ConfigureAwait(false);
-                                    if (overridingSymbol != null && renamedSymbolInNewSolution != overridingSymbol)
+                                    if (overridingSymbol != null && !Equals(renamedSymbolInNewSolution, overridingSymbol))
                                     {
                                         if (!overridingSymbol.IsOverride)
                                         {
