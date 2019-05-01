@@ -78,17 +78,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDecimalConstantAttribute(defaultValue.DecimalValue));
             }
 
-            var type = this.Type;
+            var type = this.TypeWithAnnotations;
 
-            if (type.TypeSymbol.ContainsDynamic())
+            if (type.Type.ContainsDynamic())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.TypeSymbol, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
-            if (type.TypeSymbol.ContainsTupleNames())
+            if (type.Type.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
+                    compilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
             if (this.RefKind == RefKind.RefReadOnly)

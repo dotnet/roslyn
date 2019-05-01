@@ -1275,4 +1275,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>Introduce 'Using' statement</value>
     <comment>{Locked="Using"} "Using" is a VB keyword and should not be localized.</comment>
   </data>
+  <data name="Make_0_inheritable" xml:space="preserve">
+    <value>Make '{0}' inheritable</value>
+  </data>
 </root>

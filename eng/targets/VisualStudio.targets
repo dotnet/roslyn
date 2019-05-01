@@ -101,10 +101,6 @@
                              or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.11.0'">
         <EmbedInteropTypes>false</EmbedInteropTypes>
       </ReferencePath>
-
-      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'">
-        <EmbedInteropTypes>true</EmbedInteropTypes>
-      </ReferencePath>
     </ItemGroup>
   </Target>
 </Project>

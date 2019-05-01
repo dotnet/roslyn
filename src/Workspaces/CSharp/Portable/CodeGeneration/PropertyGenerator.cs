@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -308,22 +309,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol accessor,
             CodeGenerationOptions options)
         {
-            if (accessor.DeclaredAccessibility == Accessibility.NotApplicable ||
-                accessor.DeclaredAccessibility == property.DeclaredAccessibility)
+            var modifiers = ArrayBuilder<SyntaxToken>.GetInstance();
+
+            if (accessor.DeclaredAccessibility != Accessibility.NotApplicable &&
+                accessor.DeclaredAccessibility != property.DeclaredAccessibility)
             {
-                return new SyntaxTokenList();
+                AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, options, property.DeclaredAccessibility);
             }
 
-            var modifiers = new List<SyntaxToken>();
-            AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, options, property.DeclaredAccessibility);
+            var hasNonReadOnlyAccessor = property.GetMethod?.IsReadOnly == false || property.SetMethod?.IsReadOnly == false;
+            if (hasNonReadOnlyAccessor && accessor.IsReadOnly)
+            {
+                modifiers.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+            }
 
-            return modifiers.ToSyntaxTokenList();
+            return modifiers.ToSyntaxTokenListAndFree();
         }
 
         private static SyntaxTokenList GenerateModifiers(
             IPropertySymbol property, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            var tokens = new List<SyntaxToken>();
+            var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
             // Most modifiers not allowed if we're an explicit impl.
             if (!property.ExplicitInterfaceImplementations.Any())
@@ -336,6 +342,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (property.IsStatic)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    }
+
+                    // note: explicit interface impls are allowed to be 'readonly' but it never actually affects callers
+                    // because of the boxing requirement in order to call the method.
+                    // therefore it seems like a small oversight to leave out the keyword for an explicit impl from metadata.
+                    var hasAllReadOnlyAccessors = property.GetMethod?.IsReadOnly != false && property.SetMethod?.IsReadOnly != false;
+                    if (hasAllReadOnlyAccessors)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
                     }
 
                     if (property.IsSealed)

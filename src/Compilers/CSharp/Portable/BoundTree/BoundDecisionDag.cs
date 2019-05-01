@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     switch (choice)
                     {
-                        case BoundDagNullTest d:
+                        case BoundDagExplicitNullTest d:
                             return inputConstant.IsNull;
                         case BoundDagNonNullTest d:
                             return !inputConstant.IsNull;
@@ -278,6 +278,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return $"?{d.Kind} {tempName(d.Input)} is {b.Type.ToString()}";
                     case BoundDagValueTest v:
                         return $"?{d.Kind} {v.Value.ToString()} == {tempName(d.Input)}";
+                    case BoundDagNonNullTest t:
+                        return $"?{d.Kind} {tempName(d.Input)} != null";
+                    case BoundDagExplicitNullTest t:
+                        return $"?{d.Kind} {tempName(d.Input)} == null";
                     default:
                         throw ExceptionUtilities.UnexpectedValue(d);
                 }

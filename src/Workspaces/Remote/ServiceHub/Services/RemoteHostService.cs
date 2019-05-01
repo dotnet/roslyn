@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
             base(serviceProvider, stream)
         {
             // this service provide a way for client to make sure remote host is alive
-            Rpc.StartListening();
+            StartService();
         }
 
         public string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken)

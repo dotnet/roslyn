@@ -3740,7 +3740,7 @@ class C
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33108"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
         {
             await TestInRegularAndScriptAsync(
@@ -3784,7 +3784,7 @@ class C
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33108"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontParenthesizeInterpolatedStringWithInterpolation()
         {
             await TestInRegularAndScriptAsync(

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -11,24 +13,46 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            // visit switch header
-            VisitRvalue(node.Expression);
+            // dispatch to the switch sections
+            var initialState = VisitSwitchStatementDispatch(node);
 
-            // visit switch block
-            VisitSwitchBlock(node);
+            // visit switch sections
+            var afterSwitchState = UnreachableState();
+            var switchSections = node.SwitchSections;
+            var iLastSection = (switchSections.Length - 1);
+            for (var iSection = 0; iSection <= iLastSection; iSection++)
+            {
+                VisitSwitchSection(switchSections[iSection], iSection == iLastSection);
+                // Even though it is illegal for the end of a switch section to be reachable, in erroneous
+                // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
+                Join(ref afterSwitchState, ref this.State);
+            }
+
+            if (node.DecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
+                (node.DefaultLabel == null && node.Expression.ConstantValue == null && IsTraditionalSwitch(node)))
+            {
+                Join(ref afterSwitchState, ref initialState);
+            }
+
+            ResolveBreaks(afterSwitchState, node.BreakLabel);
 
             return null;
         }
 
-        private void VisitSwitchBlock(BoundSwitchStatement node)
+        protected virtual TLocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
-            var initialState = State.Clone();
+            // visit switch header
+            VisitRvalue(node.Expression);
+
+            TLocalState initialState = this.State.Clone();
+
             var reachableLabels = node.DecisionDag.ReachableLabels;
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
                 {
-                    if (reachableLabels.Contains(label.Label) || label.HasErrors)
+                    if (reachableLabels.Contains(label.Label) || label.HasErrors ||
+                        label == node.DefaultLabel && node.Expression.ConstantValue == null && IsTraditionalSwitch(node))
                     {
                         SetState(initialState.Clone());
                     }
@@ -49,24 +73,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // visit switch sections
-            var afterSwitchState = UnreachableState();
-            var switchSections = node.SwitchSections;
-            var iLastSection = (switchSections.Length - 1);
-            for (var iSection = 0; iSection <= iLastSection; iSection++)
+            return initialState;
+        }
+
+        /// <summary>
+        /// Is the switch statement one that could be interpreted as a C# 6 or earlier switch statement?
+        /// </summary>
+        private bool IsTraditionalSwitch(BoundSwitchStatement node)
+        {
+            // Before recursive patterns were introduced, we did not consider handling both 'true' and 'false' to
+            // completely handle all case of a switch on a bool unless there was some patterny syntax or semantics
+            // in the switch.  We had two different bound nodes and separate flow analysis handling for
+            // "traditional" switch statements and "pattern-based" switch statements.  We simulate that behavior
+            // by testing to see if this switch would have been handled under the old rules by the old compiler.
+
+            // If we are in a recent enough language version, we treat the switch as a fully pattern-based switch
+            // for the purposes of flow analysis.
+            if (compilation.LanguageVersion >= MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
             {
-                VisitSwitchSection(switchSections[iSection], iSection == iLastSection);
-                // Even though it is illegal for the end of a switch section to be reachable, in erroneous
-                // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
-                Join(ref afterSwitchState, ref this.State);
+                return false;
             }
 
-            if (reachableLabels.Contains(node.BreakLabel))
+            if (!node.Expression.Type.IsValidV6SwitchGoverningType())
             {
-                Join(ref afterSwitchState, ref initialState);
+                return false;
             }
 
-            ResolveBreaks(afterSwitchState, node.BreakLabel);
+            foreach (var sectionSyntax in ((SwitchStatementSyntax)node.Syntax).Sections)
+            {
+                foreach (var label in sectionSyntax.Labels)
+                {
+                    if (label.Kind() == SyntaxKind.CasePatternSwitchLabel)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         protected virtual void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)

@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|LocCanonicalName">
         <source>Info</source>
-        <target state="translated">Informações</target>
+        <target state="translated">Informação</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityInfo|CommandName">
@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">Nenhum</target>
+        <target state="translated">NENHUM</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|CommandName">

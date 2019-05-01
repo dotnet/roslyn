@@ -146,6 +146,30 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestNewProjectAttributes()
+        {
+            var code1 = @"class Test1 { void Method() { } }";
+
+            using (var workspace = TestWorkspace.CreateCSharp(code1))
+            {
+                var solution = workspace.CurrentSolution;
+                var projectId = solution.ProjectIds.First();
+
+                solution = workspace.CurrentSolution
+                                    .WithProjectOutputRefFilePath(projectId, "TestPath")
+                                    .WithProjectDefaultNamespace(projectId, "TestNamespace")
+                                    .WithHasAllInformation(projectId, hasAllInformation: false);
+
+                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+
+                var service = await GetSolutionServiceAsync(solution);
+                var synched = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
+
+                Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestUpdatePrimaryWorkspace()
         {
             var code = @"class Test { void Method() { } }";

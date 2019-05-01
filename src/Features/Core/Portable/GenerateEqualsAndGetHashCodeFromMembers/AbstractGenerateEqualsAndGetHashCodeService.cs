@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         public async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            var rules = new List<IFormattingRule> { new FormatLargeBinaryExpressionRule(document.GetLanguageService<ISyntaxFactsService>()) };
+            var rules = new List<AbstractFormattingRule> { new FormatLargeBinaryExpressionRule(document.GetLanguageService<ISyntaxFactsService>()) };
             rules.AddRange(Formatter.GetDefaultFormattingRules(document));
 
             var formattedDocument = await Formatter.FormatAsync(

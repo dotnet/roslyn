@@ -1,18 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -46,41 +40,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.Manager = manager;
                 this.TypeDescriptor = typeDescr;
 
-                int fieldsCount = typeDescr.Fields.Length;
+                var fields = typeDescr.Fields;
+                var properties = fields.SelectAsArray((field, i, type) => new AnonymousTypePropertySymbol(type, field, i), this);
 
                 //  members
-                Symbol[] members = new Symbol[fieldsCount * 2 + 1];
-                int memberIndex = 0;
+                int membersCount = fields.Length * 2 + 1;
+                var members = ArrayBuilder<Symbol>.GetInstance(membersCount);
 
-                // The array storing property symbols to be used in 
-                // generation of constructor and other methods
-                if (fieldsCount > 0)
+                foreach (var property in properties)
                 {
-                    AnonymousTypePropertySymbol[] propertiesArray = new AnonymousTypePropertySymbol[fieldsCount];
-
-                    // Process fields
-                    for (int fieldIndex = 0; fieldIndex < fieldsCount; fieldIndex++)
-                    {
-                        // Add a property
-                        AnonymousTypePropertySymbol property = new AnonymousTypePropertySymbol(this, typeDescr.Fields[fieldIndex]);
-                        propertiesArray[fieldIndex] = property;
-
-                        // Property related symbols
-                        members[memberIndex++] = property;
-                        members[memberIndex++] = property.GetMethod;
-                    }
-
-                    this.Properties = propertiesArray.AsImmutableOrNull();
+                    // Property related symbols
+                    members.Add(property);
+                    members.Add(property.GetMethod);
                 }
-                else
-                {
-                    this.Properties = ImmutableArray<AnonymousTypePropertySymbol>.Empty;
-                }
+
+                this.Properties = properties;
 
                 // Add a constructor
-                members[memberIndex++] = new AnonymousTypeConstructorSymbol(this, this.Properties);
-                _members = members.AsImmutableOrNull();
-                Debug.Assert(memberIndex == _members.Length);
+                members.Add(new AnonymousTypeConstructorSymbol(this, properties));
+                _members = members.ToImmutableAndFree();
+                Debug.Assert(membersCount == _members.Length);
 
                 //  fill nameToSymbols map
                 foreach (var symbol in _members)
@@ -99,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+            internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
             {
-                get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
+                get { return ImmutableArray<TypeWithAnnotations>.Empty; }
             }
 
             internal override bool HasCodeAnalysisEmbeddedAttribute => false;
@@ -178,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override bool IsReadOnly
+            public sealed override bool IsReadOnly
             {
                 get { return false; }
             }

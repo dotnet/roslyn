@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             switch (trigger.Kind)
             {
-                case CompletionTriggerKind.Insertion:
+                case CompletionTriggerKind.Insertion when position > 0:
                     var insertedCharacterPosition = position - 1;
                     return this.IsInsertionTrigger(text, insertedCharacterPosition, options);
 

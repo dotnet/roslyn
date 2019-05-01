@@ -28,6 +28,10 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
 
             If Not pastedTextSpan.IsEmpty Then
                 Dim PasteTrackingService = Workspace.ExportProvider.GetExportedValue(Of PasteTrackingService)()
+
+                ' This tests the paste tracking service's resiliancy to failing when multiple pasted spans are
+                ' registered consecutively And that the last registered span wins.
+                PasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, Nothing)
                 PasteTrackingService.RegisterPastedTextSpan(hostDocument.TextBuffer, pastedTextSpan)
             End If
 

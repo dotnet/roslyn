@@ -21,8 +21,19 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
             private readonly ImmutableArray<SyntaxNodeOrToken> _exprsAndOperators;
             private readonly OperatorPlacementWhenWrappingPreference _preference;
 
-            private readonly SyntaxTriviaList _indentationTrivia;
             private readonly SyntaxTriviaList _newlineBeforeOperatorTrivia;
+
+            /// <summary>
+            /// The indent trivia to insert if we are trying to align wrapped code with the 
+            /// start of the original expression.
+            /// </summary>
+            private readonly SyntaxTriviaList _indentAndAlignTrivia;
+
+            /// <summary>
+            /// The indent trivia to insert if we are trying to simply smart-indent all wrapped
+            /// parts of the expression.
+            /// </summary>
+            private readonly SyntaxTriviaList _smartIndentTrivia;
 
             public BinaryExpressionCodeActionComputer(
                 AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> service,
@@ -38,28 +49,35 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                 _preference = options.GetOption(CodeStyleOptions.OperatorPlacementWhenWrapping);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                var indentationString = OriginalSourceText.GetOffset(binaryExpression.Span.Start)
-                                                          .CreateIndentationString(UseTabs, TabSize);
 
-                _indentationTrivia = new SyntaxTriviaList(generator.Whitespace(indentationString));
                 _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
+
+                _indentAndAlignTrivia = new SyntaxTriviaList(generator.Whitespace(
+                    OriginalSourceText.GetOffset(binaryExpression.Span.Start)
+                                      .CreateIndentationString(UseTabs, TabSize)));
+
+                _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
+                    this.GetSmartIndentationAfter(_exprsAndOperators[1])));
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
                 => ImmutableArray.Create(new WrappingGroup(
                     isInlinable: true, ImmutableArray.Create(
-                        await GetWrapCodeActionAsync().ConfigureAwait(false),
+                        await GetWrapCodeActionAsync(align: false).ConfigureAwait(false),
+                        await GetWrapCodeActionAsync(align: true).ConfigureAwait(false),
                         await GetUnwrapCodeActionAsync().ConfigureAwait(false))));
 
-            private Task<WrapItemsAction> GetWrapCodeActionAsync()
-                => TryCreateCodeActionAsync(GetWrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Wrap_expression);
+            private Task<WrapItemsAction> GetWrapCodeActionAsync(bool align)
+                => TryCreateCodeActionAsync(GetWrapEdits(align), FeaturesResources.Wrapping,
+                        align ? FeaturesResources.Wrap_and_align_expression : FeaturesResources.Wrap_expression);
 
             private Task<WrapItemsAction> GetUnwrapCodeActionAsync()
                 => TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_expression);
 
-            private ImmutableArray<Edit> GetWrapEdits()
+            private ImmutableArray<Edit> GetWrapEdits(bool align)
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
+                var indentationTrivia = align ? _indentAndAlignTrivia : _smartIndentTrivia;
 
                 for (int i = 1; i < _exprsAndOperators.Length; i += 2)
                 {
@@ -74,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                         //
                         //      (a == b)
                         //      && (c == d)
-                        result.Add(Edit.UpdateBetween(left, _newlineBeforeOperatorTrivia, _indentationTrivia, opToken));
+                        result.Add(Edit.UpdateBetween(left, _newlineBeforeOperatorTrivia, indentationTrivia, opToken));
                         result.Add(Edit.UpdateBetween(opToken, SingleWhitespaceTrivia, NoTrivia, right));
                     }
                     else
@@ -85,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
                         //      (a == b) &&
                         //      (c == d)
                         result.Add(Edit.UpdateBetween(left, SingleWhitespaceTrivia, NoTrivia, opToken));
-                        result.Add(Edit.UpdateBetween(opToken, NewLineTrivia, _indentationTrivia, right));
+                        result.Add(Edit.UpdateBetween(opToken, NewLineTrivia, indentationTrivia, right));
                     }
                 }
 

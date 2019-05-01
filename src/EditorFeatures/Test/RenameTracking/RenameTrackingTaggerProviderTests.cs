@@ -461,6 +461,29 @@ class [|Cat|]$$
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        [WorkItem(34280, "https://github.com/dotnet/roslyn/issues/34280")]
+        public async Task RenameTrackingReplaceIdentifierWithDiscard()
+        {
+            var code = @"
+class Class
+{
+    int Method()
+    {
+        int i;
+        [|i|]$$ = Method();
+        rteurn 0;
+    }
+}";
+            using (var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp))
+            {
+                var textSpan = state.HostDocument.SelectedSpans.Single();
+                state.EditorOperations.ReplaceText(new Span(textSpan.Start, textSpan.Length), "_");
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public async Task RenameTrackingNotAfterInvoke()
         {
             var code = @"

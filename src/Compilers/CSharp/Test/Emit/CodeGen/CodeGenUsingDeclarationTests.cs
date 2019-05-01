@@ -812,27 +812,12 @@ This object has been disposed by IDisposable.Dispose().";
         }
     }";
 
-            var output = @"Disposed; ";
-            CompileAndVerify(source, expectedOutput: output).VerifyIL("Program.Main", @"
-{
-  // Code size       18 (0x12)
-  .maxstack  1
-  .locals init (S1 V_0) //s1
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""S1""
-  .try
-  {
-    IL_0008:  leave.s    IL_0011
-  }
-  finally
-  {
-    IL_000a:  ldloc.0
-    IL_000b:  call       ""void C2.Dispose(S1)""
-    IL_0010:  endfinally
-  }
-  IL_0011:  ret
-}
-");
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (17,13): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                //             using S1 s1 = new S1();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using S1 s1 = new S1();").WithArguments("S1").WithLocation(17, 13)
+                );
         }
 
         [Fact]

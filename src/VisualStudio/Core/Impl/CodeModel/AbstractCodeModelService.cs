@@ -48,15 +48,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private readonly AbstractCodeModelEventCollector _eventCollector;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
-        private readonly IFormattingRule _lineAdjustmentFormattingRule;
-        private readonly IFormattingRule _endRegionFormattingRule;
+        private readonly AbstractFormattingRule _lineAdjustmentFormattingRule;
+        private readonly AbstractFormattingRule _endRegionFormattingRule;
 
         protected AbstractCodeModelService(
             HostLanguageServices languageServiceProvider,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            IFormattingRule lineAdjustmentFormattingRule,
-            IFormattingRule endRegionFormattingRule)
+            AbstractFormattingRule lineAdjustmentFormattingRule,
+            AbstractFormattingRule endRegionFormattingRule)
         {
             Debug.Assert(languageServiceProvider != null);
             Debug.Assert(editorOptionsFactoryService != null);
@@ -1097,7 +1097,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         protected abstract SyntaxNode InsertImportIntoContainer(int index, SyntaxNode import, SyntaxNode container);
         protected abstract SyntaxNode InsertParameterIntoContainer(int index, SyntaxNode parameter, SyntaxNode container);
 
-        private Document FormatAnnotatedNode(Document document, SyntaxAnnotation annotation, IEnumerable<IFormattingRule> additionalRules, CancellationToken cancellationToken)
+        private Document FormatAnnotatedNode(Document document, SyntaxAnnotation annotation, IEnumerable<AbstractFormattingRule> additionalRules, CancellationToken cancellationToken)
         {
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var annotatedNode = root.GetAnnotatedNodesAndTokens(annotation).Single().AsNode();

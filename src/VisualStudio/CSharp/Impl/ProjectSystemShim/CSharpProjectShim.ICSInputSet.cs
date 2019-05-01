@@ -51,6 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             {
                 VisualStudioProject.AssemblyName = Path.GetFileNameWithoutExtension(filename);
             }
+
+            RefreshBinOutputPath();
         }
 
         public void SetOutputFileType(OutputFileType fileType)

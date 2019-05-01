@@ -246,6 +246,18 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference CSharpNetStandard10Ref => s_stdCSharpRef.Value;
 
+        private static readonly Lazy<MetadataReference> s_std20Ref = new Lazy<MetadataReference>(
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.netstandard).GetReference(display: "netstandard20.netstandard.dll"),
+            LazyThreadSafetyMode.PublicationOnly);
+
+        public static MetadataReference NetStandard20Ref => s_std20Ref.Value;
+
+        private static readonly Lazy<MetadataReference> s_46NetStandardFacade = new Lazy<MetadataReference>(
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.net461.netstandard).GetReference(display: "net461.netstandard.dll"),
+            LazyThreadSafetyMode.PublicationOnly);
+
+        public static MetadataReference Net46StandardFacade => s_46NetStandardFacade.Value;
+
         private static readonly Lazy<MetadataReference> s_systemDynamicRuntimeRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard13.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 1.3 ref)"),
             LazyThreadSafetyMode.PublicationOnly);

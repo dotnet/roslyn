@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ShowLightBulb()
         {
-            InvokeOnUIThread(() =>
+            InvokeOnUIThread(cancellationToken =>
             {
                 var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
                 var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected abstract ITextBuffer GetBufferContainingCaret(IWpfTextView view);
 
         public string[] GetCurrentClassifications()
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 IClassifier classifier = null;
                 try
@@ -131,6 +131,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     }
                 }
             });
+
+        public int GetVisibleColumnCount()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                return (int)Math.Ceiling(view.ViewportWidth / Math.Max(view.FormattedLineSource.ColumnWidth, 1));
+            });
+        }
 
         public void PlaceCaret(
             string marker,
@@ -211,8 +219,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return bufferPosition.Position;
             });
 
+        public int GetCaretColumn()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var startOfLine = view.Caret.ContainingTextViewLine.Start.Position;
+                var caretVirtualPosition = view.Caret.Position.VirtualBufferPosition;
+                return caretVirtualPosition.Position - startOfLine + caretVirtualPosition.VirtualSpaces;
+            });
+        }
+
         protected T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action)
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var view = GetActiveTextView();
                 return action(view);
@@ -221,8 +239,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected void ExecuteOnActiveView(Action<IWpfTextView> action)
             => InvokeOnUIThread(GetExecuteOnActionViewCallback(action));
 
-        protected Action GetExecuteOnActionViewCallback(Action<IWpfTextView> action)
-            => () =>
+        protected Action<CancellationToken> GetExecuteOnActionViewCallback(Action<IWpfTextView> action)
+            => cancellationToken =>
             {
                 var view = GetActiveTextView();
                 action(view);
@@ -327,12 +345,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 task.Join();
             }
         }
-
-        /// <summary>
-        /// Non-blocking version of <see cref="ExecuteOnActiveView"/>
-        /// </summary>
-        private void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
-            => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
 
         private Func<IWpfTextView, Task> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
         {

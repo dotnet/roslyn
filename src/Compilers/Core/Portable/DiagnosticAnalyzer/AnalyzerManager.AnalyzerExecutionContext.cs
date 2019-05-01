@@ -173,6 +173,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             {
                                 memberSet = memberSet ?? new HashSet<ISymbol>();
                                 memberSet.Add(member);
+
+                                // Ensure that we include symbols for both parts of partial methods.
+                                if (member is IMethodSymbol method &&
+                                    !(method.PartialImplementationPart is null))
+                                {
+                                    memberSet.Add(method.PartialImplementationPart);
+                                }
                             }
 
                             if (member.Kind != symbol.Kind &&

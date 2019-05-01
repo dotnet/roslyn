@@ -13,12 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation))
-            nextOperation.Invoke(list)
+        Public Overrides Sub AddSuppressOperationsSlow(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextSuppressOperationAction)
+            nextOperation.Invoke()
         End Sub
 
-        Public Overrides Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of IndentBlockOperation))
-            nextOperation.Invoke(list)
+        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextIndentBlockOperationAction)
+            nextOperation.Invoke()
 
             If node.Kind = SyntaxKind.ObjectMemberInitializer Then
                 Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)
@@ -55,11 +55,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperations(list As List(Of AlignTokensOperation),
+        Public Overrides Sub AddAlignTokensOperationsSlow(list As List(Of AlignTokensOperation),
                                                       node As SyntaxNode,
                                                       optionSet As OptionSet,
-                                                      nextOperation As NextAction(Of AlignTokensOperation))
-            nextOperation.Invoke(list)
+                                                      ByRef nextOperation As NextAlignTokensOperationAction)
+            nextOperation.Invoke()
 
             If node.Kind = SyntaxKind.ObjectMemberInitializer Then
                 Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Public Overrides Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As Rules.NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
                 Return nextOperation.Invoke()
@@ -120,11 +120,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return operation
         End Function
 
-        Public Overrides Function GetAdjustNewLinesOperation(
+        Public Overrides Function GetAdjustNewLinesOperationSlow(
                 previousToken As SyntaxToken,
                 currentToken As SyntaxToken,
                 optionSet As OptionSet,
-                nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
+                ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
 
             ' if it doesn't have elastic trivia, pass it through
             If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then

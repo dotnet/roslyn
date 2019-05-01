@@ -218,7 +218,7 @@ class Test
 
             Func<FieldSymbol, bool> isWinRt = (field) =>
             {
-                var fieldType = field.Type.TypeSymbol;
+                var fieldType = field.Type;
 
                 if ((object)fieldType == null)
                 {

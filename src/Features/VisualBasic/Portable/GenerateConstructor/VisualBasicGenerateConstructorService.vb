@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Utilities
@@ -22,8 +23,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                 semanticModel As SemanticModel,
                 arguments As IEnumerable(Of ArgumentSyntax),
                 reservedNames As IList(Of String),
+                parameterNamingRule As NamingRule,
                 cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
-            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames, cancellationToken)
+            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames, parameterNamingRule, cancellationToken)
         End Function
 
         Protected Overrides Function GetArgumentType(

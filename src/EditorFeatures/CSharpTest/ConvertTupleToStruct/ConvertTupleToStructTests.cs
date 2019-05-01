@@ -74,7 +74,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -82,6 +82,138 @@ internal struct NewStruct
     public static implicit operator NewStruct((int a, int b) value)
     {
         return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeNoNames()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](1, 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(1, 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int Item1;
+    public int Item2;
+
+    public NewStruct(int item1, int item2)
+    {
+        Item1 = item1;
+        Item2 = item2;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               Item1 == other.Item1 &&
+               Item2 == other.Item2;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = -1030903623;
+        hashCode = hashCode * -1521134295 + Item1.GetHashCode();
+        hashCode = hashCode * -1521134295 + Item2.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int item1, out int item2)
+    {
+        item1 = Item1;
+        item2 = Item2;
+    }
+
+    public static implicit operator (int, int)(NewStruct value)
+    {
+        return (value.Item1, value.Item2);
+    }
+
+    public static implicit operator NewStruct((int, int) value)
+    {
+        return new NewStruct(value.Item1, value.Item2);
+    }
+}";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypePartialNames()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](1, b: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(1, b: 2);
+    }
+}
+
+internal struct NewStruct
+{
+    public int Item1;
+    public int b;
+
+    public NewStruct(int item1, int b)
+    {
+        Item1 = item1;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               Item1 == other.Item1 &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 174326978;
+        hashCode = hashCode * -1521134295 + Item1.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int item1, out int b)
+    {
+        item1 = Item1;
+        b = this.b;
+    }
+
+    public static implicit operator (int, int b)(NewStruct value)
+    {
+        return (value.Item1, value.b);
+    }
+
+    public static implicit operator NewStruct((int, int b) value)
+    {
+        return new NewStruct(value.Item1, value.b);
     }
 }";
             await TestInRegularAndScriptAsync(text, expected);
@@ -142,7 +274,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -210,7 +342,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -278,7 +410,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -346,7 +478,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -417,7 +549,7 @@ namespace N
             b = this.b;
         }
 
-        public static implicit operator (int a, int b) (NewStruct value)
+        public static implicit operator (int a, int b)(NewStruct value)
         {
             return (value.a, value.b);
         }
@@ -485,7 +617,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (object a, object b) (NewStruct value)
+    public static implicit operator (object a, object b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -551,7 +683,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -619,7 +751,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -699,7 +831,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -771,7 +903,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -843,7 +975,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -923,7 +1055,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -960,35 +1092,36 @@ class Test
 internal struct NewStruct
 {
     public int a;
+    public object Item2;
 
     public NewStruct(int a, object item2)
     {
         this.a = a;
-        this.Item2 = item2;
+        Item2 = item2;
     }
 
     public override bool Equals(object obj)
     {
         return obj is NewStruct other &&
                a == other.a &&
-               System.Collections.Generic.EqualityComparer<object>.Default.Equals(this.Item2, other.Item2);
+               System.Collections.Generic.EqualityComparer<object>.Default.Equals(Item2, other.Item2);
     }
 
     public override int GetHashCode()
     {
         var hashCode = 913311208;
         hashCode = hashCode * -1521134295 + a.GetHashCode();
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(this.Item2);
+        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(Item2);
         return hashCode;
     }
 
     public void Deconstruct(out int a, out object item2)
     {
         a = this.a;
-        item2 = this.Item2;
+        item2 = Item2;
     }
 
-    public static implicit operator (int a, object) (NewStruct value)
+    public static implicit operator (int a, object)(NewStruct value)
     {
         return (value.a, value.Item2);
     }
@@ -1070,7 +1203,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, object b) (NewStruct value)
+    public static implicit operator (int a, object b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1136,7 +1269,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, object b) (NewStruct value)
+    public static implicit operator (int a, object b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1204,7 +1337,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1272,7 +1405,7 @@ internal struct NewStruct<X, Y>
         b = this.b;
     }
 
-    public static implicit operator (List<X> a, Y[] b) (NewStruct<X, Y> value)
+    public static implicit operator (List<X> a, Y[] b)(NewStruct<X, Y> value)
     {
         return (value.a, value.b);
     }
@@ -1351,7 +1484,7 @@ internal struct NewStruct1
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct1 value)
+    public static implicit operator (int a, int b)(NewStruct1 value)
     {
         return (value.a, value.b);
     }
@@ -1417,7 +1550,7 @@ internal struct NewStruct
         a = this.a;
     }
 
-    public static implicit operator (int a, int a) (NewStruct value)
+    public static implicit operator (int a, int a)(NewStruct value)
     {
         return (value.a, value.a);
     }
@@ -1495,7 +1628,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1573,7 +1706,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1651,7 +1784,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1729,7 +1862,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -1773,34 +1906,37 @@ class Test
 
 internal struct NewStruct
 {
+    public int Item1;
+    public int Item2;
+
     public NewStruct(int item1, int item2)
     {
-        this.Item1 = item1;
-        this.Item2 = item2;
+        Item1 = item1;
+        Item2 = item2;
     }
 
     public override bool Equals(object obj)
     {
         return obj is NewStruct other &&
-               this.Item1 == other.Item1 &&
-               this.Item2 == other.Item2;
+               Item1 == other.Item1 &&
+               Item2 == other.Item2;
     }
 
     public override int GetHashCode()
     {
         var hashCode = -1030903623;
-        hashCode = hashCode * -1521134295 + this.Item1.GetHashCode();
-        hashCode = hashCode * -1521134295 + this.Item2.GetHashCode();
+        hashCode = hashCode * -1521134295 + Item1.GetHashCode();
+        hashCode = hashCode * -1521134295 + Item2.GetHashCode();
         return hashCode;
     }
 
     public void Deconstruct(out int item1, out int item2)
     {
-        item1 = this.Item1;
-        item2 = this.Item2;
+        item1 = Item1;
+        item2 = Item2;
     }
 
-    public static implicit operator (int, int) (NewStruct value)
+    public static implicit operator (int, int)(NewStruct value)
     {
         return (value.Item1, value.Item2);
     }
@@ -1879,7 +2015,7 @@ internal struct NewStruct
         item2 = Item2;
     }
 
-    public static implicit operator (int Item1, int Item2) (NewStruct value)
+    public static implicit operator (int Item1, int Item2)(NewStruct value)
     {
         return (value.Item1, value.Item2);
     }
@@ -1983,7 +2119,7 @@ internal struct NewStruct<T>
         b = this.b;
     }
 
-    public static implicit operator (T a, int b) (NewStruct<T> value)
+    public static implicit operator (T a, int b)(NewStruct<T> value)
     {
         return (value.a, value.b);
     }
@@ -2085,7 +2221,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -2187,7 +2323,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -2301,7 +2437,7 @@ internal struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -2445,7 +2581,7 @@ namespace N
             b = this.b;
         }
 
-        public static implicit operator (int a, int b) (NewStruct value)
+        public static implicit operator (int a, int b)(NewStruct value)
         {
             return (value.a, value.b);
         }
@@ -2580,7 +2716,7 @@ public struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }
@@ -2703,7 +2839,7 @@ public struct NewStruct
         b = this.b;
     }
 
-    public static implicit operator (int a, int b) (NewStruct value)
+    public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
     }

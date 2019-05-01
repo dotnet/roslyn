@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Creates an "early" bound instance that has constraint types set
         /// but no other fields.
         /// </summary>
-        public TypeParameterBounds(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes)
+        public TypeParameterBounds(ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
             Debug.Assert(!constraintTypes.IsDefault);
             this.ConstraintTypes = constraintTypes;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Creates a "late" bound instance with all fields set.
         /// </summary>
         public TypeParameterBounds(
-            ImmutableArray<TypeSymbolWithAnnotations> constraintTypes,
+            ImmutableArray<TypeWithAnnotations> constraintTypes,
             ImmutableArray<NamedTypeSymbol> interfaces,
             NamedTypeSymbol effectiveBaseClass,
             TypeSymbol deducedBaseType)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The type parameters, classes, and interfaces explicitly declared as
         /// constraint types on the containing type parameter, with cycles removed.
         /// </summary>
-        public readonly ImmutableArray<TypeSymbolWithAnnotations> ConstraintTypes;
+        public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
 
         /// <summary>
         /// The set of interfaces explicitly declared on the containing type

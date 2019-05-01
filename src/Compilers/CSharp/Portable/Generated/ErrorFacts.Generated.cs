@@ -181,17 +181,22 @@
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.WRN_DefaultLiteralConvertedToNullIsNotIntended:
+                case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
+                case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustive:
                 case ErrorCode.WRN_CaseConstantNamedUnderscore:
                 case ErrorCode.WRN_IsTypeNamedUnderscore:
                 case ErrorCode.WRN_GivenExpressionNeverMatchesPattern:
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
+                case ErrorCode.WRN_ThrowPossibleNull:
                 case ErrorCode.WRN_IllegalPPWarningSafeOnly:
                 case ErrorCode.WRN_ConvertingNullableToNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:
                 case ErrorCode.WRN_NullReferenceReturn:
                 case ErrorCode.WRN_NullReferenceArgument:
+                case ErrorCode.WRN_UnboxPossibleNull:
+                case ErrorCode.WRN_NullReferenceIterationVariable:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
@@ -207,18 +212,23 @@
                 case ErrorCode.WRN_NullabilityMismatchInArgument:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
+                case ErrorCode.WRN_NullabilityMismatchInArgumentForOutput:
                 case ErrorCode.WRN_NullAsNonNullable:
-                case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
+                case ErrorCode.WRN_AsOperatorMayReturnNull:
                 case ErrorCode.WRN_NullableValueTypeMayBeNull:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
-                case ErrorCode.WRN_CantInferNullabilityOfMethodTypeArgs:
-                case ErrorCode.WRN_NoBestNullabilityArrayElements:
+                case ErrorCode.WRN_ConditionalAccessMayReturnNull:
                 case ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface:
                 case ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase:
                 case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
+                case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
+                case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
+                case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
                     return true;
                 default:
                     return false;
@@ -259,9 +269,6 @@
             {
                 case ErrorCode.HDN_UnusedUsingDirective:
                 case ErrorCode.HDN_UnusedExternAlias:
-                case ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue:
-                case ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse:
-                case ErrorCode.HDN_ExpressionIsProbablyNeverNull:
                     return true;
                 default:
                     return false;

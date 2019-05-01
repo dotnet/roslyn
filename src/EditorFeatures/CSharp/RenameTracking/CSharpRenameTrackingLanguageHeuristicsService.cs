@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking
     {
         public bool IsIdentifierValidForRenameTracking(string name)
         {
-            return name != "var" && name != "dynamic";
+            return name != "var" && name != "dynamic" && name != "_";
         }
     }
 }

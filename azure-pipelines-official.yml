@@ -2,10 +2,14 @@ resources:
 - repo: self
   clean: true
 
-variables:
-  SignType: real
-  SkipTests: false
-  SkipApplyOptimizationData: false
+# Variables defined in yml cannot be overridden at queue time instead overrideable variables must be defined in the web gui.
+# Commenting out until AzDO supports something like the runtime parameters outlined here: https://github.com/Microsoft/azure-pipelines-yaml/pull/129
+#variables:
+#  SignType: real
+#  SkipTests: false
+#  SkipApplyOptimizationData: false
+#  IbcSourceBranchName: 'default'
+#  IbcDropId: 'default'
 
 jobs:
 - job: OfficialBuild
@@ -19,30 +23,21 @@ jobs:
   timeoutInMinutes: 360
 
   variables:
-    VisualStudio.MajorVersion: 16
-    VisualStudio.BranchName: 'lab/d16.0stg'
-    VisualStudio.ChannelName: 'int.d16.0stg'
     VisualStudio.DropName: Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)
 
   steps:
   - task: NuGetToolInstaller@0
     inputs:
-      versionSpec: '4.9.2' 
-
-  - task: NuGetCommand@2
-    displayName: 'Clear NuGet caches'
-    inputs:
-      command: custom
-      arguments: 'locals all -clear'
+      versionSpec: '4.9.2'
 
   - task: NuGetCommand@2
     displayName: Restore internal tools
     inputs:
       command: restore
       feedsToUse: config
-      restoreSolution: 'eng\internal\Toolset.csproj'
+      restoreSolution: 'eng\common\internal\Tools.csproj'
       nugetConfigPath: 'NuGet.config'
-      restoreDirectory: '$(UserProfile)\.nuget\packages'
+      restoreDirectory: '$(Build.SourcesDirectory)\.packages'
 
   - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
     inputs:
@@ -66,9 +61,12 @@ jobs:
               -officialBuildId $(Build.BuildNumber)
               -officialSkipTests $(SkipTests)
               -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
-              -vsDropName $(VisualStudio.DropName) 
-              -vsBranch $(VisualStudio.BranchName)
-              -vsDropAccessToken $(System.AccessToken)
+              -officialSourceBranchName $(Build.SourceBranchName)
+              -officialIbcSourceBranchName $(IbcSourceBranchName)
+              -officialIbcDropId $(IbcDropId)
+              /p:RepositoryName=$(Build.Repository.Name)
+              /p:VisualStudioDropAccessToken=$(System.AccessToken)
+              /p:VisualStudioDropName=$(VisualStudio.DropName)
               /p:DotNetSignType=$(SignType)
               /p:DotNetPublishToBlobFeed=true
               /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
@@ -83,7 +81,7 @@ jobs:
     displayName: Publish Assets
     inputs:
       filePath: 'eng\publish-assets.ps1'
-      arguments: '-configuration $(BuildConfiguration) -branchName "$(Build.SourceBranch)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
+      arguments: '-configuration $(BuildConfiguration) -branchName "$(Build.SourceBranchName)" -mygetApiKey $(Roslyn.MyGetApiKey) -nugetApiKey $(Roslyn.NuGetApiKey) -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(Roslyn.GitHubToken) -gitHubEmail $(Roslyn.GitHubEmail)'
     condition: succeeded()
 
   # Publish OptProf configuration files
@@ -95,6 +93,15 @@ jobs:
       toLowerCase: false
       usePat: false
     displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
+    condition: succeeded()
+
+  # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
+  # a build execution.
+  - task: PublishBuildArtifacts@1
+    displayName: Publish OptProf Data Files
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+      ArtifactName: 'OptProf Data Files'
     condition: succeeded()
 
   # Build VS bootstrapper
@@ -111,12 +118,12 @@ jobs:
   # Publish run settings
   - task: PowerShell@2
     inputs:
-      filePath: eng\generate-optprof-run-settings.ps1
+      filePath: eng\common\sdk-task.ps1
       arguments: -configuration $(BuildConfiguration)
-                 -vsDropName $(VisualStudio.DropName)
-                 -bootstrapperInfo $(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
-      failOnStderr: true
-    displayName: 'OptProf - Generate runsettings file'
+                 -task VisualStudio.BuildIbcTrainingSettings
+                 /p:VisualStudioDropName=$(VisualStudio.DropName)
+                 /p:BootstrapperInfoPath=$(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
+    displayName: 'OptProf - Build IBC training settings'
     condition: succeeded()
 
   # Publish bootstrapper info
@@ -128,15 +135,6 @@ jobs:
     displayName: 'OptProf - Publish Artifact: MicroBuildOutputs'
     condition: succeeded()
 
-  # Publish scripts to get the branch of VS that this inserts into
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\BranchInfo'
-      ArtifactName: BranchInfo
-      ArtifactType: Container
-    displayName: 'OptProf - Publish Artifact: BranchInfo'
-    condition: succeeded()
-
   - task: PublishBuildArtifacts@1
     displayName: Publish Logs
     inputs:
@@ -146,8 +144,8 @@ jobs:
     continueOnError: true
     condition: succeededOrFailed()
 
-  - task: PublishTestResults@1
-    displayName: Publish Test Results
+  - task: PublishTestResults@2
+    displayName: Publish xUnit Test Results
     inputs:
       testRunner: XUnit
       testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
@@ -197,6 +195,13 @@ jobs:
     inputs:
       PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/AssetManifest'
       ArtifactName: AssetManifests
+    condition: succeeded()
+
+  # Tag the build at the very end when we know it's been successful.
+  - task: colinsalmcorner.colinsalmcorner-buildtasks.tag-build-task.tagBuildOrRelease@0
+    displayName: Tag build as ready for optimization training
+    inputs:
+      tags: 'ready-for-training'
     condition: succeeded()
 
   - task: ms-vseng.MicroBuildTasks.521a94ea-9e68-468a-8167-6dcf361ea776.MicroBuildCleanup@1

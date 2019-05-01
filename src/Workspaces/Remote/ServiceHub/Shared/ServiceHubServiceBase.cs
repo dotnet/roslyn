@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -20,13 +21,16 @@ namespace Microsoft.CodeAnalysis.Remote
         private static int s_instanceId;
 
         private readonly CancellationTokenSource _shutdownCancellationSource;
+        private readonly JsonRpc _rpc;
 
         protected readonly int InstanceId;
 
-        protected readonly JsonRpc Rpc;
         protected readonly TraceSource Logger;
         protected readonly AssetStorage AssetStorage;
         protected readonly CancellationToken ShutdownCancellationToken;
+
+        [Obsolete("don't use RPC directly but use it through StartService and InvokeAsync", error: true)]
+        protected readonly JsonRpc Rpc;
 
         /// <summary>
         /// PinnedSolutionInfo.ScopeId. scope id of the solution. caller and callee share this id which one
@@ -62,9 +66,14 @@ namespace Microsoft.CodeAnalysis.Remote
             // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
             // all sub type must explicitly start JsonRpc once everything is
             // setup
-            Rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), this);
-            Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
-            Rpc.Disconnected += OnRpcDisconnected;
+            _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), this);
+            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+            _rpc.Disconnected += OnRpcDisconnected;
+
+            // we do this since we want to mark Rpc as obsolete but want to set its value for
+            // partner teams until they move. we can't use Rpc directly since we will get
+            // obsolete error and we can't suppress it since it is an error
+            this.GetType().GetField("Rpc", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(this, _rpc);
         }
 
         protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
@@ -80,6 +89,37 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 return _lazyRoslynServices;
             }
+        }
+
+        protected bool IsDisposed => ((IDisposableObservable)_rpc).IsDisposed;
+
+        protected void StartService()
+        {
+            _rpc.StartListening();
+        }
+
+        protected Task<TResult> InvokeAsync<TResult>(
+            string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        {
+            return _rpc.InvokeWithCancellationAsync<TResult>(targetName, arguments, cancellationToken);
+        }
+
+        protected Task<TResult> InvokeAsync<TResult>(
+           string targetName, IReadOnlyList<object> arguments,
+           Func<Stream, CancellationToken, TResult> funcWithDirectStream, CancellationToken cancellationToken)
+        {
+            return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStream, cancellationToken);
+        }
+
+        protected Task InvokeAsync(string targetName, CancellationToken cancellationToken)
+        {
+            return InvokeAsync(targetName, SpecializedCollections.EmptyReadOnlyList<object>(), cancellationToken);
+        }
+
+        protected Task InvokeAsync(
+            string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        {
+            return _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken);
         }
 
         protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
@@ -123,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             _disposed = true;
-            Rpc.Dispose();
+            _rpc.Dispose();
             _shutdownCancellationSource.Dispose();
 
             Dispose(disposing: true);

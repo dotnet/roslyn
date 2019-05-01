@@ -72,33 +72,20 @@ function Exec-Console([string]$command, [string]$commandArgs) {
 }
 
 
-# Get the directory and instance ID of the first Visual Studio version which
+# Returns an array of JSON objects, each item representing an installed instance of Visual Studio that 
 # meets our minimal requirements for the Roslyn repo.
-function Get-VisualStudioDirAndId() {
+# Throws if there is none.
+function Get-VisualStudioInstances() {
+  $minVersionStr = "15.8"
+
   $vswhere = Join-Path $PSScriptRoot "vswhere\vswhere.exe"
-  $output = Exec-Command $vswhere "-prerelease -requires Microsoft.VisualStudio.Component.Roslyn.Compiler -version [15.5,15.9) -format json" | Out-String
-  $j = ConvertFrom-Json $output
-  $foundVsInstall = $false
-  foreach ($obj in $j) {
-    # Need to be using at least Visual Studio 15.5 in order to have the appropriate
-    # set of SDK fixes. Parsing the installationName is the only place where this is
-    # recorded in that form.
-    $name = $obj.installationName
-    if ($name -match "VisualStudio(Preview)?/([\d.]+)(\+|-).*") {
-      $minVersion = New-Object System.Version "15.5.0"
-      $maxVersion = New-Object System.Version "15.9.0"
-      $version = New-Object System.Version $matches[2]
-      if ($version -ge $minVersion -and $version -lt $maxVersion) {
-        Write-Output $obj.installationPath
-        Write-Output $obj.instanceId
-        $foundVsInstall = $true;
-      }
-    }
+  $vsInstances = Exec-Command $vswhere "-prerelease -requires Microsoft.VisualStudio.Component.Roslyn.Compiler -version $minVersionStr -format json" | ConvertFrom-Json
+
+  if ($vsInstances.Length -eq 0) {
+    throw "Could not find a suitable Visual Studio version. Minimal required version is $minVersionStr."
   }
 
-  if (-not $foundVsInstall) {
-    throw "Could not find a suitable Visual Studio Version"
-  }
+  return $vsInstances
 }
 
 function Test-Process([string]$processName) {
@@ -106,21 +93,24 @@ function Test-Process([string]$processName) {
   return $all -ne $null
 }
 
-function Install-VsixViaTool([string]$vsDir, [string]$vsId, [string]$hive) {
-  $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
-  $vsixes = @("vsix\RoslynDeployment.vsix")
-  Use-VsixTool -vsDir $vsDir -vsId $vsId -baseArgs $baseArgs -hive $hive -vsixes $vsixes
+function Get-VisualStudioLocalDir([string]$vsMajorVersion, [string]$vsId, [string]$rootSuffix) {
+  return Join-Path $env:LOCALAPPDATA "Microsoft\VisualStudio\$vsMajorVersion.0_$vsId$rootSuffix"
 }
 
-function Uninstall-VsixViaTool([string]$vsDir, [string]$vsId, [string]$hive) {
-  $baseArgs = "/rootSuffix:$hive /u /vsInstallDir:`"$vsDir`""
+function Get-MefCacheDir([string]$vsLocalDir) {
+  return Join-Path $vsLocalDir "ComponentModelCache"
+}
 
+function Install-VsixViaTool([string]$vsDir, [string]$vsId, [string]$rootSuffix) {
+  Use-VsixTool -vsDir $vsDir -vsId $vsId -rootSuffix $rootSuffix
+}
+
+function Uninstall-VsixViaTool([string]$vsDir, [string]$vsId, [string]$rootSuffix) {
   $attempt = 3
   $success = $false
   while ($attempt -gt 0 -and -not $success) {
     try {
-      $vsixes = @("vsix\RoslynDeployment.vsix")
-      Use-VsixTool -vsDir $vsDir -vsId $vsId -baseArgs $baseArgs -hive $hive -vsixes $vsixes
+      Use-VsixTool -vsDir $vsDir -vsId $vsId -rootSuffix $rootSuffix -additionalArgs "/u" 
       $success = $true
     } catch {
       # remember error information
@@ -137,15 +127,46 @@ function Uninstall-VsixViaTool([string]$vsDir, [string]$vsId, [string]$hive) {
   }
 }
 
-function Use-VsixTool([string]$vsDir, [string]$vsId, [string]$baseArgs, [string]$hive, [string[]]$vsixes) {
-  $vsixExe = Join-Path $PSScriptRoot "vsixexpinstaller\VsixExpInstaller.exe"
-  $vsixExe = "`"$vsixExe`""
+function Use-VsixTool([string]$vsDir, [string]$vsId, [string]$rootSuffix, [string]$additionalArgs = "") {
+  $installerExe = Join-Path $PSScriptRoot "vsixexpinstaller\VsixExpInstaller.exe"
   Write-Host "Using VS Instance $vsId at `"$vsDir`"" -ForegroundColor Gray
 
-  foreach ($e in $vsixes) {
-    $name = $e
-    $filePath = "`"$((Resolve-Path $e).Path)`""
-    $fullArg = "$baseArgs $filePath"
-    Exec-Console $vsixExe $fullArg
+  $vsixFileNames = @("RoslynDeployment.vsix")
+  $rootSuffixArg = if ($rootSuffix) { "/rootSuffix:`"$rootSuffix`"" } else { "" }
+
+  foreach ($vsixFileName in $vsixFileNames) {
+    $vsixPath = Resolve-Path (Join-Path $PSScriptRoot "..\vsix\$vsixFileName")
+    Exec-Console "`"$installerExe`"" "`"$vsixPath`" /vsInstallDir:`"$vsDir`" $rootSuffixArg $additionalArgs"
+  }
+}
+
+function Stop-Processes([string]$vsDir, [string]$extensionDir) {
+  $stopProcesses = @()
+  foreach ($process in Get-Process) {
+    if ($process.Path) {
+      $dir = Split-Path $process.Path
+      if ($dir.StartsWith($vsDir) -or $dir.StartsWith($extensionDir)) {
+        $stopProcesses += $process
+      }
+    }
+  }
+
+  if ($stopProcesses.Length -eq 0) {
+    return
+  }
+
+  Write-Host "The following processes need to be stopped before installation can continue. Proceed? [Y/N]"
+  foreach ($process in $stopProcesses) {
+    Write-Host "> $($process.Path)"
+  }
+
+  $input = Read-Host
+  if ($input -ne "y" -and $input -ne "yes") {
+    Write-Host "Installation cancelled" -ForegroundColor Yellow
+    exit 1
+  }
+
+  foreach ($process in $stopProcesses) {
+    Stop-Process $process.Id -Force -ErrorAction SilentlyContinue
   }
 }

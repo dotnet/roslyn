@@ -29,6 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
         public string SortTitle { get; }
 
+        // Make our code action low priority.  This option will be offered *a lot*, and 
+        // much of  the time will not be something the user particularly wants to do.  
+        // It should be offered after all other normal refactorings.
+        //
+        // This value is only relevant if this code action is the only one in its group,
+        // and it ends up getting inlined as a top-level-action that is offered.
+        internal override CodeActionPriority Priority => CodeActionPriority.Low;
+
         public WrapItemsAction(string title, string parentTitle, Func<CancellationToken, Task<Document>> createChangedDocument)
             : base(title, createChangedDocument)
         {

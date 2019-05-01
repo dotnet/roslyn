@@ -10,16 +10,18 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public readonly List<IParameterSymbol> ParametersWithoutDefaultValues;
         public readonly List<IParameterSymbol> RemainingEditableParameters;
         public readonly IParameterSymbol ParamsParameter;
+        public readonly int SelectedIndex;
 
-        public ParameterConfiguration(IParameterSymbol thisParameter, List<IParameterSymbol> parametersWithoutDefaultValues, List<IParameterSymbol> remainingEditableParameters, IParameterSymbol paramsParameter)
+        public ParameterConfiguration(IParameterSymbol thisParameter, List<IParameterSymbol> parametersWithoutDefaultValues, List<IParameterSymbol> remainingEditableParameters, IParameterSymbol paramsParameter, int selectedIndex)
         {
             this.ThisParameter = thisParameter;
             this.ParametersWithoutDefaultValues = parametersWithoutDefaultValues;
             this.RemainingEditableParameters = remainingEditableParameters;
             this.ParamsParameter = paramsParameter;
+            this.SelectedIndex = selectedIndex;
         }
 
-        public static ParameterConfiguration Create(List<IParameterSymbol> parameters, bool isExtensionMethod)
+        public static ParameterConfiguration Create(List<IParameterSymbol> parameters, bool isExtensionMethod, int selectedIndex)
         {
             IParameterSymbol thisParameter = null;
             var parametersWithoutDefaultValues = new List<IParameterSymbol>();
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(param);
             }
 
-            return new ParameterConfiguration(thisParameter, parametersWithoutDefaultValues, remainingReorderableParameters, paramsParameter);
+            return new ParameterConfiguration(thisParameter, parametersWithoutDefaultValues, remainingReorderableParameters, paramsParameter, selectedIndex);
         }
 
         public List<IParameterSymbol> ToListOfParameters()

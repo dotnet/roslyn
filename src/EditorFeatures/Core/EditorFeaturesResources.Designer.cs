@@ -720,6 +720,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Filter.
+        /// </summary>
+        internal static string Filter_image_element {
+            get {
+                return ResourceManager.GetString("Filter_image_element", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Find References.
         /// </summary>
         internal static string Find_References {
@@ -1301,6 +1310,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Not_a_source_error_line_column_unavailable {
             get {
                 return ResourceManager.GetString("Not_a_source_error_line_column_unavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation is not ready for &quot;{0}&quot; yet. See bottom left corner for more details..
+        /// </summary>
+        internal static string Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail {
+            get {
+                return ResourceManager.GetString("Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail", resourceCulture);
             }
         }
         
@@ -2184,6 +2202,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string VB_XML_Literals_Text {
             get {
                 return ResourceManager.GetString("VB_XML_Literals_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning.
+        /// </summary>
+        internal static string Warning_image_element {
+            get {
+                return ResourceManager.GetString("Warning_image_element", resourceCulture);
             }
         }
         

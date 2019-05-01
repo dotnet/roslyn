@@ -73,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     return (t.invocationOrCreation, additionalNodesToTrack.ToImmutableAndFree());
                 },
                 (_1, _2, _3) => true,
-                (semanticModel, currentRoot, t, currentNode) 
+                (semanticModel, currentRoot, t, currentNode)
                     => ReplaceIdentifierWithInlineDeclaration(
-                        options, semanticModel, currentRoot, t.declarator, 
+                        options, semanticModel, currentRoot, t.declarator,
                         t.identifier, t.invocationOrCreation, currentNode, declarationsToRemove),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -260,11 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // If they want it for intrinsics, and this is an intrinsic, then use var.
             if (type.IsSpecialType() == true)
             {
-                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
+                return options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Value;
             }
 
             // If they want "var" whenever possible, then use "var".
-            return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value;
+            return options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Value;
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(

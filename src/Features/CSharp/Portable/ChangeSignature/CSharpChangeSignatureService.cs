@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.ParenthesizedLambdaExpression,
             SyntaxKind.SimpleLambdaExpression);
 
-        public override async Task<ISymbol> GetInvocationSymbolAsync(
+        public override async Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -90,27 +90,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var matchingNode = GetMatchingNode(token.Parent, restrictToDeclarations);
             if (matchingNode == null)
             {
-                return null;
+                return default;
             }
 
             // Don't show change-signature in the random whitespace/trivia for code.
             if (!matchingNode.Span.IntersectsWith(position))
             {
-                return null;
+                return default;
             }
 
             // If we're actually on the declaration of some symbol, ensure that we're
             // in a good location for that symbol (i.e. not in the attributes/constraints).
             if (!InSymbolHeader(matchingNode, position))
             {
-                return null;
+                return default;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken);
             if (symbol != null)
             {
-                return symbol;
+                var selectedIndex = TryGetSelectedIndexFromDeclaration(position, matchingNode);
+                return (symbol, selectedIndex);
             }
 
             if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression))
@@ -122,13 +123,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
                     if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
                     {
-                        return typeSymbol;
+                        return (typeSymbol, 0);
                     }
                 }
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken);
-            return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault();
+            return (symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault(), 0);
+        }
+
+        private static int TryGetSelectedIndexFromDeclaration(int position, SyntaxNode matchingNode)
+        {
+            var parameters = matchingNode.ChildNodes().OfType<BaseParameterListSyntax>().SingleOrDefault();
+            return parameters != null ? GetParameterIndex(parameters.Parameters, position) : 0;
         }
 
         private SyntaxNode GetMatchingNode(SyntaxNode node, bool restrictToDeclarations)
@@ -662,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return convertedMethodGroups.SelectAsArray(symbolAndProjectId.WithSymbol);
         }
 
-        protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
+        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
             return new[] { new ChangeSignatureFormattingRule() }.Concat(Formatter.GetDefaultFormattingRules(document));
         }

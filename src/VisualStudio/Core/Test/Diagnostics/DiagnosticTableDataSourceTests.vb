@@ -626,7 +626,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService)
                 RunCompilerAnalyzer(workspace, service, listener)
 
-                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateWaitTask()
+                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateExpeditedWaitTask()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
@@ -725,7 +725,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 updateSource.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
 
-                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateWaitTask()
+                Await DirectCast(listener, IAsynchronousOperationWaiter).CreateExpeditedWaitTask()
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()

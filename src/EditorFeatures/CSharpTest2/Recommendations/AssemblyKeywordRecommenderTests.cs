@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -117,6 +118,151 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestNotInAttributeNestClass()
+        {
+            await VerifyAbsenceAsync(
+@"class A
+{
+    [$$
+    class B
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestInAttributeBeforeNamespace()
+        {
+            await VerifyKeywordAsync(
+@"[$$
+namespace Goo {");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestNotInAttributeBeforeNamespaceWithoutOpenBracket()
+        {
+            await VerifyAbsenceAsync(
+@"$$
+namespace Goo {}");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestNotInAttributeBeforeNamespaceAndAfterUsingWithNoOpenBracket()
+        {
+            await VerifyAbsenceAsync(
+@"
+using System;
+
+$$
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestInAttributeBeforeNamespaceAndAfterUsingWithOpenBracket()
+        {
+            await VerifyKeywordAsync(
+@"
+using System;
+
+[$$
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestInAttributeBeforeAssemblyWithOpenBracket()
+        {
+            await VerifyKeywordAsync(
+@"
+[$$
+[assembly: Whatever]
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestInAttributeBeforeClass()
+        {
+            await VerifyKeywordAsync(
+@"
+[$$
+class Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestInAttributeBeforeInterface()
+        {
+            await VerifyKeywordAsync(
+@"
+[$$
+interface IGoo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestInAttributeBeforeStruct()
+        {
+            await VerifyKeywordAsync(
+@"
+[$$
+struct Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestInAttributeBeforeEnum()
+        {
+            await VerifyKeywordAsync(
+@"
+[$$
+enum Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestNotInAttributeBeforeOtherAttributeWithoutOpenBracket()
+        {
+            await VerifyAbsenceAsync(
+@"
+$$
+[assembly: Whatever]
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestNotInAttributeBeforeAssemblyAttributeAndAfterUsingWithoutOpenBracket()
+        {
+            await VerifyAbsenceAsync(
+@"
+using System;
+
+$$
+[assembly: Whatever]
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestInBeforeAttributeAssemblyAttributeAndAfterUsingWithoutOpenBracket()
+        {
+            await VerifyKeywordAsync(
+@"
+using System;
+
+[$$
+[assembly: Whatever]
+namespace Goo {}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInOuterAttributeInNamespace()
         {
             await VerifyAbsenceAsync(
@@ -130,6 +276,25 @@ $$");
             await VerifyAbsenceAsync(
 @"class C {
     void Goo([$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestNotInElementAccess()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    void Goo(string[] array) {
+        array[$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(362, "https://github.com/dotnet/roslyn/issues/362")]
+        public async Task TestNotInIndex()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    public int this[$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

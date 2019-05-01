@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute()>  _
     Friend Class BasicVSResources
@@ -529,6 +529,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Show_completion_list_after_a_character_is_typed() As String
             Get
                 Return ResourceManager.GetString("Show_completion_list_after_a_character_is_typed", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Show items from unimported namespaces (experimental).
+        '''</summary>
+        Friend Shared ReadOnly Property Show_items_from_unimported_namespaces() As String
+            Get
+                Return ResourceManager.GetString("Show_items_from_unimported_namespaces", resourceCulture)
             End Get
         End Property
         

@@ -142,6 +142,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Allow unsafe code in this project.
+        /// </summary>
+        internal static string Allow_unsafe_code_in_this_project {
+            get {
+                return ResourceManager.GetString("Allow_unsafe_code_in_this_project", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous method.
         /// </summary>
         internal static string anonymous_method {
@@ -530,6 +539,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix return type.
+        /// </summary>
+        internal static string Fix_return_type {
+            get {
+                return ResourceManager.GetString("Fix_return_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to fixed statement.
         /// </summary>
         internal static string fixed_statement {
@@ -796,6 +814,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Make_private_field_readonly_when_possible {
             get {
                 return ResourceManager.GetString("Make_private_field_readonly_when_possible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make &apos;ref struct&apos;.
+        /// </summary>
+        internal static string Make_ref_struct {
+            get {
+                return ResourceManager.GetString("Make_ref_struct", resourceCulture);
             }
         }
         
@@ -1248,6 +1275,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string unchecked_statement {
             get {
                 return ResourceManager.GetString("unchecked_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unseal class &apos;{0}&apos;.
+        /// </summary>
+        internal static string Unseal_class_0 {
+            get {
+                return ResourceManager.GetString("Unseal_class_0", resourceCulture);
             }
         }
         

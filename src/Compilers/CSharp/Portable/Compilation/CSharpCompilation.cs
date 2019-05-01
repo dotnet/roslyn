@@ -164,6 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool FeatureStrictEnabled => Feature("strict") != null;
 
         /// <summary>
+        /// True if we should enable nullable analysis in this compilation.
+        /// </summary>
+        internal bool NullableAnalysisEnabled => Feature("run-nullable-analysis") is "true";
+
+        /// <summary>
         /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.
         /// With this flag we will avoid certain patterns known not be compatible with PEVerify.
         /// The code may be less efficient and may deviate from spec in corner cases.
@@ -304,7 +309,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reuseReferenceManager,
             SyntaxAndDeclarationManager syntaxAndDeclarations,
             AsyncQueue<CompilationEvent> eventQueue = null)
-            : base(assemblyName, references, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), isSubmission, eventQueue)
+            : this(assemblyName, options, references, previousSubmission, submissionReturnType, hostObjectType, isSubmission, referenceManager, reuseReferenceManager, syntaxAndDeclarations, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), eventQueue)
+        {
+        }
+
+        private CSharpCompilation(
+            string assemblyName,
+            CSharpCompilationOptions options,
+            ImmutableArray<MetadataReference> references,
+            CSharpCompilation previousSubmission,
+            Type submissionReturnType,
+            Type hostObjectType,
+            bool isSubmission,
+            ReferenceManager referenceManager,
+            bool reuseReferenceManager,
+            SyntaxAndDeclarationManager syntaxAndDeclarations,
+            IReadOnlyDictionary<string, string> features,
+            AsyncQueue<CompilationEvent> eventQueue = null)
+            : base(assemblyName, references, features, isSubmission, eventQueue)
         {
             WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
@@ -501,6 +523,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _syntaxAndDeclarations.MessageProvider,
                         _syntaxAndDeclarations.IsSubmission,
                         state: null));
+        }
+
+        /// <summary>
+        /// Returns a new compilation with the listed additional features. This method does not reparse syntax trees
+        /// with the new features enabled.
+        /// </summary>
+        internal CSharpCompilation WithAdditionalFeatures(params (string feature, string value)[] additionalFeatures)
+        {
+            var newFeatures = new Dictionary<string, string>();
+            foreach (var (key, value) in _features)
+            {
+                newFeatures[key] = value;
+            }
+
+            foreach (var (key, value) in additionalFeatures)
+            {
+                newFeatures[key] = value;
+            }
+
+            return new CSharpCompilation(
+                this.AssemblyName,
+                this.Options,
+                this.ExternalReferences,
+                this.PreviousSubmission,
+                this.SubmissionReturnType,
+                this.HostObjectType,
+                this.IsSubmission,
+                _referenceManager,
+                reuseReferenceManager: true,
+                _syntaxAndDeclarations,
+                newFeatures);
         }
 
         /// <summary>
@@ -1450,7 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     mainType = mainTypeOrNamespace as NamedTypeSymbol;
-                    if ((object)mainType == null || mainType.IsGenericType || (mainType.TypeKind != TypeKind.Class && mainType.TypeKind != TypeKind.Struct))
+                    if ((object)mainType == null || mainType.IsGenericType || (mainType.TypeKind != TypeKind.Class && mainType.TypeKind != TypeKind.Struct && !mainType.IsInterface))
                     {
                         diagnostics.Add(ErrorCode.ERR_MainClassNotClass, mainTypeOrNamespace.Locations.First(), mainTypeOrNamespace);
                         return null;
@@ -1634,7 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!(method.ReturnType.TypeSymbol is NamedTypeSymbol namedType))
+            if (!(method.ReturnType is NamedTypeSymbol namedType))
             {
                 return false;
             }
@@ -1670,7 +1723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (false, false);
             }
 
-            TypeSymbol returnType = method.ReturnType.TypeSymbol;
+            TypeSymbol returnType = method.ReturnType;
             bool returnsTaskOrTaskOfInt = false;
             if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
             {
@@ -1702,13 +1755,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (false, returnsTaskOrTaskOfInt);
             }
 
-            var firstType = method.Parameters[0].Type;
+            var firstType = method.Parameters[0].TypeWithAnnotations;
             if (firstType.TypeKind != TypeKind.Array)
             {
                 return (false, returnsTaskOrTaskOfInt);
             }
 
-            var array = (ArrayTypeSymbol)firstType.TypeSymbol;
+            var array = (ArrayTypeSymbol)firstType.Type;
             return (array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String, returnsTaskOrTaskOfInt);
         }
 
@@ -1817,7 +1870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(elementType));
             }
 
-            return ArrayTypeSymbol.CreateCSharpArray(this.Assembly, TypeSymbolWithAnnotations.Create(elementType), rank);
+            return ArrayTypeSymbol.CreateCSharpArray(this.Assembly, TypeWithAnnotations.Create(elementType), rank);
         }
 
         /// <summary>
@@ -1830,7 +1883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(elementType));
             }
 
-            return new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(elementType));
+            return new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
         }
 
         private protected override bool IsSymbolAccessibleWithinCore(
@@ -2999,20 +3052,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> elementNames,
             ImmutableArray<Location> elementLocations)
         {
-            var typesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(elementTypes.Length);
+            var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
             {
                 var elementType = elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]");
-                typesBuilder.Add(TypeSymbolWithAnnotations.Create(elementType));
+                typesBuilder.Add(TypeWithAnnotations.Create(elementType));
             }
 
             return TupleTypeSymbol.Create(
                 locationOpt: null, // no location for the type declaration
-                elementTypes: typesBuilder.ToImmutableAndFree(),
+                elementTypesWithAnnotations: typesBuilder.ToImmutableAndFree(),
                 elementLocations: elementLocations,
                 elementNames: elementNames,
                 compilation: this,
                 shouldCheckConstraints: false,
+                includeNullability: false,
                 errorPositions: default(ImmutableArray<bool>));
         }
 
@@ -3059,7 +3113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = memberTypes[i];
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
-                fields.Add(new AnonymousTypeField(name, location, TypeSymbolWithAnnotations.Create((TypeSymbol)type)));
+                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create((TypeSymbol)type)));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
@@ -3235,7 +3289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// In NetFx 4.0, block array initializers do not work on all combinations of {32/64 X Debug/Retail} when array elements are enums.
         /// This is fixed in 4.5 thus enabling block array initialization for a very common case.
-        /// We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .Net 4.5
+        /// We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .NET Framework 4.5
         /// </remarks>
         internal bool EnableEnumArrayBlockInitialization
         {

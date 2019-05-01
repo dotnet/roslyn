@@ -10,11 +10,9 @@ Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnType
-#Disable Warning RS1016 ' Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.FixIncorrectFunctionReturnType), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.ImplementInterface)>
     Friend Class IncorrectFunctionReturnTypeCodeFixProvider
-#Enable Warning RS1016
         Inherits CodeFixProvider
 
         Friend Const BC36938 As String = "BC36938" ' Iterator functions must return either IEnumerable(Of T), or IEnumerator(Of T), or the non-generic forms IEnumerable or IEnumerator.
@@ -25,6 +23,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnTy
                 Return ImmutableArray.Create(BC36938, BC36945)
             End Get
         End Property
+
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            ' Fix All is not supported for this code fix
+            Return Nothing
+        End Function
 
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim document = context.Document

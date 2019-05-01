@@ -10,16 +10,16 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
     Friend Class SpecialFormattingRule
-        Inherits AbstractFormattingRule
+        Inherits CompatAbstractFormattingRule
 
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddSuppressOperations(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of SuppressOperation))
+        Public Overrides Sub AddSuppressOperationsSlow(list As List(Of SuppressOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextSuppressOperationAction)
             ' don't suppress anything
         End Sub
 
-        Public Overrides Function GetAdjustNewLinesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustNewLinesOperation)) As AdjustNewLinesOperation
+        Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
 
             ' unlike regular one. force position of attribute
             Dim attributeNode = TryCast(previousToken.Parent, AttributeListSyntax)
@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             End If
 
             ' no line operation. no line changes what so ever
-            Dim lineOperation = MyBase.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, nextOperation)
+            Dim lineOperation = MyBase.GetAdjustNewLinesOperationSlow(previousToken, currentToken, optionSet, nextOperation)
             If lineOperation IsNot Nothing Then
                 ' basically means don't ever put new line if there isn't already one, but do
                 ' indentation.
@@ -38,8 +38,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Return Nothing
         End Function
 
-        Public Overrides Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation
-            Dim spaceOperation = MyBase.GetAdjustSpacesOperation(previousToken, currentToken, optionSet, nextOperation)
+        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
+            Dim spaceOperation = MyBase.GetAdjustSpacesOperationSlow(previousToken, currentToken, optionSet, nextOperation)
 
             ' if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
             ' (force space basically means remove all line breaks)
@@ -50,8 +50,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Return spaceOperation
         End Function
 
-        Public Overrides Sub AddIndentBlockOperations(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of IndentBlockOperation))
-            nextOperation.Invoke(list)
+        Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextIndentBlockOperationAction)
+            nextOperation.Invoke()
 
             Dim singleLineLambdaFunction = TryCast(node, SingleLineLambdaExpressionSyntax)
             If singleLineLambdaFunction IsNot Nothing Then
@@ -162,8 +162,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Next
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperations(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, nextAction As NextAction(Of AlignTokensOperation))
-            MyBase.AddAlignTokensOperations(operations, node, optionSet, nextAction)
+        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextAction As NextAlignTokensOperationAction)
+            MyBase.AddAlignTokensOperationsSlow(operations, node, optionSet, nextAction)
 
             ' Smart token formatting off: No token alignment
             If optionSet.GetOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic) <> FormattingOptions.IndentStyle.Smart Then

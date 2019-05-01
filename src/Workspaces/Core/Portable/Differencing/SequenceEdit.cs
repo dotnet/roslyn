@@ -72,8 +72,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             return Hash.Combine(_oldIndex, _newIndex);
         }
 
-        // internal for testing
-        internal string GetDebuggerDisplay()
+        private string GetDebuggerDisplay()
         {
             string result = Kind.ToString();
             switch (Kind)
@@ -89,6 +88,22 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
 
             return result;
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly SequenceEdit _sequenceEdit;
+
+            public TestAccessor(SequenceEdit sequenceEdit)
+            {
+                _sequenceEdit = sequenceEdit;
+            }
+
+            internal string GetDebuggerDisplay()
+                => _sequenceEdit.GetDebuggerDisplay();
         }
     }
 }

@@ -173,5 +173,14 @@ namespace Microsoft.CodeAnalysis
                 builder.Add(value);
             }
         }
+
+        public static void FreeAll<T>(this ArrayBuilder<T> builder, Func<T, ArrayBuilder<T>> getNested)
+        {
+            foreach (var item in builder)
+            {
+                getNested(item)?.FreeAll(getNested);
+            }
+            builder.Free();
+        }
     }
 }

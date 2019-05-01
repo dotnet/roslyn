@@ -10353,7 +10353,7 @@ namespace ClassLibrary9
         public void ExtractMethodCommandDisabledInSubmission()
         {
             var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveTextBufferSupportsFeatureService)))
                 .CreateExportProvider();
 
             using (var workspace = TestWorkspace.Create(XElement.Parse(@"
@@ -11079,6 +11079,58 @@ interface Program
     void NewMethod()
     {
         Foo();
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(33242, "https://github.com/dotnet/roslyn/issues/33242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInExpressionBodiedConstructors()
+        {
+            var code = @"
+class Foo
+{
+    private readonly string _bar;
+
+    private Foo(string bar) => _bar = [|bar|];
+}";
+            var expected = @"
+class Foo
+{
+    private readonly string _bar;
+
+    private Foo(string bar) => _bar = GetBar(bar);
+
+    private static string GetBar(string bar)
+    {
+        return bar;
+    }
+}";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(33242, "https://github.com/dotnet/roslyn/issues/33242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractMethodInExpressionBodiedFinalizers()
+        {
+            var code = @"
+class Foo
+{
+    bool finalized;
+
+    ~Foo() => finalized = [|true|];
+}";
+            var expected = @"
+class Foo
+{
+    bool finalized;
+
+    ~Foo() => finalized = NewMethod();
+
+    private static bool NewMethod()
+    {
+        return true;
     }
 }";
             await TestExtractMethodAsync(code, expected);

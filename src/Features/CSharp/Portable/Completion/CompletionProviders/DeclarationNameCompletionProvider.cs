@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
@@ -219,6 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var rules = await document.GetNamingRulesAsync(FallbackNamingRules.CompletionOfferingRules, cancellationToken).ConfigureAwait(false);
             var result = new Dictionary<string, SymbolKind>();
+            var semanticFactsService = context.GetLanguageService<ISemanticFactsService>();
+
             foreach (var kind in declarationInfo.PossibleSymbolKinds)
             {
                 // There's no special glyph for local functions.
@@ -238,7 +241,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             var name = rule.NamingStyle.CreateName(baseName).EscapeIdentifier(context.IsInQuery);
                             if (name.Length > 1 && !result.ContainsKey(name)) // Don't add multiple items for the same name
                             {
-                                result.Add(name, symbolKind);
+                                var targetToken = context.TargetToken;
+                                var uniqueName = semanticFactsService.GenerateUniqueName(
+                                    context.SemanticModel,
+                                    context.TargetToken.Parent,
+                                    containerOpt: null,
+                                    baseName: name,
+                                    filter: IsRelevantSymbolKind,
+                                    usedNames: Enumerable.Empty<string>(),
+                                    cancellationToken: cancellationToken);
+                                result.Add(uniqueName.Text, symbolKind);
                             }
                         }
                     }
@@ -246,6 +258,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return result.Select(kvp => (kvp.Key, kvp.Value)).ToImmutableArray();
+        }
+
+        /// <summary>
+        /// Check if the symbol is a relevant kind.
+        /// Only relevant if symbol could cause a conflict with a local variable.
+        /// </summary>
+        private bool IsRelevantSymbolKind(ISymbol symbol)
+        {
+            return symbol.Kind == SymbolKind.Local ||
+                symbol.Kind == SymbolKind.Parameter ||
+                symbol.Kind == SymbolKind.RangeVariable;
         }
 
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)

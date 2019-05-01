@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 #End If
         Inherits AbstractSyntaxFormattingService
 
-        Private ReadOnly _rules As ImmutableList(Of IFormattingRule)
+        Private ReadOnly _rules As ImmutableList(Of AbstractFormattingRule)
 
 #If Not CODE_STYLE Then
         <ImportingConstructor>
@@ -31,16 +31,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 #Else
         Public Sub New()
 #End If
-            _rules = ImmutableList.Create(Of IFormattingRule)(
+            _rules = ImmutableList.Create(Of AbstractFormattingRule)(
                 New StructuredTriviaFormattingRule(),
                 New ElasticTriviaFormattingRule(),
                 New AdjustSpaceFormattingRule(),
                 New AlignTokensFormattingRule(),
                 New NodeBasedFormattingRule(),
-                New DefaultOperationProvider())
+                DefaultOperationProvider.Instance)
         End Sub
 
-        Public Overrides Function GetDefaultFormattingRules() As IEnumerable(Of IFormattingRule)
+        Public Overrides Function GetDefaultFormattingRules() As IEnumerable(Of AbstractFormattingRule)
             Return _rules
         End Function
 
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return New AggregatedFormattingResult(node, results, formattingSpans)
         End Function
 
-        Protected Overrides Function Format(root As SyntaxNode, optionSet As OptionSet, formattingRules As IEnumerable(Of IFormattingRule), token1 As SyntaxToken, token2 As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
+        Protected Overrides Function Format(root As SyntaxNode, optionSet As OptionSet, formattingRules As IEnumerable(Of AbstractFormattingRule), token1 As SyntaxToken, token2 As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
             Return New VisualBasicFormatEngine(root, optionSet, formattingRules, token1, token2).Format(cancellationToken)
         End Function
     End Class

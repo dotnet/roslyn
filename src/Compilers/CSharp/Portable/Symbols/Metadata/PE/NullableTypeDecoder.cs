@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// returns the type transformed to have IsNullable set to true or false
         /// (but not null) for each reference type in the type.
         /// </summary>
-        internal static TypeSymbolWithAnnotations TransformType(
-            TypeSymbolWithAnnotations metadataType,
+        internal static TypeWithAnnotations TransformType(
+            TypeWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule)
         {
-            Debug.Assert(!metadataType.IsNull);
+            Debug.Assert(metadataType.HasType);
 
             byte defaultTransformFlag;
             ImmutableArray<byte> nullableTransformFlags;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return TransformType(metadataType, defaultTransformFlag, nullableTransformFlags);
         }
 
-        internal static TypeSymbolWithAnnotations TransformType(TypeSymbolWithAnnotations metadataType, byte defaultTransformFlag, ImmutableArray<byte> nullableTransformFlags)
+        internal static TypeWithAnnotations TransformType(TypeWithAnnotations metadataType, byte defaultTransformFlag, ImmutableArray<byte> nullableTransformFlags)
         {
             if (nullableTransformFlags.IsDefault && defaultTransformFlag == 0)
             {
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             int position = 0;
-            TypeSymbolWithAnnotations result;
+            TypeWithAnnotations result;
             if (metadataType.ApplyNullableTransforms(defaultTransformFlag, nullableTransformFlags, ref position, out result) &&
                 (nullableTransformFlags.IsDefault || position == nullableTransformFlags.Length))
             {
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         // https://github.com/dotnet/roslyn/issues/29821 external annotations should be removed or fully designed/productized
-        internal static TypeSymbolWithAnnotations TransformType(
-            TypeSymbolWithAnnotations metadataType,
+        internal static TypeWithAnnotations TransformType(
+            TypeWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule,
             ImmutableArray<byte> extraAnnotations)

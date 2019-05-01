@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
             ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                     GetType(VisualBasicEncapsulateFieldService),
-                    GetType(DefaultDocumentSupportsFeatureService)))
+                    GetType(DefaultTextBufferSupportsFeatureService)))
 
         Private Sub New(workspace As TestWorkspace)
             Me.Workspace = workspace

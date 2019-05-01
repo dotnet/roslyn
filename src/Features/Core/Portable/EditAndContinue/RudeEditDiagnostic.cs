@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct RudeEditDiagnostic
+    internal readonly struct RudeEditDiagnostic
     {
         public readonly RudeEditKind Kind;
         public readonly TextSpan Span;

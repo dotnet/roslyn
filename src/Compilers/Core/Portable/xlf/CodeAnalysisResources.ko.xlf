@@ -2,10 +2,20 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="new">A language name cannot be specified for this option.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="new">A language name must be specified for this option.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="translated">'{0}' 분석기에서 다음 예외를 throw했습니다.
+        <target state="translated">{0}' 분석기에서 다음 예외를 throw했습니다.
 '{1}'</target>
         <note />
       </trans-unit>
@@ -16,12 +26,12 @@
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleBadWithin">
         <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
-        <target state="new">Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</target>
+        <target state="translated">'{0}' 매개 변수는 'INamedTypeSymbol' 또는 'IAssemblySymbol'이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="IsSymbolAccessibleWrongAssembly">
         <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
-        <target state="new">Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</target>
+        <target state="translated">'{0}' 매개 변수는 이 컴파일 또는 일부 참조된 어셈블리의 기호여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -36,7 +46,7 @@
       </trans-unit>
       <trans-unit id="OperationMustNotBeControlFlowGraphPart">
         <source>The provided operation must not be part of a Control Flow Graph.</source>
-        <target state="new">The provided operation must not be part of a Control Flow Graph.</target>
+        <target state="translated">제공된 작업은 제어 흐름 그래프의 일부가 아니어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="OutputKindNotSupported">
@@ -61,7 +71,7 @@
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
-        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</target>
+        <target state="translated">'{0}' 분석기의 'SupportedDiagnostics'에 null 설명자가 포함되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -156,12 +166,12 @@
       </trans-unit>
       <trans-unit id="InMemoryAssembly">
         <source>&lt;in-memory assembly&gt;</source>
-        <target state="translated">&lt;메모리 내의 어셈블리&gt;</target>
+        <target state="translated">&lt;메모리 내 어셈블리&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="InMemoryModule">
         <source>&lt;in-memory module&gt;</source>
-        <target state="translated">&lt;메모리 내의 모듈&gt;</target>
+        <target state="translated">&lt;메모리 내 모듈&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="SizeHasToBePositive">
@@ -196,7 +206,7 @@
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">값이 너무 커서 30비트 부호 없는 정수로 표시할 수 없습니다.</target>
+        <target state="translated">값이 너무 커서 30비트 정수로 표시할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
@@ -231,12 +241,12 @@
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeValuePointerbyRefOrOpen">
         <source>Return type can't be a value type, pointer, by-ref or open generic type</source>
-        <target state="translated">반환 형식에는 값 형식, 포인터, by-ref 또는 개방형 제네릭 형식을 사용할 수 없습니다.</target>
+        <target state="translated">반환 형식에는 값 형식, 포인터, by-ref 또는 공개 제네릭 형식을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeVoidByRefOrOpen">
         <source>Return type can't be void, by-ref or open generic type</source>
-        <target state="translated">반환 형식에는 void, by-ref 또는 개방형 제네릭 형식을 사용할 수 없습니다.</target>
+        <target state="translated">반환 형식에는 void, by-ref 또는 공개 제네릭 형식을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeMustBeSameAsHostObjectTypeOfPreviousSubmission">
@@ -316,7 +326,7 @@
       </trans-unit>
       <trans-unit id="NameCannotBeEmpty">
         <source>Name cannot be empty.</source>
-        <target state="translated">이름은 비워 둘 수 없습니다.</target>
+        <target state="translated">이름을 비워 둘 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="NameCannotStartWithWhitespace">
@@ -366,7 +376,7 @@
       </trans-unit>
       <trans-unit id="InvalidCharactersInAssemblyName">
         <source>Invalid characters in assembly name</source>
-        <target state="translated">어셈블리 이름에 잘못된 문자가 있습니다.</target>
+        <target state="translated">어셈블리 이름에 잘못된 문자가 있음</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidCharactersInAssemblyCultureName">
@@ -469,6 +479,16 @@
         <target state="translated">잘못된 문화권 이름입니다('{0}').</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="new">Invalid severity in analyzer config file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
         <source>WindowsRuntime identity can't be retargetable</source>
         <target state="translated">WindowsRuntime ID는 대상으로 다시 지정할 수 없습니다.</target>
@@ -533,12 +553,12 @@
       </trans-unit>
       <trans-unit id="ChangesMustNotOverlap">
         <source>The changes must not overlap.</source>
-        <target state="translated">변경 내용은 겹치지 않아야 합니다.</target>
+        <target state="translated">변경 내용의 순서를 지정해야 하고 겹쳐서는 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
         <source>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="translated">DiagnosticDescriptor에 null 또는 빈 문자열이 아니거나 공백만 포함된 문자열이 아닌 ID가 있어야 합니다.</target>
+        <target state="translated">DiagnosticDescriptor에 null, 빈 문자열 및 공백만 포함된 문자열이 아닌 ID가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RuleSetHasDuplicateRules">
@@ -688,7 +708,7 @@
       </trans-unit>
       <trans-unit id="MissingKeepAlive">
         <source>Missing argument for '/keepalive' option.</source>
-        <target state="translated">'/keepalive' 옵션에 인수가 없습니다.</target>
+        <target state="translated">/keepalive' 옵션에 인수가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerTotalExecutionTime">
@@ -738,7 +758,7 @@
       </trans-unit>
       <trans-unit id="SharedArgumentMissing">
         <source>Value for argument '/shared:' must not be empty</source>
-        <target state="translated">'/shared:' 인수의 값은 비워 둘 수 없습니다.</target>
+        <target state="translated">/shared:' 인수의 값은 비워 둘 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExceptionContext">

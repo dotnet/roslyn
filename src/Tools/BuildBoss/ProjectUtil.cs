@@ -238,6 +238,26 @@ namespace BuildBoss
             return new PackageReference(name, elem.Value.Trim());
         }
 
+        internal List<InternalsVisibleTo> GetInternalsVisibleTo()
+        {
+            var list = new List<InternalsVisibleTo>();
+            foreach (var ivt in Document.XPathSelectElements("//mb:InternalsVisibleTo", Manager))
+            {
+                list.Add(GetInternalsVisibleTo(ivt));
+            }
+
+            return list;
+        }
+
+        internal InternalsVisibleTo GetInternalsVisibleTo(XElement element)
+        {
+            var targetAssembly = element.Attribute("Include")?.Value.Trim();
+            var key = element.Attribute("Key")?.Value.Trim();
+            var loadsWithinVisualStudio = element.Attribute("LoadsWithinVisualStudio")?.Value.Trim();
+            var workItem = element.Attribute("WorkItem")?.Value.Trim();
+            return new InternalsVisibleTo(targetAssembly, key, loadsWithinVisualStudio, workItem);
+        }
+
         internal XElement FindSingleProperty(string localName) => GetAllPropertyGroupElements().SingleOrDefault(x => x.Name.LocalName == localName);
     }
 }

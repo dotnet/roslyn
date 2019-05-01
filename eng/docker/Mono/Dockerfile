@@ -40,6 +40,12 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E03280
     apt-get install -y mono-devel && \
     apt-get clean
 
+
+# Update previously installed mono-devel.
+# Cache bust ensures we'll always run the commands following regardless of docker cache status
+ARG CACHE_BUST=0
+RUN apt-get update && apt-get upgrade -y
+
 # Setup User to match Host User, and give superuser permissions
 ARG USER_ID=0
 RUN useradd -m code_executor -u ${USER_ID} -g sudo

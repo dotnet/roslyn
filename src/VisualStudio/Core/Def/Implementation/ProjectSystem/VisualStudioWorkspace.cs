@@ -118,5 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             return this.Services.GetService<IMetadataService>().GetReference(filePath, properties);
         }
+
+        internal abstract string TryGetRuleSetPathForProject(ProjectId projectId);
     }
 }

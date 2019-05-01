@@ -501,7 +501,7 @@ abstract class d
 
 class c : d
 {
-    public override void goo(b x = default(b))
+    public override void goo(b x = default)
     {
         throw new System.NotImplementedException();
     }
@@ -1641,7 +1641,7 @@ abstract class B
 }
 sealed class D : B
 {
-    public override void M1(int i = 0, string s = null, int? j = null, V v = default(V))
+    public override void M1(int i = 0, string s = null, int? j = null, V v = default)
     {
         throw new System.NotImplementedException();
     }

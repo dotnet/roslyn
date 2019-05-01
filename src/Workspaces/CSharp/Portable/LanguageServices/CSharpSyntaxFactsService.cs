@@ -266,6 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Kind() == SyntaxKind.ReturnStatement;
 
         public bool IsStatement(SyntaxNode node)
+           => node is StatementSyntax;
+
+        public bool IsExecutableStatement(SyntaxNode node)
             => node is StatementSyntax;
 
         public bool IsParameter(SyntaxNode node)
@@ -669,6 +672,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsInNamespaceOrTypeContext(node as ExpressionSyntax);
         }
 
+        public bool IsBaseTypeList(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.BaseList);
+        }
+
         public SyntaxNode GetExpressionOfArgument(SyntaxNode node)
         {
             return ((ArgumentSyntax)node).Expression;
@@ -688,6 +696,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                    argument.NameColon == null;
         }
 
+        public bool IsTypeArgumentList(SyntaxNode node)
+            => node.IsKind(SyntaxKind.TypeArgumentList);
+
+        public bool IsTypeConstraint(SyntaxNode node)
+            => node.IsKind(SyntaxKind.TypeConstraint);
 
         public bool IsInConstantContext(SyntaxNode node)
         {
@@ -717,11 +730,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node)
         {
             return ((ParenthesizedExpressionSyntax)node).Expression;
-        }
-
-        public bool IsIfStatement(SyntaxNode node)
-        {
-            return (node.Kind() == SyntaxKind.IfStatement);
         }
 
         public bool IsAttribute(SyntaxNode node)
@@ -1041,6 +1049,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
+        public SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
+            => ((NamespaceDeclarationSyntax)namespaceDeclaration).Members;
+
         private void AppendMethodLevelMembers(SyntaxNode node, List<SyntaxNode> list)
         {
             foreach (var member in node.GetMembers())
@@ -1353,6 +1364,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (node as MemberAccessExpressionSyntax)?.Name;
         }
 
+        public bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node)
+            => (node as NameSyntax).IsLeftSideOfExplicitInterfaceSpecifier();
+
         public bool IsLeftSideOfAssignment(SyntaxNode node)
         {
             return (node as ExpressionSyntax).IsLeftSideOfAssignExpression();
@@ -1417,8 +1431,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
             => GetArgumentsOfArgumentList((invocationExpression as InvocationExpressionSyntax)?.ArgumentList);
 
-        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode invocationExpression)
-            => GetArgumentsOfArgumentList((invocationExpression as ObjectCreationExpressionSyntax)?.ArgumentList);
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode objectCreationExpression)
+            => GetArgumentsOfArgumentList((objectCreationExpression as ObjectCreationExpressionSyntax)?.ArgumentList);
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
             => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default(SeparatedSyntaxList<SyntaxNode>);
@@ -1847,8 +1861,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan)
-            => ImmutableArray<SyntaxNode>.CastUp(root.GetMembersInSpan(textSpan));
+        public ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection)
+            => ImmutableArray<SyntaxNode>.CastUp(root.GetFieldsAndPropertiesInSpan(textSpan, allowPartialSelection));
 
         protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
             => token.ContainsInterleavedDirective(span, cancellationToken);
@@ -1886,14 +1900,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node)
             => ((EqualsValueClauseSyntax)node)?.Value;
 
-        public bool IsExecutableBlock(SyntaxNode node)
+        public bool IsScopeBlock(SyntaxNode node)
             => node.IsKind(SyntaxKind.Block);
 
+        public bool IsExecutableBlock(SyntaxNode node)
+            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
+
         public SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node)
-            => ((BlockSyntax)node).Statements;
+        {
+            switch (node)
+            {
+                case BlockSyntax block:
+                    return block.Statements;
+                case SwitchSectionSyntax switchSection:
+                    return switchSection.Statements;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+        }
 
         public SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
-            => nodes.FindInnermostCommonBlock();
+            => nodes.FindInnermostCommonNode(node => IsExecutableBlock(node));
+
+        public bool IsStatementContainer(SyntaxNode node)
+            => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();
+
+        public IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node)
+            => IsExecutableBlock(node)
+               ? GetExecutableBlockStatements(node)
+               : (IReadOnlyList<SyntaxNode>)ImmutableArray.Create<SyntaxNode>(node.GetEmbeddedStatement());
 
         public bool IsCastExpression(SyntaxNode node)
             => node is CastExpressionSyntax;
