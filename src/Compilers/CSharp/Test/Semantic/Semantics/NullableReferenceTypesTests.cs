@@ -1081,18 +1081,13 @@ class C
             // Need to confirm whether this suppression should be allowed or be effective
             // If so, we need to verify the semantic model
             // Tracked by https://github.com/dotnet/roslyn/issues/30151
-
             comp.VerifyDiagnostics(
-                // (8,20): error CS1525: Invalid expression term 'stackalloc'
+                // (8,20): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //         int* s3 = (stackalloc[] { 1 })!;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc[] { 1 }").WithArguments("int", "int*").WithLocation(8, 20),
                 // (9,35): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
                 //         System.Span<string> s4 = (stackalloc[] { null, string.Empty })!;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { null, string.Empty }").WithArguments("string").WithLocation(9, 35),
-                // (9,35): error CS1525: Invalid expression term 'stackalloc'
-                //         System.Span<string> s4 = (stackalloc[] { null, string.Empty })!;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(9, 35)
-                );
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { null, string.Empty }").WithArguments("string").WithLocation(9, 35));
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
@@ -1941,17 +1936,7 @@ class Test
         var x3 = true ? stackalloc[] { 1, 2, 3 }! : a3;
     }
 }", TestOptions.UnsafeReleaseDll);
-
-            // Note: when we allow stackalloc expressions to be nested in other expressions,
-            // we'll have to look at conversion from expression of suppressed stackalloc
-            comp.VerifyDiagnostics(
-                // (6,31): error CS1525: Invalid expression term 'stackalloc'
-                //         System.Span<int> a3 = stackalloc[] { 1, 2, 3 }!;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 31),
-                // (7,25): error CS1525: Invalid expression term 'stackalloc'
-                //         var x3 = true ? stackalloc[] { 1, 2, 3 }! : a3;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 25)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]

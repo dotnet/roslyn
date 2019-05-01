@@ -3413,14 +3413,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool ReportBadStackAllocPosition(SyntaxNode node, DiagnosticBag diagnostics)
         {
             Debug.Assert(node is StackAllocArrayCreationExpressionSyntax || node is ImplicitStackAllocArrayCreationExpressionSyntax);
+            bool inLegalPosition = true;
 
-            var inLegalPosition = (IsInMethodBody || IsLocalFunctionsScopeBinder) && node.IsLegalSpanStackAllocPosition();
-            if (!inLegalPosition)
+            // If we are using a language version that does not restrict the position of a stackalloc expression, skip that test.
+            LanguageVersion requiredVersion = MessageID.IDS_FeatureNestedStackalloc.RequiredVersion();
+            if (requiredVersion > Compilation.LanguageVersion)
             {
-                diagnostics.Add(
-                    ErrorCode.ERR_InvalidExprTerm,
-                    node.GetFirstToken().GetLocation(),
-                    SyntaxFacts.GetText(SyntaxKind.StackAllocKeyword));
+                inLegalPosition = (IsInMethodBody || IsLocalFunctionsScopeBinder) && node.IsLegalCSharp73SpanStackAllocPosition();
+                if (!inLegalPosition)
+                {
+                    MessageID.IDS_FeatureNestedStackalloc.CheckFeatureAvailability(diagnostics, node.GetFirstToken().GetLocation());
+                }
             }
 
             // Check if we're syntactically within a catch or finally clause.
@@ -3436,7 +3439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
             hasErrors = !inLegalPosition;
-            if (inLegalPosition && !node.IsVariableDeclarationInitialization())
+            if (inLegalPosition && !node.IsLocalVariableDeclarationInitializationForPointerStackalloc())
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
 
@@ -5809,9 +5812,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     default:
                         {
-                            // Can't dot into the null literal or stackalloc expressions.
-                            if ((boundLeft.Kind == BoundKind.Literal && ((BoundLiteral)boundLeft).ConstantValueOpt == ConstantValue.Null) ||
-                                boundLeft.Kind == BoundKind.StackAllocArrayCreation)
+                            // Can't dot into the null literal
+                            if (boundLeft.Kind == BoundKind.Literal && ((BoundLiteral)boundLeft).ConstantValueOpt == ConstantValue.Null)
                             {
                                 if (!boundLeft.HasAnyErrors)
                                 {
