@@ -26,7 +26,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Me.New(New SpecialFormattingRule())
         End Sub
 
+#Disable Warning RS0034 ' Exported parts should have [ImportingConstructor]
         Private Sub New(specializedIndentationRule As AbstractFormattingRule)
+#Enable Warning RS0034 ' Exported parts should have [ImportingConstructor]
             _specializedIndentationRule = specializedIndentationRule
         End Sub
 
