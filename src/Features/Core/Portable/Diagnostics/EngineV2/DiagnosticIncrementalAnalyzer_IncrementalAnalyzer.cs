@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
-            return document.IsOpen() && document.SupportsDiagnostics();
+            return document.IsOpen();
         }
 
         private IEnumerable<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)

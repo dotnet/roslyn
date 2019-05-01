@@ -146,14 +146,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var document = project.GetDocument(documentId);
 
                 var diagnostics = serializer.ReadFrom(reader, document, cancellationToken);
-
-                if (document?.SupportsDiagnostics() == false)
-                {
-                    // drop diagnostics for non-null document that doesn't support
-                    // diagnostics
-                    continue;
-                }
-
                 map.Add(documentId, GetOrDefault(diagnostics));
             }
 

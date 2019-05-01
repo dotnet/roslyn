@@ -90,11 +90,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
                 Dim documentOperations = service.GetService(Of IDocumentOperationService)
 
-                ' contained document supports both document modification and diagnostics
+                ' contained document supports document modification
                 ' soon, contained document will be only used to support old venus and razor but not new razor
                 ' which will use thier own implementation of these services
                 Assert.True(documentOperations.CanApplyChange)
-                Assert.True(documentOperations.SupportDiagnostics)
             End Using
         End Sub
 

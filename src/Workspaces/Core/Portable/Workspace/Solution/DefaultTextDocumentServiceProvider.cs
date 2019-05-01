@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis
@@ -40,7 +41,8 @@ namespace Microsoft.CodeAnalysis
             // even support rename through IDynamicFileInfoProvider pattern once we address that in next
             // iteration for razor. for now, we keep existing behavior
             public bool CanApplyChange => true;
-            public bool SupportDiagnostics => true;
+            [Obsolete]
+            bool IDocumentOperationService.SupportDiagnostics => true;
         }
     }
 }
