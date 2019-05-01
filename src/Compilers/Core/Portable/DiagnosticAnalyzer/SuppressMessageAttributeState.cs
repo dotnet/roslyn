@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private ImmutableDictionary<string, SuppressMessageInfo> DecodeLocalSuppressMessageAttributes(ISymbol symbol)
         {
-            var attributes = symbol.GetAttributes().Where(a => a.AttributeClass == this.SuppressMessageAttribute);
+            var attributes = symbol.GetAttributes().Where(a => Equals(a.AttributeClass, this.SuppressMessageAttribute));
             return DecodeLocalSuppressMessageAttributes(symbol, attributes);
         }
 
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(symbol is IAssemblySymbol || symbol is IModuleSymbol);
 
-            var attributes = symbol.GetAttributes().Where(a => a.AttributeClass == this.SuppressMessageAttribute);
+            var attributes = symbol.GetAttributes().Where(a => Equals(a.AttributeClass, this.SuppressMessageAttribute));
             DecodeGlobalSuppressMessageAttributes(compilation, symbol, globalSuppressions, attributes);
         }
 

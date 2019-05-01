@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
             if (namespaceSymbol != null && namespaceSymbol.ConstituentNamespaces.Length > 1)
             {
                 var assemblyToScope = model.Compilation.Assembly;
-                var assemblyScopedNamespaceSymbol = namespaceSymbol.ConstituentNamespaces.FirstOrDefault(ns => ns.ContainingAssembly == assemblyToScope);
+                var assemblyScopedNamespaceSymbol = namespaceSymbol.ConstituentNamespaces.FirstOrDefault(ns => Equals(ns.ContainingAssembly, assemblyToScope));
                 if (assemblyScopedNamespaceSymbol != null)
                 {
                     Debug.Assert(assemblyScopedNamespaceSymbol.ConstituentNamespaces.Length == 1);

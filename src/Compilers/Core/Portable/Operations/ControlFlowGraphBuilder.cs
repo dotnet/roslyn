@@ -3709,7 +3709,7 @@ oneMoreTime:
 
             IOperation tryDispose(IOperation value)
             {
-                Debug.Assert(value.Type == iDisposable);
+                Debug.Assert(Equals(value.Type, iDisposable));
 
                 var method = (IMethodSymbol)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
                 if (method != null)
@@ -6126,7 +6126,7 @@ oneMoreTime:
             if (operation.Instance is IInstanceReferenceOperation instanceReference &&
                 instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
                 operation.Property.ContainingType.IsAnonymousType &&
-                operation.Property.ContainingType == _currentImplicitInstance.AnonymousType)
+                Equals(operation.Property.ContainingType, _currentImplicitInstance.AnonymousType))
             {
                 if (_currentImplicitInstance.AnonymousTypePropertyValues.TryGetValue(operation.Property, out IOperation captured))
                 {

@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(attr1 != null);
             Debug.Assert(attr2 != null);
 
-            return attr1.AttributeClass == attr2.AttributeClass &&
-                attr1.AttributeConstructor == attr2.AttributeConstructor &&
+            return Equals(attr1.AttributeClass, attr2.AttributeClass) &&
+                Equals(attr1.AttributeConstructor, attr2.AttributeConstructor) &&
                 attr1.HasErrors == attr2.HasErrors &&
                 attr1.IsConditionallyOmitted == attr2.IsConditionallyOmitted &&
                 attr1.CommonConstructorArguments.SequenceEqual(attr2.CommonConstructorArguments) &&

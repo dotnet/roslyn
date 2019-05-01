@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 return false;
             }
 
-            Debug.Assert(localFunction == LocalFunctions[info.ordinal]);
+            Debug.Assert(Equals(localFunction, LocalFunctions[info.ordinal]));
 
             if (_lazyLocalFunctionsGraphs == null)
             {
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             if (_lazyLocalFunctionsGraphs[info.ordinal] == null)
             {
-                Debug.Assert(localFunction == info.operation.Symbol);
+                Debug.Assert(Equals(localFunction, info.operation.Symbol));
                 ControlFlowGraph graph = ControlFlowGraphBuilder.Create(info.operation, this, info.enclosing, _captureIdDispenser);
                 Debug.Assert(graph.OriginalOperation == info.operation);
                 Interlocked.CompareExchange(ref _lazyLocalFunctionsGraphs[info.ordinal], graph, null);

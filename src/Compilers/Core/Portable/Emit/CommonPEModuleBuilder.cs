@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal Cci.IMethodBody GetMethodBody(IMethodSymbol methodSymbol)
         {
-            Debug.Assert(methodSymbol.ContainingModule == CommonSourceModule);
+            Debug.Assert(Equals(methodSymbol.ContainingModule, CommonSourceModule));
             Debug.Assert(methodSymbol.IsDefinition);
             Debug.Assert(methodSymbol.PartialDefinitionPart == null); // Must be definition.
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public void SetMethodBody(IMethodSymbol methodSymbol, Cci.IMethodBody body)
         {
-            Debug.Assert(methodSymbol.ContainingModule == CommonSourceModule);
+            Debug.Assert(Equals(methodSymbol.ContainingModule, CommonSourceModule));
             Debug.Assert(methodSymbol.IsDefinition);
             Debug.Assert(methodSymbol.PartialDefinitionPart == null); // Must be definition.
             Debug.Assert(body == null || (object)methodSymbol == body.MethodDefinition);
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private bool IsSourceDefinition(IMethodSymbol method)
         {
-            return method.ContainingModule == CommonSourceModule && method.IsDefinition;
+            return Equals(method.ContainingModule, CommonSourceModule) && method.IsDefinition;
         }
 
         /// <summary>
