@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             const int TimeoutInMs = 100;
             var tokenSource = new CancellationTokenSource();
             var cancellationToken = tokenSource.Token;
-            var task = new Task(() => action(writer), cancellationToken);
+            var task = Task.Run(() => action(writer), cancellationToken);
             while (true)
             {
                 if (_isDisposing)
