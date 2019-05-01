@@ -1327,7 +1327,7 @@ End Class
                     }
 
                     var symbol = symbols.SingleOrDefault();
-                    Assert.True(expectedSymbol == symbol,
+                    Assert.True(Equals(expectedSymbol, symbol),
                         string.Format("Failed to resolve FxCop fully-qualified name '{0}' to symbol '{1}': got '{2}'",
                             fxCopName, expectedSymbol, symbol));
                 }
