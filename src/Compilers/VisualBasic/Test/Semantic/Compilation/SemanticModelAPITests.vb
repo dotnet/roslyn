@@ -231,7 +231,7 @@ End Class
             Dim symbol1 = model1.GetSymbolInfo(statement.Label).Symbol
             Dim symbol2 = model2.GetSymbolInfo(statement.Label).Symbol
 
-            Assert.Equal(False, symbol1 Is symbol2)
+            Assert.NotSame(symbol1, symbol2)
             Assert.Equal(symbol1, symbol2)
         End Sub
 

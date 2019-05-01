@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Dim symbol1 = model1.GetDeclaredSymbol(vardecl)
             Dim symbol2 = model2.GetDeclaredSymbol(vardecl)
 
-            Assert.Equal(False, symbol1 Is symbol2)
+            Assert.NotSame(symbol1, symbol2)
             Assert.Equal(symbol1, symbol2)
         End Sub
 
@@ -142,7 +142,7 @@ End Namespace
             Dim symbol1 = model1.GetDeclaredSymbol(vardecl)
             Dim symbol2 = model2.GetDeclaredSymbol(vardecl)
 
-            Assert.Equal(False, symbol1 Is symbol2)
+            Assert.NotSame(symbol1, symbol2)
             Assert.Equal(symbol1, symbol2)
         End Sub
 
@@ -175,7 +175,7 @@ End Namespace
             Dim vardecl2 = tree2.GetCompilationUnitRoot().DescendantNodes().OfType(Of ModifiedIdentifierSyntax)().First()
             Dim symbol2 = model2.GetDeclaredSymbol(vardecl2)
 
-            Assert.Equal(False, symbol1 Is symbol2)
+            Assert.NotSame(symbol1, symbol2)
             Assert.NotEqual(symbol1, symbol2)
         End Sub
 
@@ -209,7 +209,7 @@ End Namespace
             Dim vardecl2 = tree2.GetCompilationUnitRoot().DescendantNodes().OfType(Of ModifiedIdentifierSyntax)().First()
             Dim symbol2 = model2.GetDeclaredSymbol(vardecl2)
 
-            Assert.Equal(False, symbol1 Is symbol2)
+            Assert.NotSame(symbol1, symbol2)
             Assert.NotEqual(symbol1, symbol2)
         End Sub
 
