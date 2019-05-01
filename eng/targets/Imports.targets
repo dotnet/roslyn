@@ -16,9 +16,6 @@
          but gets included in lots of output items like VSIX. -->
     <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.1' AND '$(TargetFramework)' != 'netcoreapp3.0'">false</GenerateRuntimeConfigurationFiles>
 
-    <!-- Place VS insertion (CoreXT) packages to a separate directory -->
-    <PackageOutputPath Condition="'$(IsVisualStudioInsertionPackage)' == 'true'">$(DevDivPackagesDir)</PackageOutputPath>
-
     <!-- 
       When building a .NET Core exe make sure to include the template runtimeconfig.json file 
       which has all of our global settings 
