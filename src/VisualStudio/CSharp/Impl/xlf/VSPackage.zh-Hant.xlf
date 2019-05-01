@@ -78,7 +78,8 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
+Use enhanced colors;
+Apply Colors;</source>
         <target state="needs-review-translation">顯示已關閉檔的診斷程式;
 著色正則運算式;
 在游標下突出顯示相關元件;

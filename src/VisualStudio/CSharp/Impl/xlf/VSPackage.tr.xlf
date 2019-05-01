@@ -78,7 +78,8 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
+Use enhanced colors;
+Apply Colors;</source>
         <target state="needs-review-translation">Teşhis için kapalı dosyaları göster;
 Normal ifade renklendirmek; 
 İmleç altında ilişkili bileşenleri vurgulamak; 
