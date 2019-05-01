@@ -22,6 +22,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Get
         End Property
 
+        Private Shared Sub DisableImportCompletionProvider(workspace As Workspace)
+            workspace.Options = workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, False)
+        End Sub
+
         <WorkItem(546208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1305,6 +1309,8 @@ Module Program
     End Sub
 End Module|}          </Document>)
 
+                DisableImportCompletionProvider(state.Workspace)
+
                 Dim subjectDocument = state.Workspace.Documents.First()
                 Dim firstProjection = state.Workspace.CreateProjectionBufferDocument(
                     <Document>
@@ -1792,6 +1798,9 @@ Class Test
 End Class
 
             ]]></Document>)
+
+                DisableImportCompletionProvider(state.Workspace)
+
                 state.SendTypeChars("selec")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal(state.GetCompletionItems().Count, 2)
@@ -2114,6 +2123,9 @@ Public Class Class2
         $$
     End Sub
 End Class</Document>)
+
+                DisableImportCompletionProvider(state.Workspace)
+
                 state.SendInvokeCompletionList()
                 Await state.AssertNoCompletionSession()
             End Using
@@ -3049,6 +3061,8 @@ Module Module1
 End Module
 ]]></Document>)
 
+                DisableImportCompletionProvider(state.Workspace)
+
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Dim psi = state.GetCompletionItems().Where(Function(i) i.DisplayText.Contains("ProcessStartInfo")).ToArray()
@@ -3092,6 +3106,8 @@ Class C
     End Sub
 End Class
 ]]></Document>)
+
+                DisableImportCompletionProvider(state.Workspace)
 
                 state.SendBackspace()
                 Await state.AssertSelectedCompletionItem("x", isSoftSelected:=True)
