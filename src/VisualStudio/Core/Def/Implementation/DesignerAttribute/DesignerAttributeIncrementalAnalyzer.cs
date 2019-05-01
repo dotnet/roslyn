@@ -213,11 +213,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var updateService = await GetUpdateServiceIfCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (updateService != null)
             {
-                // we track work by async token but doesn't explicitly wait for it. and update service is free-thread service,
-                // no need to switch to UI thread to use it
-                var asyncToken = _listener.BeginAsyncOperation("RegisterDesignerAttribute");
-                _ = updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument)
-                                 .ReportNonFatalErrorAsync().CompletesAsyncOperation(asyncToken);
+                // fire and forget designer attribute notification to CPS
+                _ = NotifyCpsDesignerAttributeAsync(document, designerAttributeArgument, updateService).ReportNonFatalErrorAsync();
             }
             else
             {
@@ -264,6 +261,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                         // just swallow it. don't crash VS.
                     }
                 }, _listener.BeginAsyncOperation("RegisterDesignerAttribute"));
+            }
+        }
+
+        private async Task NotifyCpsDesignerAttributeAsync(Document document, string designerAttributeArgument, IProjectItemDesignerTypeUpdateService updateService)
+        {
+            using (_listener.BeginAsyncOperation("RegisterDesignerAttribute"))
+            {
+                try
+                {
+                    await updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument).ConfigureAwait(false);
+                }
+                catch (ObjectDisposedException)
+                {
+                    // we might call update service after project is already removed and get object disposed exception.
+                    // we will catch the exception and ignore. 
+                    // see this PR for more detail - https://github.com/dotnet/roslyn/pull/35383
+                }
             }
         }
 
