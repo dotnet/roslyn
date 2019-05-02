@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // which typically appears to be set to the default value ("Other").
                 var category = (result.Category != DkmEvaluationResultCategory.Other) ? result.Category : value.Category;
 
-                var nullableParentInfo = value.GetDataItem<NullableParentInfo>();
+                var nullableMemberInfo = value.GetDataItem<NullableMemberInfo>();
 
                 // Valid value
                 return DkmSuccessEvaluationResult.Create(
@@ -471,10 +471,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     Value: display,
                     EditableValue: result.EditableValue,
                     Type: typeName,
-                    Category: nullableParentInfo?.Category ?? category,
-                    Access: nullableParentInfo?.Access ?? value.Access,
-                    StorageType: nullableParentInfo?.StorageType ?? value.StorageType,
-                    TypeModifierFlags: nullableParentInfo?.TypeModifierFlags ?? value.TypeModifierFlags,
+                    Category: nullableMemberInfo?.Category ?? category,
+                    Access: nullableMemberInfo?.Access ?? value.Access,
+                    StorageType: nullableMemberInfo?.StorageType ?? value.StorageType,
+                    TypeModifierFlags: nullableMemberInfo?.TypeModifierFlags ?? value.TypeModifierFlags,
                     Address: value.Address,
                     CustomUIVisualizers: customUIVisualizers,
                     ExternalModules: null,
@@ -565,8 +565,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     // Save original member values to restore them later.
                     if (value != nullableValue)
                     {
-                        var parentInfo = new NullableParentInfo(value.Category, value.Access, value.StorageType, value.TypeModifierFlags);
-                        nullableValue.SetDataItem(DkmDataCreationDisposition.CreateAlways, parentInfo);
+                        var nullableMemberInfo = new NullableMemberInfo(value.Category, value.Access, value.StorageType, value.TypeModifierFlags);
+                        nullableValue.SetDataItem(DkmDataCreationDisposition.CreateAlways, nullableMemberInfo);
                     }
 
                     value = nullableValue;
@@ -1071,14 +1071,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        private class NullableParentInfo : DkmDataItem
+        private class NullableMemberInfo : DkmDataItem
         {
             public readonly DkmEvaluationResultCategory Category;
             public readonly DkmEvaluationResultAccessType Access;
             public readonly DkmEvaluationResultStorageType StorageType;
             public readonly DkmEvaluationResultTypeModifierFlags TypeModifierFlags;
 
-            public NullableParentInfo(DkmEvaluationResultCategory category, DkmEvaluationResultAccessType access, DkmEvaluationResultStorageType storageType, DkmEvaluationResultTypeModifierFlags typeModifierFlags)
+            public NullableMemberInfo(DkmEvaluationResultCategory category, DkmEvaluationResultAccessType access, DkmEvaluationResultStorageType storageType, DkmEvaluationResultTypeModifierFlags typeModifierFlags)
             {
                 Category = category;
                 Access = access;
