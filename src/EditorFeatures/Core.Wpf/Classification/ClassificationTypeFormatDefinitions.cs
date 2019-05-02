@@ -446,8 +446,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         #endregion
         #region User Members - Static Constants 
         [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ConstantName)]
-        [Name(ClassificationTypeNames.ConstantName)]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticConstantName)]
+        [Name(ClassificationTypeNames.StaticConstantName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [UserVisible(true)]
@@ -460,10 +460,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
         #endregion
-        #region User Members - Events 
+        #region User Members - Static Events 
         [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.EventName)]
-        [Name(ClassificationTypeNames.EventName)]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticEventName)]
+        [Name(ClassificationTypeNames.StaticEventName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [UserVisible(true)]
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
         #endregion
-        #region User Members - Fields 
+        #region User Members - Static Fields 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticFieldName)]
         [Name(ClassificationTypeNames.StaticFieldName)]
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
         #endregion
-        #region User Members - Methods 
+        #region User Members - Static Methods 
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticMethodName)]
         [Name(ClassificationTypeNames.StaticMethodName)]

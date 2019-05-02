@@ -323,6 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     // Dark Theme
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.LocalName, DarkThemeLocalBlue);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ParameterName, DarkThemeLocalBlue);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.ConstantName, DarkThemeLocalBlue);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.MethodName, DarkThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ExtensionMethodName, DarkThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, DarkThemeMethodYellow);
@@ -335,6 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     // Light or Blue themes
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.LocalName, LightThemeLocalBlue);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ParameterName, LightThemeLocalBlue);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.ConstantName, LightThemeLocalBlue);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.MethodName, LightThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ExtensionMethodName, LightThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, LightThemeMethodYellow);
@@ -356,11 +358,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 return colorItemMap;
             }
 
-            private void UpdateColorItem(IDictionary<string, ColorableItems> colorItemMap, string classification, uint foreground, uint background = DefaultBackgroundColor, bool isBold = false)
+            private void UpdateColorItem(IDictionary<string, ColorableItems> colorItemMap, string classification, uint foreground, uint background = DefaultBackgroundColor)
             {
                 colorItemMap[classification].Foreground = foreground;
                 colorItemMap[classification].Background = background;
-                // colorItemMap[classification].Bold = isBold;
             }
 
             /// <summary>
