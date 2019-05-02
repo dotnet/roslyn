@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new instance of this project updated to have the new default namespace.
         /// </summary>
-        internal Project WithDefaultNamespace(string defaultNamespace)
+        public Project WithDefaultNamespace(string defaultNamespace)
         {
             return this.Solution.WithProjectDefaultNamespace(this.Id, defaultNamespace).GetProject(this.Id);
         }
