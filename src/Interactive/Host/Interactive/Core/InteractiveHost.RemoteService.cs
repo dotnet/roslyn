@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private InteractiveHost _host;              // nulled on dispose
-            private readonly CancellationTokenSource _cancellationTokenSource;
+            private Thread _readOutputThread;           // nulled on dispose	
+            private Thread _readErrorOutputThread;      // nulled on dispose
             private volatile ProcessExitHandlerStatus _processExitHandlerStatus;  // set to Handled on dispose
 
             internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
@@ -36,10 +37,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                 this.Service = service;
                 _processExitHandlerStatus = ProcessExitHandlerStatus.Uninitialized;
 
-                _cancellationTokenSource = new CancellationTokenSource();
-                var cancellationToken = _cancellationTokenSource.Token;
-                ReadOutputAsync(error: false, cancellationToken).Start();
-                ReadOutputAsync(error: true, cancellationToken).Start();
+                // TODO (tomat): consider using single-thread async readers
+                _readOutputThread = new Thread(() => ReadOutput(error: false));
+                _readOutputThread.Name = "InteractiveHost-OutputReader-" + processId;
+                _readOutputThread.IsBackground = true;
+                _readOutputThread.Start();
+
+                _readErrorOutputThread = new Thread(() => ReadOutput(error: true));
+                _readErrorOutputThread.Name = "InteractiveHost-ErrorOutputReader-" + processId;
+                _readErrorOutputThread.IsBackground = true;
+                _readErrorOutputThread.Start();
             }
 
             internal void HookAutoRestartEvent()
@@ -87,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private async Task ReadOutputAsync(bool error, CancellationToken cancellationToken)
+            private void ReadOutput(bool error)
             {
                 var buffer = new char[4096];
                 StreamReader reader = error ? Process.StandardError : Process.StandardOutput;
@@ -96,12 +103,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     // loop until the output pipe is closed and has no more data (process is killed):
                     while (!reader.EndOfStream)
                     {
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            return;
-                        }
-
-                        int count = await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
+                        int count = reader.Read(buffer, 0, buffer.Length);
                         if (count == 0)
                         {
                             break;
@@ -138,9 +140,28 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 InitiateTermination(Process, _processId);
 
+                try
+                {
+                    _readOutputThread?.Join();
+                }
+                catch (ThreadStateException)
+                {
+                    // thread hasn't started	
+                }
+
+                try
+                {
+                    _readErrorOutputThread?.Join();
+                }
+                catch (ThreadStateException)
+                {
+                    // thread hasn't started	
+                }
+
                 // null the host so that we don't attempt to write to the buffer anymore:
                 _host = null;
-                _cancellationTokenSource.Cancel();
+
+                _readOutputThread = _readErrorOutputThread = null;
             }
 
             internal static void InitiateTermination(Process process, int processId)
