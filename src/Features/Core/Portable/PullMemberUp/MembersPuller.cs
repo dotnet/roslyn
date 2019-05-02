@@ -272,9 +272,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     else
                     {
                         var declarationSyntax = originalMemberEditor.Generator.GetDeclaration(syntax);
-                        var generator = SyntaxGenerator.GetGenerator(solution.GetDocument(syntax.SyntaxTree));
-                        var newDeclarationSyntax = generator.WithModifiers(declarationSyntax, DeclarationModifiers.Override);
-                        originalMemberEditor.ReplaceNode(declarationSyntax, newDeclarationSyntax);
+                        originalMemberEditor.ReplaceNode<object>(declarationSyntax, (node, generator, _) => generator.WithModifiers(node, DeclarationModifiers.Override), null);
                     }
                 }
             }
