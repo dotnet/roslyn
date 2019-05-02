@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 this.Service = service;
                 _processExitHandlerStatus = ProcessExitHandlerStatus.Uninitialized;
 
-                var _cancellationTokenSource = new CancellationTokenSource();
+                _cancellationTokenSource = new CancellationTokenSource();
                 var cancellationToken = _cancellationTokenSource.Token;
                 ReadOutputAsync(error: false, cancellationToken).Start();
                 ReadOutputAsync(error: true, cancellationToken).Start();
