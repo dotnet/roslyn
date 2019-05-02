@@ -269,9 +269,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 session.Properties.AddProperty(ExcludedCommitCharacters, excludedCommitCharacters);
             }
 
-            AsyncCompletionLogger.LogRoslynCompletionItemsCached(RoslynCompletionItemsCached);
-            AsyncCompletionLogger.LogVSCompletionItemsCacheHit(VSCompletionItemsCacheHitCount);
-
             return new AsyncCompletionData.CompletionContext(
                 items,
                 suggestionItemOptions,
@@ -318,23 +315,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        private int VSCompletionItemsCacheHitCount { get; set; }
-
-        private int RoslynCompletionItemsCached { get; set; }
-
         private VSCompletionItem Convert(
             Document document,
             RoslynCompletionItem roslynItem)
         {
-            if (roslynItem.IsCached)
+            if (roslynItem.IsCached && s_roslynItemToVsItem.TryGetValue(roslynItem, out var vsItem))
             {
-                RoslynCompletionItemsCached++;
-
-                if (s_roslynItemToVsItem.TryGetValue(roslynItem, out var vsItem))
-                {
-                    VSCompletionItemsCacheHitCount++;
-                    return vsItem;
-                }
+                return vsItem;
             }
 
             var imageId = roslynItem.Tags.GetFirstGlyph().GetImageId();
