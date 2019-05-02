@@ -214,12 +214,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         //(a) the interface member is not an accessor, or 
                         //(b) the interface member is an accessor of an interesting (see ReportAccessorOfInterfacePropertyOrEvent) property or event, or
                         //(c) the implementing member exists and is not an accessor.
-
+                        bool reportedAnError = false;
                         if (implementingMemberAndDiagnostics.Diagnostics.Any())
                         {
                             diagnostics.AddRange(implementingMemberAndDiagnostics.Diagnostics);
+                            reportedAnError = implementingMemberAndDiagnostics.Diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error);
                         }
-                        else
+
+                        if (!reportedAnError)
                         {
                             if (!wasImplementingMemberFound ||
                                 (!implementingMember.ContainingType.Equals(this, TypeCompareKind.ConsiderEverything) &&
