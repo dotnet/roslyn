@@ -11483,6 +11483,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to stackalloc in nested expressions.
+        /// </summary>
+        internal static string IDS_FeatureNestedStackalloc {
+            get {
+                return ResourceManager.GetString("IDS_FeatureNestedStackalloc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to nullable types.
         /// </summary>
         internal static string IDS_FeatureNullable {
