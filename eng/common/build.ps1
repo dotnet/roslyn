@@ -122,6 +122,10 @@ try {
     . $configureToolsetScript
   }
 
+  if ($restore) {
+    InitializeNativeTools
+  }
+
   Build
 }
 catch {
