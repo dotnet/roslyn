@@ -29,20 +29,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private static ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
         {
-            var requestHandlerDictionary = new Dictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>>();
+            var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<string, Lazy<IRequestHandler, IRequestHandlerMetadata>>();
             foreach (var lazyHandler in requestHandlers)
             {
                 requestHandlerDictionary.Add(lazyHandler.Metadata.MethodName, lazyHandler);
             }
 
-            return requestHandlerDictionary.ToImmutableDictionary();
+            return requestHandlerDictionary.ToImmutable();
         }
 
-        private async Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, Solution solution, RequestType request,
+        private Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, Solution solution, RequestType request,
             LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var handler = (IRequestHandler<RequestType, ResponseType>)_requestHandlers[methodName].Value;
-            return await handler.HandleRequestAsync(solution, request, clientCapabilities, cancellationToken).ConfigureAwait(false);
+            return handler.HandleRequestAsync(solution, request, clientCapabilities, cancellationToken);
         }
 
         /// <summary>
@@ -53,11 +53,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the request document symbol location.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the location(s) of the implementations of the symbol.</returns>
-        public async Task<object> FindImplementationsAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.TextDocumentPositionParams, object>(LSP.Methods.TextDocumentImplementationName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<object> FindImplementationsAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, object>(LSP.Methods.TextDocumentImplementationName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a format document request to format the entire document.
@@ -67,11 +64,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the request document and formatting options.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the text edits describing the document modifications.</returns>
-        public async Task<LSP.TextEdit[]> FormatDocumentAsync(Solution solution, LSP.DocumentFormattingParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentFormattingName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.TextEdit[]> FormatDocumentAsync(Solution solution, LSP.DocumentFormattingParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentFormattingName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a format document on type request to format parts of the document during typing.
@@ -81,11 +75,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the request document, formatting options, and typing information.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the text edits describing the document modifications.</returns>
-        public async Task<LSP.TextEdit[]> FormatDocumentOnTypeAsync(Solution solution, LSP.DocumentOnTypeFormattingParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentOnTypeFormattingName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.TextEdit[]> FormatDocumentOnTypeAsync(Solution solution, LSP.DocumentOnTypeFormattingParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentOnTypeFormattingName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a format document range request to format a specific range in the document.
@@ -95,11 +86,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the request document, formatting options, and range to format.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the text edits describing the document modifications.</returns>
-        public async Task<LSP.TextEdit[]> FormatDocumentRangeAsync(Solution solution, LSP.DocumentRangeFormattingParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentRangeFormattingName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.TextEdit[]> FormatDocumentRangeAsync(Solution solution, LSP.DocumentRangeFormattingParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentRangeFormattingName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a code action request by returning the code actions for the document and range.
@@ -109,11 +97,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the document and range to get code actions for.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>a list of commands representing code actions.</returns>
-        public async Task<LSP.Command[]> GetCodeActionsAsync(Solution solution, LSP.CodeActionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.CodeActionParams, LSP.Command[]>(LSP.Methods.TextDocumentCodeActionName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.Command[]> GetCodeActionsAsync(Solution solution, LSP.CodeActionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.CodeActionParams, LSP.Command[]>(LSP.Methods.TextDocumentCodeActionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a completion request by returning the valid completions at the location.
@@ -123,11 +108,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the document position and completion context.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>a list of completions.</returns>
-        public async Task<object> GetCompletionsAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.CompletionParams, object>(LSP.Methods.TextDocumentCompletionName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<object> GetCompletionsAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.CompletionParams, object>(LSP.Methods.TextDocumentCompletionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a document highlights request by returning the highlights for a given document location.
@@ -137,11 +119,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the request document location.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the highlights in the document for the given document location.</returns>
-        public async Task<LSP.DocumentHighlight[]> GetDocumentHighlightAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.DocumentHighlight[]> GetDocumentHighlightAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a document symbols request by returning a list of symbols in the document.
@@ -151,11 +130,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the document to get symbols from.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>a list of symbols in the document.</returns>
-        public async Task<object[]> GetDocumentSymbolsAsync(Solution solution, LSP.DocumentSymbolParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.DocumentSymbolParams, object[]>(LSP.Methods.TextDocumentDocumentSymbolName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<object[]> GetDocumentSymbolsAsync(Solution solution, LSP.DocumentSymbolParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.DocumentSymbolParams, object[]>(LSP.Methods.TextDocumentDocumentSymbolName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a folding range request by returning all folding ranges in a given document.
@@ -165,11 +141,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the request document.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>a list of folding ranges in the document.</returns>
-        public async Task<LSP.FoldingRange[]> GetFoldingRangeAsync(Solution solution, LSP.FoldingRangeParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(LSP.Methods.TextDocumentFoldingRangeName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.FoldingRange[]> GetFoldingRangeAsync(Solution solution, LSP.FoldingRangeParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(LSP.Methods.TextDocumentFoldingRangeName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a Hover request by returning the quick info at the requested location.
@@ -179,11 +152,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the hover requesst.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the Hover using MarkupContent.</returns>
-        public async Task<LSP.Hover> GetHoverAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.Hover> GetHoverAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a signature help request to get signature information at a given cursor position.
@@ -193,11 +163,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the request document position.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the signature help at a given location.</returns>
-        public async Task<LSP.SignatureHelp> GetSignatureHelpAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SignatureHelp>(LSP.Methods.TextDocumentSignatureHelpName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.SignatureHelp> GetSignatureHelpAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SignatureHelp>(LSP.Methods.TextDocumentSignatureHelpName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a workspace symbols request by providing a list of symbols found in a given workspace.
@@ -207,11 +174,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the workspace request with the query to invoke.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>a list of symbols in the workspace.</returns>
-        public async Task<LSP.SymbolInformation[]> GetWorkspaceSymbolsAsync(Solution solution, LSP.WorkspaceSymbolParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(LSP.Methods.WorkspaceSymbolName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.SymbolInformation[]> GetWorkspaceSymbolsAsync(Solution solution, LSP.WorkspaceSymbolParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(LSP.Methods.WorkspaceSymbolName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a goto definition request by returning the location for a given symbol definition.
@@ -221,11 +185,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the document position of the symbol to go to.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the location of a given symbol.</returns>
-        public async Task<LSP.Location[]> GoToDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.Location[]> GoToDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a goto type definition request by returning the location of a given type definition.
@@ -235,11 +196,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the document position of the type to go to.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the location of a type definition.</returns>
-        public async Task<LSP.Location[]> GoToTypeDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentTypeDefinitionName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.Location[]> GoToTypeDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentTypeDefinitionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers an initialize request by returning the server capabilities.
@@ -249,11 +207,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the initialize parameters.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the server cababilities.</returns>
-        public async Task<LSP.InitializeResult> InitializeAsync(Solution solution, LSP.InitializeParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.InitializeResult> InitializeAsync(Solution solution, LSP.InitializeParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a request to resolve a completion item.
@@ -263,10 +218,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the completion item to resolve.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>a resolved completion item.</returns>
-        public async Task<LSP.CompletionItem> ResolveCompletionItemAsync(Solution solution, LSP.CompletionItem request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-        {
-            return await ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, solution, request, clientCapabilities, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        public Task<LSP.CompletionItem> ResolveCompletionItemAsync(Solution solution, LSP.CompletionItem request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, solution, request, clientCapabilities, cancellationToken);
     }
 }

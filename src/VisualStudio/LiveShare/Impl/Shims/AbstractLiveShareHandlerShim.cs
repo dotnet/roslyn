@@ -16,21 +16,21 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// </summary>
     internal abstract class AbstractLiveShareHandlerShim<RequestType, ResponseType> : ILspRequestHandler<RequestType, ResponseType, Solution>
     {
-        private readonly IRequestHandler<RequestType, ResponseType> _requestHandler;
+        private readonly Lazy<IRequestHandler, IRequestHandlerMetadata> _lazyRequestHandler;
 
         public AbstractLiveShareHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string methodName)
         {
-            _requestHandler = GetRequestHandler(requestHandlers, methodName);
+            _lazyRequestHandler = GetRequestHandler(requestHandlers, methodName);
         }
 
         public virtual Task<ResponseType> HandleAsync(RequestType param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            return _requestHandler.HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities, cancellationToken);
+            return ((IRequestHandler<RequestType, ResponseType>)_lazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities, cancellationToken);
         }
 
-        protected IRequestHandler<RequestType, ResponseType> GetRequestHandler(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string methodName)
+        protected Lazy<IRequestHandler, IRequestHandlerMetadata> GetRequestHandler(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string methodName)
         {
-            return (IRequestHandler<RequestType, ResponseType>)requestHandlers.First(handler => handler.Metadata.MethodName == methodName).Value;
+            return requestHandlers.First(handler => handler.Metadata.MethodName == methodName);
         }
     }
 }

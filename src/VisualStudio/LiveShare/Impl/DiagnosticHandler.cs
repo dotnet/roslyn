@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
@@ -54,9 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                     await (NotifyAsync?.InvokeAsync(this, eventArgs)).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
             {
-                // TODO - Replace trace
             }
         }
 
