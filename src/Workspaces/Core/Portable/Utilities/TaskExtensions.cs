@@ -479,12 +479,18 @@ namespace Roslyn.Utilities
             FatalError.Report(exception);
         }
 
-        public static Task ReportNonFatalErrorAsync(this Task task)
+        public static Task ReportNonFatalErrorAsync(this Task task, Func<Exception, bool> predicate = null)
         {
-            task.ContinueWith(p => FatalError.ReportWithoutCrashUnlessCanceled(p.Exception),
-                CancellationToken.None,
-                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
+            task.ContinueWith(p =>
+            {
+                if (predicate == null || predicate(p.Exception))
+                {
+                    FatalError.ReportWithoutCrashUnlessCanceled(p.Exception);
+                }
+            },
+            CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
 
             return task;
         }
