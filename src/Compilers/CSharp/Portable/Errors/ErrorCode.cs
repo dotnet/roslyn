@@ -1713,9 +1713,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
 
         ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember = 8707,
-        ERR_NotBaseOrImplementedInterface = 8708,
-        ERR_NotImplementedInBase = 8709,
-        ERR_NotDeclaredInBase = 8710,
+        //ERR_NotBaseOrImplementedInterface = 8708,
+        //ERR_NotImplementedInBase = 8709,
+        //ERR_NotDeclaredInBase = 8710,
 
         ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
 
