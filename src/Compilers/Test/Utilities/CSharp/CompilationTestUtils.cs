@@ -299,6 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     VerifyTypes(compilation, syntaxTree);
                 }
+
                 return;
             }
 
@@ -376,23 +377,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             ExpressionSyntax asExpression(SyntaxNode node)
             {
-                var expr = node as ExpressionSyntax;
-                if (expr == null)
+                while (true)
                 {
-                    return null;
+                    switch (node)
+                    {
+                        case null:
+                            return null;
+                        case ParenthesizedExpressionSyntax paren:
+                            return paren.Expression;
+                        case IdentifierNameSyntax id when id.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == node:
+                            node = memberAccess;
+                            continue;
+                        case ExpressionSyntax expr when expr.Parent is ConditionalAccessExpressionSyntax cond && cond.WhenNotNull == node:
+                            node = cond;
+                            continue;
+                        case ExpressionSyntax expr:
+                            return expr;
+                        case { Parent: var parent }:
+                            node = parent;
+                            continue;
+                    }
                 }
-                switch (expr.Kind())
-                {
-                    case SyntaxKind.ParenthesizedExpression:
-                        return ((ParenthesizedExpressionSyntax)expr).Expression;
-                    case SyntaxKind.IdentifierName:
-                        if (expr.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == expr)
-                        {
-                            return memberAccess;
-                        }
-                        break;
-                }
-                return expr;
             }
         }
     }

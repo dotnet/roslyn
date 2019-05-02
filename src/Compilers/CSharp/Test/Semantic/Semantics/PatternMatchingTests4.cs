@@ -131,9 +131,12 @@ class C
                 // (8,25): error CS1003: Syntax error, ',' expected
                 //             case (() => 0):
                 Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",", "").WithLocation(8, 25),
-                // (10,18): error CS1525: Invalid expression term 'stackalloc'
+                // (10,18): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //             case stackalloc int[1] { 0 }:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(10, 18),
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1] { 0 }").WithArguments("System.Span`1").WithLocation(10, 18),
+                // (10,18): error CS0150: A constant value is expected
+                //             case stackalloc int[1] { 0 }:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "stackalloc int[1] { 0 }").WithLocation(10, 18),
                 // (12,18): error CS0150: A constant value is expected
                 //             case new { X = 0 }:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new { X = 0 }").WithLocation(12, 18)

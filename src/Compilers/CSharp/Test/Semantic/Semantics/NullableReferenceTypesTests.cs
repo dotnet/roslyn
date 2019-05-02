@@ -1081,18 +1081,13 @@ class C
             // Need to confirm whether this suppression should be allowed or be effective
             // If so, we need to verify the semantic model
             // Tracked by https://github.com/dotnet/roslyn/issues/30151
-
             comp.VerifyDiagnostics(
-                // (8,20): error CS1525: Invalid expression term 'stackalloc'
+                // (8,20): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //         int* s3 = (stackalloc[] { 1 })!;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc[] { 1 }").WithArguments("int", "int*").WithLocation(8, 20),
                 // (9,35): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
                 //         System.Span<string> s4 = (stackalloc[] { null, string.Empty })!;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { null, string.Empty }").WithArguments("string").WithLocation(9, 35),
-                // (9,35): error CS1525: Invalid expression term 'stackalloc'
-                //         System.Span<string> s4 = (stackalloc[] { null, string.Empty })!;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(9, 35)
-                );
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { null, string.Empty }").WithArguments("string").WithLocation(9, 35));
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
@@ -1941,17 +1936,7 @@ class Test
         var x3 = true ? stackalloc[] { 1, 2, 3 }! : a3;
     }
 }", TestOptions.UnsafeReleaseDll);
-
-            // Note: when we allow stackalloc expressions to be nested in other expressions,
-            // we'll have to look at conversion from expression of suppressed stackalloc
-            comp.VerifyDiagnostics(
-                // (6,31): error CS1525: Invalid expression term 'stackalloc'
-                //         System.Span<int> a3 = stackalloc[] { 1, 2, 3 }!;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 31),
-                // (7,25): error CS1525: Invalid expression term 'stackalloc'
-                //         var x3 = true ? stackalloc[] { 1, 2, 3 }! : a3;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 25)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
@@ -94704,6 +94689,137 @@ class C
                 // (14,32): warning CS8603: Possible null reference return.
                 //                         return s; // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "s").WithLocation(14, 32));
+        }
+
+        [Fact, WorkItem(29956, "https://github.com/dotnet/roslyn/issues/29956")]
+        public void ConditionalExpression_InferredResultType()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+class C
+{
+    void Test1(object? x)
+    {
+        M(x)?.Self()/*T:Box<object?>?*/;
+        M(x)?.Value()/*T:object?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<object!>?*/;
+        M(x)?.Value()/*T:object?*/;
+    }
+
+    void Test2<T>(T x)
+    {
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:void*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:void*/;
+    }
+
+    void Test3(int x)
+    {
+        M(x)?.Self()/*T:Box<int>?*/;
+        M(x)?.Value()/*T:int?*/;
+        if (x == null) return; // 1
+        M(x)?.Self()/*T:Box<int>?*/;
+        M(x)?.Value()/*T:int?*/;
+    }
+
+    void Test4(int? x)
+    {
+        M(x)?.Self()/*T:Box<int?>?*/;
+        M(x)?.Value()/*T:int?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<int?>?*/;
+        M(x)?.Value()/*T:int?*/;
+    }
+
+    void Test5<T>(T? x) where T : class
+    {
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    void Test6<T>(T x) where T : struct
+    {
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return; // 2
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    void Test7<T>(T? x) where T : struct
+    {
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    void Test8<T>(T x) where T : class
+    {
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    void Test9<T>(T x) where T : class
+    {
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x != null) return;
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    static Box<T> M<T>(T t) => new Box<T>(t);
+}
+
+class Box<T>
+{
+    public Box<T> Self() => this;
+    public T Value() => throw null!;
+    public Box(T value) { }
+}
+");
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (26,13): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
+                //         if (x == null) return; // 1
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "x == null").WithArguments("false", "int", "int?").WithLocation(26, 13),
+                // (53,13): error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
+                //         if (x == null) return; // 2
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == null").WithArguments("==", "T", "<null>").WithLocation(53, 13));
+        }
+
+        [Fact, WorkItem(35075, "https://github.com/dotnet/roslyn/issues/35075")]
+        public void ConditionalExpression_TypeParameterConstrainedToNullableValueType()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+class C<T>
+{
+    public virtual void M<U>(B x, U y) where U : T { }
+}
+
+class B : C<int?>
+{
+    public override void M<U>(B x, U y)
+    {
+        var z = x?.Test(y)/*T:U?*/;
+        z = null;
+    }
+
+    T Test<T>(T x) => throw null!;
+}");
+            c.VerifyTypes();
+            // Per https://github.com/dotnet/roslyn/issues/35075 errors should be expected
+            c.VerifyDiagnostics();
         }
     }
 }
