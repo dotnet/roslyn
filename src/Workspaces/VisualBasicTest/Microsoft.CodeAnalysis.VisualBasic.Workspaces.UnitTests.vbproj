@@ -6,7 +6,6 @@
     <OptionStrict>Off</OptionStrict>
     <VBRuntime>Default</VBRuntime>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">

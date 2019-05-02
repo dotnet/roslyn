@@ -276,7 +276,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Lang
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTest.Utilities", "src\VisualStudio\IntegrationTest\TestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.csproj", "{3BED15FD-D608-4573-B432-1569C1026F6D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Test.Performance.Tests", "src\Test\Perf\tests\Roslyn.Test.Performance.Tests.csproj", "{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.PerformanceTests", "src\Test\Perf\tests\Roslyn.PerformanceTests.csproj", "{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.Xaml", "src\VisualStudio\Xaml\Impl\Microsoft.VisualStudio.LanguageServices.Xaml.csproj", "{971E832B-7471-48B5-833E-5913188EC0E4}"
 EndProject

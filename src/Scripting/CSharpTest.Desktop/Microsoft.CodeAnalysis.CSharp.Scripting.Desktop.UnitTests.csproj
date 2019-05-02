@@ -6,7 +6,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
