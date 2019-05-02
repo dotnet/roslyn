@@ -45888,7 +45888,7 @@ interface B : I1, I2
         }
 
         [Fact]
-        public void ExplicitBase_056()
+        public void ExplicitBase_056_01()
         {
             var source = @"
 class A : B
@@ -45930,19 +45930,108 @@ interface C
 
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics(
-                // (6,21): error CS0117: 'B' does not contain a definition for 'MemberwiseClone'
+                // (6,13): error CS8710: 'object.MemberwiseClone()' is not an immediate member of B.
                 //         _ = base(B).MemberwiseClone();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "MemberwiseClone").WithArguments("B", "MemberwiseClone").WithLocation(6, 21),
-                // (14,21): error CS0117: 'B' does not contain a definition for 'MemberwiseClone'
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).MemberwiseClone").WithArguments("object.MemberwiseClone()", "B").WithLocation(6, 13),
+                // (14,13): error CS8710: 'object.MemberwiseClone()' is not an immediate member of B.
                 //         _ = base(B).MemberwiseClone();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "MemberwiseClone").WithArguments("B", "MemberwiseClone").WithLocation(14, 21),
-                // (22,21): error CS0117: 'B' does not contain a definition for 'MemberwiseClone'
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).MemberwiseClone").WithArguments("object.MemberwiseClone()", "B").WithLocation(14, 13),
+                // (22,21): error CS0122: 'object.MemberwiseClone()' is inaccessible due to its protection level
                 //         _ = base(B).MemberwiseClone();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "MemberwiseClone").WithArguments("B", "MemberwiseClone").WithLocation(22, 21),
-                // (34,18): error CS8708: 'object' is not base type or interface of C.
+                Diagnostic(ErrorCode.ERR_BadAccess, "MemberwiseClone").WithArguments("object.MemberwiseClone()").WithLocation(22, 21),
+                // (34,26): error CS0122: 'object.MemberwiseClone()' is inaccessible due to its protection level
                 //         _ = base(object).MemberwiseClone();
-                Diagnostic(ErrorCode.ERR_NotBaseOrImplementedInterface, "object").WithArguments("object", "C").WithLocation(34, 18)
+                Diagnostic(ErrorCode.ERR_BadAccess, "MemberwiseClone").WithArguments("object.MemberwiseClone()").WithLocation(34, 26)
                 );
+        }
+
+        [Fact]
+        public void ExplicitBase_056_02()
+        {
+            var source = @"
+class A : B
+{
+    void Test()
+    {
+        _ = base(B).ToString();
+    }
+}
+
+struct D : B
+{
+    public void Test()
+    {
+        _ = base(B).ToString();
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        _ = base(B).ToString();
+    }
+}
+
+interface B
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (6,13): error CS8709: 'object.ToString()' is not implemented in base interface B.
+                //         _ = base(B).ToString();
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).ToString").WithArguments("object.ToString()", "B").WithLocation(6, 13),
+                // (14,13): error CS8709: 'object.ToString()' is not implemented in base interface B.
+                //         _ = base(B).ToString();
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).ToString").WithArguments("object.ToString()", "B").WithLocation(14, 13),
+                // (22,13): error CS8709: 'object.ToString()' is not implemented in base interface B.
+                //         _ = base(B).ToString();
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).ToString").WithArguments("object.ToString()", "B").WithLocation(22, 13)
+                );
+        }
+
+        [Fact]
+        public void ExplicitBase_056_03()
+        {
+            var source = @"
+class A : C
+{
+    public override string ToString() => ""C.ToString"";
+}
+
+struct D : C
+{
+    public override string ToString() => ""D.ToString"";
+}
+
+interface C
+{
+    static void Main()
+    {
+        C c = new A();
+        System.Console.WriteLine(c.ToString());
+        System.Console.WriteLine(c.Test());
+        c = new D();
+        System.Console.WriteLine(c.ToString());
+        System.Console.WriteLine(c.Test());
+    }
+
+    sealed string Test() => base(object).ToString();
+}
+";
+
+            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+C.ToString
+A
+D.ToString
+D
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]

@@ -1904,6 +1904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     if (!this.ContainingType.IsDerivedFrom(baseType, TypeCompareKind.ConsiderEverything, ref useSiteDiagnostics) &&
+                        !(this.ContainingType.IsInterface && baseType.IsObjectType()) &&
                         !this.ContainingType.ImplementsInterface(baseType, ref useSiteDiagnostics))
                     {
                         Error(diagnostics, ErrorCode.ERR_NotBaseOrImplementedInterface, node.TypeClause.BaseType, baseType, this.ContainingType);
@@ -5923,7 +5924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool leftIsBaseReference = boundLeft.Kind == BoundKind.BaseReference;
                 if (leftIsBaseReference)
                 {
-                    options |= (LookupOptions.UseBaseReferenceAccessibility | LookupOptions.NoObjectMembersOnInterfaces);
+                    options |= LookupOptions.UseBaseReferenceAccessibility;
                 }
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -7189,7 +7190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(analyzedArguments != null);
 
             LookupResult lookupResult = LookupResult.GetInstance();
-            LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? (LookupOptions.UseBaseReferenceAccessibility | LookupOptions.NoObjectMembersOnInterfaces) : LookupOptions.Default;
+            LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? LookupOptions.UseBaseReferenceAccessibility : LookupOptions.Default;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             this.LookupMembersWithFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: lookupOptions);
             diagnostics.Add(node, useSiteDiagnostics);
