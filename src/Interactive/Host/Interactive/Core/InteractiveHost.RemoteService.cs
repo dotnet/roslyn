@@ -20,9 +20,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             private SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
-            private Thread _readOutputThread;           // nulled on dispose
-            private Thread _readErrorOutputThread;      // nulled on dispose
             private InteractiveHost _host;              // nulled on dispose
+            private readonly CancellationTokenSource _cancellationTokenSource;
             private volatile ProcessExitHandlerStatus _processExitHandlerStatus;  // set to Handled on dispose
 
             internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
@@ -37,16 +36,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                 this.Service = service;
                 _processExitHandlerStatus = ProcessExitHandlerStatus.Uninitialized;
 
-                // TODO (tomat): consider using single-thread async readers
-                _readOutputThread = new Thread(() => ReadOutput(error: false));
-                _readOutputThread.Name = "InteractiveHost-OutputReader-" + processId;
-                _readOutputThread.IsBackground = true;
-                _readOutputThread.Start();
-
-                _readErrorOutputThread = new Thread(() => ReadOutput(error: true));
-                _readErrorOutputThread.Name = "InteractiveHost-ErrorOutputReader-" + processId;
-                _readErrorOutputThread.IsBackground = true;
-                _readErrorOutputThread.Start();
+                var _cancellationTokenSource = new CancellationTokenSource();
+                var cancellationToken = _cancellationTokenSource.Token;
+                ReadOutputAsync(error: false, cancellationToken).Start();
+                ReadOutputAsync(error: true, cancellationToken).Start();
             }
 
             internal void HookAutoRestartEvent()
@@ -94,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private void ReadOutput(bool error)
+            private async Task ReadOutputAsync(bool error, CancellationToken cancellationToken)
             {
                 var buffer = new char[4096];
                 StreamReader reader = error ? Process.StandardError : Process.StandardOutput;
@@ -103,7 +96,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                     // loop until the output pipe is closed and has no more data (process is killed):
                     while (!reader.EndOfStream)
                     {
-                        int count = reader.Read(buffer, 0, buffer.Length);
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            return;
+                        }
+
+                        int count = await reader.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
                         if (count == 0)
                         {
                             break;
@@ -140,28 +138,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 InitiateTermination(Process, _processId);
 
-                try
-                {
-                    _readOutputThread?.Join();
-                }
-                catch (ThreadStateException)
-                {
-                    // thread hasn't started
-                }
-
-                try
-                {
-                    _readErrorOutputThread?.Join();
-                }
-                catch (ThreadStateException)
-                {
-                    // thread hasn't started
-                }
-
                 // null the host so that we don't attempt to write to the buffer anymore:
                 _host = null;
-
-                _readOutputThread = _readErrorOutputThread = null;
+                _cancellationTokenSource.Cancel();
             }
 
             internal static void InitiateTermination(Process process, int processId)
