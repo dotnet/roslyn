@@ -4852,12 +4852,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindExitStatement(node As ExitStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
             ' This needs to bind to correct continue label, potentially in a higher context
             Dim targetLabel As LabelSymbol = Nothing
-            Dim hasControlVariable = node.ControlVariable IsNot Nothing
 
+            ' Does this exit statement, have a control variable?
+            ' eg:= Exit For i
+            Dim hasControlVariable = node.ControlVariable IsNot Nothing
             If hasControlVariable Then
+                ' Retrieve the name used by the control variable.
                 Dim exitName = node.ControlVariable.ToString()
+                ' Try and find the corrisponding label used to mark the exit label for that loop.
                 targetLabel = GetExitLabel(node.Kind, exitName)
+                ' If it not found within the nestings of loops.
                 If targetLabel Is Nothing Then
+                    ' report an error that the usage is invalid.
                     ReportDiagnostic(diagnostics, node.ControlVariable, ERRID.ERR_InvalidExitStatement, exitName)
                 End If
             Else
@@ -4889,12 +4895,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindContinueStatement(node As ContinueStatementSyntax, diagnostics As DiagnosticBag) As BoundStatement
             ' This needs to bind to correct continue label, potentially in a higher context
-            Dim targetLabel As LabelSymbol = Nothing
+            Dim targetLabel As LabelSymbol = Nothing           
+            ' Does this continue statement, have a control variable?
+            ' eg:= Continue For i
             Dim hasControlVariable = node.ControlVariable IsNot Nothing
             If hasControlVariable Then
+                ' Retrieve the name used by the control variable.
                 Dim continueName = node.ControlVariable.ToString()
+                ' Try and find the corrisponding label used to mark the conitune label for that loop.
                 targetLabel = GetContinueLabel(node.Kind, continueName)
+                ' If it not found within the nestings of loops.
                 If targetLabel Is Nothing Then
+                    ' report an error that the usage is invalid.
                     ReportDiagnostic(diagnostics, node.ControlVariable, ERRID.ERR_InvalidContinueStatement, continueName)
                 End If
             Else

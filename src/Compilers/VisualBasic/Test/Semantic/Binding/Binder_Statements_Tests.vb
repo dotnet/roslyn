@@ -870,8 +870,8 @@ After Loop
 
         <Fact(DisplayName:="ContinueAndExitForWithIdentifier")>
         Public Sub ContinueAndExitForWithIdentifier()
-           Dim result AS CompilationVerifier = nothing
-                Result = CompileAndVerify(
+            Dim result AS CompilationVerifier = nothing
+            result = CompileAndVerify(
 <compilation name="ExitContinueForLoop1">
     <file name="a.vb">
 Imports System        
@@ -899,7 +899,7 @@ Module M1
 End Module
     </file>
 </compilation>,
-    expectedOutput:=<![CDATA[
+expectedOutput:=<![CDATA[
 Loop i Block Start (0)
 Loop j Block Start (0)
 Continuing
