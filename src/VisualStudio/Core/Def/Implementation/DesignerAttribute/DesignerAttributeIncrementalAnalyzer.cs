@@ -213,11 +213,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var updateService = await GetUpdateServiceIfCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (updateService != null)
             {
+                var asyncToken = _listener.BeginAsyncOperation("RegisterDesignerAttribute");
                 try
                 {
                     // we track work by async token but doesn't explicitly wait for it. and update service is free-thread service,
                     // no need to switch to UI thread to use it
-                    var asyncToken = _listener.BeginAsyncOperation("RegisterDesignerAttribute");
                     _ = updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument)
                                      .ReportNonFatalErrorAsync().CompletesAsyncOperation(asyncToken);
                 }
@@ -227,6 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     // we will catch the exception and ignore. this is wierd setup since we are catching exception from
                     // async call, but until we have better way to handle this, this is what we have.
                     // see this PR for more detail - https://github.com/dotnet/roslyn/pull/35383
+                    asyncToken.Dispose();
                     return;
                 }
             }
