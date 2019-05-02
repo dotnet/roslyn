@@ -4764,10 +4764,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            return VisitDeconstructionAssignementOperator(node, null);
+            return VisitDeconstructionAssignmentOperator(node, null);
         }
 
-        private BoundNode VisitDeconstructionAssignementOperator(BoundDeconstructionAssignmentOperator node, TypeWithState? rightResultOpt)
+        private BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node, TypeWithState? rightResultOpt)
         {
             var previousDisableNullabilityAnalysis = _disableNullabilityAnalysis;
             _disableNullabilityAnalysis = true;
@@ -5576,7 +5576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
                 // Visit the assignment as a deconstruction with an explicit type
-                VisitDeconstructionAssignementOperator(assignment, sourceState);
+                VisitDeconstructionAssignmentOperator(assignment, sourceState);
             }
             else
             {
