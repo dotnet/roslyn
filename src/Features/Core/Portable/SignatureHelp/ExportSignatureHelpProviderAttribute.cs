@@ -6,7 +6,7 @@ using System.Composition;
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal class ExportSignatureHelpProviderAttribute : ExportAttribute
     {
         public string Name { get; }

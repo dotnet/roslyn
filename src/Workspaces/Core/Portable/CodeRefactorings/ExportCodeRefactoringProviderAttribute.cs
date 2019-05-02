@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     /// Use this attribute to declare a <see cref="CodeRefactoringProvider"/> implementation so that it can be discovered by the host.
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class ExportCodeRefactoringProviderAttribute : ExportAttribute
     {
         /// <summary>

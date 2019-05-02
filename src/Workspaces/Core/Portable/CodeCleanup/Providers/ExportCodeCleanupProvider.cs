@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     /// Specifies the exact type of the code cleanup exported.
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal class ExportCodeCleanupProvider : ExportAttribute
     {
         public string Name { get; }

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tags
     /// so that it can be discovered by the host.
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class ExportImageMonikerServiceAttribute : ExportAttribute
     {
         /// <summary>

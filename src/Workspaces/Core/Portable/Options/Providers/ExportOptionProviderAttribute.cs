@@ -5,7 +5,7 @@ using System.Composition;
 
 namespace Microsoft.CodeAnalysis.Options.Providers
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal sealed class ExportOptionProviderAttribute : ExportAttribute
     {
         public ExportOptionProviderAttribute() : base(typeof(IOptionProvider))

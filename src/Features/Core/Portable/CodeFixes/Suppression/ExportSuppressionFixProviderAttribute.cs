@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     /// Use this attribute to declare a <see cref="ISuppressionFixProvider"/> implementation so that it can be discovered by the host.
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal class ExportSuppressionFixProviderAttribute : ExportAttribute
     {
         /// <summary>

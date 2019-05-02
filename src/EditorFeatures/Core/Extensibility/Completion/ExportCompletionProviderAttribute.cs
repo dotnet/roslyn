@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Completion;
 namespace Microsoft.CodeAnalysis.Editor
 {
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal class ExportCompletionProviderMef1Attribute : ExportAttribute
     {
         public string Name { get; }

@@ -7,7 +7,7 @@ using System.ComponentModel.Composition;
 namespace Microsoft.CodeAnalysis.Editor
 {
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal class ExportCommandHandlerAttribute : ExportAttribute
     {
         public string Name { get; }

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// Use this attribute to declare a <see cref="ILanguageServiceFactory"/> implementation for inclusion in a MEF-based workspace.
     /// </summary>
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class ExportLanguageServiceFactoryAttribute : ExportAttribute
     {
         /// <summary>
