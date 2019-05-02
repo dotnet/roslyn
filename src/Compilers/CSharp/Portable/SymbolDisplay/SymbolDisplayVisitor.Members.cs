@@ -77,12 +77,56 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static bool ShouldPropertyDisplayReadOnly(IPropertySymbol property)
+        {
+            if (property.ContainingType?.IsReadOnly == true)
+            {
+                return false;
+            }
+
+            // If at least one accessor is present and all present accessors are readonly, the property should be marked readonly.
+
+            var getMethod = property.GetMethod;
+            if (getMethod is object && !ShouldMethodDisplayReadOnly(getMethod, property))
+            {
+                return false;
+            }
+
+            var setMethod = property.SetMethod;
+            if (setMethod is object && !ShouldMethodDisplayReadOnly(setMethod, property))
+            {
+                return false;
+            }
+
+            return getMethod is object || setMethod is object;
+        }
+
+        private static bool ShouldMethodDisplayReadOnly(IMethodSymbol method, IPropertySymbol propertyOpt = null)
+        {
+            if (method.ContainingType?.IsReadOnly == true)
+            {
+                return false;
+            }
+
+            if (method is SourcePropertyAccessorSymbol sourceAccessor && propertyOpt is SourcePropertySymbol sourceProperty)
+            {
+                // only display if the accessor is explicitly readonly
+                return sourceAccessor.LocalDeclaredReadOnly || sourceProperty.HasReadOnlyModifier;
+            }
+            else if (method is MethodSymbol m)
+            {
+                return m.IsDeclaredReadOnly;
+            }
+
+            return false;
+        }
+
         public override void VisitProperty(IPropertySymbol symbol)
         {
             AddAccessibilityIfRequired(symbol);
             AddMemberModifiersIfRequired(symbol);
 
-            if (symbol.ShouldDisplayReadOnly())
+            if (ShouldPropertyDisplayReadOnly(symbol))
             {
                 AddReadOnlyIfRequired();
             }
@@ -174,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddMemberModifiersIfRequired(symbol);
 
             var accessor = symbol.AddMethod ?? symbol.RemoveMethod;
-            if (accessor?.ShouldDisplayReadOnly() == true)
+            if (accessor is object && ShouldMethodDisplayReadOnly(accessor))
             {
                 AddReadOnlyIfRequired();
             }
@@ -268,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddAccessibilityIfRequired(symbol);
                 AddMemberModifiersIfRequired(symbol);
 
-                if (symbol.ShouldDisplayReadOnly())
+                if (ShouldMethodDisplayReadOnly(symbol))
                 {
                     AddReadOnlyIfRequired();
                 }
@@ -779,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddAccessibility(method);
                 }
 
-                if (!property.ShouldDisplayReadOnly() && method.ShouldDisplayReadOnly(property))
+                if (!ShouldPropertyDisplayReadOnly(property) && ShouldMethodDisplayReadOnly(method, property))
                 {
                     AddReadOnlyIfRequired();
                 }

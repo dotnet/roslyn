@@ -336,20 +336,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
         }
-
-        public static bool ShouldDisplayReadOnly(this IMethodSymbol method, IPropertySymbol propertyOpt = null) =>
-            method is MethodSymbol m && m.IsExplicitlyReadOnly(propertyOpt) && m.ContainingType?.IsReadOnly == false;
-
-        internal static bool IsExplicitlyReadOnly(this MethodSymbol accessor, IPropertySymbol propertyOpt)
-        {
-            if (accessor is SourcePropertyAccessorSymbol sourceAccessor && propertyOpt is SourcePropertySymbol sourceProperty)
-            {
-                return sourceAccessor.LocalDeclaredReadOnly || sourceProperty.HasReadOnlyModifier;
-            }
-            else
-            {
-                return accessor.IsDeclaredReadOnly;
-            }
-        }
     }
 }
