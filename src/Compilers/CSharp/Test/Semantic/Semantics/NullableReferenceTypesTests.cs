@@ -89888,6 +89888,49 @@ class Program
                 );
         }
 
+
+        [Fact]
+        [WorkItem(35131, "https://github.com/dotnet/roslyn/issues/35131")]
+        [WorkItem(33017, "https://github.com/dotnet/roslyn/issues/33017")]
+        public void Deconstruction_33()
+        {
+            var source = @"
+using System.Collections.Generic;
+class Pair<T, U>
+{
+    public void Deconstruct(out T t, out U u) => throw null!;
+}
+
+class Program
+{
+    static List<Pair<T, U>> CreatePairList<T, U>(T t, U u) => new List<Pair<T, U>>();
+
+    static void F<T>(T x, T? y) 
+        where T : class
+    {
+        x = null; // 1
+        if (y == null) return;
+        foreach((T x2, T? y2) in CreatePairList(x, y)) // 2
+        {
+            x2.ToString(); // 3
+            y2.ToString();
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(15, 13),
+                // (17,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach((T x2, T? y2) in CreatePairList(x, y)) // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "T x2").WithLocation(17, 18),
+                // (19,13): warning CS8602: Dereference of a possibly null reference.
+                //             x2.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(19, 13)
+                );
+        }
+
         [Fact]
         public void Deconstruction_ExtensionMethod_01()
         {
