@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, delegateInvokeMethod.RefKind, ref useSiteDiagnostics);
-            if ((object)returnType == null || returnType.SpecialType == SpecialType.System_Void)
+            if ((object)returnType == null || returnType.IsVoidType())
             {
                 return false;
             }
@@ -2764,7 +2764,7 @@ OuterBreak:
         {
             return (object)type != null &&
                 !type.IsErrorType() &&
-                (type.SpecialType != SpecialType.System_Void);
+                !type.IsVoidType();
         }
 
         private static void GetAllCandidates(Dictionary<TypeWithAnnotations, TypeWithAnnotations> candidates, ArrayBuilder<TypeWithAnnotations> builder)

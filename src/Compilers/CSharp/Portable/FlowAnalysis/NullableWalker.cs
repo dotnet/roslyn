@@ -1347,7 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var returnType = (_methodSignatureOpt ?? method).ReturnTypeWithAnnotations;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
 
-            if (returnType.SpecialType == SpecialType.System_Void)
+            if (returnType.IsVoidType())
             {
                 type = default;
                 return false;
@@ -1373,6 +1373,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return
                 typeWithAnnotations is { Type: TypeSymbol type, NullableAnnotation: NullableAnnotation.NotAnnotated } &&
+                type.IsTypeParameterDisallowingAnnotation() &&
+                !type.IsNullableTypeOrTypeParameter();
+        }
+
+        private static bool RequiresSafetyWarningWhenNullIntroduced(TypeSymbol type)
+        {
+            return
                 type.IsTypeParameterDisallowingAnnotation() &&
                 !type.IsNullableTypeOrTypeParameter();
         }
@@ -2457,32 +2464,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LearnFromNonNullTest(receiver, ref this.State);
             }
 
-            var accessExpressionType = VisitRvalueWithState(node.AccessExpression);
+            var accessTypeWithAnnotations = VisitLvalueWithAnnotations(node.AccessExpression);
+            TypeSymbol accessType = accessTypeWithAnnotations.Type;
             Join(ref this.State, ref receiverState);
 
-            // Per LDM 2019-02-13 decision, the result of a conditional access might be null even if
-            // both the receiver and right-hand-side are believed not to be null.
-            NullableFlowState resultState = NullableFlowState.MaybeNull;
-
-            // https://github.com/dotnet/roslyn/issues/29956 Use flow analysis type rather than node.Type
-            // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
-            TypeSymbol type = node.Type;
+            var oldType = node.Type;
+            var resultType =
+                oldType.IsVoidType() || oldType.IsErrorType() ? oldType :
+                oldType.IsNullableType() && !accessType.IsNullableType() ? MakeNullableOf(accessTypeWithAnnotations) :
+                accessType;
 
             // If the result type does not allow annotations, then we produce a warning because
             // the result may be null.
-
-            _currentConditionalReceiverVisitResult = default;
-            _lastConditionalAccessSlot = previousConditionalAccessSlot;
-            SetResultType(node, TypeWithState.Create(type, resultState));
-
-            // A side effect of the above assignment to ResultType is to compute the corresponding TypeWithAnnotations as
-            // this.LvalueResultType, which is what we need to decide if a safety warning is deserved here.
-            var resultTypeWithAnnotations = this.LvalueResultType;
-            if (RequiresSafetyWarningWhenNullIntroduced(resultTypeWithAnnotations))
+            if (RequiresSafetyWarningWhenNullIntroduced(resultType))
             {
-                ReportSafetyDiagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, node.Syntax, node.Type);
+                ReportSafetyDiagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, node.Syntax, accessType);
             }
 
+            // Per LDM 2019-02-13 decision, the result of a conditional access "may be null" even if
+            // both the receiver and right-hand-side are believed not to be null.
+            SetResultType(node, TypeWithState.Create(resultType, NullableFlowState.MaybeNull));
+            _currentConditionalReceiverVisitResult = default;
+            _lastConditionalAccessSlot = previousConditionalAccessSlot;
             return null;
         }
 
@@ -4535,11 +4538,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeWithState LiftedReturnType(TypeWithAnnotations returnType, NullableFlowState operandState)
         {
             bool typeNeedsLifting = returnType.Type.IsNonNullableValueType();
-            TypeSymbol type = typeNeedsLifting
-                ? compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(returnType))
-                : returnType.Type;
+            TypeSymbol type = typeNeedsLifting ? MakeNullableOf(returnType) : returnType.Type;
             NullableFlowState state = returnType.ToTypeWithState().State.Join(operandState);
             return TypeWithState.Create(type, state);
+        }
+
+        private TypeSymbol MakeNullableOf(TypeWithAnnotations underlying)
+        {
+            return compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(underlying));
         }
 
         private TypeWithState ClassifyAndApplyConversion(
