@@ -1195,7 +1195,9 @@ End Class";
         {
         }
 
+#pragma warning disable RS0032 // Test exports should not be discoverable
         [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, ServiceLayer.Default), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
         private class TestLanguageServiceA : ITestLanguageService
         {
             [ImportingConstructor]
@@ -1205,7 +1207,9 @@ End Class";
             }
         }
 
+#pragma warning disable RS0032 // Test exports should not be discoverable
         [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, "Quasimodo"), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
         private class TestLanguageServiceB : ITestLanguageService
         {
             [ImportingConstructor]

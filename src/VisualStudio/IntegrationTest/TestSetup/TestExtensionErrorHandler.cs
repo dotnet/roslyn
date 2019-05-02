@@ -8,8 +8,10 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     /// <summary>This class causes a crash if an exception is encountered by the editor.</summary>
     [Shared, Export(typeof(IExtensionErrorHandler)), Export(typeof(TestExtensionErrorHandler))]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     public class TestExtensionErrorHandler : IExtensionErrorHandler
     {
         [ImportingConstructor]

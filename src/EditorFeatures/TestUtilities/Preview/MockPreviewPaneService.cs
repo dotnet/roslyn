@@ -12,7 +12,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportWorkspaceService(typeof(IPreviewPaneService), ServiceLayer.Host), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class MockPreviewPaneService : IPreviewPaneService
     {
         [ImportingConstructor]

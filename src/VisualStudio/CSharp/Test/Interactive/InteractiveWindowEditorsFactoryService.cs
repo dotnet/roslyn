@@ -11,7 +11,9 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [Export(typeof(IInteractiveWindowEditorFactoryService))]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class InteractiveWindowEditorsFactoryService : IInteractiveWindowEditorFactoryService
     {
         public const string ContentType = "text";

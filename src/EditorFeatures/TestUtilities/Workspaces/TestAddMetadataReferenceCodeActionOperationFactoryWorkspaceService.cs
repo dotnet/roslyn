@@ -14,7 +14,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportWorkspaceService(typeof(IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService), WorkspaceKind.Test), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     public class TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService : IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService
     {
         [ImportingConstructor]

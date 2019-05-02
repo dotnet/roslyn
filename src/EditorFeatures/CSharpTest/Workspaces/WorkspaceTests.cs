@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     {
         private TestWorkspace CreateWorkspace(bool disablePartialSolutions = true)
         {
-            return new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, disablePartialSolutions: disablePartialSolutions);
+            return new TestWorkspace(TestWorkspace.DefaultExportProviderFactory.CreateExportProvider(), disablePartialSolutions: disablePartialSolutions);
         }
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)

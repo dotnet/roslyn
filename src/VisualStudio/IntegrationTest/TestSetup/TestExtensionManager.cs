@@ -8,12 +8,14 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     /// <summary>This class causes a crash if an exception is encountered inside lightbulb extension points such as code fixes and code refactorings.</summary>
     /// <remarks>
     /// This class is exported as a workspace service with layer: <see cref="ServiceLayer.Host"/>. This ensures that TestExtensionManager
     /// is preferred over EditorLayerExtensionManager (which has layer: <see cref="ServiceLayer.Editor"/>) when running VS integration tests.
     /// </remarks>
     [Shared, ExportWorkspaceServiceFactory(typeof(IExtensionManager), ServiceLayer.Host)]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class TestExtensionManager : IWorkspaceServiceFactory
     {
         private readonly TestExtensionErrorHandler _errorHandler;

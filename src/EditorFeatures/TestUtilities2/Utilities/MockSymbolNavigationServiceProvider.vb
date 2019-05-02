@@ -9,9 +9,8 @@ Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-    ' Note: by default, TestWorkspace produces a composition from all assemblies except EditorServicesTest2.
-    ' This type has to be defined here until we get that cleaned up. Otherwise, other tests may import it.
     <ExportWorkspaceServiceFactory(GetType(ISymbolNavigationService), ServiceLayer.Host), [Shared]>
+    <PartNotDiscoverable>
     Public Class MockSymbolNavigationServiceProvider
         Implements IWorkspaceServiceFactory
 

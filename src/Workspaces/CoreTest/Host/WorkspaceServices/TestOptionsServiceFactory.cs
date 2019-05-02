@@ -12,7 +12,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportWorkspaceServiceFactory(typeof(IOptionService), ServiceLayer.Host), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class TestOptionsServiceFactory : IWorkspaceServiceFactory
     {
         private readonly ImmutableArray<Lazy<IOptionProvider>> _providers;

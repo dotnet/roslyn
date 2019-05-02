@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Notification;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
     [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Default), Shared]
+    [PartNotDiscoverable]
     internal class TestChangeSignatureOptionsService : IChangeSignatureOptionsService
     {
         public bool IsCancelled = true;

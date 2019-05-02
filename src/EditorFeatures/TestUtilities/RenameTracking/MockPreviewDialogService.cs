@@ -8,7 +8,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportWorkspaceService(typeof(IPreviewDialogService), "Test"), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class MockPreviewDialogService : IPreviewDialogService, IWorkspaceServiceFactory
     {
         public bool ReturnsNull;

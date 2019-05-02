@@ -11,6 +11,7 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
     <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), [Shared]>
+    <PartNotDiscoverable>
     Friend Class TestVisualBasicSnippetInfoService
         Inherits VisualBasicSnippetInfoService
 

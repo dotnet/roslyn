@@ -140,9 +140,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string text = "", string displayName = "",
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             DocumentId id = null, string filePath = null,
-            IReadOnlyList<string> folders = null)
+            IReadOnlyList<string> folders = null,
+            ExportProvider exportProvider = null)
         {
-            _exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            _exportProvider = exportProvider ?? TestWorkspace.DefaultExportProviderFactory.CreateExportProvider();
             _id = id;
             _initialText = new Lazy<string>(() => text);
             _name = displayName;

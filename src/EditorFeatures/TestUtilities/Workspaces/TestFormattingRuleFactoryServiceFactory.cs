@@ -10,7 +10,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), WorkspaceKind.Test), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal sealed class TestFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]

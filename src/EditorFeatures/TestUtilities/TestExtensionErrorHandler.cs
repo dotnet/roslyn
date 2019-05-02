@@ -11,7 +11,9 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [Export(typeof(IExtensionErrorHandler))]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class TestExtensionErrorHandler : IExtensionErrorHandler
     {
         private ImmutableList<Exception> _exceptions = ImmutableList<Exception>.Empty;

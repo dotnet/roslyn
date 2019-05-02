@@ -12,6 +12,7 @@ using Roslyn.Test.Utilities.Remote;
 namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
 {
     [ExportWorkspaceService(typeof(IRemoteHostClientFactory), layer: ServiceLayer.Host), Shared]
+    [PartNotDiscoverable]
     internal class InProcRemoteHostClientFactory : IRemoteHostClientFactory
     {
         [ImportingConstructor]

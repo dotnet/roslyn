@@ -127,6 +127,7 @@ End Class</File>.Value
     End Class
 
     <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), [Shared]>
+    <PartNotDiscoverable>
     Friend Class MockSnippetInfoService
         Implements ISnippetInfoService
 

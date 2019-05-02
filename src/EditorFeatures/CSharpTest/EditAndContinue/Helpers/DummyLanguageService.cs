@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     internal interface IDummyLanguageService : ILanguageService { }
 
     [ExportLanguageService(typeof(IDummyLanguageService), LanguageName), Shared]
+    [PartNotDiscoverable]
     internal class DummyLanguageService : IDummyLanguageService
     {
         public const string LanguageName = "Dummy";

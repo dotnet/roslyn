@@ -38,6 +38,9 @@
     <!-- Enable concurrent execution - suppress for non-shipping/test projects -->
     <Rule Id="RS1026" Action="None" />
 
+    <!-- Test exports should not be discoverable - only relevant to non-shipping/test projects -->
+    <Rule Id="RS0032" Action="Warning" />
+
     <!-- Do not use generic CodeAction.Create to create CodeAction - not useful for tests -->
     <Rule Id="RS0005" Action="None" />
   </Rules>

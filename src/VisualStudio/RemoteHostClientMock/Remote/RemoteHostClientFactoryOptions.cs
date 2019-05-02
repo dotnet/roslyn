@@ -19,7 +19,9 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.Remote
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(RemoteHost_InProc)));
     }
 
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportOptionProvider, Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class RemoteHostClientFactoryOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]

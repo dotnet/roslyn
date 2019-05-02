@@ -209,7 +209,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.Equal(item1.HelpLink, item2.HelpLink);
         }
 
+#pragma warning disable RS0032 // Test exports should not be discoverable
         [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), "DiagnosticDataSerializerTest"), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
         public class PersistentStorageServiceFactory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]

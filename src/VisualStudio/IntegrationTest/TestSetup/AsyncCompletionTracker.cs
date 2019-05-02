@@ -10,7 +10,9 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [Export]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     [Shared]
     internal class AsyncCompletionTracker
     {

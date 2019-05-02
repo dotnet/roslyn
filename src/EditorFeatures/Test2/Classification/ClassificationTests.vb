@@ -115,6 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
 #Disable Warning BC40000 ' Type or member is obsolete
         <ExportLanguageService(GetType(IClassificationService), "NoCompilation"), [Shared]>
+        <PartNotDiscoverable>
         Private Class NoCompilationEditorClassificationService
             Implements IClassificationService
 

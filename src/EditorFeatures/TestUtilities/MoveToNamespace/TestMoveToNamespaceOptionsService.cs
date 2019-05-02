@@ -9,6 +9,7 @@ using System.Composition;
 namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
 {
     [ExportWorkspaceService(typeof(IMoveToNamespaceOptionsService)), Shared]
+    [PartNotDiscoverable]
     class TestMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
     {
         internal static readonly MoveToNamespaceOptionsResult DefaultOptions = new MoveToNamespaceOptionsResult("TestNewNamespaceValue");

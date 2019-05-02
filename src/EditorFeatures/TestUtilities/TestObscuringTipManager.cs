@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     // This is tracked by the editor bug https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569.
     // Meantime a workaround is to export dummy IObscuringTipManager.
     // Do not delete: this one is still used in Editor and implicitly required for EventHookupCommandHandlerTests in Roslyn.
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [Export(typeof(IObscuringTipManager))]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class TestObscuringTipManager : IObscuringTipManager
     {
         [ImportingConstructor]

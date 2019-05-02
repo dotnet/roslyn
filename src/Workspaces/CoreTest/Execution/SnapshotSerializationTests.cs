@@ -755,7 +755,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private interface INullLanguageService : ILanguageService { }
 
+#pragma warning disable RS0032 // Test exports should not be discoverable
         [ExportLanguageService(typeof(INullLanguageService), TestLanguage), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
         private class NullLanguageService : INullLanguageService
         {
             public const string TestLanguage = nameof(TestLanguage);

@@ -13,7 +13,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Persistence
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportWorkspaceService(typeof(ITemporaryStorageService), "NotKeptAlive"), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal sealed class TestTemporaryStorageService : ITemporaryStorageService
     {
         [ImportingConstructor]

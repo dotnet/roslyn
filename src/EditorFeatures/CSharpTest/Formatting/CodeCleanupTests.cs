@@ -188,6 +188,7 @@ internal class Program
         }
 
         [Export(typeof(IWorkspaceDiagnosticAnalyzerProviderService))]
+        [PartNotDiscoverable]
         private class CodeCleanupAnalyzerProviderService : IWorkspaceDiagnosticAnalyzerProviderService
         {
             private readonly HostDiagnosticAnalyzerPackage _info;

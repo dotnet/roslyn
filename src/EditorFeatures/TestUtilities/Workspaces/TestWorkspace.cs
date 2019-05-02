@@ -9,9 +9,11 @@ using System.Threading;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         public TestWorkspace()
-            : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
+            : this(DefaultExportProviderFactory.CreateExportProvider(), WorkspaceKind.Test)
         {
         }
 
@@ -64,6 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             _metadataAsSourceFileService = exportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
+
+        internal static IExportProviderFactory DefaultExportProviderFactory { get; } = ExportProviderCache.GetOrCreateExportProviderFactory(
+            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
+                .WithPart(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService))
+                .WithPart(typeof(TestChangeSignatureOptionsService)));
 
         protected internal override bool PartialSemanticsEnabled
         {
@@ -293,7 +300,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var hostProject = this.GetTestProject(info.Id.ProjectId);
             var hostDocument = new TestHostDocument(
                 text.ToString(), info.Name, info.SourceCodeKind,
-                info.Id, folders: info.Folders);
+                info.Id, folders: info.Folders,
+                exportProvider: ExportProvider);
             hostProject.AddDocument(hostDocument);
             this.OnDocumentAdded(hostDocument.ToDocumentInfo());
         }

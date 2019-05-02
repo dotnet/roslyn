@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
             nameof(RemoteHostOptions), nameof(RemoteHostTest), defaultValue: false);
     }
 
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportOptionProvider, Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class RemoteHostOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
@@ -33,7 +35,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
             RemoteHostOptions.RemoteHostTest);
     }
 
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportWorkspaceService(typeof(IRemoteHostClientFactory)), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class InProcRemoteHostClientFactory : IRemoteHostClientFactory
     {
         [ImportingConstructor]

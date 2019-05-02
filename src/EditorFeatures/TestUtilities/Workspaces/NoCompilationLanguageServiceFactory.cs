@@ -16,7 +16,9 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportLanguageServiceFactory(typeof(INoCompilationLanguageService), NoCompilationConstants.LanguageName), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class NoCompilationLanguageServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]

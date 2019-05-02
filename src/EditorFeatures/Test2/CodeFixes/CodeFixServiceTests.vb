@@ -185,6 +185,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
         End Class
 
         <ExportCodeFixProvider(LanguageNames.CSharp, Name:="WorkspaceCodeFixProvider"), [Shared]>
+        <PartNotDiscoverable>
         Private Class WorkspaceCodeFixProvider
             Inherits CodeFixProvider
 
@@ -211,6 +212,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
         End Class
 
         <ExportCodeFixProvider(LanguageNames.CSharp, Name:="ProjectCodeFixProvider"), [Shared]>
+        <PartNotDiscoverable>
         Public Class ProjectCodeFixProvider
             Inherits CodeFixProvider
 

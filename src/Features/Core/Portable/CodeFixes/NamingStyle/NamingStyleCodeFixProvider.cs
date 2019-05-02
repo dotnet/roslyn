@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                var factory = _startingSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+                var factory = _startingSolution.Workspace.Services.GetRequiredService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
                 var newSolution = await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
                 return new CodeActionOperation[]
                 {

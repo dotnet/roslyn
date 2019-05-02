@@ -9,7 +9,9 @@ using VisualStudioIndicator = Microsoft.VisualStudio.Language.Intellisense.Utili
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [Export(typeof(IWaitIndicator))]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     [Export(typeof(VisualStudioIndicator.IWaitIndicator))]
     public sealed class TestWaitIndicator : IWaitIndicator, VisualStudioIndicator.IWaitIndicator
     {

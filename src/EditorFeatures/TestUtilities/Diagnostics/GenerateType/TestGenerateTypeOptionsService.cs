@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis.ProjectManagement;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportWorkspaceService(typeof(IGenerateTypeOptionsService), ServiceLayer.Default), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class TestGenerateTypeOptionsService : IGenerateTypeOptionsService
     {
         public Accessibility Accessibility = Accessibility.NotApplicable;

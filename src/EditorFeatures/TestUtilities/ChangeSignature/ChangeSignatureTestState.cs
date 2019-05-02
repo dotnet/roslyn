@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
             get
             {
-                return (TestChangeSignatureOptionsService)InvocationDocument.Project.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
+                return (TestChangeSignatureOptionsService)InvocationDocument.Project.Solution.Workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();
             }
         }
 

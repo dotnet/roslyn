@@ -7,7 +7,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Persistence
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportWorkspaceService(typeof(IProjectCacheHostService), "NotKeptAlive"), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     public class TestProjectCacheService : IProjectCacheHostService
     {
         [ImportingConstructor]

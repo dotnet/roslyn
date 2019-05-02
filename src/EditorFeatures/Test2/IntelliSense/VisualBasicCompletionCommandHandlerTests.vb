@@ -3145,6 +3145,7 @@ End Class
         End Function
 
         <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
+        <PartNotDiscoverable>
         Friend Class MockSnippetInfoService
             Implements ISnippetInfoService
 

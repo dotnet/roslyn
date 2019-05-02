@@ -12,7 +12,9 @@ using Roslyn.Test.Utilities.Remote;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.Remote
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [ExportWorkspaceService(typeof(IRemoteHostClientFactory), layer: ServiceLayer.Host), Shared]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class RemoteHostClientFactory : IRemoteHostClientFactory
     {
         [ImportingConstructor]

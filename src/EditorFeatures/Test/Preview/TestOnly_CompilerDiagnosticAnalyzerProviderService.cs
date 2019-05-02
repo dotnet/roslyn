@@ -12,7 +12,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [Export(typeof(IWorkspaceDiagnosticAnalyzerProviderService))]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class TestOnly_CompilerDiagnosticAnalyzerProviderService : IWorkspaceDiagnosticAnalyzerProviderService
     {
         private readonly HostDiagnosticAnalyzerPackage _info;

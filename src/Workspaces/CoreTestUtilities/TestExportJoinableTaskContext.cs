@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     // Starting with 15.3 the editor took a dependency on JoinableTaskContext
     // in Text.Logic and IntelliSense layers as an editor host provided service.
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [Export]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal partial class TestExportJoinableTaskContext
     {
         [ImportingConstructor]

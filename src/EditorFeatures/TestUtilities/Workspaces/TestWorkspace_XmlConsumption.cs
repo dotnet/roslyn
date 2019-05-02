@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 throw new ArgumentException();
             }
 
-            exportProvider = exportProvider ?? TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            exportProvider = exportProvider ?? DefaultExportProviderFactory.CreateExportProvider();
 
             var workspace = new TestWorkspace(exportProvider, workspaceKind);
 

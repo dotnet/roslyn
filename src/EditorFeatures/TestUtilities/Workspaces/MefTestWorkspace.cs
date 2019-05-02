@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
+#pragma warning disable RS0032 // Test exports should not be discoverable
     [Export(typeof(Workspace))]
+#pragma warning restore RS0032 // Test exports should not be discoverable
     internal class MefTestWorkspace : Workspace
     {
         [ImportingConstructor]
