@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         internal sealed class StatisticCounter
         {
+            private readonly object _lock = new object();
             private int _count;
             private int _maximum;
             private int _mininum;
@@ -35,18 +36,21 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
             public void AddDataPoint(int value)
             {
-                if (_count == 0 || value > _maximum)
+                lock (_lock)
                 {
-                    _maximum = value;
-                }
+                    if (_count == 0 || value > _maximum)
+                    {
+                        _maximum = value;
+                    }
 
-                if (_count == 0 || value < _mininum)
-                {
-                    _mininum = value;
-                }
+                    if (_count == 0 || value < _mininum)
+                    {
+                        _mininum = value;
+                    }
 
-                _count++;
-                _total += value;
+                    _count++;
+                    _total += value;
+                }
             }
 
             public StatisticResult GetStatisticResult()
