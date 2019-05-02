@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PEModuleBuilder _moduleBeingBuiltOpt; // Null if compiling for diagnostics
         private readonly Predicate<Symbol> _filterOpt;         // If not null, limit analysis to specific symbols
         private readonly DebugDocumentProvider _debugDocumentProvider;
-        private readonly MethodSymbol _entryPointOpt;
+        private readonly SynthesizedEntryPointSymbol.AsyncForwardEntryPoint _entryPointOpt;
 
         //
         // MethodCompiler employs concurrency by following flattened fork/join pattern.
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Internal for testing only.
         internal MethodCompiler(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuiltOpt, bool emittingPdb, bool emitTestCoverageData, bool hasDeclarationErrors,
-            DiagnosticBag diagnostics, Predicate<Symbol> filterOpt, MethodSymbol entryPointOpt, CancellationToken cancellationToken)
+            DiagnosticBag diagnostics, Predicate<Symbol> filterOpt, SynthesizedEntryPointSymbol.AsyncForwardEntryPoint entryPointOpt, CancellationToken cancellationToken)
         {
             Debug.Assert(compilation != null);
             Debug.Assert(diagnostics != null);
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasDeclarationErrors,
                 diagnostics,
                 filterOpt,
-                entryPoint,
+                entryPoint as SynthesizedEntryPointSymbol.AsyncForwardEntryPoint,
                 cancellationToken);
 
             if (compilation.Options.ConcurrentBuild)
@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool emittingPdb,
             bool emitTestCoverageData,
             ImmutableArray<SourceSpan> dynamicAnalysisSpans,
-            MethodSymbol entryPointOpt)
+            SynthesizedEntryPointSymbol.AsyncForwardEntryPoint entryPointOpt)
         {
             // Note: don't call diagnostics.HasAnyErrors() in release; could be expensive if compilation has many warnings.
             Debug.Assert(!diagnostics.HasAnyErrors(), "Running code generator when errors exist might be dangerous; code generator not expecting errors");
@@ -1433,9 +1433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We do the same for async Main methods, since it is unlikely that user code will be awaiting the Task:
                     // AsyncForwardEntryPoint <Main> -> kick-off method Main -> MoveNext.
 
-                    bool isAsyncMainMoveNext = kickoffMethod.IsEntryPointCandidate &&
-                        entryPointOpt is SynthesizedEntryPointSymbol.AsyncForwardEntryPoint asyncForwardEntryPoint &&
-                        kickoffMethod.Equals(asyncForwardEntryPoint.UserMain);
+                    bool isAsyncMainMoveNext = entryPointOpt?.UserMain.Equals(kickoffMethod) == true;
 
                     moveNextBodyDebugInfoOpt = new AsyncMoveNextBodyDebugInfo(
                         kickoffMethod,
