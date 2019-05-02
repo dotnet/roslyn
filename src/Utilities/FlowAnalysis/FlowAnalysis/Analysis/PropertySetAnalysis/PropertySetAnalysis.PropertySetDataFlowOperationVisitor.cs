@@ -35,8 +35,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// so the <see cref="PropertySetAbstractValue"/> can be evaluated at the end.
             /// </summary>
             /// <remarks>
-            /// Only allocated when running DFA on a field initializer.</remarks>
-            private PooledHashSet<IObjectCreationOperation> TrackedObjectCreations;
+            /// Only allocated when running DFA on a field initializer.
+            /// </remarks>
+            private PooledHashSet<IObjectCreationOperation> TrackedObjectCreationsOpt;
+
+            /// <summary>
+            /// When analyzing constructors, track the assignment operations for fields and properties for the tracked type.
+            /// </summary>
+            /// <remarks>
+            /// Mapping of AnalysisEntity (for a field or property of the tracked type) to AbstractLocation(s) to IAssignmentOperation(s)
+            /// </remarks>
+            private PooledDictionary<AnalysisEntity, PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>>> TrackedFieldPropertyAssignmentsOpt;
 
             /// <summary>
             /// The type containing the property set we're tracking.
@@ -57,7 +66,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         || this.DataFlowAnalysisContext.OwningSymbol.Kind == SymbolKind.Property)
                     && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(out _))
                 {
-                    this.TrackedObjectCreations = PooledHashSet<IObjectCreationOperation>.GetInstance();
+                    this.TrackedObjectCreationsOpt = PooledHashSet<IObjectCreationOperation>.GetInstance();
+                }
+
+                if (this.DataFlowAnalysisContext.OwningSymbol.IsConstructor())
+                {
+                    this.TrackedFieldPropertyAssignmentsOpt = PooledDictionary<AnalysisEntity, PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>>>.GetInstance();
                 }
             }
 
@@ -137,7 +151,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     return abstractValue;
                 }
 
-                this.TrackedObjectCreations?.Add(operation);
+                this.TrackedObjectCreationsOpt?.Add(operation);
 
                 ConstructorMapper constructorMapper = this.DataFlowAnalysisContext.ConstructorMapper;
                 if (!constructorMapper.PropertyAbstractValues.IsEmpty)
@@ -196,6 +210,38 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             protected override PropertySetAbstractValue VisitAssignmentOperation(IAssignmentOperation operation, object argument)
             {
                 PropertySetAbstractValue baseValue = base.VisitAssignmentOperation(operation, argument);
+
+                if (this.TrackedFieldPropertyAssignmentsOpt != null
+                    && this.TrackedTypeSymbol.Equals(operation.Target.Type)
+                    && this.AnalysisEntityFactory.TryCreate(operation.Target, out AnalysisEntity targetAnalysisEntity)
+                    && (operation.Target.Kind == OperationKind.PropertyReference
+                        || operation.Target.Kind == OperationKind.FieldReference)
+                    )
+                {
+                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation.Value);
+                    foreach (AbstractLocation abstractLocation in pointsToAbstractValue.Locations)
+                    {
+                        if (!this.TrackedFieldPropertyAssignmentsOpt.TryGetValue(
+                                targetAnalysisEntity,
+                                out PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>> locationsToAssignments))
+                        {
+                            locationsToAssignments =
+                                PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>>.GetInstance();
+                            this.TrackedFieldPropertyAssignmentsOpt.Add(targetAnalysisEntity, locationsToAssignments);
+                        }
+
+                        if (!locationsToAssignments.TryGetValue(
+                                abstractLocation,
+                                out PooledHashSet<IAssignmentOperation> assignments))
+                        {
+                            assignments = PooledHashSet<IAssignmentOperation>.GetInstance();
+                            locationsToAssignments.Add(abstractLocation, assignments);
+                        }
+
+                        assignments.Add(operation);
+                    }
+                }
+
                 if (operation.Target is IPropertyReferenceOperation propertyReferenceOperation
                     && Equals(propertyReferenceOperation.Instance?.Type, this.TrackedTypeSymbol)
                     && this.DataFlowAnalysisContext.PropertyMappers.TryGetPropertyMapper(
@@ -259,29 +305,89 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// </remarks>
             internal void ProcessExitBlock(PropertySetBlockAnalysisResult exitBlockOutput)
             {
-                if (this.TrackedObjectCreations != null)
+                if (this.TrackedObjectCreationsOpt != null)
                 {
                     try
                     {
                         this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(
-                            out HazardousUsageEvaluator returnValueHazardousUsageEvaluator);
-                        Debug.Assert(returnValueHazardousUsageEvaluator != null);
-                        foreach (IObjectCreationOperation objectCreationOperation in this.TrackedObjectCreations)
+                            out HazardousUsageEvaluator initializationHazardousUsageEvaluator);
+                        Debug.Assert(initializationHazardousUsageEvaluator != null);
+                        foreach (IObjectCreationOperation objectCreationOperation in this.TrackedObjectCreationsOpt)
                         {
                             this.EvaluatePotentialHazardousUsage(
                                 objectCreationOperation.Syntax,
                                 null,
                                 objectCreationOperation,
                                 (PropertySetAbstractValue abstractValue) =>
-                                    returnValueHazardousUsageEvaluator.ReturnEvaluator(abstractValue),
+                                    initializationHazardousUsageEvaluator.ValueEvaluator(abstractValue),
                                 (AbstractLocation abstractLocation) =>
                                     exitBlockOutput.Data[abstractLocation] ?? PropertySetAbstractValue.Unknown);
                         }
                     }
                     finally
                     {
-                        this.TrackedObjectCreations.Free();
-                        this.TrackedObjectCreations = null;
+                        this.TrackedObjectCreationsOpt.Free();
+                        this.TrackedObjectCreationsOpt = null;
+                    }
+                }
+
+                if (this.TrackedFieldPropertyAssignmentsOpt != null)
+                {
+                    try
+                    {
+                        this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(
+                            out HazardousUsageEvaluator initializationHazardousUsageEvaluator);
+                        Debug.Assert(initializationHazardousUsageEvaluator != null);
+
+                        foreach (KeyValuePair<AnalysisEntity, PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>>> kvp
+                            in this.TrackedFieldPropertyAssignmentsOpt)
+                        {
+                            if (!this.DataFlowAnalysisContext.PointsToAnalysisResultOpt.ExitBlockOutput.Data.TryGetValue(
+                                    kvp.Key, out PointsToAbstractValue pointsToAbstractValue))
+                            {
+                                continue;
+                            }
+
+                            foreach (AbstractLocation abstractLocation in pointsToAbstractValue.Locations)
+                            {
+                                if (!kvp.Value.TryGetValue(
+                                        abstractLocation,
+                                        out PooledHashSet<IAssignmentOperation> assignments))
+                                {
+                                    continue;
+                                }
+
+                                PropertySetAbstractValue propertySetAbstractValue =
+                                    exitBlockOutput.Data[abstractLocation] ?? PropertySetAbstractValue.Unknown;
+                                HazardousUsageEvaluationResult result =
+                                    initializationHazardousUsageEvaluator.ValueEvaluator(propertySetAbstractValue);
+                                if (result != HazardousUsageEvaluationResult.Unflagged)
+                                {
+                                    foreach (IAssignmentOperation assignmentOperation in assignments)
+                                    {
+                                        this.MergeHazardousUsageResult(
+                                            assignmentOperation.Syntax,
+                                            methodSymbol: null,    // No method invocation; just evaluating initialization value.
+                                            result);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        foreach (PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>> locationsToAssignments in this.TrackedFieldPropertyAssignmentsOpt.Values)
+                        {
+                            foreach (PooledHashSet<IAssignmentOperation> assignments in locationsToAssignments.Values)
+                            {
+                                assignments.Free();
+                            }
+
+                            locationsToAssignments.Free();
+                        }
+
+                        this.TrackedFieldPropertyAssignmentsOpt.Free();
+                        this.TrackedFieldPropertyAssignmentsOpt = null;
                     }
                 }
             }
@@ -367,6 +473,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     result = MergeHazardousUsageEvaluationResult(result, evaluationResult);
                 }
 
+                this.MergeHazardousUsageResult(operationSyntax, methodSymbol, result);
+            }
+
+            private void MergeHazardousUsageResult(SyntaxNode operationSyntax, IMethodSymbol methodSymbol, HazardousUsageEvaluationResult result)
+            {
                 if (result != HazardousUsageEvaluationResult.Unflagged)
                 {
                     (Location, IMethodSymbol) key = (operationSyntax.GetLocation(), methodSymbol);
@@ -408,7 +519,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         returnValue.Syntax,
                         null,
                         returnValue,
-                        (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.ReturnEvaluator(abstractValue));
+                        (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.ValueEvaluator(abstractValue));
                 }
             }
 

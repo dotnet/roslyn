@@ -69,7 +69,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
 
             Kind = kind;
-            ReturnEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
+            ValueEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
         }
 
         private HazardousUsageEvaluator()
@@ -99,9 +99,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public InvocationEvaluationCallback InvocationEvaluator { get; }
 
         /// <summary>
-        /// Evaluates if the return statement with a given <see cref="PropertySetAbstractValue"/> is hazardous or not.
+        /// Evaluates if the return statement or initialization value with a given <see cref="PropertySetAbstractValue"/> is hazardous or not.
         /// </summary>
-        public EvaluationCallback ReturnEvaluator { get; }
+        public EvaluationCallback ValueEvaluator { get; }
 
         public override int GetHashCode()
         {
