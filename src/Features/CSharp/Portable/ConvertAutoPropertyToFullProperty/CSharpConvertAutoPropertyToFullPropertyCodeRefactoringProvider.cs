@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider)), Shared]
     internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider()
         {
         }

@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField
     [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
     internal class EncapsulateFieldCommandHandler : AbstractEncapsulateFieldCommandHandler
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public EncapsulateFieldCommandHandler(
             ITextBufferUndoManagerProvider undoManager,
             IAsynchronousOperationListenerProvider listenerProvider)

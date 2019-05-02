@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         public string DisplayName => EditorFeaturesResources.Call_Hierarchy;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CallHierarchyCommandHandler([ImportMany] IEnumerable<ICallHierarchyPresenter> presenters, CallHierarchyProvider provider)
         {
             _presenter = presenters.FirstOrDefault();

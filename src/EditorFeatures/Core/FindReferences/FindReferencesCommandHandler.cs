@@ -36,7 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
         public string DisplayName => EditorFeaturesResources.Find_References;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public FindReferencesCommandHandler(
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             IAsynchronousOperationListenerProvider listenerProvider)

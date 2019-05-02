@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
     {
         private const string CS8300 = nameof(CS8300); // Merge conflict marker encountered
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpResolveConflictMarkerCodeFixProvider()
             : base(CS8300)
         {

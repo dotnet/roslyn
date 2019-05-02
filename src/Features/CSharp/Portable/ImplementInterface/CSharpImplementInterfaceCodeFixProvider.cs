@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         private const string CS0737 = nameof(CS0737); // 'Class' does not implement interface member 'IInterface.M()'. 'Class.M()' cannot implement an interface member because it is not public.
         private const string CS0738 = nameof(CS0738); // 'C' does not implement interface member 'I.Method1()'. 'B.Method1()' cannot implement 'I.Method1()' because it does not have the matching return type of 'void'.
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpImplementInterfaceCodeFixProvider()
         {
         }

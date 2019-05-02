@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     internal partial class VisualStudio14StructureTaggerProvider :
         AbstractStructureTaggerProvider<IOutliningRegionTag>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public VisualStudio14StructureTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,

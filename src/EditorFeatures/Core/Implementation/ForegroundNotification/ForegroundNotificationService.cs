@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
         private int _lastProcessedTimeInMS;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public ForegroundNotificationService(IThreadingContext threadingContext)
             : base(threadingContext)
         {

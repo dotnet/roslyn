@@ -13,8 +13,10 @@ Friend Class VisualBasicAddMissingImportsRefactoringProvider
 
     Protected Overrides ReadOnly Property CodeActionTitle As String = VBFeaturesResources.Add_missing_Imports
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
     <ImportingConstructor>
     Public Sub New(pasteTrackingService As IPasteTrackingService)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         MyBase.New(pasteTrackingService)
     End Sub
 End Class

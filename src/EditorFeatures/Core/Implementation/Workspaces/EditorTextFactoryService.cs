@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         private readonly ITextBufferFactoryService _textBufferFactory;
         private readonly IContentType _unknownContentType;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public EditorTextFactoryService(
             ITextBufferCloneService textBufferCloneService,
             ITextBufferFactoryService textBufferFactoryService,

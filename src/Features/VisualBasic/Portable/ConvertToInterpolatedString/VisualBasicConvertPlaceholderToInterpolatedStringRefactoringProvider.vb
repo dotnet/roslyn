@@ -10,8 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
     Partial Friend Class VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider
         Inherits AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider(Of InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, LiteralExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function GetInterpolatedString(text As String) As SyntaxNode

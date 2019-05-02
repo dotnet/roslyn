@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
     Friend Class VisualBasicMakeFieldReadonlyCodeFixProvider
         Inherits AbstractMakeFieldReadonlyCodeFixProvider(Of ModifiedIdentifierSyntax, FieldDeclarationSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function GetVariableDeclarators(declaration As FieldDeclarationSyntax) As ImmutableList(Of ModifiedIdentifierSyntax)

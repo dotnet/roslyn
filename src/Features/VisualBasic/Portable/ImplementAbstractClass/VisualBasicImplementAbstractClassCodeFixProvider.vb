@@ -14,8 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
 
         Friend Const BC30610 As String = "BC30610" ' Class 'goo' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(BC30610)
         End Sub
     End Class

@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     {
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public UseExpressionBodyCodeRefactoringProvider()
         {
         }

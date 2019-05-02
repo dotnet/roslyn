@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
     [TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)]
     internal sealed class LoadDirectiveCompletionProvider : AbstractLoadDirectiveCompletionProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public LoadDirectiveCompletionProvider()
         {
         }

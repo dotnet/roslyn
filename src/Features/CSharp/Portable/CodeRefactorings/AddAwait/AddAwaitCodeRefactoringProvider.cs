@@ -13,7 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddAwait), Shared]
     internal partial class CSharpAddAwaitCodeRefactoringProvider : AbstractAddAwaitCodeRefactoringProvider<ExpressionSyntax, InvocationExpressionSyntax>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpAddAwaitCodeRefactoringProvider()
         {
         }

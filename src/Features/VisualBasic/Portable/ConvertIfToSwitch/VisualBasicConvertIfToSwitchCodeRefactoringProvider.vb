@@ -13,8 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
     Partial Friend NotInheritable Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
         Inherits AbstractConvertIfToSwitchCodeRefactoringProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function CreateAnalyzer(syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel) As IAnalyzer

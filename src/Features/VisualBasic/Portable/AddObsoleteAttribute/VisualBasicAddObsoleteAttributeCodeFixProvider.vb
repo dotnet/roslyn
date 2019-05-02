@@ -16,8 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddObsoleteAttribute
                 "BC40008"  ' 'C' is obsolete.
             )
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(VisualBasicSyntaxFactsService.Instance, VBFeaturesResources.Add_Obsolete)
         End Sub
     End Class

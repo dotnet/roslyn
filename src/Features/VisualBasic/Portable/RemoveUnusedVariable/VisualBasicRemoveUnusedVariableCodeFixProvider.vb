@@ -17,8 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
 
         Private Const BC42024 As String = NameOf(BC42024)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =

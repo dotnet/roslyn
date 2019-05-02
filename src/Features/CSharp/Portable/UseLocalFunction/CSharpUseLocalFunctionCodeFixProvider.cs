@@ -26,7 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     {
         private static readonly TypeSyntax s_objectType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpUseLocalFunctionCodeFixProvider()
         {
         }

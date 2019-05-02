@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         /// </summary>
         private const string CS1710 = nameof(CS1710);
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpRemoveDocCommentNodeCodeFixProvider()
         {
         }

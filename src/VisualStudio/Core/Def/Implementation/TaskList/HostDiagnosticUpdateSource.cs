@@ -21,7 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly object _gate = new object();
         private readonly Dictionary<ProjectId, HashSet<object>> _diagnosticMap = new Dictionary<ProjectId, HashSet<object>>();
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public HostDiagnosticUpdateSource(VisualStudioWorkspaceImpl workspace, IDiagnosticUpdateSourceRegistrationService registrationService)
         {
             _workspace = workspace;

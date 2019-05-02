@@ -15,8 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     Friend NotInheritable Class VisualBasicEditAndContinueAnalyzer
         Inherits AbstractEditAndContinueAnalyzer
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
 #Region "Syntax Analysis"

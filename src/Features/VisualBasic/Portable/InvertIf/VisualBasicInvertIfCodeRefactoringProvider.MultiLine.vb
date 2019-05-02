@@ -10,8 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
     Friend NotInheritable Class VisualBasicInvertMultiLineIfCodeRefactoringProvider
         Inherits VisualBasicInvertIfCodeRefactoringProvider(Of MultiLineIfBlockSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function GetHeaderSpan(ifNode As MultiLineIfBlockSyntax) As TextSpan

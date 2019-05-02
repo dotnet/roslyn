@@ -14,8 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
     Partial Friend Class SimplifyTypeNamesCodeFixProvider
         Inherits AbstractSimplifyTypeNamesCodeFixProvider(Of SyntaxKind)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer())
         End Sub
 

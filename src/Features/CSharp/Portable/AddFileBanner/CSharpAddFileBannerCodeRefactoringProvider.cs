@@ -10,7 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddFileBanner
         Name = PredefinedCodeRefactoringProviderNames.AddFileBanner), Shared]
     internal class CSharpAddFileBannerCodeRefactoringProvider : AbstractAddFileBannerCodeRefactoringProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpAddFileBannerCodeRefactoringProvider()
         {
         }

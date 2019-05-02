@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute
                 "CS1064"  // The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer element is obsolete"
             );
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpAddObsoleteAttributeCodeFixProvider()
             : base(CSharpSyntaxFactsService.Instance, CSharpFeaturesResources.Add_Obsolete)
         {

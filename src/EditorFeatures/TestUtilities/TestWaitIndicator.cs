@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         private readonly IWaitContext _waitContext;
         private readonly Microsoft.VisualStudio.Language.Intellisense.Utilities.IWaitContext _platformWaitContext = new UncancellableWaitContext();
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public TestWaitIndicator()
         {
             _waitContext = new UncancellableWaitContext();

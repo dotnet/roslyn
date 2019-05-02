@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
     Friend NotInheritable Class VisualBasicMergeNestedIfStatementsCodeRefactoringProvider
         Inherits AbstractMergeNestedIfStatementsCodeRefactoringProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function IsApplicableSpan(node As SyntaxNode, span As TextSpan, ByRef ifOrElseIf As SyntaxNode) As Boolean

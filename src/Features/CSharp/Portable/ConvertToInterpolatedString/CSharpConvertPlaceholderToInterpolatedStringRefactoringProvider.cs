@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
     internal partial class CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider :
         AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, LiteralExpressionSyntax>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider()
         {
         }

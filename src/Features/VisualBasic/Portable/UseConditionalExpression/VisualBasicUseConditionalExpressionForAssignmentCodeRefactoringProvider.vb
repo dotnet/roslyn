@@ -15,8 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Inherits AbstractUseConditionalExpressionForAssignmentCodeFixProvider(Of
             StatementSyntax, MultiLineIfBlockSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function GetMultiLineFormattingRule() As AbstractFormattingRule

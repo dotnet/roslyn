@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExplicitTypeForConst
     {
         private const string CS0822 = nameof(CS0822); // Implicitly-typed variables cannot be constant
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public UseExplicitTypeForConstCodeFixProvider()
         {
         }

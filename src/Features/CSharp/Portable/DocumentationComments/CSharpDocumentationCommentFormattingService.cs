@@ -9,7 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
     [ExportLanguageService(typeof(IDocumentationCommentFormattingService), LanguageNames.CSharp), Shared]
     internal class CSharpDocumentationCommentFormattingService : AbstractDocumentationCommentFormattingService
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpDocumentationCommentFormattingService()
         {
         }

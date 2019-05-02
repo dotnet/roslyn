@@ -12,8 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 
         Public Shared Shadows Instance As New VisualBasicEmbeddedLanguageEditorFeaturesProvider()
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(VisualBasicEmbeddedLanguagesProvider.Info)
         End Sub
 

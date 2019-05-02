@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
     internal class CSharpRemoveUnnecessaryParenthesesCodeFixProvider :
         AbstractRemoveUnnecessaryParenthesesCodeFixProvider<ParenthesizedExpressionSyntax>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpRemoveUnnecessaryParenthesesCodeFixProvider()
         {
         }

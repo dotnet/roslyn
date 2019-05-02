@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpMakeFieldReadonlyCodeFixProvider : AbstractMakeFieldReadonlyCodeFixProvider<VariableDeclaratorSyntax, FieldDeclarationSyntax>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpMakeFieldReadonlyCodeFixProvider()
         {
         }

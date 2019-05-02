@@ -26,7 +26,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly object _gate;
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public DiagnosticService(IAsynchronousOperationListenerProvider listenerProvider) : this()
         {
             // queue to serialize events.

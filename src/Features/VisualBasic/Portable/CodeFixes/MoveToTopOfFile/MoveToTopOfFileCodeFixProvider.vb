@@ -20,8 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
         Friend Const BC30637 As String = "BC30637" ' Assembly or Module attribute statements must precede any declarations in a file.
         Friend Const BC30627 As String = "BC30627" ' 'Option' statements must precede any declarations or 'Imports' statements.
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
     {
         private const string CS8129 = nameof(CS8129); // No suitable Deconstruct instance or extension method was found...
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public GenerateDeconstructMethodCodeFixProvider()
         {
         }

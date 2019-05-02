@@ -14,10 +14,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
     Friend Class ExtractMethodCommandHandler
         Inherits AbstractExtractMethodCommandHandler
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor()>
         Public Sub New(undoManager As ITextBufferUndoManagerProvider,
                        editorOperationsFactoryService As IEditorOperationsFactoryService,
                        renameService As IInlineRenameService)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(undoManager, editorOperationsFactoryService, renameService)
         End Sub
     End Class

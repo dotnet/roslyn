@@ -20,8 +20,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
     Friend Class ImplementAbstractClassCommandHandler
         Inherits AbstractImplementAbstractClassOrInterfaceCommandHandler
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(editorOperationsFactoryService)
         End Sub
 

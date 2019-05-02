@@ -10,8 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
     Friend Class VisualBasicRemoveUnnecessaryParenthesesCodeFixProvider
         Inherits AbstractRemoveUnnecessaryParenthesesCodeFixProvider(Of ParenthesizedExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function CanRemoveParentheses(current As ParenthesizedExpressionSyntax, semanticModel As SemanticModel) As Boolean

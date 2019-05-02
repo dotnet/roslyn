@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax,
             ForEachStatementSyntax, SwitchSectionSyntax, SwitchLabelSyntax, CatchClauseSyntax, CatchClauseSyntax>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpRemoveUnusedValuesCodeFixProvider()
         {
         }

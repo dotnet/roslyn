@@ -20,11 +20,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
     Friend Class DocumentationCommentCommandHandler
         Inherits AbstractDocumentationCommentCommandHandler(Of DocumentationCommentTriviaSyntax, DeclarationStatementSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor()>
         Public Sub New(
             waitIndicator As IWaitIndicator,
             undoHistoryRegistry As ITextUndoHistoryRegistry,
             editorOperationsFactoryService As IEditorOperationsFactoryService)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
 
             MyBase.New(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
         End Sub

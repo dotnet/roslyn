@@ -34,8 +34,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     Friend Class GenerateConstructorCodeFixProvider
         Inherits AbstractGenerateMemberCodeFixProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

@@ -15,8 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ForEachBlockSyntax,
             CaseBlockSyntax, CaseClauseSyntax, CatchStatementSyntax, CatchBlockSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function WrapWithBlockIfNecessary(statements As IEnumerable(Of StatementSyntax)) As StatementSyntax

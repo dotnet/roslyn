@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public DiagnosticsSuggestionTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,

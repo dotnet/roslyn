@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _inlineRenameService As IInlineRenameService
         Private ReadOnly _threadingContext As IThreadingContext
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor()>
         Public Sub New(commitFormatter As ICommitFormatter, inlineRenameService As IInlineRenameService, threadingContext As IThreadingContext)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             _commitFormatter = commitFormatter
             _inlineRenameService = inlineRenameService
             _threadingContext = threadingContext

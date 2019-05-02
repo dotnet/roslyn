@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public RenameTrackingTaggerProvider(
             IThreadingContext threadingContext,
             ITextUndoHistoryRegistry undoHistoryRegistry,

@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor
         private static readonly ConditionalWeakTable<ITextBuffer, HashSet<ITextView>> s_map =
             new ConditionalWeakTable<ITextBuffer, HashSet<ITextView>>();
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public TextBufferAssociatedViewService()
         {
         }

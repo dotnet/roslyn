@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
         /// </summary>
         private const string CS0308 = nameof(CS0308);
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpFullyQualifyCodeFixProvider()
         {
         }

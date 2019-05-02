@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class BlockCommentEditingCommandHandler : AbstractBlockCommentEditingCommandHandler
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public BlockCommentEditingCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService) : base(undoHistoryRegistry, editorOperationsFactoryService)

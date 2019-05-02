@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseSimpleUsingStatementCodeFixProvider)), Shared]
     internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public UseSimpleUsingStatementCodeFixProvider()
         {
         }

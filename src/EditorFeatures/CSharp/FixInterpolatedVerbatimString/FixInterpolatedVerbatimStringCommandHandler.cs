@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
     [Name(nameof(FixInterpolatedVerbatimStringCommandHandler))]
     internal sealed class FixInterpolatedVerbatimStringCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public FixInterpolatedVerbatimStringCommandHandler()
         {
         }

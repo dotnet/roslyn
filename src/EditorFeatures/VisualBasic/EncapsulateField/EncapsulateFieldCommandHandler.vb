@@ -15,9 +15,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
     Friend Class EncapsulateFieldCommandHandler
         Inherits AbstractEncapsulateFieldCommandHandler
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New(undoManager As ITextBufferUndoManagerProvider,
                        listenerProvider As IAsynchronousOperationListenerProvider)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(undoManager, listenerProvider)
         End Sub
     End Class

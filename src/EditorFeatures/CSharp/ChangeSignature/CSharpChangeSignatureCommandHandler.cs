@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature
     [Name(PredefinedCommandHandlerNames.ChangeSignature)]
     internal class CSharpChangeSignatureCommandHandler : AbstractChangeSignatureCommandHandler
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpChangeSignatureCommandHandler()
         {
         }

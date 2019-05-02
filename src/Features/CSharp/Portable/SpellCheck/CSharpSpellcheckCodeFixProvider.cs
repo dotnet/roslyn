@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
         private const string CS0426 = nameof(CS0426); // The type name '0' does not exist in the type '1'
         private const string CS1520 = nameof(CS1520); // Method must have a return type
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpSpellCheckCodeFixProvider()
         {
         }

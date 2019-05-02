@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class XmlCDataHighlighter
         Inherits AbstractKeywordHighlighter(Of XmlCDataSectionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overloads Overrides Function GetHighlights(xmlComment As XmlCDataSectionSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)

@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class VisualBasicTypeInferenceService
         Inherits AbstractTypeInferenceService
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function CreateTypeInferrer(semanticModel As SemanticModel, cancellationToken As CancellationToken) As AbstractTypeInferrer

@@ -28,7 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         AbstractSnippetCommandHandler,
         ICommandHandler<SurroundWithCommandArgs>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public SnippetCommandHandler(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
             : base(threadingContext, editorAdaptersFactoryService, serviceProvider)
         {

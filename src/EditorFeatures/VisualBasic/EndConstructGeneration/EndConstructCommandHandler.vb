@@ -38,9 +38,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             End Get
         End Property
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor()>
         Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService,
                        undoHistoryRegistry As ITextUndoHistoryRegistry)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
 
             Me._editorOperationsFactoryService = editorOperationsFactoryService
             Me._undoHistoryRegistry = undoHistoryRegistry

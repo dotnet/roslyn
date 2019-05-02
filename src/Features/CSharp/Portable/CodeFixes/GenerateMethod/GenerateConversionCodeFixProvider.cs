@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         private const string CS0029 = nameof(CS0029); // error CS0029: Cannot implicitly convert type 'type' to 'type'
         private const string CS0030 = nameof(CS0030); // error CS0030: Cannot convert type 'type' to 'type'
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public GenerateConversionCodeFixProvider()
         {
         }

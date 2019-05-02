@@ -10,8 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
     Friend Class VisualBasicAddAccessibilityModifiersCodeFixProvider
         Inherits AbstractAddAccessibilityModifiersCodeFixProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function MapToDeclarator(declaration As SyntaxNode) As SyntaxNode

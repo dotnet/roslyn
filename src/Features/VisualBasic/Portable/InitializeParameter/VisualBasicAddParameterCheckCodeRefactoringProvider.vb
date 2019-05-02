@@ -16,8 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             ExpressionSyntax,
             BinaryExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function IsFunctionDeclaration(node As SyntaxNode) As Boolean

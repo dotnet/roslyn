@@ -21,8 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct
             TypeBlockSyntax,
             NamespaceBlockSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function CreateObjectCreationExpression(

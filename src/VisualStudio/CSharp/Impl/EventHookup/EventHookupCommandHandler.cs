@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         // For testing purposes only! Will always be null except in certain tests.
         internal Mutex TESTSessionHookupMutex;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public EventHookupCommandHandler(
             IThreadingContext threadingContext,
             IInlineRenameService inlineRenameService,

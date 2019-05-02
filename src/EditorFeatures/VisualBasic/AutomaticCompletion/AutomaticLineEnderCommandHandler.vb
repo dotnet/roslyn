@@ -22,9 +22,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
     Friend Class AutomaticLineEnderCommandHandler
         Inherits AbstractAutomaticLineEnderCommandHandler
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New(undoRegistry As ITextUndoHistoryRegistry,
                        editorOperations As IEditorOperationsFactoryService)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
 
             MyBase.New(undoRegistry, editorOperations)
         End Sub

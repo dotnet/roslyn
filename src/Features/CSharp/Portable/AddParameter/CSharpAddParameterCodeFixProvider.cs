@@ -34,7 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
             CS1501, CS1503, CS1660, CS1729, CS1739,
             IDEDiagnosticIds.UnboundConstructorId);
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpAddParameterCodeFixProvider()
         {
         }

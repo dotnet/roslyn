@@ -18,8 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
             ConditionalAccessExpressionSyntax,
             InvocationExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
     End Class
 End Namespace

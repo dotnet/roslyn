@@ -20,8 +20,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
     Friend Class XmlTagCompletionCommandHandler
         Inherits AbstractXmlTagCompletionCommandHandler
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New(undoHistory As ITextUndoHistoryRegistry)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(undoHistory)
         End Sub
 

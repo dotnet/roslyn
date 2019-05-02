@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
         // Error CS8345: Field or auto-implemented property cannot be of certain type unless it is an instance member of a ref struct.
         private const string CS8345 = nameof(CS8345);
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public MakeRefStructCodeFixProvider()
         {
         }

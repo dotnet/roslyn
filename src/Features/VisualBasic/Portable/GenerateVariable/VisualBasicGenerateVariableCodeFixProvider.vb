@@ -20,8 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateVariable
         Friend Const BC30451 As String = "BC30451" ' error BC30451: 'xyz' is not declared. It may be inaccessible due to its protection level.
         Friend Const BC36610 As String = "BC36610" ' error BC36610: Name 'v' is either not declared or not in the current scope.
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

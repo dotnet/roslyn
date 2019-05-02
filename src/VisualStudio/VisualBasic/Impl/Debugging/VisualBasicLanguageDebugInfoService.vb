@@ -13,8 +13,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     Partial Friend Class VisualBasicLanguageDebugInfoService
         Implements ILanguageDebugInfoService
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Function GetLocationInfoAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of DebugLocationInfo) Implements ILanguageDebugInfoService.GetLocationInfoAsync

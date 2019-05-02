@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseImplicitType), Shared]
     internal partial class UseImplicitTypeCodeRefactoringProvider : AbstractUseTypeCodeRefactoringProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public UseImplicitTypeCodeRefactoringProvider()
         {
         }

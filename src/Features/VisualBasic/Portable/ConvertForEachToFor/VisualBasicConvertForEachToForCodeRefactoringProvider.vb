@@ -14,8 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
     Friend Class VisualBasicConvertForEachToForCodeRefactoringProvider
         Inherits AbstractConvertForEachToForCodeRefactoringProvider(Of ForEachBlockSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides ReadOnly Property Title As String = VBFeaturesResources.Convert_to_For

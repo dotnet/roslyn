@@ -30,7 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// </summary>
         private readonly JoinableTaskCollection _deferredCleanupTasks;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public ProjectCodeModelFactory(VisualStudioWorkspace visualStudioWorkspace, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IThreadingContext threadingContext)
         {
             _visualStudioWorkspace = visualStudioWorkspace;

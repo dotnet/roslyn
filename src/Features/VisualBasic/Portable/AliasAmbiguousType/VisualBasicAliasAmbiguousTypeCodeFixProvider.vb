@@ -14,8 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AliasAmbiguousType
         'BC30561: '<name1>' is ambiguous, imported from the namespaces or types '<name2>'
         Private Const BC30561 As String = NameOf(BC30561)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30561)

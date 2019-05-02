@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class TryStatementHighlighter : AbstractKeywordHighlighter<TryStatementSyntax>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public TryStatementHighlighter()
         {
         }

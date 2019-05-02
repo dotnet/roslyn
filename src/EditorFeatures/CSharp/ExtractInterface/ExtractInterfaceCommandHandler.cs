@@ -13,7 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ExtractInterface
     [Name(PredefinedCommandHandlerNames.ExtractInterface)]
     internal class ExtractInterfaceCommandHandler : AbstractExtractInterfaceCommandHandler
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public ExtractInterfaceCommandHandler(IThreadingContext threadingContext)
             : base(threadingContext)
         {

@@ -24,8 +24,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag
             SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)
             }
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function IsXmlTextToken(token As SyntaxToken) As Boolean

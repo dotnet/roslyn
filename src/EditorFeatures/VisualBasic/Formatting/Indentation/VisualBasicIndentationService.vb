@@ -21,8 +21,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
         Private ReadOnly _specializedIndentationRule As AbstractFormattingRule
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             Me.New(New SpecialFormattingRule())
         End Sub
 

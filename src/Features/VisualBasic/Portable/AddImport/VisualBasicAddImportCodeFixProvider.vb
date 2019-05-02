@@ -97,8 +97,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
     Friend Class VisualBasicAddImportCodeFixProvider
         Inherits AbstractAddImportCodeFixProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
 #Disable Warning RS0034 ' Exported parts should have [ImportingConstructor]

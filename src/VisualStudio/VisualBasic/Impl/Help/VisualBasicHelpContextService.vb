@@ -17,8 +17,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
     Partial Friend Class VisualBasicHelpContextService
         Inherits AbstractHelpContextService
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property Language As String

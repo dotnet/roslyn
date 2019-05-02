@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedMembers), Shared]
     internal class CSharpRemoveUnusedMembersCodeFixProvider : AbstractRemoveUnusedMembersCodeFixProvider<FieldDeclarationSyntax>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpRemoveUnusedMembersCodeFixProvider()
         {
         }

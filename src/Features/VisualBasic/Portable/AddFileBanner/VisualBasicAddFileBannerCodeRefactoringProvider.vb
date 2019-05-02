@@ -10,8 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddFileBanner
     Friend Class VisualBasicAddFileBannerCodeRefactoringProvider
         Inherits AbstractAddFileBannerCodeRefactoringProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function IsCommentStartCharacter(ch As Char) As Boolean

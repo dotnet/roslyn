@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertLogical
     Friend Class VisualBasicInvertLogicalCodeRefactoringProvider
         Inherits AbstractInvertLogicalCodeRefactoringProvider(Of SyntaxKind, ExpressionSyntax, BinaryExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function GetKind(rawKind As Integer) As SyntaxKind

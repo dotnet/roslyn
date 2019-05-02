@@ -10,7 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
     internal class CSharpRemoveUnnecessaryImportsCodeFixProvider : AbstractRemoveUnnecessaryImportsCodeFixProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpRemoveUnnecessaryImportsCodeFixProvider()
         {
         }

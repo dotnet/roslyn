@@ -14,8 +14,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     Friend Class AddMissingTokensCodeCleanupProvider
         Inherits AbstractTokensCodeCleanupProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property Name As String

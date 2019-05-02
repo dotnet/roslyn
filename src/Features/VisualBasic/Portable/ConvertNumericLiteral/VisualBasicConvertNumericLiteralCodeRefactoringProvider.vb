@@ -9,8 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertNumericLiteral
     Friend NotInheritable Class VisualBasicConvertNumericLiteralCodeRefactoringProvider
         Inherits AbstractConvertNumericLiteralCodeRefactoringProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function GetNumericLiteralPrefixes() As (hexPrefix As String, binaryPrefix As String)

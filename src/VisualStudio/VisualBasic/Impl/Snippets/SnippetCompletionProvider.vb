@@ -27,8 +27,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Private ReadOnly _threadingContext As IThreadingContext
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New(threadingContext As IThreadingContext, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             _threadingContext = threadingContext
             Me._editorAdaptersFactoryService = editorAdaptersFactoryService
         End Sub

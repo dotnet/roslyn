@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
         public const string CS0168 = nameof(CS0168);
         public const string CS0219 = nameof(CS0219);
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpRemoveUnusedVariableCodeFixProvider()
         {
         }

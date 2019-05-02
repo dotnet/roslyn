@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
     {
         private const string CS0746 = nameof(CS0746); // Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpAddAnonymousTypeMemberNameCodeFixProvider()
         {
         }

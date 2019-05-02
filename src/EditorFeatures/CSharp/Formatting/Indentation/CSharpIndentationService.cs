@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
         private static readonly AbstractFormattingRule s_instance = new FormattingRule();
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpIndentationService()
         {
         }

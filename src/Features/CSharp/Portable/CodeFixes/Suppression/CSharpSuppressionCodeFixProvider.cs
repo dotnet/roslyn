@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
     [ExportSuppressionFixProvider(PredefinedCodeFixProviderNames.Suppression, LanguageNames.CSharp), Shared]
     internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpSuppressionCodeFixProvider()
         {
         }

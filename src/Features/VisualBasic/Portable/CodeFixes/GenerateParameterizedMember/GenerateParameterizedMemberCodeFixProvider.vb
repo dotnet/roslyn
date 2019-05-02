@@ -36,8 +36,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
         Friend Const BC30110 As String = "BC30110" ' error BC30110: 'Foo' is a structure type and cannot be used as an expression.
         Friend Const BC30111 As String = "BC30111" ' error BC30111: 'Foo' is an interface type and cannot be used as an expression.
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

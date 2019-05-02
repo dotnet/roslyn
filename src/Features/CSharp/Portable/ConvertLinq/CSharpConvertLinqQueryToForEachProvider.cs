@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
     {
         private static readonly TypeSyntax VarNameIdentifier = SyntaxFactory.IdentifierName("var");
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpConvertLinqQueryToForEachProvider()
         {
         }

@@ -13,7 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UpdateProjectToAllowUnsafe
     {
         private const string CS0227 = nameof(CS0227); // error CS0227: Unsafe code may only appear if compiling with /unsafe
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpUpdateProjectToAllowUnsafeCodeFixProvider()
         {
         }

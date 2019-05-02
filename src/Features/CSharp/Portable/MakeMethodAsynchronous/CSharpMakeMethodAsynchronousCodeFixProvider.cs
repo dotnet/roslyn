@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         private static readonly SyntaxToken s_asyncToken = SyntaxFactory.Token(SyntaxKind.AsyncKeyword);
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpMakeMethodAsynchronousCodeFixProvider()
         {
         }

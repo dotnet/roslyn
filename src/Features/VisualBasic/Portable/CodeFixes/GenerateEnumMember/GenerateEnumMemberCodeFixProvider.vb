@@ -17,8 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEnumMember
 
         Friend Const BC30456 As String = "BC30456" ' error BC30456: 'Red' is not a member of 'Color'.
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

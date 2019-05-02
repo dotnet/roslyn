@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
     [ExportLanguageService(typeof(IGoToDefinitionService), LanguageNames.CSharp), Shared]
     internal class CSharpGoToDefinitionService : AbstractGoToDefinitionService
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpGoToDefinitionService(
             [ImportMany]IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
             : base(streamingPresenters)

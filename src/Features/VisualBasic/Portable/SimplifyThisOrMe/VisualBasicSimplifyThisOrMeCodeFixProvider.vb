@@ -12,8 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
     Partial Friend Class VisualBasicSimplifyThisOrMeCodeFixProvider
         Inherits AbstractSimplifyThisOrMeCodeFixProvider(Of MemberAccessExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function GetTitle() As String

@@ -40,8 +40,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
         Friend Const BC31117 As String = "BC31117" ' error BC31117: 'RaiseEvent' declaration must end with a matching 'End RaiseEvent'.
         Friend Const BC36008 As String = "BC36008" ' error BC36008: 'Using' must end with a matching 'End Using'.
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

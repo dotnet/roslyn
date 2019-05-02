@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider("ConstructorInitializerSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal partial class ConstructorInitializerSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public ConstructorInitializerSignatureHelpProvider()
         {
         }

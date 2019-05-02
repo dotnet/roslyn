@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConflictMarkerResolution
 
         Private Const BC37284 As String = NameOf(BC37284)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(BC37284)
         End Sub
 

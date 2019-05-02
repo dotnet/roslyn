@@ -22,9 +22,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
         Private ReadOnly _formattingRules As IEnumerable(Of AbstractFormattingRule)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor()>
         Public Sub New(undoHistoryRegistry As ITextUndoHistoryRegistry,
                        editorOperationsFactoryService As IEditorOperationsFactoryService)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
 
             MyBase.New(undoHistoryRegistry,
                        editorOperationsFactoryService)

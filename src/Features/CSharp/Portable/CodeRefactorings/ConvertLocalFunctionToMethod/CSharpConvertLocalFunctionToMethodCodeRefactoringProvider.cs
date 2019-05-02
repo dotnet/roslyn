@@ -26,7 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         private static readonly SyntaxAnnotation s_delegateToReplaceAnnotation = new SyntaxAnnotation();
         private static readonly SyntaxGenerator s_generator = CSharpSyntaxGenerator.Instance;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpConvertLocalFunctionToMethodCodeRefactoringProvider()
         {
         }

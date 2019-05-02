@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         internal static readonly object InternalErrorId = new object();
         internal static readonly object EmitErrorId = new object();
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public EditAndContinueDiagnosticUpdateSource(IDiagnosticUpdateSourceRegistrationService registrationService)
         {
             registrationService.Register(this);

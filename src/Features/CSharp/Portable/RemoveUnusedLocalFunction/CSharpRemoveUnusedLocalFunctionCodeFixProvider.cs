@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
     {
         private const string CS8321 = nameof(CS8321); // The local function 'X' is declared but never used
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpRemoveUnusedLocalFunctionCodeFixProvider()
         {
         }

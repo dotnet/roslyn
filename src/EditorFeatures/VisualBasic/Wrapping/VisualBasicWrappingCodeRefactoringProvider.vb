@@ -18,8 +18,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping
                 New VisualBasicParameterWrapper(),
                 New VisualBasicBinaryExpressionWrapper())
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(s_wrappers)
         End Sub
     End Class

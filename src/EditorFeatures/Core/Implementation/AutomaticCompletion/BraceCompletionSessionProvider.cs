@@ -26,7 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public BraceCompletionSessionProvider(
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,

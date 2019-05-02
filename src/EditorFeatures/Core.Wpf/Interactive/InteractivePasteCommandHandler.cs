@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         public string DisplayName => EditorFeaturesResources.Paste_in_Interactive;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public InteractivePasteCommandHandler(IEditorOperationsFactoryService editorOperationsFactoryService, ITextUndoHistoryRegistry textUndoHistoryRegistry)
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;

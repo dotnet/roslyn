@@ -21,8 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
 
         Friend Shared ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(BC30451)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

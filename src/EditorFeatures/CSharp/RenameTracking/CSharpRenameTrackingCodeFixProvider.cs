@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking
     [ExtensionOrder(Before = PredefinedCodeFixProviderNames.SpellCheck)]
     internal sealed class CSharpRenameTrackingCodeFixProvider : AbstractRenameTrackingCodeFixProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpRenameTrackingCodeFixProvider(
             IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,

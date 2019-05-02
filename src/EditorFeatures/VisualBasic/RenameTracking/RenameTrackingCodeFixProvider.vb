@@ -31,8 +31,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking
     Friend NotInheritable Class VisualBasicRenameTrackingCodeFixProvider
         Inherits AbstractRenameTrackingCodeFixProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New(waitIndicator As IWaitIndicator, undoHistoryRegistry As ITextUndoHistoryRegistry, <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService))
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(waitIndicator, undoHistoryRegistry, refactorNotifyServices)
         End Sub
     End Class

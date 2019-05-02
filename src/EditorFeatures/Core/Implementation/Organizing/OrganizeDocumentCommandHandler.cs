@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         VSCommanding.ICommandHandler<SortImportsCommandArgs>,
         VSCommanding.ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public OrganizeDocumentCommandHandler()
         {
         }

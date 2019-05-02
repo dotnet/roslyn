@@ -12,8 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared ReadOnly Instance As New VisualBasicPrecedenceService()
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides Function GetOperatorPrecedence(expression As ExpressionSyntax) As OperatorPrecedence

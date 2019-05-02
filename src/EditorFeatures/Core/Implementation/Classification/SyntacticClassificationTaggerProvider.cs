@@ -26,7 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         private readonly ConditionalWeakTable<ITextBuffer, TagComputer> _tagComputers = new ConditionalWeakTable<ITextBuffer, TagComputer>();
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public SyntacticClassificationTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,

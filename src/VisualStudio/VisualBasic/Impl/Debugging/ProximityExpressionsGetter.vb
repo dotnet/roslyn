@@ -16,8 +16,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     Friend Partial Class VisualBasicProximityExpressionsService
         Implements IProximityExpressionsService
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Async Function GetProximityExpressionsAsync(

@@ -40,8 +40,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Friend Class BinaryConditionalExpressionSignatureHelpProvider
         Inherits ConditionalExpressionSignatureHelpProvider(Of BinaryConditionalExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides ReadOnly Property Kind As SyntaxKind
@@ -55,8 +57,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Friend Class TernaryConditionalExpressionSignatureHelpProvider
         Inherits ConditionalExpressionSignatureHelpProvider(Of TernaryConditionalExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides ReadOnly Property Kind As SyntaxKind

@@ -13,8 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Inherits AbstractUseConditionalExpressionForReturnCodeFixProvider(Of
             StatementSyntax, MultiLineIfBlockSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function IsRef(returnOperation As IReturnOperation) As Boolean

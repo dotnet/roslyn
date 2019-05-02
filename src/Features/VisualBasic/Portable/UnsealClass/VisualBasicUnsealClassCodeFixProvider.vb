@@ -12,8 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnsealClass
 
         Private Const BC30299 As String = NameOf(BC30299) ' 'D' cannot inherit from class 'C' because 'C' is declared 'NotInheritable'.
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =

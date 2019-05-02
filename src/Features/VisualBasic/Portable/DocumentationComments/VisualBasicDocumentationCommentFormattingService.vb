@@ -10,8 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
     Friend Class VisualBasicDocumentationCommentFormattingService
         Inherits AbstractDocumentationCommentFormattingService
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
     End Class
 End Namespace

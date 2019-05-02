@@ -13,8 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractInterface
     Friend Class ExtractInterfaceCommandHandler
         Inherits AbstractExtractInterfaceCommandHandler
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New(threadingContext As IThreadingContext)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(threadingContext)
         End Sub
     End Class

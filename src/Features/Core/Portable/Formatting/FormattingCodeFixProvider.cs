@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.Formatting
     [Shared]
     internal class FormattingCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public FormattingCodeFixProvider()
         {
         }

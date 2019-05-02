@@ -50,7 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.FullyQualify)]
     internal class GenerateConstructorCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public GenerateConstructorCodeFixProvider()
         {
         }

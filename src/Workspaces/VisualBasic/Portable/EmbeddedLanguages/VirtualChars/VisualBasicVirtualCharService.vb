@@ -12,8 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 
         Public Shared ReadOnly Instance As IVirtualCharService = New VisualBasicVirtualCharService()
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function IsStringLiteralToken(token As SyntaxToken) As Boolean

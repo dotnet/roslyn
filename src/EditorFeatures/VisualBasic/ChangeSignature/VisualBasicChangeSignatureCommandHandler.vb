@@ -12,8 +12,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ChangeSignature
     Friend Class VisualBasicChangeSignatureCommandHandler
         Inherits AbstractChangeSignatureCommandHandler
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
     End Class
 End Namespace

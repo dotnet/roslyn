@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember
     {
         private const string CS0117 = nameof(CS0117); // error CS0117: 'Color' does not contain a definition for 'Red'
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public GenerateEnumMemberCodeFixProvider()
         {
         }

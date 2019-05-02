@@ -10,8 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
     Friend NotInheritable Class VisualBasicInvertSingleLineIfCodeRefactoringProvider
         Inherits VisualBasicInvertIfCodeRefactoringProvider(Of SingleLineIfStatementSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function GetHeaderSpan(ifNode As SingleLineIfStatementSyntax) As TextSpan

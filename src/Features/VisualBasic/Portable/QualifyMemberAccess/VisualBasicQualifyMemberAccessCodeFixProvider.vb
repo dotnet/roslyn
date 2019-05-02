@@ -12,8 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
     Friend Class VisualBasicQualifyMemberAccessCodeFixProvider
         Inherits AbstractQualifyMemberAccessCodeFixprovider(Of SimpleNameSyntax, InvocationExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function GetTitle() As String

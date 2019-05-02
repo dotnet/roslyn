@@ -21,7 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [ExportLanguageService(typeof(IHelpContextService), LanguageNames.CSharp), Shared]
     internal class CSharpHelpContextService : AbstractHelpContextService
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpHelpContextService()
         {
         }

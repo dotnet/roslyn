@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         private static readonly ConditionalWeakTable<Workspace, TodoCommentIncrementalAnalyzer> s_analyzers = new ConditionalWeakTable<Workspace, TodoCommentIncrementalAnalyzer>();
         private readonly TodoCommentTokens _todoCommentTokens;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public TodoCommentIncrementalAnalyzerProvider(TodoCommentTokens todoCommentTokens)
         {
             _todoCommentTokens = todoCommentTokens;

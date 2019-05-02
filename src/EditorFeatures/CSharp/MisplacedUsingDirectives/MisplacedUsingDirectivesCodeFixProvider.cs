@@ -36,7 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
     {
         private static readonly SyntaxAnnotation s_usingPlacementCodeFixAnnotation = new SyntaxAnnotation(nameof(s_usingPlacementCodeFixAnnotation));
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public MisplacedUsingDirectivesCodeFixProvider()
         {
         }

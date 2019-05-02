@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
     Friend Class VisualBasicUseInferredMemberNameCodeFixProvider
         Inherits AbstractUseInferredMemberNameCodeFixProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Sub LanguageSpecificRemoveSuggestedNode(editor As SyntaxEditor, node As SyntaxNode)

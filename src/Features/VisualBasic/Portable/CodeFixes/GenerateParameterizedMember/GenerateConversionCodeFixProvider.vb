@@ -17,8 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
 
         Friend Const BC30311 As String = "BC30311" ' error BC30311: Cannot convert type 'x' to type 'y'
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

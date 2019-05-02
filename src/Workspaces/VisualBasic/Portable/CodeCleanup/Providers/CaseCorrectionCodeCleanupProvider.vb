@@ -13,8 +13,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     Friend Class CaseCorrectionCodeCleanupProvider
         Implements ICodeCleanupProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public ReadOnly Property Name As String Implements ICodeCleanupProvider.Name

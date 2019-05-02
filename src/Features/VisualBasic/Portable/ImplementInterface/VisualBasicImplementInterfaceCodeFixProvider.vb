@@ -15,8 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
         Friend Const BC30149 As String = "BC30149" ' Class 'bar' must implement 'Sub goo()' for interface 'igoo'.
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

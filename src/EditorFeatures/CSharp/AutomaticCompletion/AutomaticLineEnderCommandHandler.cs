@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class AutomaticLineEnderCommandHandler : AbstractAutomaticLineEnderCommandHandler
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public AutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations)

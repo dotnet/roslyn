@@ -15,8 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
 
         Private Const Underscore As String = "_"
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Friend Overrides Function GetProperty(token As SyntaxToken) As SyntaxNode

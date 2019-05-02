@@ -17,7 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly IDiagnosticAnalyzerService _analyzerService;
         private readonly IAsynchronousOperationListener _listener;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public RemoteHostClientServiceFactory(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,

@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         Name = PredefinedCodeFixProviderNames.UseThrowExpression), Shared]
     internal partial class UseThrowExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public UseThrowExpressionCodeFixProvider()
         {
         }

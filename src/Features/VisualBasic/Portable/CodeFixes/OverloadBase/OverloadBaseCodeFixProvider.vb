@@ -13,8 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
         Friend Const BC40003 As String = "BC40003" ' '{0} '{1}' shadows an overloadable member declared in the base class '{2}'.  If you want to overload the base method, this method must be declared 'Overloads'.
         Friend Const BC40004 As String = "BC40004" ' '{0} '{1}' overloads an overloadable member declared in the base class '{2}'.  If you want to shadow the base method, this method must be declared 'Shadows'.
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

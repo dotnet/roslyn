@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         /// </summary>
         private const string CS4008 = nameof(CS4008);
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpConvertToAsyncMethodCodeFixProvider()
         {
         }

@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
     Friend Class VisualBasicOrderModifiersCodeFixProvider
         Inherits AbstractOrderModifiersCodeFixProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(VisualBasicSyntaxFactsService.Instance,
                        VisualBasicCodeStyleOptions.PreferredModifierOrder,
                        VisualBasicOrderModifiersHelper.Instance)

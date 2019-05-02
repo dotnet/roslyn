@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         Name = PredefinedCodeRefactoringProviderNames.UseExpressionBody), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRefactoringProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public UseExpressionBodyForLambdaCodeRefactoringProvider()
         {
         }

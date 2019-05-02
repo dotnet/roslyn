@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.NameTupleElement
     Friend Class VisualBasicNameTupleElementCodeRefactoringProvider
         Inherits AbstractNameTupleElementCodeRefactoringProvider(Of SimpleArgumentSyntax, TupleExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function WithName(argument As SimpleArgumentSyntax, name As String) As SimpleArgumentSyntax

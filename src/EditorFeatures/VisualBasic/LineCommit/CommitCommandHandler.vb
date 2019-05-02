@@ -47,12 +47,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Get
         End Property
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor()>
         Public Sub New(
             bufferManagerFactory As CommitBufferManagerFactory,
             editorOperationsFactoryService As IEditorOperationsFactoryService,
             smartIndentationService As ISmartIndentationService,
             textUndoHistoryRegistry As ITextUndoHistoryRegistry)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
 
             _bufferManagerFactory = bufferManagerFactory
             _editorOperationsFactoryService = editorOperationsFactoryService

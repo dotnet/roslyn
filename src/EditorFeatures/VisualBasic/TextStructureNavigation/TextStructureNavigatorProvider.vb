@@ -14,11 +14,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
     Friend Class TextStructureNavigatorProvider
         Inherits AbstractTextStructureNavigatorProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor()>
         Public Sub New(
             selectorService As ITextStructureNavigatorSelectorService,
             contentTypeService As IContentTypeRegistryService,
             waitIndicator As IWaitIndicator)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(selectorService, contentTypeService, waitIndicator)
         End Sub
 

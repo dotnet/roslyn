@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
     {
         internal const string CS0108 = nameof(CS0108); // 'SomeClass.SomeMember' hides inherited member 'SomeClass.SomeMember'. Use the new keyword if hiding was intended.
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public HideBaseCodeFixProvider()
         {
         }

@@ -15,8 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Partial Friend Class AttributeSignatureHelpProvider
         Inherits AbstractVisualBasicSignatureHelpProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean

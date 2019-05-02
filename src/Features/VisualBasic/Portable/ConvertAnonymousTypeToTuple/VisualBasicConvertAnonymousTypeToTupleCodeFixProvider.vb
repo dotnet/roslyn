@@ -13,8 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
             TupleExpressionSyntax,
             AnonymousObjectCreationExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function ConvertToTuple(anonCreation As AnonymousObjectCreationExpressionSyntax) As TupleExpressionSyntax

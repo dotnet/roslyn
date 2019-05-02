@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseImplicitType), Shared]
     internal class UseImplicitTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public UseImplicitTypeCodeFixProvider()
         {
         }

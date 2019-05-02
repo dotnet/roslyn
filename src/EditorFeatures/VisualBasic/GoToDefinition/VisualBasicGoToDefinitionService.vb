@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
     Friend Class VisualBasicGoToDefinitionService
         Inherits AbstractGoToDefinitionService
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New(<ImportMany> streamingPresenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)))
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(streamingPresenters)
         End Sub
     End Class

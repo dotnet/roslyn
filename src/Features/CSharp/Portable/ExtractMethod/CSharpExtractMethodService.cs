@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     [ExportLanguageService(typeof(IExtractMethodService), LanguageNames.CSharp)]
     internal class CSharpExtractMethodService : AbstractExtractMethodService<CSharpSelectionValidator, CSharpMethodExtractor, CSharpSelectionResult>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpExtractMethodService()
         {
         }

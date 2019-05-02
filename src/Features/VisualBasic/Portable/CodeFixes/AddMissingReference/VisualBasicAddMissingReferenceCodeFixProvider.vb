@@ -17,8 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddMissingReference
         Friend Const BC30005 As String = "BC30005" ' ERR_UnreferencedAssemblyEvent3
         Friend Const BC30652 As String = "BC30652" ' ERR_UnreferencedAssembly3
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
 #Disable Warning RS0034 ' Exported parts should have [ImportingConstructor]

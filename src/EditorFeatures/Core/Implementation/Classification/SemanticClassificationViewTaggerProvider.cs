@@ -41,7 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
         protected override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public SemanticClassificationViewTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,

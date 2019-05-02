@@ -29,8 +29,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     Friend NotInheritable Class SnippetCommandHandler
         Inherits AbstractSnippetCommandHandler
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New(threadingContext As IThreadingContext, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, serviceProvider As SVsServiceProvider)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(threadingContext, editorAdaptersFactoryService, serviceProvider)
         End Sub
 

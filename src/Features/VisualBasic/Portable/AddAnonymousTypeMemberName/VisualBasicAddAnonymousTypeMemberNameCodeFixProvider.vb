@@ -16,8 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAnonymousTypeMemberName
 
         Private Const BC36556 As String = NameOf(BC36556) ' Anonymous type member name can be inferred only from a simple or qualified name with no arguments.
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =

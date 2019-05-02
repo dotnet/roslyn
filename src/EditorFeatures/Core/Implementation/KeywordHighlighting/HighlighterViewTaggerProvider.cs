@@ -34,7 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
         protected override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.KeywordHighlighting);
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public HighlighterViewTaggerProvider(
             IThreadingContext threadingContext,
             IHighlightingService highlightingService,

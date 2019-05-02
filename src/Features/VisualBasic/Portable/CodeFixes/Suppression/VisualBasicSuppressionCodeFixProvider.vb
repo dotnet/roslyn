@@ -14,8 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
     Friend Class VisualBasicSuppressionCodeFixProvider
         Inherits AbstractSuppressionCodeFixProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function CreatePragmaRestoreDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As SyntaxTriviaList

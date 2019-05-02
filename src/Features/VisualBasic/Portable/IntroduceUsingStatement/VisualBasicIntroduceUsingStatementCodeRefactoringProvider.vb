@@ -12,8 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
     Friend NotInheritable Class VisualBasicIntroduceUsingStatementCodeRefactoringProvider
         Inherits AbstractIntroduceUsingStatementCodeRefactoringProvider(Of StatementSyntax, LocalDeclarationStatementSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides ReadOnly Property CodeActionTitle As String = VBFeaturesResources.Introduce_Using_statement

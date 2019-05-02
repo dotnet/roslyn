@@ -68,7 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                 => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
         }
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpUseNamedArgumentsCodeRefactoringProvider()
             : base(new ArgumentAnalyzer(), new AttributeArgumentAnalyzer())
         {

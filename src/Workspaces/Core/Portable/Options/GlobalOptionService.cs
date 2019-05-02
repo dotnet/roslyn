@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.Options
 
         private ImmutableDictionary<OptionKey, object> _currentValues;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public GlobalOptionService(
             [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders,
             [ImportMany] IEnumerable<Lazy<IOptionPersister>> optionSerializers)

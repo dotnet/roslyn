@@ -15,7 +15,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private readonly VisualStudioWorkspace _workspace;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public HierarchyItemToProjectIdMap(VisualStudioWorkspace workspace)
         {
             _workspace = workspace;

@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
         private readonly IWaitIndicator _waitIndicator;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public NavigableSymbolService(
             IWaitIndicator waitIndicator,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)

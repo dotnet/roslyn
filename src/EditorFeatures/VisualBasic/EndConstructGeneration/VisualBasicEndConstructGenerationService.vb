@@ -24,12 +24,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
         Private ReadOnly _editorOptionsFactoryService As IEditorOptionsFactoryService
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor()>
         Public Sub New(
             smartIndentationService As ISmartIndentationService,
             undoHistoryRegistry As ITextUndoHistoryRegistry,
             editorOperationsFactoryService As IEditorOperationsFactoryService,
             editorOptionsFactoryService As IEditorOptionsFactoryService)
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
 
             ThrowIfNull(smartIndentationService)
             ThrowIfNull(undoHistoryRegistry)

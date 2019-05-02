@@ -48,7 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private ImmutableDictionary<object, FixAllProviderInfo> _fixAllProviderMap;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CodeFixService(
             IThreadingContext threadingContext,
             IDiagnosticAnalyzerService service,

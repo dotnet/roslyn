@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
         private const string CS0426 = nameof(CS0426); // error CS0426: The type name 'S' does not exist in the type 'Program'
         private const string CS0616 = nameof(CS0616); // error CS0616: 'x' is not an attribute class
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public GenerateTypeCodeFixProvider()
         {
         }

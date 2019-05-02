@@ -18,8 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicCommandLineParserService
         Implements ICommandLineParserService
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Function Parse(arguments As IEnumerable(Of String), baseDirectory As String, isInteractive As Boolean, sdkDirectory As String) As CommandLineArguments Implements ICommandLineParserService.Parse

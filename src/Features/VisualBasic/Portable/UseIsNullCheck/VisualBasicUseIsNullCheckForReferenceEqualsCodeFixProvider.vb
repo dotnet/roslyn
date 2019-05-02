@@ -10,8 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
     Friend Class VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider
         Inherits AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function GetIsNullTitle() As String

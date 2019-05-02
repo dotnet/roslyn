@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         internal static readonly SyntaxAnnotation InitializerAnnotation = new SyntaxAnnotation();
         internal static readonly SyntaxAnnotation ExpressionToInlineAnnotation = new SyntaxAnnotation();
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public InlineTemporaryCodeRefactoringProvider()
         {
         }

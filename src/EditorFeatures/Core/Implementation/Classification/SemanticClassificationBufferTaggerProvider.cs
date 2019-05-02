@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly ClassificationTypeMap _typeMap;
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public SemanticClassificationBufferTaggerProvider(
             IThreadingContext threadingContext,
             IForegroundNotificationService notificationService,

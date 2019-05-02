@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
         Name = PredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors), Shared]
     internal class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactoringProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public GenerateDefaultConstructorsCodeRefactoringProvider()
         {
         }

@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnsealClass
     {
         private const string CS0509 = nameof(CS0509); // 'D': cannot derive from sealed type 'C'
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpUnsealClassCodeFixProvider()
         {
         }

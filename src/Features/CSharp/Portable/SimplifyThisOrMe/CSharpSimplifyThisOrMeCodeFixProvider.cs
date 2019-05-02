@@ -14,7 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
     internal partial class CSharpSimplifyThisOrMeCodeFixProvider
         : AbstractSimplifyThisOrMeCodeFixProvider<MemberAccessExpressionSyntax>
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpSimplifyThisOrMeCodeFixProvider()
         {
         }

@@ -12,8 +12,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
     Friend Class VisualBasicLineSeparatorService
         Implements ILineSeparatorService
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         ''' <summary>Node types that are interesting for line separation.</summary>

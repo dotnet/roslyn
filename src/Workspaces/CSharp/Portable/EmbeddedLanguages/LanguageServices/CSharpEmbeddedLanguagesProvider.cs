@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices
             CSharpVirtualCharService.Instance);
         public static IEmbeddedLanguagesProvider Instance = new CSharpEmbeddedLanguagesProvider();
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpEmbeddedLanguagesProvider() : base(Info)
         {
         }

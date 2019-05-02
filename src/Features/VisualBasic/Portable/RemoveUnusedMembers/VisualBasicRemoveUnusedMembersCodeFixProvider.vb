@@ -10,8 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
     Friend Class VisualBasicRemoveUnusedMembersCodeFixProvider
         Inherits AbstractRemoveUnusedMembersCodeFixProvider(Of FieldDeclarationSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         ''' <summary>

@@ -18,8 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
     Partial Friend Class InlineTemporaryCodeRefactoringProvider
         Inherits CodeRefactoringProvider
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overloads Overrides Async Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task

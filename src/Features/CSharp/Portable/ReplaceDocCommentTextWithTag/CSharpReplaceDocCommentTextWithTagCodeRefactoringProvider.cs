@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
             SyntaxFacts.GetText(SyntaxKind.AsyncKeyword),
             SyntaxFacts.GetText(SyntaxKind.AwaitKeyword));
 
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpReplaceDocCommentTextWithTagCodeRefactoringProvider()
         {
         }

@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class PropertyDeclarationHighlighter
         Inherits AbstractKeywordHighlighter(Of PropertyStatementSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Protected Overrides Function GetHighlights(propertyDeclaration As PropertyStatementSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)

@@ -25,8 +25,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
         Friend Const BC32045 As String = "BC32045" ' error BC32045: 'Goo' has no type parameters and so cannot have type arguments.
         Friend Const BC40056 As String = "BC40056" ' error BC40056: Namespace or type specified in the Imports 'A' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

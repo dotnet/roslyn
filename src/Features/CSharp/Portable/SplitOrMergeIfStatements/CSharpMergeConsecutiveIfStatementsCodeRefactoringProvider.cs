@@ -13,7 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     internal sealed class CSharpMergeConsecutiveIfStatementsCodeRefactoringProvider
         : AbstractMergeConsecutiveIfStatementsCodeRefactoringProvider
     {
+#pragma warning disable RS0033 // Importing constructor should be [Obsolete]
         [ImportingConstructor]
+#pragma warning restore RS0033 // Importing constructor should be [Obsolete]
         public CSharpMergeConsecutiveIfStatementsCodeRefactoringProvider()
         {
         }

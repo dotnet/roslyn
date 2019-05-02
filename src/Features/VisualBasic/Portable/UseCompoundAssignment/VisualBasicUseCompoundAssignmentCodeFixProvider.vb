@@ -11,8 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
     Friend Class VisualBasicUseCompoundAssignmentCodeFixProvider
         Inherits AbstractUseCompoundAssignmentCodeFixProvider(Of SyntaxKind, AssignmentStatementSyntax, ExpressionSyntax)
 
+#Disable Warning RS0033 ' Importing constructor should be [Obsolete]
         <ImportingConstructor>
         Public Sub New()
+#Enable Warning RS0033 ' Importing constructor should be [Obsolete]
             MyBase.New(Kinds)
         End Sub
 
