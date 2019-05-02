@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         {
             public Uri FromProtocolUri(Uri uri)
             {
-                throw new NotImplementedException();
+                return uri;
             }
 
             public bool IsContainedInRootFolders(Uri uriToCheck)

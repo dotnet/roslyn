@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol;
 using Microsoft.VisualStudio.Threading;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 

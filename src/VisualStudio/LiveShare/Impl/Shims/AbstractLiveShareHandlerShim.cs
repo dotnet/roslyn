@@ -16,16 +16,16 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// </summary>
     internal abstract class AbstractLiveShareHandlerShim<RequestType, ResponseType> : ILspRequestHandler<RequestType, ResponseType, Solution>
     {
-        private readonly Lazy<IRequestHandler, IRequestHandlerMetadata> _lazyRequestHandler;
+        protected readonly Lazy<IRequestHandler, IRequestHandlerMetadata> LazyRequestHandler;
 
         public AbstractLiveShareHandlerShim(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string methodName)
         {
-            _lazyRequestHandler = GetRequestHandler(requestHandlers, methodName);
+            LazyRequestHandler = GetRequestHandler(requestHandlers, methodName);
         }
 
         public virtual Task<ResponseType> HandleAsync(RequestType param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            return ((IRequestHandler<RequestType, ResponseType>)_lazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities, cancellationToken);
+            return ((IRequestHandler<RequestType, ResponseType>)LazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities, cancellationToken);
         }
 
         protected Lazy<IRequestHandler, IRequestHandlerMetadata> GetRequestHandler(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string methodName)
