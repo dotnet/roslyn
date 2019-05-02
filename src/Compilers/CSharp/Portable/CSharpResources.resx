@@ -5901,6 +5901,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UndecoratedCancellationTokenParameter_Title" xml:space="preserve">
     <value>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;>.GetAsyncEnumerator' will be unconsumed</value>
   </data>
+  <data name="ERR_MultipleEnumeratorCancellationAttributes" xml:space="preserve">
+    <value>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</value>
+  </data>
   <data name="ERR_OverrideRefConstraintNotSatisfied" xml:space="preserve">
     <value>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</value>
   </data>

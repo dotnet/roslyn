@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // catch (Exception ex)
             // {
             //     _state = finishedState;
-            //     builder.SetException(ex);  OR   _promiseOfValueOrEnd.SetException(ex); /* for async-iterator method */
+            //     builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex); /* for async-iterator method */
             //     return;
             // }
 
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement assignFinishedState =
                 F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)));
 
-            // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
+            // builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex);
             BoundStatement callSetException = GenerateSetExceptionCall(exceptionLocal);
 
             return new BoundCatchBlock(
@@ -234,6 +234,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual BoundStatement GenerateSetExceptionCall(LocalSymbol exceptionLocal)
         {
+            Debug.Assert(!CurrentMethod.IsIterator); // an override handles async-iterators
+
             // builder.SetException(ex);
             return F.ExpressionStatement(
                 F.Call(
