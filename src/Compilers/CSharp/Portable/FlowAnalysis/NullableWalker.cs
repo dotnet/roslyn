@@ -4764,6 +4764,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
+            return VisitDeconstructionAssignementOperator(node, _invalidType);
+        }
+
+        private BoundNode VisitDeconstructionAssignementOperator(BoundDeconstructionAssignmentOperator node, TypeWithState rightResult)
+        {
             var previousDisableNullabilityAnalysis = _disableNullabilityAnalysis;
             _disableNullabilityAnalysis = true;
             var left = node.Left;
@@ -4778,7 +4783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitDeconstructionArguments(variables, right.Conversion, right.Operand);
+                VisitDeconstructionArguments(variables, right.Conversion, right.Operand, rightResult);
             }
 
             variables.FreeAll(v => v.NestedVariables);
@@ -4792,7 +4797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitDeconstructionArguments(ArrayBuilder<DeconstructionVariable> variables, Conversion conversion, BoundExpression right)
+        private void VisitDeconstructionArguments(ArrayBuilder<DeconstructionVariable> variables, Conversion conversion, BoundExpression right, TypeWithState rightResult)
         {
             Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
 
@@ -4800,8 +4805,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!conversion.DeconstructionInfo.IsDefault)
             {
-                VisitRvalue(right);
-                var rightResult = ResultType;
+                // If we were passed an explicit right result, use that instead of visiting to figure it out
+                if (!TypeSymbol.Equals(rightResult.Type, _invalidType.Type, TypeCompareKind.ConsiderEverything2))
+                {
+                    SetResultType(right, rightResult);
+                }
+                else
+                {
+                    VisitRvalue(right);
+                    rightResult = ResultType;
+                }
                 var rightResultWithAnnotations = rightResult.ToTypeWithAnnotations();
 
                 var invocation = conversion.DeconstructionInfo.Invocation as BoundCall;
@@ -4860,7 +4873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (nestedVariables != null)
                         {
                             var nestedRight = CreatePlaceholderIfNecessary(invocation.Arguments[i + offset], parameter.TypeWithAnnotations);
-                            VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: nestedRight);
+                            VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: nestedRight, _invalidType);
                         }
                         else
                         {
@@ -4885,7 +4898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var nestedVariables = variable.NestedVariables;
                     if (nestedVariables != null)
                     {
-                        VisitDeconstructionArguments(nestedVariables, underlyingConversion, rightPart);
+                        VisitDeconstructionArguments(nestedVariables, underlyingConversion, rightPart, _invalidType);
                     }
                     else
                     {
@@ -5561,18 +5574,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var assignment = node.DeconstructionOpt.DeconstructionAssignment;
 
-                // update the assignment if we've updated the source type
-                if (!(sourceType.Type is null) && !assignment.Type.Equals(sourceType.Type, TypeCompareKind.ConsiderEverything2))
-                {
-                    var right = assignment.Right;
-                    var rightExpression = right.Operand as BoundDeconstructValuePlaceholder;
-                    rightExpression = rightExpression.Update(rightExpression.ValEscape, sourceType.Type);
-                    right = right.Update(rightExpression, right.Conversion, right.IsBaseConversion, right.Checked, right.ExplicitCastInCode, right.ConstantValueOpt, right.ConversionGroupOpt, sourceType.Type);
-                    assignment = node.DeconstructionOpt.DeconstructionAssignment.Update(assignment.Left, right, assignment.IsUsed, sourceType.Type);
-                }
 
-                // Visit the assignment as a deconstruction
-                Visit(assignment);
+                // Visit the assignment as a deconstruction with an explicit type
+                VisitDeconstructionAssignementOperator(assignment, sourceState);
             }
             else
             {
