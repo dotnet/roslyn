@@ -4764,10 +4764,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            return VisitDeconstructionAssignementOperator(node, _invalidType);
+            return VisitDeconstructionAssignementOperator(node, null);
         }
 
-        private BoundNode VisitDeconstructionAssignementOperator(BoundDeconstructionAssignmentOperator node, TypeWithState rightResult)
+        private BoundNode VisitDeconstructionAssignementOperator(BoundDeconstructionAssignmentOperator node, TypeWithState? rightResultOpt)
         {
             var previousDisableNullabilityAnalysis = _disableNullabilityAnalysis;
             _disableNullabilityAnalysis = true;
@@ -4783,7 +4783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitDeconstructionArguments(variables, right.Conversion, right.Operand, rightResult);
+                VisitDeconstructionArguments(variables, right.Conversion, right.Operand, rightResultOpt);
             }
 
             variables.FreeAll(v => v.NestedVariables);
@@ -4797,7 +4797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitDeconstructionArguments(ArrayBuilder<DeconstructionVariable> variables, Conversion conversion, BoundExpression right, TypeWithState rightResult)
+        private void VisitDeconstructionArguments(ArrayBuilder<DeconstructionVariable> variables, Conversion conversion, BoundExpression right, TypeWithState? rightResultOpt = null)
         {
             Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
 
@@ -4806,15 +4806,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!conversion.DeconstructionInfo.IsDefault)
             {
                 // If we were passed an explicit right result, use that instead of visiting to figure it out
-                if (!TypeSymbol.Equals(rightResult.Type, _invalidType.Type, TypeCompareKind.ConsiderEverything2))
+                if (rightResultOpt.HasValue)
                 {
-                    SetResultType(right, rightResult);
+                    SetResultType(right, rightResultOpt.Value);
                 }
                 else
                 {
                     VisitRvalue(right);
-                    rightResult = ResultType;
                 }
+                var rightResult = ResultType;
                 var rightResultWithAnnotations = rightResult.ToTypeWithAnnotations();
 
                 var invocation = conversion.DeconstructionInfo.Invocation as BoundCall;
@@ -4873,7 +4873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (nestedVariables != null)
                         {
                             var nestedRight = CreatePlaceholderIfNecessary(invocation.Arguments[i + offset], parameter.TypeWithAnnotations);
-                            VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: nestedRight, _invalidType);
+                            VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: nestedRight);
                         }
                         else
                         {
@@ -4898,7 +4898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var nestedVariables = variable.NestedVariables;
                     if (nestedVariables != null)
                     {
-                        VisitDeconstructionArguments(nestedVariables, underlyingConversion, rightPart, _invalidType);
+                        VisitDeconstructionArguments(nestedVariables, underlyingConversion, rightPart);
                     }
                     else
                     {
