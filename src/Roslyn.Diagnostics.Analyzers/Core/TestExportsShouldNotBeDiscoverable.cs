@@ -46,6 +46,7 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 var exportAttributeV1 = compilationContext.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ExportAttribute");
                 var exportAttributeV2 = compilationContext.Compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
+                var attributeUsageAttribute = WellKnownTypes.AttributeUsageAttribute(compilationContext.Compilation);
 
                 if (exportAttributeV1 is null && exportAttributeV2 is null)
                 {
@@ -56,7 +57,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 compilationContext.RegisterSymbolAction(symbolContext =>
                 {
                     var namedType = (INamedTypeSymbol)symbolContext.Symbol;
-                    var namedTypeAttributes = namedType.GetApplicableAttributes();
+                    var namedTypeAttributes = namedType.GetApplicableAttributes(attributeUsageAttribute);
 
                     AnalyzeSymbolForAttribute(ref symbolContext, exportAttributeV1, namedType, namedTypeAttributes);
                     AnalyzeSymbolForAttribute(ref symbolContext, exportAttributeV2, namedType, namedTypeAttributes);
