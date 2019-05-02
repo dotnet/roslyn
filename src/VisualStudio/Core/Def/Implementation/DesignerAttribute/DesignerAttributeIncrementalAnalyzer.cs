@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     // we track work by async token but doesn't explicitly wait for it. and update service is free-thread service,
                     // no need to switch to UI thread to use it
                     _ = updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument)
-                                     .ReportNonFatalErrorAsync().CompletesAsyncOperation(asyncToken);
+                                     .ReportNonFatalErrorAsync(predicate: e => !(e is ObjectDisposedException)).CompletesAsyncOperation(asyncToken);
                 }
                 catch (ObjectDisposedException)
                 {
