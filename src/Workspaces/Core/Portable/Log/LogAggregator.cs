@@ -11,11 +11,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return new Counter();
         }
 
-        public int GetAverage(string key)
-        {
-            return 0;
-        }
-
         public void SetCount(object key, int count)
         {
             var counter = GetCounter(key);
