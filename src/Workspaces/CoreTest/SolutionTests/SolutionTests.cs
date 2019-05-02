@@ -1624,6 +1624,39 @@ public class C : A {
             Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did3, did2, did1 })));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task TestAddingEditorConfigFileWithDiagnosticSeverity()
+        {
+            var solution = CreateSolution();
+            var projectId = ProjectId.CreateNewId();
+            var sourceDocumentId = DocumentId.CreateNewId(projectId);
+
+            solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp);
+            solution = solution.AddDocument(sourceDocumentId, "Test.cs", "// Hello, world!", filePath: @"Z:\Test.cs");
+
+            var originalSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+            var originalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+
+            var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
+                    editorConfigDocumentId,
+                    ".editorconfig",
+                    filePath: @"Z:\.editorconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.cs]\r\n\r\ndotnet_diagnostic.CA1234.severity = error"), VersionStamp.Default)))));
+
+            var newSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+            var newCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+
+            Assert.NotSame(originalSyntaxTree, newSyntaxTree);
+            Assert.NotSame(originalCompilation, newCompilation);
+
+            Assert.True(newCompilation.ContainsSyntaxTree(newSyntaxTree));
+
+            Assert.Single(newSyntaxTree.DiagnosticOptions);
+            Assert.Equal(ReportDiagnostic.Error, newSyntaxTree.DiagnosticOptions["CA1234"]);
+        }
+
         private static void GetMultipleProjects(
             out Project csBrokenProject,
             out Project vbNormalProject,
