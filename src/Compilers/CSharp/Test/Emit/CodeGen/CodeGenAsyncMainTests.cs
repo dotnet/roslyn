@@ -751,17 +751,17 @@ class A
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xc"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xd"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""48"" document=""1"" />
-        <entry offset=""0x3c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x8f"" hidden=""true"" document=""1"" />
-        <entry offset=""0xa7"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
-        <entry offset=""0xaf"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""48"" document=""1"" />
+        <entry offset=""0x3e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x91"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa9"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xb1"" hidden=""true"" document=""1"" />
       </sequencePoints>
       <asyncInfo>
-        <catchHandler offset=""0x8f"" />
+        <catchHandler offset=""0x91"" />
         <kickoffMethod declaringType=""A"" methodName=""Main"" />
-        <await yield=""0x4e"" resume=""0x69"" declaringType=""A+&lt;Main&gt;d__0"" methodName=""MoveNext"" />
+        <await yield=""0x50"" resume=""0x6b"" declaringType=""A+&lt;Main&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>

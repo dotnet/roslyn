@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly ImmutableArray<ParameterSymbol> _parameters;
 
             /// <summary> The user-defined asynchronous main method. </summary>
-            internal MethodSymbol UserMain { get; }
+            internal readonly MethodSymbol UserMain;
 
             internal AsyncForwardEntryPoint(CSharpCompilation compilation, NamedTypeSymbol containingType, MethodSymbol userMain) :
                 base(containingType)

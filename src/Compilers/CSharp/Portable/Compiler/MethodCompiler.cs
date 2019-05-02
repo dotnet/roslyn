@@ -1358,7 +1358,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // entryPointOpt is only considered for synthesized methods (to recognize the synthesized MoveNext method for async Main)
+        /// <summary>
+        /// entryPointOpt is only considered for synthesized methods (to recognize the synthesized MoveNext method for async Main)
+        /// </summary>
         private static MethodBody GenerateMethodBody(
             PEModuleBuilder moduleBuilder,
             MethodSymbol method,
