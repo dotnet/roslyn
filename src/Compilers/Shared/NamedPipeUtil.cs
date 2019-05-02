@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal static class NamedPipeUtil
     {
+        // Size of the buffers to use: 64K
+        private const int PipeBufferSize = 0x10000;
+
         /// <summary>
         /// Create a client for the current user only.
         /// </summary>
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Does the client of "pipeStream" have the same identity and elevation as we do? The <see cref="CreateClient"/> and 
-        /// <see cref="CreateServer" /> methods will already guarantee that the identity of the client and server are the 
+        /// <see cref="CreateServer(string)" /> methods will already guarantee that the identity of the client and server are the 
         /// same. This method is attempting to validate that the elevation level is the same between both ends of the 
         /// named pipe (want to disallow low priv session sending compilation requests to an elevated one).
         /// </summary>
@@ -53,6 +56,22 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
+        /// <summary>
+        /// Create a server for the current user only
+        /// </summary>
+        internal static NamedPipeServerStream CreateServer(string pipeName)
+        {
+            var pipeOptions = PipeOptions.Asynchronous | PipeOptions.WriteThrough;
+            return CreateServer(
+                pipeName,
+                PipeDirection.InOut,
+                NamedPipeServerStream.MaxAllowedServerInstances,
+                PipeTransmissionMode.Byte,
+                pipeOptions,
+                PipeBufferSize,
+                PipeBufferSize);
+        }
+
 #if NET472
 
         const int s_currentUserOnlyValue = unchecked((int)0x20000000);
@@ -65,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             ? (PipeOptions)s_currentUserOnlyValue
             : PipeOptions.None;
 
-        internal static NamedPipeServerStream CreateServer(
+        private static NamedPipeServerStream CreateServer(
             string pipeName,
             PipeDirection direction,
             int maxNumberOfServerInstances,
@@ -135,7 +154,7 @@ namespace Microsoft.CodeAnalysis
         // Validation is handled by CurrentUserOnly
         internal static PipeSecurity CreatePipeSecurity() => null;
 
-        internal static NamedPipeServerStream CreateServer(
+        private static NamedPipeServerStream CreateServer(
             string pipeName,
             PipeDirection direction,
             int maxNumberOfServerInstances,

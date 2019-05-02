@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             [Fact]
             public async Task Standard()
             {
-                using (var serverData = ServerUtil.CreateServer())
+                using (var serverData = await ServerUtil.CreateServer())
                 {
                     // Make sure the server is listening for this particular test. 
                     await serverData.ListenTask;
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.Equal(CommonCompiler.Succeeded, exitCode);
             }
 
-            [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+            [Fact]
             [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
             public async Task NoServerConnection()
             {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     var thread = new Thread(() =>
                     {
                         using (var mutex = new Mutex(initiallyOwned: true, name: mutexName, createdNew: out created))
-                        using (var stream = new NamedPipeServerStream(pipeName))
+                        using (var stream = NamedPipeUtil.CreateServer(pipeName))
                         {
                             readyMre.Set();
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             /// the client can error out.
             /// </summary>
             /// <returns></returns>
-            [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+            [Fact]
             [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
             public async Task ServerShutdownsDuringProcessing()
             {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                     var thread = new Thread(() =>
                     {
-                        using (var stream = new NamedPipeServerStream(pipeName))
+                        using (var stream = NamedPipeUtil.CreateServer(pipeName))
                         {
                             var mutex = new Mutex(initiallyOwned: true, name: mutexName, createdNew: out created);
                             readyMre.Set();
