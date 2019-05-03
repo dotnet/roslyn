@@ -4805,14 +4805,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!conversion.DeconstructionInfo.IsDefault)
             {
-                // If we were passed an explicit right result, use that instead of visiting to figure it out
+                VisitRvalue(right);
+
+                // If we were passed an explicit right result, use that rather than the visited result
                 if (rightResultOpt.HasValue)
                 {
                     SetResultType(right, rightResultOpt.Value);
-                }
-                else
-                {
-                    VisitRvalue(right);
                 }
                 var rightResult = ResultType;
                 var rightResultWithAnnotations = rightResult.ToTypeWithAnnotations();
