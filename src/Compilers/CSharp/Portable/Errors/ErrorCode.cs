@@ -1601,6 +1601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AttributeNotOnEventAccessor = 8423,
         WRN_UnconsumedEnumeratorCancellationAttributeUsage = 8424,
         WRN_UndecoratedCancellationTokenParameter = 8425,
+        ERR_MultipleEnumeratorCancellationAttributes = 8426,
         // available range
 
         #region diagnostics introduced for recursive patterns

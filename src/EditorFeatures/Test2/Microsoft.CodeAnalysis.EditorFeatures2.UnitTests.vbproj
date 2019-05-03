@@ -5,7 +5,6 @@
     <OutputType>Library</OutputType>
     <OptionStrict>Off</OptionStrict>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
