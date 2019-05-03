@@ -561,14 +561,14 @@ class Hello
         }
 
         [Theory]
-        [InlineData(@"OLqrNgkgZRf14qL91MdaUn8coiKckUIZCIEkpy0Lt18", "name with space", true, "basename")]
-        [InlineData(@"8VDiJptv892LtWpeN86z76_YI0Yg0BV6j0SOv8CjQVA", @"ha""ha", true, "basename")]
-        [InlineData(@"wKSU9psJMbkw+5+TFKLEf94aeslpEb3dDRpAw+9j4nw", @"jared", true, @"ha""ha")]
-        [InlineData(@"0BDP4_GPWYQh9J_BknwhS9uAZAF_64PK4_VnNsddGZE", @"jared", false, @"ha""ha")]
-        [InlineData(@"XroHfrjD1FTk7PcXcif2hZdmlVH_L0Pg+RUX01d_uQc", @"jared", false, @"ha\ha")]
-        public void GetPipeNameCore(string expectedName, string userName, bool isAdmin, string compilerExeDir)
+        [InlineData(@"name with space.T.basename", "name with space", true, "basename")]
+        [InlineData(@"ha_ha.T.basename", @"ha""ha", true, "basename")]
+        [InlineData(@"jared.T.ha_ha", @"jared", true, @"ha""ha")]
+        [InlineData(@"jared.F.ha_ha", @"jared", false, @"ha""ha")]
+        [InlineData(@"jared.F.ha_ha", @"jared", false, @"ha\ha")]
+        public void GetPipeNameCore(string expectedName, string userName, bool isAdmin, string basePipeName)
         {
-            Assert.Equal(expectedName, BuildServerConnection.GetPipeName(userName, isAdmin, compilerExeDir));
+            Assert.Equal(expectedName, BuildServerConnection.GetPipeNameCore(userName, isAdmin, basePipeName));
         }
     }
 }

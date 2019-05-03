@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             TimeSpan? keepAlive = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (BuildServerConnection.IsPipePathTooLong(pipeName, tempPath))
+            {
+                return CommonCompiler.Failed;
+            }
+
             keepAlive = keepAlive ?? GetKeepAliveTimeout();
             listener = listener ?? new EmptyDiagnosticListener();
             clientConnectionHost = clientConnectionHost ?? CreateClientConnectionHost(pipeName);

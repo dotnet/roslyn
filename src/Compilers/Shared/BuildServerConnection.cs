@@ -65,7 +65,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
-        internal static bool IsCompilerServerSupported(string tempPath) => GetPipeNameForPathOpt("") is object;
+        internal static bool IsCompilerServerSupported(string tempPath)
+        {
+            var pipeName = GetPipeNameForPathOpt("");
+            return pipeName != null && !IsPipePathTooLong(pipeName, tempPath);
+        }
 
         public static Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
@@ -306,6 +310,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             NamedPipeClientStream pipeStream;
             try
             {
+                // If the pipe path would be too long, there cannot be a server at the other end.
+                // We're not using a saved temp path here because pipes are created with
+                // Path.GetTempPath() in corefx NamedPipeClientStream and we want to replicate that behavior.
+                if (IsPipePathTooLong(pipeName, Path.GetTempPath()))
+                {
+                    return null;
+                }
+
                 // Machine-local named pipes are named "\\.\pipe\<pipename>".
                 // We use the SHA1 of the directory the compiler exes live in as the pipe name.
                 // The NamedPipeClientStream class handles the "\\.\pipe\" part for us.
@@ -450,6 +462,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </returns>
         internal static string GetPipeNameForPathOpt(string compilerExeDirectory)
         {
+            var basePipeName = GetBasePipeName(compilerExeDirectory);
+
             // Prefix with username and elevation
             bool isAdmin = false;
             if (PlatformInformation.IsWindows)
@@ -465,27 +479,65 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return null;
             }
 
-            return GetPipeName(userName, isAdmin, compilerExeDirectory);
+            return GetPipeNameCore(userName, isAdmin, basePipeName);
         }
 
-        internal static string GetPipeName(
-            string userName,
-            bool isAdmin,
-            string compilerExeDirectory)
+        internal static string GetPipeNameCore(string userName, bool isAdmin, string basePipeName)
+        {
+            var pipeName = $"{userName}.{(isAdmin ? 'T' : 'F')}.{basePipeName}";
+
+            // The pipe name is passed between processes as a command line argument as a 
+            // quoted value. Unfortunately we can't use ProcessStartInfo.ArgumentList as 
+            // we still target net472 (API only available on CoreClr + netstandard). To 
+            // make the problem approachable we remove the troublesome characters.
+            //
+            // This does mean if two users on the same machine are building simultaneously
+            // and the user names differ only be a " or / and a _ then there will be a 
+            // conflict. That seems rather obscure though.
+            return pipeName
+                .Replace('"', '_')
+                .Replace('\\', '_');
+        }
+
+        /// <summary>
+        /// Check if our constructed path is too long. On some Unix machines the pipe is a
+        /// real file in the temp directory, and there is a limit on how long the path can
+        /// be. This will never be true on Windows.
+        /// </summary>
+        internal static bool IsPipePathTooLong(string pipeName, string tempPath)
+        {
+            if (PlatformInformation.IsUnix)
+            {
+                // This is the maximum path length of Unix Domain Sockets on a number of systems.
+                // Since CoreFX implements named pipes using Unix Domain Sockets, if we exceed this
+                // length than the pipe will fail.
+                // This number is considered the smallest known max length according to
+                // http://man7.org/linux/man-pages/man7/unix.7.html
+                const int MaxPipePathLength = 92;
+                const int PrefixLength = 11; // "CoreFxPipe_".Length
+                return (tempPath.Length + PrefixLength + pipeName.Length) > MaxPipePathLength;
+            }
+            return false;
+        }
+
+        internal static string GetBasePipeName(string compilerExeDirectory)
         {
             // Normalize away trailing slashes.  File APIs include / exclude this with no 
             // discernable pattern.  Easiest to normalize it here vs. auditing every caller
             // of this method.
             compilerExeDirectory = compilerExeDirectory.TrimEnd(Path.DirectorySeparatorChar);
 
-            var pipeNameInput = $"{userName}.{isAdmin}.{compilerExeDirectory}";
+            string basePipeName;
             using (var sha = SHA256.Create())
             {
-                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(pipeNameInput));
-                return Convert.ToBase64String(bytes)
+                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
+                basePipeName = Convert.ToBase64String(bytes)
+                    .Substring(0, 10) // We only have ~50 total characters on Mac, so strip this down
                     .Replace("/", "_")
                     .Replace("=", string.Empty);
             }
+
+            return basePipeName;
         }
 
         internal static bool WasServerMutexOpen(string mutexName)
