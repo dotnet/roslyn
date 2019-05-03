@@ -887,7 +887,7 @@ Do you want to proceed?</value>
     <value>Operation is not ready for "{0}" yet. See bottom left corner for more details.</value>
   </data>
   <data name="User_Types_Static_Classes" xml:space="preserve">
-    <value>User Members - Static Classes</value>
+    <value>User Types - Static Classes</value>
   </data>
   <data name="User_Members_Static_Constants" xml:space="preserve">
     <value>User Members - Static Constants</value>

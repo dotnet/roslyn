@@ -2125,7 +2125,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Members - Static Classes.
+        ///   Looks up a localized string similar to User Types - Static Classes.
         /// </summary>
         internal static string User_Types_Static_Classes {
             get {

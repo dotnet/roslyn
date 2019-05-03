@@ -330,6 +330,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ControlKeyword, DarkThemeControlKeywordPurple);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.StructName, DarkThemeStructMint);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticMethodName, DarkThemeMethodYellow);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticConstantName, DarkThemeIdentifier);
                 }
                 else
                 {
@@ -342,6 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.OperatorOverloaded, LightThemeMethodYellow);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.ControlKeyword, LightThemeControlKeywordPurple);
                     UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticMethodName, LightThemeMethodYellow);
+                    UpdateColorItem(colorItemMap, ClassificationTypeNames.StaticConstantName, LightThemeIdentifier);
                 }
             }
 

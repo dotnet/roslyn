@@ -193,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Static_Classes">
-        <source>User Members - Static Classes</source>
-        <target state="new">User Members - Static Classes</target>
+        <source>User Types - Static Classes</source>
+        <target state="new">User Types - Static Classes</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
