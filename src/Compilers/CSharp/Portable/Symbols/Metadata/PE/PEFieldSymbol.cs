@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     type = TypeWithAnnotations.Create(new PointerTypeSymbol(TypeWithAnnotations.Create(fixedElementType)));
                 }
 
-                Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
+                TypeWithAnnotations.Boxed.InterlockedCompareExchange(ref _lazyType, type);
             }
         }
 

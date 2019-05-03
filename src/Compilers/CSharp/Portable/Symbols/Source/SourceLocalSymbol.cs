@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)originalType == null)
             {
-                Interlocked.CompareExchange(ref _type, new TypeWithAnnotations.Boxed(newType), null);
+                TypeWithAnnotations.Boxed.InterlockedCompareExchange(ref _type, newType);
             }
         }
 
