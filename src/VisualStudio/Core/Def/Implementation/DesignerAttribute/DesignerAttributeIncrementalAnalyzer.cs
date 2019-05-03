@@ -86,8 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 // Process all the documents in this project in parallel.  The project system can
                 // handle multiple calls into SetProjectItemDesignerTypeAsync and will batch them
                 // appropriately.
-                var tasks = project.Documents.SelectAsArray(d =>
-                    AnalyzeDocumentAsync(projectVersion, d, cancellationToken));
+                var tasks = project.Documents.SelectAsArray(d => AnalyzeDocumentAsync(projectVersion, d, cancellationToken));
 
                 // Now, actually attempt to wait on all the work to be done and persisted to our
                 // local store and to the project system.
