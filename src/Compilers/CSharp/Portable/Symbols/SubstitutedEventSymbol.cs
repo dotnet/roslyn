@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
 
-        private StrongBox<TypeWithAnnotations> _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
 
         internal SubstitutedEventSymbol(SubstitutedNamedTypeSymbol containingType, EventSymbol originalDefinition)
             : base(originalDefinition)
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyType == null)
                 {
                     var type = _containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.TypeWithAnnotations);
-                    Interlocked.CompareExchange(ref _lazyType, new StrongBox<TypeWithAnnotations>(type), null);
+                    Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
                 }
 
                 return _lazyType.Value;

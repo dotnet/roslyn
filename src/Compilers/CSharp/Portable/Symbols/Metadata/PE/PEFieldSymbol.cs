@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
-        private StrongBox<TypeWithAnnotations> _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
         private int _lazyFixedSize;
         private NamedTypeSymbol _lazyFixedImplementationType;
         private PEEventSymbol _associatedEventOpt;
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     type = TypeWithAnnotations.Create(new PointerTypeSymbol(TypeWithAnnotations.Create(fixedElementType)));
                 }
 
-                Interlocked.CompareExchange(ref _lazyType, new StrongBox<TypeWithAnnotations>(type), null);
+                Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
             }
         }
 

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
         private readonly TypeSyntax _typeSyntax;
         private readonly LocalDeclarationKind _declarationKind;
-        private StrongBox<TypeWithAnnotations> _type;
+        private TypeWithAnnotations.Boxed _type;
 
         /// <summary>
         /// Scope to which the local can "escape" via aliasing/ref assignment.
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)originalType == null)
             {
-                Interlocked.CompareExchange(ref _type, new StrongBox<TypeWithAnnotations>(newType), null);
+                Interlocked.CompareExchange(ref _type, new TypeWithAnnotations.Boxed(newType), null);
             }
         }
 

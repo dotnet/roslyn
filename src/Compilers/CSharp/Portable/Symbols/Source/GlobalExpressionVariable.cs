@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class GlobalExpressionVariable : SourceMemberFieldSymbol
     {
-        private StrongBox<TypeWithAnnotations> _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
 
         /// <summary>
         /// The type syntax, if any, from source. Optional for patterns that can omit an explicit type.
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 originalType.IsErrorType() ||
                 TypeSymbol.Equals(originalType, type.Type, TypeCompareKind.ConsiderEverything2));
 
-            if (Interlocked.CompareExchange(ref _lazyType, new StrongBox<TypeWithAnnotations>(type), null) == null)
+            if (Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null) == null)
             {
                 TypeChecks(type.Type, diagnostics);
 

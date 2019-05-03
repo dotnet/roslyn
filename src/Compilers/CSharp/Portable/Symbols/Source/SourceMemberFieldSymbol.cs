@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly bool _hasInitializer;
 
-        private StrongBox<TypeWithAnnotations> _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // update the lazyType only if it contains value last seen by the current thread:
-            if (Interlocked.CompareExchange(ref _lazyType, new StrongBox<TypeWithAnnotations>(type.WithModifiers(this.RequiredCustomModifiers)), null) == null)
+            if (Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type.WithModifiers(this.RequiredCustomModifiers)), null) == null)
             {
                 TypeChecks(type.Type, diagnostics);
 

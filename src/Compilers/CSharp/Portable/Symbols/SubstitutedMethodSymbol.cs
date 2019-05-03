@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeMap _inputMap;
         private readonly MethodSymbol _constructedFrom;
 
-        private StrongBox<TypeWithAnnotations> _lazyReturnType;
+        private TypeWithAnnotations.Boxed _lazyReturnType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeMap _lazyMap;
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyReturnType == null)
                 {
                     var returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnTypeWithAnnotations);
-                    Interlocked.CompareExchange(ref _lazyReturnType, new StrongBox<TypeWithAnnotations>(returnType), null);
+                    Interlocked.CompareExchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType), null);
                 }
                 return _lazyReturnType.Value;
             }

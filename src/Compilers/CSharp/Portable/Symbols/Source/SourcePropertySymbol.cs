@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private StrongBox<TypeWithAnnotations> _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
 
         /// <summary>
         /// Set in constructor, might be changed while decoding <see cref="IndexerNameAttribute"/>.
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // and the property name is required to add the property to the containing type, and
                 // the type and parameters are required to determine the override or implementation.
                 var type = this.ComputeType(bodyBinder, syntax, diagnostics);
-                Interlocked.CompareExchange(ref _lazyType, new StrongBox<TypeWithAnnotations>(type), null);
+                Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
                 _lazyParameters = this.ComputeParameters(bodyBinder, syntax, diagnostics);
 
                 bool isOverride = false;
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Although we only do this in error scenarios, it is undesirable to mutate the symbol by setting its type twice.
                         // Tracked by https://github.com/dotnet/roslyn/issues/35381
                         Interlocked.Exchange(ref _lazyType, null);
-                        Interlocked.CompareExchange(ref _lazyType, new StrongBox<TypeWithAnnotations>(type), null);
+                        Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
                     }
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var binder = this.CreateBinderForTypeAndParameters();
                     var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
                     var result = this.ComputeType(binder, syntax, diagnostics);
-                    if (Interlocked.CompareExchange(ref _lazyType, new StrongBox<TypeWithAnnotations>(result), null) == null)
+                    if (Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(result), null) == null)
                     {
                         this.AddDeclarationDiagnostics(diagnostics);
                     }
