@@ -1631,7 +1631,7 @@ done:
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            if (IsDeclaredReadOnly)
+            if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
             {
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, locations[0], modifyCompilation: true);
             }
