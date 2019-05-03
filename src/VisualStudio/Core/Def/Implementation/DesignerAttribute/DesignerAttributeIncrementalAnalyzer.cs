@@ -240,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var updateService = await GetUpdateServiceIfCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (updateService != null)
             {
-                setDesignerTypeTasks.Add(updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument));
+                await updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument).ConfigureAwait(false)
             }
             else
             {
