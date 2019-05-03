@@ -1621,31 +1621,6 @@ class C<T>
         }
 
         [Fact, WorkItem(34876, "https://github.com/dotnet/roslyn/pull/34876")]
-        public void Repro_34876_Fixed()
-        {
-            var source = @"
-struct S<T>
-{
-    public static implicit operator S<T>(T t) => new S<T>();
-    public ref S<T> GetPinnableReference() => throw null;
-
-    private static void M1() { }
-    private static unsafe void M2()
-    {
-    	fixed (S<object>* s = (S<object>) M1())
-        {
-        }
-    }
-}
-";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (10,28): error CS0030: Cannot convert type 'void' to 'S<object>'
-                //     	fixed (S<object>* s = (S<object>) M1())
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S<object>) M1()").WithArguments("void", "S<object>").WithLocation(10, 28));
-        }
-
-        [Fact, WorkItem(34876, "https://github.com/dotnet/roslyn/pull/34876")]
         public void Repro_34876_Cast()
         {
             var source = @"
