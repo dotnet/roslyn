@@ -7,8 +7,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
@@ -202,6 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             LinkedFileDiffMergingLogger.ReportTelemetry();
             SolutionLogger.ReportTelemetry();
             AsyncCompletionLogger.ReportTelemetry();
+            CompletionProvidersLogger.ReportTelemetry();
         }
 
         private void DisposeVisualStudioServices()
