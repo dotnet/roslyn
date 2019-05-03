@@ -273,7 +273,6 @@
     <PrivateVisualStudioPackage Include="VSLangProj80" />
     <PrivateVisualStudioPackage Include="VSLangProj140" />
     <PrivateVisualStudioPackage Include="VsWebsite.Interop" />
-    <PrivateVisualStudioPackage Include="Microsoft.VSSDK.Debugger.VSDConfigTool" />
   </ItemGroup>
   <PropertyGroup>
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
