@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly RefKind _refKind;
         private readonly TypeSyntax _typeSyntax;
         private readonly LocalDeclarationKind _declarationKind;
-        private TypeWithAnnotations.Builder _type;
+        private TypeWithAnnotations.Boxed _type;
 
         /// <summary>
         /// Scope to which the local can "escape" via aliasing/ref assignment.
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // don't let the debugger force inference.
         internal override string GetDebuggerDisplay()
         {
-            return !_type.IsDefault
+            return _type != null
                 ? base.GetDebuggerDisplay()
                 : $"{this.Kind} <var> ${this.Name}";
         }
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_type.IsDefault)
+                if (_type == null)
                 {
 #if DEBUG
                     concurrentTypeResolutions++;
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     SetTypeWithAnnotations(localType);
                 }
 
-                return _type.ToType();
+                return _type.Value;
             }
         }
 
@@ -376,13 +376,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // TODO: this method must be overridden for pattern variables to bind the
             // expression or statement that is the nearest enclosing to the pattern variable's
             // declaration. That will cause the type of the pattern variable to be set as a side-effect.
-            return _type.ToType();
+            return _type?.Value ?? default;
         }
 
         internal void SetTypeWithAnnotations(TypeWithAnnotations newType)
         {
             Debug.Assert(!(newType.Type is null));
-            TypeSymbol originalType = _type.DefaultType;
+            TypeSymbol originalType = _type?.Value.DefaultType;
 
             // In the event that we race to set the type of a local, we should
             // always deduce the same type, or deduce that the type is an error.
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)originalType == null)
             {
-                _type.InterlockedInitialize(newType);
+                Interlocked.CompareExchange(ref _type, new TypeWithAnnotations.Boxed(newType), null);
             }
         }
 
@@ -686,8 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
                 }
 
-                Debug.Assert(!this._type.IsDefault);
-                return _type.ToType();
+                return _type.Value;
             }
 
             internal override SyntaxNode ForbiddenZone
@@ -781,13 +780,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if (this._type.IsDefault)
+                if (this._type == null)
                 {
                     Debug.Assert(this.DeclarationKind == LocalDeclarationKind.DeclarationExpressionVariable);
                     SetTypeWithAnnotations(TypeWithAnnotations.Create(_nodeBinder.CreateErrorType("var")));
                 }
 
-                return _type.ToType();
+                return _type.Value;
             }
         }
     }
