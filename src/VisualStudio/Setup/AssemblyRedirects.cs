@@ -32,6 +32,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll")]
 
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Apex.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.CodeLens.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Debugger.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Razor.dll")]
