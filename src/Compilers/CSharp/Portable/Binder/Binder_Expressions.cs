@@ -1887,36 +1887,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBaseReference BindBase(BaseExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            TypeSymbol baseType;
-            BoundTypeExpression boundType = null;
             bool hasErrors = false;
-
-            if (node.TypeClause is null)
-            {
-                baseType = this.ContainingType is null ? null : this.ContainingType.BaseTypeNoUseSiteDiagnostics;
-            }
-            else
-            {
-                baseType = this.BindType(node.TypeClause.BaseType, diagnostics, out AliasSymbol alias).Type;
-                hasErrors = baseType.IsErrorType();
-
-                if (!hasErrors && !(this.ContainingType is null))
-                {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    if (!this.ContainingType.IsDerivedFrom(baseType, TypeCompareKind.ConsiderEverything, ref useSiteDiagnostics) &&
-                        !(this.ContainingType.IsInterface && baseType.IsObjectType()) &&
-                        !this.ContainingType.ImplementsInterface(baseType, ref useSiteDiagnostics))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_NotBaseOrImplementedInterface, node.TypeClause.BaseType, baseType, this.ContainingType);
-                        diagnostics.Add(node.TypeClause.BaseType, useSiteDiagnostics);
-                        hasErrors = true;
-                    }
-                }
-
-                boundType = new BoundTypeExpression(node.TypeClause.BaseType, alias, baseType, hasErrors);
-            }
-
+            TypeSymbol baseType = this.ContainingType is null ? null : this.ContainingType.BaseTypeNoUseSiteDiagnostics;
             bool inStaticContext;
+
             if (!HasThis(isExplicit: true, inStaticContext: out inStaticContext))
             {
                 //this error is returned in the field initializer case
@@ -1939,7 +1913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return new BoundBaseReference(node, boundType, baseType, hasErrors);
+            return new BoundBaseReference(node, baseType, hasErrors);
         }
 
         private BoundExpression BindCast(CastExpressionSyntax node, DiagnosticBag diagnostics)
@@ -6602,7 +6576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.ContainingType?.IsInterface == true && !Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation && Compilation.SourceModule != symbol.ContainingModule)
             {
                 if (!symbol.IsStatic && !(symbol is TypeSymbol) &&
-                    (!symbol.IsImplementableInterfaceMember() || (receiverOpt as BoundBaseReference)?.ExplicitBaseReferenceOpt?.Type.IsInterfaceType() == true))
+                    !symbol.IsImplementableInterfaceMember())
                 {
                     Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, node);
                 }

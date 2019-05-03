@@ -3786,21 +3786,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBaseReference : BoundExpression
     {
-        public BoundBaseReference(SyntaxNode syntax, BoundTypeExpression explicitBaseReferenceOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.BaseReference, syntax, type, hasErrors || explicitBaseReferenceOpt.HasErrors())
+        public BoundBaseReference(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.BaseReference, syntax, type, hasErrors)
         {
-            this.ExplicitBaseReferenceOpt = explicitBaseReferenceOpt;
         }
 
+        public BoundBaseReference(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.BaseReference, syntax, type)
+        {
+        }
 
-        public BoundTypeExpression ExplicitBaseReferenceOpt { get; }
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitBaseReference(this);
 
-        public BoundBaseReference Update(BoundTypeExpression explicitBaseReferenceOpt, TypeSymbol type)
+        public BoundBaseReference Update(TypeSymbol type)
         {
-            if (explicitBaseReferenceOpt != this.ExplicitBaseReferenceOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundBaseReference(this.Syntax, explicitBaseReferenceOpt, type, this.HasErrors);
+                var result = new BoundBaseReference(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3809,7 +3811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundBaseReference(this.Syntax, this.ExplicitBaseReferenceOpt, this.Type, this.HasErrors);
+            var result = new BoundBaseReference(this.Syntax, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -8714,11 +8716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitThisReference(BoundThisReference node) => null;
         public override BoundNode VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node) => null;
         public override BoundNode VisitHostObjectMemberReference(BoundHostObjectMemberReference node) => null;
-        public override BoundNode VisitBaseReference(BoundBaseReference node)
-        {
-            this.Visit(node.ExplicitBaseReferenceOpt);
-            return null;
-        }
+        public override BoundNode VisitBaseReference(BoundBaseReference node) => null;
         public override BoundNode VisitLocal(BoundLocal node) => null;
         public override BoundNode VisitPseudoVariable(BoundPseudoVariable node) => null;
         public override BoundNode VisitRangeVariable(BoundRangeVariable node)
@@ -9671,9 +9669,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
-            BoundTypeExpression explicitBaseReferenceOpt = (BoundTypeExpression)this.Visit(node.ExplicitBaseReferenceOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(explicitBaseReferenceOpt, type);
+            return node.Update(type);
         }
         public override BoundNode VisitLocal(BoundLocal node)
         {
@@ -11024,18 +11021,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
-            BoundTypeExpression explicitBaseReferenceOpt = (BoundTypeExpression)this.Visit(node.ExplicitBaseReferenceOpt);
-            BoundBaseReference updatedNode;
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                return node;
+            }
 
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
-            {
-                updatedNode = node.Update(explicitBaseReferenceOpt, infoAndType.Type);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(explicitBaseReferenceOpt, node.Type);
-            }
+            BoundBaseReference updatedNode = node.Update(infoAndType.Type);
+            updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
 
@@ -12728,7 +12720,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitBaseReference(BoundBaseReference node, object arg) => new TreeDumperNode("baseReference", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("explicitBaseReferenceOpt", null, new TreeDumperNode[] { Visit(node.ExplicitBaseReferenceOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
         }
