@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             set
             {
                 Debug.Assert(_lazyIteratorElementType == null || TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2));
-                TypeWithAnnotations.Boxed.InterlockedCompareExchange(ref _lazyIteratorElementType, value);
+                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), null);
             }
         }
 

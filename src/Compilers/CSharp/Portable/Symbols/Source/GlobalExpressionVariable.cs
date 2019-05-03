@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 originalType.IsErrorType() ||
                 TypeSymbol.Equals(originalType, type.Type, TypeCompareKind.ConsiderEverything2));
 
-            if (TypeWithAnnotations.Boxed.InterlockedCompareExchange(ref _lazyType, type) == null)
+            if (Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null) == null)
             {
                 TypeChecks(type.Type, diagnostics);
 

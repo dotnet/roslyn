@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // and the property name is required to add the property to the containing type, and
                 // the type and parameters are required to determine the override or implementation.
                 var type = this.ComputeType(bodyBinder, syntax, diagnostics);
-                TypeWithAnnotations.Boxed.InterlockedCompareExchange(ref _lazyType, type);
+                _lazyType = new TypeWithAnnotations.Boxed(type);
                 _lazyParameters = this.ComputeParameters(bodyBinder, syntax, diagnostics);
 
                 bool isOverride = false;
@@ -249,10 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.Type, type.Type, this.ContainingAssembly),
                             overriddenPropertyType.CustomModifiers);
 
-                        // It is undesirable to mutate the symbol by setting its type twice.
-                        // Tracked by https://github.com/dotnet/roslyn/issues/35381
-                        _lazyType = null; // a regular assignment is fine because we're in the constructor (we have not handed the instance to other threads)
-                        TypeWithAnnotations.Boxed.InterlockedCompareExchange(ref _lazyType, type);
+                        _lazyType = new TypeWithAnnotations.Boxed(type);
                     }
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
@@ -525,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var binder = this.CreateBinderForTypeAndParameters();
                     var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
                     var result = this.ComputeType(binder, syntax, diagnostics);
-                    if (TypeWithAnnotations.Boxed.InterlockedCompareExchange(ref _lazyType, result) == null)
+                    if (Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(result), null) == null)
                     {
                         this.AddDeclarationDiagnostics(diagnostics);
                     }

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyType == null)
                 {
                     var type = _containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.TypeWithAnnotations);
-                    TypeWithAnnotations.Boxed.InterlockedCompareExchange(ref _lazyType, type);
+                    Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
                 }
 
                 return _lazyType.Value;

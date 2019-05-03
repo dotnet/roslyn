@@ -22,18 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed class Boxed
         {
             internal readonly TypeWithAnnotations Value;
-
-            private Boxed(TypeWithAnnotations value)
+            internal Boxed(TypeWithAnnotations value)
             {
                 Value = value;
             }
-
-            internal static Boxed InterlockedCompareExchange(ref Boxed target, TypeWithAnnotations value)
-            {
-                var boxed = new Boxed(value);
-                return Interlocked.CompareExchange(ref target, boxed, null);
-            }
-
             internal string GetDebuggerDisplay() => Value.GetDebuggerDisplay();
         }
 

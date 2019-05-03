@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyReturnType == null)
                 {
                     var returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnTypeWithAnnotations);
-                    TypeWithAnnotations.Boxed.InterlockedCompareExchange(ref _lazyReturnType, returnType);
+                    Interlocked.CompareExchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType), null);
                 }
                 return _lazyReturnType.Value;
             }
