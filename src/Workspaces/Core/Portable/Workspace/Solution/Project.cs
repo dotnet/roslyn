@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// All the <see cref="AnalyzerConfigDocument"/>s associated with this project.
         /// </summary>
-        public IEnumerable<AnalyzerConfigDocument> AnalyzerConfigDocuments => _projectState.AnalyzerConfigDocumentStates.Select(s => GetAnalyzerConfigDocument(s.Key));
+        public IEnumerable<AnalyzerConfigDocument> AnalyzerConfigDocuments => _projectState.AnalyzerConfigDocumentIds.Select(GetAnalyzerConfigDocument);
 
         /// <summary>
         /// True if the project contains a document with the specified ID.

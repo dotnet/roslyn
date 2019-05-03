@@ -403,6 +403,11 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<DocumentId> AdditionalDocumentIds => _additionalDocumentIds;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        // Regular documents and additionald documents have an ordering, and so we maintain lists of the IDs in order; in the case of analyzerconfig documents,
+        // we don't define a workspace ordering because they are ordered via fancier algorithms in the compiler based on directory depth.
+        public IEnumerable<DocumentId> AnalyzerConfigDocumentIds => _analyzerConfigDocumentStates.Keys;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public IImmutableDictionary<DocumentId, DocumentState> DocumentStates => _documentStates;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
