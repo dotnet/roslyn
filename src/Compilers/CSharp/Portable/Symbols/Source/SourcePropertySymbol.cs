@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // and the property name is required to add the property to the containing type, and
                 // the type and parameters are required to determine the override or implementation.
                 var type = this.ComputeType(bodyBinder, syntax, diagnostics);
-                Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
+                _lazyType = new TypeWithAnnotations.Boxed(type);
                 _lazyParameters = this.ComputeParameters(bodyBinder, syntax, diagnostics);
 
                 bool isOverride = false;
@@ -251,8 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         // Although we only do this in error scenarios, it is undesirable to mutate the symbol by setting its type twice.
                         // Tracked by https://github.com/dotnet/roslyn/issues/35381
-                        Interlocked.Exchange(ref _lazyType, null);
-                        Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
+                        _lazyType = new TypeWithAnnotations.Boxed(type);
                     }
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);

@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal readonly struct TypeWithAnnotations : IFormattable
     {
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal sealed class Boxed
         {
             internal readonly TypeWithAnnotations Value;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Value = value;
             }
+            internal string GetDebuggerDisplay() => Value.GetDebuggerDisplay();
         }
 
         /// <summary>
