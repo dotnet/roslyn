@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -31,16 +32,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             private readonly ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.Builder _hazardousUsageBuilder;
 
             /// <summary>
-            /// When analyzing a field initializer, track object creations of the tracked type,
-            /// so the <see cref="PropertySetAbstractValue"/> can be evaluated at the end.
-            /// </summary>
-            /// <remarks>
-            /// Only allocated when running DFA on a field initializer.
-            /// </remarks>
-            private PooledHashSet<IObjectCreationOperation> TrackedObjectCreationsOpt;
-
-            /// <summary>
-            /// When analyzing constructors, track the assignment operations for fields and properties for the tracked type.
+            /// When looking for initialization hazardous usages, track the assignment operations for fields and properties for the tracked type.
             /// </summary>
             /// <remarks>
             /// Mapping of AnalysisEntity (for a field or property of the tracked type) to AbstractLocation(s) to IAssignmentOperation(s)
@@ -62,14 +54,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 this.WellKnownTypeProvider.TryGetTypeByMetadataName(analysisContext.TypeToTrackMetadataName, out this.TrackedTypeSymbol);
                 Debug.Assert(this.TrackedTypeSymbol != null);
 
-                if ((this.DataFlowAnalysisContext.OwningSymbol.Kind == SymbolKind.Field
-                        || this.DataFlowAnalysisContext.OwningSymbol.Kind == SymbolKind.Property)
-                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(out _))
-                {
-                    this.TrackedObjectCreationsOpt = PooledHashSet<IObjectCreationOperation>.GetInstance();
-                }
-
-                if (this.DataFlowAnalysisContext.OwningSymbol.IsConstructor())
+                if (this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(out _))
                 {
                     this.TrackedFieldPropertyAssignmentsOpt = PooledDictionary<AnalysisEntity, PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>>>.GetInstance();
                 }
@@ -151,8 +136,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     return abstractValue;
                 }
 
-                this.TrackedObjectCreationsOpt?.Add(operation);
-
                 ConstructorMapper constructorMapper = this.DataFlowAnalysisContext.ConstructorMapper;
                 if (!constructorMapper.PropertyAbstractValues.IsEmpty)
                 {
@@ -213,32 +196,57 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                 if (this.TrackedFieldPropertyAssignmentsOpt != null
                     && this.TrackedTypeSymbol.Equals(operation.Target.Type)
-                    && this.AnalysisEntityFactory.TryCreate(operation.Target, out AnalysisEntity targetAnalysisEntity)
                     && (operation.Target.Kind == OperationKind.PropertyReference
-                        || operation.Target.Kind == OperationKind.FieldReference)
-                    )
+                        || operation.Target.Kind == OperationKind.FieldReference
+                        || operation.Target.Kind == OperationKind.FlowCaptureReference))
                 {
-                    PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation.Value);
-                    foreach (AbstractLocation abstractLocation in pointsToAbstractValue.Locations)
+                    AnalysisEntity targetAnalysisEntity = null;
+                    if (operation.Target.Kind == OperationKind.FlowCaptureReference)
                     {
-                        if (!this.TrackedFieldPropertyAssignmentsOpt.TryGetValue(
-                                targetAnalysisEntity,
-                                out PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>> locationsToAssignments))
+                        PointsToAbstractValue lValuePointsToAbstractValue = this.GetPointsToAbstractValue(operation.Target);
+                        if (lValuePointsToAbstractValue.LValueCapturedOperations.Count == 1)
                         {
-                            locationsToAssignments =
-                                PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>>.GetInstance();
-                            this.TrackedFieldPropertyAssignmentsOpt.Add(targetAnalysisEntity, locationsToAssignments);
+                            IOperation lValueOperation = lValuePointsToAbstractValue.LValueCapturedOperations.First();
+                            if (lValueOperation.Kind == OperationKind.FieldReference
+                                || lValueOperation.Kind == OperationKind.PropertyReference)
+                            {
+                                this.AnalysisEntityFactory.TryCreate(lValueOperation, out targetAnalysisEntity);
+                            }
                         }
-
-                        if (!locationsToAssignments.TryGetValue(
-                                abstractLocation,
-                                out PooledHashSet<IAssignmentOperation> assignments))
+                        else
                         {
-                            assignments = PooledHashSet<IAssignmentOperation>.GetInstance();
-                            locationsToAssignments.Add(abstractLocation, assignments);
+                            Debug.Fail("Can LValues FlowCaptureReferences have more than one operation?");
                         }
+                    }
+                    else
+                    {
+                        this.AnalysisEntityFactory.TryCreate(operation.Target, out targetAnalysisEntity);
+                    }
 
-                        assignments.Add(operation);
+                    if (targetAnalysisEntity != null)
+                    {
+                        PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation.Value);
+                        foreach (AbstractLocation abstractLocation in pointsToAbstractValue.Locations)
+                        {
+                            if (!this.TrackedFieldPropertyAssignmentsOpt.TryGetValue(
+                                    targetAnalysisEntity,
+                                    out PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>> locationsToAssignments))
+                            {
+                                locationsToAssignments =
+                                    PooledDictionary<AbstractLocation, PooledHashSet<IAssignmentOperation>>.GetInstance();
+                                this.TrackedFieldPropertyAssignmentsOpt.Add(targetAnalysisEntity, locationsToAssignments);
+                            }
+
+                            if (!locationsToAssignments.TryGetValue(
+                                    abstractLocation,
+                                    out PooledHashSet<IAssignmentOperation> assignments))
+                            {
+                                assignments = PooledHashSet<IAssignmentOperation>.GetInstance();
+                                locationsToAssignments.Add(abstractLocation, assignments);
+                            }
+
+                            assignments.Add(operation);
+                        }
                     }
                 }
 
@@ -294,10 +302,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             }
 
             /// <summary>
-            /// Processes PropertySetAbstractValues at the end of the CFG.
+            /// Processes PropertySetAbstractValues at the end of the ControlFlowGraph.
             /// </summary>
             /// <param name="exitBlockOutput">Exit block output.</param>
-            /// <remarks>When analyzing field initializers, evaluate hazardous usages of instantiated objects of the tracked type.  Then can find code like:
+            /// <remarks>When evaluating hazardous usages on evaluations.
             /// class Class
             /// {
             ///     public static readonly Settings InsecureSettings = new Settings { AllowAnyoneAdminAccess = true };
@@ -305,32 +313,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// </remarks>
             internal void ProcessExitBlock(PropertySetBlockAnalysisResult exitBlockOutput)
             {
-                if (this.TrackedObjectCreationsOpt != null)
-                {
-                    try
-                    {
-                        this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(
-                            out HazardousUsageEvaluator initializationHazardousUsageEvaluator);
-                        Debug.Assert(initializationHazardousUsageEvaluator != null);
-                        foreach (IObjectCreationOperation objectCreationOperation in this.TrackedObjectCreationsOpt)
-                        {
-                            this.EvaluatePotentialHazardousUsage(
-                                objectCreationOperation.Syntax,
-                                null,
-                                objectCreationOperation,
-                                (PropertySetAbstractValue abstractValue) =>
-                                    initializationHazardousUsageEvaluator.ValueEvaluator(abstractValue),
-                                (AbstractLocation abstractLocation) =>
-                                    exitBlockOutput.Data[abstractLocation] ?? PropertySetAbstractValue.Unknown);
-                        }
-                    }
-                    finally
-                    {
-                        this.TrackedObjectCreationsOpt.Free();
-                        this.TrackedObjectCreationsOpt = null;
-                    }
-                }
-
                 if (this.TrackedFieldPropertyAssignmentsOpt != null)
                 {
                     try

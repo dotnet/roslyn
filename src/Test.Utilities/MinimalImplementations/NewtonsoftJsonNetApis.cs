@@ -173,6 +173,19 @@ public class MyISerializationBinder : Newtonsoft.Json.ISerializationBinder
         throw new NotImplementedException();
     }
 }
+
+public class MyBinder : System.Runtime.Serialization.SerializationBinder
+{
+    public Type BindToType(string assemblyName, string typeName)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void BindToName(Type serializedType, out string assemblyName, out string typeName)
+    {
+        throw new NotImplementedException();
+    }
+}
 ";
     }
 }

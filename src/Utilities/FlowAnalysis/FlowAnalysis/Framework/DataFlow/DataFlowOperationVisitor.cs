@@ -2647,7 +2647,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             else
             {
                 resolvedMethodTargetsOpt = null;
-                ResetCurrentAnalysisData();
+                if (PessimisticAnalysis)
+                {
+                    ResetCurrentAnalysisData();
+                }
             }
 
             return value;
