@@ -101,7 +101,6 @@ function Build {
     /p:PerformanceTest=$performanceTest `
     /p:Sign=$sign `
     /p:Publish=$publish `
-    /p:__InstallAdditionalDotNetCoreFrameworks=$installAdditionalDotNetCoreFrameworks `
     @properties
 }
 
@@ -121,6 +120,10 @@ try {
   $configureToolsetScript = Join-Path $EngRoot "configure-toolset.ps1"
   if (Test-Path $configureToolsetScript) {
     . $configureToolsetScript
+  }
+
+  if (($restore) -and ($null -eq $env:DisableNativeToolsetInstalls)) {
+    InitializeNativeTools
   }
 
   Build

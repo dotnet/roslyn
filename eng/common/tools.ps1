@@ -108,7 +108,7 @@ function InitializeDotNetCli([bool]$install) {
   }
 
   # Find the first path on %PATH% that contains the dotnet.exe
-  if ($useInstalledDotNetCli -and ($env:DOTNET_INSTALL_DIR -eq $null)) {
+  if ($useInstalledDotNetCli -and (-not $globalJsonHasRuntimes) -and ($env:DOTNET_INSTALL_DIR -eq $null)) {
     $dotnetCmd = Get-Command "dotnet.exe" -ErrorAction SilentlyContinue
     if ($dotnetCmd -ne $null) {
       $env:DOTNET_INSTALL_DIR = Split-Path $dotnetCmd.Path -Parent
@@ -403,6 +403,16 @@ function GetSdkTaskProject([string]$taskName) {
   return Join-Path (Split-Path (InitializeToolset) -Parent) "SdkTasks\$taskName.proj"
 }
 
+function InitializeNativeTools() {
+  if (Get-Member -InputObject $GlobalJson -Name "native-tools") {
+    $nativeArgs=""
+    if ($ci) {
+      $nativeArgs = "-InstallDirectory $ToolsDir"
+    }
+    Invoke-Expression "& `"$PSScriptRoot/init-tools-native.ps1`" $nativeArgs"
+  }
+}
+
 function InitializeToolset() {
   if (Test-Path variable:global:_ToolsetBuildProj) {
     return $global:_ToolsetBuildProj
@@ -527,12 +537,6 @@ $TempDir = Join-Path (Join-Path $ArtifactsDir "tmp") $configuration
 $GlobalJson = Get-Content -Raw -Path (Join-Path $RepoRoot "global.json") | ConvertFrom-Json
 # true if global.json contains a "runtimes" section
 $globalJsonHasRuntimes = if ($GlobalJson.tools.PSObject.Properties.Name -Match 'runtimes') { $true } else { $false }
-$installAdditionalDotNetCoreFrameworks = $globalJsonHasRuntimes
-
-# Don't install additional frameworks if global.json does not contain "runtimes" or building from source build
-if ($null -ne $env:DotNetCoreSdkDir) {
-  $installAdditionalDotNetCoreFrameworks = $false
-}
 
 Create-Directory $ToolsetDir
 Create-Directory $TempDir

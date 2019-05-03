@@ -200,7 +200,6 @@ function Build {
     /p:PerformanceTest=$performance_test \
     /p:Sign=$sign \
     /p:Publish=$publish \
-    /p:__InstallAdditionalDotNetCoreFrameworks=$installAdditionalDotNetCoreFrameworks \
     $properties
 
   ExitWithExitCode 0
@@ -217,6 +216,10 @@ fi
 # Remove once repos are updated.
 if [[ -n "${useInstalledDotNetCli:-}" ]]; then
   use_installed_dotnet_cli="$useInstalledDotNetCli"
+fi
+
+if [[ "$restore" == true && -z ${DisableNativeToolsetInstalls:-} ]]; then
+  InitializeNativeTools
 fi
 
 Build
