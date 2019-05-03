@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -276,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly bool _hasInitializer;
 
-        private TypeWithAnnotations.Builder _lazyType;
+        private StrongBox<TypeWithAnnotations> _lazyType;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
@@ -368,12 +369,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!_lazyType.IsDefault)
+                if (_lazyType != null)
                 {
-                    Debug.Assert(_lazyType.DefaultType.IsPointerType() ==
+                    Debug.Assert(_lazyType.Value.DefaultType.IsPointerType() ==
                         IsPointerFieldSyntactically());
 
-                    return _lazyType.DefaultType.IsPointerType();
+                    return _lazyType.Value.DefaultType.IsPointerType();
                 }
 
                 return IsPointerFieldSyntactically();
@@ -406,9 +407,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if (!_lazyType.IsDefault)
+            if (_lazyType != null)
             {
-                return _lazyType.ToType();
+                return _lazyType.Value;
             }
 
             var declarator = VariableDeclaratorNode;
@@ -529,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // update the lazyType only if it contains value last seen by the current thread:
-            if (_lazyType.InterlockedInitialize(type.WithModifiers(this.RequiredCustomModifiers)))
+            if (Interlocked.CompareExchange(ref _lazyType, new StrongBox<TypeWithAnnotations>(type.WithModifiers(this.RequiredCustomModifiers)), null) == null)
             {
                 TypeChecks(type.Type, diagnostics);
 
@@ -547,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Free();
             diagnosticsForFirstDeclarator.Free();
-            return _lazyType.ToType();
+            return _lazyType.Value;
         }
 
         internal bool FieldTypeInferred(ConsList<FieldSymbol> fieldsBeingBound)

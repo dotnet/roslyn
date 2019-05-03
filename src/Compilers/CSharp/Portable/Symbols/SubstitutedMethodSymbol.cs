@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeMap _inputMap;
         private readonly MethodSymbol _constructedFrom;
 
-        private TypeWithAnnotations.Builder _lazyReturnType;
+        private StrongBox<TypeWithAnnotations> _lazyReturnType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeMap _lazyMap;
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
@@ -230,12 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyReturnType.IsDefault)
+                if (_lazyReturnType == null)
                 {
                     var returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnTypeWithAnnotations);
-                    _lazyReturnType.InterlockedInitialize(returnType);
+                    Interlocked.CompareExchange(ref _lazyReturnType, new StrongBox<TypeWithAnnotations>(returnType), null);
                 }
-                return _lazyReturnType.ToType();
+                return _lazyReturnType.Value;
             }
         }
 

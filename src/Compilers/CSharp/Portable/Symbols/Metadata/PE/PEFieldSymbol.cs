@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
-        private TypeWithAnnotations.Builder _lazyType;
+        private StrongBox<TypeWithAnnotations> _lazyType;
         private int _lazyFixedSize;
         private NamedTypeSymbol _lazyFixedImplementationType;
         private PEEventSymbol _associatedEventOpt;
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void EnsureSignatureIsLoaded()
         {
-            if (_lazyType.IsDefault)
+            if (_lazyType == null)
             {
                 var moduleSymbol = _containingType.ContainingPEModule;
                 bool isVolatile;
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     type = TypeWithAnnotations.Create(new PointerTypeSymbol(TypeWithAnnotations.Create(fixedElementType)));
                 }
 
-                _lazyType.InterlockedInitialize(type);
+                Interlocked.CompareExchange(ref _lazyType, new StrongBox<TypeWithAnnotations>(type), null);
             }
         }
 
@@ -270,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             EnsureSignatureIsLoaded();
-            return _lazyType.ToType();
+            return _lazyType.Value;
         }
 
         public override bool IsFixedSizeBuffer

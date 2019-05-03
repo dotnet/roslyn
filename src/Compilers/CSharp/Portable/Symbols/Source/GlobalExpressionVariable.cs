@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class GlobalExpressionVariable : SourceMemberFieldSymbol
     {
-        private TypeWithAnnotations.Builder _lazyType;
+        private StrongBox<TypeWithAnnotations> _lazyType;
 
         /// <summary>
         /// The type syntax, if any, from source. Optional for patterns that can omit an explicit type.
@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if (!_lazyType.IsDefault)
+            if (_lazyType != null)
             {
-                return _lazyType.ToType();
+                return _lazyType.Value;
             }
 
             var typeSyntax = TypeSyntax;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isVar && !fieldsBeingBound.ContainsReference(this))
             {
                 InferFieldType(fieldsBeingBound, binder);
-                Debug.Assert(!_lazyType.IsDefault);
+                Debug.Assert(_lazyType != null);
             }
             else
             {
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Free();
-            return _lazyType.ToType();
+            return _lazyType.Value;
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private TypeWithAnnotations SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeWithAnnotations type)
         {
-            var originalType = _lazyType.DefaultType;
+            var originalType = _lazyType?.Value.DefaultType;
 
             // In the event that we race to set the type of a field, we should
             // always deduce the same type, unless the cached type is an error.
@@ -130,14 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 originalType.IsErrorType() ||
                 TypeSymbol.Equals(originalType, type.Type, TypeCompareKind.ConsiderEverything2));
 
-            if (_lazyType.InterlockedInitialize(type))
+            if (Interlocked.CompareExchange(ref _lazyType, new StrongBox<TypeWithAnnotations>(type), null) == null)
             {
                 TypeChecks(type.Type, diagnostics);
 
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
                 state.NotePartComplete(CompletionPart.Type);
             }
-            return _lazyType.ToType();
+            return _lazyType.Value;
         }
 
         /// <summary>

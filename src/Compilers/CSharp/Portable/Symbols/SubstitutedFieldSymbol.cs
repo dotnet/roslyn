@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
 
-        private TypeWithAnnotations.Builder _lazyType;
+        private StrongBox<TypeWithAnnotations> _lazyType;
 
         internal SubstitutedFieldSymbol(SubstitutedNamedTypeSymbol containingType, FieldSymbol substitutedFrom)
             : base((FieldSymbol)substitutedFrom.OriginalDefinition)
@@ -22,12 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            if (_lazyType.IsDefault)
+            if (_lazyType == null)
             {
-                _lazyType.InterlockedInitialize(_containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.GetFieldType(fieldsBeingBound)));
+                var type = _containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.GetFieldType(fieldsBeingBound));
+                Interlocked.CompareExchange(ref _lazyType, new StrongBox<TypeWithAnnotations>(type), null);
             }
 
-            return _lazyType.ToType();
+            return _lazyType.Value;
         }
 
         public override Symbol ContainingSymbol
