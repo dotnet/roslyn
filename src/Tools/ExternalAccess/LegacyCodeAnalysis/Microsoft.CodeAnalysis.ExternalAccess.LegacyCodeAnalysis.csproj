@@ -25,7 +25,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="$(MicrosoftVisualStudioShellInterop100Version)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
   </ItemGroup>
 
   <ItemGroup>
