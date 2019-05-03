@@ -296,6 +296,7 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyPasswordDeriveBytes = "System.Security.Cryptography.PasswordDeriveBytes";
         public const string SystemSecurityCryptographyRfc2898DeriveBytes = "System.Security.Cryptography.Rfc2898DeriveBytes";
         public const string SystemXmlXslXslTransform = "System.Xml.Xsl.XslTransform";
+        public const string MicrosoftWindowsAzureStorageCloudStorageAccount = "Microsoft.WindowsAzure.Storage.CloudStorageAccount";
         public const string NewtonsoftJsonJsonConvert = "Newtonsoft.Json.JsonConvert";
         public const string NewtonsoftJsonJsonSerializer = "Newtonsoft.Json.JsonSerializer";
         public const string NewtonsoftJsonJsonSerializerSettings = "Newtonsoft.Json.JsonSerializerSettings";
