@@ -217,8 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             await _state.PersistAsync(document, data, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task RegisterDesignerAttributeAsync(
-            Document document, string designerAttributeArgument, CancellationToken cancellationToken)
+        private async Task RegisterDesignerAttributeAsync(Document document, string designerAttributeArgument, CancellationToken cancellationToken)
         {
             if (!_state.Update(document.Id, designerAttributeArgument))
             {
