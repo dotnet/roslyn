@@ -22,8 +22,8 @@ jobs:
     - DotNetFramework
   timeoutInMinutes: 360
 
- steps:
- - powershell: Write-Host “##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/head/'.Length))”
+  steps:
+  - powershell: Write-Host “##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/head/'.Length))”
 
   variables:
     VisualStudio.DropName: Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)
