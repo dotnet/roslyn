@@ -518,7 +518,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // REVIEW: current design is that we special case compiler analyzer case and we accept only document level
                 //         diagnostic as live. otherwise, we let them be build errors. we changed compiler analyzer accordingly as well
                 //         so that it doesn't report project level diagnostic as live errors.
-                if (_owner._diagnosticService.IsCompilerDiagnostic(project.Language, diagnosticData) && diagnosticData.DocumentId == null)
+                if (_owner._diagnosticService.IsCompilerDiagnostic(project.Language, diagnosticData) &&
+                    !IsDocumentLevelDiagnostic(diagnosticData))
                 {
                     // compiler error but project level error
                     return false;
@@ -530,6 +531,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 }
 
                 return false;
+
+                bool IsDocumentLevelDiagnostic(DiagnosticData diagnoaticData)
+                {
+                    if (diagnoaticData.DocumentId != null)
+                    {
+                        return true;
+                    }
+
+                    // due to mapped file such as
+                    //
+                    // A.cs having
+                    // #line 2 RandomeFile.txt
+                    //       ErrorHere
+                    // #line default
+                    //
+                    // we can't simply say it is not document level diagnostic since
+                    // file path is not part of solution. build output will just tell us 
+                    // mapped span not original span, so any code like above will not
+                    // part of solution.
+                    // 
+                    // but also we can't simply say it is a document level error because it has file path
+                    // since project level error can have a file path pointing to a file such as dll
+                    // , pdb, embeded files and etc.
+                    // 
+                    // unfortunately, there is no 100% correct way to do this.
+                    // so we will use a heuristic that will most likely work for most of common cases.
+                    return !string.IsNullOrEmpty(diagnoaticData.DataLocation.OriginalFilePath) &&
+                            (diagnoaticData.DataLocation.OriginalStartLine > 0 || 
+                             diagnoaticData.DataLocation.OriginalStartColumn > 0);
+                }
             }
 
             private bool SupportedLiveDiagnosticId(Project project, Compilation compilation, string id)
