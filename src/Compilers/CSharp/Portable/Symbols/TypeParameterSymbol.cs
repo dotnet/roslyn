@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             return this.Equals(t2 as TypeParameterSymbol, comparison, isValueTypeOverrideOpt);
         }
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
-        private bool Equals(TypeParameterSymbol other, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+        private bool Equals(TypeParameterSymbol other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
         {
             if (ReferenceEquals(this, other))
             {

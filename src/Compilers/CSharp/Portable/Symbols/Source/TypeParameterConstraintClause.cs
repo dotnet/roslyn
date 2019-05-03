@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -111,35 +113,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty;
 
+        /// <summary>
+        /// Adjust unresolved instances of <see cref="TypeWithAnnotations"/> which represent nullable type parameters
+        /// of the <paramref name="container"/> within constraint types according to the IsValueType state inferred
+        /// from the constraint types.
+        /// </summary>
         internal static void AdjustConstraintTypes(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters,
                                                    ArrayBuilder<TypeParameterConstraintClause> constraintClauses,
-                                                   ref SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverride)
+                                                   ref IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride)
         {
             Debug.Assert(constraintClauses.Count == typeParameters.Length);
 
             if (isValueTypeOverride == null)
             {
-                isValueTypeOverride = new SmallDictionary<TypeParameterSymbol, bool>(ReferenceEqualityComparer.Instance);
+                var isValueTypeOverrideBuilder = new Dictionary<TypeParameterSymbol, bool>(typeParameters.Length, ReferenceEqualityComparer.Instance);
 
-                for (int i = 0; i < typeParameters.Length; i++)
+                foreach (TypeParameterSymbol typeParameter in typeParameters)
                 {
-                    isValueType(typeParameters[i], constraintClauses, isValueTypeOverride, ConsList<TypeParameterSymbol>.Empty);
+                    isValueType(typeParameter, constraintClauses, isValueTypeOverrideBuilder, ConsList<TypeParameterSymbol>.Empty);
                 }
+
+                isValueTypeOverride = new ReadOnlyDictionary<TypeParameterSymbol, bool>(isValueTypeOverrideBuilder);
             }
 
-            for (int i = 0; i < typeParameters.Length; i++)
+            foreach (TypeParameterConstraintClause constraintClause in constraintClauses)
             {
-                adjustConstraintTypes(container, constraintClauses[i].ConstraintTypes, isValueTypeOverride);
+                adjustConstraintTypes(container, constraintClause.ConstraintTypes, isValueTypeOverride);
             }
 
-            static bool isValueType(TypeParameterSymbol thisTypeParameter, ArrayBuilder<TypeParameterConstraintClause> constraintClauses, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverride, ConsList<TypeParameterSymbol> inProgress)
+            static bool isValueType(TypeParameterSymbol thisTypeParameter, ArrayBuilder<TypeParameterConstraintClause> constraintClauses, Dictionary<TypeParameterSymbol, bool> isValueTypeOverrideBuilder, ConsList<TypeParameterSymbol> inProgress)
             {
                 if (inProgress.ContainsReference(thisTypeParameter))
                 {
                     return false;
                 }
 
-                if (isValueTypeOverride.TryGetValue(thisTypeParameter, out bool knownIsValueType))
+                if (isValueTypeOverrideBuilder.TryGetValue(thisTypeParameter, out bool knownIsValueType))
                 {
                     return knownIsValueType;
                 }
@@ -163,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (type is TypeParameterSymbol typeParameter && (object)typeParameter.ContainingSymbol == (object)container)
                         {
-                            if (isValueType(typeParameter, constraintClauses, isValueTypeOverride, inProgress))
+                            if (isValueType(typeParameter, constraintClauses, isValueTypeOverrideBuilder, inProgress))
                             {
                                 result = true;
                                 break;
@@ -177,11 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                isValueTypeOverride.Add(thisTypeParameter, result);
+                isValueTypeOverrideBuilder.Add(thisTypeParameter, result);
                 return result;
             }
 
-            static void adjustConstraintTypes(Symbol container, ImmutableArray<TypeWithAnnotations> constraintTypes, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverride)
+            static void adjustConstraintTypes(Symbol container, ImmutableArray<TypeWithAnnotations> constraintTypes, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride)
             {
                 foreach (var constraintType in constraintTypes)
                 {

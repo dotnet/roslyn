@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
             binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
 
-            SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
+            IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
             return binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
                                                              ref isValueTypeOverride,
                                                              diagnostics);

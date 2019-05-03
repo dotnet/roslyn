@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -301,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Hash.Combine(MetadataName, Hash.Combine(_containingModule, Hash.Combine(_namespaceName, arity)));
             }
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -411,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Hash.Combine(_containingType, Hash.Combine(MetadataName, arity));
             }
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
             {
                 if (ReferenceEquals(this, t2))
                 {

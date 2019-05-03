@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -228,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Binder.CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_OverrideWithConstraints, diagnostics,
                                                     syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
 
-                    SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
+                    IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
                     declaredConstraints = signatureBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks).
                                               BindTypeParameterConstraintClauses(this, _typeParameters, syntax.TypeParameterList, syntax.ConstraintClauses,
                                                                                  ref isValueTypeOverride,

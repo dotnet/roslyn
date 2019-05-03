@@ -1172,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             if ((comparison & TypeCompareKind.IgnoreTupleNames) != 0)
             {
@@ -1192,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
-        private bool Equals(TupleTypeSymbol other, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+        private bool Equals(TupleTypeSymbol other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
         {
             if (ReferenceEquals(this, other))
             {

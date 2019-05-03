@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return commonTypeKind;
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             if (ReferenceEquals(this, t2))
             {

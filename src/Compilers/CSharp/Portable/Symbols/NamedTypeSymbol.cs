@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Compares this type to another type.
         /// </summary>
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             Debug.Assert(!this.IsTupleType);
 
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Helper for more complicated cases of Equals like when we have generic instantiations or types nested within them.
         /// </summary>
-        private bool EqualsComplicatedCases(NamedTypeSymbol other, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+        private bool EqualsComplicatedCases(NamedTypeSymbol other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
         {
             if ((object)this.ContainingType != null &&
                 !this.ContainingType.Equals(other.ContainingType, comparison, isValueTypeOverrideOpt))

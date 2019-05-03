@@ -266,7 +266,7 @@ next:;
                     }
                 }
 
-                SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
+                IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
                 ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>> otherPartialClauses = null;
 
                 foreach (var decl in declaration.Declarations)
@@ -350,7 +350,7 @@ next:;
         /// </summary>
         private ImmutableArray<TypeParameterConstraintClause> MergeConstraintsForPartialDeclarations(ImmutableArray<TypeParameterConstraintClause> constraintClauses,
                                                                                                      ArrayBuilder<ImmutableArray<TypeParameterConstraintClause>> otherPartialClauses,
-                                                                                                     SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverride,
+                                                                                                     IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride,
                                                                                                      DiagnosticBag diagnostics)
         {
             if (otherPartialClauses == null)
@@ -428,7 +428,7 @@ next:;
 
             static bool mergeConstraints(ref TypeParameterConstraintKind mergedKind, ImmutableArray<TypeWithAnnotations> originalConstraintTypes,
                                          ref SmallDictionary<TypeWithAnnotations, int> originalConstraintTypesMap, ref ArrayBuilder<TypeWithAnnotations> mergedConstraintTypes,
-                                         TypeParameterConstraintClause clause, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverride)
+                                         TypeParameterConstraintClause clause, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride)
             {
                 bool result = true;
 

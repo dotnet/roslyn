@@ -223,12 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(current, indirections);
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             return this.Equals(t2 as PointerTypeSymbol, comparison, isValueTypeOverrideOpt);
         }
 
-        private bool Equals(PointerTypeSymbol other, TypeCompareKind comparison, SmallDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+        private bool Equals(PointerTypeSymbol other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
         {
             if (ReferenceEquals(this, other))
             {
