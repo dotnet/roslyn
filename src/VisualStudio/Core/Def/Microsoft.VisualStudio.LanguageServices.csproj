@@ -279,7 +279,7 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
-    <VsdConfigXml Include="ManagedEditAndContinueService.vsdconfigxml" />
+    <VsdConfigXmlFiles Include="ManagedEditAndContinueService.vsdconfigxml" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>

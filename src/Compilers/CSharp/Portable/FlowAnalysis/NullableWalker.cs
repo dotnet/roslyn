@@ -6228,7 +6228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool IsNullabilityMismatch(TypeWithAnnotations type1, TypeWithAnnotations type2)
         {
             // Note, when we are paying attention to nullability, we ignore oblivious mismatch.
-            // See TypeCompareKind.UnknownNullableModifierMatchesAny
+            // See TypeCompareKind.ObliviousNullableModifierMatchesAny
             return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
         }
@@ -6236,7 +6236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool IsNullabilityMismatch(TypeSymbol type1, TypeSymbol type2)
         {
             // Note, when we are paying attention to nullability, we ignore oblivious mismatch.
-            // See TypeCompareKind.UnknownNullableModifierMatchesAny
+            // See TypeCompareKind.ObliviousNullableModifierMatchesAny
             return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
         }
