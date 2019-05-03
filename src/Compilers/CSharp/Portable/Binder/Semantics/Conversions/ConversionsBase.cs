@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ClassifyConversionFromType(source, destination, ref useSiteDiagnostics);
         }
 
-        private bool TryGetVoidConversion(TypeSymbol source, TypeSymbol destination, out Conversion conversion)
+        private static bool TryGetVoidConversion(TypeSymbol source, TypeSymbol destination, out Conversion conversion)
         {
             var sourceIsVoid = source?.SpecialType == SpecialType.System_Void;
             var destIsVoid = destination.SpecialType == SpecialType.System_Void;
@@ -192,7 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             conversion = default;
             return false;
-
         }
 
         /// <summary>

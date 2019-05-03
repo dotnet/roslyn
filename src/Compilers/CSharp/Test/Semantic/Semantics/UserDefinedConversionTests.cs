@@ -1599,7 +1599,7 @@ namespace System
         }
 
         [Fact, WorkItem(34876, "https://github.com/dotnet/roslyn/pull/34876")]
-        public void Repro_34876()
+        public void GenericOperatorVoidConversion()
         {
             var source = @"
 class C<T>
@@ -1621,7 +1621,7 @@ class C<T>
         }
 
         [Fact, WorkItem(34876, "https://github.com/dotnet/roslyn/pull/34876")]
-        public void Repro_34876_Cast()
+        public void GenericOperatorVoidConversion_Cast()
         {
             var source = @"
 class C<T>
