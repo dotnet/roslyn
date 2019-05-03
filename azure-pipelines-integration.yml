@@ -4,7 +4,6 @@ trigger:
 - master-vs-deps
 - release/*
 - features/*
-- demos/*
 
 # Branches that trigger builds on PR
 pr:
@@ -12,7 +11,6 @@ pr:
 - master-vs-deps
 - release/*
 - features/*
-- demos/*
 
 jobs:
 - job: VS_Integration
