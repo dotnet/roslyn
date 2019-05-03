@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -69,21 +70,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return false;
         }
 
-        public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(document.IsFromPrimaryBranch());
-
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!document.Project.Solution.Workspace.Options.GetOption(InternalFeatureOnOffOptions.DesignerAttributes))
+            if (!project.Solution.Workspace.Options.GetOption(InternalFeatureOnOffOptions.DesignerAttributes))
             {
                 return;
             }
 
+            var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                // Process all the documents in this project in parallel.  The project system can
+                // handle multiple calls into SetProjectItemDesignerTypeAsync and will batch them
+                // appropriately.
+                var tasks = new List<Task>();
+                foreach (var document in project.Documents)
+                {
+                    tasks.Add(AnalyzeDocumentAsync(projectVersion, document, cancellationToken));
+                }
+
+                // Now, actually attempt to wait on all the work to be done and persisted to our
+                // local store and to the project system.
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException)
+            {
+                // we might call update service after project is already removed and get object disposed exception.
+                // we will catch the exception and ignore. this is wierd setup since we are catching exception from
+                // async call, but until we have better way to handle this, this is what we have.
+                // see this PR for more detail - https://github.com/dotnet/roslyn/pull/35383
+            }
+        }
+
+        private async Task AnalyzeDocumentAsync(
+            VersionStamp projectVersion, Document document, CancellationToken cancellationToken)
+        {
             // use text and project dependent versions so that we can detect changes on this file and its dependent files
             // in current project or projects this depends on transitively
             var textVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
-            var projectVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
 
             var existingData = await _state.TryGetExistingDataAsync(document, cancellationToken).ConfigureAwait(false);
             if (existingData != null)
@@ -186,10 +213,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
+            await RegisterDesignerAttributeAsync(document, designerAttributeArgumentOpt.Value, cancellationToken).ConfigureAwait(false);
+
+            // persist the information locally *after* we try to register with the project system.
+            // Registering can fail (i.e. if the project is unloaded), and we don't want to persist
+            // a value that makes us think we've communicated this properly to the project system.
             var data = new Data(textVersion, semanticVersion, designerAttributeArgumentOpt.Value);
             await _state.PersistAsync(document, data, cancellationToken).ConfigureAwait(false);
-
-            await RegisterDesignerAttributeAsync(document, designerAttributeArgumentOpt.Value, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task RegisterDesignerAttributeAsync(Document document, string designerAttributeArgument, CancellationToken cancellationToken)
@@ -213,23 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var updateService = await GetUpdateServiceIfCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (updateService != null)
             {
-                var asyncToken = _listener.BeginAsyncOperation("RegisterDesignerAttribute");
-                try
-                {
-                    // we track work by async token but doesn't explicitly wait for it. and update service is free-thread service,
-                    // no need to switch to UI thread to use it
-                    _ = updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument)
-                                     .ReportNonFatalErrorAsync(predicate: e => !(e is ObjectDisposedException)).CompletesAsyncOperation(asyncToken);
-                }
-                catch (ObjectDisposedException)
-                {
-                    // we might call update service after project is already removed and get object disposed exception.
-                    // we will catch the exception and ignore. this is wierd setup since we are catching exception from
-                    // async call, but until we have better way to handle this, this is what we have.
-                    // see this PR for more detail - https://github.com/dotnet/roslyn/pull/35383
-                    asyncToken.Dispose();
-                    return;
-                }
+                await updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument).ConfigureAwait(false);
             }
             else
             {
@@ -327,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return Task.CompletedTask;
         }
 
-        public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
+        public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }
