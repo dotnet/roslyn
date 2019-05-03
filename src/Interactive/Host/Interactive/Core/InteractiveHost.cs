@@ -170,14 +170,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         return null;
                     }
 
-                    Task.Run(() =>
-                    {
-                        lock (_outputGuard)
-                        {
-                            _output.WriteLine(InteractiveHostResources.Attempt_to_connect_to_process_Sharp_0_failed_retrying, newProcessId);
-                        }
-                    });
-
+                    WriteOutput(isError: false, string.Format(InteractiveHostResources.Attempt_to_connect_to_process_Sharp_0_failed_retrying, newProcessId));
                     cancellationToken.ThrowIfCancellationRequested();
                 }
 
@@ -225,14 +218,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 string errorString = process.StandardError.ReadToEnd();
 
-                Task.Run(() =>
-                {
-                    lock (_errorOutputGuard)
-                    {
-                        _errorOutput.WriteLine(InteractiveHostResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, hostPath, process.ExitCode);
-                        _errorOutput.WriteLine(errorString);
-                    }
-                });
+                WriteOutput(
+                    isError: true,
+                    string.Format(InteractiveHostResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, hostPath, process.ExitCode),
+                    errorString);
             }
 
             return alive;
@@ -307,6 +296,28 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
         }
 
+        private void WriteOutputInBackground(bool isError, string firstLine, string secondLine = null)
+        {
+            var writer = isError ? _errorOutput : _output;
+            var guard = isError ? _errorOutputGuard : _outputGuard;
+
+            // We cannot guarantee that writers can perform writing synchronously 
+            // without deadlocks with other operations.
+            // This could happen, for example, for writers provided by the Interactive Window,
+            // and in the case where the window is being disposed.
+            Task.Run(() =>
+            {
+                lock (guard)
+                {
+                    writer.WriteLine(firstLine);
+                    if (secondLine != null)
+                    {
+                        writer.WriteLine(secondLine);
+                    }
+                }
+            });
+        }
+
         private LazyRemoteService CreateRemoteService(InteractiveHostOptions options, bool skipInitialization)
         {
             return new LazyRemoteService(this, options, Interlocked.Increment(ref _remoteServiceInstanceId), skipInitialization);
@@ -332,13 +343,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             if (exitCode.HasValue)
             {
-                Task.Run(() =>
-                {
-                    lock (_errorOutputGuard)
-                    {
-                        _errorOutput.WriteLine(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, exitCode.Value);
-                    }
-                });
+                WriteOutput(isError: true, string.Format(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, exitCode.Value));
             }
         }
 
@@ -380,13 +385,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
                 }
 
-                _ = Task.Run(() =>
-                  {
-                      lock (_errorOutputGuard)
-                      {
-                          _errorOutput.WriteLine(InteractiveHostResources.Unable_to_create_hosting_process);
-                      }
-                  });
+                WriteOutput(isError: true, InteractiveHostResources.Unable_to_create_hosting_process);
             }
             catch (OperationCanceledException)
             {
