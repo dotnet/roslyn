@@ -86,11 +86,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 // Process all the documents in this project in parallel.  The project system can
                 // handle multiple calls into SetProjectItemDesignerTypeAsync and will batch them
                 // appropriately.
-                var tasks = new List<Task>();
-                foreach (var document in project.Documents)
-                {
-                    tasks.Add(AnalyzeDocumentAsync(projectVersion, document, cancellationToken));
-                }
+                var tasks = project.Documents.SelectAsArray(d =>
+                    AnalyzeDocumentAsync(projectVersion, d, cancellationToken));
 
                 // Now, actually attempt to wait on all the work to be done and persisted to our
                 // local store and to the project system.
@@ -222,7 +219,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             await _state.PersistAsync(document, data, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task RegisterDesignerAttributeAsync(Document document, string designerAttributeArgument, CancellationToken cancellationToken)
+        private async Task RegisterDesignerAttributeAsync(
+            Document document, string designerAttributeArgument, CancellationToken cancellationToken)
         {
             if (!_state.Update(document.Id, designerAttributeArgument))
             {
@@ -243,7 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var updateService = await GetUpdateServiceIfCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (updateService != null)
             {
-                await updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument).ConfigureAwait(false);
+                setDesignerTypeTasks.Add(updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument));
             }
             else
             {
