@@ -2,32 +2,32 @@
 trigger:
 - master
 - master-vs-deps
+- release/*
 - features/*
 - demos/*
 - dev16.0
 - dev16.0-vs-deps
 - dev16.1-preview2
 - dev16.1-preview2-vs-deps
-- dev16.1
-- dev16.1-vs-deps
+- dev16.1-preview3
+- dev16.1-preview3-vs-deps
 
 # Branches that trigger builds on PR
 pr:
 - master
 - master-vs-deps
+- release/*
 - features/*
 - demos/*
 - dev16.0
 - dev16.0-vs-deps
 - dev16.1-preview2
 - dev16.1-preview2-vs-deps
-- dev16.1
-- dev16.1-vs-deps
 
 jobs:
 - job: Windows_Desktop_Unit_Tests
   pool:
-    name: NetCorePublic-Int-Pool
+    name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   strategy:
     maxParallel: 4
@@ -72,7 +72,7 @@ jobs:
 
 - job: Windows_Desktop_Spanish_Unit_Tests
   pool:
-    name: NetCorePublic-Int-Pool
+    name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.ES.VS2017.Open
   timeoutInMinutes: 90
 
@@ -101,7 +101,7 @@ jobs:
 
 - job: Windows_CoreClr_Unit_Tests
   pool:
-    name: NetCorePublic-Int-Pool
+    name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   strategy:
     maxParallel: 2
@@ -138,7 +138,7 @@ jobs:
            
 - job: Windows_Determinism_Test
   pool:
-    name: NetCorePublic-Int-Pool
+    name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
@@ -158,7 +158,7 @@ jobs:
 
 - job: Windows_Correctness_Test
   pool:
-    name: NetCorePublic-Int-Pool
+    name: NetCorePublic-Pool
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
@@ -194,7 +194,7 @@ jobs:
 
 - job: Linux_Test
   pool:
-   name: NetCorePublic-Int-Pool
+   name: NetCorePublic-Pool
    queue: BuildPool.Ubuntu.1604.amd64.Open
   strategy:
     maxParallel: 2

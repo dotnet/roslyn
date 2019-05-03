@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Cannot declare a variable of static type '{0}'
                 diagnostics.Add(ErrorCode.ERR_VarDeclIsStaticClass, this.ErrorLocation, type);
             }
-            else if (type.SpecialType == SpecialType.System_Void)
+            else if (type.IsVoidType())
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax?.Location ?? this.Locations[0]);
             }

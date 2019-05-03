@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
+        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override int ParameterCount

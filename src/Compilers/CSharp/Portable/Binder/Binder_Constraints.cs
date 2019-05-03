@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeParameterSymbol> typeParameters,
             TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> clauses,
+            ref IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride,
             DiagnosticBag diagnostics,
             bool isForOverride = false)
         {
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // An array of constraint clauses, one for each type parameter, indexed by ordinal.
             var results = ArrayBuilder<TypeParameterConstraintClause>.GetInstance(n, fillWithValue: null);
+            var syntaxNodes = ArrayBuilder<ArrayBuilder<TypeConstraintSyntax>>.GetInstance(n, fillWithValue: null);
 
             // Bind each clause and add to the results.
             foreach (var clause in clauses)
@@ -60,15 +62,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(ordinal >= 0);
                     Debug.Assert(ordinal < n);
 
-                    var constraintClause = this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, isForOverride, diagnostics);
+                    (TypeParameterConstraintClause constraintClause, ArrayBuilder<TypeConstraintSyntax> typeConstraintNodes) = this.BindTypeParameterConstraints(typeParameterList.Parameters[ordinal], clause, isForOverride, diagnostics);
                     if (results[ordinal] == null)
                     {
                         results[ordinal] = constraintClause;
+                        syntaxNodes[ordinal] = typeConstraintNodes;
                     }
                     else
                     {
                         // "A constraint clause has already been specified for type parameter '{0}'. ..."
                         diagnostics.Add(ErrorCode.ERR_DuplicateConstraintClause, clause.Name.Location, name);
+                        typeConstraintNodes?.Free();
                     }
                 }
                 else
@@ -92,13 +96,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            TypeParameterConstraintClause.AdjustConstraintTypes(containingSymbol, typeParameters, results, ref isValueTypeOverride);
+
+            RemoveInvalidConstraints(typeParameters, results, syntaxNodes, diagnostics);
+
+            foreach (var typeConstraintsSyntaxes in syntaxNodes)
+            {
+                typeConstraintsSyntaxes?.Free();
+            }
+
+            syntaxNodes.Free();
+
             return results.ToImmutableAndFree();
         }
 
         /// <summary>
-        /// Bind and return a single type parameter constraint clause.
+        /// Bind and return a single type parameter constraint clause along with syntax nodes corresponding to type constraints.
         /// </summary>
-        private TypeParameterConstraintClause BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, DiagnosticBag diagnostics)
+        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>) BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, DiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
             ArrayBuilder<TypeWithAnnotations> constraintTypes = null;
@@ -107,12 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!InExecutableBinder); // Cannot eagerly report diagnostics handled by LazyMissingNonNullTypesContextDiagnosticInfo 
             bool hasTypeLikeConstraint = false;
             bool reportedOverrideWithConstraints = false;
-
-            if (!isForOverride)
-            {
-                constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                syntaxBuilder = ArrayBuilder<TypeConstraintSyntax>.GetInstance();
-            }
 
             for (int i = 0, n = constraintsSyntax.Count; i < n; i++)
             {
@@ -204,6 +213,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             hasTypeLikeConstraint = true;
 
+                            if (constraintTypes == null)
+                            {
+                                constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                                syntaxBuilder = ArrayBuilder<TypeConstraintSyntax>.GetInstance();
+                            }
+
                             var typeConstraintSyntax = (TypeConstraintSyntax)syntax;
                             var typeSyntax = typeConstraintSyntax.Type;
                             var typeSyntaxKind = typeSyntax.Kind();
@@ -258,9 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!isForOverride ||
                          (constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType)) != (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType));
 
-            return TypeParameterConstraintClause.Create(constraints,
-                                                        constraintTypes?.ToImmutableAndFree() ?? ImmutableArray<TypeWithAnnotations>.Empty,
-                                                        syntaxBuilder?.ToImmutableAndFree() ?? default);
+            return (TypeParameterConstraintClause.Create(constraints, constraintTypes?.ToImmutableAndFree() ?? ImmutableArray<TypeWithAnnotations>.Empty), syntaxBuilder);
 
             static void reportOverrideWithConstraints(ref bool reportedOverrideWithConstraints, TypeParameterConstraintSyntax syntax, DiagnosticBag diagnostics)
             {
@@ -287,6 +300,79 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeParameterConstraintClause GetDefaultTypeParameterConstraintClause(TypeParameterSyntax typeParameterSyntax, bool isForOverride = false)
         {
             return isForOverride || IsNullableEnabled(typeParameterSyntax.Identifier) ? TypeParameterConstraintClause.Empty : TypeParameterConstraintClause.ObliviousNullabilityIfReferenceType;
+        }
+
+        /// <summary>
+        /// Constraints are checked for invalid types, duplicate types, and accessibility. 
+        /// </summary>
+        private static void RemoveInvalidConstraints(
+            ImmutableArray<TypeParameterSymbol> typeParameters,
+            ArrayBuilder<TypeParameterConstraintClause> constraintClauses,
+            ArrayBuilder<ArrayBuilder<TypeConstraintSyntax>> syntaxNodes,
+            DiagnosticBag diagnostics)
+        {
+            Debug.Assert(typeParameters.Length > 0);
+            Debug.Assert(typeParameters.Length == constraintClauses.Count);
+            int n = typeParameters.Length;
+            for (int i = 0; i < n; i++)
+            {
+                constraintClauses[i] = RemoveInvalidConstraints(typeParameters[i], constraintClauses[i], syntaxNodes[i], diagnostics);
+            }
+        }
+
+        private static TypeParameterConstraintClause RemoveInvalidConstraints(
+            TypeParameterSymbol typeParameter,
+            TypeParameterConstraintClause constraintClause,
+            ArrayBuilder<TypeConstraintSyntax> syntaxNodesOpt,
+            DiagnosticBag diagnostics)
+        {
+            if (syntaxNodesOpt != null)
+            {
+                var constraintTypes = constraintClause.ConstraintTypes;
+                Symbol containingSymbol = typeParameter.ContainingSymbol;
+
+                var constraintTypeBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                int n = constraintTypes.Length;
+
+                for (int i = 0; i < n; i++)
+                {
+                    var constraintType = constraintTypes[i];
+                    var syntax = syntaxNodesOpt[i];
+                    // Only valid constraint types are included in ConstraintTypes
+                    // since, in general, it may be difficult to support all invalid types.
+                    // In the future, we may want to include some invalid types
+                    // though so the public binding API has the most information.
+                    if (Binder.IsValidConstraint(typeParameter.Name, syntax, constraintType, constraintClause.Constraints, constraintTypeBuilder, diagnostics))
+                    {
+                        CheckConstraintTypeVisibility(containingSymbol, syntax.Location, constraintType, diagnostics);
+                        constraintTypeBuilder.Add(constraintType);
+                    }
+                }
+
+                if (constraintTypeBuilder.Count < n)
+                {
+                    return TypeParameterConstraintClause.Create(constraintClause.Constraints, constraintTypeBuilder.ToImmutableAndFree());
+                }
+
+                constraintTypeBuilder.Free();
+            }
+
+            return constraintClause;
+        }
+
+        private static void CheckConstraintTypeVisibility(
+            Symbol containingSymbol,
+            Location location,
+            TypeWithAnnotations constraintType,
+            DiagnosticBag diagnostics)
+        {
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            if (!containingSymbol.IsNoMoreVisibleThan(constraintType, ref useSiteDiagnostics))
+            {
+                // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"
+                diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
+            }
+            diagnostics.Add(location, useSiteDiagnostics);
         }
 
         /// <summary>

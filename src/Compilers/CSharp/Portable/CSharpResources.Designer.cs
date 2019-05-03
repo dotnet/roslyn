@@ -1888,6 +1888,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The typeof operator cannot be used on a nullable reference type.
+        /// </summary>
+        internal static string ERR_BadNullableTypeof {
+            get {
+                return ResourceManager.GetString("ERR_BadNullableTypeof", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Declaration is not valid; use &apos;{0} operator &lt;dest-type&gt; (...&apos; instead.
         /// </summary>
         internal static string ERR_BadOperatorSyntax {
@@ -7693,38 +7702,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not base type or interface of {1}..
-        /// </summary>
-        internal static string ERR_NotBaseOrImplementedInterface {
-            get {
-                return ResourceManager.GetString("ERR_NotBaseOrImplementedInterface", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The expression being assigned to &apos;{0}&apos; must be constant.
         /// </summary>
         internal static string ERR_NotConstantExpression {
             get {
                 return ResourceManager.GetString("ERR_NotConstantExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not an immediate member of {1}..
-        /// </summary>
-        internal static string ERR_NotDeclaredInBase {
-            get {
-                return ResourceManager.GetString("ERR_NotDeclaredInBase", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not implemented in base interface {1}..
-        /// </summary>
-        internal static string ERR_NotImplementedInBase {
-            get {
-                return ResourceManager.GetString("ERR_NotImplementedInBase", resourceCulture);
             }
         }
         
@@ -8188,7 +8170,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partial method declarations of &apos;{0}&apos; have inconsistent type parameter constraints.
+        ///   Looks up a localized string similar to Partial method declarations of &apos;{0}&apos; have inconsistent constraints for type parameter &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_PartialMethodInconsistentConstraints {
             get {
@@ -10969,15 +10951,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to specifying base type in base expression.
-        /// </summary>
-        internal static string IDS_BaseTypeInBaseExpression {
-            get {
-                return ResourceManager.GetString("IDS_BaseTypeInBaseExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to collection.
         /// </summary>
         internal static string IDS_Collection {
@@ -11470,6 +11443,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureNameShadowingInNestedFunctions {
             get {
                 return ResourceManager.GetString("IDS_FeatureNameShadowingInNestedFunctions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to stackalloc in nested expressions.
+        /// </summary>
+        internal static string IDS_FeatureNestedStackalloc {
+            get {
+                return ResourceManager.GetString("IDS_FeatureNestedStackalloc", resourceCulture);
             }
         }
         
@@ -15332,6 +15314,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Partial method declarations of &apos;{0}&apos; have inconsistent nullability in constraints for type parameter &apos;{1}&apos;.
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInConstraintsOnPartialImplementation {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraintsOnPartialImplementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partial method declarations have inconsistent nullability in constraints for type parameter.
+        /// </summary>
+        internal static string WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nullability of reference types in explicit interface specifier doesn&apos;t match interface implemented by the type..
         /// </summary>
         internal static string WRN_NullabilityMismatchInExplicitlyImplementedInterface {
@@ -16239,6 +16239,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title {
             get {
                 return ResourceManager.GetString("WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async-iterator &apos;{0}&apos; has one or more parameters of type &apos;CancellationToken&apos; but none of them is decorated with the &apos;EnumeratorCancellation&apos; attribute, so the cancellation token parameter from the generated &apos;IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator&apos; will be unconsumed.
+        /// </summary>
+        internal static string WRN_UndecoratedCancellationTokenParameter {
+            get {
+                return ResourceManager.GetString("WRN_UndecoratedCancellationTokenParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async-iterator member has one or more parameters of type &apos;CancellationToken&apos; but none of them is decorated with the &apos;EnumeratorCancellation&apos; attribute, so the cancellation token parameter from the generated &apos;IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator&apos; will be unconsumed.
+        /// </summary>
+        internal static string WRN_UndecoratedCancellationTokenParameter_Title {
+            get {
+                return ResourceManager.GetString("WRN_UndecoratedCancellationTokenParameter_Title", resourceCulture);
             }
         }
         

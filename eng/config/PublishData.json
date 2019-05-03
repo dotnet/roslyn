@@ -36,7 +36,7 @@
             "vsBranch": "rel/d16.1",
             "vsMajorVersion": 16
           },
-          "dev16.1-vs-deps": {
+          "release/dev16.1-vs-deps": {
             "nugetKind": ["Shipping", "NonShipping"],
             "version": "3.1.*",
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],

@@ -376,6 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
+                case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation:
@@ -412,6 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                 case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                 case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
+                case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                     return 1;
                 default:
                     return 0;

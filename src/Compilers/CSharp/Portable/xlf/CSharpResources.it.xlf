@@ -67,6 +67,11 @@
         <target state="translated">L'opzione '{0}' non è valida per /nullable. Deve essere 'disable', 'enable', 'safeonly', 'warnings' o 'safeonlywarnings'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadNullableTypeof">
+        <source>The typeof operator cannot be used on a nullable reference type</source>
+        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">L'operando non è valido per i criteri di ricerca. È richiesto un valore ma è stato trovato '{0}'.</target>
@@ -252,6 +257,11 @@
         <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
+        <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
+        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Non è possibile usare il vincolo 'new()' con il vincolo 'unmanaged'</target>
@@ -265,21 +275,6 @@
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
         <target state="translated">'{0}': il tipo usato in un'istruzione using deve essere convertibile in modo implicito in 'System.IDisposable' o implementare un metodo 'Dispose' adatto. Si intendeva 'await using' invece di 'using'?</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotBaseOrImplementedInterface">
-        <source>'{0}' is not base type or interface of {1}.</source>
-        <target state="translated">'{0}' non è il tipo di base o l'interfaccia di {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotDeclaredInBase">
-        <source>'{0}' is not an immediate member of {1}.</source>
-        <target state="translated">'{0}' non è un membro immediato di {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotImplementedInBase">
-        <source>'{0}' is not implemented in base interface {1}.</source>
-        <target state="translated">'{0}' non è implementato nell'interfaccia di base {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -742,11 +737,6 @@
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
-      <trans-unit id="IDS_BaseTypeInBaseExpression">
-        <source>specifying base type in base expression</source>
-        <target state="translated">specifica del tipo di base in un'espressione di base</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
         <target state="translated">disposable</target>
@@ -795,6 +785,11 @@
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">shadowing dei nomi nelle funzioni annidate</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNestedStackalloc">
+        <source>stackalloc in nested expressions</source>
+        <target state="new">stackalloc in nested expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -1512,6 +1507,16 @@
         <target state="translated">Il supporto dei valori Null nei vincoli del parametro di tipo non corrisponde ai vincoli per il parametro di tipo nel metodo di interfaccia implementato in modo implicito.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
+        <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
+        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
+        <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
+        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
         <source>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</source>
         <target state="translated">Il supporto dei valori Null dei tipi riferimento nell'identificatore di interfaccia esplicito non corrisponde all'interfaccia implementata dal tipo.</target>
@@ -1750,6 +1755,16 @@
       <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title">
         <source>The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
         <target state="new">The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
+        <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
+        <target state="new">Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
+        <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
+        <target state="new">Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -4672,8 +4687,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
-        <source>Partial method declarations of '{0}' have inconsistent type parameter constraints</source>
-        <target state="translated">Le dichiarazioni di metodo parziale di '{0}' contengono vincoli incoerenti per i parametri di tipo</target>
+        <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
+        <target state="needs-review-translation">Le dichiarazioni di metodo parziale di '{0}' contengono vincoli incoerenti per i parametri di tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">

@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project>
-  <PropertyGroup>
-    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
-  </PropertyGroup>
   <!--
     Roslyn version
   -->
@@ -75,8 +72,7 @@
     <MicrosoftNetCoreILAsmVersion>3.0.0-preview4-27525-72</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNetCoreILDasmVersion>3.0.0-preview4-27525-72</MicrosoftNetCoreILDasmVersion>
     <MicrosoftNETCorePlatformsVersion>2.1.2</MicrosoftNETCorePlatformsVersion>
-    <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/1764 -->
-    <MicrosoftNETTestSdkVersion>15.9.0-dev2</MicrosoftNETTestSdkVersion>
+    <MicrosoftNETTestSdkVersion>16.0.1</MicrosoftNETTestSdkVersion>
     <MicrosoftNETCoreTestHostVersion>1.1.0</MicrosoftNETCoreTestHostVersion>
     <MicrosoftNetFX20Version>1.0.3</MicrosoftNetFX20Version>
     <MicrosoftNetFrameworkReferenceAssembliesVersion>1.0.0-alpha-004</MicrosoftNetFrameworkReferenceAssembliesVersion>
@@ -93,8 +89,8 @@
     <MicrosoftVisualStudioCompositionVersion>15.5.23</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>16.0.467</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
-    <MicrosoftVisualStudioDebuggerEngineimplementationVersion>15.7.2082401</MicrosoftVisualStudioDebuggerEngineimplementationVersion>
-    <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>15.7.2082401</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
+    <MicrosoftVisualStudioDebuggerEngineimplementationVersion>16.0.2032702 </MicrosoftVisualStudioDebuggerEngineimplementationVersion>
+    <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>16.0.2032702 </MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
     <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>16.0.28226-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.27</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
@@ -185,6 +181,7 @@
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
     <MicrosoftVSSDKBuildToolsVersion>15.8.68-develop-g109a00ff</MicrosoftVSSDKBuildToolsVersion>
+    <MicrosoftVSSDKVSDConfigToolVersion>16.0.2032702</MicrosoftVSSDKVSDConfigToolVersion>
     <VSLangProjVersion>7.0.3301</VSLangProjVersion>
     <VSLangProj140Version>14.0.25030</VSLangProj140Version>
     <VSLangProj2Version>7.0.5001</VSLangProj2Version>

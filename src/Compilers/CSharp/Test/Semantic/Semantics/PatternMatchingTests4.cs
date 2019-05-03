@@ -13,6 +13,137 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class PatternMatchingTests4 : PatternMatchingTestBase
     {
         [Fact]
+        [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
+        public void PatternMatchOpenTypeCaseDefault()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public void M<T>(T t)
+    {
+        switch (t)
+        {
+            case default:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0150: A constant value is expected
+                //             case default:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "default").WithLocation(8, 18),
+                // (8,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                //             case default:
+                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(8, 18));
+        }
+
+        [Fact]
+        [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
+        public void PatternMatchOpenTypeCaseDefaultT()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public void M<T>(T t)
+    {
+        switch (t)
+        {
+            case default(T):
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0150: A constant value is expected
+                //             case default(T):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "default(T)").WithLocation(8, 18));
+        }
+
+        [Fact]
+        [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
+        public void PatternMatchGenericParameterToMethodGroup()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public void M1(object o)
+    {
+        _ = o is M1;
+        switch (o)
+        {
+            case M1:
+                break;
+        }
+    }
+    public void M2<T>(T t)
+    {
+        _ = t is M2;
+        switch (t)
+        {
+            case M2:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0428: Cannot convert method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         _ = o is M1;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(6, 18),
+                // (9,18): error CS0428: Cannot convert method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
+                //             case M1:
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(9, 18),
+                // (15,18): error CS0150: A constant value is expected
+                //         _ = t is M2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(15, 18),
+                // (18,18): error CS0150: A constant value is expected
+                //             case M2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
+        public void PatternMatchGenericParameterToNonConstantExprs()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public void M<T>(T t)
+    {
+        switch (t)
+        {
+            case (() => 0):
+                break;
+            case stackalloc int[1] { 0 }:
+                break;
+            case new { X = 0 }:
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'T', with 2 out parameters and a void return type.
+                //             case (() => 0):
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(() => 0)").WithArguments("T", "2").WithLocation(8, 18),
+                // (8,22): error CS1003: Syntax error, ',' expected
+                //             case (() => 0):
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(8, 22),
+                // (8,25): error CS1003: Syntax error, ',' expected
+                //             case (() => 0):
+                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments(",", "").WithLocation(8, 25),
+                // (10,18): error CS0518: Predefined type 'System.Span`1' is not defined or imported
+                //             case stackalloc int[1] { 0 }:
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1] { 0 }").WithArguments("System.Span`1").WithLocation(10, 18),
+                // (10,18): error CS0150: A constant value is expected
+                //             case stackalloc int[1] { 0 }:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "stackalloc int[1] { 0 }").WithLocation(10, 18),
+                // (12,18): error CS0150: A constant value is expected
+                //             case new { X = 0 }:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "new { X = 0 }").WithLocation(12, 18)
+                );
+        }
+
+        [Fact]
         public void TestPresenceOfITuple()
         {
             var source =

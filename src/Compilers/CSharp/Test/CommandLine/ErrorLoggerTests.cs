@@ -88,6 +88,11 @@ public class C
             var expectedIssues = string.Format(@"
       ""results"": [
         {{
+          ""ruleId"": ""CS5001"",
+          ""level"": ""error"",
+          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point""
+        }},
+        {{
           ""ruleId"": ""CS0169"",
           ""level"": ""warning"",
           ""message"": ""The field 'C.x' is never used"",
@@ -107,11 +112,6 @@ public class C
           ""properties"": {{
             ""warningLevel"": 3
           }}
-        }},
-        {{
-          ""ruleId"": ""CS5001"",
-          ""level"": ""error"",
-          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point""
         }}
       ],
       ""rules"": {{
@@ -185,6 +185,11 @@ public class C
             var expectedIssues = string.Format(@"
       ""results"": [
         {{
+          ""ruleId"": ""CS5001"",
+          ""level"": ""error"",
+          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point""
+        }},
+        {{
           ""ruleId"": ""CS0169"",
           ""level"": ""warning"",
           ""message"": ""The field 'C.x' is never used"",
@@ -207,11 +212,6 @@ public class C
           ""properties"": {{
             ""warningLevel"": 3
           }}
-        }},
-        {{
-          ""ruleId"": ""CS5001"",
-          ""level"": ""error"",
-          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point""
         }}
       ],
       ""rules"": {{

@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundDefaultExpression
     {
         public BoundDefaultExpression(SyntaxNode syntax, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, type.GetDefaultValue(), type, hasErrors)
+            : this(syntax, targetType: null, type?.GetDefaultValue(), type, hasErrors)
         {
         }
     }

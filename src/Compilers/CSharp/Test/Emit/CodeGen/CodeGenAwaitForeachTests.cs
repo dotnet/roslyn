@@ -2585,7 +2585,7 @@ public class C
   }
   catch System.Exception
   {
-    // sequence point: <hidden>
+    // async: catch handler, sequence point: <hidden>
     IL_00d7:  stloc.s    V_4
     IL_00d9:  ldarg.0
     IL_00da:  ldc.i4.s   -2
@@ -4292,7 +4292,7 @@ class C
   }
   catch System.Exception
   {
-    // sequence point: <hidden>
+    // async: catch handler, sequence point: <hidden>
     IL_00d3:  stloc.s    V_4
     IL_00d5:  ldarg.0
     IL_00d6:  ldc.i4.s   -2
