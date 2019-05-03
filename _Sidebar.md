@@ -48,4 +48,4 @@
 
 [Manual Testing](https://github.com/dotnet/roslyn/wiki/Manual-Testing)  
 
-[How to Investigate CI Test Failures](https://github.com/dotnet/roslyn/wiki/How-To-Investigate-CI-Test-Failures.md)
+[How to Investigate CI Test Failures](https://github.com/dotnet/roslyn/wiki/How-To-Investigate-CI-Test-Failures)
