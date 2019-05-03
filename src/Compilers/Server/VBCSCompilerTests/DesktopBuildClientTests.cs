@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return false;
                 }
 
-                var serverData = ServerUtil.CreateServer(pipeName).GetAwaiter().GetResult();
+                var serverData = ServerUtil.CreateServer(pipeName);
                 _serverDataList.Add(serverData);
                 return true;
             }

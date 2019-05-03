@@ -376,7 +376,7 @@ class Hello
         [Fact]
         public async Task ShutdownRequestDirect()
         {
-            using (var serverData = await ServerUtil.CreateServer())
+            using (var serverData = ServerUtil.CreateServer())
             {
                 var serverProcessId = await ServerUtil.SendShutdown(serverData.PipeName);
                 Assert.Equal(Process.GetCurrentProcess().Id, serverProcessId);
@@ -395,7 +395,7 @@ class Hello
 
             using (var startedMre = new ManualResetEvent(initialState: false))
             using (var finishedMre = new ManualResetEvent(initialState: false))
-            using (var serverData = await ServerUtil.CreateServer(compilerServerHost: host))
+            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
             {
                 // Create a compilation that is guaranteed to complete after the shutdown is seen. 
                 host.RunCompilation = (request, cancellationToken) =>
@@ -432,7 +432,7 @@ class Hello
 
             using (var startedMre = new ManualResetEvent(initialState: false))
             using (var finishedMre = new ManualResetEvent(initialState: false))
-            using (var serverData = await ServerUtil.CreateServer(compilerServerHost: host))
+            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
             {
                 // Create a compilation that is guaranteed to complete after the shutdown is seen. 
                 host.RunCompilation = (request, cancellationToken) =>
@@ -468,7 +468,7 @@ class Hello
         {
             var host = new TestableCompilerServerHost();
 
-            using (var serverData = await ServerUtil.CreateServer(compilerServerHost: host))
+            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
             using (var mre = new ManualResetEvent(initialState: false))
             {
                 const int requestCount = 5;
@@ -520,7 +520,7 @@ class Hello
         [Fact]
         public async Task IncorrectProtocolReturnsMismatchedVersionResponse()
         {
-            using (var serverData = await ServerUtil.CreateServer())
+            using (var serverData = ServerUtil.CreateServer())
             {
                 var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(1, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
                 Assert.Equal(BuildResponse.ResponseType.MismatchedVersion, buildResponse.Type);
@@ -530,7 +530,7 @@ class Hello
         [Fact]
         public async Task IncorrectServerHashReturnsIncorrectHashResponse()
         {
-            using (var serverData = await ServerUtil.CreateServer())
+            using (var serverData = ServerUtil.CreateServer())
             {
                 var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
                 Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 tempDir: tempDir);
         }
 
-        internal static async Task<ServerData> CreateServer(
+        internal static ServerData CreateServer(
             string pipeName = null,
             ICompilerServerHost compilerServerHost = null,
             bool failingServer = false,
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var serverListenSource = new TaskCompletionSource<bool>();
             var cts = new CancellationTokenSource();
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
-            var task = Task.Run(() =>
+            var thread = new Thread(_ =>
             {
                 var listener = new TestableDiagnosticListener();
                 listener.Listening += (sender, e) => { serverListenSource.TrySetResult(true); };
@@ -122,16 +122,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             });
 
+            thread.Start();
+
             // The contract of this function is that it will return once the server has started.  Spin here until
             // we can verify the server has started or simply failed to start.
-            while (BuildServerConnection.WasServerMutexOpen(mutexName) != true && !task.IsCompleted)
+            while (BuildServerConnection.WasServerMutexOpen(mutexName) != true && thread.IsAlive)
             {
-                await Task.Yield();
-            }
-
-            if (task.IsFaulted)
-            {
-                throw task.Exception;
+                Thread.Yield();
             }
 
             return new ServerData(cts, pipeName, serverStatsSource.Task, serverListenSource.Task);
@@ -140,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// <summary>
         /// Create a compiler server that fails all connections.
         /// </summary>
-        internal static Task<ServerData> CreateServerFailsConnection(string pipeName = null)
+        internal static ServerData CreateServerFailsConnection(string pipeName = null)
         {
             return CreateServer(pipeName, failingServer: true);
         }
