@@ -1647,16 +1647,6 @@
         <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ entspricht nicht dem implizit implementierten Member.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ entspricht nicht dem außer Kraft gesetzten Member.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ entspricht nicht dem außer Kraft gesetzten Member.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">Der Typ "{3}" kann nicht als Typparameter "{2}" im generischen Typ oder in der generischen Methode "{0}" verwendet werden. Die NULL-Zulässigkeit des Typarguments "{3}" entspricht nicht dem Einschränkungstyp "{1}".</target>

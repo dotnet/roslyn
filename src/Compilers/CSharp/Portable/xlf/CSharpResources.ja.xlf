@@ -1647,16 +1647,6 @@
         <target state="translated">型における参照型の Null 許容性が、暗黙的に実装されるメンバーと一致しません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">型における参照型の Null 許容性が、オーバーライドされるメンバーと一致しません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">型における参照型の Null 許容性が、オーバーライドされるメンバーと一致しません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">型 '{3}' を、ジェネリック型またはメソッド '{0}' 内で型パラメーター '{2}' として使用することはできません。型引数 '{3}' の Null 許容性が制約型 '{1}' と一致しません。</target>

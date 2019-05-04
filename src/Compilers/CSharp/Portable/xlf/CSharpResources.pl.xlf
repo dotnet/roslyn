@@ -1647,16 +1647,6 @@
         <target state="translated">Obsługa wartości null dla typów referencyjnych w typie jest niezgodna z niejawnie implementowaną składową.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie jest niezgodna z przesłoniętą składową.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie jest niezgodna z przesłoniętą składową.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">Nie można użyć typu „{3}” jako parametru typu „{2}” w typie ogólnym lub metodzie „{0}”. Obsługa wartości null w argumencie typu „{3}” jest niezgodna z typem ograniczenia „{1}”.</target>

@@ -15566,24 +15566,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match overridden member..
-        /// </summary>
-        internal static string WRN_NullabilityMismatchInTypeOnOverride {
-            get {
-                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnOverride", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match overridden member..
-        /// </summary>
-        internal static string WRN_NullabilityMismatchInTypeOnOverride_Title {
-            get {
-                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnOverride_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{3}&apos; cannot be used as type parameter &apos;{2}&apos; in the generic type or method &apos;{0}&apos;. Nullability of type argument &apos;{3}&apos; doesn&apos;t match constraint type &apos;{1}&apos;..
         /// </summary>
         internal static string WRN_NullabilityMismatchInTypeParameterConstraint {

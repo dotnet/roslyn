@@ -1639,8 +1639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceArgument = 8604,
         WRN_UnboxPossibleNull = 8605,
         WRN_NullReferenceIterationVariable = 8606,
-        // Unused 8607
-        WRN_NullabilityMismatchInTypeOnOverride = 8608,
+        // Unused 8607-8608
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
         WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
         WRN_NullabilityMismatchInParameterTypeOnPartial = 8611,

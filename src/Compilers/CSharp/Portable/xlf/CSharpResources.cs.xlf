@@ -1647,16 +1647,6 @@
         <target state="translated">Typ odkazu s možnou hodnotou null v typu neodpovídá implicitně implementovanému členu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Typ odkazu s možnou hodnotou null v typu neodpovídá přepsanému členu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Typ odkazu s možnou hodnotou null v typu neodpovídá přepsanému členu.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">Typ {3} nejde použít jako parametr typu {2} v obecném typu nebo metodě {0}. Typ argumentu {3} s možnou hodnotou null neodpovídá typu omezení {1}.</target>

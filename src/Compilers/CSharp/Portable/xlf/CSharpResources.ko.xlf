@@ -1647,16 +1647,6 @@
         <target state="translated">형식에 있는 참조 형식 Null 허용 여부가 암시적으로 구현된 멤버와 일치하지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">형식에 있는 참조 형식 Null 허용 여부가 재정의된 멤버와 일치하지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">형식에 있는 참조 형식 Null 허용 여부가 재정의된 멤버와 일치하지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">'{3}' 형식은 제네릭 형식 또는 '{0}' 메서드에서 '{2}' 형식 매개 변수로 사용할 수 없습니다. '{3}' 형식 인수의 Null 허용 여부가 '{1}' 제약 조건 형식과 일치하지 않습니다.</target>

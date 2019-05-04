@@ -1688,16 +1688,6 @@
         <target state="translated">类型中引用类型的为 Null 性与隐式实现的成员不匹配。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">类型中引用类型的为 Null 性与重写成员不匹配。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">类型中引用类型的为 Null 性与重写成员不匹配。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">类型“{3}”不能用作泛型类型或方法“{0}”中的类型参数“{2}”。类型参数“{3}”的为 Null 性与约束类型“{1}”不匹配。</target>

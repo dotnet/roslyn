@@ -1648,16 +1648,6 @@
         <target state="translated">Türdeki başvuru türlerinin boş değer atanabilirliği, örtük olarak uygulanan üye ile eşleşmiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Türdeki başvuru türlerinin boş değer atanabilirliği, geçersiz kılınan üye ile eşleşmiyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Türdeki başvuru türlerinin boş değer atanabilirliği, geçersiz kılınan üye ile eşleşmiyor.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">{3}' türü '{0}' genel türü veya metodu için '{2}' tür parametresi olarak kullanılamıyor. '{3}' tür bağımsız değişkeninin boş değer atanabilirliği, '{1}' kısıtlama türüyle eşleşmiyor.</target>

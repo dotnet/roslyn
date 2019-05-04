@@ -1647,16 +1647,6 @@
         <target state="translated">Il supporto dei valori Null dei tipi riferimento nel tipo non corrisponde al membro implementato in modo implicito.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Il supporto dei valori Null dei tipi riferimento nel tipo non corrisponde al membro di cui è stato eseguito l'override.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Il supporto dei valori Null dei tipi riferimento nel tipo non corrisponde al membro di cui è stato eseguito l'override.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">Non è possibile usare il tipo '{3}' come parametro di tipo '{2}' nel metodo o nel tipo generico '{0}'. Il supporto dei valori Null dell'argomento di tipo '{3}' non corrisponde al tipo di vincolo '{1}'.</target>

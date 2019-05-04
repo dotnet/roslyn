@@ -1647,16 +1647,6 @@
         <target state="translated">型別中參考型別的可 Null 性與隱含實作的成員不符合。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">型別中參考型別的可 Null 性與覆寫的成員不符合。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">型別中參考型別的可 Null 性與覆寫的成員不符合。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">型別 '{3}' 無法作為型別參數 '{2}' 用於泛型型別或方法 '{0}' 中。型別引數 '{3}' 的可 Null 性與條件約束型別 '{1}' 不符合。</target>

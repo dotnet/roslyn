@@ -1647,16 +1647,6 @@
         <target state="translated">Допустимость значения NULL для ссылочных типов в типе не совпадает с явно реализованным членом.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в типе не совпадает с переопределенным членом.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Допустимость значения NULL для ссылочных типов в типе не совпадает с переопределенным членом.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">Тип "{3}" не может быть использован как параметр типа "{2}" в универсальном типе или методе "{0}". Допустимость значения NULL для аргумента типа "{3}" не соответствует типу ограничения "{1}".</target>

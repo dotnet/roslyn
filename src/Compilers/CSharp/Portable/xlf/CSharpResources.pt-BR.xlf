@@ -1647,16 +1647,6 @@
         <target state="translated">A anulabilidade de tipos de referência em tipo não corresponde ao membro implicitamente implementado.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">A anulabilidade de tipos de referência em tipo não corresponde ao membro substituído.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">A anulabilidade de tipos de referência em tipo não corresponde ao membro substituído.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">O tipo '{3}' não pode ser usado como parâmetro de tipo '{2}' no tipo ou método genérico '{0}'. A anulabilidade do argumento de tipo '{3}' não corresponde ao tipo de restrição '{1}'.</target>
