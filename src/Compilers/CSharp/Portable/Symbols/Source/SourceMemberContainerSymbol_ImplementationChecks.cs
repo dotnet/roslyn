@@ -1018,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return;
 
-            bool isOrContainsErrorType(TypeSymbol typeSymbol)
+            static bool isOrContainsErrorType(TypeSymbol typeSymbol)
             {
                 return (object)typeSymbol.VisitType((currentTypeSymbol, unused1, unused2) => currentTypeSymbol.IsErrorType(), (object)null) != null;
             }
@@ -1076,33 +1076,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             new FormattedSymbol(overridingParameters[i], SymbolDisplayFormat.ShortFormat));
                     }
                 }
+            }
 
-                return;
-
-                static bool isValidNullableConversion(
-                    ConversionsBase conversions,
-                    RefKind refKind,
-                    TypeWithAnnotations sourceType,
-                    TypeWithAnnotations targetType)
+            static bool isValidNullableConversion(
+                ConversionsBase conversions,
+                RefKind refKind,
+                TypeWithAnnotations sourceType,
+                TypeWithAnnotations targetType)
+            {
+                switch (refKind)
                 {
-                    switch (refKind)
-                    {
-                        case RefKind.Ref:
-                            // ref variables are invariant
-                            return sourceType.Equals(
-                                targetType,
-                                TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+                    case RefKind.Ref:
+                        // ref variables are invariant
+                        return sourceType.Equals(
+                            targetType,
+                            TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
-                        case RefKind.Out:
-                            // out variables have inverted variance
-                            (sourceType, targetType) = (targetType, sourceType);
-                            break;
+                    case RefKind.Out:
+                        // out variables have inverted variance
+                        (sourceType, targetType) = (targetType, sourceType);
+                        break;
 
-                        default:
-                            break;
-                    }
-                    return conversions.HasAnyNullabilityImplicitConversion(sourceType, targetType);
+                    default:
+                        break;
                 }
+                return conversions.HasAnyNullabilityImplicitConversion(sourceType, targetType);
             }
         }
 

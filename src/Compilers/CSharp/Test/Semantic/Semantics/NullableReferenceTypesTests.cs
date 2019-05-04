@@ -13596,6 +13596,50 @@ class D : C
         }
 
         [Fact]
+        public void OverrideVarianceGenericBase()
+        {
+            var comp = CreateCompilation(@"
+class A<T>
+{
+    public virtual T M(T t) => default!;
+}
+#nullable enable
+class B : A<object>
+{
+    public override object? M(object? o) => null!; // warn
+}
+class C : A<object?>
+{
+    public override object M(object o) => null!; // warn
+}
+#nullable disable
+class D : A<object>
+{
+#nullable enable
+    public override object? M(object? o) => null!;
+}
+class E : A<object>
+{
+#nullable disable
+    public override object M(object o) => null!;
+}
+#nullable enable
+class F : A<object?>
+{
+#nullable disable
+    public override object M(object o) => null;
+}
+");
+            comp.VerifyDiagnostics(
+                // (9,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override object? M(object? o) => null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M").WithLocation(9, 29),
+                // (13,28): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override object M(object o) => null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("o").WithLocation(13, 28));
+        }
+
+        [Fact]
         public void Implementing_07()
         {
             var source = @"
