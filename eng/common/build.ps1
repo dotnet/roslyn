@@ -122,6 +122,10 @@ try {
     . $configureToolsetScript
   }
 
+  if (($restore) -and ($null -eq $env:DisableNativeToolsetInstalls)) {
+    InitializeNativeTools
+  }
+
   Build
 }
 catch {

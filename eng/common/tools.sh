@@ -101,7 +101,7 @@ function InitializeDotNetCli {
   fi
 
   # Find the first path on $PATH that contains the dotnet.exe
-  if [[ "$use_installed_dotnet_cli" == true && -z "${DOTNET_INSTALL_DIR:-}" ]]; then
+  if [[ "$use_installed_dotnet_cli" == true && $global_json_has_runtimes == false && -z "${DOTNET_INSTALL_DIR:-}" ]]; then
     local dotnet_path=`command -v dotnet`
     if [[ -n "$dotnet_path" ]]; then
       ResolvePath "$dotnet_path"
@@ -115,10 +115,11 @@ function InitializeDotNetCli {
 
   # Use dotnet installation specified in DOTNET_INSTALL_DIR if it contains the required SDK version,
   # otherwise install the dotnet CLI and SDK to repo local .dotnet directory to avoid potential permission issues.
-  if [[ -n "${DOTNET_INSTALL_DIR:-}" && -d "$DOTNET_INSTALL_DIR/sdk/$dotnet_sdk_version" ]]; then
+  if [[ $global_json_has_runtimes == false && -n "${DOTNET_INSTALL_DIR:-}" && -d "$DOTNET_INSTALL_DIR/sdk/$dotnet_sdk_version" ]]; then
     dotnet_root="$DOTNET_INSTALL_DIR"
   else
     dotnet_root="$repo_root/.dotnet"
+
     export DOTNET_INSTALL_DIR="$dotnet_root"
 
     if [[ ! -d "$DOTNET_INSTALL_DIR/sdk/$dotnet_sdk_version" ]]; then
@@ -149,16 +150,34 @@ function InitializeDotNetCli {
 function InstallDotNetSdk {
   local root=$1
   local version=$2
+  local architecture=""
+  if [[ $# == 3 ]]; then
+    architecture=$3
+  fi
+  InstallDotNet "$root" "$version" $architecture
+}
 
+function InstallDotNet {
+  local root=$1
+  local version=$2
+ 
   GetDotNetInstallScript "$root"
   local install_script=$_GetDotNetInstallScript
 
-  local arch_arg=""
-  if [[ $# == 3 ]]; then
-    arch_arg="--architecture $3"
+  local archArg=''
+  if [[ "$#" -ge "3" ]]; then
+    archArg="--architecture $3"
+  fi
+  local runtimeArg=''
+  if [[ "$#" -ge "4" ]]; then
+    runtimeArg="--runtime $4"
   fi
 
-  bash "$install_script" --version $version --install-dir "$root" $arch_arg || {
+  local skipNonVersionedFilesArg=""
+  if [[ "$#" -ge "5" ]]; then
+    skipNonVersionedFilesArg="--skip-non-versioned-files"
+  fi
+  bash "$install_script" --version $version --install-dir "$root" $archArg $runtimeArg $skipNonVersionedFilesArg || {
     local exit_code=$?
     echo "Failed to install dotnet SDK (exit code '$exit_code')." >&2
     ExitWithExitCode $exit_code
@@ -210,6 +229,17 @@ function GetNuGetPackageCachePath {
 
   # return value
   _GetNuGetPackageCachePath=$NUGET_PACKAGES
+}
+
+function InitializeNativeTools() {
+  if grep -Fq "native-tools" $global_json_file
+  then
+    local nativeArgs=""
+    if [[ "$ci" == true ]]; then
+      nativeArgs="-InstallDirectory $tools_dir"
+    fi
+    "$_script_dir/init-tools-native.sh" $nativeArgs
+  fi
 }
 
 function InitializeToolset {
@@ -307,10 +337,17 @@ eng_root=`cd -P "$_script_dir/.." && pwd`
 repo_root=`cd -P "$_script_dir/../.." && pwd`
 artifacts_dir="$repo_root/artifacts"
 toolset_dir="$artifacts_dir/toolset"
+tools_dir="$repo_root/.tools"
 log_dir="$artifacts_dir/log/$configuration"
 temp_dir="$artifacts_dir/tmp/$configuration"
 
 global_json_file="$repo_root/global.json"
+# determine if global.json contains a "runtimes" entry
+global_json_has_runtimes=false
+dotnetlocal_key=`grep -m 1 "runtimes" "$global_json_file"` || true
+if [[ -n "$dotnetlocal_key" ]]; then
+  global_json_has_runtimes=true
+fi
 
 # HOME may not be defined in some scenarios, but it is required by NuGet
 if [[ -z $HOME ]]; then

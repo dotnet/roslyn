@@ -29,6 +29,8 @@
     <GenerateFullPaths>true</GenerateFullPaths>
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
+    <UsingToolXliff>false</UsingToolXliff>
+
     <!-- Set to non-existent file to prevent common targets from importing Microsoft.CodeAnalysis.targets -->
     <CodeAnalysisTargets>*none*</CodeAnalysisTargets>
 
