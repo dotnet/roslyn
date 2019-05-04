@@ -13640,6 +13640,37 @@ class F : A<object?>
         }
 
         [Fact]
+        public void NullableVarianceConsumer()
+        {
+            var comp = CreateCompilation(@"
+class A
+{
+    public virtual object? M() => null;
+}
+class B : A
+{
+    public override object M() => null; // warn
+}
+class C
+{
+    void M()
+    {
+        var b = new B();
+        b.M().ToString();
+        A a = b;
+        a.M().ToString(); // warn
+    }
+}", options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,35): warning CS8603: Possible null reference return.
+                //     public override object M() => null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(8, 35),
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                //         a.M().ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.M()").WithLocation(17, 9));
+        }
+
+        [Fact]
         public void Implementing_07()
         {
             var source = @"
