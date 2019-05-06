@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 
         internal override string GetAssemblyFileVersion()
         {
-            return Type.GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+            return Type.GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
         }
 
         internal override MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger loggerOpt)

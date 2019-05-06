@@ -142,20 +142,8 @@ namespace Microsoft.CodeAnalysis
 
         internal static string GetAssemblyFileVersion(Assembly assembly)
         {
-            string assemblyVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
-            string hash = ExtractShortCommitHash(assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash);
-            return $"{assemblyVersion} ({hash})";
-        }
-
-        internal static string ExtractShortCommitHash(string hash)
-        {
-            // leave "<developer build>" alone, but truncate SHA to 8 characters
-            if (hash != null && hash.Length >= 8 && hash[0] != '<')
-            {
-                return hash.Substring(0, 8);
-            }
-
-            return hash;
+            // Something like 3.1.0-beta2-19209-07+b02e2c50a2f2aeabb5b4e5d850c65ad8686848e3
+            return assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
         }
 
         /// <summary>
