@@ -3199,10 +3199,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!argument.IsSuppressed)
                         {
                             var lvalueResultType = result.LValueType;
-                            if (IsNullabilityMismatch(lvalueResultType, parameterType))
+                            if (IsNullabilityMismatch(lvalueResultType.Type, parameterType.Type))
                             {
-                                // declared types must match
-                                ReportNullabilityMismatchInRefArgument(argument, argumentType: lvalueResultType, parameter, parameterType);
+                                // declared types must match, ignoring top-level nullability
+                                ReportNullabilityMismatchInRefArgument(argument, argumentType: lvalueResultType.Type, parameter, parameterType.Type);
                             }
                             else
                             {
@@ -3221,6 +3221,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
                         var lValueType = result.LValueType;
                         TrackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState);
+
+                        // check whether parameter would unsafely let a null out
+                        ReportNullableAssignmentIfNecessary(parameterValue, lValueType, parameterWithState, useLegacyWarnings: false);
                     }
                     break;
                 case RefKind.Out:
@@ -5223,7 +5226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportNullabilityMismatchInRefArgument(BoundExpression argument, TypeWithAnnotations argumentType, ParameterSymbol parameter, TypeWithAnnotations parameterType)
+        private void ReportNullabilityMismatchInRefArgument(BoundExpression argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType)
         {
             ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInArgument,
                 argument.Syntax, argumentType, parameterType,
