@@ -245,10 +245,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Select Case symbol.TypeKind
-                Case TypeKind.Class
+                Case TypeKind.Class,
+                    TypeKind.Submission
                     partKind = If(symbol.IsStatic, SymbolDisplayPartKind.StaticClassName, SymbolDisplayPartKind.ClassName)
-                Case TypeKind.Submission
-                    partKind = SymbolDisplayPartKind.ClassName
                 Case TypeKind.Delegate
                     partKind = SymbolDisplayPartKind.DelegateName
                 Case TypeKind.Enum
