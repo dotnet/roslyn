@@ -82,7 +82,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     wellKnownTypeProvider,
                     interproceduralAnalysisConfig,
                     interproceduralAnalysisPredicateOpt: null,
-                    pessimisticAnalysis);
+                    pessimisticAnalysis,
+                    performCopyAnalysis: false);
                 valueContentAnalysisResultOpt = null;
             }
             else
@@ -93,7 +94,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     wellKnownTypeProvider,
                     interproceduralAnalysisConfig,
                     out var copyAnalysisResult,
-                    out pointsToAnalysisResult);
+                    out pointsToAnalysisResult,
+                    pessimisticAnalysis,
+                    performCopyAnalysis: false);
             }
 
             var analysisContext = PropertySetAnalysisContext.Create(
