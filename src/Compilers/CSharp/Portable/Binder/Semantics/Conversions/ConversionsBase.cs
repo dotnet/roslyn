@@ -168,6 +168,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ClassifyConversionFromType(source, destination, ref useSiteDiagnostics);
         }
 
+        private static bool TryGetVoidConversion(TypeSymbol source, TypeSymbol destination, out Conversion conversion)
+        {
+            var sourceIsVoid = source?.SpecialType == SpecialType.System_Void;
+            var destIsVoid = destination.SpecialType == SpecialType.System_Void;
+
+            // 'void' is not supposed to be able to convert to or from anything, but in practice,
+            // a lot of code depends on checking whether an expression of type 'void' is convertible to 'void'.
+            // (e.g. for an expression lambda which returns void).
+            // Therefore we allow an identity conversion between 'void' and 'void'.
+            if (sourceIsVoid && destIsVoid)
+            {
+                conversion = Conversion.Identity;
+                return true;
+            }
+
+            // If exactly one of source or destination is of type 'void' then no conversion may exist.
+            if (sourceIsVoid || destIsVoid)
+            {
+                conversion = Conversion.NoConversion;
+                return true;
+            }
+
+            conversion = default;
+            return false;
+        }
+
         /// <summary>
         /// Determines if the source expression is convertible to the destination type via
         /// any conversion: implicit, explicit, user-defined or built-in.
@@ -181,6 +207,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(sourceExpression != null);
             Debug.Assert((object)destination != null);
+
+            if (TryGetVoidConversion(sourceExpression.Type, destination, out var conversion))
+            {
+                return conversion;
+            }
 
             if (forCast)
             {
@@ -209,6 +240,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
+
+            if (TryGetVoidConversion(source, destination, out var voidConversion))
+            {
+                return voidConversion;
+            }
 
             if (forCast)
             {
