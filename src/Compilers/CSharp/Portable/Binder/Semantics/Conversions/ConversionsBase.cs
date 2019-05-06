@@ -2234,9 +2234,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            TypeSymbol argument0 = destinationAgg.TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics).Type;
+            TypeWithAnnotations elementType = source.ElementTypeWithAnnotations;
+            TypeWithAnnotations argument0 = destinationAgg.TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics);
 
-            return HasIdentityOrImplicitReferenceConversion(source.ElementType, argument0, ref useSiteDiagnostics);
+            if (IncludeNullability && !HasTopLevelNullabilityImplicitConversion(elementType, argument0))
+            {
+                return false;
+            }
+
+            return HasIdentityOrImplicitReferenceConversion(elementType.Type, argument0.Type, ref useSiteDiagnostics);
         }
 
         private bool HasImplicitReferenceConversion(TypeWithAnnotations source, TypeWithAnnotations destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
