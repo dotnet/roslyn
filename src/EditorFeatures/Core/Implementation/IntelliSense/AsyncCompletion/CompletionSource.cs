@@ -47,8 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private static readonly EditorOptionKey<bool> NonBlockingCompletionEditorOption = new EditorOptionKey<bool>(NonBlockingCompletion);
 
-        private static readonly ConditionalWeakTable<RoslynCompletionItem, VSCompletionItem> s_roslynItemToVsItem =
-            new ConditionalWeakTable<RoslynCompletionItem, VSCompletionItem>();
+        // Use CWT to cache data needed to create VSCompletionItem, so the table would be cleared when Roslyn completion item cache is cleared.
+        private static readonly ConditionalWeakTable<RoslynCompletionItem, VSCompletionItemData> s_roslynItemToVsItemData =
+            new ConditionalWeakTable<RoslynCompletionItem, VSCompletionItemData>();
 
         // Cache all the VS completion filters which essentially make them singletons.
         // Because all items that should be filtered using the same filter button must 
@@ -313,13 +314,50 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
+        /// <summary>
+        /// We'd like to cache VS Completion item dircetly to avoid allocation completely. However it holds references
+        /// to transient objects, which would cause memory leak (among other potential issues) if cached. 
+        /// So as a compromise,  we cache data that can be calculated from Roslyn completion item to avoid repeated 
+        /// calculation cost for cached Roslyn completion items.
+        /// </summary>
+        private class VSCompletionItemData
+        {
+            public VSCompletionItemData(string displayText, ImageElement icon, ImmutableArray<AsyncCompletionData.CompletionFilter> filters, ImmutableArray<ImageElement> attributeIcons, string insertionText)
+            {
+                DisplayText = displayText;
+                Icon = icon;
+                Filters = filters;
+                AttributeIcons = attributeIcons;
+                InsertionText = insertionText;
+            }
+
+            public string DisplayText { get; }
+
+            public ImageElement Icon { get; }
+
+            public ImmutableArray<AsyncCompletionData.CompletionFilter> Filters { get; }
+
+            public ImmutableArray<ImageElement> AttributeIcons { get; }
+
+            public string InsertionText { get; }
+        }
+
         private VSCompletionItem Convert(
             Document document,
             RoslynCompletionItem roslynItem)
         {
-            if (roslynItem.IsCached && s_roslynItemToVsItem.TryGetValue(roslynItem, out var vsItem))
+            if (roslynItem.IsCached && s_roslynItemToVsItemData.TryGetValue(roslynItem, out var itemData))
             {
-                return vsItem;
+                return new VSCompletionItem(
+                    displayText: itemData.DisplayText,
+                    source: this,
+                    icon: itemData.Icon,
+                    filters: itemData.Filters,
+                    suffix: roslynItem.InlineDescription, // InlineDescription will be right-aligned in the selection popup
+                    insertText: itemData.InsertionText,
+                    sortText: roslynItem.SortText,
+                    filterText: roslynItem.FilterText,
+                    attributeIcons: itemData.AttributeIcons);
             }
 
             var imageId = roslynItem.Tags.GetFirstGlyph().GetImageId();
@@ -349,11 +387,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
 
-            // It doesn't make sense to cache VS item for those Roslyn items created from scratch for each session,
+            // It doesn't make sense to cache VS item data for those Roslyn items created from scratch for each session,
             // since CWT uses object identity for comparison.
             if (roslynItem.IsCached)
             {
-                s_roslynItemToVsItem.Add(roslynItem, item);
+                var data = new VSCompletionItemData(item.DisplayText, item.Icon, item.Filters, item.AttributeIcons, item.InsertText);
+                s_roslynItemToVsItemData.Add(roslynItem, data);
             }
 
             return item;

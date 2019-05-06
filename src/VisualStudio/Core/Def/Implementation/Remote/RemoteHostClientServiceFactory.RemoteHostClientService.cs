@@ -139,6 +139,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 client?.Shutdown();
             }
 
+            bool IRemoteHostClientService.IsEnabled()
+            {
+                // We enable the remote host if either RemoteHostTest or RemoteHost are on.
+                if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest)
+                    && !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                {
+                    // not turned on
+                    return false;
+                }
+
+                var remoteHostClientFactory = _workspace.Services.GetService<IRemoteHostClientFactory>();
+                if (remoteHostClientFactory is null)
+                {
+                    // not available
+                    return false;
+                }
+
+                return true;
+            }
+
             public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
