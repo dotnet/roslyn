@@ -127,6 +127,16 @@
         <target state="translated">Trwa formatowanie dokumentu...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_parameter_0">
+        <source>Generate parameter '{0}'</source>
+        <target state="new">Generate parameter '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
+        <source>Generate parameter '{0}' (include overrides/implementations)</source>
+        <target state="new">Generate parameter '{0}' (include overrides/implementations)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">Dodaj wcięcie dla wszystkich argumentów</target>
