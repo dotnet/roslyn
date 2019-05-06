@@ -212,6 +212,17 @@ function GetNuGetPackageCachePath {
   _GetNuGetPackageCachePath=$NUGET_PACKAGES
 }
 
+function InitializeNativeTools() {
+  if grep -Fq "native-tools" $global_json_file
+  then
+    local nativeArgs=""
+    if [[ "$ci" == true ]]; then
+      nativeArgs="-InstallDirectory $tools_dir"
+    fi
+    "$_script_dir/init-tools-native.sh" $nativeArgs
+  fi
+}
+
 function InitializeToolset {
   if [[ -n "${_InitializeToolset:-}" ]]; then
     return
@@ -307,6 +318,7 @@ eng_root=`cd -P "$_script_dir/.." && pwd`
 repo_root=`cd -P "$_script_dir/../.." && pwd`
 artifacts_dir="$repo_root/artifacts"
 toolset_dir="$artifacts_dir/toolset"
+tools_dir="$repo_root/.tools"
 log_dir="$artifacts_dir/log/$configuration"
 temp_dir="$artifacts_dir/tmp/$configuration"
 

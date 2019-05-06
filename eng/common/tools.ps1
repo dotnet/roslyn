@@ -391,6 +391,16 @@ function GetSdkTaskProject([string]$taskName) {
   return Join-Path (Split-Path (InitializeToolset) -Parent) "SdkTasks\$taskName.proj"
 }
 
+function InitializeNativeTools() {
+  if (Get-Member -InputObject $GlobalJson -Name "native-tools") {
+    $nativeArgs=""
+    if ($ci) {
+      $nativeArgs = "-InstallDirectory $ToolsDir"
+    }
+    Invoke-Expression "& `"$PSScriptRoot/init-tools-native.ps1`" $nativeArgs"
+  }
+}
+
 function InitializeToolset() {
   if (Test-Path variable:global:_ToolsetBuildProj) {
     return $global:_ToolsetBuildProj
