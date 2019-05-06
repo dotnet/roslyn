@@ -106,8 +106,8 @@ namespace BuildBoss
                 var util = data.ProjectUtil;
                 switch (ProjectEntryUtil.GetProjectFileType(data.FilePath))
                 {
-                    case ProjectFileType.CSharp: return util.IsNewSdk ? ProjectEntryUtil.ManagedProjectSystemCSharp : ProjectEntryUtil.LegacyProjectSystemCSharp;
-                    case ProjectFileType.Basic: return util.IsNewSdk ? ProjectEntryUtil.ManagedProjectSystemVisualBasic : ProjectEntryUtil.LegacyProjectSystemVisualBasic;
+                    case ProjectFileType.CSharp: return ProjectEntryUtil.ManagedProjectSystemCSharp;
+                    case ProjectFileType.Basic: return ProjectEntryUtil.ManagedProjectSystemVisualBasic;
                     case ProjectFileType.Shared: return ProjectEntryUtil.SharedProject;
                     default: throw new Exception($"Invalid file path {data.FilePath}");
                 }

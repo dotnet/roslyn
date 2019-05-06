@@ -4,7 +4,6 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
-    <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">

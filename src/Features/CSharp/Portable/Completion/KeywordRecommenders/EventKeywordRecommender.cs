@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class EventKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        private static readonly ISet<SyntaxKind> s_validClassModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
             {
                 SyntaxKind.NewKeyword,
                 SyntaxKind.PublicKeyword,
@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 SyntaxKind.UnsafeKeyword
             };
 
+        private static readonly ISet<SyntaxKind> s_validStructModifiers = new HashSet<SyntaxKind>(s_validClassModifiers, SyntaxFacts.EqualityComparer)
+            {
+                SyntaxKind.ReadOnlyKeyword,
+            };
+
         public EventKeywordRecommender()
             : base(SyntaxKind.EventKeyword)
         {
@@ -36,7 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsGlobalStatementContext ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-                context.IsMemberDeclarationContext(validModifiers: s_validModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken) ||
+                context.IsMemberDeclarationContext(validModifiers: s_validClassModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken) ||
+                context.IsMemberDeclarationContext(validModifiers: s_validStructModifiers, validTypeDeclarations: SyntaxKindSet.StructOnlyTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken) ||
                 context.IsMemberAttributeContext(SyntaxKindSet.ClassInterfaceStructTypeDeclarations, cancellationToken);
         }
     }

@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (source.SpecialType == SpecialType.System_Void || destination.SpecialType == SpecialType.System_Void)
+            if (source.IsVoidType() || destination.IsVoidType())
             {
                 return Conversion.NoConversion;
             }
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (source.SpecialType == SpecialType.System_Void || destination.SpecialType == SpecialType.System_Void)
+            if (source.IsVoidType() || destination.IsVoidType())
             {
                 return Conversion.NoConversion;
             }
@@ -1368,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type2 != null);
 
             // Note, when we are paying attention to nullability, we ignore oblivious mismatch.
-            // See TypeCompareKind.UnknownNullableModifierMatchesAny
+            // See TypeCompareKind.ObliviousNullableModifierMatchesAny
             var compareKind = includeNullability ?
                 TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes :
                 TypeCompareKind.AllIgnoreOptions;
@@ -1434,6 +1434,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return !source.NullableAnnotation.IsAnnotated();
+        }
+
+        /// <summary>
+        /// Returns false if the source does not have an implicit conversion to the destination
+        /// because of either incompatible top level or nested nullability.
+        /// </summary>
+        public bool HasAnyNullabilityImplicitConversion(TypeWithAnnotations source, TypeWithAnnotations destination)
+        {
+            Debug.Assert(IncludeNullability);
+            HashSet<DiagnosticInfo> discardedDiagnostics = null;
+            return HasTopLevelNullabilityImplicitConversion(source, destination) &&
+                ClassifyImplicitConversionFromType(source.Type, destination.Type, ref discardedDiagnostics).Kind != ConversionKind.NoConversion;
         }
 
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
@@ -2801,7 +2813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             PointerTypeSymbol pd = destination as PointerTypeSymbol;
             PointerTypeSymbol ps = source as PointerTypeSymbol;
-            return (object)pd != null && (object)ps != null && pd.PointedAtType.SpecialType == SpecialType.System_Void;
+            return (object)pd != null && (object)ps != null && pd.PointedAtType.IsVoidType();
         }
 
         private bool HasIdentityOrReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

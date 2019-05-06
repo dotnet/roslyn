@@ -725,6 +725,50 @@ class A
             IEnumerable<string> getMethodAttributes(MethodDefinitionHandle handle)
                 => metadataReader.GetMethodDefinition(handle).GetCustomAttributes()
                     .Select(a => metadataReader.Dump(metadataReader.GetCustomAttribute(a).Constructor));
+
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                _ = ConditionalSkipReason.NativePdbRequiresDesktop;
+
+                // Verify asyncInfo.catchHandler
+                compilation.VerifyPdb("A+<Main>d__0.MoveNext",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <entryPoint declaringType=""A"" methodName=""&lt;Main&gt;"" />
+  <methods>
+    <method containingType=""A+&lt;Main&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""A+&lt;&gt;c"" methodName=""&lt;Main&gt;b__0_0"" />
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""33"" offset=""11"" />
+          <slot kind=""temp"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""48"" document=""1"" />
+        <entry offset=""0x3e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x91"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa9"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xb1"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+      <asyncInfo>
+        <catchHandler offset=""0x91"" />
+        <kickoffMethod declaringType=""A"" methodName=""Main"" />
+        <await yield=""0x50"" resume=""0x6b"" declaringType=""A+&lt;Main&gt;d__0"" methodName=""MoveNext"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>", options: PdbValidationOptions.SkipConversionValidation);
+            }
+            // The PDB conversion from portable to windows drops the entryPoint node
+            // Tracked by https://github.com/dotnet/roslyn/issues/34561
         }
 
         [Fact]

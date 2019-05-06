@@ -9,7 +9,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly NamedTypeSymbol _containingType;
         private ParameterSymbol _lazyThisParameter;
-        private TypeWithAnnotations.Builder _lazyIteratorElementType;
+        private TypeWithAnnotations.Boxed _lazyIteratorElementType;
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
@@ -547,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Syntax
 
-        internal (BlockSyntax, ArrowExpressionClauseSyntax) Bodies
+        internal (BlockSyntax blockBody, ArrowExpressionClauseSyntax arrowBody) Bodies
         {
             get
             {
@@ -724,12 +723,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _lazyIteratorElementType.ToType();
+                return _lazyIteratorElementType?.Value ?? default;
             }
             set
             {
-                Debug.Assert(_lazyIteratorElementType.IsDefault || TypeSymbol.Equals(_lazyIteratorElementType.ToType().Type, value.Type, TypeCompareKind.ConsiderEverything2));
-                _lazyIteratorElementType.InterlockedInitialize(value);
+                Debug.Assert(_lazyIteratorElementType == null || TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, value.Type, TypeCompareKind.ConsiderEverything2));
+                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(value), null);
             }
         }
 
@@ -1626,6 +1625,16 @@ done:
         }
 
         #endregion
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            if (IsDeclaredReadOnly)
+            {
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, locations[0], modifyCompilation: true);
+            }
+        }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {

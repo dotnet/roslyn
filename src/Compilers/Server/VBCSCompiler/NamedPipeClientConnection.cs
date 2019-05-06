@@ -16,9 +16,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class NamedPipeClientConnectionHost : IClientConnectionHost
     {
-        // Size of the buffers to use: 64K
-        private const int PipeBufferSize = 0x10000;
-
         private readonly ICompilerServerHost _compilerServerHost;
         private readonly string _pipeName;
         private int _loggingIdentifier;
@@ -48,15 +45,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // (out of handles?), or the pipe was disconnected before we 
             // starting listening.
             CompilerServerLogger.Log("Constructing pipe '{0}'.", _pipeName);
-            var pipeOptions = PipeOptions.Asynchronous | PipeOptions.WriteThrough;
-            var pipeStream = NamedPipeUtil.CreateServer(
-                _pipeName,
-                PipeDirection.InOut,
-                NamedPipeServerStream.MaxAllowedServerInstances,
-                PipeTransmissionMode.Byte,
-                pipeOptions,
-                PipeBufferSize,
-                PipeBufferSize);
+            var pipeStream = NamedPipeUtil.CreateServer(_pipeName);
             CompilerServerLogger.Log("Successfully constructed pipe '{0}'.", _pipeName);
 
             CompilerServerLogger.Log("Waiting for new connection");

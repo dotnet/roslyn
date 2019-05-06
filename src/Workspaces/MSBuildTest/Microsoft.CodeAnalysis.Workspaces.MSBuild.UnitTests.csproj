@@ -5,7 +5,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.MSBuild.UnitTests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

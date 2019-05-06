@@ -350,6 +350,17 @@ namespace Roslyn.Test.Utilities
                         TypeReference type = reader.GetTypeReference((TypeReferenceHandle)handle);
                         return getQualifiedName(type.Namespace, type.Name);
                     }
+                case HandleKind.FieldDefinition:
+                    {
+                        FieldDefinition field = reader.GetFieldDefinition((FieldDefinitionHandle)handle);
+                        var name = reader.GetString(field.Name);
+
+                        var blob = reader.GetBlobReader(field.Signature);
+                        var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                        var type = decoder.DecodeFieldSignature(ref blob);
+
+                        return $"{type} {name}";
+                    }
                 default:
                     return null;
             }
