@@ -49187,6 +49187,31 @@ class Program
         }
 
         [Fact]
+        [WorkItem(35334, "https://github.com/dotnet/roslyn/issues/35334")]
+        public void Conversions_ExplicitNullable_UserDefinedIntroducingNullablility()
+        {
+            var source =
+@"
+class A { public static explicit operator B(A a) => throw null!; }
+class B
+{
+    void M(A a)
+    {
+        var b = ((B?)a)/*T:B?*/;
+        b.ToString(); // 1
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Dereference of a possibly null reference.
+                //         b.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b").WithLocation(8, 9));
+        }
+
+        [Fact]
         [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
         public void Tuple_Conversions_ImplicitNullable_01()
         {
@@ -51369,6 +51394,7 @@ class D
         }
 
         [Fact]
+        [WorkItem(35334, "https://github.com/dotnet/roslyn/issues/35334")]
         public void ExplicitCast_UserDefined_01()
         {
             var source =
@@ -51411,17 +51437,17 @@ class C
     {
         B? b;
         b = ((B)x3)/*T:B!*/;
-        b = ((B?)x3)/*T:B!*/;
+        b = ((B?)x3)/*T:B?*/;
         b = ((B)y3)/*T:B!*/;
-        b = ((B?)y3)/*T:B!*/;
+        b = ((B?)y3)/*T:B?*/;
     }
     static void F4(A4? x4, A4 y4)
     {
         B? b;
         b = ((B)x4)/*T:B!*/;
-        b = ((B?)x4)/*T:B!*/;
+        b = ((B?)x4)/*T:B?*/;
         b = ((B)y4)/*T:B!*/;
-        b = ((B?)y4)/*T:B!*/;
+        b = ((B?)y4)/*T:B?*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -56728,8 +56754,8 @@ class Program
     static void F2((int, int) t2)
     {
         var u2 = ((B?, A))t2; // 3
-        u2.Item1.ToString();
-        u2.Item2.ToString(); // 4
+        u2.Item1.ToString(); // 4
+        u2.Item2.ToString(); // 5
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -56738,14 +56764,17 @@ class Program
                 // (13,22): warning CS8601: Possible null reference assignment.
                 //         (A, B?) u1 = t1; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t1").WithLocation(13, 22),
-                // (14,9): warning CS8602: Possible dereference of a null reference.
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         u1.Item1.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u1.Item1").WithLocation(14, 9),
                 // (19,18): warning CS8601: Possible null reference assignment.
                 //         var u2 = ((B?, A))t2; // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "((B?, A))t2").WithLocation(19, 18),
-                // (21,9): warning CS8602: Possible dereference of a null reference.
-                //         u2.Item2.ToString(); // 4
+                // (20,9): warning CS8602: Dereference of a possibly null reference.
+                //         u2.Item1.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2.Item1").WithLocation(20, 9),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         u2.Item2.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2.Item2").WithLocation(21, 9));
         }
 
@@ -86245,6 +86274,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(35334, "https://github.com/dotnet/roslyn/issues/35334")]
         public void NullableT_StructToClass()
         {
             var source =
@@ -86271,26 +86301,29 @@ class Program
         if (ns.HasValue)
         {
             var c1 = (C?)ns;
-            _ = c1.ToString();
+            _ = c1.ToString(); // 1
             C? c2 = ns;
             _ = c2.ToString();
         }
         else
         {
             var c3 = (C?)ns;
-            _ = c3.ToString(); // 1
+            _ = c3.ToString(); // 2
             C? c4 = ns;
-            _ = c4.ToString(); // 2
+            _ = c4.ToString(); // 3
         }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
+                // (24,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = c1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1").WithLocation(24, 17),
                 // (31,17): warning CS8602: Dereference of a possibly null reference.
-                //             _ = c3.ToString(); // 1
+                //             _ = c3.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c3").WithLocation(31, 17),
                 // (33,17): warning CS8602: Dereference of a possibly null reference.
-                //             _ = c4.ToString(); // 2
+                //             _ = c4.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c4").WithLocation(33, 17));
         }
 
@@ -86357,6 +86390,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(35334, "https://github.com/dotnet/roslyn/issues/35334")]
         public void NullableT_NullableStructToClass()
         {
             var source =
@@ -86383,21 +86417,27 @@ class Program
         if (ns.HasValue)
         {
             var c1 = (C?)ns;
-            _ = c1.ToString();
+            _ = c1.ToString(); // 1
             C? c2 = ns;
             _ = c2.ToString();
         }
         else
         {
             var c3 = (C?)ns;
-            _ = c3.ToString();
+            _ = c3.ToString(); // 2
             C? c4 = ns;
             _ = c4.ToString();
         }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (24,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = c1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1").WithLocation(24, 17),
+                // (31,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = c3.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c3").WithLocation(31, 17));
         }
 
         [Fact]
@@ -86790,6 +86830,7 @@ class C<T>
         }
 
         [Fact]
+        [WorkItem(35334, "https://github.com/dotnet/roslyn/issues/35334")]
         public void NullableT_StructToTypeParameterClassConstraint()
         {
             var source =
@@ -86813,30 +86854,34 @@ class C<T> where T : class
         if (ns.HasValue)
         {
             var t1 = (T?)ns;
-            _ = t1.ToString();
+            _ = t1.ToString(); // 1
             T? t2 = ns;
             _ = t2.ToString();
         }
         else
         {
             var t3 = (T?)ns;
-            _ = t3.ToString(); // 1
+            _ = t3.ToString(); // 2
             T? t4 = ns;
-            _ = t4.ToString(); // 2
+            _ = t4.ToString(); // 3
         }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
+                // (21,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = t1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(21, 17),
                 // (28,17): warning CS8602: Dereference of a possibly null reference.
-                //             _ = t3.ToString(); // 1
+                //             _ = t3.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t3").WithLocation(28, 17),
                 // (30,17): warning CS8602: Dereference of a possibly null reference.
-                //             _ = t4.ToString(); // 2
+                //             _ = t4.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t4").WithLocation(30, 17));
         }
 
         [Fact]
+        [WorkItem(35334, "https://github.com/dotnet/roslyn/issues/35334")]
         public void NullableT_NullableStructToTypeParameterClassConstraint()
         {
             var source =
@@ -86860,21 +86905,27 @@ class C<T> where T : class
         if (ns.HasValue)
         {
             var t1 = (T?)ns;
-            _ = t1.ToString();
+            _ = t1.ToString(); // 1
             T? t2 = ns;
             _ = t2.ToString();
         }
         else
         {
             var t3 = (T?)ns;
-            _ = t3.ToString();
+            _ = t3.ToString(); // 2
             T? t4 = ns;
             _ = t4.ToString();
         }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (21,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = t1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(21, 17),
+                // (28,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = t3.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t3").WithLocation(28, 17));
         }
 
         [Fact]

@@ -727,5 +727,61 @@ class C
                 }, SyntaxKind.IdentifierName);
             }
         }
+
+        [Fact]
+        public void MultipleConversions()
+        {
+            var source = @"
+class A { public static explicit operator C(A a) => new D(); }
+class B : A { }
+class C { }
+class D : C { }
+class E
+{
+    void M()
+    {
+        var d = (D)(C?)new B();
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            comp.VerifyDiagnostics(
+                // (10,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var d = (D)(C?)new B();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)(C?)new B()").WithLocation(10, 17));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var aType = comp.GetTypeByMetadataName("A");
+            var bType = comp.GetTypeByMetadataName("B");
+            var cType = comp.GetTypeByMetadataName("C");
+            var dType = comp.GetTypeByMetadataName("D");
+
+            var nullable = new NullabilityInfo(PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
+            var notNullable = new NullabilityInfo(PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.NotNull);
+
+            var dCast = (CastExpressionSyntax)root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value;
+            var dInfo = model.GetTypeInfo(dCast);
+            Assert.Equal(dType, dInfo.Type);
+            Assert.Equal(dType, dInfo.ConvertedType);
+            Assert.Equal(nullable, dInfo.Nullability);
+            Assert.Equal(nullable, dInfo.ConvertedNullability);
+
+            var cCast = (CastExpressionSyntax)dCast.Expression;
+            var cInfo = model.GetTypeInfo(cCast);
+            Assert.Equal(cType, cInfo.Type);
+            Assert.Equal(cType, cInfo.ConvertedType);
+            Assert.Equal(nullable, cInfo.Nullability);
+            Assert.Equal(nullable, cInfo.ConvertedNullability);
+
+            var objectCreation = cCast.Expression;
+            var creationInfo = model.GetTypeInfo(objectCreation);
+            Assert.Equal(bType, creationInfo.Type);
+            Assert.Equal(aType, creationInfo.ConvertedType);
+            Assert.Equal(notNullable, creationInfo.Nullability);
+            Assert.Equal(nullable, creationInfo.ConvertedNullability);
+        }
     }
 }
