@@ -18,82 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal readonly struct TypeWithAnnotations : IFormattable
     {
-        /// <summary>
-        /// A builder for lazy instances of TypeWithAnnotations.
-        /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        internal struct Builder
+        internal sealed class Boxed
         {
-            private TypeSymbol _defaultType;
-            private int _nullableAnnotation;
-            private Extensions _extensions;
-
-            /// <summary>
-            /// The underlying type, unless overridden by _extensions.
-            /// </summary>
-            internal TypeSymbol DefaultType => Volatile.Read(ref _defaultType);
-
-            /// <summary>
-            /// True if the fields of the builder are unset.
-            /// </summary>
-            internal bool IsDefault => Volatile.Read(ref _extensions) == null;
-
-            /// <summary>
-            /// Set the fields of the builder.
-            /// </summary>
-            /// <remarks>
-            /// This method guarantees: fields will be set once; exactly one caller is
-            /// returned true; and IsDefault will return true until all fields are initialized.
-            /// This method does not guarantee that all fields will be set by the same
-            /// caller. Instead, the expectation is that all callers will attempt to initialize
-            /// the builder with equivalent TypeWithAnnotations instances where
-            /// different fields of the builder may be assigned from different instances.
-            /// </remarks>
-            internal bool InterlockedInitialize(TypeWithAnnotations type)
+            internal readonly TypeWithAnnotations Value;
+            internal Boxed(TypeWithAnnotations value)
             {
-                if (!IsDefault)
-                {
-                    return false;
-                }
-
-                Interlocked.CompareExchange(ref _nullableAnnotation, (int)type.NullableAnnotation, 0);
-                Interlocked.CompareExchange(ref _defaultType, type.DefaultType, null);
-
-                // Because _extensions always gets a non-null value when the struct is initialized, we use it
-                // as a flag to signal that the initialization is complete. This means _extensions should be
-                // initialized last.
-                bool wasFirst = Interlocked.CompareExchange(ref _extensions, type._extensions ?? Extensions.Default, null) is null;
-
-                Debug.Assert(_extensions == (type._extensions ?? Extensions.Default));
-                Debug.Assert(_nullableAnnotation == (int)type.NullableAnnotation);
-                Debug.Assert(_defaultType.Equals(type.DefaultType));
-                return wasFirst;
+                Value = value;
             }
-
-            /// <summary>
-            /// We should not be adding any new usages of this method. The only one is currently in SourcePropertySymbol,
-            /// which currently sets the property's type twice in error scenarios.
-            /// We should be able to remove this method by fixing https://github.com/dotnet/roslyn/issues/35381
-            /// </summary>
-            [EditorBrowsable(EditorBrowsableState.Never)]
-            internal void InterlockedDangerousReset()
-            {
-                Interlocked.Exchange(ref _nullableAnnotation, 0);
-                Interlocked.Exchange(ref _defaultType, null);
-                Interlocked.Exchange(ref _extensions, null);
-            }
-
-            /// <summary>
-            /// Create immutable TypeWithAnnotations instance.
-            /// </summary>
-            internal TypeWithAnnotations ToType()
-            {
-                return IsDefault ?
-                    default :
-                    new TypeWithAnnotations(Volatile.Read(ref _defaultType), (NullableAnnotation)Volatile.Read(ref _nullableAnnotation), Volatile.Read(ref _extensions));
-            }
-
-            internal string GetDebuggerDisplay() => ToType().GetDebuggerDisplay();
+            internal string GetDebuggerDisplay() => Value.GetDebuggerDisplay();
         }
 
         /// <summary>

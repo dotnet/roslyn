@@ -344,7 +344,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitElementAccess = 8656,
         IsPatternExpression = 8657,
         RangeExpression = 8658,
-        BaseExpressionTypeClause = 8659,
 
         // binary expressions
         AddExpression = 8668,
