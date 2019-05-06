@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Pointer types and very special types are not convertible to object.
 
-            return !type.IsPointerType() && !type.IsRestrictedType() && type.SpecialType != SpecialType.System_Void;
+            return !type.IsPointerType() && !type.IsRestrictedType() && !type.IsVoidType();
         }
 
         private BoundExpression BindDynamicBinaryOperator(
@@ -2111,7 +2111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 pointedAtType = operandType.PointedAtType;
 
-                if (pointedAtType.SpecialType == SpecialType.System_Void)
+                if (pointedAtType.IsVoidType())
                 {
                     pointedAtType = null;
 
@@ -2828,7 +2828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (operand.ConstantValue == ConstantValue.Null ||
                 operand.Kind == BoundKind.MethodGroup ||
-                operand.Type.SpecialType == SpecialType.System_Void)
+                operand.Type.IsVoidType())
             {
                 // warning for cases where the result is always false:
                 // (a) "null is TYPE" OR operand evaluates to null
@@ -3351,7 +3351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Generate an error if there is no possible legal conversion and both the operandType
                     // and the targetType are closed types OR operandType is void type, otherwise we need a runtime check
                     if (!operandType.ContainsTypeParameter() && !targetType.ContainsTypeParameter() ||
-                        operandType.SpecialType == SpecialType.System_Void)
+                        operandType.IsVoidType())
                     {
                         SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, operandType, targetType);
                         Error(diagnostics, ErrorCode.ERR_NoExplicitBuiltinConv, node, distinguisher.First, distinguisher.Second);

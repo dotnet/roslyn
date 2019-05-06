@@ -477,8 +477,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var isVoid1 = unsubstitutedReturnType1.IsVoid;
-            var isVoid2 = unsubstitutedReturnType2.IsVoid;
+            var isVoid1 = unsubstitutedReturnType1.IsVoidType();
+            var isVoid2 = unsubstitutedReturnType2.IsVoidType();
 
             if (isVoid1 != isVoid2)
             {

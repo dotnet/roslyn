@@ -1081,18 +1081,13 @@ class C
             // Need to confirm whether this suppression should be allowed or be effective
             // If so, we need to verify the semantic model
             // Tracked by https://github.com/dotnet/roslyn/issues/30151
-
             comp.VerifyDiagnostics(
-                // (8,20): error CS1525: Invalid expression term 'stackalloc'
+                // (8,20): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //         int* s3 = (stackalloc[] { 1 })!;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc[] { 1 }").WithArguments("int", "int*").WithLocation(8, 20),
                 // (9,35): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
                 //         System.Span<string> s4 = (stackalloc[] { null, string.Empty })!;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { null, string.Empty }").WithArguments("string").WithLocation(9, 35),
-                // (9,35): error CS1525: Invalid expression term 'stackalloc'
-                //         System.Span<string> s4 = (stackalloc[] { null, string.Empty })!;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(9, 35)
-                );
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { null, string.Empty }").WithArguments("string").WithLocation(9, 35));
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
@@ -1941,17 +1936,7 @@ class Test
         var x3 = true ? stackalloc[] { 1, 2, 3 }! : a3;
     }
 }", TestOptions.UnsafeReleaseDll);
-
-            // Note: when we allow stackalloc expressions to be nested in other expressions,
-            // we'll have to look at conversion from expression of suppressed stackalloc
-            comp.VerifyDiagnostics(
-                // (6,31): error CS1525: Invalid expression term 'stackalloc'
-                //         System.Span<int> a3 = stackalloc[] { 1, 2, 3 }!;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 31),
-                // (7,25): error CS1525: Invalid expression term 'stackalloc'
-                //         var x3 = true ? stackalloc[] { 1, 2, 3 }! : a3;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 25)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
@@ -10865,24 +10850,21 @@ class B : A
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
-                 // (32,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                 //     public override string? M1()
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(32, 29),
-                 // (42,28): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                 //     public override string M3()
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M3").WithLocation(42, 28),
-                 // (47,29): error CS0508: 'B.M4()': return type must be 'string?' to match overridden member 'A.M4()'
-                 //     public override string? M4()
-                 Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M4").WithArguments("B.M4()", "A.M4()", "string?").WithLocation(47, 29),
-                 // (52,29): error CS0506: 'B.M5()': cannot override inherited member 'A.M5()' because it is not marked virtual, abstract, or override
-                 //     public override string? M5()
-                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M5").WithArguments("B.M5()", "A.M5()").WithLocation(52, 29),
-                 // (19,44): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                 //     public virtual System.Nullable<string> M4()
-                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M4").WithArguments("System.Nullable<T>", "T", "string").WithLocation(19, 44),
-                 // (24,36): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                 //     public System.Nullable<string> M5()
-                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M5").WithArguments("System.Nullable<T>", "T", "string").WithLocation(24, 36)
+                // (47,29): error CS0508: 'B.M4()': return type must be 'string?' to match overridden member 'A.M4()'
+                //     public override string? M4()
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M4").WithArguments("B.M4()", "A.M4()", "string?").WithLocation(47, 29),
+                // (52,29): error CS0506: 'B.M5()': cannot override inherited member 'A.M5()' because it is not marked virtual, abstract, or override
+                //     public override string? M5()
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "M5").WithArguments("B.M5()", "A.M5()").WithLocation(52, 29),
+                // (32,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override string? M1()
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(32, 29),
+                // (19,44): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public virtual System.Nullable<string> M4()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M4").WithArguments("System.Nullable<T>", "T", "string").WithLocation(19, 44),
+                // (24,36): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public System.Nullable<string> M5()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M5").WithArguments("System.Nullable<T>", "T", "string").WithLocation(24, 36)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -10951,24 +10933,21 @@ class B : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                 // (27,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                 //     public override void M1(string? x)
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(27, 26),
-                 // (35,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                 //     public override void M3(string x)
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("x").WithLocation(35, 26),
-                 // (39,26): error CS0115: 'B.M4(string)': no suitable method found to override
-                 //     public override void M4(string? x)
-                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("B.M4(string?)").WithLocation(39, 26),
-                 // (43,26): error CS0115: 'B.M5(string)': no suitable method found to override
-                 //     public override void M5(string? x)
-                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M5").WithArguments("B.M5(string?)").WithLocation(43, 26),
-                 // (16,52): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                 //     public virtual void M4(System.Nullable<string> x)
-                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "string").WithLocation(16, 52),
-                 // (20,44): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                 //     public void M5(System.Nullable<string> x)
-                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "string").WithLocation(20, 44)
+                // (16,52): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public virtual void M4(System.Nullable<string> x)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "string").WithLocation(16, 52),
+                // (20,44): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public void M5(System.Nullable<string> x)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "string").WithLocation(20, 44),
+                // (35,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //     public override void M3(string x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("x").WithLocation(35, 26),
+                // (39,26): error CS0115: 'B.M4(string?)': no suitable method found to override
+                //     public override void M4(string? x)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M4").WithArguments("B.M4(string?)").WithLocation(39, 26),
+                // (43,26): error CS0115: 'B.M5(string?)': no suitable method found to override
+                //     public override void M5(string? x)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M5").WithArguments("B.M5(string?)").WithLocation(43, 26)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -11181,18 +11160,18 @@ class B2 : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                 // (19,49): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                 //     public override event System.Action<string> E2;
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E2").WithLocation(19, 49),
-                 // (18,50): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                 //     public override event System.Action<string?> E1;
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E1").WithLocation(18, 50),
-                 // (26,49): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                 //     public override event System.Action<string> E2; // 2
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E2").WithLocation(26, 49),
-                 // (25,50): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                 //     public override event System.Action<string?> E1; // 2
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E1").WithLocation(25, 50)
+                // (18,50): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override event System.Action<string?> E1 {add {} remove{}}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "E1").WithArguments("value").WithLocation(18, 50),
+                // (19,49): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override event System.Action<string> E2 {add {} remove{}}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "E2").WithArguments("value").WithLocation(19, 49),
+                // (25,50): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override event System.Action<string?> E1; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "E1").WithArguments("value").WithLocation(25, 50),
+                // (26,49): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override event System.Action<string> E2; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "E2").WithArguments("value").WithLocation(26, 49)
                 );
 
             foreach (string typeName in new[] { "B1", "B2" })
@@ -11265,27 +11244,15 @@ public class B2 : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                // (18,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null!; // warn 3 and 4 // https://github.com/dotnet/roslyn/issues/29851: Should not warn
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "Oblivious2").WithLocation(18, 44),
                 // (18,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
                 //     public override System.Action<string?> Oblivious2(System.Action<string?> x) => throw null!; // warn 3 and 4 // https://github.com/dotnet/roslyn/issues/29851: Should not warn
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "Oblivious2").WithArguments("x").WithLocation(18, 44),
-                // (19,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override System.Action<string?> M3(System.Action<string?> x) => throw null!; // warn 5 and 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M3").WithLocation(19, 44),
                 // (19,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
                 //     public override System.Action<string?> M3(System.Action<string?> x) => throw null!; // warn 5 and 6
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("x").WithLocation(19, 44),
-                // (20,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override System.Action<string?> M4(System.Action<string?> x) => throw null!; // warn 7 and 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(20, 44),
                 // (20,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
                 //     public override System.Action<string?> M4(System.Action<string?> x) => throw null!; // warn 7 and 8
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("x").WithLocation(20, 44),
-                // (21,44): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override System.Action<string?> M5(System.Action<string?> x) => throw null!; // warn 9 and 10
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M5").WithLocation(21, 44),
                 // (21,44): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
                 //     public override System.Action<string?> M5(System.Action<string?> x) => throw null!; // warn 9 and 10
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("x").WithLocation(21, 44)
@@ -11464,7 +11431,7 @@ abstract class A
 class B1 : A
 {
 " + NonNullTypesOff() + @"
-    public override event System.Action<string?> E1 {add {} remove{}} // 1, 2
+    public override event System.Action<string?> E1 {add {} remove{}} // 1
 " + NonNullTypesOff() + @"
     public override event System.Action<string> E2 {add {} remove{}}
 }
@@ -11472,7 +11439,7 @@ class B1 : A
 class B2 : A
 {
 " + NonNullTypesOff() + @"
-    public override event System.Action<string?> E1; // 3, 4
+    public override event System.Action<string?> E1; // 3
 " + NonNullTypesOff() + @"
     public override event System.Action<string> E2;
 " + NonNullTypesOn() + @"
@@ -11486,18 +11453,18 @@ class B2 : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                // (19,50): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                //     public override event System.Action<string?> E1 {add {} remove{}} // 1, 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E1").WithLocation(19, 50),
-                // (27,50): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                //     public override event System.Action<string?> E1; // 3, 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "E1").WithLocation(27, 50),
-                // (27,47): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     public override event System.Action<string?> E1; // 3, 4
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(27, 47),
                 // (19,47): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                //     public override event System.Action<string?> E1 {add {} remove{}} // 1, 2
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 47)
+                //     public override event System.Action<string?> E1 {add {} remove{}} // 1
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(19, 47),
+                // (19,50): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override event System.Action<string?> E1 {add {} remove{}} // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "E1").WithArguments("value").WithLocation(19, 50),
+                // (27,47): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     public override event System.Action<string?> E1; // 3
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(27, 47),
+                // (27,50): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override event System.Action<string?> E1; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "E1").WithArguments("value").WithLocation(27, 50)
                 );
         }
 
@@ -11749,18 +11716,18 @@ class B2 : A2
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                 // (28,31): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                 //     public override string[]? P2 {get; set;}
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "P2").WithLocation(28, 31),
-                 // (30,30): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                 //     public override string[] this[int x] // 1
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "this").WithLocation(30, 30),
-                 // (36,31): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                 //     public override string[]? this[short x] // 2
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "this").WithLocation(36, 31),
-                 // (27,30): warning CS8608: Nullability of reference types in type doesn't match overridden member.
-                 //     public override string[] P1 {get; set;}
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, "P1").WithLocation(27, 30)
+                // (27,39): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override string[] P1 {get; set;} 
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(27, 39),
+                // (28,35): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override string[]? P2 {get; set;} 
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(28, 35),
+                // (33,9): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //         set {}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(33, 9),
+                // (38,9): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //         get {throw new System.NotImplementedException();}
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(38, 9)
                 );
 
             foreach (var member in compilation.GetTypeByMetadataName("B1").GetMembers().OfType<PropertySymbol>())
@@ -12551,9 +12518,6 @@ class B : A
                 // (26,26): error CS0115: 'B.M3<T>(T?[]?)': no suitable method found to override
                 //     public override void M3<T>(T?[]? x)
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M3").WithArguments("B.M3<T>(T?[]?)").WithLocation(26, 26),
-                // (18,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override void M1(string?[] x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(18, 26),
                 // (16,7): error CS0534: 'B' does not implement inherited abstract member 'A.M3<T>(T?[]?)'
                 // class B : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.M3<T>(T?[]?)").WithLocation(16, 7),
@@ -12619,9 +12583,6 @@ class B : A
                 // (18,26): error CS0115: 'B.M2<T>(T?[])': no suitable method found to override
                 //     public override void M2<T>(T?[] x)
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M2").WithArguments("B.M2<T>(T?[])").WithLocation(18, 26),
-                // (13,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override void M1(string?[] x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(13, 26),
                 // (10,7): error CS0534: 'B' does not implement inherited abstract member 'A.M2<T>(T[])'
                 // class B : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.M2<T>(T[])").WithLocation(10, 7),
@@ -13015,12 +12976,6 @@ class B : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                 // (22,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                 //     public override void M2<T>(T?[] x)
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("x").WithLocation(22, 26),
-                 // (18,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                 //     public override void M1(string?[] x)
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(18, 26)
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -13065,12 +13020,6 @@ class B : A
             var compilation = CreateCompilation(new[] { source });
 
             compilation.VerifyDiagnostics(
-                // (13,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override void M1(string?[] x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M1").WithArguments("x").WithLocation(13, 26),
-                // (18,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                //     public override void M2<T>(T?[] x)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("x").WithLocation(18, 26),
                 // (18,33): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override void M2<T>(T?[] x)
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(18, 33),
@@ -13308,6 +13257,413 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
         }
 
         [Fact]
+        public void Override_NullabilityCovariance()
+        {
+            var src = @"
+using System;
+
+interface I<out T> {}
+class A
+{
+    public virtual object? M() => null;
+    public virtual (object?, object?) M2() => throw null!;
+    public virtual I<object?> M3() => throw null!;
+    public virtual ref object? M4() => throw null!;
+    public virtual ref readonly object? M5() => throw null!;
+    public virtual Func<object>? P1 { get; set; } = null!;
+    public virtual Func<object?> P2 { get; set; } = null!;
+    public virtual object? P3 => null!;
+    public virtual event Func<object>? E1 { add {} remove {} }
+    public virtual event Func<object?> E2 { add {} remove {} }
+}
+class B : A
+{
+    public override object M() => null!;
+    public override (object, object) M2() => throw null!;
+    public override I<object> M3() => throw null!;
+    public override ref object M4() => throw null!; // warn
+    public override ref readonly object M5() => throw null!;
+    public override Func<object> P1 { get; set; } = null!; // warn
+    public override Func<object> P2 { get; set; } = null!; // warn
+    public override object P3 => null!; // ok
+    public override event Func<object> E1 { add {} remove {} } // warn
+    public override event Func<object> E2 { add {} remove {} } // warn
+}
+class C : B
+{
+    public override object? M() => null; // warn
+    public override (object?, object?) M2() => throw null!; // warn
+    public override I<object?> M3() => throw null!; // warn
+    public override ref object? M4() => throw null!; // warn
+    public override ref readonly object? M5() => throw null!; // warn
+    public override Func<object>? P1 { get; set; } = null!; // warn
+    public override Func<object?> P2 { get; set; } = null!; // warn
+    public override object? P3 => null!; // warn
+    public override event Func<object>? E1 { add {} remove {} } // ok
+    public override event Func<object?> E2 { add {} remove {} } // ok
+}
+class D : C
+{
+    public override object M() => null!;
+    public override (object, object) M2() => throw null!;
+    public override I<object> M3() => throw null!;
+    public override ref object M4() => throw null!; // warn
+    public override ref readonly object M5() => throw null!;
+    public override Func<object> P1 { get; set; } = null!; // warn
+    public override Func<object> P2 { get; set; } = null!; // warn
+    public override object P3 => null!; // ok
+    public override event Func<object> E1 { add {} remove {} } // ok
+    public override event Func<object> E2 { add {} remove {} } // ok
+}
+class E : D
+{
+    public override object? M() => null; // warn
+    public override (object?, object?) M2() => throw null!; // warn
+    public override I<object?> M3() => throw null!; // warn
+    public override ref object? M4() => throw null!; // warn
+    public override ref readonly object? M5() => throw null!; // warn
+    public override Func<object>? P1 { get; set; } = null!; // warn
+    public override Func<object?> P2 { get; set; } = null!; // warn
+    public override object? P3 => null!; // warn
+    public override event Func<object>? E1 { add {} remove {} } // warn
+    public override event Func<object?> E2 { add {} remove {} } // warn
+}";
+            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (23,32): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override ref object M4() => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(23, 32),
+                // (25,44): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override Func<object> P1 { get; set; } = null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(25, 44),
+                // (26,44): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override Func<object> P2 { get; set; } = null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(26, 44),
+                // (28,40): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override event Func<object> E1 { add {} remove {} } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "E1").WithArguments("value").WithLocation(28, 40),
+                // (29,40): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override event Func<object> E2 { add {} remove {} } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "E2").WithArguments("value").WithLocation(29, 40),
+                // (33,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override object? M() => null; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M").WithLocation(33, 29),
+                // (34,40): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override (object?, object?) M2() => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M2").WithLocation(34, 40),
+                // (35,32): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override I<object?> M3() => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M3").WithLocation(35, 32),
+                // (36,33): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override ref object? M4() => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(36, 33),
+                // (37,42): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override ref readonly object? M5() => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M5").WithLocation(37, 42),
+                // (38,40): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override Func<object>? P1 { get; set; } = null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(38, 40),
+                // (39,40): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override Func<object?> P2 { get; set; } = null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(39, 40),
+                // (40,35): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override object? P3 => null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "null!").WithLocation(40, 35),
+                // (49,32): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override ref object M4() => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(49, 32),
+                // (51,44): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override Func<object> P1 { get; set; } = null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(51, 44),
+                // (52,44): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override Func<object> P2 { get; set; } = null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(52, 44),
+                // (54,40): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override event Func<object> E1 { add {} remove {} } // ok
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "E1").WithArguments("value").WithLocation(54, 40),
+                // (55,40): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override event Func<object> E2 { add {} remove {} } // ok
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "E2").WithArguments("value").WithLocation(55, 40),
+                // (59,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override object? M() => null; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M").WithLocation(59, 29),
+                // (60,40): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override (object?, object?) M2() => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M2").WithLocation(60, 40),
+                // (61,32): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override I<object?> M3() => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M3").WithLocation(61, 32),
+                // (62,33): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override ref object? M4() => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M4").WithLocation(62, 33),
+                // (63,42): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override ref readonly object? M5() => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M5").WithLocation(63, 42),
+                // (64,40): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override Func<object>? P1 { get; set; } = null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(64, 40),
+                // (65,40): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override Func<object?> P2 { get; set; } = null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(65, 40),
+                // (66,35): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override object? P3 => null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "null!").WithLocation(66, 35)
+                );
+        }
+
+        [Fact]
+        public void Override_NullabilityContravariance()
+        {
+            var src = @"
+interface I<out T> {}
+class A
+{
+    public virtual void M(object o) { }
+    public virtual void M2((object, object) t) { }
+    public virtual void M3(I<object> i) { }
+    public virtual void M4(ref object o) { }
+    public virtual void M5(out object o) => throw null!;
+    public virtual void M6(in object o) { }
+    public virtual object this[object o] { get => null!; set { } }
+    public virtual string this[string s] => null!;
+    public virtual string this[int[] a] { set { } }
+}
+class B : A
+{
+    public override void M(object? o) { }
+    public override void M2((object?, object?) t) { }
+    public override void M3(I<object?> i) { }
+    public override void M4(ref object? o) { } // warn
+    public override void M5(out object? o) => throw null!; // warn
+    public override void M6(in object? o) { }
+    public override object? this[object? o] { get => null!; set { } }
+    public override string this[string? s] => null!;
+    public override string this[int[]? a] { set { } }
+}
+class C : B
+{
+    public override void M(object o) { } // warn
+    public override void M2((object, object) t) { } // warn
+    public override void M3(I<object> i) { } // warn
+    public override void M4(ref object o) { } // warn
+    public override void M5(out object o) => throw null!;
+    public override void M6(in object o) { } // warn
+    public override object this[object o] { get => null!; set { } }
+    public override string this[string s] => null!;
+    public override string this[int[] a] { set { } }
+}
+class D : C
+{
+    public override void M(object? o) { }
+    public override void M2((object?, object?) t) { }
+    public override void M3(I<object?> i) { }
+    public override void M4(ref object? o) { } // warn
+    public override void M5(out object? o) => throw null!; // warn
+    public override void M6(in object? o) { }
+    public override object? this[object? o] { get => null!; set { } }
+    public override string this[string? s] => null!;
+    public override string this[int[]? a] { set { } }
+}
+class E : D
+{
+    public override void M(object o) { } // warn
+    public override void M2((object, object) t) { } // warn
+    public override void M3(I<object> i) { } // warn
+    public override void M4(ref object o) { } // warn
+    public override void M5(out object o) => throw null!;
+    public override void M6(in object o) { } // warn
+    public override object this[object o] { get => null!; set { } }
+    public override string this[string s] => null!;
+    public override string this[int[] a] { set { } }
+}";
+            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (20,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override void M4(ref object? o) { } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("o").WithLocation(20, 26),
+                // (21,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override void M5(out object? o) => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("o").WithLocation(21, 26),
+                // (23,47): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override object? this[object? o] { get => null!; set { } }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(23, 47),
+                // (29,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override void M(object o) { } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("o").WithLocation(29, 26),
+                // (30,26): warning CS8610: Nullability of reference types in type of parameter 't' doesn't match overridden member.
+                //     public override void M2((object, object) t) { } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("t").WithLocation(30, 26),
+                // (31,26): warning CS8610: Nullability of reference types in type of parameter 'i' doesn't match overridden member.
+                //     public override void M3(I<object> i) { } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("i").WithLocation(31, 26),
+                // (32,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override void M4(ref object o) { } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("o").WithLocation(32, 26),
+                // (34,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override void M6(in object o) { } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M6").WithArguments("o").WithLocation(34, 26),
+                // (35,59): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override object this[object o] { get => null!; set { } }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("o").WithLocation(35, 59),
+                // (35,59): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override object this[object o] { get => null!; set { } }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(35, 59),
+                // (36,46): warning CS8610: Nullability of reference types in type of parameter 's' doesn't match overridden member.
+                //     public override string this[string s] => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "null!").WithArguments("s").WithLocation(36, 46),
+                // (37,44): warning CS8610: Nullability of reference types in type of parameter 'a' doesn't match overridden member.
+                //     public override string this[int[] a] { set { } }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("a").WithLocation(37, 44),
+                // (44,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override void M4(ref object? o) { } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("o").WithLocation(44, 26),
+                // (45,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override void M5(out object? o) => throw null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M5").WithArguments("o").WithLocation(45, 26),
+                // (47,47): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override object? this[object? o] { get => null!; set { } }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(47, 47),
+                // (53,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override void M(object o) { } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("o").WithLocation(53, 26),
+                // (54,26): warning CS8610: Nullability of reference types in type of parameter 't' doesn't match overridden member.
+                //     public override void M2((object, object) t) { } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("t").WithLocation(54, 26),
+                // (55,26): warning CS8610: Nullability of reference types in type of parameter 'i' doesn't match overridden member.
+                //     public override void M3(I<object> i) { } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M3").WithArguments("i").WithLocation(55, 26),
+                // (56,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override void M4(ref object o) { } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M4").WithArguments("o").WithLocation(56, 26),
+                // (58,26): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override void M6(in object o) { } // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M6").WithArguments("o").WithLocation(58, 26),
+                // (59,59): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override object this[object o] { get => null!; set { } }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("o").WithLocation(59, 59),
+                // (59,59): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
+                //     public override object this[object o] { get => null!; set { } }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(59, 59),
+                // (60,46): warning CS8610: Nullability of reference types in type of parameter 's' doesn't match overridden member.
+                //     public override string this[string s] => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "null!").WithArguments("s").WithLocation(60, 46),
+                // (61,44): warning CS8610: Nullability of reference types in type of parameter 'a' doesn't match overridden member.
+                //     public override string this[int[] a] { set { } }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("a").WithLocation(61, 44)
+                );
+        }
+
+        [Fact]
+        public void OverrideConstraintVariance()
+        {
+            var src = @"
+using System.Collections.Generic;
+class A
+{
+    public virtual List<T>? M<T>(List<T>? t) => null!;
+}
+class B : A
+{
+    public override List<T> M<T>(List<T> t) => null!;
+}
+class C : B
+{
+    public override List<T>? M<T>(List<T>? t) => null!;
+}
+class D : C
+{
+    public override List<T> M<T>(List<T> t) => null!;
+}
+";
+            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,29): warning CS8610: Nullability of reference types in type of parameter 't' doesn't match overridden member.
+                //     public override List<T> M<T>(List<T> t) => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("t").WithLocation(9, 29),
+                // (13,30): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override List<T>? M<T>(List<T>? t) => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M").WithLocation(13, 30),
+                // (17,29): warning CS8610: Nullability of reference types in type of parameter 't' doesn't match overridden member.
+                //     public override List<T> M<T>(List<T> t) => null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("t").WithLocation(17, 29));
+        }
+
+        [Fact]
+        public void OverrideVarianceGenericBase()
+        {
+            var comp = CreateCompilation(@"
+class A<T>
+{
+    public virtual T M(T t) => default!;
+}
+#nullable enable
+class B : A<object>
+{
+    public override object? M(object? o) => null!; // warn
+}
+class C : A<object?>
+{
+    public override object M(object o) => null!; // warn
+}
+#nullable disable
+class D : A<object>
+{
+#nullable enable
+    public override object? M(object? o) => null!;
+}
+class E : A<object>
+{
+#nullable disable
+    public override object M(object o) => null!;
+}
+#nullable enable
+class F : A<object?>
+{
+#nullable disable
+    public override object M(object o) => null;
+}
+");
+            comp.VerifyDiagnostics(
+                // (9,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
+                //     public override object? M(object? o) => null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M").WithLocation(9, 29),
+                // (13,28): warning CS8610: Nullability of reference types in type of parameter 'o' doesn't match overridden member.
+                //     public override object M(object o) => null!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "M").WithArguments("o").WithLocation(13, 28));
+        }
+
+        [Fact]
+        public void NullableVarianceConsumer()
+        {
+            var comp = CreateCompilation(@"
+class A
+{
+    public virtual object? M() => null;
+}
+class B : A
+{
+    public override object M() => null; // warn
+}
+class C
+{
+    void M()
+    {
+        var b = new B();
+        b.M().ToString();
+        A a = b;
+        a.M().ToString(); // warn
+    }
+}", options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,35): warning CS8603: Possible null reference return.
+                //     public override object M() => null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(8, 35),
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                //         a.M().ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.M()").WithLocation(17, 9));
+        }
+
+        [Fact]
         public void Implementing_07()
         {
             var source = @"
@@ -13453,15 +13809,15 @@ abstract class A3
 
 class B1 : A1
 {
-    public override int this[string[] x] // 1
+    public override int this[string[] x]
     {
         get {throw new System.NotImplementedException();}
-        set {}
+        set {} // 1
     } 
 }
 class B2 : A2
 {
-    public override int this[string[]? x] // 2
+    public override int this[string[]? x]
     {
         get {throw new System.NotImplementedException();}
         set {}
@@ -13469,7 +13825,7 @@ class B2 : A2
 }
 class B3 : A3
 {
-    public override int this[string?[]? x] // 3
+    public override int this[string?[]? x]
     {
         get {throw new System.NotImplementedException();}
         set {}
@@ -13479,12 +13835,9 @@ class B3 : A3
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                 // (24,25): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                 //     public override int this[string[] x] // 1
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "this").WithArguments("x").WithLocation(24, 25),
-                 // (32,25): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
-                 //     public override int this[string[]? x] // 2
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "this").WithArguments("x").WithLocation(32, 25)
+                // (27,9): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
+                //         set {} // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("x").WithLocation(27, 9)
                 );
 
             foreach (string typeName in new[] { "B1", "B2" })
@@ -33898,23 +34251,16 @@ class C
         foreach ((var x, var y) in F())
         {
             x.ToString();
-            y.ToString();
+            y.ToString(); // 1
         }
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33011: Deconstruction should infer `string?` for `var y`. Shouldn't report nullability
-            // mismatches
             comp.VerifyDiagnostics(
-                // (8,18): warning CS8619: Nullability of reference types in value of type '(string, string?)' doesn't match target type 'string'.
-                //         foreach ((var x, var y) in F())
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(var x, var y)").WithArguments("(string, string?)", "string").WithLocation(8, 18),
-                // (8,18): warning CS8619: Nullability of reference types in value of type '(string, string?)' doesn't match target type 'string'.
-                //         foreach ((var x, var y) in F())
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(var x, var y)").WithArguments("(string, string?)", "string").WithLocation(8, 18));
-            //// (11,13): warning CS8602: Dereference of a possibly null reference.
-            ////             y.ToString();
-            //Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(11, 13));
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(11, 13)
+                );
         }
 
         [Fact]
@@ -62480,9 +62826,6 @@ partial interface I1<TF1> where TF1 : object?, new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (7,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 39),
@@ -62493,7 +62836,7 @@ partial interface I1<TF1> where TF1 : object?, new()
 
             i1 = comp2.GlobalNamespace.GetTypeMember("I1");
             tf1 = i1.TypeParameters[0];
-            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.False(tf1.IsNotNullableIfReferenceType);
             Assert.True(tf1.HasConstructorConstraint);
 
             var source3 =
@@ -62510,9 +62853,6 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (7,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 44),
@@ -62523,7 +62863,7 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
 
             i1 = comp3.GlobalNamespace.GetTypeMember("I1");
             tf1 = i1.TypeParameters[0];
-            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.False(tf1.IsNotNullableIfReferenceType);
 
             TypeParameterSymbol tf2 = i1.TypeParameters[1];
             Assert.Null(tf2.IsNotNullableIfReferenceType);
@@ -62570,9 +62910,6 @@ partial interface I1<TF1> where TF1 : object?, new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (7,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 39)
@@ -62597,9 +62934,6 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (7,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 44)
@@ -62657,9 +62991,6 @@ partial interface I1<TF1> where TF1 : object?, new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (8,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 39)
@@ -62667,7 +62998,7 @@ partial interface I1<TF1> where TF1 : object?, new()
 
             i1 = comp2.GlobalNamespace.GetTypeMember("I1");
             tf1 = i1.TypeParameters[0];
-            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.False(tf1.IsNotNullableIfReferenceType);
             Assert.True(tf1.HasConstructorConstraint);
 
             var source3 =
@@ -62685,9 +63016,6 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (8,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 44)
@@ -62695,7 +63023,7 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
 
             i1 = comp3.GlobalNamespace.GetTypeMember("I1");
             tf1 = i1.TypeParameters[0];
-            Assert.Null(tf1.IsNotNullableIfReferenceType);
+            Assert.False(tf1.IsNotNullableIfReferenceType);
 
             TypeParameterSymbol tf2 = i1.TypeParameters[1];
             Assert.False(tf2.IsNotNullableIfReferenceType);
@@ -62748,9 +63076,6 @@ partial interface I1<TF1> where TF1 : object?, new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (8,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 39),
@@ -62779,9 +63104,6 @@ partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (8,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 44),
@@ -62842,9 +63164,6 @@ partial interface I1<TF1> where TF1 : new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (3,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39),
@@ -62872,9 +63191,6 @@ partial interface I1<TF1, TF2> where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (3,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44),
@@ -62932,9 +63248,6 @@ partial interface I1<TF1> where TF1 : new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (3,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39)
@@ -62959,9 +63272,6 @@ partial interface I1<TF1, TF2> where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (3,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44)
@@ -63022,9 +63332,6 @@ partial interface I1<TF1> where TF1 : new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (3,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39),
@@ -63053,9 +63360,6 @@ partial interface I1<TF1, TF2> where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (3,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44),
@@ -63118,9 +63422,6 @@ partial interface I1<TF1> where TF1 : new()
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1> where TF1 : object?, new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19),
                 // (3,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39)
@@ -63147,9 +63448,6 @@ partial interface I1<TF1, TF2> where TF2 : new()
             var comp3 = CreateCompilation(source3);
 
             comp3.VerifyDiagnostics(
-                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
-                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
                 // (3,44): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44)
@@ -66611,9 +66909,15 @@ class C
                 // (15,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     static U?[] F1<T, U>() where U : T => throw null!; // error
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?").WithLocation(15, 12),
+                // (17,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     static U?[] F3<T, U>() where T : struct where U : T => throw null!;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?").WithLocation(17, 12),
                 // (17,23): error CS0456: Type parameter 'T' has the 'struct' constraint so 'T' cannot be used as a constraint for 'U'
                 //     static U?[] F3<T, U>() where T : struct where U : T => throw null!;
                 Diagnostic(ErrorCode.ERR_ConWithValCon, "U").WithArguments("U", "T").WithLocation(17, 23),
+                // (19,12): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     static U?[] F5<T, U>() where T : unmanaged where U : T => throw null!;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "U?").WithLocation(19, 12),
                 // (19,23): error CS8379: Type parameter 'T' has the 'unmanaged' constraint so 'T' cannot be used as a constraint for 'U'
                 //     static U?[] F5<T, U>() where T : unmanaged where U : T => throw null!;
                 Diagnostic(ErrorCode.ERR_ConWithUnmanagedCon, "U").WithArguments("U", "T").WithLocation(19, 23),
@@ -89620,7 +89924,7 @@ class Program
         foreach ((object? z1, object? w1) in e1)
         {
             z1.ToString(); // 3
-            z1.ToString(); // 4
+            w1.ToString(); // 4
         }
     }
     static void F2<T>(IEnumerable<(T, T?)> e2) where T : class
@@ -89633,7 +89937,7 @@ class Program
         foreach ((object? z2, object? w2) in e2)
         {
             z2.ToString();
-            z2.ToString(); // 6
+            w2.ToString(); // 6
         }
     }
     static void F3<T>(IEnumerable<(T, T?)> e3) where T : struct
@@ -89646,7 +89950,7 @@ class Program
         foreach ((object? z3, object? w3) in e3)
         {
             z3.ToString();
-            z3.ToString(); // 8
+            w3.ToString(); // 8
         }
     }
     static void F4((object?, object?)[] arr)
@@ -89665,30 +89969,47 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33017: Report warnings for null dereferences,
-            // stop reporting warnings for the type mismatches on var. 10 and 11 should probably be W warnings?
             comp.VerifyDiagnostics(
-                // (6,18): warning CS8619: Nullability of reference types in value of type '(T, T)' doesn't match target type 'T'.
-                //         foreach (var (x1, y1) in e1)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x1, y1)").WithArguments("(T, T)", "T").WithLocation(6, 18),
-                // (6,18): warning CS8619: Nullability of reference types in value of type '(T, T)' doesn't match target type 'T'.
-                //         foreach (var (x1, y1) in e1)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x1, y1)").WithArguments("(T, T)", "T").WithLocation(6, 18),
-                // (19,18): warning CS8619: Nullability of reference types in value of type '(T, T?)' doesn't match target type 'T'.
-                //         foreach (var (x2, y2) in e2)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x2, y2)").WithArguments("(T, T?)", "T").WithLocation(19, 18),
-                // (19,18): warning CS8619: Nullability of reference types in value of type '(T, T?)' doesn't match target type 'T'.
-                //         foreach (var (x2, y2) in e2)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x2, y2)").WithArguments("(T, T?)", "T").WithLocation(19, 18),
-                // (32,18): warning CS8619: Nullability of reference types in value of type '(T, T?)' doesn't match target type 'T'.
-                //         foreach (var (x3, y3) in e3)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x3, y3)").WithArguments("(T, T?)", "T").WithLocation(32, 18),
-                // (32,18): warning CS8619: Nullability of reference types in value of type '(T, T?)' doesn't match target type 'T?'.
-                //         foreach (var (x3, y3) in e3)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x3, y3)").WithArguments("(T, T?)", "T?").WithLocation(32, 18),
+                // (8,13): warning CS8602: Dereference of a possibly null reference.
+                //             x1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(8, 13),
+                // (9,13): warning CS8602: Dereference of a possibly null reference.
+                //             y1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1").WithLocation(9, 13),
+                // (13,13): warning CS8602: Dereference of a possibly null reference.
+                //             z1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z1").WithLocation(13, 13),
+                // (14,13): warning CS8602: Dereference of a possibly null reference.
+                //             w1.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w1").WithLocation(14, 13),
+                // (22,13): warning CS8602: Dereference of a possibly null reference.
+                //             y2.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2").WithLocation(22, 13),
+                // (27,13): warning CS8602: Dereference of a possibly null reference.
+                //             w2.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w2").WithLocation(27, 13),
+                // (35,17): warning CS8629: Nullable value type may be null.
+                //             _ = y3.Value; // 7
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y3").WithLocation(35, 17),
+                // (40,13): warning CS8602: Dereference of a possibly null reference.
+                //             w3.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w3").WithLocation(40, 13),
                 // (45,35): warning CS8619: Nullability of reference types in value of type '(object?, object?)' doesn't match target type '(object, object)'.
                 //         foreach ((object, object) el in arr) // 9
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "el").WithArguments("(object?, object?)", "(object, object)").WithLocation(45, 35));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "el").WithArguments("(object?, object?)", "(object, object)").WithLocation(45, 35),
+                // (51,44): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach ((object i1, object i2) in arr) // 10, 11
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "arr").WithLocation(51, 44),
+                // (51,44): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach ((object i1, object i2) in arr) // 10, 11
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "arr").WithLocation(51, 44),
+                // (53,13): warning CS8602: Dereference of a possibly null reference.
+                //             i1.ToString(); // 12
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "i1").WithLocation(53, 13),
+                // (54,13): warning CS8602: Dereference of a possibly null reference.
+                //             i2.ToString(); // 13
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "i2").WithLocation(54, 13)
+                );
         }
 
         [Fact]
@@ -89857,6 +90178,82 @@ class Program
                 // (18,9): warning CS8602: Dereference of a possibly null reference.
                 //         y.ToString(); // warning
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(18, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35131, "https://github.com/dotnet/roslyn/issues/35131")]
+        [WorkItem(33017, "https://github.com/dotnet/roslyn/issues/33017")]
+        public void Deconstruction_32()
+        {
+            var source = @"
+using System.Collections.Generic;
+class Pair<T, U>
+{
+    public void Deconstruct(out T t, out U u) => throw null!;
+}
+
+class Program
+{
+    static List<Pair<T, U>> CreatePairList<T, U>(T t, U u) => new List<Pair<T, U>>();
+
+    static void F(string x, object? y)
+    {
+        foreach((var x2, var y2) in CreatePairList(x, y))
+        {
+            x2.ToString(); 
+            y2.ToString(); // 1
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (17,13): warning CS8602: Dereference of a possibly null reference.
+                //             y2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2").WithLocation(17, 13)
+                );
+        }
+
+
+        [Fact]
+        [WorkItem(35131, "https://github.com/dotnet/roslyn/issues/35131")]
+        [WorkItem(33017, "https://github.com/dotnet/roslyn/issues/33017")]
+        public void Deconstruction_33()
+        {
+            var source = @"
+using System.Collections.Generic;
+class Pair<T, U>
+{
+    public void Deconstruct(out T t, out U u) => throw null!;
+}
+
+class Program
+{
+    static List<Pair<T, U>> CreatePairList<T, U>(T t, U u) => new List<Pair<T, U>>();
+
+    static void F<T>(T x, T? y) 
+        where T : class
+    {
+        x = null; // 1
+        if (y == null) return;
+        foreach((T x2, T? y2) in CreatePairList(x, y)) // 2
+        {
+            x2.ToString(); // 3
+            y2.ToString();
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(15, 13),
+                // (17,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach((T x2, T? y2) in CreatePairList(x, y)) // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "T x2").WithLocation(17, 18),
+                // (19,13): warning CS8602: Dereference of a possibly null reference.
+                //             x2.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(19, 13)
                 );
         }
 
@@ -94704,6 +95101,137 @@ class C
                 // (14,32): warning CS8603: Possible null reference return.
                 //                         return s; // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "s").WithLocation(14, 32));
+        }
+
+        [Fact, WorkItem(29956, "https://github.com/dotnet/roslyn/issues/29956")]
+        public void ConditionalExpression_InferredResultType()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+class C
+{
+    void Test1(object? x)
+    {
+        M(x)?.Self()/*T:Box<object?>?*/;
+        M(x)?.Value()/*T:object?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<object!>?*/;
+        M(x)?.Value()/*T:object?*/;
+    }
+
+    void Test2<T>(T x)
+    {
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:void*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:void*/;
+    }
+
+    void Test3(int x)
+    {
+        M(x)?.Self()/*T:Box<int>?*/;
+        M(x)?.Value()/*T:int?*/;
+        if (x == null) return; // 1
+        M(x)?.Self()/*T:Box<int>?*/;
+        M(x)?.Value()/*T:int?*/;
+    }
+
+    void Test4(int? x)
+    {
+        M(x)?.Self()/*T:Box<int?>?*/;
+        M(x)?.Value()/*T:int?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<int?>?*/;
+        M(x)?.Value()/*T:int?*/;
+    }
+
+    void Test5<T>(T? x) where T : class
+    {
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    void Test6<T>(T x) where T : struct
+    {
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return; // 2
+        M(x)?.Self()/*T:Box<T>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    void Test7<T>(T? x) where T : struct
+    {
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    void Test8<T>(T x) where T : class
+    {
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x == null) return;
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    void Test9<T>(T x) where T : class
+    {
+        M(x)?.Self()/*T:Box<T!>?*/;
+        M(x)?.Value()/*T:T?*/;
+        if (x != null) return;
+        M(x)?.Self()/*T:Box<T?>?*/;
+        M(x)?.Value()/*T:T?*/;
+    }
+
+    static Box<T> M<T>(T t) => new Box<T>(t);
+}
+
+class Box<T>
+{
+    public Box<T> Self() => this;
+    public T Value() => throw null!;
+    public Box(T value) { }
+}
+");
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (26,13): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'int?'
+                //         if (x == null) return; // 1
+                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "x == null").WithArguments("false", "int", "int?").WithLocation(26, 13),
+                // (53,13): error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
+                //         if (x == null) return; // 2
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == null").WithArguments("==", "T", "<null>").WithLocation(53, 13));
+        }
+
+        [Fact, WorkItem(35075, "https://github.com/dotnet/roslyn/issues/35075")]
+        public void ConditionalExpression_TypeParameterConstrainedToNullableValueType()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+class C<T>
+{
+    public virtual void M<U>(B x, U y) where U : T { }
+}
+
+class B : C<int?>
+{
+    public override void M<U>(B x, U y)
+    {
+        var z = x?.Test(y)/*T:U?*/;
+        z = null;
+    }
+
+    T Test<T>(T x) => throw null!;
+}");
+            c.VerifyTypes();
+            // Per https://github.com/dotnet/roslyn/issues/35075 errors should be expected
+            c.VerifyDiagnostics();
         }
     }
 }

@@ -6,7 +6,7 @@
         {
           "container": "ManagedLangs",
           "testCases": [
-            "ManagedLangs.OptProfTest.DDRIT_RPS_ManagedLangs"
+            "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs"
           ]
         },
         {
@@ -60,7 +60,7 @@
         {
           "container": "ManagedLangs",
           "testCases": [
-            "ManagedLangs.OptProfTest.DDRIT_RPS_ManagedLangs"
+            "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs"
           ]
         },
         {
@@ -91,7 +91,7 @@
         {
           "container": "ManagedLangs",
           "testCases": [
-            "ManagedLangs.OptProfTest.DDRIT_RPS_ManagedLangs"
+            "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs"
           ]
         },
         {
@@ -140,7 +140,7 @@
         {
           "container": "ManagedLangs",
           "testCases": [
-            "ManagedLangs.OptProfTest.DDRIT_RPS_ManagedLangs"
+            "ManagedLangs.OptProfTests.DDRIT_RPS_ManagedLangs"
           ]
         },
         {

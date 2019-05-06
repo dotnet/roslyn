@@ -7702,38 +7702,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not base type or interface of {1}..
-        /// </summary>
-        internal static string ERR_NotBaseOrImplementedInterface {
-            get {
-                return ResourceManager.GetString("ERR_NotBaseOrImplementedInterface", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The expression being assigned to &apos;{0}&apos; must be constant.
         /// </summary>
         internal static string ERR_NotConstantExpression {
             get {
                 return ResourceManager.GetString("ERR_NotConstantExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not an immediate member of {1}..
-        /// </summary>
-        internal static string ERR_NotDeclaredInBase {
-            get {
-                return ResourceManager.GetString("ERR_NotDeclaredInBase", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not implemented in base interface {1}..
-        /// </summary>
-        internal static string ERR_NotImplementedInBase {
-            get {
-                return ResourceManager.GetString("ERR_NotImplementedInBase", resourceCulture);
             }
         }
         
@@ -10978,15 +10951,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to specifying base type in base expression.
-        /// </summary>
-        internal static string IDS_BaseTypeInBaseExpression {
-            get {
-                return ResourceManager.GetString("IDS_BaseTypeInBaseExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to collection.
         /// </summary>
         internal static string IDS_Collection {
@@ -11479,6 +11443,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureNameShadowingInNestedFunctions {
             get {
                 return ResourceManager.GetString("IDS_FeatureNameShadowingInNestedFunctions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to stackalloc in nested expressions.
+        /// </summary>
+        internal static string IDS_FeatureNestedStackalloc {
+            get {
+                return ResourceManager.GetString("IDS_FeatureNestedStackalloc", resourceCulture);
             }
         }
         
@@ -15589,24 +15562,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title {
             get {
                 return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match overridden member..
-        /// </summary>
-        internal static string WRN_NullabilityMismatchInTypeOnOverride {
-            get {
-                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnOverride", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Nullability of reference types in type doesn&apos;t match overridden member..
-        /// </summary>
-        internal static string WRN_NullabilityMismatchInTypeOnOverride_Title {
-            get {
-                return ResourceManager.GetString("WRN_NullabilityMismatchInTypeOnOverride_Title", resourceCulture);
             }
         }
         

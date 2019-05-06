@@ -375,10 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //        result = new {StateMachineType}({initialState});
             //    }
             //
-            //    // Initialize each parameter fields
-            //    result.parameter = this.parameterProxy;
-            //      OR
-            //    if (token.Equals(default)) { result.parameter = this.parameterProxy; } else { result.parameter = token; } // for async-enumerable parameters marked with [EnumeratorCancellation]
+            //    result.parameter = this.parameterProxy; // OR more complex initialization for async-iterator parameter marked with [EnumeratorCancellation]
 
             // The implementation doesn't depend on the method body of the iterator method.
             // Only on its parameters and staticness.
@@ -455,29 +452,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CapturedSymbolReplacement proxy;
                 if (copyDest.TryGetValue(parameter, out proxy))
                 {
-                    // result.parameter = this.parameterProxy;
-                    BoundExpression left = proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable));
-                    BoundStatement copy = F.Assignment(
-                            left,
-                            copySrc[parameter].Replacement(F.Syntax, stateMachineType => F.This()));
-
-                    if (this.method.IsAsync && parameter is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true})
-                    {
-                        ParameterSymbol tokenParameter = getEnumeratorMethod.Parameters[0];
-                        // For any async-enumerable parameter marked with [EnumeratorCancellation] attribute, conditionally copy GetAsyncEnumerator's cancellation token parameter instead
-                        // if (token.Equals(default))
-                        //     result.parameter = this.parameterProxy;
-                        // else
-                        //     result.parameter = token;
-
-                        copy = F.If(
-                            // if (token.Equals(default))
-                            F.Call(F.Parameter(tokenParameter), WellKnownMember.System_Threading_CancellationToken__Equals, F.Default(tokenParameter.Type)),
-                            // result.parameter = this.parameterProxy;
-                            copy,
-                            // result.parameter = token;
-                            F.Assignment(left, F.Parameter(tokenParameter)));
-                    }
+                    // result.parameter
+                    BoundExpression resultParameter = proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable));
+                    // this.parameterProxy
+                    BoundExpression parameterProxy = copySrc[parameter].Replacement(F.Syntax, stateMachineType => F.This());
+                    BoundStatement copy = InitializeParameterField(getEnumeratorMethod, parameter, resultParameter, parameterProxy);
 
                     bodyBuilder.Add(copy);
                 }
@@ -486,6 +465,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(F.Return(F.Local(resultVariable)));
             F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), bodyBuilder.ToImmutableAndFree()));
             return getEnumerator;
+        }
+
+        protected virtual BoundStatement InitializeParameterField(MethodSymbol getEnumeratorMethod, ParameterSymbol parameter, BoundExpression resultParameter, BoundExpression parameterProxy)
+        {
+            Debug.Assert(!method.IsIterator || !method.IsAsync); // an override handles async-iterators
+
+            // result.parameter = this.parameterProxy;
+            return F.Assignment(resultParameter, parameterProxy);
         }
 
         /// <summary>
