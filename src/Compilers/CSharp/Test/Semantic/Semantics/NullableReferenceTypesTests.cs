@@ -34251,23 +34251,16 @@ class C
         foreach ((var x, var y) in F())
         {
             x.ToString();
-            y.ToString();
+            y.ToString(); // 1
         }
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33011: Deconstruction should infer `string?` for `var y`. Shouldn't report nullability
-            // mismatches
             comp.VerifyDiagnostics(
-                // (8,18): warning CS8619: Nullability of reference types in value of type '(string, string?)' doesn't match target type 'string'.
-                //         foreach ((var x, var y) in F())
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(var x, var y)").WithArguments("(string, string?)", "string").WithLocation(8, 18),
-                // (8,18): warning CS8619: Nullability of reference types in value of type '(string, string?)' doesn't match target type 'string'.
-                //         foreach ((var x, var y) in F())
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(var x, var y)").WithArguments("(string, string?)", "string").WithLocation(8, 18));
-            //// (11,13): warning CS8602: Dereference of a possibly null reference.
-            ////             y.ToString();
-            //Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(11, 13));
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
+                //             y.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(11, 13)
+                );
         }
 
         [Fact]
@@ -89931,7 +89924,7 @@ class Program
         foreach ((object? z1, object? w1) in e1)
         {
             z1.ToString(); // 3
-            z1.ToString(); // 4
+            w1.ToString(); // 4
         }
     }
     static void F2<T>(IEnumerable<(T, T?)> e2) where T : class
@@ -89944,7 +89937,7 @@ class Program
         foreach ((object? z2, object? w2) in e2)
         {
             z2.ToString();
-            z2.ToString(); // 6
+            w2.ToString(); // 6
         }
     }
     static void F3<T>(IEnumerable<(T, T?)> e3) where T : struct
@@ -89957,7 +89950,7 @@ class Program
         foreach ((object? z3, object? w3) in e3)
         {
             z3.ToString();
-            z3.ToString(); // 8
+            w3.ToString(); // 8
         }
     }
     static void F4((object?, object?)[] arr)
@@ -89976,30 +89969,47 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33017: Report warnings for null dereferences,
-            // stop reporting warnings for the type mismatches on var. 10 and 11 should probably be W warnings?
             comp.VerifyDiagnostics(
-                // (6,18): warning CS8619: Nullability of reference types in value of type '(T, T)' doesn't match target type 'T'.
-                //         foreach (var (x1, y1) in e1)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x1, y1)").WithArguments("(T, T)", "T").WithLocation(6, 18),
-                // (6,18): warning CS8619: Nullability of reference types in value of type '(T, T)' doesn't match target type 'T'.
-                //         foreach (var (x1, y1) in e1)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x1, y1)").WithArguments("(T, T)", "T").WithLocation(6, 18),
-                // (19,18): warning CS8619: Nullability of reference types in value of type '(T, T?)' doesn't match target type 'T'.
-                //         foreach (var (x2, y2) in e2)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x2, y2)").WithArguments("(T, T?)", "T").WithLocation(19, 18),
-                // (19,18): warning CS8619: Nullability of reference types in value of type '(T, T?)' doesn't match target type 'T'.
-                //         foreach (var (x2, y2) in e2)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x2, y2)").WithArguments("(T, T?)", "T").WithLocation(19, 18),
-                // (32,18): warning CS8619: Nullability of reference types in value of type '(T, T?)' doesn't match target type 'T'.
-                //         foreach (var (x3, y3) in e3)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x3, y3)").WithArguments("(T, T?)", "T").WithLocation(32, 18),
-                // (32,18): warning CS8619: Nullability of reference types in value of type '(T, T?)' doesn't match target type 'T?'.
-                //         foreach (var (x3, y3) in e3)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "var (x3, y3)").WithArguments("(T, T?)", "T?").WithLocation(32, 18),
+                // (8,13): warning CS8602: Dereference of a possibly null reference.
+                //             x1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(8, 13),
+                // (9,13): warning CS8602: Dereference of a possibly null reference.
+                //             y1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1").WithLocation(9, 13),
+                // (13,13): warning CS8602: Dereference of a possibly null reference.
+                //             z1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z1").WithLocation(13, 13),
+                // (14,13): warning CS8602: Dereference of a possibly null reference.
+                //             w1.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w1").WithLocation(14, 13),
+                // (22,13): warning CS8602: Dereference of a possibly null reference.
+                //             y2.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2").WithLocation(22, 13),
+                // (27,13): warning CS8602: Dereference of a possibly null reference.
+                //             w2.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w2").WithLocation(27, 13),
+                // (35,17): warning CS8629: Nullable value type may be null.
+                //             _ = y3.Value; // 7
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y3").WithLocation(35, 17),
+                // (40,13): warning CS8602: Dereference of a possibly null reference.
+                //             w3.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w3").WithLocation(40, 13),
                 // (45,35): warning CS8619: Nullability of reference types in value of type '(object?, object?)' doesn't match target type '(object, object)'.
                 //         foreach ((object, object) el in arr) // 9
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "el").WithArguments("(object?, object?)", "(object, object)").WithLocation(45, 35));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "el").WithArguments("(object?, object?)", "(object, object)").WithLocation(45, 35),
+                // (51,44): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach ((object i1, object i2) in arr) // 10, 11
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "arr").WithLocation(51, 44),
+                // (51,44): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach ((object i1, object i2) in arr) // 10, 11
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "arr").WithLocation(51, 44),
+                // (53,13): warning CS8602: Dereference of a possibly null reference.
+                //             i1.ToString(); // 12
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "i1").WithLocation(53, 13),
+                // (54,13): warning CS8602: Dereference of a possibly null reference.
+                //             i2.ToString(); // 13
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "i2").WithLocation(54, 13)
+                );
         }
 
         [Fact]
@@ -90168,6 +90178,82 @@ class Program
                 // (18,9): warning CS8602: Dereference of a possibly null reference.
                 //         y.ToString(); // warning
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(18, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(35131, "https://github.com/dotnet/roslyn/issues/35131")]
+        [WorkItem(33017, "https://github.com/dotnet/roslyn/issues/33017")]
+        public void Deconstruction_32()
+        {
+            var source = @"
+using System.Collections.Generic;
+class Pair<T, U>
+{
+    public void Deconstruct(out T t, out U u) => throw null!;
+}
+
+class Program
+{
+    static List<Pair<T, U>> CreatePairList<T, U>(T t, U u) => new List<Pair<T, U>>();
+
+    static void F(string x, object? y)
+    {
+        foreach((var x2, var y2) in CreatePairList(x, y))
+        {
+            x2.ToString(); 
+            y2.ToString(); // 1
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (17,13): warning CS8602: Dereference of a possibly null reference.
+                //             y2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2").WithLocation(17, 13)
+                );
+        }
+
+
+        [Fact]
+        [WorkItem(35131, "https://github.com/dotnet/roslyn/issues/35131")]
+        [WorkItem(33017, "https://github.com/dotnet/roslyn/issues/33017")]
+        public void Deconstruction_33()
+        {
+            var source = @"
+using System.Collections.Generic;
+class Pair<T, U>
+{
+    public void Deconstruct(out T t, out U u) => throw null!;
+}
+
+class Program
+{
+    static List<Pair<T, U>> CreatePairList<T, U>(T t, U u) => new List<Pair<T, U>>();
+
+    static void F<T>(T x, T? y) 
+        where T : class
+    {
+        x = null; // 1
+        if (y == null) return;
+        foreach((T x2, T? y2) in CreatePairList(x, y)) // 2
+        {
+            x2.ToString(); // 3
+            y2.ToString();
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(15, 13),
+                // (17,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach((T x2, T? y2) in CreatePairList(x, y)) // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "T x2").WithLocation(17, 18),
+                // (19,13): warning CS8602: Dereference of a possibly null reference.
+                //             x2.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(19, 13)
                 );
         }
 
