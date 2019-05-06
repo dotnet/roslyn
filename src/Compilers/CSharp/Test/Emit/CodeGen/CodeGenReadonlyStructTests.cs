@@ -1856,7 +1856,7 @@ public static class C
   .locals init (S V_0, //copy
                 S V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""void S.M1()""
+  IL_0001:  call       ""readonly void S.M1()""
   IL_0006:  ldarg.0
   IL_0007:  ldfld      ""int S.i""
   IL_000c:  call       ""void System.Console.Write(int)""
@@ -1932,7 +1932,7 @@ public static class C
   .locals init (S V_0, //copy
                 S V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int S.P1.get""
+  IL_0001:  call       ""readonly int S.P1.get""
   IL_0006:  pop
   IL_0007:  ldarg.0
   IL_0008:  ldfld      ""int S.i""
@@ -1976,7 +1976,7 @@ public struct S
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int S.M2()""
+  IL_0001:  call       ""readonly int S.M2()""
   IL_0006:  ldc.i4.1
   IL_0007:  add
   IL_0008:  ret
@@ -2002,7 +2002,7 @@ public struct S
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int S.P2.get""
+  IL_0001:  call       ""readonly int S.P2.get""
   IL_0006:  ldc.i4.1
   IL_0007:  add
   IL_0008:  ret
@@ -2027,7 +2027,7 @@ public struct S
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int S.P2.get""
+  IL_0001:  call       ""readonly int S.P2.get""
   IL_0006:  ldc.i4.1
   IL_0007:  add
   IL_0008:  ret
@@ -2053,7 +2053,7 @@ public struct S
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int S.M2()""
+  IL_0001:  call       ""readonly int S.M2()""
   IL_0006:  ldc.i4.1
   IL_0007:  add
   IL_0008:  ret
@@ -2089,7 +2089,7 @@ public struct S2
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""S1 S2.s1""
-  IL_0006:  call       ""void S1.M1()""
+  IL_0006:  call       ""readonly void S1.M1()""
   IL_000b:  ret
 }");
 
@@ -2465,17 +2465,17 @@ public struct S
   // Code size       99 (0x63)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""System.Type S.GetType()""
+  IL_0001:  call       ""readonly System.Type S.GetType()""
   IL_0006:  pop
   IL_0007:  ldarg.0
-  IL_0008:  call       ""string S.ToString()""
+  IL_0008:  call       ""readonly string S.ToString()""
   IL_000d:  pop
   IL_000e:  ldarg.0
-  IL_000f:  call       ""int S.GetHashCode()""
+  IL_000f:  call       ""readonly int S.GetHashCode()""
   IL_0014:  pop
   IL_0015:  ldarg.0
   IL_0016:  ldnull
-  IL_0017:  call       ""bool S.Equals(object)""
+  IL_0017:  call       ""readonly bool S.Equals(object)""
   IL_001c:  pop
   IL_001d:  ldarg.0
   IL_001e:  ldobj      ""S""
