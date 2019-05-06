@@ -97,6 +97,11 @@
         <target state="translated">删除不必要的导入</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="new">&amp;Sort Imports</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">请在此处键入名称以声明新字段。</target>

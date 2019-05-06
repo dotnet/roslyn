@@ -107,6 +107,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             switch (prgCmds[0].cmdID)
             {
+                case ID.CSharpCommands.OrganizeSortUsings:
+                    return QuerySortUsingsStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
+
                 case ID.CSharpCommands.OrganizeRemoveAndSort:
                 case ID.CSharpCommands.ContextOrganizeRemoveAndSort:
                     return QuerySortAndRemoveUnusedUsingsStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
@@ -311,6 +314,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
             return VSConstants.S_OK;
+        }
+
+        private int QuerySortUsingsStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
+        {
+            var textBuffer = GetSubjectBufferContainingCaret();
+
+            if (textBuffer != null)
+            {
+                if (CodeAnalysis.Workspace.TryGetWorkspace(textBuffer.AsTextContainer(), out var workspace))
+                {
+                    var organizeImportsService = workspace.Services.GetLanguageServices(textBuffer).GetService<IOrganizeImportsService>();
+                    if (organizeImportsService != null)
+                    {
+                        SetText(commandText, organizeImportsService.SortImportsDisplayStringWithAccelerator);
+                    }
+                }
+            }
+
+            return GetCommandState(
+                (v, b) => new SortImportsCommandArgs(v, b),
+                ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
 
         private int QuerySortAndRemoveUnusedUsingsStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)

@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
     [Name(PredefinedCommandHandlerNames.OrganizeDocument)]
     internal class OrganizeDocumentCommandHandler :
         VSCommanding.ICommandHandler<OrganizeDocumentCommandArgs>,
+        VSCommanding.ICommandHandler<SortImportsCommandArgs>,
         VSCommanding.ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
     {
         public string DisplayName => EditorFeaturesResources.Organize_Document;
@@ -54,6 +55,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             }
 
             return true;
+        }
+
+        public VSCommanding.CommandState GetCommandState(SortImportsCommandArgs args)
+        {
+            return GetCommandState(args, o => o.SortImportsDisplayStringWithAccelerator);
         }
 
         public VSCommanding.CommandState GetCommandState(SortAndRemoveUnnecessaryImportsCommandArgs args)
@@ -96,6 +102,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             return false;
         }
 
+        public bool ExecuteCommand(SortImportsCommandArgs args, CommandExecutionContext context)
+        {
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
+            {
+                this.SortImports(args.SubjectBuffer, context.OperationContext);
+            }
+
+            return true;
+        }
+
         public bool ExecuteCommand(SortAndRemoveUnnecessaryImportsCommandArgs args, CommandExecutionContext context)
         {
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
@@ -104,6 +120,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             }
 
             return true;
+        }
+
+        private void SortImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
+        {
+            var cancellationToken = operationContext.UserCancellationToken;
+            var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(operationContext).WaitAndGetResult(cancellationToken);
+            if (document != null)
+            {
+                var newDocument = OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                if (document != newDocument)
+                {
+                    ApplyTextChange(document, newDocument);
+                }
+            }
         }
 
         private void SortAndRemoveUnusedImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
