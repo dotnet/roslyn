@@ -95147,5 +95147,76 @@ class B : C<int?>
             // Per https://github.com/dotnet/roslyn/issues/35075 errors should be expected
             c.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void AttributeAnnotation_AssertsTrue()
+        {
+            var source =
+@"#pragma warning disable 169
+using System.Runtime.CompilerServices;
+class A : System.Attribute
+{
+    internal A(object x, object y) { }
+}
+[A(Assert(F != null), F)]
+class Program
+{
+    static object? F;
+    static object Assert([AssertsTrue]bool b) => throw null!;
+}";
+            var comp = CreateCompilation(new[] { AssertsTrueAttributeDefinition, source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(Assert(F != null), F)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Assert(F != null)").WithLocation(7, 4),
+                // (7,23): warning CS8604: Possible null reference argument for parameter 'y' in 'A.A(object x, object y)'.
+                // [A(Assert(F != null), F)]
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "F").WithArguments("y", "A.A(object x, object y)").WithLocation(7, 23),
+                // (7,23): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(Assert(F != null), F)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F").WithLocation(7, 23));
+        }
+
+        [Fact]
+        public void AttributeAnnotation_EnsuresNotNull()
+        {
+            var source =
+@"#pragma warning disable 169
+using System.Runtime.CompilerServices;
+class A : System.Attribute
+{
+    internal A(object x, object y) { }
+}
+[A(NotNull(F), F)]
+class Program
+{
+    static object? F;
+    static object NotNull([EnsuresNotNull]object? o) => throw null!;
+}";
+            var comp = CreateCompilation(new[] { EnsuresNotNullAttributeDefinition, source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(NotNull(F), F)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "NotNull(F)").WithLocation(7, 4),
+                // (7,16): warning CS8604: Possible null reference argument for parameter 'y' in 'A.A(object x, object y)'.
+                // [A(NotNull(F), F)]
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "F").WithArguments("y", "A.A(object x, object y)").WithLocation(7, 16),
+                // (7,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(NotNull(F), F)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F").WithLocation(7, 16));
+        }
+
+        [Fact]
+        [WorkItem(35056, "https://github.com/dotnet/roslyn/issues/35056")]
+        public void CircularAttribute()
+        {
+            var source =
+@"class A : System.Attribute
+{
+    A([A(1)]int x) { }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
     }
 }
