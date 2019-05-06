@@ -44,9 +44,6 @@
     <WindowsAppContainer>false</WindowsAppContainer>
 
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
-    
-    <!-- Disabled to work around ibcmerge error https://github.com/dotnet/arcade/issues/2309 -->
-    <EnableNgenOptimizationLogDetails>false</EnableNgenOptimizationLogDetails>
   </PropertyGroup>
 
   <!-- 

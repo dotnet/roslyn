@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CommandHandler_GetCommandState,
         CommandHandler_ExecuteHandlers,
         CommandHandler_FormatCommand,
+        CommandHandler_ToggleBlockComment,
+        CommandHandler_ToggleLineComment,
 
         Workspace_SourceText_GetChangeRanges,
         Workspace_Recoverable_RecoverRootAsync,
@@ -454,5 +456,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         GraphQuery_Overrides,
 
         Intellisense_AsyncCompletion_Data,
+
+        PartialLoad_FullyLoaded,
     }
 }
