@@ -105,6 +105,16 @@ namespace Xunit
         public virtual string DisplayName { get; set; }
         public virtual string Skip { get; set; }
     }
+}
+
+namespace CustomxUnit 
+{
+    using Xunit;
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class WpfFactAttribute : FactAttribute
+    {
+    }
 }";
 
         public const string VisualBasic = @"
@@ -190,6 +200,14 @@ Namespace Xunit
         Inherits Attribute
         Public Overridable Property DisplayName As String
         Public Overridable Property Skip As String
+    End Class
+End Namespace
+
+Namespace CustomxUnit
+
+    <AttributeUsage(AttributeTargets.Method, AllowMultiple:=False)>
+    Public Class WpfFactAttribute
+        Inherits Xunit.FactAttribute
     End Class
 End Namespace
 ";
