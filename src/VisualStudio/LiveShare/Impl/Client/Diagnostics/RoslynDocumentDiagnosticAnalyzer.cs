@@ -15,11 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     /// Since DiagnosticAnalyzers don't participate in MEF composition, we get the diagnostics through a
     /// language service called <see cref="IRemoteDiagnosticsService"/>
     /// </remarks>
-#if VS_16_0
     [DiagnosticAnalyzer(StringConstants.CSharpLspLanguageName, StringConstants.VBLspLanguageName)]
-#else
-    [DiagnosticAnalyzer(StringConstants.CSharpLspLanguageName, StringConstants.VBLspLanguageName, StringConstants.TypeScriptLanguageName)]
-#endif
     internal class RoslynDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;

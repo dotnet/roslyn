@@ -4,25 +4,26 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.LanguageServices.Remote.Shared.CustomProtocol;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
+using Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     internal class RoslynRemoteDiagnosticsService : IRemoteDiagnosticsService
     {
-        private readonly RoslynLSPClientServiceFactory roslynLSPClientServiceFactory;
+        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
 
         public RoslynRemoteDiagnosticsService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
         {
-            this.roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
         }
 
         public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var lspClient = this.roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return ImmutableArray<Diagnostic>.Empty;
@@ -36,7 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 }
             };
 
-            var lspDiagnostics = await lspClient.RequestAsync(RoslynMethods.GetDocumentDiagnostics, textDocumentParams, cancellationToken).ConfigureAwait(false);
+            var request = new LSP.LspRequest<TextDocumentParams, RoslynDiagnostic[]>(Methods.GetDocumentDiagnosticsName);
+            var lspDiagnostics = await lspClient.RequestAsync(request, textDocumentParams, cancellationToken).ConfigureAwait(false);
             if (lspDiagnostics == null)
             {
                 return ImmutableArray<Diagnostic>.Empty;
@@ -47,7 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
             foreach (var diagnostic in lspDiagnostics)
             {
-                var location = Location.Create(document.FilePath, diagnostic.Range.ToTextSpan(text), diagnostic.Range.ToLinePositionSpan());
+                var location = Location.Create(document.FilePath, ProtocolConversions.RangeToTextSpan(diagnostic.Range, text),
+                    ProtocolConversions.RangeToLinePositionSpan(diagnostic.Range));
                 var severity = ToDiagnosticSeverity(diagnostic.Severity);
                 var diag = Diagnostic.Create(diagnostic.Code ?? "VSLS", string.Empty, diagnostic.Message, severity, severity,
                                 true, severity == DiagnosticSeverity.Error ? 0 : 1, location: location, customTags: diagnostic.Tags);
