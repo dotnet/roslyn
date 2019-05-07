@@ -19,16 +19,20 @@
     <!--
       ⚠ ONLY PROJECT SYSTEM ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
 
   <ItemGroup>
