@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 void AnalyzeOperation(OperationAnalysisContext operationContext)
                 {
                     var fieldReference = (IFieldReferenceOperation)operationContext.Operation;
-                    (bool isCandidate, bool written) = TryGetOrInitializeFieldState(fieldReference.Field, operationContext.Options, operationContext.CancellationToken);
+                    var (isCandidate, written) = TryGetOrInitializeFieldState(fieldReference.Field, operationContext.Options, operationContext.CancellationToken);
 
                     // Ignore fields that are not candidates or have already been written outside the constructor/field initializer.
                     if (!isCandidate || written)
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     {
                         if (member is IFieldSymbol field && fieldStateMap.TryRemove(field, out var value))
                         {
-                            (bool isCandidate, bool written) = value;
+                            var (isCandidate, written) = value;
                             if (isCandidate && !written)
                             {
                                 var option = GetCodeStyleOption(field, symbolEndContext.Options, symbolEndContext.CancellationToken);

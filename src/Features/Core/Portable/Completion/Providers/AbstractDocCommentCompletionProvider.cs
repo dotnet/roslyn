@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = default, CancellationToken cancellationToken = default)
         {
-            bool includesCommitCharacter = true;
+            var includesCommitCharacter = true;
 
             if (commitChar == ' ' &&
                 XmlDocCommentCompletionItem.TryGetInsertionTextOnSpace(item, out var beforeCaretText, out var afterCaretText))
