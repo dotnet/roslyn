@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -20,9 +19,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
-    [Export(typeof(ExternalErrorDiagnosticUpdateSource))]
     internal class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
         private readonly Workspace _workspace;
@@ -36,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private InprogressState _stateDoNotAccessDirectly = null;
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
-        [ImportingConstructor]
         public ExternalErrorDiagnosticUpdateSource(
             VisualStudioWorkspaceImpl workspace,
             IDiagnosticAnalyzerService diagnosticService,
