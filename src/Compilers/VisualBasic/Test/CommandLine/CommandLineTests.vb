@@ -36,7 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
             Path.Combine("dependency", "vbc.exe"))
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
-        Private Shared ReadOnly s_compilerVersion As String = GetType(CommandLineTests).Assembly.GetCustomAttribute(Of AssemblyInformationalVersionAttribute)().InformationalVersion
+        Private Shared ReadOnly s_compilerVersion As String = FileVersionInfo.GetVersionInfo(GetType(CommandLineTests).Assembly.Location).FileVersion
+        Private Shared ReadOnly s_compilerShortCommitHash As String =
+            CommonCompiler.ExtractShortCommitHash(GetType(CommandLineTests).Assembly.GetCustomAttribute(Of CommitHashAttribute).Hash)
 
         Private Shared Function DefaultParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
@@ -512,9 +514,10 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
-            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?-[\w\d.-]+", "version A.B.C.D-E")
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D")
+            patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
-Microsoft (R) Visual Basic Compiler version A.B.C.D-E
+Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 </text>.Value.Replace(vbLf, vbCrLf).Trim,
                 patched)
@@ -523,6 +526,23 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 
             CleanupAllGeneratedFiles(src)
         End Sub
+
+        <Theory,
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (<developer build>)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (ABCDEF01)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (abcdef90)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (12345678)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)")>
+        Public Sub TestReplaceCommitHash(orig As String, expected As String)
+            Assert.Equal(expected, ReplaceCommitHash(orig))
+        End Sub
+
+        Private Shared Function ReplaceCommitHash(s As String) As String
+            Return Regex.Replace(s, "(\((<developer build>|[a-fA-F0-9]{8})\))", "(HASH)")
+        End Function
 
         <Fact>
         Public Sub VbcNologo_2a()
@@ -537,9 +557,10 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
-            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?-[\w\d.-]+", "version A.B.C.D-E")
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D")
+            patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
-Microsoft (R) Visual Basic Compiler version A.B.C.D-E
+Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 </text>.Value.Replace(vbLf, vbCrLf).Trim,
                 patched)
@@ -5679,7 +5700,7 @@ End Module
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(5) : warning BC42024: Unused local variable: 'x'.
@@ -5709,7 +5730,7 @@ PATH(11) : warning BC42105: Function 'goo' doesn't return a value on all code pa
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Dim expected = ReplacePathAndVersion(result, file).Trim()
+            Dim expected = ReplacePathAndVersionAndHash(result, file).Trim()
             Dim actual = output.ToString().Trim()
             Assert.Equal(expected, actual)
 
@@ -5744,7 +5765,7 @@ End Module
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be used in a lambda expression.
@@ -5762,7 +5783,7 @@ PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be use
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en", "-imports:System"})
             vbc.Run(output, Nothing)
 
-            Assert.Equal(ReplacePathAndVersion(result, file), output.ToString())
+            Assert.Equal(ReplacePathAndVersionAndHash(result, file), output.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -5777,7 +5798,7 @@ PATH(9) : error BC36640: Instance of restricted type 'ArgIterator' cannot be use
                          "  End Sub" + vbCrLf +
                          "End Module" + vbCrLf
 
-            Dim result = <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+            Dim result = <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(3) : error BC30201: Expression expected.
@@ -5799,7 +5820,7 @@ PATH(3) : error BC30004: Character constant must contain exactly one character.
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Dim expected = ReplacePathAndVersion(result, file).Trim()
+            Dim expected = ReplacePathAndVersionAndHash(result, file).Trim()
             Dim actual = output.ToString().Trim()
             Assert.Equal(expected, actual)
 
@@ -5827,7 +5848,7 @@ End Module
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(5) : error BC36593: Expression of type 'Integer()' is not queryable. Make sure you are not missing an assembly reference and/or namespace import for the LINQ provider.
@@ -5849,7 +5870,7 @@ PATH(5) : error BC36593: Expression of type 'Integer()' is not queryable. Make s
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Assert.Equal(ReplacePathAndVersion(result, file), output.ToString())
+            Assert.Equal(ReplacePathAndVersionAndHash(result, file), output.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -5873,7 +5894,7 @@ Module _
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.
@@ -5893,7 +5914,7 @@ Module _
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Assert.Equal(ReplacePathAndVersion(result, file), output.ToString())
+            Assert.Equal(ReplacePathAndVersionAndHash(result, file), output.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -5923,7 +5944,7 @@ End Module
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(7) : error BC37220: Name 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeEventHandler' exceeds the maximum length allowed in metadata.
@@ -5941,7 +5962,7 @@ PATH(7) : error BC37220: Name 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Assert.Equal(ReplacePathAndVersion(result, file), output.ToString())
+            Assert.Equal(ReplacePathAndVersionAndHash(result, file), output.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -5965,7 +5986,7 @@ End Class]]>
                 </compilation>
 
             Dim result =
-                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+                    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(4) : error BC30625: 'Module' statement must end with a matching 'End Module'.
@@ -5987,7 +6008,7 @@ End Class
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Assert.Equal(ReplacePathAndVersion(result, file), output.ToString())
+            Assert.Equal(ReplacePathAndVersionAndHash(result, file), output.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
@@ -6011,7 +6032,7 @@ End Module
                 </compilation>
 
             Dim result =
-    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION
+    <file name="output">Microsoft (R) Visual Basic Compiler version VERSION (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 PATH(6) : error BC30203: Identifier expected.
@@ -6029,13 +6050,13 @@ PATH(6) : error BC30203: Identifier expected.
             Dim vbc As New MockVisualBasicCompiler(Nothing, dir.Path, {fileName, "/preferreduilang:en"})
             vbc.Run(output, Nothing)
 
-            Assert.Equal(ReplacePathAndVersion(result, file), output.ToString())
+            Assert.Equal(ReplacePathAndVersionAndHash(result, file), output.ToString())
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
 
-        Private Shared Function ReplacePathAndVersion(result As XElement, file As TempFile) As String
-            Return result.Value.Replace("PATH", file.Path).Replace("VERSION", s_compilerVersion).Replace(vbLf, vbCrLf)
+        Private Shared Function ReplacePathAndVersionAndHash(result As XElement, file As TempFile) As String
+            Return result.Value.Replace("PATH", file.Path).Replace("VERSION", s_compilerVersion).Replace("HASH", s_compilerShortCommitHash).Replace(vbLf, vbCrLf)
         End Function
 
         <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
@@ -8893,6 +8914,7 @@ End Class
         <Fact()>
         Public Sub Version()
             Dim folderName = Temp.CreateDirectory().ToString()
+            Dim expected As String = $"{s_compilerVersion} ({s_compilerShortCommitHash})"
 
             Dim argss = {
                 "/version",
@@ -8902,7 +8924,7 @@ End Class
 
             For Each args In argss
                 Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, args, startFolder:=folderName)
-                Assert.Equal(s_compilerVersion, output.Trim())
+                Assert.Equal(expected, output.Trim())
             Next
         End Sub
 

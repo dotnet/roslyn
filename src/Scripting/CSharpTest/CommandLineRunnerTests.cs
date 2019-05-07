@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
     public class CommandLineRunnerTests : TestBase
     {
         private static readonly string s_compilerVersion =
-            typeof(CSharpInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+            typeof(CSharpInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
 
         private string LogoAndHelpPrompt => $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
 {CSharpScriptingResources.LogoLine2}
