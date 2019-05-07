@@ -1292,6 +1292,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConversion(BoundConversion conversion)
         {
+            // a conversion with a method should have been rewritten, e.g. to an invocation
+            Debug.Assert(_inExpressionLambda || conversion.Conversion.MethodSymbol is null);
+
             Debug.Assert(conversion.ConversionKind != ConversionKind.MethodGroup);
             if (conversion.ConversionKind == ConversionKind.AnonymousFunction)
             {
