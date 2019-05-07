@@ -2,7 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="41880BF7-B087-402F-AE29-18A367E9DF9B" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
+    <Identity Id="41880BF7-B087-402F-AE29-18A367E9DF9B" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft DevLabs" />
     <DisplayName>.NET Compiler Platform (Roslyn) Analyzers</DisplayName>
     <Description xml:space="preserve">Analyzers for .NET Compiler Platform (Roslyn) APIs.</Description>
   </Metadata>
