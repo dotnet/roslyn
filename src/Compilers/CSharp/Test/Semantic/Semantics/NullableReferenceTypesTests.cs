@@ -95862,5 +95862,66 @@ class Program
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(34827, "https://github.com/dotnet/roslyn/issues/34827")]
+        public void ArrayConversionToInterface()
+        {
+            string source = @"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        IEnumerable<object> x1 = new[] { ""string"", null }; // 1
+        IEnumerable<object?> x2 = new[] { ""string"", null };
+        IEnumerable<object?> x3 = new[] { ""string"" };
+        IList<string> x4 = new[] { ""string"", null }; // 2
+        ICollection<string?> x5 = new[] { ""string"", null };
+        ICollection<string?> x6 = new[] { ""string"" };
+        IReadOnlyList<string?> x7 = new[] { ""string"" };
+    }
+}";
+            var comp = CreateNullableCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,34): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'IEnumerable<object>'.
+                //         IEnumerable<object> x1 = new[] { "string", null }; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"new[] { ""string"", null }").WithArguments("string?[]", "System.Collections.Generic.IEnumerable<object>").WithLocation(7, 34),
+                // (10,28): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'IList<string>'.
+                //         IList<string> x4 = new[] { "string", null }; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"new[] { ""string"", null }").WithArguments("string?[]", "System.Collections.Generic.IList<string>").WithLocation(10, 28)
+                );
+        }
+
+        [Fact, WorkItem(34827, "https://github.com/dotnet/roslyn/issues/34827")]
+        public void ArrayConversionToInterface_Nested()
+        {
+            string source = @"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        IEnumerable<object[]> x1 = new[] { new[] { ""string"", null } }; // 1
+        IEnumerable<object[]?> x2 = new[] { new[] { ""string"", null } }; // 2
+        IEnumerable<object?[]> x3 = new[] { new[] { ""string"", null } };
+        IEnumerable<object?[]?> x4 = new[] { new[] { ""string"" } };
+        IEnumerable<IEnumerable<string>> x5 = new[] { new[] { ""string"" , null } }; // 3
+        IEnumerable<IEnumerable<string?>> x6 = new[] { new[] { ""string"" , null } };
+        IEnumerable<IEnumerable<string?>> x7 = new[] { new[] { ""string"" } };
+    }
+}";
+            var comp = CreateNullableCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,36): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'IEnumerable<object[]>'.
+                //         IEnumerable<object[]> x1 = new[] { new[] { "string", null } }; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"new[] { new[] { ""string"", null } }").WithArguments("string?[][]", "System.Collections.Generic.IEnumerable<object[]>").WithLocation(7, 36),
+                // (8,37): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'IEnumerable<object[]?>'.
+                //         IEnumerable<object[]?> x2 = new[] { new[] { "string", null } }; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"new[] { new[] { ""string"", null } }").WithArguments("string?[][]", "System.Collections.Generic.IEnumerable<object[]?>").WithLocation(8, 37),
+                // (11,47): warning CS8619: Nullability of reference types in value of type 'string?[][]' doesn't match target type 'IEnumerable<IEnumerable<string>>'.
+                //         IEnumerable<IEnumerable<string>> x5 = new[] { new[] { "string" , null } }; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"new[] { new[] { ""string"" , null } }").WithArguments("string?[][]", "System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<string>>").WithLocation(11, 47)
+                );
+        }
     }
 }
