@@ -35,7 +35,7 @@ usage()
   echo "  --nodeReuse <value>      Sets nodereuse msbuild parameter ('true' or 'false')"
   echo "  --warnAsError <value>    Sets warnaserror msbuild parameter ('true' or 'false')"
   echo ""
-  echo "Command line arguments starting with '/p:' are passed through to MSBuild."
+  echo "Command line arguments not listed above are passed thru to msbuild."
   echo "Arguments can also be passed in with a single hyphen."
 }
 
@@ -137,22 +137,8 @@ while [[ $# > 0 ]]; do
       node_reuse=$2
       shift
       ;;
-    -p:*|/p:*)
-      properties="$properties $1"
-      ;;
-    -m:*|/m:*)
-      properties="$properties $1"
-      ;;
-    -bl:*|/bl:*)
-      properties="$properties $1"
-      ;;
-    -dl:*|/dl:*)
-      properties="$properties $1"
-      ;;
     *)
-      echo "Invalid argument: $1"
-      usage
-      exit 1
+      properties="$properties $1"
       ;;
   esac
 
