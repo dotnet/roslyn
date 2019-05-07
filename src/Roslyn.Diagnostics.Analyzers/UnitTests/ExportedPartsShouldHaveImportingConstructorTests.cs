@@ -68,6 +68,179 @@ End Class
         [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
+        public async Task ExportAttributeNotInherited_CSharp(string mefNamespace)
+        {
+            var source = $@"
+using {mefNamespace};
+
+[Export]
+class C {{
+    [ImportingConstructor]
+    public C() {{ }}
+}}
+
+class D : C {{ }}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task ExportAttributeNotInherited_VisualBasic(string mefNamespace)
+        {
+            var source = $@"
+Imports {mefNamespace}
+
+<Export>
+Class C
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+
+Class D
+    Inherits C
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task InstanceAndImplicitStaticConstructor_CSharp(string mefNamespace)
+        {
+            var source = $@"
+using {mefNamespace};
+
+[Export]
+class C {{
+    private static readonly object _gate = new object();
+
+    [ImportingConstructor]
+    public C() {{ }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task InstanceAndImplicitStaticConstructor_VisualBasic(string mefNamespace)
+        {
+            var source = $@"
+Imports {mefNamespace}
+
+<Export>
+Class C
+    Private Shared ReadOnly _gate As Object = New Object()
+
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task InstanceAndExplicitStaticConstructor_CSharp(string mefNamespace)
+        {
+            var source = $@"
+using {mefNamespace};
+
+[Export]
+class C {{
+    private static readonly object _gate;
+
+    static C() {{ _gate = new object(); }}
+
+    [ImportingConstructor]
+    public C() {{ }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task InstanceAndExplicitStaticConstructor_VisualBasic(string mefNamespace)
+        {
+            var source = $@"
+Imports {mefNamespace}
+
+<Export>
+Class C
+    Private Shared ReadOnly _gate As Object
+
+    Shared Sub New()
+        _gate = New Object()
+    End Sub
+
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
         public async Task ImplicitConstructor_CSharp(string mefNamespace)
         {
             var source = $@"
@@ -123,6 +296,105 @@ Class C
     <ImportingConstructor>
     Public Sub New()
     End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task ImplicitConstructorPlacement_CSharp(string mefNamespace)
+        {
+            var source = $@"
+using {mefNamespace};
+
+[Export]
+class C {{
+    private readonly int _value = 0;
+
+    private int Value => _value;
+}}
+";
+            var fixedSource = $@"
+using {mefNamespace};
+
+[Export]
+class C {{
+    private readonly int _value = 0;
+
+    [ImportingConstructor]
+    public C()
+    {{
+    }}
+
+    private int Value => _value;
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(4, 2, 4, 8).WithArguments("C") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/31720")]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task ImplicitConstructorPlacement_VisualBasic(string mefNamespace)
+        {
+            var source = $@"
+Imports {mefNamespace}
+
+<Export>
+Class C
+    Private ReadOnly _value1 As Integer = 0
+
+    Private ReadOnly Property Value
+        Get
+            return _value1
+        End Get
+    End Property
+End Class
+";
+            var fixedSource = $@"
+Imports {mefNamespace}
+
+<Export>
+Class C
+    Private ReadOnly _value1 As Integer = 0
+
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+
+    Private ReadOnly Property Value
+        Get
+            return _value1
+        End Get
+    End Property
 End Class
 ";
 

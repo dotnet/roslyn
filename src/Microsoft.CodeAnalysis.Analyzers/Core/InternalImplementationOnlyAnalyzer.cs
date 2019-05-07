@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
             // in "internals visible" context, then issue an error.
             foreach (INamedTypeSymbol iface in namedTypeSymbol.AllInterfaces)
             {
-                System.Collections.Generic.IEnumerable<AttributeData> attributes = iface.GetApplicableAttributes();
+                System.Collections.Generic.IEnumerable<AttributeData> attributes = iface.GetAttributes();
 
                 // We are doing a string comparison of the name here because we don't care where the attribute comes from.
                 // CodeAnalysis.dll itself has this attribute and if the user assembly also had it, symbol equality will fail

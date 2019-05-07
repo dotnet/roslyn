@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         [SuppressMessage("AnalyzerPerformance", "RS1012:Start action has no registered actions.", Justification = "Method returns an analyzer that is registered by the caller.")]
         protected override DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
-            return new AttributeAnalyzer(diagnosticAnalyzer, diagnosticAnalyzerAttribute);
+            var attributeUsageAttribute = WellKnownTypes.AttributeUsageAttribute(compilationContext.Compilation);
+            return new AttributeAnalyzer(diagnosticAnalyzer, diagnosticAnalyzerAttribute, attributeUsageAttribute);
         }
 
         private sealed class AttributeAnalyzer : DiagnosticAnalyzerSymbolAnalyzer
@@ -53,9 +54,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private const string CSharpCompilationFullName = @"Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
             private const string BasicCompilationFullName = @"Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
 
-            public AttributeAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+            private readonly INamedTypeSymbol _attributeUsageAttribute;
+
+            public AttributeAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute, INamedTypeSymbol attributeUsageAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
+                _attributeUsageAttribute = attributeUsageAttribute;
             }
 
             protected override void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext)
@@ -74,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 bool supportsCSharp = false;
                 bool supportsVB = false;
 
-                var namedTypeAttributes = namedType.GetApplicableAttributes();
+                var namedTypeAttributes = namedType.GetApplicableAttributes(_attributeUsageAttribute);
 
                 foreach (AttributeData attribute in namedTypeAttributes)
                 {
