@@ -2544,6 +2544,80 @@ public class C
             VerifyTypingSemicolon(code, expected);
         }
 
+        [WorkItem(35260, "https://github.com/dotnet/roslyn/issues/35260")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DoWhile5()
+        {
+            var code =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while ($$n < Min(4,5))
+    }
+}";
+
+            var expected =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < Min(4,5));$$
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(35260, "https://github.com/dotnet/roslyn/issues/35260")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DoWhile6()
+        {
+            var code =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < Min(4,5)$$)
+    }
+}";
+
+            var expected =
+@"
+public class C
+{
+    void M()
+    {
+        int n = 0;
+        do
+        {
+            Console.WriteLine(n);
+            n++;
+        } while (n < Min(4,5));$$
+    }
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DoWhile_MissingParen()
         {
@@ -3639,6 +3713,45 @@ class D
     void M(char c)
     {
     }
+}
+";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(35260, "https://github.com/dotnet/roslyn/issues/35260")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void IncompleteLambda()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    public void Test()
+    {
+        C c = new C();
+        c.M(z =>
+        {
+        return 0$$)
+        }
+
+    private void M(Func<object, int> p) { }
+}
+";
+            var expected = @"
+using System;
+
+class C
+{
+    public void Test()
+    {
+        C c = new C();
+        c.M(z =>
+        {
+        return 0;$$)
+        }
+
+    private void M(Func<object, int> p) { }
 }
 ";
             VerifyTypingSemicolon(code, expected);
