@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 default:
                     nameSyntax = null;
-                    attributes = default(SyntaxList<XmlAttributeSyntax>);
+                    attributes = default;
                     break;
             }
 
