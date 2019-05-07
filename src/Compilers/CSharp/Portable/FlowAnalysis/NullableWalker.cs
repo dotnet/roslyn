@@ -4044,7 +4044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void ReportNullabilityMismatchWithTargetDelegate(Location location, NamedTypeSymbol delegateType, MethodSymbol method)
+        private void ReportNullabilityMismatchWithTargetDelegate(Location location, NamedTypeSymbol delegateType, MethodSymbol method, bool invokedAsExtensionMethod)
         {
             Debug.Assert((object)method != null);
             Debug.Assert(method.MethodKind != MethodKind.LambdaMethod);
@@ -4062,11 +4062,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     delegateType);
             }
 
-            int count = Math.Min(invoke.ParameterCount, method.ParameterCount);
+            int methodOffset = invokedAsExtensionMethod ? 1 : 0;
+            int count = Math.Min(invoke.ParameterCount, method.ParameterCount - methodOffset);
             for (int i = 0; i < count; i++)
             {
                 var invokeParameter = invoke.Parameters[i];
-                var methodParameter = method.Parameters[i];
+                var methodParameter = method.Parameters[i + methodOffset];
                 if (IsNullabilityMismatch(invokeParameter.TypeWithAnnotations, methodParameter.TypeWithAnnotations, requireIdentity: invokeParameter.RefKind != RefKind.None))
                 {
                     ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
@@ -4184,7 +4185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup:
                     if (reportRemainingWarnings)
                     {
-                        ReportNullabilityMismatchWithTargetDelegate(location, targetType.GetDelegateType(), conversion.Method);
+                        ReportNullabilityMismatchWithTargetDelegate(location, targetType.GetDelegateType(), conversion.Method, conversion.IsExtensionMethod);
                     }
                     resultState = NullableFlowState.NotNull;
                     break;
@@ -4195,14 +4196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var lambda = (BoundLambda)operandOpt;
                         var delegateType = targetType.GetDelegateType();
                         var variableState = GetVariableState(stateForLambda);
-                        Analyze(compilation,
-                                lambda,
-                                _conversions,
-                                Diagnostics,
-                                delegateInvokeMethod: delegateType?.DelegateInvokeMethod,
-                                returnTypes: null,
-                                initialState: variableState,
-                                analyzedNullabilityMapOpt: _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt);
+                        VisitLambda(lambda, delegateType, Diagnostics, variableState);
                         if (reportRemainingWarnings)
                         {
                             ReportNullabilityMismatchWithTargetDelegate(location, delegateType, lambda.UnboundLambda);
@@ -4612,19 +4606,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundMethodGroup group:
                     {
-                        VisitRvalue(group.ReceiverOpt);
-                        SetAnalyzedNullability(group, default);
+                        var receiverOpt = group.ReceiverOpt;
                         // https://github.com/dotnet/roslyn/issues/33637: Should update method based on inferred receiver type.
                         var method = node.MethodOpt;
-                        if (!(method is null) && !group.IsSuppressed)
+                        if (receiverOpt != null)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(group.Syntax.Location, delegateType, method);
+                            VisitRvalue(receiverOpt);
+                            if (node.IsExtensionMethod)
+                            {
+                                CheckExtensionMethodThisNullability(receiverOpt, Conversion.Identity, method.Parameters[0], ResultType);
+                            }
+                            else
+                            {
+                                CheckPossibleNullReceiver(receiverOpt);
+                            }
+                        }
+                        SetAnalyzedNullability(group, default);
+                        if (method is object && !group.IsSuppressed)
+                        {
+                            ReportNullabilityMismatchWithTargetDelegate(group.Syntax.Location, delegateType, method, node.IsExtensionMethod);
                         }
                     }
                     break;
                 case BoundLambda lambda:
                     {
-                        VisitLambda(lambda, Diagnostics);
+                        VisitLambda(lambda, delegateType, Diagnostics);
                         SetNotNullResult(lambda);
                         if (!lambda.IsSuppressed)
                         {
@@ -4673,16 +4679,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_disableNullabilityAnalysis)
             {
                 var bag = new DiagnosticBag();
-                VisitLambda(node, bag);
+                VisitLambda(node, node.Type.GetDelegateType(), bag);
                 bag.Free();
             }
             SetNotNullResult(node);
             return null;
         }
 
-        private void VisitLambda(BoundLambda node, DiagnosticBag diagnostics)
+        private void VisitLambda(BoundLambda node, NamedTypeSymbol delegateTypeOpt, DiagnosticBag diagnostics, VariableState initialState = null)
         {
-            Analyze(compilation, node, _conversions, diagnostics, node.Type.GetDelegateType()?.DelegateInvokeMethod, returnTypes: null, initialState: GetVariableState(State.Clone()), _analyzedNullabilityMapOpt);
+            Debug.Assert(delegateTypeOpt?.IsDelegateType() != false);
+            Analyze(
+                compilation,
+                node,
+                _conversions,
+                diagnostics,
+                delegateTypeOpt?.DelegateInvokeMethod,
+                returnTypes: null,
+                initialState: initialState ?? GetVariableState(State.Clone()),
+                _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt);
         }
 
         public override BoundNode VisitUnboundLambda(UnboundLambda node)
@@ -4690,14 +4705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The presence of this node suggests an error was detected in an earlier phase.
             // Analyze the body to report any additional warnings.
             var lambda = node.BindForErrorRecovery();
-            Analyze(compilation,
-                    lambda,
-                    _conversions,
-                    Diagnostics,
-                    delegateInvokeMethod: null,
-                    returnTypes: null,
-                    initialState: GetVariableState(State.Clone()),
-                    _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt);
+            VisitLambda(lambda, delegateTypeOpt: null, Diagnostics);
             SetNotNullResult(node);
             return null;
         }
@@ -4845,7 +4853,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SetResultType(right, rightResultOpt.Value);
                 }
                 var rightResult = ResultType;
-                var rightResultWithAnnotations = rightResult.ToTypeWithAnnotations();
 
                 var invocation = conversion.DeconstructionInfo.Invocation as BoundCall;
                 var deconstructMethod = invocation?.Method;
@@ -4865,17 +4872,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // Check nullability for `this` parameter
-                        var parameter = deconstructMethod.Parameters[0];
-                        VisitArgumentConversion(
-                                right, conversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations,
-                                new VisitArgumentResult(new VisitResult(rightResult, rightResultWithAnnotations), stateForLambda: default),
-                                extensionMethodThisArgument: true);
+                        CheckExtensionMethodThisNullability(right, conversion, deconstructMethod.Parameters[0], rightResult);
 
                         if (deconstructMethod.IsGenericMethod)
                         {
                             // re-infer the deconstruct parameters based on the 'this' parameter 
                             ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n + 1);
-                            placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResultWithAnnotations));
+                            placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResult.ToTypeWithAnnotations()));
                             for (int i = 0; i < n; i++)
                             {
                                 placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
@@ -6275,6 +6278,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+        }
+
+        private void CheckExtensionMethodThisNullability(BoundExpression expr, Conversion conversion, ParameterSymbol parameter, TypeWithState result)
+        {
+            VisitArgumentConversion(
+                expr,
+                conversion,
+                parameter.RefKind,
+                parameter,
+                parameter.TypeWithAnnotations,
+                new VisitArgumentResult(new VisitResult(result, result.ToTypeWithAnnotations()),
+                stateForLambda: default),
+                extensionMethodThisArgument: true);
         }
 
         private static bool IsNullabilityMismatch(TypeWithAnnotations type1, TypeWithAnnotations type2)
