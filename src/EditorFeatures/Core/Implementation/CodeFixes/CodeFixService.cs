@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                aggregatedDiagnostics = aggregatedDiagnostics ?? new Dictionary<TextSpan, List<DiagnosticData>>();
+                aggregatedDiagnostics ??= new Dictionary<TextSpan, List<DiagnosticData>>();
                 aggregatedDiagnostics.GetOrAdd(diagnostic.TextSpan, _ => new List<DiagnosticData>()).Add(diagnostic);
             }
 
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             continue;
                         }
 
-                        builder = builder ?? ImmutableDictionary.CreateBuilder<DiagnosticId, List<CodeFixProvider>>();
+                        builder ??= ImmutableDictionary.CreateBuilder<DiagnosticId, List<CodeFixProvider>>();
                         var list = builder.GetOrAdd(id, s_createList);
                         list.Add(fixer);
                     }

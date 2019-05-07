@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             protected IndentationResult GetIndentationOfLine(TextLine lineToMatch, int addedSpaces)
             {
                 var firstNonWhitespace = lineToMatch.GetFirstNonWhitespacePosition();
-                firstNonWhitespace = firstNonWhitespace ?? lineToMatch.End;
+                firstNonWhitespace ??= lineToMatch.End;
 
                 return GetIndentationOfPosition(firstNonWhitespace.Value, addedSpaces);
             }

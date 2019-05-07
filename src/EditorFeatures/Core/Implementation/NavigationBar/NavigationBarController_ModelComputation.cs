@@ -93,8 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 }
             }
 
-            _lastCompletedModel = _lastCompletedModel ??
-                    new NavigationBarModel(SpecializedCollections.EmptyList<NavigationBarItem>(), new VersionStamp(), null);
+            _lastCompletedModel ??=                     new NavigationBarModel(SpecializedCollections.EmptyList<NavigationBarItem>(), new VersionStamp(), null);
             return _lastCompletedModel;
         }
 

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             List<ITagSpan<TTag>> result = null;
             foreach (var tagNode in intersectingIntervals)
             {
-                result = result ?? new List<ITagSpan<TTag>>();
+                result ??= new List<ITagSpan<TTag>>();
                 result.Add(new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag));
             }
 

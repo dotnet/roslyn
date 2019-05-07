@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     var mappingResult = symbolMappingService.MapSymbolAsync(document, symbol, cancellationToken)
                                                             .WaitAndGetResult(cancellationToken);
 
-                    mappingResult = mappingResult ?? new SymbolMappingResult(document.Project, symbol);
+                    mappingResult ??= new SymbolMappingResult(document.Project, symbol);
 
                     results = _peekableItemFactory.GetPeekableItemsAsync(mappingResult.Symbol, mappingResult.Project, _peekResultFactory, cancellationToken)
                                                  .WaitAndGetResult(cancellationToken);
