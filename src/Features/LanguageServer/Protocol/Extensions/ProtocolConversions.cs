@@ -57,6 +57,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.NuGet, LSP.CompletionItemKind.Text }
         };
 
+        public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
+        {
+            return new LSP.TextDocumentPositionParams()
+            {
+                TextDocument = DocumentToTextDocumentIdentifier(document),
+                Position = LinePositionToPosition(text.Lines.GetLinePosition(position))
+            };
+        }
+
         public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(Document document)
         {
             return new LSP.TextDocumentIdentifier() { Uri = document.GetURI() };
@@ -197,6 +206,61 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     return LSP.DocumentHighlightKind.Write;
                 default:
                     return LSP.DocumentHighlightKind.Text;
+            }
+        }
+
+        public static Glyph SymbolKindToGlyph(LSP.SymbolKind kind)
+        {
+            switch (kind)
+            {
+                case LSP.SymbolKind.File:
+                    return Glyph.CSharpFile;
+                case LSP.SymbolKind.Module:
+                    return Glyph.ModulePublic;
+                case LSP.SymbolKind.Namespace:
+                    return Glyph.Namespace;
+                case LSP.SymbolKind.Package:
+                    return Glyph.Assembly;
+                case LSP.SymbolKind.Class:
+                    return Glyph.ClassPublic;
+                case LSP.SymbolKind.Method:
+                    return Glyph.MethodPublic;
+                case LSP.SymbolKind.Property:
+                    return Glyph.PropertyPublic;
+                case LSP.SymbolKind.Field:
+                    return Glyph.FieldPublic;
+                case LSP.SymbolKind.Constructor:
+                    return Glyph.MethodPublic;
+                case LSP.SymbolKind.Enum:
+                    return Glyph.EnumPublic;
+                case LSP.SymbolKind.Interface:
+                    return Glyph.InterfacePublic;
+                case LSP.SymbolKind.Function:
+                    return Glyph.DelegatePublic;
+                case LSP.SymbolKind.Variable:
+                    return Glyph.Local;
+                case LSP.SymbolKind.Constant:
+                case LSP.SymbolKind.Number:
+                    return Glyph.ConstantPublic;
+                case LSP.SymbolKind.String:
+                case LSP.SymbolKind.Boolean:
+                case LSP.SymbolKind.Array:
+                case LSP.SymbolKind.Object:
+                case LSP.SymbolKind.Key:
+                case LSP.SymbolKind.Null:
+                    return Glyph.Local;
+                case LSP.SymbolKind.EnumMember:
+                    return Glyph.EnumMemberPublic;
+                case LSP.SymbolKind.Struct:
+                    return Glyph.StructurePublic;
+                case LSP.SymbolKind.Event:
+                    return Glyph.EventPublic;
+                case LSP.SymbolKind.Operator:
+                    return Glyph.Operator;
+                case LSP.SymbolKind.TypeParameter:
+                    return Glyph.TypeParameter;
+                default:
+                    return Glyph.None;
             }
         }
 
