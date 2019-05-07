@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var text = root.GetText();
 
                 // Expand selection in both directions until a double quote or any line break character is reached
-                bool IsWordCharacter(char ch) => !(ch == '"' || TextUtilities.IsAnyLineBreakCharacter(ch));
+                static bool IsWordCharacter(char ch) => !(ch == '"' || TextUtilities.IsAnyLineBreakCharacter(ch));
 
                 result = CommonCompletionUtilities.GetWordSpan(
                     text, startSpan.Start, IsWordCharacter, IsWordCharacter, alwaysExtendEndSpan: true);

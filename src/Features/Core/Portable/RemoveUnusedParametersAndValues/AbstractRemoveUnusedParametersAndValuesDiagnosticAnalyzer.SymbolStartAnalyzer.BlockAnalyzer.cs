@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return false;
                     }
 
-                    bool IsRemovableAssignmentValueWithoutSideEffects(IOperation assignmentValue)
+                    static bool IsRemovableAssignmentValueWithoutSideEffects(IOperation assignmentValue)
                     {
                         if (assignmentValue.ConstantValue.HasValue)
                         {

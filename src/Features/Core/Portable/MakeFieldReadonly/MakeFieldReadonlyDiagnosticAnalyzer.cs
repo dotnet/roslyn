@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     }
                 }
 
-                bool IsCandidateField(IFieldSymbol symbol) =>
+                static bool IsCandidateField(IFieldSymbol symbol) =>
                         symbol.DeclaredAccessibility == Accessibility.Private &&
                         !symbol.IsReadOnly &&
                         !symbol.IsConst &&
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 }
 
                 // Method to compute the initial field state.
-                (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
+                static (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, CancellationToken cancellationToken)
                 {
                     Debug.Assert(IsCandidateField(field));
 
