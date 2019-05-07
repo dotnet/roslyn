@@ -10,7 +10,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         internal const string IdentifierString = nameof(VisualStudioTodoListTable);
 
-        public VisualStudioTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
+        public static void Register(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider)
+        {
+            new VisualStudioTodoListTable(workspace, todoListProvider, provider);
+        }
+
+        // internal for testing
+        internal VisualStudioTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
             base(workspace, todoListProvider, IdentifierString, provider)
         {
             ConnectWorkspaceEvents();

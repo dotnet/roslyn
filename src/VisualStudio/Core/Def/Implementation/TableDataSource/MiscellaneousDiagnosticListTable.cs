@@ -8,13 +8,18 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class MiscellaneousDiagnosticListTable : VisualStudioBaseDiagnosticListTable
+    internal sealed class MiscellaneousDiagnosticListTable : VisualStudioBaseDiagnosticListTable
     {
         internal const string IdentifierString = nameof(MiscellaneousDiagnosticListTable);
 
         private readonly LiveTableDataSource _source;
 
-        public MiscellaneousDiagnosticListTable(MiscellaneousFilesWorkspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
+        public static void Register(MiscellaneousFilesWorkspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+        {
+            new MiscellaneousDiagnosticListTable(workspace, diagnosticService, provider);
+        }
+
+        private MiscellaneousDiagnosticListTable(MiscellaneousFilesWorkspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
             base(workspace, provider)
         {
             _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);

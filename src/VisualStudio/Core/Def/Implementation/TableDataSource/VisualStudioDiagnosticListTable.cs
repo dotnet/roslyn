@@ -1,49 +1,57 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.ComponentModel;
-using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
-using Microsoft.VisualStudio.TaskStatusCenter;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
-    [Export(typeof(VisualStudioDiagnosticListTable))]
     internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
     {
         internal const string IdentifierString = nameof(VisualStudioDiagnosticListTable);
 
-        private readonly IErrorList _errorList;
         private readonly LiveTableDataSource _liveTableSource;
         private readonly BuildTableDataSource _buildTableSource;
 
-        [ImportingConstructor]
-        public VisualStudioDiagnosticListTable(
-            SVsServiceProvider serviceProvider,
-            VisualStudioWorkspace workspace,
+        private IErrorList _errorList;
+
+        public static async Task RegisterAsync(
+            Shell.IAsyncServiceProvider asyncServiceProvider,
+            VisualStudioWorkspaceImpl workspace,
+            IDiagnosticService diagnosticService,
+            ITableManagerProvider provider)
+        {
+            var table = new VisualStudioDiagnosticListTable(workspace, diagnosticService, workspace.ExternalErrorDiagnosticUpdateSource, provider);
+
+            table.SetErrorList((IErrorList)await asyncServiceProvider.GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false));
+        }
+
+        private VisualStudioDiagnosticListTable(
+            Workspace workspace,
             IDiagnosticService diagnosticService,
             ExternalErrorDiagnosticUpdateSource errorSource,
             ITableManagerProvider provider) :
-            this(workspace, diagnosticService, errorSource, provider)
+            base(workspace, provider)
         {
+            _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
+            _buildTableSource = new BuildTableDataSource(workspace, errorSource);
+
             ConnectWorkspaceEvents();
+        }
 
-            _errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
-            if (_errorList == null)
-            {
-                AddInitialTableSource(workspace.CurrentSolution, _liveTableSource);
-                return;
-            }
-
+        private void SetErrorList(IErrorList errorList)
+        {
+            _errorList = errorList;
             _errorList.PropertyChanged += OnErrorListPropertyChanged;
-            AddInitialTableSource(workspace.CurrentSolution, GetCurrentDataSource());
+
+            AddInitialTableSource(Workspace.CurrentSolution, GetCurrentDataSource());
             SuppressionStateColumnDefinition.SetDefaultFilter(_errorList.TableControl);
         }
 
@@ -59,27 +67,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         /// this is for test only
         internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            this(workspace, diagnosticService, errorSource: null, provider)
+            base(workspace, provider)
         {
-            AddInitialTableSource(workspace.CurrentSolution, _liveTableSource);
+            AddInitialTableSource(workspace.CurrentSolution, new LiveTableDataSource(workspace, diagnosticService, IdentifierString));
         }
 
         /// this is for test only
         internal VisualStudioDiagnosticListTable(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider) :
-            this(workspace, diagnosticService: null, errorSource, provider)
+            base(workspace, provider)
         {
-            AddInitialTableSource(workspace.CurrentSolution, _buildTableSource);
-        }
-
-        private VisualStudioDiagnosticListTable(
-            Workspace workspace,
-            IDiagnosticService diagnosticService,
-            ExternalErrorDiagnosticUpdateSource errorSource,
-            ITableManagerProvider provider) :
-            base(workspace, diagnosticService, provider)
-        {
-            _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
-            _buildTableSource = new BuildTableDataSource(workspace, errorSource);
+            AddInitialTableSource(workspace.CurrentSolution, new BuildTableDataSource(workspace, errorSource));
         }
 
         protected override void AddTableSourceIfNecessary(Solution solution)

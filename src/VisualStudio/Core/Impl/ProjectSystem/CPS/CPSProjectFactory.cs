@@ -21,7 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         private readonly VisualStudioProjectFactory _projectFactory;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IProjectCodeModelFactory _projectCodeModelFactory;
-        private readonly ExternalErrorDiagnosticUpdateSource _externalErrorDiagnosticUpdateSource;
 
         private static readonly ImmutableDictionary<string, string> s_projectLanguageToErrorCodePrefixMap =
             ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, new[]
@@ -36,13 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public CPSProjectFactory(
             VisualStudioProjectFactory projectFactory,
             VisualStudioWorkspaceImpl workspace,
-            IProjectCodeModelFactory projectCodeModelFactory,
-            [Import(AllowDefault = true)] /* not present in unit tests */ ExternalErrorDiagnosticUpdateSource externalErrorDiagnosticUpdateSource)
+            IProjectCodeModelFactory projectCodeModelFactory)
         {
             _projectFactory = projectFactory;
             _workspace = workspace;
             _projectCodeModelFactory = projectCodeModelFactory;
-            _externalErrorDiagnosticUpdateSource = externalErrorDiagnosticUpdateSource;
         }
 
         IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(
@@ -59,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             if (s_projectLanguageToErrorCodePrefixMap.TryGetKey(languageName, out var prefix))
             {
-                errorReporter = new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, _workspace, _externalErrorDiagnosticUpdateSource);
+                errorReporter = new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, _workspace);
             }
 
             return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, errorReporter, projectGuid, binOutputPath);

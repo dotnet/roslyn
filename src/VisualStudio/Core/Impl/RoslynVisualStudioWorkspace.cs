@@ -6,6 +6,8 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Undo;
@@ -17,8 +19,10 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.TableManager;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 
@@ -49,6 +53,17 @@ namespace Microsoft.VisualStudio.LanguageServices
                     Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
                 }
             }
+
+            // this will register todo list and error list to VS
+            VisualStudioDiagnosticListTable.RegisterAsync(
+                asyncServiceProvider, this,
+                exportProvider.GetExportedValue<IDiagnosticService>(),
+                exportProvider.GetExportedValue<ITableManagerProvider>()).Forget();
+
+            VisualStudioTodoListTable.Register(
+                this,
+                exportProvider.GetExportedValue<ITodoListProvider>(),
+                exportProvider.GetExportedValue<ITableManagerProvider>());
         }
 
         internal override IInvisibleEditor OpenInvisibleEditor(DocumentId documentId)

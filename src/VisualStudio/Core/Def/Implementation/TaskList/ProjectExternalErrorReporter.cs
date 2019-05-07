@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -30,11 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly ExternalErrorDiagnosticUpdateSource _diagnosticProvider;
 
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
-            : this(projectId, errorCodePrefix, serviceProvider.GetMefService<VisualStudioWorkspace>(), serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>())
+            : this(projectId, errorCodePrefix, serviceProvider.GetMefService<VisualStudioWorkspaceImpl>())
         {
         }
 
-        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspace workspace, ExternalErrorDiagnosticUpdateSource diagnosticProvider)
+        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspaceImpl workspace)
         {
             Debug.Assert(workspace != null);
 
@@ -44,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _projectId = projectId;
             _errorCodePrefix = errorCodePrefix;
             _workspace = workspace;
-            _diagnosticProvider = diagnosticProvider;
+            _diagnosticProvider = workspace.ExternalErrorDiagnosticUpdateSource;
         }
 
         private bool CanHandle(string errorId)

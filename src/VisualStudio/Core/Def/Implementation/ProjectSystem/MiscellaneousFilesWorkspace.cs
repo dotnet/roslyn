@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -14,16 +15,16 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     [Export(typeof(MiscellaneousFilesWorkspace))]
     internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IVsRunningDocTableEvents2
     {
@@ -59,6 +60,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
             SaveEventsService saveEventsService,
             VisualStudioWorkspace visualStudioWorkspace,
+            IDiagnosticService diagnosticService,
+            ITodoListProvider todoListProvider,
+            ITableManagerProvider provider,
             SVsServiceProvider serviceProvider) :
             base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
@@ -73,6 +77,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
             saveEventsService.StartSendingSaveEvents();
+
+            MiscellaneousDiagnosticListTable.Register(this, diagnosticService, provider);
+            MiscellaneousTodoListTable.Register(this, todoListProvider, provider);
         }
 
         public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)

@@ -6,11 +6,16 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class MiscellaneousTodoListTable : VisualStudioBaseTodoListTable
+    internal sealed class MiscellaneousTodoListTable : VisualStudioBaseTodoListTable
     {
         internal const string IdentifierString = nameof(MiscellaneousTodoListTable);
 
-        public MiscellaneousTodoListTable(MiscellaneousFilesWorkspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
+        public static void Register(MiscellaneousFilesWorkspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider)
+        {
+            new MiscellaneousTodoListTable(workspace, todoListProvider, provider);
+        }
+
+        private MiscellaneousTodoListTable(MiscellaneousFilesWorkspace workspace, ITodoListProvider todoListProvider, ITableManagerProvider provider) :
             base(workspace, todoListProvider, IdentifierString, provider)
         {
             ConnectWorkspaceEvents();
