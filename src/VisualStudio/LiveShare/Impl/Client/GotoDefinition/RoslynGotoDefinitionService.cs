@@ -85,11 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textDocumentPositionParams = new LSP.TextDocumentPositionParams()
-            {
-                TextDocument = ProtocolConversions.DocumentToTextDocumentIdentifier(document),
-                Position = ProtocolConversions.LinePositionToPosition(text.Lines.GetLinePosition(position))
-            };
+            var textDocumentPositionParams = ProtocolConversions.PositionToTextDocumentPositionParams(position, text, document);
 
             var response = await lspClient.RequestAsync(LSP.Methods.TextDocumentDefinition, textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
             var locations = ((JToken)response)?.ToObject<LSP.Location[]>();
