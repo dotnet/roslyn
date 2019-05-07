@@ -3,26 +3,23 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Cascade.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using LspCodeAction = Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol.CodeAction;
+using Microsoft.CodeAnalysis.LanguageServer;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     internal class RoslynCodeActionProvider : CodeRefactoringProvider
     {
-        private readonly RoslynLSPClientServiceFactory roslynLSPClientServiceFactory;
-        private readonly IVsConfigurationSettings configurationSettings;
-        private readonly IDiagnosticAnalyzerService diagnosticAnalyzerService;
+        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
-        public RoslynCodeActionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, IVsConfigurationSettings configurationSettings, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+        public RoslynCodeActionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
-            this.roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
-            this.configurationSettings = configurationSettings ?? throw new ArgumentNullException(nameof(configurationSettings));
-            this.diagnosticAnalyzerService = diagnosticAnalyzerService ?? throw new ArgumentNullException(nameof(diagnosticAnalyzerService));
+            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _diagnosticAnalyzerService = diagnosticAnalyzerService ?? throw new ArgumentNullException(nameof(diagnosticAnalyzerService));
         }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -33,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return;
             }
 
-            var lspClient = this.roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return;
@@ -43,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             var span = context.Span;
 
-            var diagnostics = await this.diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(context.Document, span, cancellationToken: context.CancellationToken).ConfigureAwait(false);
+            var diagnostics = await _diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(context.Document, span, cancellationToken: context.CancellationToken).ConfigureAwait(false);
 
             var diagnostic = diagnostics?.FirstOrDefault();
             if (diagnostic != null)
@@ -51,13 +48,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 span = diagnostic.TextSpan;
             }
 
-            var codeActionParams = new CodeActionParams
+            var codeActionParams = new LSP.CodeActionParams
             {
-                TextDocument = context.Document.ToTextDocumentIdentifier(),
-                Range = span.ToRange(text)
+                TextDocument = new LSP.TextDocumentIdentifier { Uri = context.Document.GetURI() },
+                Range = ProtocolConversions.TextSpanToRange(span, text)
             };
 
-            Command[] commands = await lspClient.RequestAsync(Methods.TextDocumentCodeAction, codeActionParams, context.CancellationToken).ConfigureAwait(false);
+            var commands = await lspClient.RequestAsync(LSP.Methods.TextDocumentCodeAction, codeActionParams, context.CancellationToken).ConfigureAwait(false);
             if (commands == null)
             {
                 return;
@@ -69,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 // If a Command, leave it unchanged; we want to dispatch it to the host to execute.
                 // If a CodeAction, unwrap the CodeAction so the guest can run it locally.
                 var commandArguments = command.Arguments.Single();
-                LspCodeAction codeAction = (commandArguments is LspCodeAction) ? (LspCodeAction) commandArguments : null;
+                var codeAction = (commandArguments is LSP.CodeAction) ? (LSP.CodeAction)commandArguments : null;
                 context.RegisterRefactoring(new RoslynRemoteCodeAction(context.Document, (codeAction == null) ? command : null, codeAction, lspClient));
             }
         }
