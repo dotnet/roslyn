@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         var assemblyName = await GetAssemblyNameFromInternalsVisibleToAttributeAsync(document, attribute, completionContext.CancellationToken).ConfigureAwait(false);
                         if (!string.IsNullOrWhiteSpace(assemblyName))
                         {
-                            resultBuilder = resultBuilder ?? ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
+                            resultBuilder ??= ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
                             resultBuilder.Add(assemblyName);
                         }
                     }
