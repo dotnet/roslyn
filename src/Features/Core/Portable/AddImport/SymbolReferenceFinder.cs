@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             private readonly SemanticModel _semanticModel;
 
             private readonly INamedTypeSymbol _containingType;
-            private readonly ISymbol _containingTypeOrAssembly;
             private readonly ISet<INamespaceSymbol> _namespacesInScope;
             private readonly ISyntaxFactsService _syntaxFacts;
             private readonly AbstractAddImportFeatureService<TSimpleNameSyntax> _owner;
@@ -63,7 +62,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 _containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
-                _containingTypeOrAssembly = _containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
                 _syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                 _namespacesInScope = GetNamespacesInScope(cancellationToken);
