@@ -70,8 +70,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                     },
                     cancellationToken).ConfigureAwait(false);
 
-                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
                 if (result != null)
                 {
                     return result.ToImmutableArray();
