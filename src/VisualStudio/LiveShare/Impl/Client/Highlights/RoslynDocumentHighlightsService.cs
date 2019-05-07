@@ -7,29 +7,30 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     internal class RoslynDocumentHighlightsService : IDocumentHighlightsService
     {
-        private readonly RoslynLSPClientServiceFactory roslynLSPClientServiceFactory;
+        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
 
         public RoslynDocumentHighlightsService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
         {
-            this.roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
         }
 
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var lspClient = this.roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return ImmutableArray<DocumentHighlights>.Empty;
             }
 
             var text = await document.GetTextAsync().ConfigureAwait(false);
-            var textDocumentPositionParams = document.GetTextDocumentPositionParams(text, position);
+            var textDocumentPositionParams = ProtocolConversions.PositionToTextDocumentPositionParams(position, text, document);
 
             var highlights = await lspClient.RequestAsync(Methods.TextDocumentDocumentHighlight, textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
             if (highlights == null)
@@ -37,8 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return ImmutableArray<DocumentHighlights>.Empty;
             }
 
-            var highlightSpans = highlights.Select(highlight => new HighlightSpan(highlight.Range.ToTextSpan(text), ToHighlightSpanKind(highlight.Kind)));
-
+            var highlightSpans = highlights.Select(highlight => new HighlightSpan(ProtocolConversions.RangeToTextSpan(highlight.Range, text), ToHighlightSpanKind(highlight.Kind)));
             return ImmutableArray.Create(new DocumentHighlights(document, highlightSpans.ToImmutableArray()));
         }
 
