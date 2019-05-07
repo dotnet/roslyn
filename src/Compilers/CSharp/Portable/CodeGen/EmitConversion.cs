@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     // consumes 1 argument (array) and produces one result (span)
                     _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
-                    EmitSymbolToken(expression.Method, expression.Syntax, optArgList: null);
+                    EmitSymbolToken(expression.ConversionMethod, expression.Syntax, optArgList: null);
                 }
             }
         }

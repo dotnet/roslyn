@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
-            MethodSymbol method = VisitMethodSymbol(node.Method);
+            MethodSymbol method = VisitMethodSymbol(node.ConversionMethod);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(operand, method, type);
         }

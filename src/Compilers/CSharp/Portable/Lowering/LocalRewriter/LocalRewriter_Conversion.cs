@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // do not rewrite user defined conversion in expression trees or
+            // do not rewrite user defined conversion in expression trees
             if (_inExpressionLambda)
             {
                 return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, explicitCastInCode: true, conversionGroupOpt: null, default(ConstantValue), rewrittenType);
