@@ -1,42 +1,29 @@
-﻿//
-//  Copyright (c) Microsoft Corporation. All rights reserved.
-//
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
-using Microsoft.Cascade.Common;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
+    [Shared]
     [ExportSignatureHelpProvider("CSharpLspSignatureHelpProvider", StringConstants.CSharpLspLanguageName)]
     internal class CSharpLspSignatureHelpProvider : RoslynSignatureHelpProvider
     {
         [ImportingConstructor]
-        public CSharpLspSignatureHelpProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, IVsConfigurationSettings configurationSettings)
-            : base(roslynLSPClientServiceFactory, configurationSettings )
+        public CSharpLspSignatureHelpProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
+            : base(roslynLSPClientServiceFactory)
         {
         }
     }
 
+    [Shared]
     [ExportSignatureHelpProvider("VBLspSignatureHelpProvider", StringConstants.VBLspLanguageName)]
     internal class VBLspSignatureHelpProvider : RoslynSignatureHelpProvider
     {
         [ImportingConstructor]
-        public VBLspSignatureHelpProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, IVsConfigurationSettings configurationSettings)
-            : base(roslynLSPClientServiceFactory, configurationSettings)
+        public VBLspSignatureHelpProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
+            : base(roslynLSPClientServiceFactory)
         {
         }
     }
-
-#if !VS_16_0
-    [ExportSignatureHelpProvider("TypeScriptLspSignatureHelpProvider", StringConstants.TypeScriptLanguageName)]
-    internal class TypeScriptLspSignatureHelpProvider : RoslynSignatureHelpProvider
-    {
-        [ImportingConstructor]
-        public TypeScriptLspSignatureHelpProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, IVsConfigurationSettings configurationSettings)
-            : base(roslynLSPClientServiceFactory, configurationSettings)
-        {
-        }
-    }
-#endif
 }

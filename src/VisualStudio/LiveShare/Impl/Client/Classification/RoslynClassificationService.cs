@@ -1,6 +1,4 @@
-﻿//
-//  Copyright (c) Microsoft Corporation. All rights reserved.
-//
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -9,36 +7,40 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.Remote.Shared.CustomProtocol;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     internal class RoslynClassificationService : ISyntaxClassificationService
     {
-        private readonly RoslynLSPClientServiceFactory roslynLSPClientServiceFactory;
-        private readonly ISyntaxClassificationService originalService;
-        private readonly ClassificationTypeMap classificationTypeMap;
+        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly ISyntaxClassificationService _originalService;
+        private readonly ClassificationTypeMap _classificationTypeMap;
+        private readonly IThreadingContext _threadingContext;
 
-        public RoslynClassificationService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, ISyntaxClassificationService originalService, ClassificationTypeMap classificationTypeMap)
+        public RoslynClassificationService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, ISyntaxClassificationService originalService,
+            ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
         {
-            this.roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
-            this.originalService = originalService ?? throw new ArgumentNullException(nameof(originalService));
-            this.classificationTypeMap = classificationTypeMap ?? throw new ArgumentNullException(nameof(classificationTypeMap));
+            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _originalService = originalService ?? throw new ArgumentNullException(nameof(originalService));
+            _classificationTypeMap = classificationTypeMap ?? throw new ArgumentNullException(nameof(classificationTypeMap));
+            _threadingContext = threadingContext;
         }
 
         public void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            this.originalService.AddLexicalClassifications(text, textSpan, result, cancellationToken);
+            _originalService.AddLexicalClassifications(text, textSpan, result, cancellationToken);
         }
 
         public void AddSemanticClassifications(SemanticModel semanticModel, TextSpan textSpan, Workspace workspace, Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers, Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            _threadingContext.JoinableTaskFactory.Run(async () =>
             {
                 var sourceText = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 await AddRemoteSemanticClassificationsAsync(sourceText, semanticModel.SyntaxTree.FilePath, textSpan, result, cancellationToken).ConfigureAwait(false);
@@ -60,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private async Task AddRemoteSemanticClassificationsAsync(SourceText text, string filePath, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            var lspClient = this.roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return;
@@ -69,10 +71,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             var classificationParams = new ClassificationParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = lspClient.ProtocolConverter.ToProtocolUri(new Uri(filePath)) },
-                Range = textSpan.ToRange(text)
+                Range = ProtocolConversions.TextSpanToRange(textSpan, text)
             };
 
-            ClassificationSpan[] classificationSpans = await lspClient.RequestAsync(RoslynMethods.Classifications, classificationParams, cancellationToken).ConfigureAwait(false);
+            var request = new LspRequest<ClassificationParams, ClassificationSpan[]>(RoslynMethods.ClassificationsName);
+            var classificationSpans = await lspClient.RequestAsync(request, classificationParams, cancellationToken).ConfigureAwait(false);
             if (classificationSpans == null)
             {
                 return;
@@ -83,12 +86,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 // The host may return more classifications than are supported by the guest. As an example, 15.7 added classifications for type members which wouldnt be understood by a 15.6 guest.
                 // Check with the classificationTypeMap to see if this is a known classification.
                 var classification = classificationSpan.Classification;
-                if (this.classificationTypeMap.GetClassificationType(classification) == null)
+                if (_classificationTypeMap.GetClassificationType(classification) == null)
                 {
                     classification = ClassificationTypeNames.Identifier;
                 }
 
-                var span = classificationSpan.Range.ToTextSpan(text);
+                var span = ProtocolConversions.RangeToTextSpan(classificationSpan.Range, text);
                 if (span.End <= text.Length)
                 {
                     result.Add(new ClassifiedSpan(classification, span));
@@ -98,17 +101,17 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         public void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            this.originalService.AddSyntacticClassifications(syntaxTree, textSpan, result, cancellationToken);
+            _originalService.AddSyntacticClassifications(syntaxTree, textSpan, result, cancellationToken);
         }
 
         public ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan)
         {
-            return this.originalService.FixClassification(text, classifiedSpan);
+            return _originalService.FixClassification(text, classifiedSpan);
         }
 
         public ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
         {
-            return this.originalService.GetDefaultSyntaxClassifiers();
+            return _originalService.GetDefaultSyntaxClassifiers();
         }
     }
 }

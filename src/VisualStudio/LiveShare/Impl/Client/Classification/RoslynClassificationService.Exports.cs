@@ -1,6 +1,4 @@
-﻿//
-//  Copyright (c) Microsoft Corporation. All rights reserved.
-//
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -32,38 +30,41 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspEditorClassificationFactoryService : ILanguageServiceFactory
     {
-        private readonly RoslynLSPClientServiceFactory roslynLSPClientServiceFactory;
-        private readonly ClassificationTypeMap classificationTypeMap;
+        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly ClassificationTypeMap _classificationTypeMap;
+        private readonly ThreadingContext _threadingContext;
 
         [ImportingConstructor]
-        public CSharpLspEditorClassificationFactoryService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, ClassificationTypeMap classificationTypeMap)
+        public CSharpLspEditorClassificationFactoryService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
         {
-            this.roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
-            this.classificationTypeMap = classificationTypeMap ?? throw new ArgumentNullException(nameof(classificationTypeMap));
+            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _classificationTypeMap = classificationTypeMap ?? throw new ArgumentNullException(nameof(classificationTypeMap));
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            return new RoslynClassificationService(this.roslynLSPClientServiceFactory, languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), this.classificationTypeMap);
+            return new RoslynClassificationService(_roslynLSPClientServiceFactory, languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), _classificationTypeMap, _threadingContext);
         }
     }
 
     [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspEditorClassificationFactoryService : ILanguageServiceFactory
     {
-        private readonly RoslynLSPClientServiceFactory roslynLSPClientServiceFactory;
-        private readonly ClassificationTypeMap classificationTypeMap;
+        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly ClassificationTypeMap _classificationTypeMap;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
-        public VBLspEditorClassificationFactoryService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, ClassificationTypeMap classificationTypeMap)
+        public VBLspEditorClassificationFactoryService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
         {
-            this.roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
-            this.classificationTypeMap = classificationTypeMap ?? throw new ArgumentNullException(nameof(classificationTypeMap));
+            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _classificationTypeMap = classificationTypeMap ?? throw new ArgumentNullException(nameof(classificationTypeMap));
+            _threadingContext = threadingContext;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            return new RoslynClassificationService(this.roslynLSPClientServiceFactory, languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), this.classificationTypeMap);
+            return new RoslynClassificationService(_roslynLSPClientServiceFactory, languageServices.GetOriginalLanguageService<ISyntaxClassificationService>(), _classificationTypeMap, _threadingContext);
         }
     }
 }
