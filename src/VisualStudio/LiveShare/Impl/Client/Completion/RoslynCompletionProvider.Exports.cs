@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
-using Microsoft.Cascade.Common;
 using Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
@@ -10,8 +9,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     internal class CSharpLspCompletionProvider : RoslynCompletionProvider
     {
         [ImportingConstructor]
-        public CSharpLspCompletionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, IVsConfigurationSettings configurationSettings)
-            : base(roslynLSPClientServiceFactory, configurationSettings)
+        public CSharpLspCompletionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
+            : base(roslynLSPClientServiceFactory)
         {
         }
     }
@@ -20,21 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     internal class VBLspCompletionProvider : RoslynCompletionProvider
     {
         [ImportingConstructor]
-        public VBLspCompletionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, IVsConfigurationSettings configurationSettings)
-            : base(roslynLSPClientServiceFactory, configurationSettings)
+        public VBLspCompletionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
+            : base(roslynLSPClientServiceFactory)
         {
         }
     }
-
-#if !VS_16_0
-    [ExportCompletionProvider("TypeScriptLspCompletionProvider", StringConstants.TypeScriptLanguageName), Shared]
-    internal class TypeScriptLspCompletionProvider : RoslynCompletionProvider
-    {
-        [ImportingConstructor]
-        public TypeScriptLspCompletionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, IVsConfigurationSettings configurationSettings)
-            : base(roslynLSPClientServiceFactory, configurationSettings)
-        {
-        }
-    }
-#endif
 }

@@ -16,5 +16,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         public const string TypeScriptLanguageName = "TypeScript";
         public const string VBLspLanguageName = "VB_LSP";
         public const string VBLspContentTypeName = "VB_LSP";
+
+        // Note: this workspace kind is defined in Roslyn's:
+        // Implementation\DebuggerIntelliSense\DebuggerIntellisenseWorkspace.cs
+        // It is misspelled there as "DebbugerIntellisense"
+        public const string DebuggerIntellisenseWorkspaceKind = "DebbugerIntellisense";
     }
 }

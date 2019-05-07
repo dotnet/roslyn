@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             var codeActionParams = new LSP.CodeActionParams
             {
-                TextDocument = new LSP.TextDocumentIdentifier { Uri = context.Document.GetURI() },
+                TextDocument = ProtocolConversions.DocumentToTextDocumentIdentifier(context.Document),
                 Range = ProtocolConversions.TextSpanToRange(span, text)
             };
 

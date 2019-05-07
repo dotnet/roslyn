@@ -5,12 +5,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Cascade.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.Remote.Shared.CustomProtocol;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -18,25 +16,23 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     internal class RoslynCompletionProvider : CommonCompletionProvider
     {
-        private readonly RoslynLSPClientServiceFactory roslynLSPClientServiceFactory;
-        private readonly IVsConfigurationSettings configurationSettings;
+        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
 
-        public RoslynCompletionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, IVsConfigurationSettings configurationSettings)
+        public RoslynCompletionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
         {
-            this.roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
-            this.configurationSettings = configurationSettings ?? throw new ArgumentNullException(nameof(configurationSettings));
+            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
         }
 
         public override async Task ProvideCompletionsAsync(CodeAnalysis.Completion.CompletionContext context)
         {
             // This provider is exported for all workspaces - so limit it to just our workspace & the debugger's intellisense workspace
-            if ((context.Document.Project.Solution.Workspace.Kind != WorkspaceKind.AnyCodeRoslynWorkspace &&
-                context.Document.Project.Solution.Workspace.Kind != StringConstants.DebuggerIntellisenseWorkspaceKind))
+            if (context.Document.Project.Solution.Workspace.Kind != WorkspaceKind.AnyCodeRoslynWorkspace &&
+                context.Document.Project.Solution.Workspace.Kind != StringConstants.DebuggerIntellisenseWorkspaceKind)
             {
                 return;
             }
 
-            var lspClient = this.roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return;
@@ -44,33 +40,25 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             var text = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
 
-            var completionParams = new CompletionParams
+            var completionParams = new LSP.CompletionParams
             {
-                TextDocument = context.Document.ToTextDocumentIdentifier(),
-                Position = context.Position.ToPosition(text),
+                TextDocument = ProtocolConversions.DocumentToTextDocumentIdentifier(context.Document),
+                Position = ProtocolConversions.LinePositionToPosition(text.Lines.GetLinePosition(context.Position)),
                 Context = new LSP.CompletionContext { TriggerCharacter = context.Trigger.Character.ToString(), TriggerKind = GetTriggerKind(context.Trigger) }
             };
 
-            var completionObject = await lspClient.RequestAsync(Methods.TextDocumentCompletion, completionParams, context.CancellationToken).ConfigureAwait(false);
+            var completionObject = await lspClient.RequestAsync(LSP.Methods.TextDocumentCompletion, completionParams, context.CancellationToken).ConfigureAwait(false);
             if (completionObject == null)
             {
                 return;
             }
 
-            var completionList = ((JToken)completionObject).ToObject<RoslynCompletionItem[]>();
+            var completionList = ((JToken)completionObject).ToObject<LSP.VSCompletionItem[]>();
 
             foreach (var item in completionList)
             {
-                ImmutableArray<string> tags;
-                if (item.Tags != null)
-                {
-                    tags = item.Tags.AsImmutable();
-                }
-                else
-                {
-                    var glyph = item.Kind.ToGlyph();
-                    tags = GlyphTags.GetTags(glyph);
-                }
+                var glyph = ProtocolConversions.CompletionItemKindToGlyph(item.Kind);
+                var tags = GlyphTags.GetTags(glyph);
 
                 var properties = ImmutableDictionary.CreateBuilder<string, string>();
                 if (!string.IsNullOrEmpty(item.Detail))
@@ -88,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CodeAnalysis.Completion.CompletionItem item, CancellationToken cancellationToken)
         {
-            var lspClient = this.roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
@@ -99,14 +87,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
             }
 
-            var completionItem = JToken.Parse(serializedItem).ToObject<RoslynCompletionItem>();
-            var resolvedCompletionItem = await lspClient.RequestAsync(RoslynMethods.TextDocumentCompletionResolve, completionItem, cancellationToken).ConfigureAwait(false);
+            var completionItem = JToken.Parse(serializedItem).ToObject<LSP.VSCompletionItem>();
+            var request = new LSP.LspRequest<LSP.VSCompletionItem, LSP.VSCompletionItem>(LSP.Methods.TextDocumentCompletionResolveName);
+            var resolvedCompletionItem = await lspClient.RequestAsync(request, completionItem, cancellationToken).ConfigureAwait(false);
             if (resolvedCompletionItem?.Description == null)
             {
                 return await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
             }
 
-            ImmutableArray<TaggedText> parts = resolvedCompletionItem.Description.Select(tt => tt.ToTaggedText()).AsImmutable();
+            var parts = resolvedCompletionItem.Description.Runs.Select(run => new TaggedText(run.ClassificationTypeName, run.Text)).AsImmutable();
             return CompletionDescription.Create(parts);
         }
 
@@ -127,6 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, text));
             }
+
             return Task.FromResult<TextChange?>(null);
         }
     }
