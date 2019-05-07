@@ -404,9 +404,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     try
                     {
                         // Flag indicating if we found an operation block where all symbol writes were used. 
-                        bool hasBlockWithAllUsedWrites;
-
-                        AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out hasBlockWithAllUsedWrites);
+                        AnalyzeUnusedValueAssignments(context, isComputingUnusedParams, symbolUsageResultsBuilder, out var hasBlockWithAllUsedWrites);
 
                         AnalyzeUnusedParameters(context, isComputingUnusedParams, symbolUsageResultsBuilder, hasBlockWithAllUsedWrites);
                     }
