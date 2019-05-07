@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
             if (option.Value == PreferBracesPreference.WhenMultiline
                 && !IsConsideredMultiLine(statement, embeddedStatement)
-                && !RequiresBracesToMatchContext(statement, embeddedStatement))
+                && !RequiresBracesToMatchContext(statement))
             {
                 return;
             }
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         /// <see cref="PreferBracesPreference.WhenMultiline"/> preference due to the presence of braces on one or more
         /// sibling statements (the "context").
         /// </summary>
-        private static bool RequiresBracesToMatchContext(SyntaxNode statement, StatementSyntax embeddedStatement)
+        private static bool RequiresBracesToMatchContext(SyntaxNode statement)
         {
             if (!statement.IsKind(SyntaxKind.IfStatement, SyntaxKind.ElseClause))
             {
