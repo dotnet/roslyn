@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            if (undoHistoryRegistry.TryGetHistory(textView.TextBuffer, out var unused))
+            if (undoHistoryRegistry.TryGetHistory(textView.TextBuffer, out _))
             {
                 return new CaretPreservingEditTransaction(description, textView, undoHistoryRegistry, editorOperationsFactoryService);
             }

@@ -37,11 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
 
         public bool BeginUndoTransaction(ITextSnapshot snapshot)
         {
-            SourceTextUndoTransaction transaction = null;
             var sourceText = snapshot?.AsText();
             if (sourceText != null)
             {
-                _transactions.TryGetValue(sourceText, out transaction);
+                _transactions.TryGetValue(sourceText, out var transaction);
                 if (transaction != null)
                 {
                     return transaction.Begin(_undoHistoryRegistry?.GetHistory(snapshot.TextBuffer));

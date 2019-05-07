@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public override bool Equals(object obj)
         {
-            TodoItem other = obj as TodoItem;
-            if (other == null)
+            if (!(obj is TodoItem other))
             {
                 return false;
             }

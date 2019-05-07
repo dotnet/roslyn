@@ -223,7 +223,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // Now, move the caret to the right location.
             var graph = new DisconnectedBufferGraph(this.SubjectBuffer, this.TextView.TextBuffer);
             var viewTextSpan = graph.GetSubjectBufferTextSpanInViewBuffer(new TextSpan(desiredCaretPosition, 0));
-            var desiredCaretPoint = new SnapshotPoint(TextView.TextBuffer.CurrentSnapshot, viewTextSpan.TextSpan.Start);
 
             TextView.Caret.MoveTo(new SnapshotPoint(TextView.TextBuffer.CurrentSnapshot, viewTextSpan.TextSpan.Start));
         }
