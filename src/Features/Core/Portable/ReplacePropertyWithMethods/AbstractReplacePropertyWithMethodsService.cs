@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     return (TExpressionSyntax)writeValue;
                 };
 
-            private static GetWriteValue getWriteValueForCompoundAssignment =
+            private static readonly GetWriteValue getWriteValueForCompoundAssignment =
                 (replacer, parent) =>
                 {
                     // We're being read from and written to from a compound assignment 
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         parent, readExpression);
                 };
 
-            private static Func<SyntaxNode, SyntaxGenerator, ReplaceParentArgs, SyntaxNode> replaceParentCallback =
+            private static readonly Func<SyntaxNode, SyntaxGenerator, ReplaceParentArgs, SyntaxNode> replaceParentCallback =
                 (parent, generator, args) =>
                 {
                     var replacer = args.Replacer;

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         /// </summary>
         private class FormatLargeBinaryExpressionRule : AbstractFormattingRule
         {
-            private ISyntaxFactsService _syntaxFacts;
+            private readonly ISyntaxFactsService _syntaxFacts;
 
             public FormatLargeBinaryExpressionRule(ISyntaxFactsService syntaxFacts)
             {

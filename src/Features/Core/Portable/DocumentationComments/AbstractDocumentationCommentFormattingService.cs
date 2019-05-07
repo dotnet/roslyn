@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             private bool _pendingLineBreak;
             private bool _pendingSingleSpace;
 
-            private static TaggedText s_spacePart = new TaggedText(TextTags.Space, " ");
-            private static TaggedText s_newlinePart = new TaggedText(TextTags.LineBreak, "\r\n");
+            private static readonly TaggedText s_spacePart = new TaggedText(TextTags.Space, " ");
+            private static readonly TaggedText s_newlinePart = new TaggedText(TextTags.LineBreak, "\r\n");
 
             internal readonly List<TaggedText> Builder = new List<TaggedText>();
 

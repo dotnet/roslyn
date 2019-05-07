@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private static char[] s_descriptionSeparators = new char[] { '|' };
+        private static readonly char[] s_descriptionSeparators = new char[] { '|' };
 
         private static string EncodeDescription(ImmutableArray<SymbolDisplayPart> description)
         {
