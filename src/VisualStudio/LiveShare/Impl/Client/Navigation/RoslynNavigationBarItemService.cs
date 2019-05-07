@@ -6,31 +6,31 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Cascade.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Editor;
 
-
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     internal class RoslynNavigationBarItemService : AbstractNavigationBarItemService
     {
-        private readonly RoslynLSPClientServiceFactory roslynLSPClientServiceFactory;
+        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
 
         internal RoslynNavigationBarItemService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
         {
-            this.roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
         }
 
         public override async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
-            var lspClient = this.roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return ImmutableArray<NavigationBarItem>.Empty;
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 TextDocument = new TextDocumentIdentifier { Uri = new Uri(document.FilePath) }
             };
 
-            SymbolInformation[] symbols = await lspClient.RequestAsync(Methods.TextDocumentDocumentSymbol, documentSymbolParams, cancellationToken).ConfigureAwait(false);
+            var symbols = await lspClient.RequestAsync(Methods.TextDocumentDocumentSymbol, documentSymbolParams, cancellationToken).ConfigureAwait(false);
             if (symbols == null)
             {
                 return ImmutableArray<NavigationBarItem>.Empty;
@@ -50,19 +50,19 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var navBarItems = new List<NavigationBarItem>();
-            IEnumerable<IGrouping<string, SymbolInformation>> containerGroups = symbols.GroupBy(s => s.ContainerName);
+            var containerGroups = symbols.GroupBy(s => s.ContainerName);
 
             // Add symbols that are containers with children.
             foreach (var containerGroup in containerGroups)
             {
-                SymbolInformation containerSymbol = symbols.Where(s => s.Name == containerGroup.Key).FirstOrDefault();
+                var containerSymbol = symbols.Where(s => s.Name == containerGroup.Key).FirstOrDefault();
                 if (containerSymbol == null)
                 {
                     continue;
                 }
 
                 var children = new List<NavigationBarItem>();
-                foreach (SymbolInformation child in containerGroup)
+                foreach (var child in containerGroup)
                 {
                     children.Add(CreateNavigationBarItem(child, text, ImmutableArray<NavigationBarItem>.Empty));
                 }
@@ -84,13 +84,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             try
             {
                 var name = symbolInformation.Name;
-                var glyph = symbolInformation.Kind.ToGlyph();
-                var textSpan = symbolInformation.Location.Range.ToTextSpan(text);
+                var glyph = ProtocolConversions.SymbolKindToGlyph(symbolInformation.Kind);
+                var textSpan = ProtocolConversions.RangeToTextSpan(symbolInformation.Location.Range, text);
                 return new RemoteNavigationBarItem(name, glyph, ImmutableArray.Create(textSpan), children);
             }
-            catch (ArgumentOutOfRangeException)
+            catch (ArgumentOutOfRangeException ex) when (FatalError.ReportWithoutCrash(ex))
             {
-                LanguageServiceTelemetry.ReportInvalidNavBarItem();
                 return null;
             }
         }
@@ -113,7 +112,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private class RemoteNavigationBarItem : NavigationBarItem
         {
-            public RemoteNavigationBarItem(string text, Glyph glyph, IList<TextSpan> spans, IList<NavigationBarItem> childItems = null, int indent = 0, bool bolded = false, bool grayed = false) : base(text, glyph, spans, childItems, indent, bolded, grayed)
+            public RemoteNavigationBarItem(string text, Glyph glyph, IList<TextSpan> spans, IList<NavigationBarItem> childItems = null, int indent = 0, bool bolded = false, bool grayed = false)
+                : base(text, glyph, spans, childItems, indent, bolded, grayed)
             {
             }
         }
