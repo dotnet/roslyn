@@ -148,30 +148,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 if (caretPos.HasValue && caretPos.Value.Position > 0 && (caretPos.Value.Position - 1) == OpeningPoint.GetPoint(snapshot).Position
                     && !HasForwardTyping)
                 {
-                    using (var undo = CreateUndoTransaction())
+                    using var undo = CreateUndoTransaction();
+                    using var edit = SubjectBuffer.CreateEdit();
+
+                    var span = new SnapshotSpan(OpeningPoint.GetPoint(snapshot), ClosingPoint.GetPoint(snapshot));
+
+                    edit.Delete(span);
+
+                    if (edit.HasFailedChanges)
                     {
-                        using (var edit = SubjectBuffer.CreateEdit())
-                        {
-                            var span = new SnapshotSpan(OpeningPoint.GetPoint(snapshot), ClosingPoint.GetPoint(snapshot));
-
-                            edit.Delete(span);
-
-                            if (edit.HasFailedChanges)
-                            {
-                                edit.Cancel();
-                                undo.Cancel();
-                                Debug.Fail("Unable to clear braces");
-                            }
-                            else
-                            {
-                                // handle the command so the backspace does 
-                                // not go through since we've already cleared the braces
-                                handledCommand = true;
-                                edit.ApplyAndLogExceptions();
-                                undo.Complete();
-                                EndSession();
-                            }
-                        }
+                        edit.Cancel();
+                        undo.Cancel();
+                        Debug.Fail("Unable to clear braces");
+                    }
+                    else
+                    {
+                        // handle the command so the backspace does 
+                        // not go through since we've already cleared the braces
+                        handledCommand = true;
+                        edit.ApplyAndLogExceptions();
+                        undo.Complete();
+                        EndSession();
                     }
                 }
             }
@@ -203,35 +200,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     // ensure that we are within the session before clearing
                     if (caretPos.HasValue && caretPos.Value.Position < closingSnapshotPoint.Position && closingSnapshotPoint.Position > 0)
                     {
-                        using (var undo = CreateUndoTransaction())
+                        using var undo = CreateUndoTransaction();
+
+                        _editorOperations.AddBeforeTextBufferChangePrimitive();
+
+                        var span = new SnapshotSpan(caretPos.Value, closingSnapshotPoint.Subtract(1));
+
+                        using var edit = SubjectBuffer.CreateEdit();
+
+                        edit.Delete(span);
+
+                        if (edit.HasFailedChanges)
                         {
-                            _editorOperations.AddBeforeTextBufferChangePrimitive();
+                            Debug.Fail("Unable to clear closing brace");
+                            edit.Cancel();
+                            undo.Cancel();
+                        }
+                        else
+                        {
+                            handledCommand = true;
 
-                            var span = new SnapshotSpan(caretPos.Value, closingSnapshotPoint.Subtract(1));
+                            edit.ApplyAndLogExceptions();
 
-                            using (var edit = SubjectBuffer.CreateEdit())
-                            {
-                                edit.Delete(span);
+                            MoveCaretToClosingPoint();
 
-                                if (edit.HasFailedChanges)
-                                {
-                                    Debug.Fail("Unable to clear closing brace");
-                                    edit.Cancel();
-                                    undo.Cancel();
-                                }
-                                else
-                                {
-                                    handledCommand = true;
+                            _editorOperations.AddAfterTextBufferChangePrimitive();
 
-                                    edit.ApplyAndLogExceptions();
-
-                                    MoveCaretToClosingPoint();
-
-                                    _editorOperations.AddAfterTextBufferChangePrimitive();
-
-                                    undo.Complete();
-                                }
-                            }
+                            undo.Complete();
                         }
                     }
                 }
@@ -249,16 +244,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 {
                     handledCommand = true;
 
-                    using (var undo = CreateUndoTransaction())
-                    {
-                        _editorOperations.AddBeforeTextBufferChangePrimitive();
+                    using var undo = CreateUndoTransaction();
 
-                        MoveCaretToClosingPoint();
+                    _editorOperations.AddBeforeTextBufferChangePrimitive();
 
-                        _editorOperations.AddAfterTextBufferChangePrimitive();
+                    MoveCaretToClosingPoint();
 
-                        undo.Complete();
-                    }
+                    _editorOperations.AddAfterTextBufferChangePrimitive();
+
+                    undo.Complete();
                 }
             }
 
