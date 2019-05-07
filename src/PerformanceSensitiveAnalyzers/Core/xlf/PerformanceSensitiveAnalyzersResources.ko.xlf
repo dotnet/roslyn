@@ -4,22 +4,22 @@
     <body>
       <trans-unit id="AnonymousNewObjectRuleTitleAndMessage">
         <source>Explicit new anonymous object allocation</source>
-        <target state="new">Explicit new anonymous object allocation</target>
+        <target state="translated">명시적 새 익명 개체 할당</target>
         <note />
       </trans-unit>
       <trans-unit id="LetCauseRuleTitleAndMessage">
         <source>Let clause induced allocation</source>
-        <target state="new">Let clause induced allocation</target>
+        <target state="translated">Let 절 발생 할당</target>
         <note />
       </trans-unit>
       <trans-unit id="NewArrayRuleTitleAndMessage">
         <source>Explicit new array type allocation</source>
-        <target state="new">Explicit new array type allocation</target>
+        <target state="translated">명시적 새 배열 형식 할당</target>
         <note />
       </trans-unit>
       <trans-unit id="NewObjectRuleTitleAndMessage">
         <source>Explicit new reference type allocation</source>
-        <target state="new">Explicit new reference type allocation</target>
+        <target state="translated">명시적 새 참조 형식 할당</target>
         <note />
       </trans-unit>
     </body>
