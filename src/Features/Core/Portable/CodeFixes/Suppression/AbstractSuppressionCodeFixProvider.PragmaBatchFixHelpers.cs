@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -145,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     var currentSpan = originalSpan;
                     foreach (var textChange in textChanges)
                     {
-                        if (isPriorSpan(originalSpan, textChange))
+                        if (IsPriorSpan(originalSpan, textChange))
                         {
                             // Prior span, needs no update.
                             continue;
@@ -154,14 +153,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         var delta = textChange.NewText.Length - textChange.Span.Length;
                         if (delta != 0)
                         {
-                            if (isFollowingSpan(originalSpan, textChange))
+                            if (IsFollowingSpan(originalSpan, textChange))
                             {
                                 // Following span.
                                 var newStart = currentSpan.Start + delta;
                                 currentSpan = new TextSpan(newStart, currentSpan.Length);
                                 currentDiagnosticSpans[diagnostic] = currentSpan;
                             }
-                            else if (isEnclosingSpan(originalSpan, textChange))
+                            else if (IsEnclosingSpan(originalSpan, textChange))
                             {
                                 // Enclosing span.
                                 var newLength = currentSpan.Length + delta;

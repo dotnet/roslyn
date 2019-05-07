@@ -3,7 +3,6 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using Roslyn.Utilities;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
