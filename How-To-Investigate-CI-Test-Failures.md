@@ -58,6 +58,7 @@ Here is an example from a test failure on Jenkins - it's reviewable even though 
 `[error] One or more errors occurred. (The process cannot access the file '...\Some.File' because it is being used by another process.)`  
     1. Take note of the machine name  
     ![Azure DevOps Pipeline Pool and Agent Infromation](images/how-to-investigate-ci-test-failures-figure15.png)  
+    * note * if you can't see pool name, make sure you change this to Attempt 1 (images/pool-name-attempt1.png)
     2. Click on the Pool name (dotnet-external-vs2019-preview) in this case.  
     3. Click on the Agents tab  
     ![Azure DevOps Jobs List](images/how-to-investigate-ci-test-failures-figure16.png)
