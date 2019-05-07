@@ -143,7 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             var rightArguments = returnExpressionType.GetTypeArguments();
 
             // If we have a mismatch in the number of type arguments we can immediately return as there is no way the types are convertible
-            if ((leftArguments != null && rightArguments != null) &&
+            if (leftArguments != null &&
+                rightArguments != null &&
                 leftArguments.Length != rightArguments.Length)
             {
                 return false;

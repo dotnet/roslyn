@@ -27,8 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             internal static ImmutableArray<Words> GetBaseNames(IAliasSymbol alias)
             {
                 var name = alias.Name;
-                if (alias.Target.IsType && (((INamedTypeSymbol)alias.Target).IsInterfaceType()
-                    && CanRemoveInterfacePrefix(name)))
+                if (alias.Target.IsType &&
+                    ((INamedTypeSymbol)alias.Target).IsInterfaceType() &&
+                    CanRemoveInterfacePrefix(name))
                 {
                     name = name.Substring(1);
                 }
