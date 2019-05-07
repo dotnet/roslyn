@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             var typeArguments = methodReturnType.GetAllTypeArguments();
 
             var shouldOfferYieldReturn = typeArguments.Length != 1 ?
-                IsCorrectTypeForYieldReturn(returnExpressionType, methodReturnType, model) :
+                IsCorrectTypeForYieldReturn(methodReturnType, model) :
                 IsCorrectTypeForYieldReturn(typeArguments.Single(), returnExpressionType, methodReturnType, model);
 
             if (!shouldOfferYieldReturn)
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             return true;
         }
 
-        private bool IsCorrectTypeForYieldReturn(ITypeSymbol returnExpressionType, ITypeSymbol methodReturnType, SemanticModel model)
+        private bool IsCorrectTypeForYieldReturn(ITypeSymbol methodReturnType, SemanticModel model)
         {
             var ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
             var ienumeratorSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerator).FullName);
