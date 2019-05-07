@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
                 }
 
-                if (IsAttributeNameContext(token, position, out string elementName, out ISet<string> existingAttributes))
+                if (IsAttributeNameContext(token, position, out var elementName, out var existingAttributes))
                 {
                     return GetAttributeItems(elementName, existingAttributes);
                 }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return null;
                 }
 
-                if (IsAttributeValueContext(token, out elementName, out string attributeName))
+                if (IsAttributeValueContext(token, out elementName, out var attributeName))
                 {
                     return GetAttributeValueItems(declaredSymbol, elementName, attributeName);
                 }

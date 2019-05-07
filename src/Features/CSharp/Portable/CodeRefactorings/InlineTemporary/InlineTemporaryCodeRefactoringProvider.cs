@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                         // Get this annotated node and compute the symbol info for this node in the inlined document.
                         var innerInitializerInInlineNodeOrToken = inlinedNode.GetAnnotatedNodesAndTokens(InitializerAnnotation).First();
 
-                        ExpressionSyntax innerInitializerInInlineNode = (ExpressionSyntax)(innerInitializerInInlineNodeOrToken.IsNode ?
+                        var innerInitializerInInlineNode = (ExpressionSyntax)(innerInitializerInInlineNodeOrToken.IsNode ?
                             innerInitializerInInlineNodeOrToken.AsNode() :
                             innerInitializerInInlineNodeOrToken.AsToken().Parent);
                         var newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken);

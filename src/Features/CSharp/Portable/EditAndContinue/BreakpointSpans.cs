@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </remarks>
         public static bool TryGetClosestBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
         {
-            SyntaxNode node = root.FindToken(position).Parent;
+            var node = root.FindToken(position).Parent;
             while (node != null)
             {
-                TextSpan? breakpointSpan = TryCreateSpanForNode(node, position);
+                var breakpointSpan = TryCreateSpanForNode(node, position);
                 if (breakpointSpan.HasValue)
                 {
                     span = breakpointSpan.Value;

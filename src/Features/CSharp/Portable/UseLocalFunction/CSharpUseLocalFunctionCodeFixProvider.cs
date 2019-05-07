@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             AnonymousFunctionExpressionSyntax anonymousFunction, IMethodSymbol delegateMethod)
         {
             var parameterList = TryGetOrCreateParameterList(anonymousFunction);
-            int i = 0;
+            var i = 0;
 
             return parameterList != null
                 ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(parameterNode, delegateMethod.Parameters.ElementAtOrDefault(i++)))

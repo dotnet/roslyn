@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
             }
 
             // Check if all the type arguments are convertible
-            for (int i = 0; i < leftArguments.Length; i++)
+            for (var i = 0; i < leftArguments.Length; i++)
             {
                 if (!CanConvertTypes(leftArguments[i], rightArguments[i], model))
                 {

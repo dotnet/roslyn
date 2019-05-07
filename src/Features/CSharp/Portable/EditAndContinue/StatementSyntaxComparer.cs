@@ -652,8 +652,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 case SyntaxKind.Block:
-                    BlockSyntax leftBlock = (BlockSyntax)leftNode;
-                    BlockSyntax rightBlock = (BlockSyntax)rightNode;
+                    var leftBlock = (BlockSyntax)leftNode;
+                    var rightBlock = (BlockSyntax)rightNode;
                     return TryComputeWeightedDistance(leftBlock, rightBlock, out distance);
 
                 case SyntaxKind.CatchClause:
@@ -693,12 +693,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return 1.0;
             }
 
-            double modifierDistance = ComputeDistance(leftModifiers, rightModifiers);
-            double returnTypeDistance = ComputeDistance(leftReturnType, rightReturnType);
-            double identifierDistance = ComputeDistance(leftIdentifier, rightIdentifier);
-            double typeParameterDistance = ComputeDistance(leftTypeParameters, rightTypeParameters);
-            double parameterDistance = ComputeDistance(leftParameters, rightParameters);
-            double bodyDistance = ComputeDistance(leftBody, rightBody);
+            var modifierDistance = ComputeDistance(leftModifiers, rightModifiers);
+            var returnTypeDistance = ComputeDistance(leftReturnType, rightReturnType);
+            var identifierDistance = ComputeDistance(leftIdentifier, rightIdentifier);
+            var typeParameterDistance = ComputeDistance(leftTypeParameters, rightTypeParameters);
+            var parameterDistance = ComputeDistance(leftParameters, rightParameters);
+            var bodyDistance = ComputeDistance(leftBody, rightBody);
 
             return
                 modifierDistance * 0.1 +
@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private double ComputeWeightedDistance(SingleVariableDesignationSyntax leftNode, SingleVariableDesignationSyntax rightNode)
         {
-            double distance = ComputeDistance(leftNode, rightNode);
+            var distance = ComputeDistance(leftNode, rightNode);
             double parentDistance;
 
             if (leftNode.Parent != null &&
@@ -887,8 +887,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static double ComputeWeightedDistance(CatchClauseSyntax left, CatchClauseSyntax right)
         {
-            double blockDistance = ComputeDistance(left.Block, right.Block);
-            double distance = CombineOptional(blockDistance, left.Declaration, right.Declaration, left.Filter, right.Filter);
+            var blockDistance = ComputeDistance(left.Block, right.Block);
+            var distance = CombineOptional(blockDistance, left.Declaration, right.Declaration, left.Filter, right.Filter);
             return AdjustForLocalsInBlock(distance, left.Block, right.Block, localsWeight: 0.3);
         }
 
@@ -896,29 +896,29 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             CommonForEachStatementSyntax leftCommonForEach,
             CommonForEachStatementSyntax rightCommonForEach)
         {
-            double statementDistance = ComputeDistance(leftCommonForEach.Statement, rightCommonForEach.Statement);
-            double expressionDistance = ComputeDistance(leftCommonForEach.Expression, rightCommonForEach.Expression);
+            var statementDistance = ComputeDistance(leftCommonForEach.Statement, rightCommonForEach.Statement);
+            var expressionDistance = ComputeDistance(leftCommonForEach.Expression, rightCommonForEach.Expression);
 
             List<SyntaxToken> leftLocals = null;
             List<SyntaxToken> rightLocals = null;
             GetLocalNames(leftCommonForEach, ref leftLocals);
             GetLocalNames(rightCommonForEach, ref rightLocals);
 
-            double localNamesDistance = ComputeDistance(leftLocals, rightLocals);
+            var localNamesDistance = ComputeDistance(leftLocals, rightLocals);
 
-            double distance = localNamesDistance * 0.6 + expressionDistance * 0.2 + statementDistance * 0.2;
+            var distance = localNamesDistance * 0.6 + expressionDistance * 0.2 + statementDistance * 0.2;
             return AdjustForLocalsInBlock(distance, leftCommonForEach.Statement, rightCommonForEach.Statement, localsWeight: 0.6);
         }
 
         private static double ComputeWeightedDistance(ForStatementSyntax left, ForStatementSyntax right)
         {
-            double statementDistance = ComputeDistance(left.Statement, right.Statement);
-            double conditionDistance = ComputeDistance(left.Condition, right.Condition);
+            var statementDistance = ComputeDistance(left.Statement, right.Statement);
+            var conditionDistance = ComputeDistance(left.Condition, right.Condition);
 
-            double incDistance = ComputeDistance(
+            var incDistance = ComputeDistance(
                 GetDescendantTokensIgnoringSeparators(left.Incrementors), GetDescendantTokensIgnoringSeparators(right.Incrementors));
 
-            double distance = conditionDistance * 0.3 + incDistance * 0.3 + statementDistance * 0.4;
+            var distance = conditionDistance * 0.3 + incDistance * 0.3 + statementDistance * 0.4;
             if (TryComputeLocalsDistance(left.Declaration, right.Declaration, out var localsDistance))
             {
                 distance = distance * 0.4 + localsDistance * 0.6;
@@ -933,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             VariableDeclarationSyntax rightVariables,
             StatementSyntax rightStatement)
         {
-            double distance = ComputeDistance(leftStatement, rightStatement);
+            var distance = ComputeDistance(leftStatement, rightStatement);
             // Put maximum weight behind the variables declared in the header of the statement.
             if (TryComputeLocalsDistance(leftVariables, rightVariables, out var localsDistance))
             {
@@ -954,9 +954,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             Debug.Assert(leftStatement != null);
             Debug.Assert(rightStatement != null);
 
-            double headerDistance = ComputeDistance(leftHeaderOpt, rightHeaderOpt);
-            double statementDistance = ComputeDistance(leftStatement, rightStatement);
-            double distance = headerDistance * 0.6 + statementDistance * 0.4;
+            var headerDistance = ComputeDistance(leftHeaderOpt, rightHeaderOpt);
+            var statementDistance = ComputeDistance(leftStatement, rightStatement);
+            var distance = headerDistance * 0.6 + statementDistance * 0.4;
 
             return AdjustForLocalsInBlock(distance, leftStatement, rightStatement, localsWeight: 0.5);
         }
@@ -1127,16 +1127,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             double weight0 = 0.8,
             double weight1 = 0.5)
         {
-            bool one = leftOpt1 != null || rightOpt1 != null;
-            bool two = leftOpt2 != null || rightOpt2 != null;
+            var one = leftOpt1 != null || rightOpt1 != null;
+            var two = leftOpt2 != null || rightOpt2 != null;
 
             if (!one && !two)
             {
                 return distance0;
             }
 
-            double distance1 = ComputeDistance(leftOpt1, rightOpt1);
-            double distance2 = ComputeDistance(leftOpt2, rightOpt2);
+            var distance1 = ComputeDistance(leftOpt1, rightOpt1);
+            var distance2 = ComputeDistance(leftOpt2, rightOpt2);
 
             double d;
             if (one && two)

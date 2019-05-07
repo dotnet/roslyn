@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
                     // both of which are a shorthand for the getter and always return a value
                     var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent) as IMethodSymbol;
-                    bool createReturnStatement = !method?.ReturnsVoid ?? true;
+                    var createReturnStatement = !method?.ReturnsVoid ?? true;
 
                     return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
                         document, arrowExpression, expression, newLocalName,
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             // of complexification, so we can retrieve the latest version of the expression here.
             expression = document.Root.GetCurrentNode(expression);
 
-            SyntaxNode root = document.Root;
+            var root = document.Root;
             ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => expr.GetAncestorsOrThis<StatementSyntax>()));
 
             SyntaxNode innermostCommonBlock;

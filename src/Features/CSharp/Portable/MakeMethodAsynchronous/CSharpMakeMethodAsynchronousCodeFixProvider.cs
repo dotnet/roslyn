@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 return modifiers.Add(s_asyncToken);
 
             // Move the leading trivia from the return type to the new modifiers list.
-            SyntaxTokenList result = SyntaxFactory.TokenList(s_asyncToken.WithLeadingTrivia(newReturnType.GetLeadingTrivia()));
+            var result = SyntaxFactory.TokenList(s_asyncToken.WithLeadingTrivia(newReturnType.GetLeadingTrivia()));
             newReturnType = newReturnType.WithoutLeadingTrivia();
             return result;
         }

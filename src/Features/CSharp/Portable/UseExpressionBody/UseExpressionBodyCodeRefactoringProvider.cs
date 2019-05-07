@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
             var document = context.Document;
 
-            bool succeeded = false;
+            var succeeded = false;
             if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: false))
             {
                 context.RegisterRefactoring(new MyCodeAction(

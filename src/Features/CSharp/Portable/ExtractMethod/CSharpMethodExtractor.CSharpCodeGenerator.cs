@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         {
                             if (variableDeclaration.Initializer != null)
                             {
-                                SyntaxToken identifier = ApplyTriviaFromDeclarationToAssignmentIdentifier(declarationStatement, firstVariableToAttachTrivia, variableDeclaration);
+                                var identifier = ApplyTriviaFromDeclarationToAssignmentIdentifier(declarationStatement, firstVariableToAttachTrivia, variableDeclaration);
 
                                 // move comments with the variable here
                                 expressionStatements.Add(CreateAssignmentExpressionStatement(identifier, variableDeclaration.Initializer.Value));

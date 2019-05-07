@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
             LanguageVersion max = 0;
             foreach (var diagnostic in diagnostics)
             {
-                if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out string requiredVersion) &&
+                if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out var requiredVersion) &&
                     LanguageVersionFacts.TryParse(requiredVersion, out var required))
                 {
                     max = max > required ? max : required;

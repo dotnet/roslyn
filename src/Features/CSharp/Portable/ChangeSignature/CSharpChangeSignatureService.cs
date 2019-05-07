@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             where U : SyntaxNode
         {
             var result = new List<T>();
-            int index = 0;
+            var index = 0;
             foreach (var newArgument in newArguments)
             {
                 result.Add(TransferLeadingWhitespaceTrivia(newArgument, oldArguments[index]));
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             var dictionary = new Dictionary<string, XmlElementSyntax>();
-            int i = 0;
+            var i = 0;
             foreach (var paramNode in paramNodes)
             {
                 var nameAttribute = paramNode.StartTag.Attributes.FirstOrDefault(a => a.Name.ToString().Equals("name", StringComparison.OrdinalIgnoreCase));

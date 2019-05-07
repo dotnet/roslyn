@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override SyntaxNode FindEnclosingLambdaBody(SyntaxNode containerOpt, SyntaxNode node)
         {
-            SyntaxNode root = GetEncompassingAncestor(containerOpt);
+            var root = GetEncompassingAncestor(containerOpt);
 
             while (node != root && node != null)
             {
@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override IEnumerable<KeyValuePair<SyntaxNode, int>> EnumerateNearStatements(SyntaxNode statement)
         {
-            int direction = +1;
+            var direction = +1;
             SyntaxNodeOrToken nodeOrToken = statement;
             var fieldOrPropertyModifiers = SyntaxUtilities.TryGetFieldOrPropertyModifiers(statement);
 

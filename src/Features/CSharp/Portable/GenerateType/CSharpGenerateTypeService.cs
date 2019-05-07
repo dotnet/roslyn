@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 return null;
             }
 
-            List<string> namespaceContainers = new List<string>();
+            var namespaceContainers = new List<string>();
             GetNamespaceContainers(namespaceDecl.Name, namespaceContainers);
 
             if (namespaceContainers.Count + indexDone > containers.Count ||
