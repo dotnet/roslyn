@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -14,11 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     class RoslynSignatureHelpProvider : ISignatureHelpProvider
     {
-        private readonly RoslynLSPClientServiceFactory roslynLSPClientServiceFactory;
+        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
 
         public RoslynSignatureHelpProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
         {
-            this.roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
         }
         public bool IsTriggerCharacter(char ch)
         {
@@ -38,14 +39,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return null;
             }
 
-            var lspClient = this.roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return null;
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textDocumentPositionParams = document.GetTextDocumentPositionParams(text, position);
+            var textDocumentPositionParams = ProtocolConversions.PositionToTextDocumentPositionParams(position, text, document);
 
             SignatureHelp signatureHelp = await lspClient.RequestAsync(Methods.TextDocumentSignatureHelp, textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
             if (signatureHelp == null || signatureHelp.Signatures == null || signatureHelp.Signatures.Length <= 0)
@@ -69,16 +70,18 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             var signatureText = signatureInformation.Label;
             var emptyText = ToTaggedText(string.Empty);
 
-            IEnumerable<SignatureHelpParameter> parameters = signatureInformation.Parameters.Select(parameter =>
+            var parameters = signatureInformation.Parameters.Select(parameter =>
             {
                 Func<CancellationToken, IEnumerable<TaggedText>> paramDocumentationFactory = (ct) => ToTaggedText(parameter.Documentation?.Value);
                 return new SignatureHelpParameter((string)parameter.Label, false, paramDocumentationFactory, emptyText);
             });
 
-            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory = (ct) => ToTaggedText(signatureInformation.Documentation?.Value);
-            return new SignatureHelpItem(false, documentationFactory, ToTaggedText(signatureInformation.Label), emptyText, emptyText, parameters, emptyText);
+            return new SignatureHelpItem(false, DocumentationFactory, ToTaggedText(signatureInformation.Label), emptyText, emptyText, parameters, emptyText);
+
+            // local functions
+            IEnumerable<TaggedText> DocumentationFactory(CancellationToken ct) => ToTaggedText(signatureInformation.Documentation?.Value);
         }
-        
+
         private IEnumerable<TaggedText> ToTaggedText(string text)
         {
             return ImmutableArray.Create(new TaggedText(TextTags.Text, text ?? string.Empty));
