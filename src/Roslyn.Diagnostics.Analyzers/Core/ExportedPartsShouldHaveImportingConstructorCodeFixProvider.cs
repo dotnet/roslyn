@@ -75,7 +75,18 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var exportAttribute = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
             var exportAttributeSymbol = semanticModel.GetSymbolInfo(exportAttribute, cancellationToken).Symbol?.ContainingType;
-            var importingConstructorAttributeSymbol = exportAttributeSymbol?.ContainingNamespace.GetTypeMembers(nameof(ImportingConstructorAttribute)).FirstOrDefault();
+            INamedTypeSymbol importingConstructorAttributeSymbol = null;
+            while (exportAttributeSymbol is object)
+            {
+                importingConstructorAttributeSymbol = exportAttributeSymbol.ContainingNamespace?.GetTypeMembers(nameof(ImportingConstructorAttribute)).FirstOrDefault();
+                if (importingConstructorAttributeSymbol is object)
+                {
+                    break;
+                }
+
+                exportAttributeSymbol = exportAttributeSymbol.BaseType;
+            }
+
             if (importingConstructorAttributeSymbol is null)
             {
                 return document;
@@ -105,7 +116,24 @@ namespace Roslyn.Diagnostics.Analyzers
                 statements: Enumerable.Empty<SyntaxNode>());
             importingConstructor = generator.AddAttributes(importingConstructor, generator.Attribute(generator.TypeExpression(importingConstructorAttributeSymbol)));
 
-            var newDeclaration = generator.AddMembers(declaration, importingConstructor);
+            var index = 0;
+            var existingMembers = generator.GetMembers(declaration);
+            while (index < existingMembers.Count)
+            {
+                switch (generator.GetDeclarationKind(existingMembers[index]))
+                {
+                    case DeclarationKind.Field:
+                        index++;
+                        continue;
+
+                    default:
+                        break;
+                }
+
+                break;
+            }
+
+            var newDeclaration = generator.InsertMembers(declaration, index, importingConstructor);
             return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
         }
 
