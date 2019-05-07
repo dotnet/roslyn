@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         Disabled = 2,
     }
 
-
     internal class CSharpPragmaWarningStateMap : AbstractWarningStateMap<PragmaWarningState>
     {
         public CSharpPragmaWarningStateMap(SyntaxTree syntaxTree, bool isGeneratedCode) :
@@ -139,7 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                             case SyntaxKind.EnableKeyword:
                                 directiveState = PragmaWarningState.Enabled;
                                 break;
-                            case SyntaxKind.SafeOnlyKeyword:
                             default:
                                 throw ExceptionUtilities.UnexpectedValue(currentPragmaDirective.DisableOrRestoreKeyword.Kind());
                         }
@@ -203,50 +201,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             void accumulatedNullableWarningState(SyntaxKind nullableAction)
             {
-                PragmaWarningState safetyState;
-                PragmaWarningState nonSafetyState;
-
-                switch (nullableAction)
+                var state = nullableAction switch
                 {
-                    case SyntaxKind.DisableKeyword:
-                        safetyState = PragmaWarningState.Disabled;
-                        nonSafetyState = PragmaWarningState.Disabled;
-                        break;
+                    SyntaxKind.DisableKeyword => PragmaWarningState.Disabled,
+                    SyntaxKind.EnableKeyword => PragmaWarningState.Enabled,
+                    SyntaxKind.RestoreKeyword => PragmaWarningState.Default,
+                    _ => throw ExceptionUtilities.UnexpectedValue(nullableAction)
+                };
 
-                    case SyntaxKind.EnableKeyword:
-                        safetyState = PragmaWarningState.Enabled;
-                        nonSafetyState = PragmaWarningState.Enabled;
-                        break;
-
-                    case SyntaxKind.SafeOnlyKeyword:
-                        safetyState = PragmaWarningState.Enabled;
-                        nonSafetyState = PragmaWarningState.Disabled;
-                        break;
-
-                    case SyntaxKind.RestoreKeyword:
-                        safetyState = PragmaWarningState.Default;
-                        nonSafetyState = PragmaWarningState.Default;
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(nullableAction);
-                }
-
-                var builder = ArrayBuilder<KeyValuePair<string, PragmaWarningState>>.GetInstance(ErrorFacts.NullableFlowAnalysisSafetyWarnings.Count + ErrorFacts.NullableFlowAnalysisNonSafetyWarnings.Count);
+                var builder = ArrayBuilder<KeyValuePair<string, PragmaWarningState>>.GetInstance(ErrorFacts.NullableFlowAnalysisWarnings.Count);
                 // Update the state of the error codes with the current directive state
-                addNewStates(safetyState, ErrorFacts.NullableFlowAnalysisSafetyWarnings);
-                addNewStates(nonSafetyState, ErrorFacts.NullableFlowAnalysisNonSafetyWarnings);
+                foreach (string id in ErrorFacts.NullableFlowAnalysisWarnings)
+                {
+                    builder.Add(new KeyValuePair<string, PragmaWarningState>(id, state));
+                }
 
                 accumulatedSpecificWarningState = accumulatedSpecificWarningState.SetItems(builder);
                 builder.Free();
-
-                void addNewStates(PragmaWarningState directiveState, ImmutableHashSet<string> warnings)
-                {
-                    foreach (string id in warnings)
-                    {
-                        builder.Add(new KeyValuePair<string, PragmaWarningState>(id, directiveState));
-                    }
-                }
             }
         }
     }

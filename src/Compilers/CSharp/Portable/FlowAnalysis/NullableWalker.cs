@@ -1044,8 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportNonSafetyDiagnostic(ErrorCode errorCode, Location location)
         {
             // All warnings should be in the `#pragma warning ... nullable` set.
-            Debug.Assert(!ErrorFacts.NullableFlowAnalysisSafetyWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
-            Debug.Assert(ErrorFacts.NullableFlowAnalysisNonSafetyWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
+            Debug.Assert(ErrorFacts.NullableFlowAnalysisWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
 #pragma warning disable CS0618
             ReportDiagnostic(errorCode, location);
 #pragma warning restore CS0618
@@ -1059,8 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportSafetyDiagnostic(ErrorCode errorCode, Location location, params object[] arguments)
         {
             // All warnings should be in the `#pragma warning ... nullable` set.
-            Debug.Assert(ErrorFacts.NullableFlowAnalysisSafetyWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
-            Debug.Assert(!ErrorFacts.NullableFlowAnalysisNonSafetyWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
+            Debug.Assert(ErrorFacts.NullableFlowAnalysisWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)errorCode)));
 #pragma warning disable CS0618
             ReportDiagnostic(errorCode, location, arguments);
 #pragma warning restore CS0618

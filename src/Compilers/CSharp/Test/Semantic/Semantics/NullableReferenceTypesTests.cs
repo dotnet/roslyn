@@ -4842,10 +4842,13 @@ class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (1,10): error CS8637: Expected 'enable', 'safeonly', 'disable', or 'restore'
+                // (1,10): error CS8637: Expected 'enable', 'disable', or 'restore'
                 // #nullable
                 Diagnostic(ErrorCode.ERR_NullableDirectiveQualifierExpected, "").WithLocation(1, 10),
-                // (6,11): error CS8637: Expected 'enable', 'safeonly', 'disable', or 'restore'
+                // (5,11): error CS8637: Expected 'enable', 'disable', or 'restore'
+                // #nullable safeonly
+                Diagnostic(ErrorCode.ERR_NullableDirectiveQualifierExpected, "safeonly").WithLocation(5, 11),
+                // (6,11): error CS8637: Expected 'enable', 'disable', or 'restore'
                 // #nullable yes
                 Diagnostic(ErrorCode.ERR_NullableDirectiveQualifierExpected, "yes").WithLocation(6, 11)
                 );
@@ -7405,22 +7408,10 @@ class C4 { }";
                 Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "preview").WithLocation(1, 1)
                 );
 
-            comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.SafeOnly), parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(
-                // error CS8630: Invalid 'NullableContextOptions' value: 'Safeonly' for C# 7.3. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "SafeOnly", "7.3", "preview").WithLocation(1, 1)
-                );
-
             comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Warnings), parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
                 // error CS8630: Invalid 'NullableContextOptions' value: 'Warnings' for C# 7.3. Please use language version 'preview' or greater.
                 Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Warnings", "7.3", "preview").WithLocation(1, 1)
-                );
-
-            comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.SafeOnlyWarnings), parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(
-                // error CS8630: Invalid 'NullableContextOptions' value: 'SafeOnlyWarnings' for C# 7.3. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "SafeOnlyWarnings", "7.3", "preview").WithLocation(1, 1)
                 );
 
             comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Disable), parseOptions: TestOptions.Regular7_3);
@@ -7429,13 +7420,7 @@ class C4 { }";
             comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Enable), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.SafeOnly), parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
-
             comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Warnings), parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
-
-            comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.SafeOnlyWarnings), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation("", options: WithNonNullTypes(NullableContextOptions.Disable), parseOptions: TestOptions.Regular8);
@@ -7447,22 +7432,10 @@ class C4 { }";
             comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.Enable), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.SafeOnly), parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.SafeOnly), parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
-
             comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.Warnings), parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.Warnings), parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.SafeOnlyWarnings), parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics();
-
-            comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.SafeOnlyWarnings), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(new string[] { }, options: WithNonNullTypes(NullableContextOptions.Disable), parseOptions: TestOptions.Regular7_3);
@@ -70414,7 +70387,6 @@ class B {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -70468,7 +70440,6 @@ class B {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -70528,7 +70499,6 @@ class A
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -70581,7 +70551,6 @@ class B {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -70637,7 +70606,6 @@ class B {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -70693,7 +70661,6 @@ class B<T> {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -70752,7 +70719,6 @@ class var {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -70811,7 +70777,6 @@ class A<T> where T :
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -70855,7 +70820,6 @@ class A<T> where T : class
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -70909,7 +70873,6 @@ class unmanaged {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -70963,7 +70926,6 @@ A<string>
             );
 
             AssertGetSpeculativeTypeInfo(source, NullableContextOptions.Enable, type, "A<System.String!>");
-            AssertGetSpeculativeTypeInfo(source, NullableContextOptions.SafeOnly, type, "A<System.String!>");
         }
 
         private static void AssertGetSpeculativeTypeInfo(string source, NullableContextOptions nullableContextOptions, TypeSyntax type, string expected)
@@ -71002,7 +70964,6 @@ A<string>
 
             AssertGetSpeculativeTypeInfo(source, NullableContextOptions.Disable, type, "A<System.String>");
             AssertGetSpeculativeTypeInfo(source, NullableContextOptions.Warnings, type, "A<System.String>");
-            AssertGetSpeculativeTypeInfo(source, NullableContextOptions.SafeOnlyWarnings, type, "A<System.String>");
         }
 
         [Fact]
@@ -71028,7 +70989,6 @@ A<string>
             );
 
             AssertGetSpeculativeTypeInfo(source, NullableContextOptions.Enable, type, "A<System.String>");
-            AssertGetSpeculativeTypeInfo(source, NullableContextOptions.SafeOnly, type, "A<System.String>");
         }
 
         [Fact]
@@ -71055,7 +71015,6 @@ A<string>
 
             AssertGetSpeculativeTypeInfo(source, NullableContextOptions.Disable, type, "A<System.String!>");
             AssertGetSpeculativeTypeInfo(source, NullableContextOptions.Warnings, type, "A<System.String!>");
-            AssertGetSpeculativeTypeInfo(source, NullableContextOptions.SafeOnlyWarnings, type, "A<System.String!>");
         }
 
         [Fact]
@@ -71083,7 +71042,6 @@ A<string>
             );
 
             AssertGetSpeculativeTypeInfo(source, NullableContextOptions.Enable, type, "A<System.String>");
-            AssertGetSpeculativeTypeInfo(source, NullableContextOptions.SafeOnly, type, "A<System.String>");
         }
 
         [Fact]
@@ -71112,7 +71070,6 @@ A<string>
 
             AssertGetSpeculativeTypeInfo(source, NullableContextOptions.Disable, type, "A<System.String!>");
             AssertGetSpeculativeTypeInfo(source, NullableContextOptions.Warnings, type, "A<System.String!>");
-            AssertGetSpeculativeTypeInfo(source, NullableContextOptions.SafeOnlyWarnings, type, "A<System.String!>");
         }
 
         [Fact]
@@ -71141,7 +71098,6 @@ A<string>
             );
 
             AssertGetSpeculativeTypeInfo(source, NullableContextOptions.Enable, type, "A<System.String!>");
-            AssertGetSpeculativeTypeInfo(source, NullableContextOptions.SafeOnly, type, "A<System.String!>");
         }
 
         [Fact]
@@ -71171,7 +71127,6 @@ A<string>
 
             AssertGetSpeculativeTypeInfo(source, NullableContextOptions.Disable, type, "A<System.String>");
             AssertGetSpeculativeTypeInfo(source, NullableContextOptions.Warnings, type, "A<System.String>");
-            AssertGetSpeculativeTypeInfo(source, NullableContextOptions.SafeOnlyWarnings, type, "A<System.String>");
         }
 
         [Fact]
@@ -71196,7 +71151,6 @@ A<string>
             );
 
             AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.Enable, type, "A<System.String!>");
-            AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.SafeOnly, type, "A<System.String!>");
         }
 
         private static void AssertTryGetSpeculativeSemanticModel(string source, NullableContextOptions nullableContextOptions, TypeSyntax type, string expected)
@@ -71236,7 +71190,6 @@ A<string>
 
             AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.Disable, type, "A<System.String>");
             AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.Warnings, type, "A<System.String>");
-            AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.SafeOnlyWarnings, type, "A<System.String>");
         }
 
         [Fact]
@@ -71262,7 +71215,6 @@ A<string>
             );
 
             AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.Enable, type, "A<System.String>");
-            AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.SafeOnly, type, "A<System.String>");
         }
 
         [Fact]
@@ -71289,7 +71241,6 @@ A<string>
 
             AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.Disable, type, "A<System.String!>");
             AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.Warnings, type, "A<System.String!>");
-            AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.SafeOnlyWarnings, type, "A<System.String!>");
         }
 
         [Fact]
@@ -71317,7 +71268,6 @@ A<string>
             );
 
             AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.Enable, type, "A<System.String>");
-            AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.SafeOnly, type, "A<System.String>");
         }
 
         [Fact]
@@ -71346,7 +71296,6 @@ A<string>
 
             AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.Disable, type, "A<System.String!>");
             AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.Warnings, type, "A<System.String!>");
-            AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.SafeOnlyWarnings, type, "A<System.String!>");
         }
 
         [Fact]
@@ -71375,7 +71324,6 @@ A<string>
             );
 
             AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.Enable, type, "A<System.String!>");
-            AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.SafeOnly, type, "A<System.String!>");
         }
 
         [Fact]
@@ -71405,7 +71353,6 @@ A<string>
 
             AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.Disable, type, "A<System.String>");
             AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.Warnings, type, "A<System.String>");
-            AssertTryGetSpeculativeSemanticModel(source, NullableContextOptions.SafeOnlyWarnings, type, "A<System.String>");
         }
 
         [Fact]
@@ -71428,7 +71375,6 @@ class C {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -71487,7 +71433,6 @@ namespace C
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -71549,7 +71494,6 @@ namespace C
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -71589,135 +71533,6 @@ namespace C
         }
 
         [Fact]
-        public void NonNullTypesContext_44()
-        {
-            var source =
-@"
-#pragma warning disable CS0169
-
-class A
-{
-#nullable safeonly
-    B
-#nullable disable
-      F1;
-}
-
-class B {}
-";
-            assertNonNullTypesContext(NullableContextOptions.Disable);
-            assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
-
-            void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
-            {
-                CSharpCompilationOptions compilationOptions = WithNonNullTypes(nullableContextOptions);
-                var comp = CreateCompilation(new[] { source }, options: compilationOptions);
-
-                var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
-            }
-        }
-
-        [Fact]
-        public void NonNullTypesContext_45()
-        {
-            var source =
-@"
-#pragma warning disable CS0169
-
-class A
-{
-#nullable disable
-    B
-#nullable safeonly
-      F1;
-}
-
-class B {}
-";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(NullableContextOptions.SafeOnly));
-
-            var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("B", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
-        }
-
-        [Fact]
-        public void NonNullTypesContext_46()
-        {
-            var source =
-@"
-#pragma warning disable CS0169
-
-class A
-{
-    B
-#nullable safeonly
-     ?
-       F1;
-}
-
-class B {}
-";
-            assertNonNullTypesContext(NullableContextOptions.Disable);
-            assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
-
-            void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
-            {
-                CSharpCompilationOptions compilationOptions = WithNonNullTypes(nullableContextOptions);
-                var comp = CreateCompilation(new[] { source }, options: compilationOptions);
-
-                var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
-
-                comp.VerifyDiagnostics();
-            }
-        }
-
-        [Fact]
-        public void NonNullTypesContext_47()
-        {
-            var source =
-@"
-#pragma warning disable CS0169
-
-class A
-{
-    B F1;
-}
-
-class B {}
-";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(NullableContextOptions.SafeOnly));
-
-            var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("B!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
-        }
-
-        [Fact]
-        public void NonNullTypesContext_48()
-        {
-            var source =
-@"
-#pragma warning disable CS0169
-
-class A
-{
-    B? F1;
-}
-
-class B {}
-";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(NullableContextOptions.SafeOnly));
-
-            var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
-
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
         public void NonNullTypesContext_49()
         {
             var source =
@@ -71737,45 +71552,6 @@ class B {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
-
-            void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
-            {
-                CSharpCompilationOptions compilationOptions = WithNonNullTypes(nullableContextOptions);
-                var comp = CreateCompilation(new[] { source }, options: compilationOptions);
-
-                var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
-
-                comp.VerifyDiagnostics(
-                    // (8,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-                    //      ?
-                    Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 6)
-                    );
-            }
-        }
-
-        [Fact]
-        public void NonNullTypesContext_50()
-        {
-            var source =
-@"
-#pragma warning disable CS0169
-#nullable safeonly
-class A
-{
-    B
-#nullable restore
-     ?
-#nullable safeonly
-       F1;
-}
-
-class B {}
-";
-            assertNonNullTypesContext(NullableContextOptions.Disable);
-            assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -71812,7 +71588,6 @@ class B {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -71850,7 +71625,6 @@ class B {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -71887,40 +71661,6 @@ class B {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
-
-            void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
-            {
-                CSharpCompilationOptions compilationOptions = WithNonNullTypes(nullableContextOptions);
-                var comp = CreateCompilation(new[] { source }, options: compilationOptions);
-
-                var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
-
-                comp.VerifyDiagnostics();
-            }
-        }
-
-        [Fact]
-        public void NonNullTypesContext_54()
-        {
-            var source =
-@"
-#pragma warning disable CS0169
-#nullable safeonly
-class A
-{
-#nullable restore
-    B
-#nullable safeonly
-       F1;
-}
-
-class B {}
-";
-            assertNonNullTypesContext(NullableContextOptions.Disable);
-            assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -71951,7 +71691,6 @@ class B {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -71984,7 +71723,6 @@ class B {}
 ";
             assertNonNullTypesContext(NullableContextOptions.Disable);
             assertNonNullTypesContext(NullableContextOptions.Warnings);
-            assertNonNullTypesContext(NullableContextOptions.SafeOnlyWarnings);
 
             void assertNonNullTypesContext(NullableContextOptions nullableContextOptions)
             {
@@ -72017,7 +71755,6 @@ class A
 class B {}
 ";
             assertType(NullableContextOptions.Enable);
-            assertType(NullableContextOptions.SafeOnly);
 
             void assertType(NullableContextOptions nullableContextOptions)
             {
@@ -72049,7 +71786,6 @@ class A
 class B {}
 ";
             assertType(NullableContextOptions.Enable);
-            assertType(NullableContextOptions.SafeOnly);
 
             void assertType(NullableContextOptions nullableContextOptions)
             {
@@ -72080,7 +71816,6 @@ class A
 class B {}
 ";
             assertType(NullableContextOptions.Enable);
-            assertType(NullableContextOptions.SafeOnly);
 
             void assertType(NullableContextOptions nullableContextOptions)
             {
@@ -72112,7 +71847,6 @@ class A
 class B {}
 ";
             assertType(NullableContextOptions.Enable);
-            assertType(NullableContextOptions.SafeOnly);
 
             void assertType(NullableContextOptions nullableContextOptions)
             {
@@ -72143,7 +71877,6 @@ class A
 class B {}
 ";
             assertType(NullableContextOptions.Enable);
-            assertType(NullableContextOptions.SafeOnly);
 
             void assertType(NullableContextOptions nullableContextOptions)
             {
@@ -72173,7 +71906,6 @@ class A
 class B {}
 ";
             assertType(NullableContextOptions.Enable);
-            assertType(NullableContextOptions.SafeOnly);
 
             void assertType(NullableContextOptions nullableContextOptions)
             {
@@ -82340,9 +82072,7 @@ partial class Program
             }
 
             assertDiagnosticOptions(NullableContextOptions.Enable);
-            assertDiagnosticOptions(NullableContextOptions.SafeOnly);
             assertDiagnosticOptions(NullableContextOptions.Warnings);
-            assertDiagnosticOptions(NullableContextOptions.SafeOnlyWarnings);
 
             void assertDiagnosticOptions(NullableContextOptions nullableContextOptions)
             {
@@ -82525,9 +82255,7 @@ partial class Program
             }
 
             assertDiagnosticOptions(NullableContextOptions.Enable);
-            assertDiagnosticOptions(NullableContextOptions.SafeOnly);
             assertDiagnosticOptions(NullableContextOptions.Warnings);
-            assertDiagnosticOptions(NullableContextOptions.SafeOnlyWarnings);
 
             void assertDiagnosticOptions(NullableContextOptions nullableContextOptions)
             {
@@ -82649,6 +82377,7 @@ partial class Program
         {
             var source =
 @"
+
 #nullable enable
 partial class Program
 {
@@ -82674,9 +82403,7 @@ partial class Program
 }";
             assertDiagnosticOptions(NullableContextOptions.Disable);
             assertDiagnosticOptions(NullableContextOptions.Enable);
-            assertDiagnosticOptions(NullableContextOptions.SafeOnly);
             assertDiagnosticOptions(NullableContextOptions.Warnings);
-            assertDiagnosticOptions(NullableContextOptions.SafeOnlyWarnings);
 
             void assertDiagnosticOptions(NullableContextOptions nullableContextOptions)
             {
@@ -82686,9 +82413,9 @@ partial class Program
                 var comp = CreateCompilation(new[] { source, source2 }, options: options);
                 var diagnostics = comp.GetDiagnostics();
                 diagnostics.Verify(
-                    // (6,11): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                    // (8,11): warning CS8625: Cannot convert null literal to non-nullable reference type.
                     //         F(null);
-                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null")
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 11)
                     );
                 Assert.Equal(DiagnosticSeverity.Warning, diagnostics.Single().Severity);
 
@@ -83116,48 +82843,14 @@ partial class Program
             var source =
 @"
 #nullable safeonly
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_06(source);
-        }
+";
 
-        [Fact]
-        public void DiagnosticOptions_24()
-        {
-            var source =
-@"
-#pragma warning disable
-#nullable safeonly
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_06(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_25()
-        {
-            var source =
-@"
-#pragma warning disable " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable) + @"
-#nullable safeonly
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_06(source);
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,11): error CS8637: Expected 'enable', 'disable', or 'restore'
+                // #nullable safeonly
+                Diagnostic(ErrorCode.ERR_NullableDirectiveQualifierExpected, "safeonly").WithLocation(2, 11)
+                );
         }
 
         [Fact]
@@ -83197,40 +82890,6 @@ partial class Program
         }
 
         [Fact]
-        public void DiagnosticOptions_28()
-        {
-            var source =
-@"
-#pragma warning restore " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable) + @"
-#nullable safeonly
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_06(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_29()
-        {
-            var source =
-@"
-#nullable restore
-#nullable safeonly
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_06(source);
-        }
-
-        [Fact]
         public void DiagnosticOptions_30()
         {
             var source =
@@ -83248,80 +82907,12 @@ partial class Program
         }
 
         [Fact]
-        public void DiagnosticOptions_31()
-        {
-            var source =
-@"
-#nullable safeonly
-#pragma warning restore
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_01(source);
-        }
-
-        [Fact]
         public void DiagnosticOptions_32()
         {
             var source =
 @"
 #nullable enable
 #nullable restore
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_01(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_33()
-        {
-            var source =
-@"
-#nullable safeonly
-#nullable restore
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_01(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_34()
-        {
-            var source =
-@"
-#pragma warning restore
-#nullable safeonly
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_06(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_35()
-        {
-            var source =
-@"
-#nullable safeonly
-#pragma warning restore " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_NullAsNonNullable) + @"
 partial class Program
 {
     static void Test()
@@ -83367,8 +82958,6 @@ partial class Program
             assertDiagnosticOptions1(NullableContextOptions.Warnings);
 
             assertDiagnosticOptions2(NullableContextOptions.Disable);
-            assertDiagnosticOptions2(NullableContextOptions.SafeOnly);
-            assertDiagnosticOptions2(NullableContextOptions.SafeOnlyWarnings);
 
             void assertDiagnosticOptions1(NullableContextOptions nullableContextOptions)
             {
@@ -83567,9 +83156,7 @@ partial class Program
 }";
             assertDiagnosticOptions(NullableContextOptions.Disable);
             assertDiagnosticOptions(NullableContextOptions.Enable);
-            assertDiagnosticOptions(NullableContextOptions.SafeOnly);
             assertDiagnosticOptions(NullableContextOptions.Warnings);
-            assertDiagnosticOptions(NullableContextOptions.SafeOnlyWarnings);
 
             void assertDiagnosticOptions(NullableContextOptions nullableContextOptions)
             {
@@ -83897,59 +83484,6 @@ partial class Program
         }
 
         [Fact]
-        public void DiagnosticOptions_50()
-        {
-            var source =
-@"
-#nullable safeonly
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_02(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_51()
-        {
-            var source =
-@"
-#pragma warning disable
-#nullable safeonly
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_02(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_52()
-        {
-            var source =
-@"
-#pragma warning disable " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ConvertingNullableToNonNullable) + @"
-#nullable safeonly
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_02(source);
-        }
-
-        [Fact]
         public void DiagnosticOptions_53()
         {
             var source =
@@ -83965,42 +83499,6 @@ partial class Program
     }
 }";
             AssertDiagnosticOptions_38(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_54()
-        {
-            var source =
-@"
-#pragma warning restore " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ConvertingNullableToNonNullable) + @"
-#nullable safeonly
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_02(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_55()
-        {
-            var source =
-@"
-#nullable restore
-#nullable safeonly
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_02(source);
         }
 
         [Fact]
@@ -84022,84 +83520,12 @@ partial class Program
         }
 
         [Fact]
-        public void DiagnosticOptions_57()
-        {
-            var source =
-@"
-#nullable safeonly
-#pragma warning restore
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_36(source);
-        }
-
-        [Fact]
         public void DiagnosticOptions_58()
         {
             var source =
 @"
 #nullable enable
 #nullable restore
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_36(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_59()
-        {
-            var source =
-@"
-#nullable safeonly
-#nullable restore
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_36(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_60()
-        {
-            var source =
-@"
-#pragma warning restore
-#nullable safeonly
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_02(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_61()
-        {
-            var source =
-@"
-#nullable safeonly
-#pragma warning restore " + MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_ConvertingNullableToNonNullable) + @"
 partial class Program
 {
     static void Test()
@@ -84269,23 +83695,6 @@ partial class Program
         }
 
         [Fact]
-        public void DiagnosticOptions_71()
-        {
-            var source =
-@"
-#nullable safeonly
-#pragma warning restore nullable
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_01(source);
-        }
-
-        [Fact]
         public void DiagnosticOptions_72()
         {
             var source =
@@ -84336,144 +83745,6 @@ partial class Program
     }
 }";
             AssertDiagnosticOptions_36(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_75()
-        {
-            var source =
-@"
-#nullable safeonly
-#pragma warning restore nullable
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_36(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_76()
-        {
-            var source =
-@"
-#pragma warning safeonly nullable
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_06(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_77()
-        {
-            var source =
-@"
-#pragma warning disable
-#pragma warning safeonly nullable
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_06(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_78()
-        {
-            var source =
-@"
-#nullable restore
-#pragma warning safeonly nullable
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_06(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_79()
-        {
-            var source =
-@"
-#pragma warning safeonly nullable
-#pragma warning restore
-partial class Program
-{
-    static void Test()
-    {
-        F(null);
-    }
-}";
-            AssertDiagnosticOptions_01(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_80()
-        {
-            var source =
-@"
-#pragma warning safeonly nullable
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_02(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_81()
-        {
-            var source =
-@"
-#pragma warning restore
-#pragma warning safeonly nullable
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_02(source);
-        }
-
-        [Fact]
-        public void DiagnosticOptions_82()
-        {
-            var source =
-@"
-#nullable restore
-#pragma warning safeonly nullable
-partial class Program
-{
-    static void Test()
-    {
-        var x = M();
-        x = null;
-    }
-}";
-            AssertDiagnosticOptions_02(source);
         }
 
         [Fact]
