@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             SyntaxToken foreachIdentifier, ExpressionSyntax collectionExpression,
             ITypeSymbol iterationVariableType, OptionSet optionSet)
         {
-            typeNode = typeNode ?? iterationVariableType.GenerateTypeSyntax();
+            typeNode ??= iterationVariableType.GenerateTypeSyntax();
 
             return SyntaxFactory.ForEachStatement(
                 SyntaxFactory.Token(SyntaxKind.ForEachKeyword).WithTriviaFrom(forStatement.ForKeyword),

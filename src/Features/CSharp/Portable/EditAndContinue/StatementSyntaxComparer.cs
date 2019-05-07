@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal static Label GetLabelImpl(SyntaxNode node)
         {
-            return Classify(node.Kind(), node, out var isLeaf);
+            return Classify(node.Kind(), node, out _);
         }
 
         internal static bool HasLabel(SyntaxNode node)
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // The only cases when we can't are
             // - for Initializer, Condition and Incrementor expressions in ForStatement.
             // - first from clause of a query expression.
-            return Classify(kind, null, out var isLeaf) != Label.Ignored;
+            return Classify(kind, null, out _) != Label.Ignored;
         }
 
         public override bool ValuesEqual(SyntaxNode left, SyntaxNode right)

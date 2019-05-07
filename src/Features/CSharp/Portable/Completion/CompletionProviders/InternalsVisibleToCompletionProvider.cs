@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     // For most documents the compilationUnit.AttributeLists should be empty.
                     // Therefore we delay initialization of the builder
-                    builder = builder ?? ImmutableList.CreateBuilder<SyntaxNode>();
+                    builder ??= ImmutableList.CreateBuilder<SyntaxNode>();
                     builder.AddRange(attributeList.Attributes);
                 }
             }

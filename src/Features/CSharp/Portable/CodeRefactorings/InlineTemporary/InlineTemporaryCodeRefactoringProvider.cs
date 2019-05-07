@@ -149,9 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             {
                 return true;
             }
-            else if (identifierNode.Parent is AssignmentExpressionSyntax)
+            else if (identifierNode.Parent is AssignmentExpressionSyntax binaryExpression)
             {
-                var binaryExpression = (AssignmentExpressionSyntax)identifierNode.Parent;
                 if (binaryExpression.Left == identifierNode)
                 {
                     return true;
@@ -539,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                             newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(inlinedNode, cancellationToken);
                             if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
                             {
-                                replacementNodesWithChangedSemantics = replacementNodesWithChangedSemantics ?? new Dictionary<SyntaxNode, SyntaxNode>();
+                                replacementNodesWithChangedSemantics ??= new Dictionary<SyntaxNode, SyntaxNode>();
                                 replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
                             }
                         }
@@ -547,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                         // Verification: Do not inline a variable into the left side of a deconstruction-assignment
                         if (IsInDeconstructionAssignmentLeft(innerInitializerInInlineNode))
                         {
-                            replacementNodesWithChangedSemantics = replacementNodesWithChangedSemantics ?? new Dictionary<SyntaxNode, SyntaxNode>();
+                            replacementNodesWithChangedSemantics ??= new Dictionary<SyntaxNode, SyntaxNode>();
                             replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
                         }
                     }

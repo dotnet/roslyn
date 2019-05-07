@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 return null;
             }
 
-            indexDone = indexDone + namespaceContainers.Count;
+            indexDone += namespaceContainers.Count;
             if (indexDone == containers.Count)
             {
                 return namespaceDecl;
