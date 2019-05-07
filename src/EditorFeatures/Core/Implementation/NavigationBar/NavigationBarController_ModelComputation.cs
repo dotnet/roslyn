@@ -157,17 +157,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
         internal static NavigationBarSelectedTypeAndMember ComputeSelectedTypeAndMember(NavigationBarModel model, SnapshotPoint caretPosition, CancellationToken cancellationToken)
         {
-            var leftItem = GetMatchingItem(model.Types, caretPosition, model.ItemService, cancellationToken);
+            var (item, gray) = GetMatchingItem(model.Types, caretPosition, model.ItemService, cancellationToken);
 
-            if (leftItem.item == null)
+            if (item == null)
             {
                 // Nothing to show at all
                 return new NavigationBarSelectedTypeAndMember(null, null);
             }
 
-            var rightItem = GetMatchingItem(leftItem.item.ChildItems, caretPosition, model.ItemService, cancellationToken);
+            var rightItem = GetMatchingItem(item.ChildItems, caretPosition, model.ItemService, cancellationToken);
 
-            return new NavigationBarSelectedTypeAndMember(leftItem.item, leftItem.gray, rightItem.item, rightItem.gray);
+            return new NavigationBarSelectedTypeAndMember(item, gray, rightItem.item, rightItem.gray);
         }
 
         /// <summary>
