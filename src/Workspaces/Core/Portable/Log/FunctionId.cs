@@ -457,7 +457,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         Intellisense_AsyncCompletion_Data,
         Intellisense_CompletionProviders_Data,
-
         PartialLoad_FullyLoaded,
     }
 }

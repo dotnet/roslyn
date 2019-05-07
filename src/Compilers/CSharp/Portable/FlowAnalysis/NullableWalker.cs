@@ -3199,10 +3199,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!argument.IsSuppressed)
                         {
                             var lvalueResultType = result.LValueType;
-                            if (IsNullabilityMismatch(lvalueResultType, parameterType))
+                            if (IsNullabilityMismatch(lvalueResultType.Type, parameterType.Type))
                             {
-                                // declared types must match
-                                ReportNullabilityMismatchInRefArgument(argument, argumentType: lvalueResultType, parameter, parameterType);
+                                // declared types must match, ignoring top-level nullability
+                                ReportNullabilityMismatchInRefArgument(argument, argumentType: lvalueResultType.Type, parameter, parameterType.Type);
                             }
                             else
                             {
@@ -3221,6 +3221,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
                         var lValueType = result.LValueType;
                         TrackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState);
+
+                        // check whether parameter would unsafely let a null out
+                        ReportNullableAssignmentIfNecessary(parameterValue, lValueType, parameterWithState, useLegacyWarnings: false);
                     }
                     break;
                 case RefKind.Out:
@@ -4764,6 +4767,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
+            return VisitDeconstructionAssignmentOperator(node, rightResultOpt: null);
+        }
+
+        private BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node, TypeWithState? rightResultOpt = null)
+        {
             var previousDisableNullabilityAnalysis = _disableNullabilityAnalysis;
             _disableNullabilityAnalysis = true;
             var left = node.Left;
@@ -4778,7 +4786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitDeconstructionArguments(variables, right.Conversion, right.Operand);
+                VisitDeconstructionArguments(variables, right.Conversion, right.Operand, rightResultOpt);
             }
 
             variables.FreeAll(v => v.NestedVariables);
@@ -4792,7 +4800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitDeconstructionArguments(ArrayBuilder<DeconstructionVariable> variables, Conversion conversion, BoundExpression right)
+        private void VisitDeconstructionArguments(ArrayBuilder<DeconstructionVariable> variables, Conversion conversion, BoundExpression right, TypeWithState? rightResultOpt = null)
         {
             Debug.Assert(conversion.Kind == ConversionKind.Deconstruction);
 
@@ -4801,6 +4809,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!conversion.DeconstructionInfo.IsDefault)
             {
                 VisitRvalue(right);
+
+                // If we were passed an explicit right result, use that rather than the visited result
+                if (rightResultOpt.HasValue)
+                {
+                    SetResultType(right, rightResultOpt.Value);
+                }
                 var rightResult = ResultType;
                 var rightResultWithAnnotations = rightResult.ToTypeWithAnnotations();
 
@@ -5223,7 +5237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportNullabilityMismatchInRefArgument(BoundExpression argument, TypeWithAnnotations argumentType, ParameterSymbol parameter, TypeWithAnnotations parameterType)
+        private void ReportNullabilityMismatchInRefArgument(BoundExpression argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType)
         {
             ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInArgument,
                 argument.Syntax, argumentType, parameterType,
@@ -5557,55 +5571,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
 #pragma warning restore IDE0055 // Fix formatting
 
-            // declare and assign all iteration variables
-            foreach (var iterationVariable in node.IterationVariables)
+            if (!(node.DeconstructionOpt is null))
             {
-                var state = NullableFlowState.NotNull;
-                if (!sourceState.HasNullType)
-                {
-                    TypeWithAnnotations destinationType = iterationVariable.TypeWithAnnotations;
+                var assignment = node.DeconstructionOpt.DeconstructionAssignment;
 
-                    if (iterationVariable.IsRef)
+
+                // Visit the assignment as a deconstruction with an explicit type
+                VisitDeconstructionAssignmentOperator(assignment, sourceState);
+            }
+            else
+            {
+                foreach (var iterationVariable in node.IterationVariables)
+                {
+                    var state = NullableFlowState.NotNull;
+                    if (!sourceState.HasNullType)
                     {
-                        // foreach (ref DestinationType variable in collection)
-                        if (IsNullabilityMismatch(sourceType, destinationType))
+                        TypeWithAnnotations destinationType = iterationVariable.TypeWithAnnotations;
+
+                        if (iterationVariable.IsRef)
                         {
-                            var foreachSyntax = (ForEachStatementSyntax)node.Syntax;
-                            ReportNullabilityMismatchInAssignment(foreachSyntax.Type, sourceType, destinationType);
+                            // foreach (ref DestinationType variable in collection)
+                            if (IsNullabilityMismatch(sourceType, destinationType))
+                            {
+                                var foreachSyntax = (ForEachStatementSyntax)node.Syntax;
+                                ReportNullabilityMismatchInAssignment(foreachSyntax.Type, sourceType, destinationType);
+                            }
+                            state = sourceState.State;
                         }
-                        state = sourceState.State;
+                        else
+                        {
+                            // foreach (DestinationType variable in collection)
+                            // foreach (var variable in collection)
+                            // and asynchronous variants
+                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                            Conversion conversion = node.ElementConversion.Kind == ConversionKind.UnsetConversionKind
+                                ? _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref useSiteDiagnostics)
+                                : node.ElementConversion;
+                            TypeWithState result = ApplyConversion(
+                                node.IterationVariableType,
+                                operandOpt: null,
+                                conversion,
+                                destinationType,
+                                sourceState,
+                                checkConversion: true,
+                                fromExplicitCast: !conversion.IsImplicit,
+                                useLegacyWarnings: false,
+                                AssignmentKind.ForEachIterationVariable,
+                                reportTopLevelWarnings: true,
+                                reportRemainingWarnings: true,
+                                location: variableLocation);
+                            state = result.State;
+                        }
                     }
-                    else
-                    {
-                        // foreach (DestinationType variable in collection)
-                        // foreach (var variable in collection)
-                        // foreach (var (..., ...) in collection)
-                        // and asynchronous variants
-                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                        Conversion conversion = node.ElementConversion.Kind == ConversionKind.UnsetConversionKind
-                            ? _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.Type, ref useSiteDiagnostics)
-                            : node.ElementConversion;
-                        TypeWithState result = ApplyConversion(
-                            node.IterationVariableType,
-                            operandOpt: null,
-                            conversion,
-                            destinationType,
-                            sourceState,
-                            checkConversion: true,
-                            fromExplicitCast: !conversion.IsImplicit,
-                            useLegacyWarnings: false,
-                            AssignmentKind.ForEachIterationVariable,
-                            reportTopLevelWarnings: true,
-                            reportRemainingWarnings: true,
-                            location: variableLocation);
-                        state = result.State;
-                    }
-                }
 
-                int slot = GetOrCreateSlot(iterationVariable);
-                if (slot > 0)
-                {
-                    this.State[slot] = state;
+                    int slot = GetOrCreateSlot(iterationVariable);
+                    if (slot > 0)
+                    {
+                        this.State[slot] = state;
+                    }
                 }
             }
 
@@ -6381,6 +6404,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var typeWithAnnotations = TypeWithAnnotations.Create(node.Type, node.NullableAnnotation);
             SetResult(node.Expression, typeWithAnnotations.ToTypeWithState(), typeWithAnnotations);
+            return null;
+        }
+
+        public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        {
+            SetNotNullResult(node);
             return null;
         }
 

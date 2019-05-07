@@ -1630,7 +1630,7 @@ done:
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            if (IsDeclaredReadOnly)
+            if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
             {
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, locations[0], modifyCompilation: true);
             }
@@ -1640,7 +1640,7 @@ done:
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (IsDeclaredReadOnly)
+            if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
