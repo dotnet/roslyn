@@ -2937,8 +2937,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // We do a second pass through the arguments, ignoring any diagnostics produced, but honoring the annotations,
-            // to get the proper result state.
-            ImmutableArray<FlowAnalysisAnnotations> annotations = GetAnnotations(argumentsNoConversions.Length, expanded, parameters, argsToParamsOpt);
+            // to get the proper result state. Annotations are ignored when binding an attribute to avoid cycles.
+            // (Additional warnings are only expected in error scenarios, particularly calling a method in an attribute argument.)
+            ImmutableArray<FlowAnalysisAnnotations> annotations =
+                (this.methodMainNode.Kind == BoundKind.Attribute) ?
+                default :
+                GetAnnotations(argumentsNoConversions.Length, expanded, parameters, argsToParamsOpt);
 
             if (!annotations.IsDefault)
             {
