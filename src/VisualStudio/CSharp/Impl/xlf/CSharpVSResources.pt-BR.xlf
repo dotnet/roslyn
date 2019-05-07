@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="General">
         <source>General</source>
-        <target state="new">General</target>
+        <target state="translated">Geral</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
