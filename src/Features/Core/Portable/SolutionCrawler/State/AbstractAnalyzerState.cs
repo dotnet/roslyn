@@ -93,19 +93,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
         private async Task<bool> WriteToStreamAsync(TValue value, TData data, CancellationToken cancellationToken)
         {
-            using (var stream = SerializableBytes.CreateWritableStream())
-            {
-                WriteTo(stream, data, cancellationToken);
+            using var stream = SerializableBytes.CreateWritableStream();
+            WriteTo(stream, data, cancellationToken);
 
-                var solution = GetSolution(value);
-                var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var solution = GetSolution(value);
+            var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
 
-                using (var storage = persistService.GetStorage(solution))
-                {
-                    stream.Position = 0;
-                    return await WriteStreamAsync(storage, value, stream, cancellationToken).ConfigureAwait(false);
-                }
-            }
+            using var storage = persistService.GetStorage(solution);
+            stream.Position = 0;
+            return await WriteStreamAsync(storage, value, stream, cancellationToken).ConfigureAwait(false);
         }
 
         protected readonly struct CacheEntry
