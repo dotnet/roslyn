@@ -317,16 +317,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             return (VariableDeclaratorSyntax)annotatedNodesOrTokens.First().AsNode();
         }
 
-        private SyntaxTriviaList GetTriviaToPreserve(SyntaxTriviaList syntaxTriviaList)
-        {
-            return ShouldPreserve(syntaxTriviaList) ? syntaxTriviaList : default;
-        }
-
-        private static bool ShouldPreserve(SyntaxTriviaList trivia)
-        {
-            return trivia.Any(t => t.IsRegularComment() || t.IsDirective);
-        }
-
         private SyntaxNode RemoveDeclaratorFromVariableList(VariableDeclaratorSyntax variableDeclarator, VariableDeclarationSyntax variableDeclaration)
         {
             Debug.Assert(variableDeclaration.Variables.Count > 1);
