@@ -8,10 +8,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -21,18 +22,20 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     internal class RoslynGotoDefinitionService : IGoToDefinitionService
     {
-        private readonly IStreamingFindUsagesPresenter streamingPresenter;
-        private readonly RoslynLSPClientServiceFactory roslynLSPClientServiceFactory;
-        private readonly RemoteLanguageServiceWorkspace remoteWorkspace;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
+        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RemoteLanguageServiceWorkspace _remoteWorkspace;
+        private readonly IThreadingContext _threadingContext;
 
         public RoslynGotoDefinitionService(
             IStreamingFindUsagesPresenter streamingPresenter,
             RoslynLSPClientServiceFactory roslynLSPClientServiceFactory,
-            RemoteLanguageServiceWorkspace remoteWorkspace) 
+            RemoteLanguageServiceWorkspace remoteWorkspace,
+            IThreadingContext threadingContext)
         {
-            this.streamingPresenter = streamingPresenter ?? throw new ArgumentNullException(nameof(streamingPresenter));
-            this.roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
-            this.remoteWorkspace = remoteWorkspace ?? throw new ArgumentNullException(nameof(remoteWorkspace));
+            _streamingPresenter = streamingPresenter ?? throw new ArgumentNullException(nameof(streamingPresenter));
+            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _remoteWorkspace = remoteWorkspace ?? throw new ArgumentNullException(nameof(remoteWorkspace));
         }
 
         public async TPL.Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
@@ -44,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
 
             var navigableItems = ImmutableArray.CreateBuilder<INavigableItem>();
-            foreach (DocumentSpan documentSpan in definitionItems.SelectMany(di => di.SourceSpans))
+            foreach (var documentSpan in definitionItems.SelectMany(di => di.SourceSpans))
             {
                 var declaredSymbolInfo = new DeclaredSymbolInfo(Roslyn.Utilities.StringTable.GetInstance(),
                                                 string.Empty,
@@ -64,10 +67,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
         {
-            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+            return _threadingContext.JoinableTaskFactory.Run(async () =>
             {
                 var definitionItems = await GetDefinitionItemsAsync(document, position, cancellationToken).ConfigureAwait(true);
-                return await this.streamingPresenter.TryNavigateToOrPresentItemsAsync(document.Project.Solution.Workspace,
+                return await _streamingPresenter.TryNavigateToOrPresentItemsAsync(document.Project.Solution.Workspace,
                                                                                       "GoTo Definition",
                                                                                       definitionItems).ConfigureAwait(true);
             });
@@ -75,16 +78,20 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private async TPL.Task<ImmutableArray<DefinitionItem>> GetDefinitionItemsAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var lspClient = this.roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return ImmutableArray<DefinitionItem>.Empty;
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textDocumentPositionParams = document.GetTextDocumentPositionParams(text, position);
+            var textDocumentPositionParams = new LSP.TextDocumentPositionParams()
+            {
+                TextDocument = ProtocolConversions.DocumentToTextDocumentIdentifier(document),
+                Position = ProtocolConversions.LinePositionToPosition(text.Lines.GetLinePosition(position))
+            };
 
-            var response = await lspClient.RequestAsync(Methods.TextDocumentDefinition, textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
+            var response = await lspClient.RequestAsync(LSP.Methods.TextDocumentDefinition, textDocumentPositionParams, cancellationToken).ConfigureAwait(false);
             var locations = ((JToken)response)?.ToObject<LSP.Location[]>();
             if (locations == null)
             {
@@ -97,14 +104,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 DocumentSpan? documentSpan;
                 if (lspClient.ProtocolConverter.IsExternalDocument(location.Uri))
                 {
-                    var externalDocument = this.remoteWorkspace.GetOrAddExternalDocument(location.Uri.LocalPath, document.Project.Language);
+                    var externalDocument = _remoteWorkspace.GetOrAddExternalDocument(location.Uri.LocalPath, document.Project.Language);
                     var externalText = await externalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var textSpan = location.Range.ToTextSpan(externalText);
+                    var textSpan = ProtocolConversions.RangeToTextSpan(location.Range, externalText);
                     documentSpan = new DocumentSpan(externalDocument, textSpan);
                 }
                 else
                 {
-                    documentSpan = await location.ToDocumentSpanAsync(this.remoteWorkspace, cancellationToken).ConfigureAwait(false);
+                    documentSpan = await location.ToDocumentSpanAsync(_remoteWorkspace, cancellationToken).ConfigureAwait(false);
                     if (documentSpan == null)
                     {
                         continue;
