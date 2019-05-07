@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.AddParameter
 {
     internal class AddParameterService : IAddParameterService
     {
-        private AddParameterService() { }
+        private AddParameterService()
+        {
+        }
 
         public static AddParameterService Instance = new AddParameterService();
 

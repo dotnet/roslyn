@@ -9068,7 +9068,7 @@ class Class : Interface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestAddParameterAndOverrides_AddsToInterfaceParameterOfCorrectType()
+        public async Task TestAddParameterAndOverrides_IsOfCorrectType()
         {
             await TestInRegularAndScriptAsync(
 @"interface Interface
