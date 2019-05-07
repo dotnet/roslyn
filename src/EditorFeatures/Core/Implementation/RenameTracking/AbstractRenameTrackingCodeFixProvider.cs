@@ -13,16 +13,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     internal abstract class AbstractRenameTrackingCodeFixProvider : CodeFixProvider
     {
-        private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         protected AbstractRenameTrackingCodeFixProvider(
-            IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices)
         {
-            _waitIndicator = waitIndicator;
             _undoHistoryRegistry = undoHistoryRegistry;
             _refactorNotifyServices = refactorNotifyServices;
         }

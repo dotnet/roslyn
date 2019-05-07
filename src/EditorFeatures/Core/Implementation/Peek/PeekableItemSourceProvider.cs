@@ -18,19 +18,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
     {
         private readonly IPeekableItemFactory _peekableItemFactory;
         private readonly IPeekResultFactory _peekResultFactory;
-        private readonly IMetadataAsSourceFileService _metadataAsSourceService;
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         public PeekableItemSourceProvider(
             IPeekableItemFactory peekableItemFactory,
             IPeekResultFactory peekResultFactory,
-            IMetadataAsSourceFileService metadataAsSourceService,
             IWaitIndicator waitIndicator)
         {
             _peekableItemFactory = peekableItemFactory;
             _peekResultFactory = peekResultFactory;
-            _metadataAsSourceService = metadataAsSourceService;
             _waitIndicator = waitIndicator;
         }
 

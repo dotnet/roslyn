@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             get
             {
-                return _transaction != null ? _transaction.MergePolicy : null;
+                return _transaction?.MergePolicy;
             }
 
             set
