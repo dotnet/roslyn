@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             // any fixes.
             if (RenameTrackingTaggerProvider.CanInvokeRename(document))
             {
-                var action = RenameTrackingTaggerProvider.CreateCodeAction(document, diagnostic, _waitIndicator, _refactorNotifyServices, _undoHistoryRegistry);
+                var action = RenameTrackingTaggerProvider.CreateCodeAction(document, diagnostic, _refactorNotifyServices, _undoHistoryRegistry);
                 context.RegisterCodeFix(action, diagnostic);
             }
 

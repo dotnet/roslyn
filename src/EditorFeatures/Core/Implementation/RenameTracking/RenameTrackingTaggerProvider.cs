@@ -136,7 +136,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         internal static CodeAction CreateCodeAction(
             Document document,
             Diagnostic diagnostic,
-            IWaitIndicator waitIndicator,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             ITextUndoHistoryRegistry undoHistoryRegistry)
         {
