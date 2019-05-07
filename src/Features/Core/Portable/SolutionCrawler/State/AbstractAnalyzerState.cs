@@ -58,13 +58,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
             try
             {
-                using (var storage = persistService.GetStorage(solution))
-                using (var stream = await ReadStreamAsync(storage, value, cancellationToken).ConfigureAwait(false))
+                using var storage = persistService.GetStorage(solution);
+                using var stream = await ReadStreamAsync(storage, value, cancellationToken).ConfigureAwait(false);
+
+                if (stream != null)
                 {
-                    if (stream != null)
-                    {
-                        return TryGetExistingData(stream, value, cancellationToken);
-                    }
+                    return TryGetExistingData(stream, value, cancellationToken);
                 }
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
