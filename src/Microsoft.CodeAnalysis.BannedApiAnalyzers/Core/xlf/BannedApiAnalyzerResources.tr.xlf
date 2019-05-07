@@ -4,32 +4,32 @@
     <body>
       <trans-unit id="DuplicateBannedSymbolDescription">
         <source>The list of banned symbols contains a duplicate.</source>
-        <target state="new">The list of banned symbols contains a duplicate.</target>
+        <target state="translated">Yasaklanan semboller listesi yinelenen bir öğe içeriyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateBannedSymbolMessage">
         <source>The symbol '{0}' is listed multiple times in the list of banned APIs</source>
-        <target state="new">The symbol '{0}' is listed multiple times in the list of banned APIs</target>
+        <target state="translated">'{0}' sembolü yasaklanan API'ler listesinde birden çok kez listelenmiş</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateBannedSymbolTitle">
         <source>The list of banned symbols contains a duplicate</source>
-        <target state="new">The list of banned symbols contains a duplicate</target>
+        <target state="translated">Yasaklanan semboller listesi yinelenen bir öğe içeriyor</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">
         <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
-        <target state="new">The symbol has been marked as banned in this project, and an alternate should be used instead.</target>
+        <target state="translated">Sembol bu projede yasaklanan olarak işaretlendiğinden bunun yerine başka bir sembol kullanılması gerekiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedMessage">
         <source>The symbol '{0}' is banned in this project{1}</source>
-        <target state="new">The symbol '{0}' is banned in this project{1}</target>
+        <target state="translated">'{0}' sembolü bu {1} projesinde yasaklı</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedTitle">
         <source>Do not used banned APIs</source>
-        <target state="new">Do not used banned APIs</target>
+        <target state="translated">Yasaklanan API'leri kullanmayın</target>
         <note />
       </trans-unit>
     </body>
