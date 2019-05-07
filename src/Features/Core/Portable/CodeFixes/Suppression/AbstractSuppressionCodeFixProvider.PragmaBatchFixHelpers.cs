@@ -96,10 +96,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                             // Get the text changes with pragma suppression add/removals.
                             // Note: We do it one token at a time to ensure we get single text change in the new document, otherwise UpdateDiagnosticSpans won't function as expected.
                             // Update the diagnostics spans based on the text changes.
-                            var startTokenChanges = await GetTextChangesAsync(newPragmaAction, currentDocument, diagnostics, currentDiagnosticSpans,
+                            var startTokenChanges = await GetTextChangesAsync(newPragmaAction, currentDocument,
                                 includeStartTokenChange: true, includeEndTokenChange: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                            var endTokenChanges = await GetTextChangesAsync(newPragmaAction, currentDocument, diagnostics, currentDiagnosticSpans,
+                            var endTokenChanges = await GetTextChangesAsync(newPragmaAction, currentDocument,
                                 includeStartTokenChange: false, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                             var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -119,8 +119,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private static async Task<IEnumerable<TextChange>> GetTextChangesAsync(
                 IPragmaBasedCodeAction pragmaAction,
                 Document currentDocument,
-                ImmutableArray<Diagnostic> diagnostics,
-                Dictionary<Diagnostic, TextSpan> currentDiagnosticSpans,
                 bool includeStartTokenChange,
                 bool includeEndTokenChange,
                 CancellationToken cancellationToken)

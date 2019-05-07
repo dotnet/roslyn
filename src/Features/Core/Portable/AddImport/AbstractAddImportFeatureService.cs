@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             throw ExceptionUtilities.Unreachable;
         }
 
-        private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService, SyntaxNode node, CancellationToken cancellationToken)
+        private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService, SyntaxNode node)
         {
             var awaitExpression = FirstAwaitExpressionAncestor(syntaxFactsService, node);
 

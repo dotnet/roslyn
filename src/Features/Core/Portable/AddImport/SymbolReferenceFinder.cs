@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 if (_owner.CanAddImportForGetAwaiter(_diagnosticId, _syntaxFacts, _node))
                 {
-                    var type = _owner.GetAwaitInfo(_semanticModel, _syntaxFacts, _node, searchScope.CancellationToken);
+                    var type = _owner.GetAwaitInfo(_semanticModel, _syntaxFacts, _node);
                     if (type != null)
                     {
                         return await GetReferencesForExtensionMethodAsync(searchScope, WellKnownMemberNames.GetAwaiter, type,
