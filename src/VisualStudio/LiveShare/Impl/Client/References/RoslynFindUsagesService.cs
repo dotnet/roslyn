@@ -6,37 +6,37 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using LiveShareProtocol = Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     internal class RoslynFindUsagesService : IFindUsagesService
     {
-        private readonly RoslynLSPClientServiceFactory roslynLSPClientServiceFactory;
-        private readonly RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace;
+        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
 
         public RoslynFindUsagesService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
         {
-            this.roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
-            this.remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace ?? throw new ArgumentNullException(nameof(remoteLanguageServiceWorkspace));
+            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace ?? throw new ArgumentNullException(nameof(remoteLanguageServiceWorkspace));
         }
 
         public async Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context)
         {
             var text = await document.GetTextAsync().ConfigureAwait(false);
 
-            var lspClient = this.roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return;
             }
 
-            var documentPositionParams = document.GetTextDocumentPositionParams(text, position);
+            var documentPositionParams = ProtocolConversions.PositionToTextDocumentPositionParams(position, text, document);
 
-            object response = await lspClient.RequestAsync(LiveShareProtocol.Methods.TextDocumentImplementations, documentPositionParams, context.CancellationToken).ConfigureAwait(false);
+            var response = await lspClient.RequestAsync(LiveShareProtocol.Methods.TextDocumentImplementations, documentPositionParams, context.CancellationToken).ConfigureAwait(false);
             var locations = ((JToken)response)?.ToObject<LSP.Location[]>();
             if (locations == null)
             {
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             foreach (var location in locations)
             {
-                var documentSpan = await location.ToDocumentSpanAsync(this.remoteLanguageServiceWorkspace, context.CancellationToken).ConfigureAwait(false);
+                var documentSpan = await location.ToDocumentSpanAsync(_remoteLanguageServiceWorkspace, context.CancellationToken).ConfigureAwait(false);
                 if (documentSpan == null)
                 {
                     continue;
@@ -64,20 +64,20 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             var text = await document.GetTextAsync().ConfigureAwait(false);
 
-            var lspClient = this.roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return;
             }
 
-            var referenceParams = new ReferenceParams
+            var referenceParams = new LSP.ReferenceParams
             {
-                Context = new ReferenceContext { IncludeDeclaration = false },
-                TextDocument = document.ToTextDocumentIdentifier(),
-                Position = position.ToPosition(text)
+                Context = new LSP.ReferenceContext { IncludeDeclaration = false },
+                TextDocument = ProtocolConversions.DocumentToTextDocumentIdentifier(document),
+                Position = ProtocolConversions.LinePositionToPosition(text.Lines.GetLinePosition(position))
             };
 
-            LSP.Location[] locations = await lspClient.RequestAsync(Methods.TextDocumentReferences, referenceParams, context.CancellationToken).ConfigureAwait(false);
+            var locations = await lspClient.RequestAsync(LSP.Methods.TextDocumentReferences, referenceParams, context.CancellationToken).ConfigureAwait(false);
             if (locations == null)
             {
                 return;
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             foreach (var location in locations)
             {
-                var documentSpan = await location.ToDocumentSpanAsync(this.remoteLanguageServiceWorkspace, context.CancellationToken).ConfigureAwait(false);
+                var documentSpan = await location.ToDocumentSpanAsync(_remoteLanguageServiceWorkspace, context.CancellationToken).ConfigureAwait(false);
                 if (documentSpan == null)
                 {
                     continue;
