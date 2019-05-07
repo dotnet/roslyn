@@ -35,17 +35,17 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     [ExportLanguageServiceFactory(typeof(CompletionService), StringConstants.TypeScriptLanguageName, WorkspaceKind.AnyCodeRoslynWorkspace), Shared]
     internal class TypeScriptLspCompletionServiceFactory : ILanguageServiceFactory
     {
-        private readonly VisualStudioWorkspace visualStudioWorkspace;
+        private readonly VisualStudioWorkspace _visualStudioWorkspace;
 
         [ImportingConstructor]
         public TypeScriptLspCompletionServiceFactory(VisualStudioWorkspace visualStudioWorkspace)
         {
-            this.visualStudioWorkspace = visualStudioWorkspace ?? throw new ArgumentNullException(nameof(visualStudioWorkspace));
+            _visualStudioWorkspace = visualStudioWorkspace ?? throw new ArgumentNullException(nameof(visualStudioWorkspace));
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            var originalService = this.visualStudioWorkspace.Services.GetLanguageServices(StringConstants.TypeScriptLanguageName).GetService<CompletionService>();
+            var originalService = _visualStudioWorkspace.Services.GetLanguageServices(StringConstants.TypeScriptLanguageName).GetService<CompletionService>();
             return new RoslynCompletionService(languageServices.WorkspaceServices.Workspace,
                 originalService, StringConstants.TypeScriptLanguageName);
         }

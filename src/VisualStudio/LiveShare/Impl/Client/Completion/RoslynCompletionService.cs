@@ -11,23 +11,23 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     internal class RoslynCompletionService : CompletionServiceWithProviders
     {
-        private readonly CompletionService originalService;
-        private readonly string language;
+        private readonly CompletionService _originalService;
+        private readonly string _language;
 
         public RoslynCompletionService(Workspace workspace, CompletionService originalService, string language)
             : base(workspace)
         {
-            this.originalService = originalService ?? throw new ArgumentNullException(nameof(originalService));
-            this.language = language ?? throw new ArgumentNullException(nameof(language));
+            _originalService = originalService ?? throw new ArgumentNullException(nameof(originalService));
+            _language = language ?? throw new ArgumentNullException(nameof(language));
             workspace.Options = workspace.Options.WithChangedOption(CompletionOptions.BlockForCompletionItems, language, false);
         }
 
-        public override string Language => this.language;
+        public override string Language => _language;
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
         {
             // Just ask the local service if we should trigger completion based on its rules since that determination is based on just looking at the current buffer.
-            return this.originalService.ShouldTriggerCompletion(text, caretPosition, trigger, roles, options);
+            return _originalService.ShouldTriggerCompletion(text, caretPosition, trigger, roles, options);
         }
     }
 }
