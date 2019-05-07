@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     break;
             }
 
-            return (name: nameSyntax?.LocalName.ValueText, attributes: attributes);
+            return (name: nameSyntax?.LocalName.ValueText, attributes);
         }
 
         private bool IsAttributeValueContext(SyntaxToken token, out string tagName, out string attributeName)
