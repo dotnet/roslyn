@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.Remote.Shared.CustomProtocol;
 using Newtonsoft.Json.Linq;
-using LspCodeAction = Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol.CodeAction;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
@@ -24,64 +24,65 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     /// </summary>
     internal class RoslynRemoteCodeAction : CodeAnalysis.CodeActions.CodeAction
     {
-        private readonly Document document;
-        private readonly Command command;
-        private readonly LspCodeAction lspCodeAction;
-        private readonly ILanguageServerClient lspClient;
+        private readonly Document _document;
+        private readonly LSP.Command _command;
+        private readonly LSP.CodeAction _lspCodeAction;
+        private readonly ILanguageServerClient _lspClient;
 
-        public RoslynRemoteCodeAction(Document document, Command command, LspCodeAction lspCodeAction, ILanguageServerClient lspClient)
+        public RoslynRemoteCodeAction(Document document, LSP.Command command, LSP.CodeAction lspCodeAction, ILanguageServerClient lspClient)
         {
-            this.document = document ?? throw new ArgumentNullException(nameof(document));
-            this.lspClient = lspClient ?? throw new ArgumentNullException(nameof(lspClient));
+            _document = document ?? throw new ArgumentNullException(nameof(document));
+            _lspClient = lspClient ?? throw new ArgumentNullException(nameof(lspClient));
 
-            this.command = command;
-            this.lspCodeAction = lspCodeAction;
-            if (!(this.command == null ^ this.lspCodeAction == null))
+            _command = command;
+            _lspCodeAction = lspCodeAction;
+            if (!(_command == null ^ _lspCodeAction == null))
             {
                 throw new ArgumentException("Either command or codeaction and only one of those should be provided");
             }
         }
 
-        public override string Title => this.command?.Title ?? this.lspCodeAction.Title;
+        public override string Title => _command?.Title ?? _lspCodeAction.Title;
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
             // If we have a codeaction, then just call the base method which will call ComputeOperationsAsync below.
             // This creates an ApplyChagesOperation so that Roslyn can show a preview of the changes.
-            if (this.lspCodeAction != null)
+            if (_lspCodeAction != null)
             {
                 return await base.ComputePreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
             }
 
             // We have a command - this will be executed on the host but the host may have a preview for the current document.
-            var runCodeActionParams = ((JToken)this.command.Arguments?.Single())?.ToObject<RunCodeActionParams>();
+            var runCodeActionParams = ((JToken)_command.Arguments?.Single())?.ToObject<RunCodeActionParams>();
 
-            TextEdit[] textEdits = await this.lspClient.RequestAsync(RoslynMethods.CodeActionPreview, runCodeActionParams, cancellationToken).ConfigureAwait(false);
+            var request = new LSP.LspRequest<RunCodeActionParams, LSP.TextEdit[]>(RoslynMethods.CodeActionPreviewName);
+            var textEdits = await _lspClient.RequestAsync(request, runCodeActionParams, cancellationToken).ConfigureAwait(false);
             if (textEdits == null || textEdits.Length == 0)
             {
                 return ImmutableArray<CodeActionOperation>.Empty;
             }
 
-            Document newDocument = await ApplyEditsAsync(this.document, textEdits, cancellationToken).ConfigureAwait(false);
+            Document newDocument = await ApplyEditsAsync(_document, textEdits, cancellationToken).ConfigureAwait(false);
             return ImmutableArray.Create(new ApplyChangesOperation(newDocument.Project.Solution));
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
             // If we have a command, return an operation that will execute the command on the host side.
-            if (this.command != null)
+            if (_command != null)
             {
-                var operation = new RoslynRemoteCodeActionOperation(this.command, this.lspClient);
+                var operation = new RoslynRemoteCodeActionOperation(_command, _lspClient);
                 return ImmutableArray.Create(operation);
             }
 
             // We have a codeaction - create an applychanges operation from it.
             var operations = new LinkedList<CodeActionOperation>();
-            var newSolution = this.document.Project.Solution;
-            foreach (var changePair in this.lspCodeAction.Edit.Changes)
+            var newSolution = _document.Project.Solution;
+            foreach (var changePair in _lspCodeAction.Edit.Changes)
             {
-                var documentName = await this.lspClient.ProtocolConverter.FromProtocolUriAsync(new Uri(changePair.Key), true, cancellationToken).ConfigureAwait(false);
-                var doc = newSolution.GetDocument(documentName.LocalPath);
+                var documentName = await _lspClient.ProtocolConverter.FromProtocolUriAsync(new Uri(changePair.Key), true, cancellationToken).ConfigureAwait(false);
+                var doc = newSolution.GetDocumentFromURI(documentName);
                 if (doc == null)
                 {
                     continue;
@@ -92,19 +93,19 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
             operations.AddLast(new ApplyChangesOperation(newSolution));
 
-            if (this.lspCodeAction.Command != null)
+            if (_lspCodeAction.Command != null)
             {
-                operations.AddLast(new RoslynRemoteCodeActionOperation(this.lspCodeAction.Command, this.lspClient));
+                operations.AddLast(new RoslynRemoteCodeActionOperation(_lspCodeAction.Command, _lspClient));
             }
 
             return operations.AsImmutable();
         }
 
-        private async Task<Document> ApplyEditsAsync(Document document, TextEdit[] textEdits, CancellationToken cancellationToken)
+        private async Task<Document> ApplyEditsAsync(Document document, LSP.TextEdit[] textEdits, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            IEnumerable<TextChange> textChanges = textEdits.Select(te => new TextChange(te.Range.ToTextSpan(text), te.NewText));
-            Document newDocument = document.WithText(text.WithChanges(textChanges));
+            var textChanges = textEdits.Select(te => new TextChange(ProtocolConversions.RangeToTextSpan(te.Range, text), te.NewText));
+            var newDocument = document.WithText(text.WithChanges(textChanges));
             return newDocument;
         }
 
