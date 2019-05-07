@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -35,6 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
     internal abstract class AbstractCommentSelectionBase<TCommand>
     {
+        protected const string LanguageNameString = "languagename";
+        protected const string LengthString = "length";
+
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
@@ -150,9 +155,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     }
                 }
 
-                var spansToSelect = trackingSnapshotSpans.Select(s => new Selection(s));
-                // Set the multi selection with the last selection as the primary after edits have been applied.
-                textView.GetMultiSelectionBroker().SetSelectionRange(spansToSelect, spansToSelect.Last());
+                // Set the multi selection after edits have been applied.
+                textView.SetMultiSelection(trackingSnapshotSpans);
             }
         }
 
@@ -199,6 +203,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
             var textSpans = changes.SelectAsArray(change => change.Span.ToTextSpan());
             return service.FormatAsync(document, textSpans, cancellationToken).WaitAndGetResult(cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a set of lines, find the minimum indent of all of the non-blank, non-whitespace lines.
+        /// </summary>
+        protected static int DetermineSmallestIndent(
+            SnapshotSpan span, ITextSnapshotLine firstLine, ITextSnapshotLine lastLine)
+        {
+            // TODO: This breaks if you have mixed tabs/spaces, and/or tabsize != indentsize.
+            var indentToCommentAt = int.MaxValue;
+            for (var lineNumber = firstLine.LineNumber; lineNumber <= lastLine.LineNumber; ++lineNumber)
+            {
+                var line = span.Snapshot.GetLineFromLineNumber(lineNumber);
+                var firstNonWhitespacePosition = line.GetFirstNonWhitespacePosition();
+                var firstNonWhitespaceOnLine = firstNonWhitespacePosition.HasValue
+                    ? firstNonWhitespacePosition.Value - line.Start
+                    : int.MaxValue;
+                indentToCommentAt = Math.Min(indentToCommentAt, firstNonWhitespaceOnLine);
+            }
+
+            return indentToCommentAt;
         }
     }
 }

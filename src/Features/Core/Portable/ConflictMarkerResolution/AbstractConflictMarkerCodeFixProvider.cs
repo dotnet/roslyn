@@ -11,13 +11,18 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 {
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractResolveConflictMarkerCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         protected AbstractResolveConflictMarkerCodeFixProvider(string diagnosticId)
         {
             FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
+        }
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not currently supported for this code fix
+            // https://github.com/dotnet/roslyn/issues/34461
+            return null;
         }
 
         protected abstract bool IsEndOfLine(SyntaxTrivia trivia);

@@ -7,11 +7,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 using Xunit;
+using System;
+using Microsoft.CodeAnalysis.Test.Utilities.CommentSelection;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
 {
     [UseExportProvider]
-    public class ToggleBlockCommentCommandHandlerTests : AbstractToggleBlockCommentTestBase
+    public class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
         public void AddComment_EmptyCaret()
@@ -19,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
             var markup = @"$$";
             var expected = @"[|/**/|]";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
             var markup = @"[| |]";
             var expected = @"[|/* */|]";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -53,7 +56,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -78,7 +81,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -103,7 +106,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -128,7 +131,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -153,7 +156,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -177,7 +180,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -202,7 +205,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -231,7 +234,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -264,7 +267,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -291,7 +294,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -322,7 +325,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -355,7 +358,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -392,7 +395,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -425,7 +428,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -454,7 +457,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -485,7 +488,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -514,7 +517,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -543,7 +546,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -572,7 +575,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -603,7 +606,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -632,7 +635,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -661,7 +664,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -690,7 +693,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -715,7 +718,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -740,7 +743,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -767,7 +770,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -792,7 +795,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -821,7 +824,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -850,7 +853,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -883,7 +886,31 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        public void AddComment_WithProjectionBuffer()
+        {
+            var surfaceMarkup = @"&lt; html &gt;@{|S1:|}";
+            var csharpMarkup =
+@"
+{|S1:class C
+{
+    void M()
+    {
+        [|var i = 1;|]
+    }
+}|}";
+            var expected =
+@"&lt; html &gt;@class C
+{
+    void M()
+    {
+        [|/*var i = 1;*/|]
+    }
+}";
+            ToggleCommentWithProjectionBuffer(surfaceMarkup, csharpMarkup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -892,7 +919,7 @@ class C
             var markup = @"[|/**/|]";
             var expected = @"";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -921,7 +948,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -950,7 +977,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -979,7 +1006,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1008,7 +1035,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1035,7 +1062,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1062,7 +1089,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1091,7 +1118,7 @@ class C
     }
 }|]";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1120,7 +1147,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1151,7 +1178,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1180,7 +1207,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1209,7 +1236,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1242,7 +1269,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1271,7 +1298,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1300,7 +1327,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1329,7 +1356,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1358,7 +1385,31 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        public void RemoveComment_WithProjectionBuffer()
+        {
+            var surfaceMarkup = @"&lt; html &gt;@{|S1:|}";
+            var csharpMarkup =
+@"
+{|S1:class C
+{
+    void M()
+    {
+        [|/*var i = 1;*/|]
+    }
+}|}";
+            var expected =
+@"&lt; html &gt;@class C
+{
+    void M()
+    {
+        [|var i = 1;|]
+    }
+}";
+            ToggleCommentWithProjectionBuffer(surfaceMarkup, csharpMarkup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1399,7 +1450,7 @@ class C
 }"
             };
 
-            ToggleBlockCommentMultiple(markup, expectedText);
+            ToggleCommentMultiple(markup, expectedText);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -1441,13 +1492,16 @@ class C
 }"
             };
 
-            ToggleBlockCommentMultiple(markup, expectedText);
+            ToggleCommentMultiple(markup, expectedText);
         }
 
-        internal override ToggleBlockCommentCommandHandler GetToggleBlockCommentCommandHandler(TestWorkspace workspace)
+        internal override AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace)
         {
-            return (ToggleBlockCommentCommandHandler)workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>()
+            return (AbstractCommentSelectionBase<ValueTuple>)workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>()
                 .First(export => typeof(ToggleBlockCommentCommandHandler).Equals(export.GetType()));
         }
+
+        internal override TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider)
+            => TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
     }
 }

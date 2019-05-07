@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider);
-            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(provider, document, span)).ToImmutableArray();
+            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span)).ToImmutableArray();
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
             var fixer = providerAndFixer.Item2;
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
             var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
             var (resultDiagnostics, codeActions, actionToInvoke) = await GetDiagnosticAndFixesAsync(
-                dxs, provider, fixer, testDriver, document, span, annotation, parameters.index);
+                dxs, fixer, testDriver, document, span, annotation, parameters.index);
 
             // If we are also testing non-fixable diagnostics,
             // then the result diagnostics need to include all diagnostics,

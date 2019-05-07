@@ -97,6 +97,16 @@
         <target state="translated">符号-静态</target>
         <note />
       </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="new">Toggle Line Comment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="new">Toggling line comment...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Members_Constants">
         <source>User Members - Constants</source>
         <target state="translated">用户成员-常量</target>

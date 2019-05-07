@@ -70,6 +70,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} reference.
+        /// </summary>
+        internal static string _0_reference {
+            get {
+                return ResourceManager.GetString("_0_reference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} references.
         /// </summary>
         internal static string _0_references {
@@ -915,6 +924,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable nullable reference analysis IDE features.
+        /// </summary>
+        internal static string Enable_nullable_reference_analysis_IDE_features {
+            get {
+                return ResourceManager.GetString("Enable_nullable_reference_analysis_IDE_features", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to --- End of inner exception stack trace ---.
         /// </summary>
         internal static string End_of_inner_exception_stack {
@@ -1443,11 +1461,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Live code analysis.
+        ///   Looks up a localized string similar to Live analysis.
         /// </summary>
-        internal static string Live_code_analysis {
+        internal static string Live_analysis {
             get {
-                return ResourceManager.GetString("Live_code_analysis", resourceCulture);
+                return ResourceManager.GetString("Live_analysis", resourceCulture);
             }
         }
         
@@ -1520,6 +1538,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Members {
             get {
                 return ResourceManager.GetString("Members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to method.
+        /// </summary>
+        internal static string method {
+            get {
+                return ResourceManager.GetString("method", resourceCulture);
             }
         }
         
@@ -2314,6 +2341,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to property.
+        /// </summary>
+        internal static string property {
+            get {
+                return ResourceManager.GetString("property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pull Members Up.
         /// </summary>
         internal static string Pull_Members_Up {
@@ -2346,6 +2382,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Reference_to_0_in_project_1 {
             get {
                 return ResourceManager.GetString("Reference_to_0_in_project_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to References.
+        /// </summary>
+        internal static string References {
+            get {
+                return ResourceManager.GetString("References", resourceCulture);
             }
         }
         
@@ -2901,6 +2946,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This {0} has {1} reference(s).
+        /// </summary>
+        internal static string This_0_has_1_references {
+            get {
+                return ResourceManager.GetString("This_0_has_1_references", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This item cannot be deleted because it is used by an existing Naming Rule..
         /// </summary>
         internal static string This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule {
@@ -2997,6 +3051,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Type_Parameters_colon {
             get {
                 return ResourceManager.GetString("Type_Parameters_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to type.
+        /// </summary>
+        internal static string type1 {
+            get {
+                return ResourceManager.GetString("type1", resourceCulture);
             }
         }
         

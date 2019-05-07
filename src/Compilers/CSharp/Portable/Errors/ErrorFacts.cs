@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_NullReferenceReceiver));
             builder.Add(getId(ErrorCode.WRN_NullReferenceReturn));
             builder.Add(getId(ErrorCode.WRN_NullReferenceArgument));
+            builder.Add(getId(ErrorCode.WRN_NullReferenceIterationVariable));
             builder.Add(getId(ErrorCode.WRN_UninitializedNonNullableField));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInAssignment));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInArgument));
@@ -370,10 +371,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullReferenceReceiver:
                 case ErrorCode.WRN_NullReferenceReturn:
                 case ErrorCode.WRN_NullReferenceArgument:
+                case ErrorCode.WRN_NullReferenceIterationVariable:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
+                case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation:
@@ -409,6 +412,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AsOperatorMayReturnNull:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                 case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
+                case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
+                case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                     return 1;
                 default:
                     return 0;

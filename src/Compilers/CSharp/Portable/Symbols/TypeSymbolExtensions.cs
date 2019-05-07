@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Assuming that nullable annotations are enabled:
         /// T => true
         /// T where T : struct => false
         /// T where T : class => false
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Assuming that nullable annotations are enabled:
         /// T => true
         /// T where T : struct => false
         /// T where T : class => false
@@ -71,12 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsPossiblyNullableReferenceTypeTypeParameter(this TypeSymbol type)
         {
-            if (type.TypeKind != TypeKind.TypeParameter)
-            {
-                return false;
-            }
-            var typeParameter = (TypeParameterSymbol)type;
-            return !typeParameter.IsValueType && typeParameter.IsNotNullableIfReferenceType == false;
+            return type is TypeParameterSymbol { IsValueType: false, IsNotNullableIfReferenceType: false };
         }
 
         public static bool IsNonNullableValueType(this TypeSymbol typeArgument)
@@ -87,6 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return !IsNullableTypeOrTypeParameter(typeArgument);
+        }
+
+        public static bool IsVoidType(this TypeSymbol type)
+        {
+            return type.SpecialType == SpecialType.System_Void;
         }
 
         public static bool IsNullableTypeOrTypeParameter(this TypeSymbol type)
@@ -590,15 +592,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// traversal stops and that type is returned from this method. Otherwise if traversal
         /// completes without the predicate returning true for any type, this method returns null.
         /// </summary>
+        /// <param name="useDefaultType">If true, use <see cref="TypeWithAnnotations.DefaultType"/>
+        /// instead of <see cref="TypeWithAnnotations.Type"/> to avoid early resolution of nullable types</param>
         public static TypeSymbol VisitType<T>(
             this TypeWithAnnotations typeWithAnnotationsOpt,
             TypeSymbol typeOpt,
             Func<TypeWithAnnotations, T, bool, bool> typeWithAnnotationsPredicateOpt,
             Func<TypeSymbol, T, bool, bool> typePredicateOpt,
             T arg,
-            bool canDigThroughNullable = false)
+            bool canDigThroughNullable = false,
+            bool useDefaultType = false)
         {
             Debug.Assert(typeWithAnnotationsOpt.HasType == (typeOpt is null));
+            Debug.Assert(canDigThroughNullable == false || useDefaultType == false, "digging through nullable will cause early resolution of nullable types");
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
@@ -606,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             while (true)
             {
-                TypeSymbol current = typeOpt ?? typeWithAnnotationsOpt.Type;
+                TypeSymbol current = typeOpt ?? (useDefaultType ? typeWithAnnotationsOpt.DefaultType : typeWithAnnotationsOpt.Type);
                 bool isNestedNamedType = false;
 
                 // Visit containing types from outer-most to inner-most.
@@ -622,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = VisitType(default, containingType, typeWithAnnotationsPredicateOpt, typePredicateOpt, arg, canDigThroughNullable);
+                                var result = VisitType(default, containingType, typeWithAnnotationsPredicateOpt, typePredicateOpt, arg, canDigThroughNullable, useDefaultType);
                                 if ((object)result != null)
                                 {
                                     return result;
@@ -681,7 +687,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 typeWithAnnotationsPredicateOpt,
                                 typePredicateOpt,
                                 arg,
-                                canDigThroughNullable);
+                                canDigThroughNullable,
+                                useDefaultType);
                             if ((object)result != null)
                             {
                                 return result;
@@ -1149,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsVoidPointer(this TypeSymbol type)
         {
-            return type.IsPointerType() && ((PointerTypeSymbol)type).PointedAtType.SpecialType == SpecialType.System_Void;
+            return type is PointerTypeSymbol p && p.PointedAtType.IsVoidType();
         }
 
         /// <summary>
@@ -1420,7 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            if (namedType.SpecialType == SpecialType.System_Void)
+            if (namedType.IsVoidType())
             {
                 return false;
             }
@@ -1710,7 +1717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Note: we're passing the return type explicitly (rather than using `method.ReturnType`) to avoid cycles
             return !returnType.IsErrorType() &&
-                returnType.SpecialType != SpecialType.System_Void &&
+                !returnType.IsVoidType() &&
                 !returnType.IsNonGenericTaskType(declaringCompilation) &&
                 !returnType.IsGenericTaskType(declaringCompilation) &&
                 !returnType.IsIAsyncEnumerableType(declaringCompilation) &&

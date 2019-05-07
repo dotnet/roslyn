@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         continue;
                     }
 
-                    WaitForApplicationIdle();
+                    WaitForApplicationIdle(Helper.HangMitigatingTimeout);
                     return;
                 }
             }

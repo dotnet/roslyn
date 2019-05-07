@@ -321,25 +321,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             }
         }
 
-        /// <summary> Given a set of lines, find the minimum indent of all of the non-blank, non-whitespace lines.</summary>
-        private static int DetermineSmallestIndent(
-            SnapshotSpan span, ITextSnapshotLine firstLine, ITextSnapshotLine lastLine)
-        {
-            // TODO: This breaks if you have mixed tabs/spaces, and/or tabsize != indentsize.
-            var indentToCommentAt = int.MaxValue;
-            for (var lineNumber = firstLine.LineNumber; lineNumber <= lastLine.LineNumber; ++lineNumber)
-            {
-                var line = span.Snapshot.GetLineFromLineNumber(lineNumber);
-                var firstNonWhitespacePosition = line.GetFirstNonWhitespacePosition();
-                var firstNonWhitespaceOnLine = firstNonWhitespacePosition.HasValue
-                    ? firstNonWhitespacePosition.Value - line.Start
-                    : int.MaxValue;
-                indentToCommentAt = Math.Min(indentToCommentAt, firstNonWhitespaceOnLine);
-            }
-
-            return indentToCommentAt;
-        }
-
         /// <summary>
         /// Given a span, find the first and last line that are part of the span.  NOTE: If the 
         /// span ends in column zero, we back up to the previous line, to handle the case where 

@@ -77,6 +77,11 @@
         <target state="translated">Element jest nieprawidłowy.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
+        <source>Enable nullable reference analysis IDE features</source>
+        <target state="new">Enable nullable reference analysis IDE features</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Zakończ</target>
@@ -112,6 +117,11 @@
         <target state="translated">Rodzaj</target>
         <note />
       </trans-unit>
+      <trans-unit id="Live_analysis">
+        <source>Live analysis</source>
+        <target state="new">Live analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
         <target state="translated">Ustaw element „{0}” jako abstrakcyjny</target>
@@ -129,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="new">Modifier preferences:</target>
+        <target state="translated">Preferencje dotyczące modyfikatorów:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -184,17 +194,17 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="new">Prefer readonly fields</target>
+        <target state="translated">Preferuj pola tylko do odczytu</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
-        <target state="new">Prefer simple 'using' statement</target>
+        <target state="translated">Preferuj prostą instrukcję „using”</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
-        <target state="new">Prefer static local functions</target>
+        <target state="translated">Preferuj statyczne funkcje lokalne</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -209,7 +219,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
-        <target state="new">Rename {0} to {1}</target>
+        <target state="translated">Zmień nazwę elementu {0} na {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -239,12 +249,12 @@
       </trans-unit>
       <trans-unit id="Select_Dependents">
         <source>Select _Dependents</source>
-        <target state="needs-review-translation">_Wybierz elementy zależne</target>
+        <target state="translated">_Wybierz elementy zależne</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
         <source>Select _Public</source>
-        <target state="needs-review-translation">_Wybierz elementy publiczne</target>
+        <target state="translated">Wybierz elementy _publiczne</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
@@ -269,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
-        <target state="new">Show completion list</target>
+        <target state="translated">Pokaż listę uzupełniania</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -324,7 +334,7 @@
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
-        <target state="new">This workspace does not support updating Visual Basic compilation options.</target>
+        <target state="translated">Ten obszar roboczy nie obsługuje aktualizowania opcji kompilacji języka Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -1821,11 +1831,6 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
         <target state="translated">Zarządzaj stylami nazewnictwa</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Live_code_analysis">
-        <source>Live code analysis</source>
-        <target state="translated">Analiza kodu na żywo</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">

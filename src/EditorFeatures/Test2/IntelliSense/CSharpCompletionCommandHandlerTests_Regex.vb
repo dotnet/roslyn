@@ -57,7 +57,7 @@ class c
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations), Skip:="https://github.com/dotnet/roslyn/issues/33852")>
+        <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCaretPlacement(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
@@ -74,8 +74,11 @@ class c
 
                 state.SendTypeChars("[")
 
+                ' WaitForAsynchronousOperationsAsync is not enough for waiting in the async completion.
+                ' To be sure that calculations are done, need to check session.GetComputedItems,
+                ' E.g. via AssertSelectedCompletionItem.
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("[  character-group  ]")
                 state.SendDownKey()
                 state.SendDownKey()
                 state.SendDownKey()

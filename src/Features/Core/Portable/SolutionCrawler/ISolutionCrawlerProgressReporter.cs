@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -18,11 +17,28 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <summary>
         /// Raised when solution crawler progress changed
         /// 
-        /// bool indicates whether progress is started or stopped
-        /// 
         /// Notifications for this event are serialized to preserve order. 
         /// However, individual event notifications may occur on any thread.
         /// </summary>
-        event EventHandler<bool> ProgressChanged;
+        event EventHandler<ProgressData> ProgressChanged;
+    }
+
+    internal struct ProgressData
+    {
+        public ProgressStatus Status { get; }
+        public string FilePathOpt { get; }
+
+        public ProgressData(ProgressStatus type, string filePathOpt)
+        {
+            this.Status = type;
+            this.FilePathOpt = filePathOpt;
+        }
+    }
+
+    internal enum ProgressStatus
+    {
+        Started,
+        Updated,
+        Stoped
     }
 }

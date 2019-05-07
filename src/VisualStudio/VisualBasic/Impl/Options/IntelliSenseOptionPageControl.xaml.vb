@@ -27,6 +27,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Never_add_new_line_on_enter, CompletionOptions.EnterKeyBehavior, EnterKeyRule.Never, LanguageNames.VisualBasic)
             BindToOption(Only_add_new_line_on_enter_with_whole_word, CompletionOptions.EnterKeyBehavior, EnterKeyRule.AfterFullyTypedWord, LanguageNames.VisualBasic)
             BindToOption(Always_add_new_line_on_enter, CompletionOptions.EnterKeyBehavior, EnterKeyRule.Always, LanguageNames.VisualBasic)
+
+            Show_items_from_unimported_namespaces.IsChecked = Me.OptionStore.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic)
         End Sub
 
         Private Sub Show_completion_list_after_a_character_is_deleted_Checked(sender As Object, e As RoutedEventArgs)
@@ -35,6 +37,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Private Sub Show_completion_list_after_a_character_is_deleted_Unchecked(sender As Object, e As RoutedEventArgs)
             Me.OptionStore.SetOption(CompletionOptions.TriggerOnDeletion, LanguageNames.VisualBasic, value:=False)
+        End Sub
+
+        Private Sub Show_items_from_unimported_namespaces_CheckedChanged(sender As Object, e As RoutedEventArgs)
+            Show_items_from_unimported_namespaces.IsThreeState = False
+            Me.OptionStore.SetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, Show_items_from_unimported_namespaces.IsChecked)
         End Sub
     End Class
 End Namespace

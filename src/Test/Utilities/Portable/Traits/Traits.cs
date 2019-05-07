@@ -247,9 +247,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Snippets = nameof(Snippets);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
             public const string SuggestionTags = nameof(SuggestionTags);
+            public const string TargetTypedCompletion = nameof(TargetTypedCompletion);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
             public const string TodoComments = nameof(TodoComments);
             public const string ToggleBlockComment = nameof(ToggleBlockComment);
+            public const string ToggleLineComment = nameof(ToggleLineComment);
             public const string TypeInferenceService = nameof(TypeInferenceService);
             public const string Venus = nameof(Venus);
             public const string ValidateFormatString = nameof(ValidateFormatString);

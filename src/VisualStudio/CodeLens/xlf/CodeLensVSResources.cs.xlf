@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="cs" original="../CodeLensVSResources.resx">
+    <body>
+      <trans-unit id="CSharp_VisualBasic_References">
+        <source>C# and Visual Basic References</source>
+        <target state="new">C# and Visual Basic References</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_0_has_1_references">
+        <source>This {0} has {1} reference(s).</source>
+        <target state="new">This {0} has {1} reference(s).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_reference">
+        <source>{0} reference</source>
+        <target state="new">{0} reference</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>{0} references</source>
+        <target state="new">{0} references</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="method">
+        <source>method</source>
+        <target state="new">method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="property">
+        <source>property</source>
+        <target state="new">property</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="new">type</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
