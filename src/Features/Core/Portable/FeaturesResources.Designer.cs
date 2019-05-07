@@ -1684,7 +1684,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate parameter &apos;{0}&apos; (include overrides/implementations).
+        ///   Looks up a localized string similar to Generate parameter &apos;{0}&apos; (and overrides/implementations).
         /// </summary>
         internal static string Generate_parameter_0_and_overrides_implementations {
             get {

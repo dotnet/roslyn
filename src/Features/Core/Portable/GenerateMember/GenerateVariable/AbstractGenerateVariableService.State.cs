@@ -134,12 +134,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             internal bool CanGenerateLocal()
             {
+                // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
                 return !this.IsInMemberContext && this.IsInExecutableBlock;
             }
 
             internal bool CanGenerateParameter()
             {
-                return !this.IsInMemberContext && this.ContainingMethod != null && !this.IsConstant;
+                // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
+                return this.ContainingMethod != null && !this.IsInMemberContext && !this.IsConstant;
             }
 
             private bool TryInitializeExplicitInterface(

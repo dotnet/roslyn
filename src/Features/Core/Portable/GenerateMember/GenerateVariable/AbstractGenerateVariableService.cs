@@ -178,12 +178,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         {
             if (state.CanGenerateParameter())
             {
-                result.Add(new GenerateParameterCodeAction(document, state, false));
+                result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: false));
 
                 if (AddParameterService.Instance.HasCascadingDeclarations(state.ContainingMethod))
-                    result.Add(new GenerateParameterCodeAction(document, state, true));
+                    result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: true));
             }
         }
+
         private RefKind GetRefKindFromContext(State state)
         {
             if (state.IsInRefContext)

@@ -366,8 +366,15 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 invocationDocument, argument, cancellationToken).ConfigureAwait(false);
 
             var newParameterIndex = isNamedArgument ? (int?)null : argumentList.IndexOf(argument);
-            return await AddParameterService.Instance
-                .AddParameterAsync(invocationDocument, method, argumentType, refKind, argumentNameSuggestion, newParameterIndex, fixAllReferences, cancellationToken).ConfigureAwait(false);
+            return await AddParameterService.Instance.AddParameterAsync(
+                invocationDocument,
+                method,
+                argumentType,
+                refKind,
+                argumentNameSuggestion,
+                newParameterIndex,
+                fixAllReferences,
+                cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<(ITypeSymbol, RefKind)> GetArgumentTypeAndRefKindAsync(Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)

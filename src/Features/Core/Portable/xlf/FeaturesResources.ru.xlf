@@ -133,8 +133,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
-        <source>Generate parameter '{0}' (include overrides/implementations)</source>
-        <target state="new">Generate parameter '{0}' (include overrides/implementations)</target>
+        <source>Generate parameter '{0}' (and overrides/implementations)</source>
+        <target state="new">Generate parameter '{0}' (and overrides/implementations)</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">

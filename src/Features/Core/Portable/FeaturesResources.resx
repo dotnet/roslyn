@@ -1627,6 +1627,6 @@ This version used in: {2}</value>
     <value>Generate parameter '{0}'</value>
   </data>
   <data name="Generate_parameter_0_and_overrides_implementations" xml:space="preserve">
-    <value>Generate parameter '{0}' (include overrides/implementations)</value>
+    <value>Generate parameter '{0}' (and overrides/implementations)</value>
   </data>
 </root>

@@ -17,16 +17,12 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddParameter
 {
-    internal class AddParameterService
+    internal class AddParameterService : IAddParameterService
     {
         private AddParameterService() { }
 
         public static AddParameterService Instance = new AddParameterService();
 
-        /// <summary>
-        /// Checks if there are indications that there might be more than one declarations that need to be fixed.
-        /// The check does not look-up if there are other declarations (this is done later in the CodeAction).
-        /// </summary>
         public bool HasCascadingDeclarations(IMethodSymbol method)
         {
             // Don't cascade constructors
@@ -69,18 +65,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return false;
         }
 
-        /// <summary>
-        /// Adds a parameter to a method.
-        /// </summary>
-        /// <param name="invocationDocument"></param>
-        /// <param name="method"></param>
-        /// <param name="newParamaterType"></param>
-        /// <param name="refKind"></param>
-        /// <param name="parameterName"></param>
-        /// <param name="newParameterIndex">null to add as the final parameter</param>
-        /// <param name="fixAllReferences"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
         public async Task<Solution> AddParameterAsync(
             Document invocationDocument,
             IMethodSymbol method,
