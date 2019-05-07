@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     }
                 }
 
-                StatementSyntax internalNodeMethod(ExpressionSyntax expression)
+                static StatementSyntax internalNodeMethod(ExpressionSyntax expression)
                     => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, expression);
 
                 var statements = GenerateStatements(internalNodeMethod, queryExpressionProcessingInfo);

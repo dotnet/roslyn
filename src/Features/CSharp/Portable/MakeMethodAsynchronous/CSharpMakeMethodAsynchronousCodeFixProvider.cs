@@ -112,8 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             }
 
             return newReturnType.WithTriviaFrom(returnTypeSyntax);
-
-            TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
+            static TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
             {
                 var result = SyntaxFactory.GenericName(SyntaxFactory.Identifier(type),
                         SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax())));
@@ -128,8 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
             bool ContainsYield(SyntaxNode node)
                 => node.DescendantNodes(n => n == node || !n.IsReturnableConstruct()).Any(n => IsYield(n));
-
-            bool IsYield(SyntaxNode node)
+            static bool IsYield(SyntaxNode node)
                 => node.IsKind(SyntaxKind.YieldBreakStatement, SyntaxKind.YieldReturnStatement);
         }
 

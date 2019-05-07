@@ -242,8 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             }
 
             return isSingleStatement(statementRange.FirstStatement);
-
-            bool isSingleStatement(StatementSyntax statement)
+            static bool isSingleStatement(StatementSyntax statement)
             {
                 if (statement is BlockSyntax block)
                 {

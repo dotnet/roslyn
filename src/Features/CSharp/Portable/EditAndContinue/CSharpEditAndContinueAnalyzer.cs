@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // - for query lambdas the root is the query clause containing the lambda (e.g. where).
                 // - for local functions the root is LocalFunctionStatement.
 
-                SyntaxNode GetMatchingRoot(SyntaxNode body)
+                static SyntaxNode GetMatchingRoot(SyntaxNode body)
                 {
                     var parent = body.Parent;
                     // We could apply this change across all ArrowExpressionClause consistently not just for ones with LocalFunctionStatement parents

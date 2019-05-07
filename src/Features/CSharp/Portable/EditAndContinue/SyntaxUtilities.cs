@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
     {
         public static SyntaxNode TryGetMethodDeclarationBody(SyntaxNode node)
         {
-            SyntaxNode BlockOrExpression(BlockSyntax blockBodyOpt, ArrowExpressionClauseSyntax expressionBodyOpt)
+            static SyntaxNode BlockOrExpression(BlockSyntax blockBodyOpt, ArrowExpressionClauseSyntax expressionBodyOpt)
                 => (SyntaxNode)blockBodyOpt ?? expressionBodyOpt?.Expression;
 
             SyntaxNode result;

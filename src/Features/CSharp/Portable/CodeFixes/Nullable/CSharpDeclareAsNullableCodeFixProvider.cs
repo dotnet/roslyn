@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             return null;
 
             // local functions
-            TypeSyntax TryGetReturnType(TypeSyntax returnType, SyntaxTokenList modifiers, bool onYield)
+            static TypeSyntax TryGetReturnType(TypeSyntax returnType, SyntaxTokenList modifiers, bool onYield)
             {
                 if (modifiers.Any(SyntaxKind.AsyncKeyword) || onYield)
                 {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return returnType;
             }
 
-            TypeSyntax TryGetSingleTypeArgument(TypeSyntax type)
+            static TypeSyntax TryGetSingleTypeArgument(TypeSyntax type)
             {
                 switch (type)
                 {
