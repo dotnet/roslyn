@@ -4194,7 +4194,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var lambda = (BoundLambda)operandOpt;
                         var delegateType = targetType.GetDelegateType();
-                        var unboundLambda = lambda.UnboundLambda;
                         var variableState = GetVariableState(stateForLambda);
                         Analyze(compilation,
                                 lambda,
@@ -4206,7 +4205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 analyzedNullabilityMapOpt: _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt);
                         if (reportRemainingWarnings)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(location, delegateType, unboundLambda);
+                            ReportNullabilityMismatchWithTargetDelegate(location, delegateType, lambda.UnboundLambda);
                         }
 
                         return TypeWithState.Create(targetType, NullableFlowState.NotNull);
@@ -4599,6 +4598,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
         {
+            Debug.Assert(node.Type.IsDelegateType());
+
             if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
             {
                 var syntax = node.Syntax;
@@ -4606,15 +4607,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, syntax, writes: false);
             }
 
-            // The group is skipped by the base call. It should have a default type always
-            if (node.Argument is BoundMethodGroup group)
+            var delegateType = (NamedTypeSymbol)node.Type;
+            switch (node.Argument)
             {
-                VisitRvalue(group.ReceiverOpt);
-                SetAnalyzedNullability(group, default);
-            }
-            else
-            {
-                VisitRvalue(node.Argument);
+                case BoundMethodGroup group:
+                    {
+                        VisitRvalue(group.ReceiverOpt);
+                        SetAnalyzedNullability(group, default);
+                        // https://github.com/dotnet/roslyn/issues/33637: Should update method based on inferred receiver type.
+                        var method = node.MethodOpt;
+                        if (!(method is null) && !group.IsSuppressed)
+                        {
+                            ReportNullabilityMismatchWithTargetDelegate(group.Syntax.Location, delegateType, method);
+                        }
+                    }
+                    break;
+                case BoundLambda lambda:
+                    {
+                        VisitLambda(lambda, Diagnostics);
+                        SetNotNullResult(lambda);
+                        if (!lambda.IsSuppressed)
+                        {
+                            ReportNullabilityMismatchWithTargetDelegate(lambda.Symbol.DiagnosticLocation, delegateType, lambda.UnboundLambda);
+                        }
+                    }
+                    break;
+                default:
+                    VisitRvalue(node.Argument);
+                    break;
             }
 
             SetNotNullResult(node);
@@ -4653,11 +4673,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_disableNullabilityAnalysis)
             {
                 var bag = new DiagnosticBag();
-                Analyze(compilation, node, _conversions, bag, node.Type.GetDelegateType()?.DelegateInvokeMethod, returnTypes: null, initialState: GetVariableState(State.Clone()), _analyzedNullabilityMapOpt);
+                VisitLambda(node, bag);
                 bag.Free();
             }
             SetNotNullResult(node);
             return null;
+        }
+
+        private void VisitLambda(BoundLambda node, DiagnosticBag diagnostics)
+        {
+            Analyze(compilation, node, _conversions, diagnostics, node.Type.GetDelegateType()?.DelegateInvokeMethod, returnTypes: null, initialState: GetVariableState(State.Clone()), _analyzedNullabilityMapOpt);
         }
 
         public override BoundNode VisitUnboundLambda(UnboundLambda node)
