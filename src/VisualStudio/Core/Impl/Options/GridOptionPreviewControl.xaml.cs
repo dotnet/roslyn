@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private static string GetInitialDirectory()
         {
             var solution = (IVsSolution)Shell.ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
-            if (solution != null)
+            if (solution is object)
             {
                 if (!ErrorHandler.Failed(solution.GetSolutionInfo(out _, out var solutionFilePath, out _)))
                 {
