@@ -210,3 +210,11 @@ jobs:
       condition: not(succeeded())
 
 
+- job: macOS_Test
+  pool:
+    vmImage: 'macOS-10.13'
+  timeoutInMinutes: 90
+
+  steps:
+    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr
+      displayName: Build and Test
