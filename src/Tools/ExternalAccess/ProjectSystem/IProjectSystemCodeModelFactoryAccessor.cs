@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem
 {
-    public interface IProjectSystemCodeModelFactoryAccessor
+    internal interface IProjectSystemCodeModelFactoryAccessor
     {
         EnvDTE.FileCodeModel GetFileCodeModel(ProjectSystemWorkspaceProjectContextWrapper context, EnvDTE.ProjectItem item);
         EnvDTE.CodeModel GetCodeModel(ProjectSystemWorkspaceProjectContextWrapper context, EnvDTE.Project project);

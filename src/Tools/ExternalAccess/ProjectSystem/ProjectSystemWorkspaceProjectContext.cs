@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem
 {
-    public readonly struct ProjectSystemWorkspaceProjectContextWrapper
+    internal readonly struct ProjectSystemWorkspaceProjectContextWrapper
     {
         internal ProjectSystemWorkspaceProjectContextWrapper(IWorkspaceProjectContext workspaceProjectContext)
         {

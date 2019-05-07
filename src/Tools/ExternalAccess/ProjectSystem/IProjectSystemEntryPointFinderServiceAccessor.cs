@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem
 {
-    public interface IProjectSystemEntryPointFinderServiceAccessor : IWorkspaceService
+    internal interface IProjectSystemEntryPointFinderServiceAccessor : IWorkspaceService
     {
         IEnumerable<INamedTypeSymbol> FindEntryPoints(string languageName, INamespaceSymbol symbol, bool findFormsOnly);
     }

@@ -4,7 +4,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem
 {
-    public interface IProjectSystemWorkspaceProjectContextFactoryAccessor
+    internal interface IProjectSystemWorkspaceProjectContextFactoryAccessor
     {
         ProjectSystemWorkspaceProjectContextWrapper CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath);
     }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem
 {
-    public interface IProjectSystemTempPECompiler
+    internal interface IProjectSystemTempPECompiler
     {
         Task<bool> CompileAsync(ProjectSystemWorkspaceProjectContextWrapper context, string outputFileName, ISet<string> filesToInclude, CancellationToken cancellationToken);
     }

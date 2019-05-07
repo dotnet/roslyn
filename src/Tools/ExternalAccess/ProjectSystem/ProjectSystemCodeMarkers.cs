@@ -4,7 +4,7 @@ using Microsoft.Internal.Performance;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem
 {
-    public static class ProjectSystemCodeMarkers
+    internal static class ProjectSystemCodeMarkers
     {
         public static bool CodeMarker(int nTimerID)
             => CodeMarkers.Instance.CodeMarker(nTimerID);
