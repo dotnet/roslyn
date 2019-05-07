@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         where TSyntax : SyntaxNode
     {
         // Tag names
-        private static readonly ImmutableArray<string> s_alwaysVisibleTagNames = ImmutableArray.Create(SeeElementName, SeeAlsoElementName);
         private static readonly ImmutableArray<string> s_listTagNames = ImmutableArray.Create(ListHeaderElementName, TermElementName, ItemElementName, DescriptionElementName);
         private static readonly ImmutableArray<string> s_listHeaderTagNames = ImmutableArray.Create(TermElementName, DescriptionElementName);
         private static readonly ImmutableArray<string> s_nestedTagNames = ImmutableArray.Create(CElementName, CodeElementName, ParaElementName, ListElementName);
