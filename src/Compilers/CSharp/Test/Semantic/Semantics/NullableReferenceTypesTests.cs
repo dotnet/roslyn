@@ -33466,6 +33466,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(35549, "https://github.com/dotnet/roslyn/issues/35549")]
         public void DelegateCreation_05()
         {
             var source =
@@ -33480,7 +33481,13 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,25): error CS0119: 'T' is a type, which is not valid in the given context
+                //         _ = new D<T?>(F<T>!);
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(8, 25),
+                // (8,28): error CS1525: Invalid expression term ')'
+                //         _ = new D<T?>(F<T>!);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 28));
         }
 
         [Fact]
@@ -33538,9 +33545,9 @@ class Program
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (7,22): warning CS8621: Nullability of reference types in return type of 'T? Program.F<T?>()' doesn't match the target delegate 'D<T>'.
-                //         _ = new D<T>(F<T?>)!; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "F<T?>").WithArguments("T? Program.F<T?>()", "D<T>").WithLocation(7, 22));
+                // (7,28): warning CS8603: Possible null reference return.
+                //         _ = new D<T>(() => F<T?>())!; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "F<T?>()").WithLocation(7, 28));
         }
 
         [Fact]

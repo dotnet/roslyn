@@ -4616,8 +4616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SetAnalyzedNullability(group, default);
                         // https://github.com/dotnet/roslyn/issues/33637: Should update method based on inferred receiver type.
                         var method = node.MethodOpt;
-                        Debug.Assert(!(method is null));
-                        if (!group.IsSuppressed)
+                        if (!(method is null) && !group.IsSuppressed)
                         {
                             ReportNullabilityMismatchWithTargetDelegate(group.Syntax.Location, delegateType, method);
                         }
