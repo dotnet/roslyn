@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 
     public class CommandLineRunnerTests : TestBase
     {
-        private static readonly string s_compilerVersion =
-            typeof(CSharpInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private static readonly string s_compilerVersionWithoutHash =
+            typeof(CSharpInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion.Split('+')[0];
 
-        private string LogoAndHelpPrompt => $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+        private string LogoAndHelpPrompt => $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersionWithoutHash) }
 {CSharpScriptingResources.LogoLine2}
 
 {ScriptingResources.HelpPrompt}";
@@ -142,7 +142,7 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
         public void TestDisplayResultsWithCurrentUICulture1()
         {
             // logoOutput needs to be retrieved before the runner is started, because the runner changes the culture to de-DE. 
-            var logoOutput = $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+            var logoOutput = $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersionWithoutHash) }
 { CSharpScriptingResources.LogoLine2}
 
 { ScriptingResources.HelpPrompt}";
@@ -176,7 +176,7 @@ $@"{ logoOutput }
         public void TestDisplayResultsWithCurrentUICulture2()
         {
             // logoOutput needs to be retrieved before the runner is started, because the runner changes the culture to de-DE. 
-            var logoOutput = $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+            var logoOutput = $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersionWithoutHash) }
 { CSharpScriptingResources.LogoLine2}
 
 { ScriptingResources.HelpPrompt}";
@@ -481,7 +481,7 @@ $@"""@arg1""
             Assert.Equal(0, runner.RunInteractive());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+$@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersionWithoutHash) }
 {CSharpScriptingResources.LogoLine2}
 
 {CSharpScriptingResources.InteractiveHelp}
@@ -493,19 +493,19 @@ $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
         {
             var runner = CreateRunner(new[] { "/version" });
             Assert.Equal(0, runner.RunInteractive());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersionWithoutHash}", runner.Console.Out.ToString());
 
             runner = CreateRunner(new[] { "/version", "/help" });
             Assert.Equal(0, runner.RunInteractive());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersionWithoutHash}", runner.Console.Out.ToString());
 
             runner = CreateRunner(new[] { "/version", "/r:somefile" });
             Assert.Equal(0, runner.RunInteractive());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersionWithoutHash}", runner.Console.Out.ToString());
 
             runner = CreateRunner(new[] { "/version", "/nologo" });
             Assert.Equal(0, runner.RunInteractive());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersionWithoutHash}", runner.Console.Out.ToString());
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
@@ -932,7 +932,7 @@ Print(t.a);
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+$@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersionWithoutHash) }
 {CSharpScriptingResources.LogoLine2}
 {ScriptingResources.HelpPrompt}
 > var a = 1;

@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class CsiTests : TestBase
     {
-        private static readonly string s_compilerVersion = typeof(Csi).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private static readonly string s_compilerVersionWithoutHash =
+            typeof(Csi).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion.Split('+')[0];
         private string CsiPath => typeof(Csi).GetTypeInfo().Assembly.Location;
 
         /// <summary>
@@ -52,7 +53,7 @@ Environment.Exit(0)
 ");
 
             var expected = $@"
-{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
+{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersionWithoutHash) }
 {CSharpScriptingResources.LogoLine2}
 
 {ScriptingResources.HelpPrompt}

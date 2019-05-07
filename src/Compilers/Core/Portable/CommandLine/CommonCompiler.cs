@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static string GetAssemblyFileVersion(Assembly assembly)
         {
-            string assemblyVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
+            string assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0];
             string hash = ExtractShortCommitHash(assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash);
             return $"{assemblyVersion} ({hash})";
         }

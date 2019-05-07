@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             Assert.Equal("", errorOutput);
             Assert.Equal(2, output.Length);
-            Assert.Equal(string.Format(CSharpScriptingResources.LogoLine1, typeof(CSharpReplServiceProvider).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version), output[0]);
+            var version = typeof(CSharpReplServiceProvider).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion.Split('+')[0];
+            Assert.Equal(string.Format(CSharpScriptingResources.LogoLine1, version), output[0]);
             // "Type "#help" for more information."
             Assert.Equal(InteractiveHostResources.Type_Sharphelp_for_more_information, output[1]);
 

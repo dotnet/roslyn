@@ -16,10 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
     Public Class CommandLineRunnerTests
         Inherits TestBase
 
-        Private Shared ReadOnly s_compilerVersion As String =
-            GetType(VisualBasicInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyFileVersionAttribute)().Version
+        Private Shared ReadOnly s_compilerVersionWithoutHash As String =
+            GetType(VisualBasicInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyInformationalVersionAttribute)().InformationalVersion.Split("+"c)(0)
         Private Shared ReadOnly s_logoAndHelpPrompt As String =
-            String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine + VBScriptingResources.LogoLine2 + "
+            String.Format(VBScriptingResources.LogoLine1, s_compilerVersionWithoutHash) + vbNewLine + VBScriptingResources.LogoLine2 + "
 
 " + ScriptingResources.HelpPrompt
 
@@ -192,19 +192,19 @@ s_logoAndHelpPrompt + "
         Public Sub Version()
             Dim runner = CreateRunner({"/version"})
             Assert.Equal(0, runner.RunInteractive())
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersionWithoutHash, runner.Console.Out.ToString())
 
             runner = CreateRunner({"/version", "/help"})
             Assert.Equal(0, runner.RunInteractive())
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersionWithoutHash, runner.Console.Out.ToString())
 
             runner = CreateRunner({"/version", "/r:somefile"})
             Assert.Equal(0, runner.RunInteractive())
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersionWithoutHash, runner.Console.Out.ToString())
 
             runner = CreateRunner({"/version", "/nologo"})
             Assert.Equal(0, runner.RunInteractive())
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersionWithoutHash, runner.Console.Out.ToString())
         End Sub
 
     End Class

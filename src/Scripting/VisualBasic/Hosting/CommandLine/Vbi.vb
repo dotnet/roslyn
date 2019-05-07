@@ -26,7 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         End Property
 
         Friend Overrides Function GetAssemblyFileVersion() As String
-            Return Type.GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyFileVersionAttribute)().Version
+            Dim version = Type.GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyInformationalVersionAttribute)().InformationalVersion
+            Return version.Split("+"c)(0) ' remove SHA, if any
         End Function
 
         Public Overrides Sub PrintLogo(consoleOutput As TextWriter)
