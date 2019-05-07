@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return result;
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default, CancellationToken cancellationToken = default)
         {
             var projectIdGuid = item.Properties[ProjectGuidKey];
             var projectId = ProjectId.CreateFromSerialized(new System.Guid(projectIdGuid));
