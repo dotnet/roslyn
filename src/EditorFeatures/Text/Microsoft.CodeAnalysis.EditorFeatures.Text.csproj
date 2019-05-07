@@ -51,8 +51,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.16.0" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp.16.1" Key="$(RemoteLanguageServiceKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35074" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
-    <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35076" />
-    <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35076" />
     <!-- BEGIN MONODEVELOP
     These MonoDevelop dependencies don't ship with Visual Studio, so can't break our
     binary insertions and are exempted from the ExternalAccess adapter assembly policies.
