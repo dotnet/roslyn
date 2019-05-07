@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         }
 
         /// <summary>
-        /// Determines whether <paramref name="embeddedStatement"/> should use braces under a
+        /// Determines whether <paramref name="statement"/> should use braces under a
         /// <see cref="PreferBracesPreference.WhenMultiline"/> preference due to the presence of braces on one or more
         /// sibling statements (the "context").
         /// </summary>
