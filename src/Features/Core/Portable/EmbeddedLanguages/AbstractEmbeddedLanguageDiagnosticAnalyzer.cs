@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                     analyzers.Add(analyzer);
                     supportedDiagnostics.AddRange(analyzer.SupportedDiagnostics);
 
-                    category = category ?? analyzer.GetAnalyzerCategory();
+                    category ??= analyzer.GetAnalyzerCategory();
                     Debug.Assert(category == analyzer.GetAnalyzerCategory(),
                         "All embedded analyzers must have the same analyzer category.");
                 }

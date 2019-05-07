@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             protected ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
             {
-                format = format ?? MinimallyQualifiedFormat;
+                format ??= MinimallyQualifiedFormat;
                 return _displayService.ToMinimalDisplayParts(_semanticModel, _position, symbol, format);
             }
 

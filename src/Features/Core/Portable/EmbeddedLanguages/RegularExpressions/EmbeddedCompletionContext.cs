@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 var replacementSpan = TextSpan.FromBounds(replacementStart, Position);
                 var newPosition = replacementStart + positionOffset;
 
-                insertionText = insertionText ?? displayText;
+                insertionText ??= displayText;
                 var escapedInsertionText = _language.EscapeText(insertionText, StringToken);
 
                 if (escapedInsertionText != insertionText)

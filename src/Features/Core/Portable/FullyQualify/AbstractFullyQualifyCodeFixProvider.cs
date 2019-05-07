@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
         private IEnumerable<INamespaceOrTypeSymbol> FilterAndSort(IEnumerable<SymbolResult> symbols)
         {
-            symbols = symbols ?? SpecializedCollections.EmptyList<SymbolResult>();
+            symbols ??= SpecializedCollections.EmptyList<SymbolResult>();
             symbols = symbols.Distinct()
                              .Where(n => n.Symbol is INamedTypeSymbol || !((INamespaceSymbol)n.Symbol).IsGlobalNamespace)
                              .Order();

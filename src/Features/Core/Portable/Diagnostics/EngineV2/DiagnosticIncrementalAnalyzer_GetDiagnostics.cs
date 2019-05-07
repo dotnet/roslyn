@@ -73,8 +73,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // try to retrieve projectId/documentId from id if possible.
                 if (id is LiveDiagnosticUpdateArgsId argsId)
                 {
-                    CurrentDocumentId = CurrentDocumentId ?? argsId.Key as DocumentId;
-                    CurrentProjectId = CurrentProjectId ?? (argsId.Key as ProjectId) ?? CurrentDocumentId.ProjectId;
+                    CurrentDocumentId ??= argsId.Key as DocumentId;
+                    CurrentProjectId ??= (argsId.Key as ProjectId) ?? CurrentDocumentId.ProjectId;
                 }
 
                 _builder = null;

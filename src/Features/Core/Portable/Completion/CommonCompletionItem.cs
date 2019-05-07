@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags = tags.Add(WellKnownTags.Warning);
             }
 
-            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            properties ??= ImmutableDictionary<string, string>.Empty;
             if (!description.IsDefault && description.Length > 0)
             {
                 properties = properties.Add("Description", EncodeDescription(description));
