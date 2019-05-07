@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(RValueType.Type.Equals(LValueType.Type, TypeCompareKind.ConsiderEverything));
             }
 
-            public VisitResult WithType(TypeSymbol newType) => new VisitResult(TypeWithState.Create(newType, RValueType.State), TypeWithAnnotations.Create(newType, LValueType.NullableAnnotation));
             private string GetDebuggerDisplay() => $"{{LValue: {LValueType.GetDebuggerDisplay()}, RValue: {RValueType.GetDebuggerDisplay()}}}";
         }
 
@@ -793,8 +792,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The contents of this method, particularly <see cref="UseRvalueOnly"/>, are problematic when 
-        /// inlined. The methods themselves are small but they end up allocating significantly larger 
+        /// The contents of this method, particularly <see cref="UseRvalueOnly"/>, are problematic when
+        /// inlined. The methods themselves are small but they end up allocating significantly larger
         /// frames due to the use of biggish value types within them. The <see cref="VisitRvalue"/> method
         /// is used on a hot path for fluent calls and this size change is enough that it causes us
         /// to exceed our thresholds in EndToEndTests.OverflowOnFluentCall.
@@ -1840,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     for (int i = 0; i < n; i++)
                     {
                         var expressionNoConversion = expressionsNoConversions[i];
-                        var expression = expressionNoConversion == expressions[i] ? null : (BoundConversion)expressions[i];
+                        var expression = GetConversionOperandIfApplicable(expressions[i], expressionNoConversion);
                         resultTypes[i] = VisitConversion(expression, expressionNoConversion, conversions[i], inferredType, resultTypes[i], checkConversion: true,
                             fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
                     }
@@ -2595,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resultTypeWithAnnotations = TypeWithAnnotations.Create(resultType);
 
                 TypeWithState convertedConsequenceResult = convertResult(
-                    node.Consequence == consequence ? null : (BoundConversion)node.Consequence,
+                    node.Consequence,
                     consequence,
                     consequenceConversion,
                     resultTypeWithAnnotations,
@@ -2603,7 +2602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     consequenceEndReachable);
 
                 TypeWithState convertedAlternativeResult = convertResult(
-                    node.Alternative == alternative ? null : (BoundConversion)node.Alternative,
+                    node.Alternative,
                     alternative,
                     alternativeConversion,
                     resultTypeWithAnnotations,
@@ -2637,7 +2636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeWithState convertResult(
-                BoundConversion node,
+                BoundExpression node,
                 BoundExpression operand,
                 Conversion conversion,
                 TypeWithAnnotations targetType,
@@ -2655,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var resultType = VisitConversion(
-                    node,
+                    GetConversionOperandIfApplicable(node, operand),
                     operand,
                     conversion,
                     targetType,
@@ -2759,8 +2758,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (method.OriginalDefinition == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value))
                 {
-                    // call to get_Value may not occur directly in source, but may be inserted as a result of premature lowering. 
-                    // One example where we do it is foreach with nullables. 
+                    // call to get_Value may not occur directly in source, but may be inserted as a result of premature lowering.
+                    // One example where we do it is foreach with nullables.
                     // The reason is Dev10 compatibility (see: UnwrapCollectionExpressionIfNullable in ForEachLoopBinder.cs)
                     // Regardless of the reasons, we know that the method does not tolerate nulls.
                     checkNullableValueType = true;
@@ -3162,7 +3161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var argumentNoConversion = argumentsNoConversions[i];
                 VisitArgumentConversion(
-                    argumentNoConversion == arguments[i] ? null : (BoundConversion)arguments[i],
+                    GetConversionOperandIfApplicable(arguments[i], argumentNoConversion),
                     argumentsNoConversions[i],
                     conversions.IsDefault ? Conversion.Identity : conversions[i],
                     GetRefKind(refKindsOpt, i),
@@ -3219,7 +3218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var lvalueResultType = result.LValueType;
                             if (IsNullabilityMismatch(lvalueResultType.Type, parameterType.Type))
                             {
-                                // declared types must match
+                                // declared types must match, ignoring top-level nullability
                                 ReportNullabilityMismatchInRefArgument(argumentNoConversion, argumentType: lvalueResultType.Type, parameter, parameterType.Type);
                             }
                             else
@@ -3812,9 +3811,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Cannot implicitly convert type '...' to '...'. An explicit conversion exists ...".
             // Since an error was reported, we don't need to report nested warnings as well.
             bool reportNestedWarnings = !conversion.IsExplicit;
-            var boundConversion = operand == expr ? null : (BoundConversion)expr;
             var resultType = VisitConversion(
-                boundConversion,
+                GetConversionOperandIfApplicable(expr, operand),
                 operand,
                 conversion,
                 targetTypeOpt,
@@ -4038,8 +4036,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             int targetFieldSlot = GetOrCreateSlot(targetField, slot);
                             Debug.Assert(targetFieldSlot > 0);
-                            var convertedType = VisitUserDefinedConversion(conversionOpt, convertedNode, conversion, targetField.TypeWithAnnotations, valueField.TypeWithAnnotations.ToTypeWithState(),
-                                useLegacyWarnings: false, assignmentKind, target, reportTopLevelWarnings: reportWarnings, reportRemainingWarnings: reportWarnings);
+                            var convertedType = VisitUserDefinedConversion(
+                                conversionOpt,
+                                convertedNode,
+                                conversion,
+                                targetField.TypeWithAnnotations,
+                                valueField.TypeWithAnnotations.ToTypeWithState(),
+                                useLegacyWarnings: false,
+                                assignmentKind,
+                                target,
+                                reportTopLevelWarnings: reportWarnings,
+                                reportRemainingWarnings: reportWarnings,
+                                diagnosticLocation: (conversionOpt ?? convertedNode).Syntax.GetLocation());
                             this.State[targetFieldSlot] = convertedType.State;
                         }
                         break;
@@ -4147,6 +4155,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets the conversion node for passing to <see cref="VisitConversion(BoundConversion, BoundExpression, Conversion, TypeWithAnnotations, TypeWithState, bool, bool, bool, AssignmentKind, ParameterSymbol, bool, bool, bool, Optional{LocalState}, bool, Location)"/>,
+        /// if one should be passed.
+        /// </summary>
+        private static BoundConversion GetConversionOperandIfApplicable(BoundExpression conversionOpt, BoundExpression convertedNode) =>
+            conversionOpt == convertedNode ? null : (BoundConversion)conversionOpt;
+
+        /// <summary>
         /// Apply the conversion to the type of the operand and return the resulting type. (If the
         /// operand does not have an explicit type, the operand expression is used for the type.)
         /// If `checkConversion` is set, the incoming conversion is assumed to be from binding and will be
@@ -4171,7 +4186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool extensionMethodThisArgument = false,
             Optional<LocalState> stateForLambda = default,
             bool trackMembers = false,
-            Location location = null)
+            Location diagnosticLocationOpt = null)
         {
             Debug.Assert(!trackMembers || !IsConditionalState);
             Debug.Assert(convertedNode != null);
@@ -4181,7 +4196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableFlowState resultState = NullableFlowState.NotNull;
             bool canConvertNestedNullability = true;
             bool isSuppressed = false;
-            location ??= conversionOpt?.Syntax.GetLocation() ?? convertedNode.Syntax.GetLocation();
+            diagnosticLocationOpt ??= (conversionOpt ?? convertedNode).Syntax.GetLocation();
 
             if (convertedNode?.IsSuppressed == true)
             {
@@ -4195,7 +4210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case ConversionKind.MethodGroup:
                     {
-                        var receiverOpt = (operandOpt as BoundMethodGroup)?.ReceiverOpt;
+                        var receiverOpt = ((BoundMethodGroup)convertedNode)?.ReceiverOpt;
                         // https://github.com/dotnet/roslyn/issues/33637: Should update method based on inferred receiver type.
                         var method = conversion.Method;
                         if (TryGetMethodGroupReceiverNullability(receiverOpt, out TypeWithState receiverType))
@@ -4211,7 +4226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         if (reportRemainingWarnings)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(location, targetType.GetDelegateType(), method, conversion.IsExtensionMethod);
+                            ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, targetType.GetDelegateType(), method, conversion.IsExtensionMethod);
                         }
                     }
                     resultState = NullableFlowState.NotNull;
@@ -4225,7 +4240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitLambda(lambda, delegateType, Diagnostics, variableState);
                         if (reportRemainingWarnings)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(location, delegateType, lambda.UnboundLambda);
+                            ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, delegateType, lambda.UnboundLambda);
                         }
 
                         TrackAnalyzedNullabilityThroughConversionGroup(targetTypeWithNullability.ToTypeWithState(), conversionOpt, convertedNode);
@@ -4240,7 +4255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
-                    return VisitUserDefinedConversion(conversionOpt, convertedNode, conversion, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target, reportTopLevelWarnings, reportRemainingWarnings, location);
+                    return VisitUserDefinedConversion(conversionOpt, convertedNode, conversion, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target, reportTopLevelWarnings, reportRemainingWarnings, diagnosticLocationOpt);
 
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
@@ -4251,7 +4266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Unboxing:
                     if (operandType.MayBeNull && targetType.IsNonNullableValueType() && reportRemainingWarnings)
                     {
-                        ReportSafetyDiagnostic(ErrorCode.WRN_UnboxPossibleNull, location);
+                        ReportSafetyDiagnostic(ErrorCode.WRN_UnboxPossibleNull, diagnosticLocationOpt);
                     }
                     else
                     {
@@ -4273,7 +4288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // For type parameters that cannot be annotated, the analysis must report those
                         // places where null values first sneak in, like `default`, `null`, and `GetFirstOrDefault`.
                         // This is one of those places.
-                        ReportSafetyDiagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, location, GetTypeAsDiagnosticArgument(targetTypeWithNullability.Type));
+                        ReportSafetyDiagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, diagnosticLocationOpt, GetTypeAsDiagnosticArgument(targetTypeWithNullability.Type));
                     }
 
                     checkConversion = false;
@@ -4285,14 +4300,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // to avoid reporting redundant warnings. Also check useLegacyWarnings
                     // since that value was used when reporting warnings for the explicit cast.
                     // Don't skip the node when it's a user-defined conversion, as identity conversions
-                    // on top of user-defined conversions means that we're coming in from ApplyUserDefinedConversion
+                    // on top of user-defined conversions means that we're coming in from VisitUserDefinedConversion
                     // and that any warnings caught by this pass of VisitConversion won't be redundant.
                     if (useLegacyWarnings && convertedNode is BoundConversion operandConversion && !operandConversion.ConversionKind.IsUserDefinedConversion())
                     {
                         var explicitType = operandConversion.ConversionGroupOpt.ExplicitType;
                         if (explicitType.Equals(targetTypeWithNullability, TypeCompareKind.ConsiderEverything))
                         {
-                            TrackAnalyzedNullabilityThroughConversionGroup(calculateResultType(targetTypeWithNullability, fromExplicitCast, operandType.State, isSuppressed, targetType), conversionOpt, convertedNode);
+                            TrackAnalyzedNullabilityThroughConversionGroup(
+                                calculateResultType(targetTypeWithNullability, fromExplicitCast, operandType.State, isSuppressed, targetType),
+                                conversionOpt,
+                                convertedNode);
                             return operandType;
                         }
                     }
@@ -4312,7 +4330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // For type parameters that cannot be annotated, the analysis must report those
                         // places where null values first sneak in, like `default`, `null`, and `GetFirstOrDefault`.
                         // This is one of those places.
-                        ReportSafetyDiagnostic(ErrorCode.WRN_NullLiteralMayIntroduceNullT, location, targetType);
+                        ReportSafetyDiagnostic(ErrorCode.WRN_NullLiteralMayIntroduceNullT, diagnosticLocationOpt, targetType);
                     }
                     goto case ConversionKind.ExplicitReference;
 
@@ -4360,7 +4378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
                         if (reportTopLevelWarnings && operandType.MayBeNull)
                         {
-                            ReportSafetyDiagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, location);
+                            ReportSafetyDiagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, diagnosticLocationOpt);
                         }
 
                         // Mark the value as not nullable, regardless of whether it was known to be nullable,
@@ -4438,18 +4456,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        ReportNullableAssignmentIfNecessary(convertedNode, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target, conversion, location);
+                        ReportNullableAssignmentIfNecessary(convertedNode, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target, conversion, diagnosticLocationOpt);
                     }
                 }
                 if (reportRemainingWarnings && !canConvertNestedNullability)
                 {
                     if (assignmentKind == AssignmentKind.Argument)
                     {
-                        ReportNullabilityMismatchInArgument(location, operandType.Type, target, targetType, forOutput: false);
+                        ReportNullabilityMismatchInArgument(diagnosticLocationOpt, operandType.Type, target, targetType, forOutput: false);
                     }
                     else
                     {
-                        ReportNullabilityMismatchInAssignment(location, GetTypeAsDiagnosticArgument(operandType.Type), targetType);
+                        ReportNullabilityMismatchInAssignment(diagnosticLocationOpt, GetTypeAsDiagnosticArgument(operandType.Type), targetType);
                     }
                 }
             }
@@ -4486,7 +4504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol target,
             bool reportTopLevelWarnings,
             bool reportRemainingWarnings,
-            Location location = null)
+            Location diagnosticLocation)
         {
             Debug.Assert(!IsConditionalState);
             Debug.Assert(convertedNode != null);
@@ -4495,7 +4513,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.Kind == ConversionKind.ExplicitUserDefined || conversion.Kind == ConversionKind.ImplicitUserDefined);
 
             TypeSymbol targetType = targetTypeWithNullability.Type;
-            location ??= conversionOpt?.Syntax.GetLocation() ?? convertedNode.Syntax.GetLocation();
 
             // cf. Binder.CreateUserDefinedConversion
             if (!conversion.IsValid)
@@ -4520,7 +4537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 target,
                 reportTopLevelWarnings,
                 reportRemainingWarnings,
-                location: location);
+                diagnosticLocationOpt: diagnosticLocation);
 
             // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
             // (see NullableReferenceTypesTests.ImplicitConversions_07).
@@ -4549,7 +4566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 target: parameter,
                 reportWarnings: reportRemainingWarnings,
                 fromExplicitCast: false,
-                location: convertedNode is null ? location : null);
+                location: convertedNode is null ? diagnosticLocation : null);
 
             // method parameter type -> method return type
             var methodReturnType = methodOpt.ReturnTypeWithAnnotations;
@@ -4558,7 +4575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandType = LiftedReturnType(methodReturnType, operandState);
                 if (RequiresSafetyWarningWhenNullIntroduced(methodReturnType) && operandState == NullableFlowState.MaybeNull)
                 {
-                    ReportNullableAssignmentIfNecessary(conversionOpt, targetTypeWithNullability, operandType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target, conversion, location);
+                    ReportNullableAssignmentIfNecessary(conversionOpt, targetTypeWithNullability, operandType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target, conversion, diagnosticLocation);
                 }
             }
             else
@@ -4577,7 +4594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 target,
                 reportWarnings: reportRemainingWarnings,
                 fromExplicitCast: false,
-                location: convertedNode is null ? location : null);
+                location: convertedNode is null ? diagnosticLocation : null);
 
             // conversion "to" type -> final type
             // We should only pass fromExplicitCast here. Given the following example:
@@ -4600,24 +4617,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 target,
                 reportWarnings: reportRemainingWarnings,
                 fromExplicitCast: conversionOpt?.ExplicitCastInCode ?? false,
-                location);
+                diagnosticLocation);
 
             TrackAnalyzedNullabilityThroughConversionGroup(operandType, conversionOpt, convertedNode);
 
             return operandType;
         }
 
-        void TrackAnalyzedNullabilityThroughConversionGroup(TypeWithState resultType, BoundConversion conversionOpt, BoundExpression convertedNode)
+        private void TrackAnalyzedNullabilityThroughConversionGroup(TypeWithState resultType, BoundConversion conversionOpt, BoundExpression convertedNode)
         {
             var visitResult = new VisitResult(resultType, resultType.ToTypeWithAnnotations());
             var conversionGroup = conversionOpt?.ConversionGroupOpt;
             while (conversionOpt != null && conversionOpt != convertedNode)
             {
                 Debug.Assert(conversionOpt.ConversionGroupOpt == conversionGroup);
-                visitResult = visitResult.WithType(conversionOpt.Type);
+                visitResult = withType(visitResult, conversionOpt.Type);
                 SetAnalyzedNullability(conversionOpt, visitResult);
                 conversionOpt = conversionOpt.Operand as BoundConversion;
             }
+
+            static VisitResult withType(VisitResult visitResult, TypeSymbol newType) =>
+                new VisitResult(TypeWithState.Create(newType, visitResult.RValueType.State),
+                                TypeWithAnnotations.Create(newType, visitResult.LValueType.NullableAnnotation));
         }
 
         /// <summary>
@@ -4676,7 +4697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 target,
                 reportTopLevelWarnings: reportWarnings,
                 reportRemainingWarnings: !fromExplicitCast && reportWarnings,
-                location: location);
+                diagnosticLocationOpt: location);
         }
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
@@ -4988,7 +5009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (deconstructMethod.IsGenericMethod)
                         {
-                            // re-infer the deconstruct parameters based on the 'this' parameter 
+                            // re-infer the deconstruct parameters based on the 'this' parameter
                             ArrayBuilder<BoundExpression> placeholderArgs = ArrayBuilder<BoundExpression>.GetInstance(n + 1);
                             placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResult.ToTypeWithAnnotations()));
                             for (int i = 0; i < n; i++)
@@ -5630,7 +5651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var convertedResult = VisitConversion(
-                node.Expression == expr ? null : (BoundConversion)node.Expression,
+                GetConversionOperandIfApplicable(node.Expression, expr),
                 expr,
                 conversion,
                 targetTypeWithAnnotations,
@@ -5762,7 +5783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignmentKind.ForEachIterationVariable,
                                 reportTopLevelWarnings: true,
                                 reportRemainingWarnings: true,
-                                location: variableLocation);
+                                diagnosticLocationOpt: variableLocation);
                             state = result.State;
                         }
                     }
@@ -6408,6 +6429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckExtensionMethodThisNullability(BoundExpression expr, Conversion conversion, ParameterSymbol parameter, TypeWithState result)
         {
             VisitArgumentConversion(
+                conversionOpt: null,
                 expr,
                 conversion,
                 parameter.RefKind,
