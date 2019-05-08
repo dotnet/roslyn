@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -37,21 +38,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<LSP.CompletionItem>();
             }
 
-            var lspClientCapability = clientCapabilities.HasVisualStudioLspCapability();
-
-            return list.Items.Select(item => CreateCompletionItem(request, item)).ToArray();
+            var lspVSClientCapability = clientCapabilities?.HasVisualStudioLspCapability() == true;
+            return list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability)).ToArray();
 
             // local functions
-            static LSP.VSCompletionItem CreateCompletionItem(LSP.CompletionParams request, CompletionItem item)
-                => new LSP.VSCompletionItem
+            static LSP.CompletionItem CreateLSPCompletionItem(LSP.CompletionParams request, CompletionItem item, bool useVSCompletionItem)
+            {
+                if (useVSCompletionItem)
+                {
+                    var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(request, item);
+                    vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
+                    return vsCompletionItem;
+                }
+                else
+                {
+                    var roslynCompletionItem = CreateCompletionItem<RoslynCompletionItem>(request, item);
+                    roslynCompletionItem.Tags = item.Tags.ToArray();
+                    return roslynCompletionItem;
+                }
+            }
+
+            static TCompletionItem CreateCompletionItem<TCompletionItem>(LSP.CompletionParams request, CompletionItem item) where TCompletionItem : LSP.CompletionItem, new()
+                => new TCompletionItem
                 {
                     Label = item.DisplayText,
                     InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : item.DisplayText,
                     SortText = item.SortText,
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
-                    Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText },
-                    Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId())
+                    Data = new CompletionResolveData { CompletionParams = request, DisplayText = item.DisplayText }
                 };
         }
 

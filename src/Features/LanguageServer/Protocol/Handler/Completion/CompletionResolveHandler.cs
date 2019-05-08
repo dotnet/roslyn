@@ -57,10 +57,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(false);
 
-            var resolvedCompletionItem = CloneVSCompletionItem(completionItem);
-            resolvedCompletionItem.Description = new ClassifiedTextElement(description.TaggedParts.Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
-            resolvedCompletionItem.Detail = description.TaggedParts.GetFullText();
+            var lspVSClientCapability = clientCapabilities?.HasVisualStudioLspCapability() == true;
+            LSP.CompletionItem resolvedCompletionItem;
+            if (lspVSClientCapability)
+            {
+                resolvedCompletionItem = CloneVSCompletionItem(completionItem);
+                ((LSP.VSCompletionItem)resolvedCompletionItem).Description = new ClassifiedTextElement(description.TaggedParts
+                    .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
+            }
+            else
+            {
+                resolvedCompletionItem = RoslynCompletionItem.From(completionItem);
+                ((RoslynCompletionItem)resolvedCompletionItem).Description = description.TaggedParts.Select(
+                    tp => new RoslynTaggedText { Tag = tp.Tag, Text = tp.Text }).ToArray();
+            }
 
+            resolvedCompletionItem.Detail = description.TaggedParts.GetFullText();
             return resolvedCompletionItem;
         }
 

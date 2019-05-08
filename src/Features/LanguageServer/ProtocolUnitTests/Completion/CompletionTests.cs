@@ -23,12 +23,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 }";
             var (solution, locations) = CreateTestSolution(markup);
             var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" }, CreateCompletionParams(locations["caret"].First()));
+            var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
 
-            var results = (LSP.VSCompletionItem[])await RunGetCompletionsAsync(solution, locations["caret"].First());
-            AssertCompletionItemsEqual(expected, results.First(), false);
+            var results = (LSP.CompletionItem[])await RunGetCompletionsAsync(solution, locations["caret"].First(), clientCapabilities);
+            AssertCompletionItemsEqual(expected, (LSP.VSCompletionItem)results.First(), false);
         }
 
-        private static async Task<object> RunGetCompletionsAsync(Solution solution, LSP.Location caret)
-            => await GetLanguageServer(solution).GetCompletionsAsync(solution, CreateCompletionParams(caret), new LSP.ClientCapabilities(), CancellationToken.None);
+        private static async Task<object> RunGetCompletionsAsync(Solution solution, LSP.Location caret, LSP.ClientCapabilities clientCapabilities = null)
+            => await GetLanguageServer(solution).GetCompletionsAsync(solution, CreateCompletionParams(caret), clientCapabilities, CancellationToken.None);
     }
 }

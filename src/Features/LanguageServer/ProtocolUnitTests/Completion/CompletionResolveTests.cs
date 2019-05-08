@@ -27,15 +27,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var completionParams = CreateCompletionParams(locations["caret"].First());
             var completionItem = CreateCompletionItem("A", LSP.CompletionItemKind.Class, tags, completionParams);
             var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
+            var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
 
             var expected = CreateResolvedCompletionItem("A", LSP.CompletionItemKind.Class, null, completionParams, description, "class A", null);
 
-            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(solution, completionItem);
+            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(solution, completionItem, clientCapabilities);
             AssertCompletionItemsEqual(expected, results, true);
         }
 
-        private static async Task<object> RunResolveCompletionItemAsync(Solution solution, LSP.CompletionItem completionItem)
-            => await GetLanguageServer(solution).ResolveCompletionItemAsync(solution, completionItem, new LSP.ClientCapabilities(), CancellationToken.None);
+        private static async Task<object> RunResolveCompletionItemAsync(Solution solution, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)
+            => await GetLanguageServer(solution).ResolveCompletionItemAsync(solution, completionItem, clientCapabilities, CancellationToken.None);
 
         private static LSP.VSCompletionItem CreateResolvedCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters,
             ClassifiedTextElement description, string detail, string documentation)
