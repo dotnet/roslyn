@@ -3,11 +3,10 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
 {
-    internal interface IFSharpProjectDiagnosticAnalyzer : ILanguageService
+    internal interface IFSharpProjectDiagnosticAnalyzer
     {
         Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken);
     }

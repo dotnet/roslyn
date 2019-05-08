@@ -3,11 +3,10 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
 {
-    internal interface IFSharpUnusedDeclarationsDiagnosticAnalyzer : ILanguageService
+    internal interface IFSharpUnusedDeclarationsDiagnosticAnalyzer
     {
         Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(DiagnosticDescriptor descriptor, Document document, CancellationToken cancellationToken);
     }
