@@ -2,21 +2,21 @@
 
 usage()
 {
-    echo "Usage: $0 [BuildArch] [LinuxCodeName] [lldbx.y] [--skipunmount]"
+    echo "Usage: $0 [BuildArch] [LinuxCodeName] [lldbx.y] [--skipunmount] --rootfs <directory>]"
     echo "BuildArch can be: arm(default), armel, arm64, x86"
-    echo "LinuxCodeName - optional, Code name for Linux, can be: trusty(default), vivid, wily, xenial, zesty, bionic, alpine. If BuildArch is armel, LinuxCodeName is jessie(default) or tizen."
-    echo "lldbx.y - optional, LLDB version, can be: lldb3.6(default), lldb3.8, lldb3.9, lldb4.0, no-lldb. Ignored for alpine"
+    echo "LinuxCodeName - optional, Code name for Linux, can be: trusty, xenial(default), zesty, bionic, alpine. If BuildArch is armel, LinuxCodeName is jessie(default) or tizen."
+    echo "lldbx.y - optional, LLDB version, can be: lldb3.9(default), lldb4.0, lldb5.0, lldb6.0 no-lldb. Ignored for alpine"
     echo "--skipunmount - optional, will skip the unmount of rootfs folder."
     exit 1
 }
 
-__LinuxCodeName=trusty
+__LinuxCodeName=xenial
 __CrossDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 __InitialDir=$PWD
 __BuildArch=arm
 __UbuntuArch=armhf
 __UbuntuRepo="http://ports.ubuntu.com/"
-__LLDB_Package="lldb-3.6-dev"
+__LLDB_Package="liblldb-3.9-dev"
 __SkipUnmount=0
 
 # base development support
@@ -53,8 +53,12 @@ __AlpinePackages+=" openssl-dev"
 __AlpinePackages+=" zlib-dev"
 
 __UnprocessedBuildArgs=
-for i in "$@" ; do
-    lowerI="$(echo $i | awk '{print tolower($0)}')"
+while :; do
+    if [ $# -le 0 ]; then
+        break
+    fi
+
+    lowerI="$(echo $1 | awk '{print tolower($0)}')"
     case $lowerI in
         -?|-h|--help)
             usage
@@ -95,38 +99,40 @@ for i in "$@" ; do
         lldb4.0)
             __LLDB_Package="liblldb-4.0-dev"
             ;;
+        lldb5.0)
+            __LLDB_Package="liblldb-5.0-dev"
+            ;;
+        lldb6.0)
+            __LLDB_Package="liblldb-6.0-dev"
+            ;;
         no-lldb)
             unset __LLDB_Package
             ;;
-        vivid)
+        trusty) # Ubuntu 14.04
             if [ "$__LinuxCodeName" != "jessie" ]; then
-                __LinuxCodeName=vivid
+                __LinuxCodeName=trusty
             fi
             ;;
-        wily)
-            if [ "$__LinuxCodeName" != "jessie" ]; then
-                __LinuxCodeName=wily
-            fi
-            ;;
-        xenial)
+        xenial) # Ubunry 16.04
             if [ "$__LinuxCodeName" != "jessie" ]; then
                 __LinuxCodeName=xenial
             fi
             ;;
-        zesty)
+        zesty) # Ununtu 17.04
             if [ "$__LinuxCodeName" != "jessie" ]; then
                 __LinuxCodeName=zesty
             fi
             ;;
-        bionic)
+        bionic) # Ubuntu 18.04
             if [ "$__LinuxCodeName" != "jessie" ]; then
                 __LinuxCodeName=bionic
             fi
             ;;
-        jessie)
+        jessie) # Debian 8
             __LinuxCodeName=jessie
             __UbuntuRepo="http://ftp.debian.org/debian/"
             ;;
+        # TBD Stretch -> Debian 9, Buster -> Debian 10
         tizen)
             if [ "$__BuildArch" != "armel" ]; then
                 echo "Tizen is available only for armel."
@@ -144,10 +150,16 @@ for i in "$@" ; do
         --skipunmount)
             __SkipUnmount=1
             ;;
+        --rootfsdir|-rootfsdir)
+            shift
+            __RootfsDir=$1
+            ;;
         *)
-            __UnprocessedBuildArgs="$__UnprocessedBuildArgs $i"
+            __UnprocessedBuildArgs="$__UnprocessedBuildArgs $1"
             ;;
     esac
+
+    shift
 done
 
 if [ "$__BuildArch" == "armel" ]; then
@@ -155,10 +167,12 @@ if [ "$__BuildArch" == "armel" ]; then
 fi
 __UbuntuPackages+=" ${__LLDB_Package:-}"
 
-__RootfsDir="$__CrossDir/rootfs/$__BuildArch"
-
-if [[ -n "$ROOTFS_DIR" ]]; then
+if [ -z "$__RootfsDir" ] && [ ! -z "$ROOTFS_DIR" ]; then
     __RootfsDir=$ROOTFS_DIR
+fi
+
+if [ -z "$__RootfsDir" ]; then
+    __RootfsDir="$__CrossDir/rootfs/$__BuildArch"
 fi
 
 if [ -d "$__RootfsDir" ]; then
