@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ class TestClass {|Brace:{|}
 }
 ";
 
-            await new CSharpTest(nestedDiagnostics: false) { TestCode = testCode }.RunAsync();
+            await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false) { TestCode = testCode }.RunAsync();
         }
 
         [Fact]
@@ -33,7 +34,7 @@ class TestClass $${
 }
 ";
 
-            await new CSharpTest(nestedDiagnostics: false) { TestCode = testCode }.RunAsync();
+            await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false) { TestCode = testCode }.RunAsync();
         }
 
         [Fact]
@@ -46,7 +47,7 @@ class TestClass $${
 }
 ";
 
-            await new CSharpTest(nestedDiagnostics: false) { TestCode = testCode }.RunAsync();
+            await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false) { TestCode = testCode }.RunAsync();
         }
 
         [Fact]
@@ -59,7 +60,51 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
 }
 ";
 
-            await new CSharpTest(nestedDiagnostics: true) { TestCode = testCode }.RunAsync();
+            await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false) { TestCode = testCode }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestCSharpNestedMarkupBraceUnspecifiedIdWithoutDefault()
+        {
+            var testCode = @"
+class TestClass {|BraceOuter:{|Brace:{|}|}
+  void TestMethod() {|BraceOuter:[|Brace:{|]|} }
+}
+";
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false) { TestCode = testCode }.RunAsync());
+
+            var expected = "Markup syntax can only omit the diagnostic ID if the first analyzer only supports a single diagnostic. To customize the default value, override AnalyzerTest<TVerifier>.GetDefaultDiagnostic or specify MarkupOptions.PreferFirstDescriptor.";
+            Assert.Equal(expected, exception.Message);
+        }
+
+        [Fact]
+        [WorkItem(189, "https://github.com/dotnet/roslyn-sdk/issues/189")]
+        public async Task TestCSharpNestedMarkupBraceMultipleWithoutDefault()
+        {
+            var testCode = @"
+class TestClass {|BraceOuter:{|Brace:{|}|}
+  void TestMethod() {|BraceOuter:{|Brace:{|}|} }
+}
+";
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: true) { TestCode = testCode }.RunAsync());
+
+            var expected = "Multiple diagnostic descriptors with ID Brace were found. Use the explicitly diagnostic creation syntax or specify MarkupOptions.PreferFirstDescriptor to use the first matching diagnostic.";
+            Assert.Equal(expected, exception.Message);
+        }
+
+        [Fact]
+        [WorkItem(189, "https://github.com/dotnet/roslyn-sdk/issues/189")]
+        public async Task TestCSharpNestedMarkupBraceWithDefault()
+        {
+            var testCode = @"
+class TestClass {|BraceOuter:{|Brace:{|}|}
+  void TestMethod() {|BraceOuter:[|{|]|} }
+}
+";
+
+            await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false) { TestCode = testCode, MarkupOptions = MarkupOptions.PreferFirstDescriptor }.RunAsync();
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -68,18 +113,47 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
             internal static readonly DiagnosticDescriptor DescriptorOuter =
                 new DiagnosticDescriptor("BraceOuter", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
+            internal static readonly DiagnosticDescriptor DescriptorOuterHidden =
+                new DiagnosticDescriptor("BraceOuter", "title", "message", "category", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
+
             internal static readonly DiagnosticDescriptor Descriptor =
                 new DiagnosticDescriptor("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-            private readonly bool _nestedDiagnostics;
+            internal static readonly DiagnosticDescriptor DescriptorHidden =
+                new DiagnosticDescriptor("Brace", "title", "message", "category", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
 
-            public HighlightBracesAnalyzer(bool nestedDiagnostics)
+            private readonly bool _nestedDiagnostics;
+            private readonly bool _hiddenDescriptors;
+
+            public HighlightBracesAnalyzer(bool nestedDiagnostics, bool hiddenDescriptors)
             {
                 _nestedDiagnostics = nestedDiagnostics;
+                _hiddenDescriptors = hiddenDescriptors;
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-                => _nestedDiagnostics ? ImmutableArray.Create(Descriptor, DescriptorOuter) : ImmutableArray.Create(Descriptor);
+            {
+                get
+                {
+                    var builder = ImmutableArray.CreateBuilder<DiagnosticDescriptor>();
+                    builder.Add(Descriptor);
+                    if (_hiddenDescriptors)
+                    {
+                        builder.Add(DescriptorHidden);
+                    }
+
+                    if (_nestedDiagnostics)
+                    {
+                        builder.Add(DescriptorOuter);
+                        if (_hiddenDescriptors)
+                        {
+                            builder.Add(DescriptorOuterHidden);
+                        }
+                    }
+
+                    return builder.ToImmutable();
+                }
+            }
 
             public override void Initialize(AnalysisContext context)
             {
@@ -110,10 +184,12 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
         private class CSharpTest : AnalyzerTest<DefaultVerifier>
         {
             private readonly bool _nestedDiagnostics;
+            private readonly bool _hiddenDescriptors;
 
-            public CSharpTest(bool nestedDiagnostics)
+            public CSharpTest(bool nestedDiagnostics, bool hiddenDescriptors)
             {
                 _nestedDiagnostics = nestedDiagnostics;
+                _hiddenDescriptors = hiddenDescriptors;
             }
 
             public override string Language => LanguageNames.CSharp;
@@ -125,7 +201,7 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
 
             protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
             {
-                yield return new HighlightBracesAnalyzer(_nestedDiagnostics);
+                yield return new HighlightBracesAnalyzer(_nestedDiagnostics, _hiddenDescriptors);
             }
         }
     }
