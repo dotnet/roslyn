@@ -146,6 +146,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // https://github.com/dotnet/roslyn/issues/35043: remove this when all expression are supported
         private bool _disableNullabilityAnalysis;
 
+        /// <summary>
+        /// Should be replaced by _analyzedNullabilityMapOpt if that map is always used.
+        /// </summary>
+        private PooledDictionary<BoundExpression, TypeWithState> _otherNullabilityMapOpt;
+
 #if DEBUG
         /// <summary>
         /// Contains the expressions that should not be inserted into <see cref="_analyzedNullabilityMapOpt"/>.
@@ -291,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
+            _otherNullabilityMapOpt?.Free();
             _variableTypes.Free();
             _placeholderLocalsOpt?.Free();
             base.Free();
@@ -4183,9 +4189,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversion.Kind)
             {
                 case ConversionKind.MethodGroup:
-                    if (reportRemainingWarnings)
                     {
-                        ReportNullabilityMismatchWithTargetDelegate(location, targetType.GetDelegateType(), conversion.Method, conversion.IsExtensionMethod);
+                        var receiverOpt = (operandOpt as BoundMethodGroup)?.ReceiverOpt;
+                        // https://github.com/dotnet/roslyn/issues/33637: Should update method based on inferred receiver type.
+                        var method = conversion.Method;
+                        if (receiverOpt != null)
+                        {
+                            if (_otherNullabilityMapOpt != null && _otherNullabilityMapOpt.TryGetValue(receiverOpt, out TypeWithState receiverType))
+                            {
+                                if (conversion.IsExtensionMethod)
+                                {
+                                    CheckExtensionMethodThisNullability(receiverOpt, Conversion.Identity, method.Parameters[0], receiverType);
+                                }
+                                else
+                                {
+                                    CheckPossibleNullReceiver(receiverOpt, receiverType, checkNullableValueType: false);
+                                }
+                            }
+                        }
+                        if (reportRemainingWarnings)
+                        {
+                            ReportNullabilityMismatchWithTargetDelegate(location, targetType.GetDelegateType(), method, conversion.IsExtensionMethod);
+                        }
                     }
                     resultState = NullableFlowState.NotNull;
                     break;
@@ -4606,26 +4631,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundMethodGroup group:
                     {
-                        var receiverOpt = group.ReceiverOpt;
                         // https://github.com/dotnet/roslyn/issues/33637: Should update method based on inferred receiver type.
                         var method = node.MethodOpt;
-                        if (receiverOpt != null)
+                        if (method is object)
                         {
-                            VisitRvalue(receiverOpt);
-                            if (node.IsExtensionMethod)
+                            var receiverOpt = group.ReceiverOpt;
+                            if (receiverOpt != null)
                             {
-                                CheckExtensionMethodThisNullability(receiverOpt, Conversion.Identity, method.Parameters[0], ResultType);
+                                VisitRvalue(receiverOpt);
+                                if (node.IsExtensionMethod)
+                                {
+                                    CheckExtensionMethodThisNullability(receiverOpt, Conversion.Identity, method.Parameters[0], ResultType);
+                                }
+                                else
+                                {
+                                    CheckPossibleNullReceiver(receiverOpt);
+                                }
                             }
-                            else
+                            if (!group.IsSuppressed)
                             {
-                                CheckPossibleNullReceiver(receiverOpt);
+                                ReportNullabilityMismatchWithTargetDelegate(group.Syntax.Location, delegateType, method, node.IsExtensionMethod);
                             }
                         }
                         SetAnalyzedNullability(group, default);
-                        if (method is object && !group.IsSuppressed)
-                        {
-                            ReportNullabilityMismatchWithTargetDelegate(group.Syntax.Location, delegateType, method, node.IsExtensionMethod);
-                        }
                     }
                     break;
                 case BoundLambda lambda:
@@ -4655,11 +4683,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiverOpt != null)
             {
                 VisitRvalue(receiverOpt);
-                // https://github.com/dotnet/roslyn/issues/30563: Should not check receiver here.
-                // That check should be handled when applying the method group conversion,
+                // Receiver nullability is checked when applying the method group conversion,
                 // when we have a specific method, to avoid reporting null receiver warnings
-                // for extension method delegates.
-                _ = CheckPossibleNullReceiver(receiverOpt);
+                // for extension method delegates. Here, store the receiver state for that later check.
+                if (_otherNullabilityMapOpt == null)
+                {
+                    _otherNullabilityMapOpt = PooledDictionary<BoundExpression, TypeWithState>.GetInstance();
+                }
+                _otherNullabilityMapOpt[receiverOpt] = ResultType;
             }
 
             SetNotNullResult(node);
@@ -6116,7 +6147,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
         {
-            VisitRvalue(node.Expression);
+            var expr = node.Expression;
+            VisitRvalue(expr);
+
+            // If the expression was a MethodGroup, check nullability of receiver.
+            var receiverOpt = (expr as BoundMethodGroup)?.ReceiverOpt;
+            if (receiverOpt != null &&
+                _otherNullabilityMapOpt != null &&
+                _otherNullabilityMapOpt.TryGetValue(receiverOpt, out TypeWithState receiverType))
+            {
+                CheckPossibleNullReceiver(receiverOpt, receiverType, checkNullableValueType: false);
+            }
+
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(node.Type.IsReferenceType);
@@ -6238,11 +6280,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckPossibleNullReceiver(BoundExpression receiverOpt, bool checkNullableValueType = false)
         {
+            return CheckPossibleNullReceiver(receiverOpt, ResultType, checkNullableValueType);
+        }
+
+        private bool CheckPossibleNullReceiver(BoundExpression receiverOpt, TypeWithState resultType, bool checkNullableValueType)
+        {
             Debug.Assert(!this.IsConditionalState);
             bool reportedDiagnostic = false;
             if (receiverOpt != null && this.State.Reachable)
             {
-                var resultTypeSymbol = ResultType.Type;
+                var resultTypeSymbol = resultType.Type;
                 if (resultTypeSymbol is null)
                 {
                     return false;
@@ -6250,7 +6297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                 Debug.Assert(receiverOpt.Type is null || AreCloseEnough(receiverOpt.Type, resultTypeSymbol));
 #endif
-                if (!ReportPossibleNullReceiverIfNeeded(resultTypeSymbol, ResultType.State, checkNullableValueType, receiverOpt.Syntax, out reportedDiagnostic))
+                if (!ReportPossibleNullReceiverIfNeeded(resultTypeSymbol, resultType.State, checkNullableValueType, receiverOpt.Syntax, out reportedDiagnostic))
                 {
                     return reportedDiagnostic;
                 }

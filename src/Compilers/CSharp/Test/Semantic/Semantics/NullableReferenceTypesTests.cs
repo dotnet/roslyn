@@ -72908,14 +72908,10 @@ static class E
     internal static void F2(this C? c) { }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/30563: Should not report "CS8602: Possible dereference" for y.F2.
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Dereference of a possibly null reference.
                 //         d = x.F1; // warning
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
-                // (9,13): warning CS8602: Dereference of a possibly null reference.
-                //         d = y.F2; // ok
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13));
         }
 
         [WorkItem(30563, "https://github.com/dotnet/roslyn/issues/30563")]
@@ -72943,15 +72939,16 @@ static class E
     internal static void F(this C x) { }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/30563: Should not report "CS8602: Possible dereference"
-            // for F2(y.F). Should report "CS8604: Possible null reference argument" instead.
             comp.VerifyDiagnostics(
                 // (10,12): warning CS8602: Dereference of a possibly null reference.
                 //         F1(x.F); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 12),
-                // (12,12): warning CS8602: Dereference of a possibly null reference.
+                // (12,12): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F(C x)'.
                 //         F2(y.F); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(12, 12));
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F(C x)").WithLocation(12, 12),
+                // (13,12): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F(C x)'.
+                //         F2(y.F); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F(C x)").WithLocation(13, 12));
         }
 
         [WorkItem(33637, "https://github.com/dotnet/roslyn/issues/33637")]
@@ -95982,11 +95979,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/30563: Should not report "CS8602: Possible dereference" for x.F.
             comp.VerifyDiagnostics(
-                // (12,13): warning CS8602: Dereference of a possibly null reference.
-                //         d = x.F;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13),
+                // (14,13): warning CS8604: Possible null reference argument for parameter 't' in 'void E.F<string>(string t)'.
+                //         d = x.F<string>; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("t", "void E.F<string>(string t)").WithLocation(14, 13),
                 // (24,13): warning CS8622: Nullability of reference types in type of parameter 't' of 'void E.F<string>(string t)' doesn't match the target delegate 'D1<string?>'.
                 //         d = E.F<string>; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "E.F<string>").WithArguments("t", "void E.F<string>(string t)", "D1<string?>").WithLocation(24, 13));
@@ -96056,11 +96052,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/30563: Should not report "CS8602: Possible dereference" for x.F.
             comp.VerifyDiagnostics(
-                // (11,13): warning CS8602: Dereference of a possibly null reference.
-                //         d = x.F;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(11, 13));
+                // (13,13): warning CS8604: Possible null reference argument for parameter 't' in 'void E.F<string>(string t, int i)'.
+                //         d = x.F<string>; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("t", "void E.F<string>(string t, int i)").WithLocation(13, 13));
         }
 
         [Fact]
@@ -96120,11 +96115,13 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/30563: Should not report "CS8602: Possible dereference" for x.F.
             comp.VerifyDiagnostics(
-                // (12,13): warning CS8602: Dereference of a possibly null reference.
-                //         d = x.F<string?, string?>;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13));
+                // (14,13): warning CS8604: Possible null reference argument for parameter 't' in 'void E.F<string, string?>(string t, string? u)'.
+                //         d = x.F<string, string?>; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("t", "void E.F<string, string?>(string t, string? u)").WithLocation(14, 13),
+                // (15,13): warning CS8604: Possible null reference argument for parameter 't' in 'void E.F<string, string>(string t, string u)'.
+                //         e = x.F<string, string>; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("t", "void E.F<string, string>(string t, string u)").WithLocation(15, 13));
         }
 
         [Fact]
@@ -96185,7 +96182,6 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/30563: Should not report "CS8602: Possible dereference" for x.F.
             comp.VerifyDiagnostics(
                 // (13,13): error CS1113: Extension method 'E.F<T>(T)' defined on value type 'T' cannot be used to create delegates
                 //         d = default(T).F;
@@ -96193,12 +96189,6 @@ class Program
                 // (13,13): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         d = default(T).F;
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(13, 13),
-                // (13,13): warning CS8602: Dereference of a possibly null reference.
-                //         d = default(T).F;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T)").WithLocation(13, 13),
-                // (14,13): warning CS8602: Dereference of a possibly null reference.
-                //         d = default(U).F;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(U)").WithLocation(14, 13),
                 // (15,13): error CS1113: Extension method 'E.F<V>(V)' defined on value type 'V' cannot be used to create delegates
                 //         d = default(V).F;
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "default(V).F").WithArguments("E.F<V>(V)", "V").WithLocation(15, 13),
@@ -96230,17 +96220,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/30563: Should not report "CS8602: Possible dereference" for x.F.
             comp.VerifyDiagnostics(
                 // (12,19): error CS1113: Extension method 'E.F<T>(T)' defined on value type 'T' cannot be used to create delegates
                 //         _ = new D(default(T).F);
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "default(T).F").WithArguments("E.F<T>(T)", "T").WithLocation(12, 19),
-                // (12,19): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
-                //         _ = new D(default(T).F);
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(12, 19),
-                // (12,19): warning CS8602: Dereference of a possibly null reference.
-                //         _ = new D(default(T).F);
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T)").WithLocation(12, 19),
                 // (14,19): error CS1113: Extension method 'E.F<V>(V)' defined on value type 'V' cannot be used to create delegates
                 //         _ = new D(default(V).F);
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "default(V).F").WithArguments("E.F<V>(V)", "V").WithLocation(14, 19),
