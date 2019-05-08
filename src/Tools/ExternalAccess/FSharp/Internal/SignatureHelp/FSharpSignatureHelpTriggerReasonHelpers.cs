@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp
                     }
 
                 default:
-                    throw new InvalidOperationException();
+                    {
+                        throw new ArgumentException("Enum case not handled.", nameof(triggerReason));
+                    }
             }
         }
     }

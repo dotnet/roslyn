@@ -39,7 +39,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
                     }
 
                 default:
-                    throw new InvalidOperationException();
+                    {
+                        throw new ArgumentException("Enum case not handled.", nameof(triggerReason));
+                    }
             }
         }
 
