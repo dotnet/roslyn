@@ -57,7 +57,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return null;
             }
 
-            return new FieldsAnalyzer(compilationType, symbolType, operationType, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
+            var attributeUsageAttribute = WellKnownTypes.AttributeUsageAttribute(compilation);
+
+            return new FieldsAnalyzer(compilationType, symbolType, operationType, attributeUsageAttribute, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }
 
         private sealed class FieldsAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TFieldDeclarationSyntax>
@@ -65,19 +67,21 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private readonly INamedTypeSymbol _compilationType;
             private readonly INamedTypeSymbol _symbolType;
             private readonly INamedTypeSymbol _operationType;
+            private readonly INamedTypeSymbol _attributeUsageAttribute;
 
-            public FieldsAnalyzer(INamedTypeSymbol compilationType, INamedTypeSymbol symbolType, INamedTypeSymbol operationType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+            public FieldsAnalyzer(INamedTypeSymbol compilationType, INamedTypeSymbol symbolType, INamedTypeSymbol operationType, INamedTypeSymbol attributeUsageAttribute, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
                 _compilationType = compilationType;
                 _symbolType = symbolType;
                 _operationType = operationType;
+                _attributeUsageAttribute = attributeUsageAttribute;
             }
 
             protected override void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext)
             {
                 var namedType = (INamedTypeSymbol)symbolContext.Symbol;
-                if (!HasDiagnosticAnalyzerAttribute(namedType))
+                if (!HasDiagnosticAnalyzerAttribute(namedType, _attributeUsageAttribute))
                 {
                     // We are interested only in DiagnosticAnalyzer types with DiagnosticAnalyzerAttribute.
                     return;

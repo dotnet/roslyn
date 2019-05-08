@@ -2,6 +2,78 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
+        <source>Explicitly define the importing constructor</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute">
+        <source>Add 'ImportingConstructor' attribute</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor">
+        <source>Make constructor public</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
+        <source>Exported parts should have [ImportingConstructor]</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
+        <source>'{0}' is MEF-exported and should have a single importing constructor of the correct form</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
+        <source>Exported parts should have [ImportingConstructor]</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
+        <source>Set ObsoleteAttribute.Error to true</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
+        <source>Use correct ObsoleteAttribute message</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
+        <source>Add ObsoleteAttribute</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
+        <source>Configure ObsoleteAttribute for importing constructor</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
+        <source>Set ObsoleteAttribute.Error to true</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
+        <source>Importing constructor should be [Obsolete]</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
+        <source>Importing constructor should be [Obsolete]</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
+        <source>Importing constructor should be [Obsolete]</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
+        <source>Apply PartNotDiscoverableAttribute</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
+        <source>Test exports should not be discoverable</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
+        <source>'{0}' is exported for test purposes and should be marked PartNotDiscoverable</source>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
+        <source>Test exports should not be discoverable</source>
+        <note />
+      </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
         <source>Use SpecializedCollections.EmptyEnumerable()</source>
         <target state="translated">SpecializedCollections.EmptyEnumerable() を使用します</target>

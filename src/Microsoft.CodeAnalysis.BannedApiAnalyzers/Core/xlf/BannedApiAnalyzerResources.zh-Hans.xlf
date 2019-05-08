@@ -1,35 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../BannedApiAnalyzerResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../BannedApiAnalyzerResources.resx">
     <body>
       <trans-unit id="DuplicateBannedSymbolDescription">
         <source>The list of banned symbols contains a duplicate.</source>
-        <target state="new">The list of banned symbols contains a duplicate.</target>
+        <target state="translated">禁用符号列表中包含重复项。</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateBannedSymbolMessage">
         <source>The symbol '{0}' is listed multiple times in the list of banned APIs</source>
-        <target state="new">The symbol '{0}' is listed multiple times in the list of banned APIs</target>
+        <target state="translated">符号“{0}”在禁用的 API 列表中多次列出</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateBannedSymbolTitle">
         <source>The list of banned symbols contains a duplicate</source>
-        <target state="new">The list of banned symbols contains a duplicate</target>
+        <target state="translated">禁用符号列表中包含重复项</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">
         <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
-        <target state="new">The symbol has been marked as banned in this project, and an alternate should be used instead.</target>
+        <target state="translated">此项目中已将该符号标记为禁用，应改为使用替换符号。</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedMessage">
         <source>The symbol '{0}' is banned in this project{1}</source>
-        <target state="new">The symbol '{0}' is banned in this project{1}</target>
+        <target state="translated">此项目{1}中禁用符号“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedTitle">
         <source>Do not used banned APIs</source>
-        <target state="new">Do not used banned APIs</target>
+        <target state="translated">请勿使用禁用的 API</target>
         <note />
       </trans-unit>
     </body>
