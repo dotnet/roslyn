@@ -1,0 +1,106 @@
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.AddReference = 73 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.Assembly = 1 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.BasicFile = 2 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.BasicProject = 3 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.CSharpFile = 8 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.CSharpProject = 9 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ClassInternal = 7 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ClassPrivate = 6 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ClassProtected = 5 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ClassPublic = 4 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.CompletionWarning = 72 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ConstantInternal = 13 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ConstantPrivate = 12 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ConstantProtected = 11 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ConstantPublic = 10 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.DelegateInternal = 17 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.DelegatePrivate = 16 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.DelegateProtected = 15 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.DelegatePublic = 14 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.EnumInternal = 21 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.EnumMemberInternal = 25 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.EnumMemberPrivate = 24 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.EnumMemberProtected = 23 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.EnumMemberPublic = 22 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.EnumPrivate = 20 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.EnumProtected = 19 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.EnumPublic = 18 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.Error = 26 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.EventInternal = 31 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.EventPrivate = 30 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.EventProtected = 29 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.EventPublic = 28 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ExtensionMethodInternal = 35 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ExtensionMethodPrivate = 34 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ExtensionMethodProtected = 33 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ExtensionMethodPublic = 32 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.FieldInternal = 39 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.FieldPrivate = 38 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.FieldProtected = 37 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.FieldPublic = 36 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.InterfaceInternal = 43 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.InterfacePrivate = 42 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.InterfaceProtected = 41 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.InterfacePublic = 40 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.Intrinsic = 44 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.Keyword = 45 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.Label = 46 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.Local = 47 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.MethodInternal = 52 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.MethodPrivate = 51 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.MethodProtected = 50 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.MethodPublic = 49 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ModuleInternal = 56 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ModulePrivate = 55 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ModuleProtected = 54 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.ModulePublic = 53 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.Namespace = 48 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.None = 0 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.NuGet = 74 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.OpenFolder = 57 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.Operator = 58 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.Parameter = 59 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.PropertyInternal = 63 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.PropertyPrivate = 62 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.PropertyProtected = 61 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.PropertyPublic = 60 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.RangeVariable = 64 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.Reference = 65 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.Snippet = 71 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.StatusInformation = 27 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.StructureInternal = 69 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.StructurePrivate = 68 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.StructureProtected = 67 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.StructurePublic = 66 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.TargetTypeMatch = 75 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph.TypeParameter = 70 -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceCountWrapper
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceCountWrapper.Count.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceCountWrapper.IsCapped.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.AfterReferenceText1.get -> string
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.AfterReferenceText2.get -> string
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.BeforeReferenceText1.get -> string
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.BeforeReferenceText2.get -> string
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.ColumnNumber.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.DocumentGuid.get -> System.Guid
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.FilePath.get -> string
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.Glyph.get -> Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensGlyph?
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.Language.get -> string
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.LineNumber.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.LongDescription.get -> string
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.ProjectGuid.get -> System.Guid
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.ReferenceLength.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.ReferenceLineText.get -> string
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.ReferenceStart.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.SpanLength.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper.SpanStart.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceMethodDescriptorWrapper
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceMethodDescriptorWrapper.FilePath.get -> string
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceMethodDescriptorWrapper.FullName.get -> string
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.ICodeLensReferencesServiceAccessor
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.ICodeLensReferencesServiceAccessor.FindReferenceLocationsAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.SyntaxNode syntaxNode, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceLocationDescriptorWrapper?>>
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.ICodeLensReferencesServiceAccessor.FindReferenceMethodsAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.SyntaxNode syntaxNode, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceMethodDescriptorWrapper?>>
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.ICodeLensReferencesServiceAccessor.GetFullyQualifiedName(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.SyntaxNode syntaxNode, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<string>
+Microsoft.CodeAnalysis.ExternalAccess.CodeLens.ICodeLensReferencesServiceAccessor.GetReferenceCountAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.SyntaxNode syntaxNode, int maxSearchResults, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.CodeLens.CodeLensReferenceCountWrapper?>
