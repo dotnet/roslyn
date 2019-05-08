@@ -9,6 +9,8 @@ Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.GetSortedDiagnosticsAsync
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.MarkupOptions.get -> Microsoft.CodeAnalysis.Testing.MarkupOptions
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.MarkupOptions.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.OptionsTransforms.get -> System.Collections.Generic.List<System.Func<Microsoft.CodeAnalysis.Options.OptionSet, Microsoft.CodeAnalysis.Options.OptionSet>>
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ReferenceAssemblies.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ReferenceAssemblies.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.SolutionTransforms.get -> System.Collections.Generic.List<System.Func<Microsoft.CodeAnalysis.Solution, Microsoft.CodeAnalysis.ProjectId, Microsoft.CodeAnalysis.Solution>>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestBehaviors.get -> Microsoft.CodeAnalysis.Testing.TestBehaviors
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestBehaviors.set -> void
@@ -88,12 +90,55 @@ Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection.Add(System.Reflection
 Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection.Add(string path) -> void
 Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection.MetadataReferenceCollection() -> void
 Microsoft.CodeAnalysis.Testing.MetadataReferences
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net20
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net45
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net451
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net452
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net48
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16
+Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard20
+Microsoft.CodeAnalysis.Testing.MetadataReferences.Runtime
 Microsoft.CodeAnalysis.Testing.ProjectState
 Microsoft.CodeAnalysis.Testing.ProjectState.AdditionalReferences.get -> Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection
 Microsoft.CodeAnalysis.Testing.ProjectState.AssemblyName.get -> string
 Microsoft.CodeAnalysis.Testing.ProjectState.Name.get -> string
 Microsoft.CodeAnalysis.Testing.ProjectState.ProjectState(string name, string defaultPrefix, string defaultExtension) -> void
 Microsoft.CodeAnalysis.Testing.ProjectState.Sources.get -> Microsoft.CodeAnalysis.Testing.SourceFileList
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.LanguageSpecificReferences.get -> System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>>
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net40
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net45
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net451
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net452
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net46
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net461
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net462
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net47
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net471
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net472
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net48
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.ReferenceAssemblies(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference> references, System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>> languageSpecificReferences) -> void
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.References.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Runtime
 Microsoft.CodeAnalysis.Testing.SolutionState
 Microsoft.CodeAnalysis.Testing.SolutionState.AdditionalFiles.get -> Microsoft.CodeAnalysis.Testing.SourceFileCollection
 Microsoft.CodeAnalysis.Testing.SolutionState.AdditionalFilesFactories.get -> System.Collections.Generic.List<System.Func<System.Collections.Generic.IEnumerable<(string filename, Microsoft.CodeAnalysis.Text.SourceText content)>>>
@@ -140,7 +185,435 @@ static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifi
 static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerError(string identifier) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerWarning(string identifier) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.IVerifierExtensions.EqualOrDiff(this Microsoft.CodeAnalysis.Testing.IVerifier verifier, string expected, string actual, string message = null) -> void
-static Microsoft.CodeAnalysis.Testing.MetadataReferences.MicrosoftVisualBasicReference.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net20.MicrosoftVisualBasic.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net20.Mscorlib.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net20.System.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net20.SystemData.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net20.SystemDrawing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net20.SystemWindowsForms.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net20.SystemXml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.MicrosoftCSharp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.MicrosoftVisualBasic.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.Mscorlib.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.PresentationCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.PresentationFramework.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.System.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.SystemCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.SystemData.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.SystemDataDataSetExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.SystemDeployment.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.SystemDrawing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.SystemWindowsForms.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.SystemXaml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.SystemXml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.SystemXmlLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net40.WindowsBase.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.MicrosoftCSharp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.MicrosoftVisualBasic.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.Mscorlib.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.PresentationCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.PresentationFramework.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.System.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.SystemCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.SystemData.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.SystemDataDataSetExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.SystemDeployment.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.SystemDrawing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.SystemNetHttp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.SystemWindowsForms.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.SystemXaml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.SystemXml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.SystemXmlLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net46.WindowsBase.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.MicrosoftCSharp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.MicrosoftVisualBasic.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.Mscorlib.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.PresentationCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.PresentationFramework.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.System.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.SystemCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.SystemData.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.SystemDataDataSetExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.SystemDeployment.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.SystemDrawing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.SystemNetHttp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.SystemWindowsForms.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.SystemXaml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.SystemXml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.SystemXmlLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net461.WindowsBase.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.MicrosoftCSharp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.MicrosoftVisualBasic.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.Mscorlib.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.PresentationCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.PresentationFramework.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.System.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.SystemCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.SystemData.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.SystemDataDataSetExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.SystemDeployment.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.SystemDrawing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.SystemNetHttp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.SystemWindowsForms.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.SystemXaml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.SystemXml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.SystemXmlLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net462.WindowsBase.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.MicrosoftCSharp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.MicrosoftVisualBasic.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.Mscorlib.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.PresentationCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.PresentationFramework.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.System.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.SystemCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.SystemData.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.SystemDataDataSetExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.SystemDeployment.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.SystemDrawing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.SystemNetHttp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.SystemWindowsForms.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.SystemXaml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.SystemXml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.SystemXmlLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net47.WindowsBase.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.MicrosoftCSharp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.MicrosoftVisualBasic.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.Mscorlib.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.PresentationCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.PresentationFramework.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.System.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.SystemCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.SystemData.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.SystemDataDataSetExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.SystemDeployment.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.SystemDrawing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.SystemNetHttp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.SystemWindowsForms.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.SystemXaml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.SystemXml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.SystemXmlLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net471.WindowsBase.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.MicrosoftCSharp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.MicrosoftVisualBasic.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.Mscorlib.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.PresentationCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.PresentationFramework.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.System.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.SystemCore.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.SystemData.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.SystemDataDataSetExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.SystemDeployment.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.SystemDrawing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.SystemNetHttp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.SystemWindowsForms.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.SystemXaml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.SystemXml.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.SystemXmlLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetFramework.Net472.WindowsBase.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemCollections.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemDiagnosticsDebug.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemDiagnosticsTools.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemGlobalization.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemIO.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemLinqExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemNetPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemObjectModel.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemReflection.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemReflectionExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemReflectionPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemResourcesResourceManager.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemRuntime.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemRuntimeExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemTextEncoding.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemTextEncodingExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemTextRegularExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemThreading.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemThreadingTasks.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemXmlReaderWriter.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard10.SystemXmlXDocument.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemCollections.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemCollectionsConcurrent.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemDiagnosticsDebug.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemDiagnosticsTools.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemDiagnosticsTracing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemGlobalization.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemIO.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemIOCompression.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemLinqExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemNetHttp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemNetPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemObjectModel.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemReflection.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemReflectionExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemReflectionPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemResourcesResourceManager.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemRuntime.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemRuntimeExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemRuntimeInteropServices.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemRuntimeInteropServicesRuntimeInformation.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemRuntimeNumerics.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemTextEncoding.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemTextEncodingExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemTextRegularExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemThreading.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemThreadingTasks.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemXmlReaderWriter.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard11.SystemXmlXDocument.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemCollections.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemCollectionsConcurrent.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemDiagnosticsDebug.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemDiagnosticsTools.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemDiagnosticsTracing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemGlobalization.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemIO.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemIOCompression.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemLinqExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemNetHttp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemNetPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemObjectModel.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemReflection.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemReflectionExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemReflectionPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemResourcesResourceManager.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemRuntime.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemRuntimeExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemRuntimeInteropServices.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemRuntimeInteropServicesRuntimeInformation.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemRuntimeNumerics.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemTextEncoding.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemTextEncodingExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemTextRegularExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemThreading.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemThreadingTasks.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemThreadingTimer.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemXmlReaderWriter.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard12.SystemXmlXDocument.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.MicrosoftWin32Primitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemAppContext.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemCollections.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemCollectionsConcurrent.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemConsole.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemDiagnosticsDebug.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemDiagnosticsTools.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemDiagnosticsTracing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemGlobalization.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemGlobalizationCalendars.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemIO.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemIOCompression.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemIOCompressionZipFile.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemIOFileSystem.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemIOFileSystemPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemLinqExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemNetHttp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemNetPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemNetSockets.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemObjectModel.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemReflection.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemReflectionExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemReflectionPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemResourcesResourceManager.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemRuntime.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemRuntimeExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemRuntimeHandles.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemRuntimeInteropServices.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemRuntimeInteropServicesRuntimeInformation.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemRuntimeNumerics.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemSecurityCryptographyAlgorithms.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemSecurityCryptographyEncoding.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemSecurityCryptographyPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemSecurityCryptographyX509Certificates.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemTextEncoding.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemTextEncodingExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemTextRegularExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemThreading.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemThreadingTasks.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemThreadingTimer.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemXmlReaderWriter.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard13.SystemXmlXDocument.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.MicrosoftWin32Primitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemAppContext.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemCollections.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemCollectionsConcurrent.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemConsole.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemDiagnosticsDebug.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemDiagnosticsTools.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemDiagnosticsTracing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemGlobalization.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemGlobalizationCalendars.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemIO.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemIOCompression.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemIOCompressionZipFile.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemIOFileSystem.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemIOFileSystemPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemLinqExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemNetHttp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemNetPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemNetSockets.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemObjectModel.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemReflection.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemReflectionExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemReflectionPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemResourcesResourceManager.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemRuntime.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemRuntimeExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemRuntimeHandles.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemRuntimeInteropServices.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemRuntimeInteropServicesRuntimeInformation.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemRuntimeNumerics.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemSecurityCryptographyAlgorithms.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemSecurityCryptographyEncoding.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemSecurityCryptographyPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemSecurityCryptographyX509Certificates.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemTextEncoding.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemTextEncodingExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemTextRegularExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemThreading.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemThreadingTasks.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemThreadingTimer.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemXmlReaderWriter.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard14.SystemXmlXDocument.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.MicrosoftWin32Primitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemAppContext.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemCollections.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemCollectionsConcurrent.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemConsole.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemDiagnosticsDebug.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemDiagnosticsTools.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemDiagnosticsTracing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemGlobalization.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemGlobalizationCalendars.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemIO.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemIOCompression.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemIOCompressionZipFile.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemIOFileSystem.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemIOFileSystemPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemLinqExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemNetHttp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemNetPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemNetSockets.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemObjectModel.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemReflection.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemReflectionExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemReflectionPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemResourcesResourceManager.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemRuntime.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemRuntimeExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemRuntimeHandles.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemRuntimeInteropServices.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemRuntimeInteropServicesRuntimeInformation.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemRuntimeNumerics.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemSecurityCryptographyAlgorithms.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemSecurityCryptographyEncoding.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemSecurityCryptographyPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemSecurityCryptographyX509Certificates.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemTextEncoding.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemTextEncodingExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemTextRegularExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemThreading.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemThreadingTasks.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemThreadingTimer.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemXmlReaderWriter.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard15.SystemXmlXDocument.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.MicrosoftWin32Primitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemAppContext.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemCollections.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemCollectionsConcurrent.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemConsole.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemDiagnosticsDebug.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemDiagnosticsTools.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemDiagnosticsTracing.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemGlobalization.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemGlobalizationCalendars.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemIO.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemIOCompression.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemIOCompressionZipFile.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemIOFileSystem.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemIOFileSystemPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemLinq.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemLinqExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemNetHttp.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemNetPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemNetSockets.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemObjectModel.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemReflection.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemReflectionExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemReflectionPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemResourcesResourceManager.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemRuntime.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemRuntimeExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemRuntimeHandles.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemRuntimeInteropServices.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemRuntimeInteropServicesRuntimeInformation.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemRuntimeNumerics.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemSecurityCryptographyAlgorithms.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemSecurityCryptographyEncoding.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemSecurityCryptographyPrimitives.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemSecurityCryptographyX509Certificates.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemTextEncoding.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemTextEncodingExtensions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemTextRegularExpressions.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemThreading.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemThreadingTasks.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemThreadingTimer.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemXmlReaderWriter.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard16.SystemXmlXDocument.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.NetStandard.NetStandard20.Netstandard.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.Runtime.MicrosoftCodeAnalysis.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.Runtime.MicrosoftVisualBasic.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.MetadataReferences.Runtime.SystemCollectionsImmutable.get -> Microsoft.CodeAnalysis.MetadataReference
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCore10.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCore20.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net40.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net40.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net40.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net45.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net45.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net45.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net451.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net451.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net451.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net452.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net452.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net452.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net46.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net46.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net46.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net461.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net461.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net461.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net462.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net462.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net462.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net47.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net47.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net47.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net471.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net471.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net471.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net472.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net472.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net472.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net48.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net48.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net48.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard10.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard11.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard12.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard13.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard14.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard15.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard16.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetStandard.NetStandard2.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Runtime.Current.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, System.Collections.Generic.IDictionary<string, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan>> spans, int? cursor) -> string
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan> spans, int? cursor) -> string
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.CreateTestFile(string code, int cursor) -> string
@@ -157,11 +630,6 @@ static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetSpan(string input,
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetSpans(string input, out string output, out System.Collections.Generic.IDictionary<string, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> void
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetSpans(string input, out string output, out System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan> spans) -> void
 static readonly Microsoft.CodeAnalysis.Testing.DiagnosticResult.EmptyDiagnosticResults -> Microsoft.CodeAnalysis.Testing.DiagnosticResult[]
-static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.CodeAnalysisReference -> Microsoft.CodeAnalysis.MetadataReference
-static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.CorlibReference -> Microsoft.CodeAnalysis.MetadataReference
-static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.SystemCollectionsImmutableReference -> Microsoft.CodeAnalysis.MetadataReference
-static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.SystemCoreReference -> Microsoft.CodeAnalysis.MetadataReference
-static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.SystemReference -> Microsoft.CodeAnalysis.MetadataReference
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ApplyCompilationOptions(Microsoft.CodeAnalysis.Project project) -> Microsoft.CodeAnalysis.Project
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProjectImpl((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, (string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] additionalFiles, Microsoft.CodeAnalysis.Testing.ProjectState[] additionalProjects, Microsoft.CodeAnalysis.MetadataReference[] additionalMetadataReferences, string language) -> Microsoft.CodeAnalysis.Project
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateSolution(Microsoft.CodeAnalysis.ProjectId projectId, string language) -> Microsoft.CodeAnalysis.Solution

@@ -213,8 +213,8 @@ End Class
             await new VisualBasicTest { TestCode = testCode }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestCSharpValueTupleUsage()
+        [Fact(Skip = "Need to support NuGet package System.ValueTuple")]
+        public async Task TestCSharpValueTupleUsageNet46()
         {
             var testCode = @"
 class TestClass {
@@ -222,7 +222,30 @@ class TestClass {
 }
 ";
 
-            await new CSharpTest { TestCode = testCode }.RunAsync();
+            await new CSharpTest
+            {
+                TestState =
+                {
+                    Sources = { testCode },
+                },
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net46.Default,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestCSharpValueTupleUsageNet472()
+        {
+            var testCode = @"
+class TestClass {
+  (int x, int y) TestMethod() { return (0, 1); }
+}
+";
+
+            await new CSharpTest
+            {
+                TestCode = testCode,
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
+            }.RunAsync();
         }
 
         private class CSharpTest : AnalyzerTest<DefaultVerifier>

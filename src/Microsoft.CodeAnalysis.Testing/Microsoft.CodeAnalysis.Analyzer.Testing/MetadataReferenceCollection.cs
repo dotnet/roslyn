@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private static MetadataReference GetOrCreateReference(string path)
         {
-            return s_referencesFromFiles.GetOrAdd(path, p => MetadataReference.CreateFromFile(p));
+            return s_referencesFromFiles.GetOrAdd(path, p => MetadataReferences.CreateReferenceFromFile(p));
         }
     }
 }
