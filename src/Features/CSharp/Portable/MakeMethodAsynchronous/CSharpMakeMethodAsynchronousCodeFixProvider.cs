@@ -112,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             }
 
             return newReturnType.WithTriviaFrom(returnTypeSyntax);
+
             static TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
             {
                 var result = SyntaxFactory.GenericName(SyntaxFactory.Identifier(type),
