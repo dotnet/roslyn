@@ -297,6 +297,7 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_ValueTask,
         System_Runtime_CompilerServices_AsyncIteratorMethodBuilder,
         System_Threading_CancellationToken,
+        System_Threading_CancellationTokenSource,
 
         System_InvalidOperationException,
         System_Runtime_CompilerServices_SwitchExpressionException,
@@ -594,6 +595,7 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.Tasks.ValueTask",
             "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder",
             "System.Threading.CancellationToken",
+            "System.Threading.CancellationTokenSource",
 
             "System.InvalidOperationException",
             "System.Runtime.CompilerServices.SwitchExpressionException"

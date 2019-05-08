@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.LanguageServices;
+using System.Text;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
@@ -145,11 +147,20 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             string targetNamespace,
             CancellationToken cancellationToken)
         {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var containerSymbol = (INamespaceSymbol)semanticModel.GetDeclaredSymbol(container);
+            var members = containerSymbol.GetMembers();
+            var newNameOriginalSymbolMapping = members
+                .ToImmutableDictionary(symbol => GetNewSymbolName(symbol, targetNamespace), symbol => (ISymbol)symbol);
+
             var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
             if (changeNamespaceService == null)
             {
                 return MoveToNamespaceResult.Failed;
             }
+
+            var originalSolution = document.Project.Solution;
+            var typeDeclarationsInContainer = container.DescendantNodes(syntaxNode => syntaxNode is TNamedTypeDeclarationSyntax).ToImmutableArray();
 
             var changedSolution = await changeNamespaceService.ChangeNamespaceAsync(
                 document,
@@ -157,7 +168,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 targetNamespace,
                 cancellationToken).ConfigureAwait(false);
 
-            return new MoveToNamespaceResult(changedSolution, document.Id);
+            return new MoveToNamespaceResult(originalSolution, changedSolution, document.Id, newNameOriginalSymbolMapping);
         }
 
         private static async Task<MoveToNamespaceResult> MoveTypeToNamespaceAsync(
@@ -196,6 +207,12 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 syntaxNode,
                 targetNamespace,
                 cancellationToken).ConfigureAwait(false);
+        }
+
+        private static string GetNewSymbolName(ISymbol symbol, string targetNamespace)
+        {
+            Debug.Assert(symbol != null);
+            return targetNamespace + symbol.ToDisplayString().Substring(symbol.ContainingNamespace.ToDisplayString().Length);
         }
 
         private static SymbolDisplayFormat QualifiedNamespaceFormat = new SymbolDisplayFormat(

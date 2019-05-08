@@ -100,13 +100,12 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static async Task<CompletionDescription> CreateDescriptionAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
+            Workspace workspace, SemanticModel semanticModel, int position, ISymbol symbol, int overloadCount, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
         {
             var symbolDisplayService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISymbolDisplayService>();
             var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
 
             // TODO(cyrusn): Figure out a way to cancel this.
-            var symbol = symbols[0];
             var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, position, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
 
             if (!sections.ContainsKey(SymbolDescriptionGroups.MainDescription))
@@ -121,9 +120,8 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 case SymbolKind.Method:
                 case SymbolKind.NamedType:
-                    if (symbols.Count > 1)
+                    if (overloadCount > 0)
                     {
-                        var overloadCount = symbols.Count - 1;
                         var isGeneric = symbol.GetArity() > 0;
 
                         textContentBuilder.AddSpace();
@@ -163,6 +161,12 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return CompletionDescription.Create(textContentBuilder.AsImmutable());
+        }
+
+        public static Task<CompletionDescription> CreateDescriptionAsync(
+            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
+        {
+            return CreateDescriptionAsync(workspace, semanticModel, position, symbols[0], overloadCount: symbols.Count - 1, supportedPlatforms, cancellationToken);
         }
 
         private static void AddOverloadPart(List<TaggedText> textContentBuilder, int overloadCount, bool isGeneric)

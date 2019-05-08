@@ -515,8 +515,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             var state = new ProjectState(isEnabled, installedPackages);
-            _projectToInstalledPackageAndVersion.AddOrUpdate(
-                projectId, state, (_1, _2) => state);
+            _projectToInstalledPackageAndVersion[projectId] = state;
         }
 
         public bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName)

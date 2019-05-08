@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Activator__CreateInstance_T, out method))
             {
-                return new BoundDefaultExpression(syntax, null, type: typeParameter, hasErrors: true);
+                return new BoundDefaultExpression(syntax, type: typeParameter, hasErrors: true);
             }
 
             Debug.Assert((object)method != null);

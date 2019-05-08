@@ -149,6 +149,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal bool HasEnumeratorCancellationAttribute
+        {
+            get
+            {
+                ParameterWellKnownAttributeData attributeData = GetDecodedWellKnownAttributeData();
+                return attributeData?.HasEnumeratorCancellationAttribute == true;
+            }
+        }
+
         private ConstantValue DefaultSyntaxValue
         {
             get
@@ -651,6 +660,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasAssertsFalseAttribute = true;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.EnumeratorCancellationAttribute))
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasEnumeratorCancellationAttribute = true;
+                ValidateCancellationTokenAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+            }
         }
 
         private void DecodeDefaultParameterValueAttribute(AttributeDescription description, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -918,6 +932,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Add(node.Name.Location, useSiteDiagnostics);
+        }
+
+        private void ValidateCancellationTokenAttribute(AttributeSyntax node, DiagnosticBag diagnostics)
+        {
+            if (needsReporting())
+            {
+                diagnostics.Add(ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+
+            bool needsReporting()
+            {
+                if (!Type.Equals(this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken)))
+                {
+                    return true;
+                }
+                else if (this.ContainingSymbol is MethodSymbol method &&
+                    method.IsAsync &&
+                    method.ReturnType.OriginalDefinition.Equals(this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T)))
+                {
+                    // Note: async methods that return this type must be iterators. This is enforced elsewhere
+                    return false;
+                }
+
+                return true;
+            }
         }
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)

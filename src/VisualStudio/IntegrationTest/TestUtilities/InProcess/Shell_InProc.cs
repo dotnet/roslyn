@@ -11,13 +11,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static Shell_InProc Create() => new Shell_InProc();
 
         public string GetActiveWindowCaption()
-            => InvokeOnUIThread(() => GetDTE().ActiveWindow.Caption);
+            => InvokeOnUIThread(cancellationToken => GetDTE().ActiveWindow.Caption);
 
         public IntPtr GetHWnd()
             => (IntPtr)GetDTE().MainWindow.HWnd;
 
         public bool IsActiveTabProvisional()
-            => InvokeOnUIThread(() =>
+            => InvokeOnUIThread(cancellationToken =>
             {
                 var shellMonitorSelection = GetGlobalService<SVsShellMonitorSelection, IVsMonitorSelection>();
                 if (!ErrorHandler.Succeeded(shellMonitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var windowFrameObject)))

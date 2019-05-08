@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundBaseReference Base(NamedTypeSymbol baseType)
         {
             Debug.Assert((object)CurrentFunction != null && !CurrentFunction.IsStatic);
-            return new BoundBaseReference(Syntax, explicitBaseReferenceOpt: null, baseType) { WasCompilerGenerated = true };
+            return new BoundBaseReference(Syntax, baseType) { WasCompilerGenerated = true };
         }
 
         public BoundBadExpression BadExpression(TypeSymbol type)
@@ -570,6 +570,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundBinaryOperator IntGreaterThanOrEqual(BoundExpression left, BoundExpression right)
         {
             return Binary(BinaryOperatorKind.IntGreaterThanOrEqual, SpecialType(CodeAnalysis.SpecialType.System_Boolean), left, right);
+        }
+
+        public BoundBinaryOperator IntSubtract(BoundExpression left, BoundExpression right)
+        {
+            return Binary(BinaryOperatorKind.IntSubtraction, SpecialType(CodeAnalysis.SpecialType.System_Int32), left, right);
         }
 
         public BoundLiteral Literal(int value)

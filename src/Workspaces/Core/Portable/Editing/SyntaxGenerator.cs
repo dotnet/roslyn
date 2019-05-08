@@ -2259,6 +2259,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract bool SupportsPatterns(ParseOptions options);
         internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern);
         internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
+        internal abstract SyntaxNode ConstantPattern(SyntaxNode expression);
 
         #endregion
     }

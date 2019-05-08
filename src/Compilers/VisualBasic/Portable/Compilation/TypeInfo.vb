@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Shared Widening Operator CType(info As VisualBasicTypeInfo) As TypeInfo
-            Return New TypeInfo(info.Type, info.ConvertedType)
+            Return New TypeInfo(info.Type, info.ConvertedType, nullability:=Nothing, convertedNullability:=Nothing)
         End Operator
 
         Friend Sub New(type As TypeSymbol, convertedType As TypeSymbol, implicitConversion As Conversion)
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Guess the non-error type that the given type was intended to represent, or return
-        ''' the type itself. If a single, non-ambiguous type is a guess-type inside the type symbol, 
+        ''' the type itself. If a single, non-ambiguous type is a guess-type inside the type symbol,
         ''' return that; otherwise return the type itself (even if it is an error type).
         ''' </summary>
         Private Shared Function GetPossibleGuessForErrorType(type As TypeSymbol) As TypeSymbol

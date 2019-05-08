@@ -436,6 +436,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>v__promiseOfValueOrEnd";
         }
 
+        internal static string MakeAsyncIteratorCombinedTokensFieldName()
+        {
+            Debug.Assert((char)GeneratedNameKind.CombinedTokensField == 'x');
+            return "<>x__combinedTokens";
+        }
+
         internal static string MakeIteratorCurrentFieldName()
         {
             Debug.Assert((char)GeneratedNameKind.IteratorCurrentBackingField == '2');

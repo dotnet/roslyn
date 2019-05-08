@@ -694,6 +694,27 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
+        /// </summary>
+        internal static string Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names {
+            get {
+                return ResourceManager.GetString(@"Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
+        /// </summary>
+        internal static string Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names {
+            get {
+                return ResourceManager.GetString("Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_ch" +
+                        "ange_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_i" +
+                        "nteger_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbo" +
+                        "l_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Awaited task returns.
         /// </summary>
         internal static string Awaited_task_returns {
@@ -2368,6 +2389,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} must return a stream that supports read and seek operations..
+        /// </summary>
+        internal static string MethodMustReturnStreamThatSupportsReadAndSeek {
+            get {
+                return ResourceManager.GetString("MethodMustReturnStreamThatSupportsReadAndSeek", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Methods.
         /// </summary>
         internal static string Methods {
@@ -2544,7 +2574,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move items to namespace....
+        ///   Looks up a localized string similar to Move contents to namespace....
         /// </summary>
         internal static string Move_contents_to_namespace {
             get {
@@ -2580,7 +2610,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move contents namespace....
+        ///   Looks up a localized string similar to Move to namespace....
         /// </summary>
         internal static string Move_to_namespace {
             get {
@@ -2875,6 +2905,16 @@ namespace Microsoft.CodeAnalysis {
         internal static string Private_method_0_can_be_removed_as_it_is_never_invoked {
             get {
                 return ResourceManager.GetString("Private_method_0_can_be_removed_as_it_is_never_invoked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private property &apos;{0}&apos; can be converted to a method as its get accessor is never invoked..
+        /// </summary>
+        internal static string Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked {
+            get {
+                return ResourceManager.GetString("Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invo" +
+                        "ked", resourceCulture);
             }
         }
         
@@ -3452,6 +3492,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stream must support read and seek operations..
+        /// </summary>
+        internal static string StreamMustSupportReadAndSeek {
+            get {
+                return ResourceManager.GetString("StreamMustSupportReadAndSeek", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Structures.
         /// </summary>
         internal static string Structures {
@@ -3530,6 +3579,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Take_top {
             get {
                 return ResourceManager.GetString("Take_top", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target type matches.
+        /// </summary>
+        internal static string Target_type_matches {
+            get {
+                return ResourceManager.GetString("Target_type_matches", resourceCulture);
             }
         }
         
@@ -3713,6 +3771,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unknown_symbol_kind {
             get {
                 return ResourceManager.GetString("Unknown_symbol_kind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unnecessary assignment of a value.
+        /// </summary>
+        internal static string Unnecessary_assignment_of_a_value {
+            get {
+                return ResourceManager.GetString("Unnecessary_assignment_of_a_value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unnecessary assignment of a value to &apos;{0}&apos;.
+        /// </summary>
+        internal static string Unnecessary_assignment_of_a_value_to_0 {
+            get {
+                return ResourceManager.GetString("Unnecessary_assignment_of_a_value_to_0", resourceCulture);
             }
         }
         
@@ -4372,24 +4448,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string using_statement_can_be_simplified {
             get {
                 return ResourceManager.GetString("using_statement_can_be_simplified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value assigned to &apos;{0}&apos; is never used.
-        /// </summary>
-        internal static string Value_assigned_to_0_is_never_used {
-            get {
-                return ResourceManager.GetString("Value_assigned_to_0_is_never_used", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value assigned to symbol is never used.
-        /// </summary>
-        internal static string Value_assigned_to_symbol_is_never_used {
-            get {
-                return ResourceManager.GetString("Value_assigned_to_symbol_is_never_used", resourceCulture);
             }
         }
         
