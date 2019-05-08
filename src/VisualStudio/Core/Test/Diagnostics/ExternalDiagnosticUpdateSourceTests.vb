@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
@@ -313,6 +312,56 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
                 Await waiter.CreateExpeditedWaitTask()
+            End Using
+        End Function
+
+        <Fact>
+        Public Async Function TestCompilerDiagnosticWithoutDocumentId() As Task
+            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)()
+                Dim waiter = TryCast(listenerProvider.GetListener(FeatureAttribute.ErrorList), AsynchronousOperationListener)
+
+                Dim project = workspace.CurrentSolution.Projects.First()
+
+                Dim analyzer = New CompilationAnalyzer()
+                Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
+
+                Dim diagnosticWaiter = TryCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), AsynchronousOperationListener)
+
+                Dim service = New Microsoft.CodeAnalysis.Diagnostics.TestDiagnosticAnalyzerService(
+                    LanguageNames.CSharp,
+                    New DiagnosticAnalyzer() {compiler, analyzer}.ToImmutableArray(),
+                    listener:=diagnosticWaiter)
+
+                Dim registation = service.CreateIncrementalAnalyzer(workspace)
+
+                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
+
+                Dim diagnostic = New DiagnosticData(
+                    "CS1002",
+                    "Test",
+                    "Test Message",
+                    "Test Message Format",
+                    DiagnosticSeverity.Error,
+                    True,
+                    0,
+                    workspace,
+                    project.Id,
+                    New DiagnosticDataLocation(documentId:=Nothing, sourceSpan:=Nothing, "Test.txt", 4, 4))
+
+                AddHandler service.DiagnosticsUpdated, Sub(o, args)
+                                                           Assert.Single(args.Diagnostics)
+                                                           Assert.Equal(args.Diagnostics(0).Id, diagnostic.Id)
+                                                       End Sub
+
+                source.AddNewErrors(project.Id, diagnostic)
+                Await waiter.CreateExpeditedWaitTask()
+
+                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
+                Await waiter.CreateExpeditedWaitTask()
+
+                Dim diagnosticServiceWaiter = TryCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), AsynchronousOperationListener)
+                Await diagnosticServiceWaiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
