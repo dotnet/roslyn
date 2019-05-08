@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var nodeForSyntax = expressions[i];
                 var conversionOpt = node.SwitchArms[i].Value switch { BoundConversion c when c != nodeForSyntax => c, _ => null };
                 // Report top-level warnings
-                _ = VisitConversion(conversionOpt, convertedNode: nodeForSyntax, conversions[i], targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
+                _ = VisitConversion(conversionOpt, conversionOperand: nodeForSyntax, conversions[i], targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
                     checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false, reportTopLevelWarnings: true);
             }
 

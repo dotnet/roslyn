@@ -26432,7 +26432,6 @@ class CL1
             Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/35039: wants to change the type of the null literal from null to error type
         [Fact]
         public void Var_FlowAnalysis_02()
         {
@@ -26441,7 +26440,7 @@ class CL1
 {
     static void F(string? s)
     {
-        t = null;
+        t = null/*T:<null>?*/;
         var t = s;
         t.ToString();
     }
@@ -26455,6 +26454,7 @@ class CL1
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         t.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(7, 9));
+            comp.VerifyTypes();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -91610,25 +91610,24 @@ class Program
 {
     static void F<T>((object, (S<T?>, S<T>)) t) where T : class, new()
     {
-        (object a, (S<T>? x, S<T?>? y) b) = t; // 1, 2
-        b.x.Value.F.ToString(); // 3
-        b.y.Value.F.ToString();
+        (object a, (S<T>? x, S<T?>? y) b) = t; // 1
+        b.x.Value.F.ToString(); // 2
+        b.y.Value.F.ToString(); // 3, 4
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/34302: Track state at each Conversion.
             comp.VerifyDiagnostics(
                 // (10,45): warning CS8619: Nullability of reference types in value of type '(S<T?>, S<T>)' doesn't match target type '(S<T>? x, S<T?>? y)'.
-                //         (object a, (S<T>? x, S<T?>? y) b) = t; // 1, 2
+                //         (object a, (S<T>? x, S<T?>? y) b) = t; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t").WithArguments("(S<T?>, S<T>)", "(S<T>? x, S<T?>? y)").WithLocation(10, 45),
                 // (11,9): warning CS8629: Nullable value type may be null.
-                //         b.x.Value.F.ToString(); // 3
+                //         b.x.Value.F.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "b.x").WithLocation(11, 9),
                 // (12,9): warning CS8629: Nullable value type may be null.
-                //         b.y.Value.F.ToString();
+                //         b.y.Value.F.ToString(); // 3, 4
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "b.y").WithLocation(12, 9),
                 // (12,9): warning CS8602: Possible dereference of a null reference.
-                //         b.y.Value.F.ToString();
+                //         b.y.Value.F.ToString(); // 3, 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.y.Value.F").WithLocation(12, 9));
         }
 
@@ -91651,8 +91650,8 @@ class Program
         (object x, (B?, B) y) = t;
     }
 }";
+            // https://github.com/dotnet/roslyn/issues/33011 Should have warnings about conversions from B? to B and from A? to A
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/34302: Track state at each Conversion.
             comp.VerifyDiagnostics();
         }
 
