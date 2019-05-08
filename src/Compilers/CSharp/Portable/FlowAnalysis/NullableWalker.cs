@@ -147,9 +147,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _disableNullabilityAnalysis;
 
         /// <summary>
-        /// Should be replaced by _analyzedNullabilityMapOpt if that map is always used.
+        /// State of method group receivers, used later when analyzing the conversion to a delegate.
+        /// (Could be replaced by _analyzedNullabilityMapOpt if that map is always available.)
         /// </summary>
-        private PooledDictionary<BoundExpression, TypeWithState> _otherNullabilityMapOpt;
+        private PooledDictionary<BoundExpression, TypeWithState> _methodGroupReceiverMapOpt;
 
 #if DEBUG
         /// <summary>
@@ -296,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
-            _otherNullabilityMapOpt?.Free();
+            _methodGroupReceiverMapOpt?.Free();
             _variableTypes.Free();
             _placeholderLocalsOpt?.Free();
             base.Free();
@@ -4193,18 +4194,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var receiverOpt = (operandOpt as BoundMethodGroup)?.ReceiverOpt;
                         // https://github.com/dotnet/roslyn/issues/33637: Should update method based on inferred receiver type.
                         var method = conversion.Method;
-                        if (receiverOpt != null)
+                        if (TryGetMethodGroupReceiverNullability(receiverOpt, out TypeWithState receiverType))
                         {
-                            if (_otherNullabilityMapOpt != null && _otherNullabilityMapOpt.TryGetValue(receiverOpt, out TypeWithState receiverType))
+                            if (conversion.IsExtensionMethod)
                             {
-                                if (conversion.IsExtensionMethod)
-                                {
-                                    CheckExtensionMethodThisNullability(receiverOpt, Conversion.Identity, method.Parameters[0], receiverType);
-                                }
-                                else
-                                {
-                                    CheckPossibleNullReceiver(receiverOpt, receiverType, checkNullableValueType: false);
-                                }
+                                CheckExtensionMethodThisNullability(receiverOpt, Conversion.Identity, method.Parameters[0], receiverType);
+                            }
+                            else
+                            {
+                                CheckPossibleNullReceiver(receiverOpt, receiverType, checkNullableValueType: false);
                             }
                         }
                         if (reportRemainingWarnings)
@@ -4685,16 +4683,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(receiverOpt);
                 // Receiver nullability is checked when applying the method group conversion,
                 // when we have a specific method, to avoid reporting null receiver warnings
-                // for extension method delegates. Here, store the receiver state for that later check.
-                if (_otherNullabilityMapOpt == null)
-                {
-                    _otherNullabilityMapOpt = PooledDictionary<BoundExpression, TypeWithState>.GetInstance();
-                }
-                _otherNullabilityMapOpt[receiverOpt] = ResultType;
+                // for extension method delegates. Here, store the receiver state for that check.
+                SetMethodGroupReceiverNullability(receiverOpt, ResultType);
             }
 
             SetNotNullResult(node);
             return null;
+        }
+
+        private bool TryGetMethodGroupReceiverNullability(BoundExpression receiverOpt, out TypeWithState type)
+        {
+            if (receiverOpt != null &&
+                _methodGroupReceiverMapOpt != null &&
+                _methodGroupReceiverMapOpt.TryGetValue(receiverOpt, out type))
+            {
+                return true;
+            }
+            else
+            {
+                type = default;
+                return false;
+            }
+        }
+
+        private void SetMethodGroupReceiverNullability(BoundExpression receiver, TypeWithState type)
+        {
+            _methodGroupReceiverMapOpt ??= PooledDictionary<BoundExpression, TypeWithState>.GetInstance();
+            _methodGroupReceiverMapOpt[receiver] = type;
         }
 
         public override BoundNode VisitLambda(BoundLambda node)
@@ -6152,9 +6167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the expression was a MethodGroup, check nullability of receiver.
             var receiverOpt = (expr as BoundMethodGroup)?.ReceiverOpt;
-            if (receiverOpt != null &&
-                _otherNullabilityMapOpt != null &&
-                _otherNullabilityMapOpt.TryGetValue(receiverOpt, out TypeWithState receiverType))
+            if (TryGetMethodGroupReceiverNullability(receiverOpt, out TypeWithState receiverType))
             {
                 CheckPossibleNullReceiver(receiverOpt, receiverType, checkNullableValueType: false);
             }
