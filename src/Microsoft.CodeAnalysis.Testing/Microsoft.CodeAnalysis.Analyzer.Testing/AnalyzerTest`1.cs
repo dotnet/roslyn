@@ -114,6 +114,8 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         public List<string> DisabledDiagnostics { get; } = new List<string>();
 
+        public ReferenceAssemblies ReferenceAssemblies { get; set; } = ReferenceAssemblies.Default;
+
         /// <summary>
         /// Gets a collection of transformation functions to apply to <see cref="Workspace.Options"/> during diagnostic
         /// or code fix test setup.
@@ -672,32 +674,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 .CurrentSolution
                 .AddProject(projectId, DefaultTestProjectName, DefaultTestProjectName, language)
                 .WithProjectCompilationOptions(projectId, compilationOptions)
-                .AddMetadataReference(projectId, MetadataReferences.CorlibReference)
-                .AddMetadataReference(projectId, MetadataReferences.SystemReference)
-                .AddMetadataReference(projectId, MetadataReferences.SystemCoreReference)
-                .AddMetadataReference(projectId, MetadataReferences.CodeAnalysisReference)
-                .AddMetadataReference(projectId, MetadataReferences.SystemCollectionsImmutableReference);
-
-            if (language == LanguageNames.VisualBasic)
-            {
-                solution = solution.AddMetadataReference(projectId, MetadataReferences.MicrosoftVisualBasicReference);
-            }
-
-            if (MetadataReferences.MscorlibFacadeReference != null)
-            {
-                solution = solution.AddMetadataReference(projectId, MetadataReferences.MscorlibFacadeReference);
-            }
-
-            if (MetadataReferences.SystemRuntimeReference != null)
-            {
-                solution = solution.AddMetadataReference(projectId, MetadataReferences.SystemRuntimeReference);
-            }
-
-            if (typeof(object).GetTypeInfo().Assembly.GetType("System.ValueTuple`2", throwOnError: false) == null
-                && MetadataReferences.SystemValueTupleReference != null)
-            {
-                solution = solution.AddMetadataReference(projectId, MetadataReferences.SystemValueTupleReference);
-            }
+                .AddMetadataReferences(projectId, ReferenceAssemblies.GetMetadataReferences(language));
 
             foreach (var transform in OptionsTransforms)
             {
