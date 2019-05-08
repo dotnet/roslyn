@@ -90059,12 +90059,14 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33019: Inferred nullability of implicitly-typed
-            // deconstruction variables should be recorded in NullableWalker._variableTypes.
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = null; // 1
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         ay[0].ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay[0]").WithLocation(10, 9)
+                );
         }
 
         [Fact]

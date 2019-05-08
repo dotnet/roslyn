@@ -4901,6 +4901,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         var targetType = variable.Type;
+                        if (variable.Expression.ExpressionSymbol is SourceLocalSymbol local && local.IsVar)
+                        {
+                            // re-infer the left hand var type from the right hand side
+                            targetType = TypeWithAnnotations.Create(rightPart.Type);
+                            _variableTypes[local] = targetType;
+                        }
                         TypeWithState operandType;
                         TypeWithState valueType;
                         int valueSlot;
@@ -5029,7 +5035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // For instance, Boxing conversions (see Deconstruction_ImplicitBoxingConversion_02) and
                 // ImplicitNullable conversions (see Deconstruction_ImplicitNullableConversion_02).
                 VisitRvalue(expr);
-                var fields = tupleType.TupleElements;
+                var fields = ((TupleTypeSymbol)ResultType.Type).TupleElements;
                 return fields.SelectAsArray((f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
             }
 
