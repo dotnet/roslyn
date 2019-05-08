@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return ImmutableArray<CodeActionOperation>.Empty;
             }
 
-            Document newDocument = await ApplyEditsAsync(_document, textEdits, cancellationToken).ConfigureAwait(false);
+            var newDocument = await ApplyEditsAsync(_document, textEdits, cancellationToken).ConfigureAwait(false);
             return ImmutableArray.Create(new ApplyChangesOperation(newDocument.Project.Solution));
         }
 

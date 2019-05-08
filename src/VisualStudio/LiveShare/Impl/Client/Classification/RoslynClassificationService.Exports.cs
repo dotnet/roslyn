@@ -32,13 +32,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     {
         private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
         private readonly ClassificationTypeMap _classificationTypeMap;
-        private readonly ThreadingContext _threadingContext;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         public CSharpLspEditorClassificationFactoryService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
         {
             _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
             _classificationTypeMap = classificationTypeMap ?? throw new ArgumentNullException(nameof(classificationTypeMap));
+            _threadingContext = threadingContext;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
