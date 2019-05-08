@@ -107,7 +107,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Public ReadOnly Property ServiceProvider As IServiceProvider
         Public ReadOnly Property ExportProvider As Composition.ExportProvider
 
-        Public ReadOnly Property Workspace As VisualStudioWorkspaceImpl
+        Public ReadOnly Property Workspace As VisualStudioWorkspace
             Get
                 Return _workspace
             End Get
