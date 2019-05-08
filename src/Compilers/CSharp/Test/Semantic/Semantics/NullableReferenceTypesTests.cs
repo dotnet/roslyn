@@ -9840,7 +9840,6 @@ public struct D<T> where T : S
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
                 // (11,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         t = null; // warn
@@ -9869,15 +9868,15 @@ class C
         MyDelegate x1 = Method;
         MyDelegate x2 = FalseMethod;
         MyDelegate x4 = NullableReturnMethod; // warn 1
-        MyDelegate x5 = NullableParameterMethod; // warn 2
+        MyDelegate x5 = NullableParameterMethod;
         MyFalseDelegate y1 = Method;
         MyFalseDelegate y2 = FalseMethod;
         MyFalseDelegate y4 = NullableReturnMethod;
         MyFalseDelegate y5 = NullableParameterMethod;
-        MyNullableDelegate z1 = Method; // warn 3
+        MyNullableDelegate z1 = Method; // warn 2
         MyNullableDelegate z2 = FalseMethod;
-        MyNullableDelegate z4 = NullableReturnMethod; // warn 4
-        MyNullableDelegate z5 = NullableParameterMethod; // warn 5
+        MyNullableDelegate z4 = NullableReturnMethod; // warn 3
+        MyNullableDelegate z5 = NullableParameterMethod;
      }
 
 " + NonNullTypesOn() + @"
@@ -9892,20 +9891,17 @@ class C
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
                 // (18,25): warning CS8621: Nullability of reference types in return type of 'string[]? C.NullableReturnMethod(string[] x)' doesn't match the target delegate 'MyDelegate'.
                 //         MyDelegate x4 = NullableReturnMethod; // warn 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "NullableReturnMethod").WithArguments("string[]? C.NullableReturnMethod(string[] x)", "MyDelegate").WithLocation(18, 25),
                 // (24,33): warning CS8622: Nullability of reference types in type of parameter 'x' of 'string[] C.Method(string[] x)' doesn't match the target delegate 'MyNullableDelegate'.
-                //         MyNullableDelegate z1 = Method; // warn 3
+                //         MyNullableDelegate z1 = Method; // warn 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Method").WithArguments("x", "string[] C.Method(string[] x)", "MyNullableDelegate").WithLocation(24, 33),
                 // (26,33): warning CS8622: Nullability of reference types in type of parameter 'x' of 'string[]? C.NullableReturnMethod(string[] x)' doesn't match the target delegate 'MyNullableDelegate'.
-                //         MyNullableDelegate z4 = NullableReturnMethod; // warn 4
+                //         MyNullableDelegate z4 = NullableReturnMethod; // warn 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "NullableReturnMethod").WithArguments("x", "string[]? C.NullableReturnMethod(string[] x)", "MyNullableDelegate").WithLocation(26, 33)
                 );
-
-            // https://github.com/dotnet/roslyn/issues/29844: Missing warnings 2 and 5
         }
 
         [Fact]
@@ -9946,7 +9942,6 @@ public class E
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
                 // (27,15): warning CS8604: Possible null reference argument for parameter 'x' in 'C.C(string[] x)'.
                 //         new C(nullableField); // warn
