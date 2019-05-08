@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AnonymousNewObjectRuleTitleAndMessage" xml:space="preserve">
-    <value>Explicit new anonymous object allocation</value>
-  </data>
   <data name="ClosureCaptureRuleMessage" xml:space="preserve">
     <value>The compiler will emit a class that will hold this as a field to allow capturing of this closure</value>
   </data>
@@ -138,32 +135,17 @@
   <data name="DelegateOnStructInstanceRuleTitle" xml:space="preserve">
     <value>Delegate on struct instance caused a boxing allocation</value>
   </data>
-  <data name="ImplicitArrayCreationRuleTitleAndMessage" xml:space="preserve">
-    <value>Implicit new array creation allocation</value>
-  </data>
-  <data name="InitializerCreationRuleTitleAndMessage" xml:space="preserve">
-    <value>Initializer reference type allocation</value>
-  </data>
   <data name="LambaOrAnonymousMethodInGenericMethodRuleMessage" xml:space="preserve">
     <value>Considering moving this out of the generic method</value>
   </data>
   <data name="LambaOrAnonymousMethodInGenericMethodRuleTitle" xml:space="preserve">
     <value>Lambda or anonymous method in a generic method allocates a delegate instance</value>
   </data>
-  <data name="LetCauseRuleTitleAndMessage" xml:space="preserve">
-    <value>Let clause induced allocation</value>
-  </data>
   <data name="MethodGroupAllocationRuleMessage" xml:space="preserve">
     <value>This will allocate a delegate instance</value>
   </data>
   <data name="MethodGroupAllocationRuleTitle" xml:space="preserve">
     <value>Delegate allocation from a method group</value>
-  </data>
-  <data name="NewArrayRuleTitleAndMessage" xml:space="preserve">
-    <value>Explicit new array type allocation</value>
-  </data>
-  <data name="NewObjectRuleTitleAndMessage" xml:space="preserve">
-    <value>Explicit new reference type allocation</value>
   </data>
   <data name="ParamsParameterRuleMessage" xml:space="preserve">
     <value>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</value>

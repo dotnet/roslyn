@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Test.Utilities
 {
@@ -19,6 +20,7 @@ namespace Test.Utilities
                 SolutionTransforms.Add((solution, projectId) =>
                 {
                     solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlReference);
+                    solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemGlobalization);
                     solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeFacadeRef);
                     solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemThreadingFacadeRef);
                     solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemThreadingTaskFacadeRef);
@@ -41,9 +43,14 @@ namespace Test.Utilities
                             .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlDataReference);
                     }
 
+                    var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId).ParseOptions;
+                    solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
+
                     return solution;
                 });
             }
+
+            public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic15_5;
 
             public bool IncludeCodeAnalysisReference { get; set; } = true;
 

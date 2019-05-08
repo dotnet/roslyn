@@ -182,7 +182,9 @@ namespace Text.Analyzers
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
         //ImmutableArray.Create(AssemblyRule, NamespaceRule, TypeRule, MemberRule, MemberParameterRule, DelegateParameterRule, TypeTypeParameterRule, MethodTypeParameterRule, AssemblyMoreMeaningfulNameRule, NamespaceMoreMeaningfulNameRule, TypeMoreMeaningfulNameRule, MemberMoreMeaningfulNameRule, MemberParameterMoreMeaningfulNameRule, DelegateParameterMoreMeaningfulNameRule, TypeTypeParameterMoreMeaningfulNameRule, MethodTypeParameterMoreMeaningfulNameRule);
 
+#pragma warning disable RS1025 // Configure generated code analysis
         public override void Initialize(AnalysisContext analysisContext)
+#pragma warning restore RS1025 // Configure generated code analysis
         {
             analysisContext.EnableConcurrentExecution();
 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -61,6 +62,34 @@ namespace Analyzer.Utilities
                         rightArgument)));
 
             return generator.ComparisonOperatorDeclaration(OperatorKind.Equality, containingType, statements.ToArray());
+        }
+
+        /// <summary>
+        /// Creates a reference to a named type suitable for use in accessing a static member of the type.
+        /// </summary>
+        /// <param name="generator">The <see cref="SyntaxGenerator"/> used to create the type reference.</param>
+        /// <param name="typeSymbol">The named type to reference.</param>
+        /// <returns>A <see cref="SyntaxNode"/> representing the type reference expression.</returns>
+        public static SyntaxNode TypeExpressionForStaticMemberAccess(this SyntaxGenerator generator, INamedTypeSymbol typeSymbol)
+        {
+            var qualifiedNameSyntaxKind = generator.QualifiedName(generator.IdentifierName("ignored"), generator.IdentifierName("ignored")).RawKind;
+            var memberAccessExpressionSyntaxKind = generator.MemberAccessExpression(generator.IdentifierName("ignored"), "ignored").RawKind;
+
+            var typeExpression = generator.TypeExpression(typeSymbol);
+            return QualifiedNameToMemberAccess(qualifiedNameSyntaxKind, memberAccessExpressionSyntaxKind, typeExpression, generator);
+
+            // Local function
+            static SyntaxNode QualifiedNameToMemberAccess(int qualifiedNameSyntaxKind, int memberAccessExpressionSyntaxKind, SyntaxNode expression, SyntaxGenerator generator)
+            {
+                if (expression.RawKind == qualifiedNameSyntaxKind)
+                {
+                    var left = QualifiedNameToMemberAccess(qualifiedNameSyntaxKind, memberAccessExpressionSyntaxKind, expression.ChildNodes().First(), generator);
+                    var right = expression.ChildNodes().Last();
+                    return generator.MemberAccessExpression(left, right);
+                }
+
+                return expression;
+            }
         }
 
         /// <summary>

@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             if (declSyntax.Language == LanguageNames.VisualBasic)
             {
                 SemanticModel model = semanticModelProvider.GetSemanticModel(declSyntax);
-                while (declSyntax.Parent != null && model.GetDeclaredSymbol(declSyntax.Parent, cancellationToken) == declaredSymbol)
+                while (declSyntax.Parent != null && Equals(model.GetDeclaredSymbol(declSyntax.Parent, cancellationToken), declaredSymbol))
                 {
                     declSyntax = declSyntax.Parent;
                 }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     if (!ReferenceEquals(node, syntax))
                     {
                         var declaredSymbol = model.GetDeclaredSymbol(node, cancellationToken);
-                        if (declaredSymbol != null && symbol != declaredSymbol && declaredSymbol.Kind != SymbolKind.Parameter)
+                        if (declaredSymbol != null && !Equals(symbol, declaredSymbol) && declaredSymbol.Kind != SymbolKind.Parameter)
                         {
                             // Skip member declarations.
                             continue;

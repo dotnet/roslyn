@@ -1,19 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers;
-using Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers;
-using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Xunit;
 
-using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.CSharpSymbolIsBannedAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
-using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.BasicSymbolIsBannedAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
@@ -39,32 +34,32 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 
         private static async Task VerifyBasicAsync(string source, string bannedApiText, params DiagnosticResult[] expected)
         {
-            var test = new VisualBasicCodeFixTest<BasicSymbolIsBannedAnalyzer, EmptyCodeFixProvider, XUnitVerifier>
+            var test = new VerifyVB.Test
             {
                 TestState =
                 {
                     Sources = { source },
                     AdditionalFiles = { (SymbolIsBannedAnalyzer.BannedSymbolsFileName, bannedApiText) },
                 },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
 
         private static async Task VerifyCSharpAsync(string source, string bannedApiText, params DiagnosticResult[] expected)
         {
-            var test = new CSharpCodeFixTest<CSharpSymbolIsBannedAnalyzer, EmptyCodeFixProvider, XUnitVerifier>
+            var test = new VerifyCS.Test
             {
                 TestState =
                 {
                     Sources = { source },
                     AdditionalFiles = { (SymbolIsBannedAnalyzer.BannedSymbolsFileName, bannedApiText) },
                 },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }

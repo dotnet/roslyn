@@ -103,20 +103,15 @@ namespace Analyzer.Utilities
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null,
             bool defaultDisposeOwnershipTransferAtConstructor = false)
         {
-            foreach (var operationRoot in operationBlocks)
+            var cfg = operationBlocks.GetControlFlowGraph();
+            if (cfg != null)
             {
-                IBlockOperation topmostBlock = operationRoot.GetTopmostParentBlock();
-                if (topmostBlock != null)
-                {
-                    var cfg = topmostBlock.GetEnclosingControlFlowGraph();
-
-                    disposeAnalysisResult = DisposeAnalysis.GetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
-                        analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
-                        trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
-                        interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
-                        defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);
-                    return true;
-                }
+                disposeAnalysisResult = DisposeAnalysis.GetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
+                    analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
+                    trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
+                    interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
+                    defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);
+                return true;
             }
 
             disposeAnalysisResult = null;

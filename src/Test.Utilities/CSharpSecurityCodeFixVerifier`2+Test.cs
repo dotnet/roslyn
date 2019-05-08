@@ -15,7 +15,7 @@ namespace Test.Utilities
             public Test()
             {
                 // These analyzers run on generated code by default.
-                Exclusions &= ~AnalysisExclusions.GeneratedCode;
+                TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
             }
         }
     }
