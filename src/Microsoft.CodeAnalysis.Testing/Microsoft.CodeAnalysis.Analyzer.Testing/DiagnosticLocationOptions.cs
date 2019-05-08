@@ -17,5 +17,11 @@ namespace Microsoft.CodeAnalysis.Testing
         /// should be ignored when comparing results.
         /// </summary>
         IgnoreLength = 1,
+
+        /// <summary>
+        /// The primary diagnostic location is defined, but additional locations have not been provided. Disables
+        /// validation of additional locations reported for the corresponding diagnostics.
+        /// </summary>
+        IgnoreAdditionalLocations = 2,
     }
 }

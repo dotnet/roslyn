@@ -282,16 +282,19 @@ namespace Microsoft.CodeAnalysis.Testing
                 else
                 {
                     VerifyDiagnosticLocation(analyzers, actual, actual.Location, expected.Spans[0], verifier);
-                    var additionalLocations = actual.AdditionalLocations.ToArray();
-
-                    verifier.Equal(
-                        expected.Spans.Length - 1,
-                        additionalLocations.Length,
-                        $"Expected {expected.Spans.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:\r\n    {FormatDiagnostics(analyzers, actual)}\r\n");
-
-                    for (var j = 0; j < additionalLocations.Length; ++j)
+                    if (!expected.Spans[0].Options.HasFlag(DiagnosticLocationOptions.IgnoreAdditionalLocations))
                     {
-                        VerifyDiagnosticLocation(analyzers, actual, additionalLocations[j], expected.Spans[j + 1], verifier);
+                        var additionalLocations = actual.AdditionalLocations.ToArray();
+
+                        verifier.Equal(
+                            expected.Spans.Length - 1,
+                            additionalLocations.Length,
+                            $"Expected {expected.Spans.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:\r\n    {FormatDiagnostics(analyzers, actual)}\r\n");
+
+                        for (var j = 0; j < additionalLocations.Length; ++j)
+                        {
+                            VerifyDiagnosticLocation(analyzers, actual, additionalLocations[j], expected.Spans[j + 1], verifier);
+                        }
                     }
                 }
 
