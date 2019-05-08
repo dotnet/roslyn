@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -12,9 +13,10 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class MarkupTests
     {
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(189, "https://github.com/dotnet/roslyn-sdk/issues/189")]
-        public async Task TestCSharpMarkupBrace()
+        public async Task TestCSharpMarkupBrace(bool reportAdditionalLocations)
         {
             var testCode = @"
 class TestClass {|Brace:{|}
@@ -22,24 +24,26 @@ class TestClass {|Brace:{|}
 }
 ";
 
-            await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false) { TestCode = testCode }.RunAsync();
+            await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync();
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(181, "https://github.com/dotnet/roslyn-sdk/issues/181")]
-        public async Task TestCSharpMarkupSingleBracePosition()
+        public async Task TestCSharpMarkupSingleBracePosition(bool reportAdditionalLocations)
         {
             var testCode = @"
 class TestClass $${
 }
 ";
 
-            await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false) { TestCode = testCode }.RunAsync();
+            await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync();
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(181, "https://github.com/dotnet/roslyn-sdk/issues/181")]
-        public async Task TestCSharpMarkupMultipleBracePositions()
+        public async Task TestCSharpMarkupMultipleBracePositions(bool reportAdditionalLocations)
         {
             var testCode = @"
 class TestClass $${
@@ -47,12 +51,13 @@ class TestClass $${
 }
 ";
 
-            await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false) { TestCode = testCode }.RunAsync();
+            await new CSharpTest(nestedDiagnostics: false, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync();
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(189, "https://github.com/dotnet/roslyn-sdk/issues/189")]
-        public async Task TestCSharpNestedMarkupBrace()
+        public async Task TestCSharpNestedMarkupBrace(bool reportAdditionalLocations)
         {
             var testCode = @"
 class TestClass {|BraceOuter:{|Brace:{|}|}
@@ -60,11 +65,12 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
 }
 ";
 
-            await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false) { TestCode = testCode }.RunAsync();
+            await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync();
         }
 
-        [Fact]
-        public async Task TestCSharpNestedMarkupBraceUnspecifiedIdWithoutDefault()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestCSharpNestedMarkupBraceUnspecifiedIdWithoutDefault(bool reportAdditionalLocations)
         {
             var testCode = @"
 class TestClass {|BraceOuter:{|Brace:{|}|}
@@ -72,15 +78,16 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
 }
 ";
 
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false) { TestCode = testCode }.RunAsync());
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync());
 
             var expected = "Markup syntax can only omit the diagnostic ID if the first analyzer only supports a single diagnostic. To customize the default value, override AnalyzerTest<TVerifier>.GetDefaultDiagnostic or specify MarkupOptions.PreferFirstDescriptor.";
             Assert.Equal(expected, exception.Message);
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(189, "https://github.com/dotnet/roslyn-sdk/issues/189")]
-        public async Task TestCSharpNestedMarkupBraceMultipleWithoutDefault()
+        public async Task TestCSharpNestedMarkupBraceMultipleWithoutDefault(bool reportAdditionalLocations)
         {
             var testCode = @"
 class TestClass {|BraceOuter:{|Brace:{|}|}
@@ -88,15 +95,16 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
 }
 ";
 
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: true) { TestCode = testCode }.RunAsync());
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: true, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync());
 
             var expected = "Multiple diagnostic descriptors with ID Brace were found. Use the explicitly diagnostic creation syntax or specify MarkupOptions.PreferFirstDescriptor to use the first matching diagnostic.";
             Assert.Equal(expected, exception.Message);
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(189, "https://github.com/dotnet/roslyn-sdk/issues/189")]
-        public async Task TestCSharpNestedMarkupBraceWithDefault()
+        public async Task TestCSharpNestedMarkupBraceWithDefault(bool reportAdditionalLocations)
         {
             var testCode = @"
 class TestClass {|BraceOuter:{|Brace:{|}|}
@@ -104,7 +112,7 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
 }
 ";
 
-            await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false) { TestCode = testCode, MarkupOptions = MarkupOptions.PreferFirstDescriptor }.RunAsync();
+            await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode, MarkupOptions = MarkupOptions.PreferFirstDescriptor }.RunAsync();
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -124,11 +132,13 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
 
             private readonly bool _nestedDiagnostics;
             private readonly bool _hiddenDescriptors;
+            private readonly bool _reportAdditionalLocations;
 
-            public HighlightBracesAnalyzer(bool nestedDiagnostics, bool hiddenDescriptors)
+            public HighlightBracesAnalyzer(bool nestedDiagnostics, bool hiddenDescriptors, bool reportAdditionalLocations)
             {
                 _nestedDiagnostics = nestedDiagnostics;
                 _hiddenDescriptors = hiddenDescriptors;
+                _reportAdditionalLocations = reportAdditionalLocations;
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -171,12 +181,20 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
                         continue;
                     }
 
-                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, token.GetLocation()));
+                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, token.GetLocation(), additionalLocations: GetAdditionalLocations(token)));
 
                     if (_nestedDiagnostics)
                     {
-                        context.ReportDiagnostic(Diagnostic.Create(DescriptorOuter, token.GetLocation()));
+                        context.ReportDiagnostic(Diagnostic.Create(DescriptorOuter, token.GetLocation(), additionalLocations: GetAdditionalLocations(token)));
                     }
+                }
+            }
+
+            private IEnumerable<Location> GetAdditionalLocations(SyntaxToken token)
+            {
+                if (_reportAdditionalLocations)
+                {
+                    yield return token.Parent.ChildTokens().Single(t => t.IsKind(SyntaxKind.CloseBraceToken)).GetLocation();
                 }
             }
         }
@@ -185,11 +203,13 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
         {
             private readonly bool _nestedDiagnostics;
             private readonly bool _hiddenDescriptors;
+            private readonly bool _reportAdditionalLocations;
 
-            public CSharpTest(bool nestedDiagnostics, bool hiddenDescriptors)
+            public CSharpTest(bool nestedDiagnostics, bool hiddenDescriptors, bool reportAdditionalLocations)
             {
                 _nestedDiagnostics = nestedDiagnostics;
                 _hiddenDescriptors = hiddenDescriptors;
+                _reportAdditionalLocations = reportAdditionalLocations;
             }
 
             public override string Language => LanguageNames.CSharp;
@@ -201,7 +221,7 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
 
             protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
             {
-                yield return new HighlightBracesAnalyzer(_nestedDiagnostics, _hiddenDescriptors);
+                yield return new HighlightBracesAnalyzer(_nestedDiagnostics, _hiddenDescriptors, _reportAdditionalLocations);
             }
         }
     }

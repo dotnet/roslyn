@@ -167,6 +167,9 @@ namespace Microsoft.CodeAnalysis.Testing
         public DiagnosticResult WithLocation(string path, LinePosition location)
             => AppendSpan(new FileLinePositionSpan(path, location, location), DiagnosticLocationOptions.IgnoreLength);
 
+        public DiagnosticResult WithLocation(string path, LinePosition location, DiagnosticLocationOptions options)
+            => AppendSpan(new FileLinePositionSpan(path, location, location), options | DiagnosticLocationOptions.IgnoreLength);
+
         public DiagnosticResult WithSpan(int startLine, int startColumn, int endLine, int endColumn)
             => WithSpan(path: string.Empty, startLine, startColumn, endLine, endColumn);
 
@@ -175,6 +178,9 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public DiagnosticResult WithSpan(FileLinePositionSpan span)
             => AppendSpan(span, DiagnosticLocationOptions.None);
+
+        public DiagnosticResult WithSpan(FileLinePositionSpan span, DiagnosticLocationOptions options)
+            => AppendSpan(span, options);
 
         public DiagnosticResult WithDefaultPath(string path)
         {

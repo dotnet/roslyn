@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
 
             var linePosition = content.Lines.GetLinePosition(position);
-            return diagnosticResult.Value.WithLocation(filename, linePosition);
+            return diagnosticResult.Value.WithLocation(filename, linePosition, DiagnosticLocationOptions.IgnoreAdditionalLocations);
         }
 
         private DiagnosticResult? CreateDiagnosticForSpan(
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
 
             var linePositionSpan = content.Lines.GetLinePositionSpan(span);
-            return diagnosticResult.Value.WithSpan(new FileLinePositionSpan(filename, linePositionSpan));
+            return diagnosticResult.Value.WithSpan(new FileLinePositionSpan(filename, linePositionSpan), DiagnosticLocationOptions.IgnoreAdditionalLocations);
         }
 
         private DiagnosticResult? CreateDiagnostic(

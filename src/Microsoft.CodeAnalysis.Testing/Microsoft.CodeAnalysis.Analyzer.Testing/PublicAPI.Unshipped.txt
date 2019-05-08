@@ -33,6 +33,7 @@ Microsoft.CodeAnalysis.Testing.DiagnosticLocation.DiagnosticLocation(Microsoft.C
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation.Options.get -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation.Span.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
 Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
+Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.IgnoreAdditionalLocations = 2 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.IgnoreLength = 1 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.None = 0 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticResult
@@ -51,12 +52,14 @@ Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLineOffset(int offset) -> Mi
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(Microsoft.CodeAnalysis.Text.LinePosition location) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(int line, int column) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(string path, Microsoft.CodeAnalysis.Text.LinePosition location) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(string path, Microsoft.CodeAnalysis.Text.LinePosition location, Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions options) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(string path, int line, int column) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithMessage(string message) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithMessageFormat(Microsoft.CodeAnalysis.LocalizableString messageFormat) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithNoLocation() -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity severity) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSpan(Microsoft.CodeAnalysis.FileLinePositionSpan span) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSpan(Microsoft.CodeAnalysis.FileLinePositionSpan span, Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions options) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSpan(int startLine, int startColumn, int endLine, int endColumn) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSpan(string path, int startLine, int startColumn, int endLine, int endColumn) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer
