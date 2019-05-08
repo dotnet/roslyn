@@ -358,6 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             }
 
             return container;
+
             static bool ContainsNamespaceDeclaration(SyntaxNode node)
                 => node.DescendantNodes(n => n is CompilationUnitSyntax || n is NamespaceDeclarationSyntax)
                 .OfType<NamespaceDeclarationSyntax>().Any();
