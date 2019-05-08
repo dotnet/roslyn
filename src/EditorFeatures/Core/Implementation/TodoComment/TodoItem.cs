@@ -54,14 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor
         public int OriginalColumn { get; }
 
         public override bool Equals(object obj)
-        {
-            if (!(obj is TodoItem other))
-            {
-                return false;
-            }
-
-            return Equals(this, other);
-        }
+            => obj is TodoItem other &&
+               Equals(this, other);
 
         public override int GetHashCode()
         {
