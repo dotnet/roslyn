@@ -36,11 +36,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             VisualStudioWorkspaceImpl workspace,
             IDiagnosticAnalyzerService diagnosticService,
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListenerProvider listenerProvider) :
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IKnownUIContextService uiContextService) :
                 this(workspace, diagnosticService, registrationService, listenerProvider.GetListener(FeatureAttribute.ErrorList))
         {
-            Debug.Assert(!KnownUIContexts.SolutionBuildingContext.IsActive);
-            KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
+            // it can be null in unit test
+            if (uiContextService != null)
+            {
+                Debug.Assert(!uiContextService.IsSolutionBuilding);
+                uiContextService.SolutionBuilding += OnSolutionBuild;
+            }
         }
 
         /// <summary>

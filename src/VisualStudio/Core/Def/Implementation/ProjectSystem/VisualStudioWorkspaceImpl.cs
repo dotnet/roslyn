@@ -126,7 +126,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this,
                 exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
                 exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
-                exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+                exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
+                exportProvider.GetExportedValues<IKnownUIContextService>().SingleOrDefault());
         }
 
         internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource { get; }
