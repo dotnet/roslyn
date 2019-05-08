@@ -2867,7 +2867,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Unexpected syntax kind.
                 return false;
             }
-            var nameSyntax = Binder.GetNameSyntax(((InvocationExpressionSyntax)syntax).Expression, out var _);
+            return HasImplicitTypeArguments(((InvocationExpressionSyntax)syntax).Expression);
+        }
+
+        private static bool HasImplicitTypeArguments(SyntaxNode syntax)
+        {
+            var nameSyntax = Binder.GetNameSyntax(syntax, out _);
             if (nameSyntax == null)
             {
                 // Unexpected syntax kind.
@@ -3386,40 +3391,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MethodSymbol InferMethodTypeArguments(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
+            return InferMethodTypeArguments(node.BinderOpt, method, arguments, node.ArgumentRefKindsOpt, node.ArgsToParamsOpt, node.Expanded);
+        }
+
+        private MethodSymbol InferMethodTypeArguments(
+            Binder binder,
+            MethodSymbol method,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded)
+        {
+            Debug.Assert(binder != null);
             Debug.Assert(method.IsGenericMethod);
 
             // https://github.com/dotnet/roslyn/issues/27961 OverloadResolution.IsMemberApplicableInNormalForm and
             // IsMemberApplicableInExpandedForm use the least overridden method. We need to do the same here.
             var definition = method.ConstructedFrom;
             var refKinds = ArrayBuilder<RefKind>.GetInstance();
-            if (node.ArgumentRefKindsOpt != null)
+            if (argumentRefKindsOpt != null)
             {
-                refKinds.AddRange(node.ArgumentRefKindsOpt);
+                refKinds.AddRange(argumentRefKindsOpt);
             }
-
-            Debug.Assert(node.BinderOpt != null);
 
             // https://github.com/dotnet/roslyn/issues/27961 Do we really need OverloadResolution.GetEffectiveParameterTypes?
             // Aren't we doing roughly the same calculations in GetCorrespondingParameter?
             OverloadResolution.GetEffectiveParameterTypes(
                 definition,
                 arguments.Length,
-                node.ArgsToParamsOpt,
+                argsToParamsOpt,
                 refKinds,
                 isMethodGroupConversion: false,
                 // https://github.com/dotnet/roslyn/issues/27961 `allowRefOmittedArguments` should be
                 // false for constructors and several other cases (see Binder use). Should we
                 // capture the original value in the BoundCall?
                 allowRefOmittedArguments: true,
-                binder: node.BinderOpt,
-                expanded: node.Expanded,
+                binder: binder,
+                expanded: expanded,
                 parameterTypes: out ImmutableArray<TypeWithAnnotations> parameterTypes,
                 parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
-
             refKinds.Free();
+
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var result = MethodTypeInferrer.Infer(
-                node.BinderOpt,
+                binder,
                 _conversions,
                 definition.TypeParameters,
                 definition.ContainingType,
@@ -4213,23 +4228,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case ConversionKind.MethodGroup:
                     {
-                        var receiverOpt = ((BoundMethodGroup)conversionOperand)?.ReceiverOpt;
-                        // https://github.com/dotnet/roslyn/issues/33637: Should update method based on inferred receiver type.
+                        var group = conversionOperand as BoundMethodGroup;
+                        var delegateType = targetType.GetDelegateType();
                         var method = conversion.Method;
-                        if (TryGetMethodGroupReceiverNullability(receiverOpt, out TypeWithState receiverType))
+                        if (group != null)
                         {
-                            if (conversion.IsExtensionMethod)
-                            {
-                                CheckExtensionMethodThisNullability(receiverOpt, Conversion.Identity, method.Parameters[0], receiverType);
-                            }
-                            else
-                            {
-                                CheckPossibleNullReceiver(receiverOpt, receiverType, checkNullableValueType: false);
-                            }
+                            method = CheckMethodGroupReceiverNullability(group, delegateType, method, conversion.IsExtensionMethod);
                         }
                         if (reportRemainingWarnings)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, targetType.GetDelegateType(), method, conversion.IsExtensionMethod);
+                            ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, delegateType, method, conversion.IsExtensionMethod);
                         }
                     }
                     resultState = NullableFlowState.NotNull;
@@ -4721,23 +4729,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundMethodGroup group:
                     {
-                        // https://github.com/dotnet/roslyn/issues/33637: Should update method based on inferred receiver type.
+                        VisitMethodGroup(group);
                         var method = node.MethodOpt;
                         if (method is object)
                         {
-                            var receiverOpt = group.ReceiverOpt;
-                            if (receiverOpt != null)
-                            {
-                                VisitRvalue(receiverOpt);
-                                if (node.IsExtensionMethod)
-                                {
-                                    CheckExtensionMethodThisNullability(receiverOpt, Conversion.Identity, method.Parameters[0], ResultType);
-                                }
-                                else
-                                {
-                                    CheckPossibleNullReceiver(receiverOpt);
-                                }
-                            }
+                            method = CheckMethodGroupReceiverNullability(group, delegateType, method, node.IsExtensionMethod);
                             if (!group.IsSuppressed)
                             {
                                 ReportNullabilityMismatchWithTargetDelegate(group.Syntax.Location, delegateType, method, node.IsExtensionMethod);
@@ -4802,6 +4798,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _methodGroupReceiverMapOpt ??= PooledDictionary<BoundExpression, TypeWithState>.GetInstance();
             _methodGroupReceiverMapOpt[receiver] = type;
+        }
+
+        private MethodSymbol CheckMethodGroupReceiverNullability(BoundMethodGroup group, NamedTypeSymbol delegateType, MethodSymbol method, bool invokedAsExtensionMethod)
+        {
+            var receiverOpt = group.ReceiverOpt;
+            if (TryGetMethodGroupReceiverNullability(receiverOpt, out TypeWithState receiverType))
+            {
+                var syntax = group.Syntax;
+                if (invokedAsExtensionMethod)
+                {
+                    if (method.Arity > 0 && HasImplicitTypeArguments(group.Syntax))
+                    {
+                        var binder = compilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax);
+                        var arguments = GetExtensionMethodDelegateArguments(syntax, delegateType, receiverOpt, receiverType);
+                        method = InferMethodTypeArguments(binder, method, arguments, argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
+                    }
+                    CheckExtensionMethodThisNullability(receiverOpt, Conversion.Identity, method.Parameters[0], receiverType);
+                }
+                else
+                {
+                    method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
+                    CheckPossibleNullReceiver(receiverOpt, receiverType, checkNullableValueType: false);
+                }
+                if (ConstraintsHelper.RequiresChecking(method))
+                {
+                    CheckMethodConstraints(syntax, method);
+                }
+            }
+            return method;
+        }
+
+        private static ImmutableArray<BoundExpression> GetExtensionMethodDelegateArguments(SyntaxNode syntax, NamedTypeSymbol delegateType, BoundExpression receiver, TypeWithState receiverType)
+        {
+            var delegateParameters = delegateType.DelegateInvokeMethod.Parameters;
+            var arguments = ArrayBuilder<BoundExpression>.GetInstance(delegateParameters.Length + 1);
+            arguments.Add(CreatePlaceholderIfNecessary(receiver, receiverType.ToTypeWithAnnotations()));
+            foreach (var parameter in delegateParameters)
+            {
+                var parameterType = parameter.TypeWithAnnotations;
+                arguments.Add(new BoundExpressionWithNullability(syntax, new BoundParameter(syntax, parameter), parameterType.NullableAnnotation, parameterType.Type));
+            }
+            return arguments.ToImmutableAndFree();
         }
 
         public override BoundNode VisitLambda(BoundLambda node)
