@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
             bool ContainsYield(SyntaxNode node)
                 => node.DescendantNodes(n => n == node || !n.IsReturnableConstruct()).Any(n => IsYield(n));
+
             static bool IsYield(SyntaxNode node)
                 => node.IsKind(SyntaxKind.YieldBreakStatement, SyntaxKind.YieldReturnStatement);
         }
