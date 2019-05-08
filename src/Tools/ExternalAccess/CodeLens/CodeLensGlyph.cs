@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.CodeLens
 {
-    public enum CodeLensGlyph
+    internal enum CodeLensGlyph
     {
         None = Glyph.None,
 

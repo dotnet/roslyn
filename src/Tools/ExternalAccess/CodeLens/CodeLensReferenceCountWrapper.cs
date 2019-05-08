@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CodeLens;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.CodeLens
 {
-    public readonly struct CodeLensReferenceCountWrapper
+    internal readonly struct CodeLensReferenceCountWrapper
     {
         internal CodeLensReferenceCountWrapper(ReferenceCount underlyingObject)
         {

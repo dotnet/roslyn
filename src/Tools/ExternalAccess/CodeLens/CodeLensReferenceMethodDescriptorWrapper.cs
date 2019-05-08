@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CodeLens;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.CodeLens
 {
-    public readonly struct CodeLensReferenceMethodDescriptorWrapper
+    internal readonly struct CodeLensReferenceMethodDescriptorWrapper
     {
         internal CodeLensReferenceMethodDescriptorWrapper(ReferenceMethodDescriptor underlyingObject)
         {

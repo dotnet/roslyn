@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CodeLens;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.CodeLens
 {
-    public readonly struct CodeLensReferenceLocationDescriptorWrapper
+    internal readonly struct CodeLensReferenceLocationDescriptorWrapper
     {
         internal CodeLensReferenceLocationDescriptorWrapper(ReferenceLocationDescriptor underlyingObject)
         {

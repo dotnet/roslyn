@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.CodeLens
 {
-    public interface ICodeLensReferencesServiceAccessor : IWorkspaceService
+    internal interface ICodeLensReferencesServiceAccessor : IWorkspaceService
     {
         Task<CodeLensReferenceCountWrapper?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken);
 
