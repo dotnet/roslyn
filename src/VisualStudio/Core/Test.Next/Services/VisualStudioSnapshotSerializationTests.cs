@@ -33,7 +33,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     var analyzerReference = analyzer.GetReference();
                     project = project.WithAnalyzerReferences(new AnalyzerReference[]
                     {
-                    analyzerReference,
+                        analyzerReference,
                     });
 
                     var checksum = await project.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
