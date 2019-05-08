@@ -1767,11 +1767,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (_projectsByOutputPath.TryGetValue(outputPath, out var remainingProjectsForOutputPath))
                 {
-                    if (remainingProjectsForOutputPath.Distinct().Count() == 1)
+                    var distinctRemainingProjects = remainingProjectsForOutputPath.Distinct();
+                    if (distinctRemainingProjects.Count() == 1)
                     {
                         // We had more than one project outputting to the same path. Now we're back down to one
                         // so we can reference that one again
-                        ConvertMetadataReferencesToProjectReferences_NoLock(_projectsByOutputPath[outputPath].Single(), outputPath);
+                        ConvertMetadataReferencesToProjectReferences_NoLock(distinctRemainingProjects.Single(), outputPath);
                     }
                 }
                 else
