@@ -6,7 +6,7 @@
     <TargetFramework>net472</TargetFramework>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Razor</PackageId>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.LiveShare</PackageId>
     <PackageDescription>
       A supporting package for LiveShare in VS
     </PackageDescription>
