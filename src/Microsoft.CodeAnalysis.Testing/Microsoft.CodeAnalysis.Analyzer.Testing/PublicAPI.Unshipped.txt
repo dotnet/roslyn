@@ -82,7 +82,7 @@ Microsoft.CodeAnalysis.Testing.MarkupMode.IgnoreFixable = 2 -> Microsoft.CodeAna
 Microsoft.CodeAnalysis.Testing.MarkupMode.None = 0 -> Microsoft.CodeAnalysis.Testing.MarkupMode
 Microsoft.CodeAnalysis.Testing.MarkupOptions
 Microsoft.CodeAnalysis.Testing.MarkupOptions.None = 0 -> Microsoft.CodeAnalysis.Testing.MarkupOptions
-Microsoft.CodeAnalysis.Testing.MarkupOptions.PreferFirstDescriptor = 1 -> Microsoft.CodeAnalysis.Testing.MarkupOptions
+Microsoft.CodeAnalysis.Testing.MarkupOptions.UseFirstDescriptor = 1 -> Microsoft.CodeAnalysis.Testing.MarkupOptions
 Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection
 Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection.Add(System.Reflection.Assembly assembly) -> void
 Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection.Add(string path) -> void
