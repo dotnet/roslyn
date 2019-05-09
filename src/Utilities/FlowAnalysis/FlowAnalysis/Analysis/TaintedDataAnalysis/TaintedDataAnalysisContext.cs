@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -9,6 +8,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 #pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
 
@@ -43,6 +43,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                   exceptionPathsAnalysis: false,
                   copyAnalysisResultOpt: null,
                   pointsToAnalysisResult,
+                  valueContentAnalysisResultOpt: null,
                   getOrComputeAnalysisResult,
                   parentControlFlowGraph,
                   interproceduralAnalysisDataOpt,
@@ -92,9 +93,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             IOperation operation,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue> copyAnalysisResultOpt,
+            DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue> valueContentAnalysisResultOpt,
             InterproceduralTaintedDataAnalysisData interproceduralAnalysisData)
         {
             Debug.Assert(copyAnalysisResultOpt == null);   // Just because we're not passing this argument along.
+            Debug.Assert(valueContentAnalysisResultOpt == null);
 
             return new TaintedDataAnalysisContext(
                 this.ValueDomain,

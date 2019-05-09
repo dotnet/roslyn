@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -331,14 +330,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         this._hazardousUsageBuilder.Add(kvp.Key, kvp.Value);
                     }
                 }
-            }
-
-            private ValueContentAbstractValue GetValueContentAbstractValue(IOperation operation)
-            {
-                Debug.Assert(
-                    this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null,
-                    "PropertySetAnalysis should have computed ValueContentAnalysisResult if attempting to access it");
-                return this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt[operation];
             }
         }
     }

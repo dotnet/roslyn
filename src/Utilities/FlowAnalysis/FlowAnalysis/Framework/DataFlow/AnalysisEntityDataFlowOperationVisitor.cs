@@ -10,6 +10,7 @@ using Analyzer.Utilities.PooledObjects;
 using Analyzer.Utilities.PooledObjects.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
@@ -481,6 +482,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> argumentValues,
             IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
             IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
+            IDictionary<AnalysisEntity, ValueContentAbstractValue> valueContentValuesOpt,
             bool isLambdaOrLocalFunction,
             bool hasParameterWithDelegateType)
         {
@@ -495,7 +497,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (isLambdaOrLocalFunction || hasParameterWithDelegateType || pointsToValuesOpt == null)
             {
                 return base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt,
-                    thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
+                    thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt, copyValuesOpt, valueContentValuesOpt,
+                    isLambdaOrLocalFunction, hasParameterWithDelegateType);
             }
 
             var candidateEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
