@@ -109,6 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PooledDictionary<Symbol, TypeWithAnnotations> _variableTypes = PooledDictionary<Symbol, TypeWithAnnotations>.GetInstance();
 
         /// <summary>
+        /// Binder for symbol being analyzed.
+        /// </summary>
+        private readonly Binder _binder;
+
+        /// <summary>
         /// Conversions with nullability and unknown matching any.
         /// </summary>
         private readonly Conversions _conversions;
@@ -308,12 +313,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
             BoundNode node,
+            Binder binder,
             Conversions conversions,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
             VariableState initialState,
             Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt)
             : base(compilation, symbol, node, EmptyStructTypeCache.CreatePrecise(), trackUnassignments: true)
         {
+            _binder = binder;
             _conversions = (Conversions)conversions.WithNullability(true);
             _useMethodSignatureParameterTypes = (object)methodSignatureOpt != null && useMethodSignatureParameterTypes;
             _methodSignatureOpt = methodSignatureOpt;
@@ -387,10 +394,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
-            var conversions = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax).Conversions;
+            var binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
+            var conversions = binder.Conversions;
             Analyze(compilation,
                 method,
                 node,
+                binder,
                 conversions,
                 diagnostics,
                 useMethodSignatureParameterTypes: false,
@@ -404,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             Symbol symbol,
             BoundNode node,
-            Conversions conversions,
+            Binder binder,
             DiagnosticBag diagnostics)
         {
             var analyzedNullabilities = PooledDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.GetInstance();
@@ -413,7 +422,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 symbol,
                 node,
-                conversions,
+                binder,
+                binder.Conversions,
                 diagnostics,
                 useMethodSignatureParameterTypes: !(methodSymbol is null),
                 methodSignatureOpt: methodSymbol,
@@ -434,17 +444,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static void AnalyzeIfNeeded(
-            CSharpCompilation compilation,
+            Binder binder,
             BoundAttribute attribute,
-            Conversions conversions,
             DiagnosticBag diagnostics)
         {
+            var compilation = binder.Compilation;
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 return;
             }
 
-            Analyze(compilation, null, attribute, conversions, diagnostics, useMethodSignatureParameterTypes: false, methodSignatureOpt: null, returnTypes: null, initialState: null, analyzedNullabilityMapOpt: null);
+            Analyze(
+                compilation,
+                symbol: null,
+                attribute,
+                binder,
+                binder.Conversions,
+                diagnostics,
+                useMethodSignatureParameterTypes: false,
+                methodSignatureOpt: null,
+                returnTypes: null,
+                initialState: null,
+                analyzedNullabilityMapOpt: null);
         }
 
         internal static void Analyze(
@@ -461,6 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 lambda.Symbol,
                 lambda.Body,
+                lambda.Binder,
                 conversions,
                 diagnostics,
                 useMethodSignatureParameterTypes: !lambda.UnboundLambda.HasExplicitlyTypedParameterList,
@@ -474,6 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             Symbol symbol,
             BoundNode node,
+            Binder binder,
             Conversions conversions,
             DiagnosticBag diagnostics,
             bool useMethodSignatureParameterTypes,
@@ -489,6 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useMethodSignatureParameterTypes,
                 methodSignatureOpt,
                 node,
+                binder,
                 conversions,
                 returnTypes,
                 initialState,
@@ -1884,6 +1908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             useMethodSignatureParameterTypes: false,
                                             methodSignatureOpt: null,
                                             node,
+                                            binder: null,
                                             conversions: conversions,
                                             returnTypesOpt: null,
                                             initialState: null,
@@ -4812,7 +4837,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (method.Arity > 0 && HasImplicitTypeArguments(group.Syntax))
                 {
-                    var binder = compilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax);
                     var arguments = ArrayBuilder<BoundExpression>.GetInstance();
                     if (invokedAsExtensionMethod)
                     {
@@ -4825,7 +4849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameterType = parameter.TypeWithAnnotations;
                         arguments.Add(new BoundExpressionWithNullability(syntax, new BoundParameter(syntax, parameter), parameterType.NullableAnnotation, parameterType.Type));
                     }
-                    method = InferMethodTypeArguments(binder, method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
+                    method = InferMethodTypeArguments(_binder, method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
                 }
                 if (invokedAsExtensionMethod)
                 {
@@ -4895,6 +4919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Analyze(compilation,
                         node.Symbol,
                         body,
+                        _binder,
                         _conversions,
                         Diagnostics,
                         useMethodSignatureParameterTypes: false,
