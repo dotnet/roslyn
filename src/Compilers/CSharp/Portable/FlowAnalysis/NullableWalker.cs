@@ -4502,6 +4502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             Debug.Assert(conversionOperand != null);
             Debug.Assert(targetTypeWithNullability.HasType);
+            Debug.Assert(diagnosticLocation != null);
             Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
             Debug.Assert(conversion.Kind == ConversionKind.ExplicitUserDefined || conversion.Kind == ConversionKind.ImplicitUserDefined);
 
@@ -4550,6 +4551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // conversion "from" type -> method parameter type
             NullableFlowState operandState = operandType.State;
+            Location operandLocation = conversionOperand.Syntax.GetLocation();
             _ = ClassifyAndVisitConversion(
                 conversionOperand,
                 parameterType,
@@ -4559,7 +4561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 target: parameter,
                 reportWarnings: reportRemainingWarnings,
                 fromExplicitCast: false,
-                diagnosticLocation: null);
+                diagnosticLocation: operandLocation);
 
             // method parameter type -> method return type
             var methodReturnType = methodOpt.ReturnTypeWithAnnotations;
@@ -4587,7 +4589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 target,
                 reportWarnings: reportRemainingWarnings,
                 fromExplicitCast: false,
-                null);
+                diagnosticLocation: operandLocation);
 
             // conversion "to" type -> final type
             // We should only pass fromExplicitCast here. Given the following example:
@@ -4662,8 +4664,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Location diagnosticLocation)
         {
             Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
+            Debug.Assert(diagnosticLocation != null);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            diagnosticLocation ??= node.Syntax.GetLocation();
             var conversion = _conversions.ClassifyStandardConversion(null, operandType.Type, targetType.Type, ref useSiteDiagnostics);
             if (reportWarnings && !conversion.Exists)
             {
