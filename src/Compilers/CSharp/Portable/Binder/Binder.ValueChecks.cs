@@ -1337,6 +1337,7 @@ moreArguments:
                 // TODO: val escape checks should be skipped for property accesses when
                 // we can determine the only accessors being called are readonly.
                 // For now we are pessimistic and check escape if any accessor is non-readonly.
+                // Tracking in https://github.com/dotnet/roslyn/issues/35606
                 PropertySymbol p => p.GetMethod?.IsEffectivelyReadOnly != false && p.SetMethod?.IsEffectivelyReadOnly != false,
                 _ => throw ExceptionUtilities.UnexpectedValue(symbol)
             };
