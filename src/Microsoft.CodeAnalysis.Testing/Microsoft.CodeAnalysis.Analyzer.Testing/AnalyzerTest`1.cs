@@ -451,13 +451,13 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A collection of <see cref="Diagnostic"/>s that surfaced in the source code, sorted by
         /// <see cref="Diagnostic.Location"/>.</returns>
-        protected static async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilerDiagnostics compilerDiagnostics, CancellationToken cancellationToken)
+        protected async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilerDiagnostics compilerDiagnostics, CancellationToken cancellationToken)
         {
             var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
             foreach (var project in solution.Projects)
             {
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken);
+                var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, GetAnalyzerOptions(project), cancellationToken);
                 var includedCompilerDiagnostics = compilation.GetDiagnostics(cancellationToken).Where(IsCompilerDiagnosticIncluded);
                 var diags = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false);
                 var allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
@@ -491,6 +491,15 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
             }
         }
+
+        /// <summary>
+        /// Gets the effective analyzer options for a project. The default implementation returns
+        /// <see cref="Project.AnalyzerOptions"/>.
+        /// </summary>
+        /// <param name="project">The project.</param>
+        /// <returns>The effective <see cref="AnalyzerOptions"/> for the project.</returns>
+        protected virtual AnalyzerOptions GetAnalyzerOptions(Project project)
+            => project.AnalyzerOptions;
 
         /// <summary>
         /// Given an array of strings as sources and a language, turn them into a <see cref="Project"/> and return the
