@@ -11,6 +11,12 @@
 # Binary log must be enabled on CI.
 [bool]$binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $ci }
 
+# Set to true to use the pipelines logger which will enable Azure logging output.
+# https://github.com/Microsoft/azure-pipelines-tasks/blob/master/docs/authoring/commands.md
+# This flag is meant as a temporary opt-opt for the feature while validate it across
+# our consumers. It will be deleted in the future.
+[bool]$pipelinesLog = if (Test-Path variable:pipelinesLog) { $pipelinesLog } else { $ci }
+
 # Turns on machine preparation/clean up code that changes the machine state (e.g. kills build processes).
 [bool]$prepareMachine = if (Test-Path variable:prepareMachine) { $prepareMachine } else { $false }
 
@@ -442,7 +448,7 @@ function InitializeToolset() {
 
   '<Project Sdk="Microsoft.DotNet.Arcade.Sdk"/>' | Set-Content $proj
 
-  MSBuild $proj $bl /t:__WriteToolsetLocation /clp:ErrorsOnly`;NoSummary /p:__ToolsetLocationOutputFile=$toolsetLocationFile
+  MSBuild-Core $proj $bl /t:__WriteToolsetLocation /clp:ErrorsOnly`;NoSummary /p:__ToolsetLocationOutputFile=$toolsetLocationFile
 
   $path = Get-Content $toolsetLocationFile -TotalCount 1
   if (!(Test-Path $path)) {
@@ -472,6 +478,23 @@ function Stop-Processes() {
 # Terminates the script if the build fails.
 #
 function MSBuild() {
+  if ($pipelinesLog -and $msbuildEngine) {
+    $toolsetBuildProject = InitializeToolset
+    $tf = if ($msbuildEngine -eq "dotnet") { "netcoreapp2.1" } else { "net472" }
+    $path = Split-Path -parent $toolsetBuildProject
+    $path = Join-Path $path "$tf\Microsoft.DotNet.Arcade.Sdk.dll"
+    $args += "/logger:$path"
+  }
+
+  MSBuild-Core @args
+}
+
+#
+# Executes msbuild (or 'dotnet msbuild') with arguments passed to the function.
+# The arguments are automatically quoted.
+# Terminates the script if the build fails.
+#
+function MSBuild-Core() {
   if ($ci) {
     if (!$binaryLog) {
       throw "Binary log must be enabled in CI build."
