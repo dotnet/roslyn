@@ -1,0 +1,117 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Immutable;
+using System.ComponentModel.Composition;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.Client;
+using Microsoft.VisualStudio.LanguageServices.Remote;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+
+namespace Microsoft.VisualStudio.LanguageServices.Remote.Guest
+{
+    //[Export(typeof(IRemoteProjectInfoProvider))]
+    internal class RoslynRemoteProjectInfoProvider : IRemoteProjectInfoProvider
+    {
+        private const string SystemUriSchemeExternal = "vslsexternal";
+
+        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        //private readonly IVsRemoteWorkspaceManager _remoteWorkspaceManager;
+
+        [ImportingConstructor]
+        public RoslynRemoteProjectInfoProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)//, IVsRemoteWorkspaceManager remoteWorkspaceManager)
+        {
+            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            //_remoteWorkspaceManager = remoteWorkspaceManager ?? throw new ArgumentNullException(nameof(remoteWorkspaceManager));
+        }
+
+        public async Task<ImmutableArray<ProjectInfo>> GetRemoteProjectInfosAsync(CancellationToken cancellationToken)
+        {
+            /*if (!_remoteWorkspaceManager.IsRemoteSession)
+            {
+                return ImmutableArray<ProjectInfo>.Empty;
+            }*/
+
+            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            if (lspClient == null)
+            {
+                return ImmutableArray<ProjectInfo>.Empty;
+            }
+
+            LiveShare.CustomProtocol.Project[] projects;
+            try
+            {
+                var request = new LSP.LspRequest<object, LiveShare.CustomProtocol.Project[]>(LiveShare.CustomProtocol.RoslynMethods.ProjectsName);
+                projects = await lspClient.RequestAsync(request, new object(), cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                projects = null;
+            }
+
+            if (projects == null)
+            {
+                return ImmutableArray<ProjectInfo>.Empty;
+            }
+
+            var projectInfos = ImmutableArray.CreateBuilder<ProjectInfo>();
+            foreach (var project in projects)
+            {
+                // We don't want to add cshtml files to the workspace since the Roslyn will add the generated secondary buffer of a cshtml
+                // file to a different project but with the same path. This used to be ok in Dev15 but in Dev16 this confuses Roslyn and causes downstream
+                // issues. There's no need to add the actual cshtml file to the workspace - so filter those out.
+                var filesTasks = project.SourceFiles
+                    .Where(f => f.Scheme != SystemUriSchemeExternal)
+                    .Where(f => !f.LocalPath.EndsWith(".cshtml"))
+                    .Select(f => lspClient.ProtocolConverter.FromProtocolUriAsync(f, false, cancellationToken));
+                var files = await Task.WhenAll(filesTasks).ConfigureAwait(false);
+                string language;
+                switch (project.Language)
+                {
+                    case LanguageNames.CSharp:
+                        language = StringConstants.CSharpLspLanguageName;
+                        break;
+                    case LanguageNames.VisualBasic:
+                        language = StringConstants.VBLspLanguageName;
+                        break;
+                    default:
+                        language = project.Language;
+                        break;
+                }
+                var projectInfo = CreateProjectInfo(project.Name, language, files.Select(f => f.LocalPath).ToImmutableArray());
+                projectInfos.Add(projectInfo);
+            }
+
+            return projectInfos.ToImmutableArray();
+        }
+
+        private static ProjectInfo CreateProjectInfo(string projectName, string language, ImmutableArray<string> files)
+        {
+            var projectId = ProjectId.CreateNewId();
+            var docInfos = ImmutableArray.CreateBuilder<DocumentInfo>();
+
+            foreach (string file in files)
+            {
+                var fileName = Path.GetFileNameWithoutExtension(file);
+                var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(projectId),
+                    fileName,
+                    filePath: file,
+                    loader: new FileTextLoaderNoException(file, null));
+                docInfos.Add(docInfo);
+            }
+
+            return ProjectInfo.Create(
+                projectId,
+                VersionStamp.Create(),
+                projectName,
+                projectName,
+                language,
+                documents: docInfos.ToImmutable());
+        }
+    }
+}

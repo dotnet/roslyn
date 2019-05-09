@@ -28,24 +28,21 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             var languageServerGuestService = (ILanguageServerGuestService)collaborationSession.GetService(typeof(ILanguageServerGuestService));
 
-            // VS will expose a roslyn LSP server and VSCode will expose a "any" LSP provider and both support roslyn languages.
-            var roslynLspServerProviderName = LanguageServicesUtils.GetLanguageServerProviderServiceName(RoslynProviderName);
-            var anyLspServerProviderName = LanguageServicesUtils.GetLanguageServerProviderServiceName(AnyProviderName);
+            collaborationSession.RemoteServicesChanged += (object sender, RemoteServicesChangedEventArgs e) =>
+            {
+                // VS will expose a roslyn LSP server and VSCode will expose a "any" LSP provider and both support roslyn languages.
+                var roslynLspServerProviderName = LanguageServicesUtils.GetLanguageServerProviderServiceName(RoslynProviderName);
+                var anyLspServerProviderName = LanguageServicesUtils.GetLanguageServerProviderServiceName(AnyProviderName);
 
-            if (collaborationSession.RemoteServiceNames.Contains(roslynLspServerProviderName))
-            {
-                ActiveLanguageServerClient = languageServerGuestService.CreateLanguageServerClient(roslynLspServerProviderName);
-            }
-            else if (collaborationSession.RemoteServiceNames.Contains(anyLspServerProviderName))
-            {
-                ActiveLanguageServerClient = languageServerGuestService.CreateLanguageServerClient(anyLspServerProviderName);
-            }
-            else
-            {
-                // Host doesnt support roslyn languages.
-                return Task.FromResult<ICollaborationService>(null);
-            }
-
+                if (collaborationSession.RemoteServiceNames.Contains(roslynLspServerProviderName))
+                {
+                    ActiveLanguageServerClient = languageServerGuestService.CreateLanguageServerClient(roslynLspServerProviderName);
+                }
+                else if (collaborationSession.RemoteServiceNames.Contains(anyLspServerProviderName))
+                {
+                    ActiveLanguageServerClient = languageServerGuestService.CreateLanguageServerClient(anyLspServerProviderName);
+                }
+            };
 
             // Register Roslyn supported capabilities
             languageServerGuestService.RegisterClientMetadata(

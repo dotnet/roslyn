@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;

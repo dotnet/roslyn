@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
