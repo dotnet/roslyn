@@ -36,10 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
             Path.Combine("dependency", "vbc.exe"))
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
-        Private Shared ReadOnly s_compilerVersionWithoutHash As String =
-            GetType(CommandLineTests).Assembly.GetCustomAttribute(Of AssemblyInformationalVersionAttribute).InformationalVersion.Split("+"c)(0)
-        Private Shared ReadOnly s_compilerShortCommitHash As String =
-            CommonCompiler.ExtractShortCommitHash(GetType(CommandLineTests).Assembly.GetCustomAttribute(Of CommitHashAttribute).Hash)
+        Private Shared ReadOnly s_compilerVersionWithoutHash As String = CommonCompiler.GetInformationalVersionWithoutHash(GetType(CommandLineTests))
+        Private Shared ReadOnly s_compilerShortCommitHash As String = CommonCompiler.GetShortCommitHash(GetType(CommandLineTests))
 
         Private Shared Function DefaultParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)

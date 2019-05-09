@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
         public override DiagnosticFormatter DiagnosticFormatter => CSharpDiagnosticFormatter.Instance;
 
         public override string Logo
-            => string.Format(CSharpScriptingResources.LogoLine1, GetType().GetTypeInfo().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion.Split('+')[0]);
+            => string.Format(CSharpScriptingResources.LogoLine1, CommonCompiler.GetInformationalVersionWithoutHash(typeof(CSharpReplServiceProvider)));
 
         public override Script<T> CreateScript<T>(string code, ScriptOptions options, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoader)
             => CSharpScript.Create<T>(code, options, globalsTypeOpt, assemblyLoader);

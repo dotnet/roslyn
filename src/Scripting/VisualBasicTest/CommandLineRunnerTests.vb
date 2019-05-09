@@ -17,7 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
         Inherits TestBase
 
         Private Shared ReadOnly s_compilerVersionWithoutHash As String =
-            GetType(VisualBasicInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyInformationalVersionAttribute)().InformationalVersion.Split("+"c)(0)
+            CommonCompiler.GetInformationalVersionWithoutHash(GetType(VisualBasicInteractiveCompiler))
+
         Private Shared ReadOnly s_logoAndHelpPrompt As String =
             String.Format(VBScriptingResources.LogoLine1, s_compilerVersionWithoutHash) + vbNewLine + VBScriptingResources.LogoLine2 + "
 
