@@ -9840,7 +9840,6 @@ public struct D<T> where T : S
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
                 // (11,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         t = null; // warn
@@ -9869,15 +9868,15 @@ class C
         MyDelegate x1 = Method;
         MyDelegate x2 = FalseMethod;
         MyDelegate x4 = NullableReturnMethod; // warn 1
-        MyDelegate x5 = NullableParameterMethod; // warn 2
+        MyDelegate x5 = NullableParameterMethod;
         MyFalseDelegate y1 = Method;
         MyFalseDelegate y2 = FalseMethod;
         MyFalseDelegate y4 = NullableReturnMethod;
         MyFalseDelegate y5 = NullableParameterMethod;
-        MyNullableDelegate z1 = Method; // warn 3
+        MyNullableDelegate z1 = Method; // warn 2
         MyNullableDelegate z2 = FalseMethod;
-        MyNullableDelegate z4 = NullableReturnMethod; // warn 4
-        MyNullableDelegate z5 = NullableParameterMethod; // warn 5
+        MyNullableDelegate z4 = NullableReturnMethod; // warn 3
+        MyNullableDelegate z5 = NullableParameterMethod;
      }
 
 " + NonNullTypesOn() + @"
@@ -9892,20 +9891,17 @@ class C
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
                 // (18,25): warning CS8621: Nullability of reference types in return type of 'string[]? C.NullableReturnMethod(string[] x)' doesn't match the target delegate 'MyDelegate'.
                 //         MyDelegate x4 = NullableReturnMethod; // warn 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "NullableReturnMethod").WithArguments("string[]? C.NullableReturnMethod(string[] x)", "MyDelegate").WithLocation(18, 25),
                 // (24,33): warning CS8622: Nullability of reference types in type of parameter 'x' of 'string[] C.Method(string[] x)' doesn't match the target delegate 'MyNullableDelegate'.
-                //         MyNullableDelegate z1 = Method; // warn 3
+                //         MyNullableDelegate z1 = Method; // warn 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Method").WithArguments("x", "string[] C.Method(string[] x)", "MyNullableDelegate").WithLocation(24, 33),
                 // (26,33): warning CS8622: Nullability of reference types in type of parameter 'x' of 'string[]? C.NullableReturnMethod(string[] x)' doesn't match the target delegate 'MyNullableDelegate'.
-                //         MyNullableDelegate z4 = NullableReturnMethod; // warn 4
+                //         MyNullableDelegate z4 = NullableReturnMethod; // warn 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "NullableReturnMethod").WithArguments("x", "string[]? C.NullableReturnMethod(string[] x)", "MyNullableDelegate").WithLocation(26, 33)
                 );
-
-            // https://github.com/dotnet/roslyn/issues/29844: Missing warnings 2 and 5
         }
 
         [Fact]
@@ -9946,7 +9942,6 @@ public class E
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
                 // (27,15): warning CS8604: Possible null reference argument for parameter 'x' in 'C.C(string[] x)'.
                 //         new C(nullableField); // warn
@@ -33548,6 +33543,30 @@ class Program
                 // (7,28): warning CS8603: Possible null reference return.
                 //         _ = new D<T>(() => F<T?>())!; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "F<T?>()").WithLocation(7, 28));
+        }
+
+        [Fact]
+        public void DelegateCreation_09()
+        {
+            var source =
+@"delegate void D();
+class C
+{
+    void F() { }
+    static void M()
+    {
+        D d = default(C).F; // 1
+        _ = new D(default(C).F); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,15): warning CS8602: Dereference of a possibly null reference.
+                //         D d = default(C).F; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(C)").WithLocation(7, 15),
+                // (8,19): warning CS8602: Dereference of a possibly null reference.
+                //         _ = new D(default(C).F); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(C)").WithLocation(8, 19));
         }
 
         [Fact]
@@ -72884,14 +72903,10 @@ static class E
     internal static void F2(this C? c) { }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/30563: Should not report "CS8602: Possible dereference" for y.F2.
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Dereference of a possibly null reference.
                 //         d = x.F1; // warning
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
-                // (9,13): warning CS8602: Dereference of a possibly null reference.
-                //         d = y.F2; // ok
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13));
         }
 
         [WorkItem(30563, "https://github.com/dotnet/roslyn/issues/30563")]
@@ -72919,15 +72934,16 @@ static class E
     internal static void F(this C x) { }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/30563: Should not report "CS8602: Possible dereference"
-            // for F2(y.F). Should report "CS8604: Possible null reference argument" instead.
             comp.VerifyDiagnostics(
                 // (10,12): warning CS8602: Dereference of a possibly null reference.
                 //         F1(x.F); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 12),
-                // (12,12): warning CS8602: Dereference of a possibly null reference.
+                // (12,12): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F(C x)'.
                 //         F2(y.F); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(12, 12));
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F(C x)").WithLocation(12, 12),
+                // (13,12): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F(C x)'.
+                //         F2(y.F); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F(C x)").WithLocation(13, 12));
         }
 
         [WorkItem(33637, "https://github.com/dotnet/roslyn/issues/33637")]
@@ -95922,6 +95938,293 @@ class C
                 //         IEnumerable<IEnumerable<string>> x5 = new[] { new[] { "string" , null } }; // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, @"new[] { new[] { ""string"" , null } }").WithArguments("string?[][]", "System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<string>>").WithLocation(11, 47)
                 );
+        }
+
+        [Fact]
+        [WorkItem(30563, "https://github.com/dotnet/roslyn/issues/30563")]
+        public void ExtensionMethodDelegate_01()
+        {
+            var source =
+@"delegate void D0();
+delegate void D1<T>(T t);
+static class E
+{
+    internal static void F<T>(this T t) { }
+}
+class Program
+{
+    static void M0(string? x, string y)
+    {
+        D0 d;
+        d = x.F;
+        d = x.F<string?>;
+        d = x.F<string>; // 1
+        d = y.F;
+        d = y.F<string?>;
+        d = y.F<string>;
+    }
+    static void M1()
+    {
+        D1<string?> d;
+        D1<string> e;
+        d = E.F<string?>;
+        d = E.F<string>; // 2
+        e = E.F<string?>;
+        e = E.F<string>;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,13): warning CS8604: Possible null reference argument for parameter 't' in 'void E.F<string>(string t)'.
+                //         d = x.F<string>; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("t", "void E.F<string>(string t)").WithLocation(14, 13),
+                // (24,13): warning CS8622: Nullability of reference types in type of parameter 't' of 'void E.F<string>(string t)' doesn't match the target delegate 'D1<string?>'.
+                //         d = E.F<string>; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "E.F<string>").WithArguments("t", "void E.F<string>(string t)", "D1<string?>").WithLocation(24, 13));
+        }
+
+        [Fact]
+        public void ExtensionMethodDelegate_02()
+        {
+            var source =
+@"delegate void D0();
+delegate void D1<T>(T t);
+static class E
+{
+    internal static void F<T>(this T t) { }
+}
+class Program
+{
+    static void M0(string? x, string y)
+    {
+        _ = new D0(x.F);
+        _ = new D0(x.F<string?>);
+        _ = new D0(x.F<string>); // 1
+        _ = new D0(y.F);
+        _ = new D0(y.F<string?>);
+        _ = new D0(y.F<string>);
+    }
+    static void M1()
+    {
+        _ = new D1<string?>(E.F<string?>);
+        _ = new D1<string?>(E.F<string>); // 2
+        _ = new D1<string>(E.F<string?>);
+        _ = new D1<string>(E.F<string>);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,20): warning CS8604: Possible null reference argument for parameter 't' in 'void E.F<string>(string t)'.
+                //         _ = new D0(x.F<string>); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("t", "void E.F<string>(string t)").WithLocation(13, 20),
+                // (21,29): warning CS8622: Nullability of reference types in type of parameter 't' of 'void E.F<string>(string t)' doesn't match the target delegate 'D1<string?>'.
+                //         _ = new D1<string?>(E.F<string>); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "E.F<string>").WithArguments("t", "void E.F<string>(string t)", "D1<string?>").WithLocation(21, 29));
+        }
+
+        [Fact]
+        [WorkItem(30287, "https://github.com/dotnet/roslyn/issues/30287")]
+        [WorkItem(30563, "https://github.com/dotnet/roslyn/issues/30563")]
+        public void ExtensionMethodDelegate_03()
+        {
+            var source =
+@"delegate void D<in T>(T t);
+static class E
+{
+    internal static void F<T>(this T t, int i) { }
+}
+class Program
+{
+    static void M(string? x, string y)
+    {
+        D<int> d;
+        d = x.F;
+        d = x.F<string?>;
+        d = x.F<string>; // 1
+        d = y.F;
+        d = y.F<string?>;
+        d = y.F<string>;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8604: Possible null reference argument for parameter 't' in 'void E.F<string>(string t, int i)'.
+                //         d = x.F<string>; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("t", "void E.F<string>(string t, int i)").WithLocation(13, 13));
+        }
+
+        [Fact]
+        [WorkItem(30287, "https://github.com/dotnet/roslyn/issues/30287")]
+        public void ExtensionMethodDelegate_04()
+        {
+            var source =
+@"delegate void D<in T>(T t);
+static class E
+{
+    internal static void F<T>(this T t, int i) { }
+}
+class Program
+{
+    static void M(string? x, string y)
+    {
+        _ = new D<int>(x.F);
+        _ = new D<int>(x.F<string?>);
+        _ = new D<int>(x.F<string>); // 1
+        _ = new D<int>(y.F);
+        _ = new D<int>(y.F<string?>);
+        _ = new D<int>(y.F<string>);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,24): warning CS8604: Possible null reference argument for parameter 't' in 'void E.F<string>(string t, int i)'.
+                //         _ = new D<int>(x.F<string>); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("t", "void E.F<string>(string t, int i)").WithLocation(12, 24));
+        }
+
+        [Fact]
+        [WorkItem(30287, "https://github.com/dotnet/roslyn/issues/30287")]
+        [WorkItem(30563, "https://github.com/dotnet/roslyn/issues/30563")]
+        public void ExtensionMethodDelegate_05()
+        {
+            var source =
+@"delegate void D<in T>(T t);
+static class E
+{
+    internal static void F<T, U>(this T t, U u) { }
+}
+class Program
+{
+    static void M(string? x, string y)
+    {
+        D<string?> d;
+        D<string> e;
+        d = x.F<string?, string?>;
+        e = x.F<string?, string>;
+        d = x.F<string, string?>; // 1
+        e = x.F<string, string>; // 2
+        d = y.F<string?, string?>;
+        e = y.F<string?, string>;
+        d = y.F<string, string?>;
+        e = y.F<string, string>;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,13): warning CS8604: Possible null reference argument for parameter 't' in 'void E.F<string, string?>(string t, string? u)'.
+                //         d = x.F<string, string?>; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("t", "void E.F<string, string?>(string t, string? u)").WithLocation(14, 13),
+                // (15,13): warning CS8604: Possible null reference argument for parameter 't' in 'void E.F<string, string>(string t, string u)'.
+                //         e = x.F<string, string>; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("t", "void E.F<string, string>(string t, string u)").WithLocation(15, 13));
+        }
+
+        [Fact]
+        [WorkItem(30287, "https://github.com/dotnet/roslyn/issues/30287")]
+        public void ExtensionMethodDelegate_06()
+        {
+            var source =
+@"delegate void D<in T>(T t);
+static class E
+{
+    internal static void F<T, U>(this T t, U u) { }
+}
+class Program
+{
+    static void M(string? x, string y)
+    {
+        _ = new D<string?>(x.F<string?, string?>);
+        _ = new D<string>(x.F<string?, string>);
+        _ = new D<string?>(x.F<string, string?>); // 1
+        _ = new D<string>(x.F<string, string>); // 2
+        _ = new D<string?>(y.F<string?, string?>);
+        _ = new D<string>(y.F<string?, string>);
+        _ = new D<string?>(y.F<string, string?>);
+        _ = new D<string>(y.F<string, string>);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,28): warning CS8604: Possible null reference argument for parameter 't' in 'void E.F<string, string?>(string t, string? u)'.
+                //         _ = new D<string?>(x.F<string, string?>); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("t", "void E.F<string, string?>(string t, string? u)").WithLocation(12, 28),
+                // (13,27): warning CS8604: Possible null reference argument for parameter 't' in 'void E.F<string, string>(string t, string u)'.
+                //         _ = new D<string>(x.F<string, string>); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("t", "void E.F<string, string>(string t, string u)").WithLocation(13, 27));
+        }
+
+        [Fact]
+        [WorkItem(30563, "https://github.com/dotnet/roslyn/issues/30563")]
+        public void ExtensionMethodDelegate_07()
+        {
+            var source =
+@"delegate void D();
+static class E
+{
+    internal static void F<T>(this T t) { }
+}
+class Program
+{
+    static void M<T, U, V>()
+        where U : class
+        where V : struct
+    {
+        D d;
+        d = default(T).F;
+        d = default(U).F;
+        d = default(V).F;
+        d = default(V?).F;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,13): error CS1113: Extension method 'E.F<T>(T)' defined on value type 'T' cannot be used to create delegates
+                //         d = default(T).F;
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "default(T).F").WithArguments("E.F<T>(T)", "T").WithLocation(13, 13),
+                // (13,13): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                //         d = default(T).F;
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(13, 13),
+                // (15,13): error CS1113: Extension method 'E.F<V>(V)' defined on value type 'V' cannot be used to create delegates
+                //         d = default(V).F;
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "default(V).F").WithArguments("E.F<V>(V)", "V").WithLocation(15, 13),
+                // (16,13): error CS1113: Extension method 'E.F<V?>(V?)' defined on value type 'V?' cannot be used to create delegates
+                //         d = default(V?).F;
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "default(V?).F").WithArguments("E.F<V?>(V?)", "V?").WithLocation(16, 13));
+        }
+
+        [Fact]
+        [WorkItem(30563, "https://github.com/dotnet/roslyn/issues/30563")]
+        public void ExtensionMethodDelegate_08()
+        {
+            var source =
+@"delegate void D();
+static class E
+{
+    internal static void F<T>(this T t) { }
+}
+class Program
+{
+    static void M<T, U, V>()
+        where U : class
+        where V : struct
+    {
+        _ = new D(default(T).F);
+        _ = new D(default(U).F);
+        _ = new D(default(V).F);
+        _ = new D(default(V?).F);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,19): error CS1113: Extension method 'E.F<T>(T)' defined on value type 'T' cannot be used to create delegates
+                //         _ = new D(default(T).F);
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "default(T).F").WithArguments("E.F<T>(T)", "T").WithLocation(12, 19),
+                // (14,19): error CS1113: Extension method 'E.F<V>(V)' defined on value type 'V' cannot be used to create delegates
+                //         _ = new D(default(V).F);
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "default(V).F").WithArguments("E.F<V>(V)", "V").WithLocation(14, 19),
+                // (15,19): error CS1113: Extension method 'E.F<V?>(V?)' defined on value type 'V?' cannot be used to create delegates
+                //         _ = new D(default(V?).F);
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "default(V?).F").WithArguments("E.F<V?>(V?)", "V?").WithLocation(15, 19));
         }
     }
 }
