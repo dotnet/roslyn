@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
             Path.Combine("dependency", "csc.exe"));
 
-        private static readonly string s_compilerVersionWithoutHash = CommonCompiler.GetInformationalVersionWithoutHash(typeof(CommandLineTests));
-        private static readonly string s_compilerShortCommitHash = CommonCompiler.GetShortCommitHash(typeof(CommandLineTests));
+        private static readonly string s_compilerVersion = CommonCompiler.GetProductVersion(typeof(CommandLineTests));
 
         private class TestCommandLineParser : CSharpCommandLineParser
         {
@@ -8079,7 +8078,7 @@ class Program3
 
             var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/target:library /debug:portable {libSrc.Path}", startFolder: dir.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Microsoft (R) Visual C# Compiler version {s_compilerVersionWithoutHash} ({s_compilerShortCommitHash })
+Microsoft (R) Visual C# Compiler version {s_compilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             // reading original content from the memory map:
@@ -10239,7 +10238,6 @@ class Runner
         public void Version()
         {
             var folderName = Temp.CreateDirectory().ToString();
-            var expected = $"{s_compilerVersionWithoutHash} ({s_compilerShortCommitHash})";
             var argss = new[]
             {
                 "/version",
@@ -10251,7 +10249,7 @@ class Runner
             foreach (var args in argss)
             {
                 var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, args, startFolder: folderName);
-                Assert.Equal(expected, output.Trim());
+                Assert.Equal(s_compilerVersion, output.Trim());
             }
         }
 

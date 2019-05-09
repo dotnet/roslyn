@@ -193,19 +193,19 @@ s_logoAndHelpPrompt + "
         Public Sub Version()
             Dim runner = CreateRunner({"/version"})
             Assert.Equal(0, runner.RunInteractive())
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersionWithoutHash, runner.Console.Out.ToString())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
 
             runner = CreateRunner({"/version", "/help"})
             Assert.Equal(0, runner.RunInteractive())
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersionWithoutHash, runner.Console.Out.ToString())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
 
             runner = CreateRunner({"/version", "/r:somefile"})
             Assert.Equal(0, runner.RunInteractive())
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersionWithoutHash, runner.Console.Out.ToString())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
 
             runner = CreateRunner({"/version", "/nologo"})
             Assert.Equal(0, runner.RunInteractive())
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersionWithoutHash, runner.Console.Out.ToString())
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString())
         End Sub
 
     End Class
