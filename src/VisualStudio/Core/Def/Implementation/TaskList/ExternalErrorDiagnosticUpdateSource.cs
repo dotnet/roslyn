@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
@@ -178,6 +179,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     return;
                 }
+
+                // explicitly start solution crawler if it didn't start yet.
+                // we have a bug where we don't start solution cralwer until a file is opened (package is loaded)
+                // https://github.com/dotnet/roslyn/issues/35514
+                // until that is fixed, we need to do this for the case where user build solution right after opening solution
+                // without any file opened. "EnsureRegistration" is no-op if same workspace is already registered.
+                //
+                // here we give initializeLazily: false so that solution crawler is fully initialized when we do de-dup live and build errors
+                var registrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+                registrationService.EnsureRegistration(_workspace, initializeLazily: false);
 
                 _lastBuiltResult = inprogressState.GetBuildDiagnostics();
 
