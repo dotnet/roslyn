@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig,
                   pessimisticAnalysis, predicateAnalysis: true, exceptionPathsAnalysis: false, copyAnalysisResultOpt,
-                  pointsToAnalysisResultOpt, getOrComputeAnalysisResult, parentControlFlowGraphOpt,
+                  pointsToAnalysisResultOpt, valueContentAnalysisResultOpt: null, getOrComputeAnalysisResult, parentControlFlowGraphOpt,
                   interproceduralAnalysisDataOpt, interproceduralAnalysisPredicateOpt)
         {
         }
@@ -62,8 +63,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             IOperation operation,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             CopyAnalysisResult copyAnalysisResultOpt,
+            ValueContentAnalysisResult valueContentAnalysisResultOpt,
             InterproceduralValueContentAnalysisData interproceduralAnalysisData)
         {
+            Debug.Assert(valueContentAnalysisResultOpt == null);
+
             return new ValueContentAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, InterproceduralAnalysisConfiguration,
                 PessimisticAnalysis, copyAnalysisResultOpt, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
                 InterproceduralAnalysisPredicateOpt);
