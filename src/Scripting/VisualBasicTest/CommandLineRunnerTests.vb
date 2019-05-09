@@ -16,11 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
     Public Class CommandLineRunnerTests
         Inherits TestBase
 
-        Private Shared ReadOnly s_compilerVersionWithoutHash As String =
-            CommonCompiler.GetInformationalVersionWithoutHash(GetType(VisualBasicInteractiveCompiler))
+        Private Shared ReadOnly s_compilerVersion As String =
+            CommonCompiler.GetProductVersion(GetType(VisualBasicInteractiveCompiler))
 
         Private Shared ReadOnly s_logoAndHelpPrompt As String =
-            String.Format(VBScriptingResources.LogoLine1, s_compilerVersionWithoutHash) + vbNewLine + VBScriptingResources.LogoLine2 + "
+            String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine + VBScriptingResources.LogoLine2 + "
 
 " + ScriptingResources.HelpPrompt
 

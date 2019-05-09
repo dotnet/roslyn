@@ -136,10 +136,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal string GetCompilerVersion()
         {
-            return GetCompilerVersion(Type);
+            return GetProductVersion(Type);
         }
 
-        internal static string GetCompilerVersion(Type type)
+        internal static string GetProductVersion(Type type)
         {
             string assemblyVersion = GetInformationalVersionWithoutHash(type);
             string hash = GetShortCommitHash(type);
@@ -157,14 +157,14 @@ namespace Microsoft.CodeAnalysis
             return hash;
         }
 
-        internal static string GetInformationalVersionWithoutHash(Type type)
+        private static string GetInformationalVersionWithoutHash(Type type)
         {
             // The attribute stores a SemVer2-formatted string: `A.B.C(-...)?(+...)?`
             // We remove the section after the + (if any is present)
             return type.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0];
         }
 
-        internal static string GetShortCommitHash(Type type)
+        private static string GetShortCommitHash(Type type)
         {
             var hash = type.Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
             return ExtractShortCommitHash(hash);

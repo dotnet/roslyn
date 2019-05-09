@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 
         Public Overrides ReadOnly Property Logo As String
             Get
-                Return String.Format(VBScriptingResources.LogoLine1, CommonCompiler.GetInformationalVersionWithoutHash(GetType(VisualBasicReplServiceProvider)))
+                Return String.Format(VBScriptingResources.LogoLine1, CommonCompiler.GetProductVersion(GetType(VisualBasicReplServiceProvider)))
             End Get
         End Property
 

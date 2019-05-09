@@ -36,8 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
             Path.Combine("dependency", "vbc.exe"))
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
-        Private Shared ReadOnly s_compilerVersionWithoutHash As String = CommonCompiler.GetInformationalVersionWithoutHash(GetType(CommandLineTests))
-        Private Shared ReadOnly s_compilerShortCommitHash As String = CommonCompiler.GetShortCommitHash(GetType(CommandLineTests))
+        Private Shared ReadOnly s_compilerVersion As String = CommonCompiler.GetProductVersion(GetType(CommandLineTests))
 
         Private Shared Function DefaultParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
@@ -6051,7 +6050,7 @@ PATH(6) : error BC30203: Identifier expected.
         End Sub
 
         Private Shared Function ReplacePathAndVersionAndHash(result As XElement, file As TempFile) As String
-            Return result.Value.Replace("PATH", file.Path).Replace("VERSION", s_compilerVersionWithoutHash).Replace("HASH", s_compilerShortCommitHash).Replace(vbLf, vbCrLf)
+            Return result.Value.Replace("PATH", file.Path).Replace("VERSION (HASH)", s_compilerVersion).Replace(vbLf, vbCrLf)
         End Function
 
         <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
@@ -8909,7 +8908,6 @@ End Class
         <Fact()>
         Public Sub Version()
             Dim folderName = Temp.CreateDirectory().ToString()
-            Dim expected As String = $"{s_compilerVersionWithoutHash} ({s_compilerShortCommitHash})"
 
             Dim argss = {
                 "/version",
@@ -8919,7 +8917,7 @@ End Class
 
             For Each args In argss
                 Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, args, startFolder:=folderName)
-                Assert.Equal(expected, output.Trim())
+                Assert.Equal(s_compilerVersion, output.Trim())
             Next
         End Sub
 
