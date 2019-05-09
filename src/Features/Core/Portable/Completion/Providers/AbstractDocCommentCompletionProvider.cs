@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 items.AddRange(GetParameterItems(symbol.GetParameters(), syntax, ParameterElementName));
                 items.AddRange(GetParameterItems(symbol.GetTypeParameters(), syntax, TypeParameterElementName));
 
-                if (symbol is IPropertySymbol property && !existingTopLevelTags.Contains(ValueElementName))
+                if (symbol is IPropertySymbol && !existingTopLevelTags.Contains(ValueElementName))
                 {
                     items.Add(GetItem(ValueElementName));
                 }
