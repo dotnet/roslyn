@@ -96493,6 +96493,55 @@ class Program
         }
 
         [Fact]
+        [WorkItem(35274, "https://github.com/dotnet/roslyn/issues/35274")]
+        public void DelegateInferredNullability_05()
+        {
+            var source =
+@"delegate T D<T>();
+class C<T>
+{
+    internal T F() => throw null!;
+}
+class Program
+{
+    static C<T> Create<T>(T t) => new C<T>();
+    static void Main()
+    {
+        string? s = null;
+        var x = Create(s);
+        C<string?> y = Create(s);
+        D<string> d;
+        d = Create(s).F; // 1
+        d = x.F; // 2
+        d = y.F; // 3
+        _ = new D<string>(Create(s).F); // 4
+        _ = new D<string>(x.F); // 5
+        _ = new D<string>(y.F); // 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,13): warning CS8621: Nullability of reference types in return type of 'string? C<string?>.F()' doesn't match the target delegate 'D<string>'.
+                //         d = Create(s).F; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Create(s).F").WithArguments("string? C<string?>.F()", "D<string>").WithLocation(15, 13),
+                // (16,13): warning CS8621: Nullability of reference types in return type of 'string? C<string?>.F()' doesn't match the target delegate 'D<string>'.
+                //         d = x.F; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "x.F").WithArguments("string? C<string?>.F()", "D<string>").WithLocation(16, 13),
+                // (17,13): warning CS8621: Nullability of reference types in return type of 'string? C<string?>.F()' doesn't match the target delegate 'D<string>'.
+                //         d = y.F; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "y.F").WithArguments("string? C<string?>.F()", "D<string>").WithLocation(17, 13),
+                // (18,27): warning CS8621: Nullability of reference types in return type of 'string? C<string?>.F()' doesn't match the target delegate 'D<string>'.
+                //         _ = new D<string>(Create(s).F); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Create(s).F").WithArguments("string? C<string?>.F()", "D<string>").WithLocation(18, 27),
+                // (19,27): warning CS8621: Nullability of reference types in return type of 'string? C<string?>.F()' doesn't match the target delegate 'D<string>'.
+                //         _ = new D<string>(x.F); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "x.F").WithArguments("string? C<string?>.F()", "D<string>").WithLocation(19, 27),
+                // (20,27): warning CS8621: Nullability of reference types in return type of 'string? C<string?>.F()' doesn't match the target delegate 'D<string>'.
+                //         _ = new D<string>(y.F); // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "y.F").WithArguments("string? C<string?>.F()", "D<string>").WithLocation(20, 27));
+        }
+
+        [Fact]
         [WorkItem(33637, "https://github.com/dotnet/roslyn/issues/33637")]
         public void ExtensionMethodDelegateInferredNullability_01()
         {
@@ -96651,8 +96700,60 @@ class Program
         }
 
         [Fact]
-        [WorkItem(33637, "https://github.com/dotnet/roslyn/issues/33637")]
+        [WorkItem(35274, "https://github.com/dotnet/roslyn/issues/35274")]
         public void ExtensionMethodDelegateInferredNullability_05()
+        {
+            var source =
+@"delegate T D<T>();
+class C<T>
+{
+}
+static class E
+{
+    internal static T F<T>(this C<T> c) => throw null!;
+}
+class Program
+{
+    static C<T> Create<T>(T t) => new C<T>();
+    static void Main()
+    {
+        string? s = null;
+        var x = Create(s);
+        C<string?> y = Create(s);
+        D<string> d;
+        d = Create(s).F; // 1
+        d = x.F; // 2
+        d = y.F; // 3
+        _ = new D<string>(Create(s).F); // 4
+        _ = new D<string>(x.F); // 5
+        _ = new D<string>(y.F); // 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (18,13): warning CS8621: Nullability of reference types in return type of 'string? E.F<string?>(C<string?> c)' doesn't match the target delegate 'D<string>'.
+                //         d = Create(s).F; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Create(s).F").WithArguments("string? E.F<string?>(C<string?> c)", "D<string>").WithLocation(18, 13),
+                // (19,13): warning CS8621: Nullability of reference types in return type of 'string? E.F<string?>(C<string?> c)' doesn't match the target delegate 'D<string>'.
+                //         d = x.F; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "x.F").WithArguments("string? E.F<string?>(C<string?> c)", "D<string>").WithLocation(19, 13),
+                // (20,13): warning CS8621: Nullability of reference types in return type of 'string? E.F<string?>(C<string?> c)' doesn't match the target delegate 'D<string>'.
+                //         d = y.F; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "y.F").WithArguments("string? E.F<string?>(C<string?> c)", "D<string>").WithLocation(20, 13),
+                // (21,27): warning CS8621: Nullability of reference types in return type of 'string? E.F<string?>(C<string?> c)' doesn't match the target delegate 'D<string>'.
+                //         _ = new D<string>(Create(s).F); // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "Create(s).F").WithArguments("string? E.F<string?>(C<string?> c)", "D<string>").WithLocation(21, 27),
+                // (22,27): warning CS8621: Nullability of reference types in return type of 'string? E.F<string?>(C<string?> c)' doesn't match the target delegate 'D<string>'.
+                //         _ = new D<string>(x.F); // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "x.F").WithArguments("string? E.F<string?>(C<string?> c)", "D<string>").WithLocation(22, 27),
+                // (23,27): warning CS8621: Nullability of reference types in return type of 'string? E.F<string?>(C<string?> c)' doesn't match the target delegate 'D<string>'.
+                //         _ = new D<string>(y.F); // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "y.F").WithArguments("string? E.F<string?>(C<string?> c)", "D<string>").WithLocation(23, 27));
+        }
+
+        [Fact]
+        [WorkItem(33637, "https://github.com/dotnet/roslyn/issues/33637")]
+        public void ExtensionMethodDelegateInferredNullability_06()
         {
             var source =
 @"delegate T D<T>();
