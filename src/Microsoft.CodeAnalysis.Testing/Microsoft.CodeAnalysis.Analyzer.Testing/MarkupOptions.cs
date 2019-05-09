@@ -20,6 +20,6 @@ namespace Microsoft.CodeAnalysis.Testing
         /// option is not specified and the markup parser will fail when the syntax does not represent a <em>unique</em>
         /// descriptor.
         /// </summary>
-        PreferFirstDescriptor = 0x0001,
+        UseFirstDescriptor = 0x0001,
     }
 }

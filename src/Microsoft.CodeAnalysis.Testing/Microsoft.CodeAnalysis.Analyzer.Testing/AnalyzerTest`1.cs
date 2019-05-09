@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <summary>
         /// Gets the default diagnostic to use during markup processing. By default, the <em>single</em> diagnostic of
         /// the first analyzer is used, and no default diagonostic is available if multiple diagnostics are provided by
-        /// the analyzer. If <see cref="MarkupOptions.PreferFirstDescriptor"/> is used, the first available diagnostic
+        /// the analyzer. If <see cref="MarkupOptions.UseFirstDescriptor"/> is used, the first available diagnostic
         /// is used.
         /// </summary>
         /// <param name="analyzers">The analyzers to consider.</param>
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 return null;
             }
 
-            if (MarkupOptions.HasFlag(MarkupOptions.PreferFirstDescriptor))
+            if (MarkupOptions.HasFlag(MarkupOptions.UseFirstDescriptor))
             {
                 foreach (var analyzer in analyzers)
                 {

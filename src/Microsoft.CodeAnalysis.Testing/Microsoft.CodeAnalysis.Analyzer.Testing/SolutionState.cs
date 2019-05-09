@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 if (defaultDiagnostic is null)
                 {
-                    throw new InvalidOperationException($"Markup syntax can only omit the diagnostic ID if the first analyzer only supports a single diagnostic. To customize the default value, override {nameof(AnalyzerTest<DefaultVerifier>)}<TVerifier>.{nameof(AnalyzerTest<DefaultVerifier>.GetDefaultDiagnostic)} or specify {nameof(MarkupOptions)}.{nameof(MarkupOptions.PreferFirstDescriptor)}.");
+                    throw new InvalidOperationException($"Markup syntax can only omit the diagnostic ID if the first analyzer only supports a single diagnostic. To customize the default value, override {nameof(AnalyzerTest<DefaultVerifier>)}<TVerifier>.{nameof(AnalyzerTest<DefaultVerifier>.GetDefaultDiagnostic)} or specify {nameof(MarkupOptions)}.{nameof(MarkupOptions.UseFirstDescriptor)}.");
                 }
 
                 if (MarkupHandling == MarkupMode.IgnoreFixable && fixableDiagnostics.Contains(defaultDiagnostic.Id))
@@ -410,10 +410,10 @@ namespace Microsoft.CodeAnalysis.Testing
                 var descriptor = descriptors.FirstOrDefault();
                 if (descriptor != null)
                 {
-                    if (!markupOptions.HasFlag(MarkupOptions.PreferFirstDescriptor)
+                    if (!markupOptions.HasFlag(MarkupOptions.UseFirstDescriptor)
                         && descriptors.Skip(1).Any())
                     {
-                        throw new InvalidOperationException($"Multiple diagnostic descriptors with ID {diagnosticId} were found. Use the explicitly diagnostic creation syntax or specify {nameof(MarkupOptions)}.{nameof(MarkupOptions.PreferFirstDescriptor)} to use the first matching diagnostic.");
+                        throw new InvalidOperationException($"Multiple diagnostic descriptors with ID {diagnosticId} were found. Use the explicitly diagnostic creation syntax or specify {nameof(MarkupOptions)}.{nameof(MarkupOptions.UseFirstDescriptor)} to use the first matching diagnostic.");
                     }
 
                     diagnosticResult = new DiagnosticResult(descriptor);

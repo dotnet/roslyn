@@ -80,7 +80,7 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync());
 
-            var expected = "Markup syntax can only omit the diagnostic ID if the first analyzer only supports a single diagnostic. To customize the default value, override AnalyzerTest<TVerifier>.GetDefaultDiagnostic or specify MarkupOptions.PreferFirstDescriptor.";
+            var expected = "Markup syntax can only omit the diagnostic ID if the first analyzer only supports a single diagnostic. To customize the default value, override AnalyzerTest<TVerifier>.GetDefaultDiagnostic or specify MarkupOptions.UseFirstDescriptor.";
             Assert.Equal(expected, exception.Message);
         }
 
@@ -97,7 +97,7 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: true, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode }.RunAsync());
 
-            var expected = "Multiple diagnostic descriptors with ID Brace were found. Use the explicitly diagnostic creation syntax or specify MarkupOptions.PreferFirstDescriptor to use the first matching diagnostic.";
+            var expected = "Multiple diagnostic descriptors with ID Brace were found. Use the explicitly diagnostic creation syntax or specify MarkupOptions.UseFirstDescriptor to use the first matching diagnostic.";
             Assert.Equal(expected, exception.Message);
         }
 
@@ -112,7 +112,7 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
 }
 ";
 
-            await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode, MarkupOptions = MarkupOptions.PreferFirstDescriptor }.RunAsync();
+            await new CSharpTest(nestedDiagnostics: true, hiddenDescriptors: false, reportAdditionalLocations: reportAdditionalLocations) { TestCode = testCode, MarkupOptions = MarkupOptions.UseFirstDescriptor }.RunAsync();
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
