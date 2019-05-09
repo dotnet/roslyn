@@ -783,5 +783,41 @@ class E
             Assert.Equal(notNullable, creationInfo.Nullability);
             Assert.Equal(nullable, creationInfo.ConvertedNullability);
         }
+
+        [Fact]
+        public void ConditionalOperator_InvalidType()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var x = new Undefined() ? new object() : null;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS0246: The type or namespace name 'Undefined' could not be found (are you missing a using directive or an assembly reference?)
+                //         var x = new Undefined() ? new object() : null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Undefined").WithArguments("Undefined").WithLocation(6, 21));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var conditional = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+
+            var notNull = new NullabilityInfo(PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.NotNull);
+            var @null = new NullabilityInfo(PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
+
+            var leftInfo = model.GetTypeInfo(conditional.WhenTrue);
+            var rightInfo = model.GetTypeInfo(conditional.WhenFalse);
+
+            Assert.Equal(notNull, leftInfo.Nullability);
+            Assert.Equal(notNull, leftInfo.ConvertedNullability);
+            Assert.Equal(@null, rightInfo.Nullability);
+            Assert.Equal(notNull, rightInfo.ConvertedNullability);
+        }
     }
 }

@@ -2572,8 +2572,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 resultType = node.Type.SetUnknownNullabilityForReferenceTypes();
                 resultState = NullableFlowState.NotNull;
-                Debug.Assert(node.Consequence == consequence);
-                Debug.Assert(node.Alternative == alternative);
+
+                var resultTypeWithState = TypeWithState.Create(resultType, resultState);
+
+                if (consequence != node.Consequence)
+                {
+                    TrackAnalyzedNullabilityThroughConversionGroup(resultTypeWithState, (BoundConversion)node.Consequence, consequence);
+                }
+
+                if (alternative != node.Alternative)
+                {
+                    TrackAnalyzedNullabilityThroughConversionGroup(resultTypeWithState, (BoundConversion)node.Alternative, alternative);
+                }
             }
             else
             {
@@ -4203,7 +4213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case ConversionKind.MethodGroup:
                     {
-                        var receiverOpt = ((BoundMethodGroup)convertedNode)?.ReceiverOpt;
+                        var receiverOpt = ((BoundMethodGroup)conversionOperand)?.ReceiverOpt;
                         // https://github.com/dotnet/roslyn/issues/33637: Should update method based on inferred receiver type.
                         var method = conversion.Method;
                         if (TryGetMethodGroupReceiverNullability(receiverOpt, out TypeWithState receiverType))
