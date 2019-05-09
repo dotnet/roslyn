@@ -4806,19 +4806,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (TryGetMethodGroupReceiverNullability(receiverOpt, out TypeWithState receiverType))
             {
                 var syntax = group.Syntax;
+                if (!invokedAsExtensionMethod)
+                {
+                    method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
+                }
+                if (method.Arity > 0 && HasImplicitTypeArguments(group.Syntax))
+                {
+                    var binder = compilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax);
+                    var arguments = ArrayBuilder<BoundExpression>.GetInstance();
+                    if (invokedAsExtensionMethod)
+                    {
+                        arguments.Add(CreatePlaceholderIfNecessary(receiverOpt, receiverType.ToTypeWithAnnotations()));
+                    }
+                    // Create placeholders for the arguments. See Conversions.GetDelegateArguments()
+                    // which is used for that purpose in initial binding.
+                    foreach (var parameter in delegateType.DelegateInvokeMethod.Parameters)
+                    {
+                        var parameterType = parameter.TypeWithAnnotations;
+                        arguments.Add(new BoundExpressionWithNullability(syntax, new BoundParameter(syntax, parameter), parameterType.NullableAnnotation, parameterType.Type));
+                    }
+                    method = InferMethodTypeArguments(binder, method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
+                }
                 if (invokedAsExtensionMethod)
                 {
-                    if (method.Arity > 0 && HasImplicitTypeArguments(group.Syntax))
-                    {
-                        var binder = compilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax);
-                        var arguments = GetExtensionMethodDelegateArguments(syntax, delegateType, receiverOpt, receiverType);
-                        method = InferMethodTypeArguments(binder, method, arguments, argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
-                    }
                     CheckExtensionMethodThisNullability(receiverOpt, Conversion.Identity, method.Parameters[0], receiverType);
                 }
                 else
                 {
-                    method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
                     CheckPossibleNullReceiver(receiverOpt, receiverType, checkNullableValueType: false);
                 }
                 if (ConstraintsHelper.RequiresChecking(method))
@@ -4827,19 +4841,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             return method;
-        }
-
-        private static ImmutableArray<BoundExpression> GetExtensionMethodDelegateArguments(SyntaxNode syntax, NamedTypeSymbol delegateType, BoundExpression receiver, TypeWithState receiverType)
-        {
-            var delegateParameters = delegateType.DelegateInvokeMethod.Parameters;
-            var arguments = ArrayBuilder<BoundExpression>.GetInstance(delegateParameters.Length + 1);
-            arguments.Add(CreatePlaceholderIfNecessary(receiver, receiverType.ToTypeWithAnnotations()));
-            foreach (var parameter in delegateParameters)
-            {
-                var parameterType = parameter.TypeWithAnnotations;
-                arguments.Add(new BoundExpressionWithNullability(syntax, new BoundParameter(syntax, parameter), parameterType.NullableAnnotation, parameterType.Type));
-            }
-            return arguments.ToImmutableAndFree();
         }
 
         public override BoundNode VisitLambda(BoundLambda node)

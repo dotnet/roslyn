@@ -96469,6 +96469,48 @@ class Program
         T y = null; // 1
         D<T?> d1;
         D<T> d2;
+        d1 = Create(x).F; // 2
+        d2 = Create(x).F;
+        d1 = Create(y).F;
+        d2 = Create(y).F;
+        _ = new D<T?>(Create(x).F); // 3
+        _ = new D<T>(Create(x).F);
+        _ = new D<T?>(Create(y).F);
+        _ = new D<T>(Create(y).F);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 15),
+                // (15,14): warning CS8631: The type 'T?' cannot be used as type parameter 'U' in the generic type or method 'C<T>.F<U>(U)'. Nullability of type argument 'T?' doesn't match constraint type 'T'.
+                //         d1 = Create(x).F; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Create(x).F").WithArguments("C<T>.F<U>(U)", "T", "U", "T?").WithLocation(15, 14),
+                // (19,23): warning CS8631: The type 'T?' cannot be used as type parameter 'U' in the generic type or method 'C<T>.F<U>(U)'. Nullability of type argument 'T?' doesn't match constraint type 'T'.
+                //         _ = new D<T?>(Create(x).F); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Create(x).F").WithArguments("C<T>.F<U>(U)", "T", "U", "T?").WithLocation(19, 23));
+        }
+
+        [Fact]
+        [WorkItem(33637, "https://github.com/dotnet/roslyn/issues/33637")]
+        public void DelegateInferredNullability_05()
+        {
+            var source =
+@"delegate void D<T>(T t);
+class C<T>
+{
+    internal void F<U>(U u) where U : T { }
+}
+class Program
+{
+    static C<T> Create<T>(T t) => new C<T>();
+    static void M<T>() where T : class, new()
+    {
+        T? x = new T();
+        T y = null; // 1
+        D<T?> d1;
+        D<T> d2;
         d1 = Create(x).F<T?>; // 2
         d2 = Create(x).F<T>;
         d1 = Create(y).F<T?>;
@@ -96494,7 +96536,7 @@ class Program
 
         [Fact]
         [WorkItem(35274, "https://github.com/dotnet/roslyn/issues/35274")]
-        public void DelegateInferredNullability_05()
+        public void DelegateInferredNullability_06()
         {
             var source =
 @"delegate T D<T>();
@@ -96622,6 +96664,47 @@ class Program
         public void ExtensionMethodDelegateInferredNullability_03()
         {
             var source =
+@"delegate void D<T>(T t);
+static class E
+{
+    internal static void F<T>(this T x, T y) { }
+}
+class Program
+{
+    static void M()
+    {
+        object? x = new object();
+        object y = null; // 1
+        D<object?> d1;
+        D<object> d2;
+        d1 = x.F<object?>;
+        d2 = x.F<object>;
+        d1 = y.F<object?>;
+        d2 = y.F<object>; // 2
+        _ = new D<object?>(x.F<object?>);
+        _ = new D<object>(x.F<object>);
+        _ = new D<object?>(y.F<object?>);
+        _ = new D<object>(y.F<object>); // 3
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 20),
+                // (17,14): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F<object>(object x, object y)'.
+                //         d2 = y.F<object>; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F<object>(object x, object y)").WithLocation(17, 14),
+                // (21,27): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F<object>(object x, object y)'.
+                //         _ = new D<object>(y.F<object>); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F<object>(object x, object y)").WithLocation(21, 27));
+        }
+
+        [Fact]
+        [WorkItem(33637, "https://github.com/dotnet/roslyn/issues/33637")]
+        public void ExtensionMethodDelegateInferredNullability_04()
+        {
+            var source =
 @"delegate T D<T>();
 static class E
 {
@@ -96660,13 +96743,13 @@ class Program
 
         [Fact]
         [WorkItem(33637, "https://github.com/dotnet/roslyn/issues/33637")]
-        public void ExtensionMethodDelegateInferredNullability_04()
+        public void ExtensionMethodDelegateInferredNullability_05()
         {
             var source =
 @"delegate void D<T>(T t);
 static class E
 {
-    internal static void F<T>(this T x, T y) { }
+    internal static void F<T, U>(this T t, U u) where U : T { }
 }
 class Program
 {
@@ -96676,14 +96759,14 @@ class Program
         T y = null; // 1
         D<T?> d1;
         D<T> d2;
-        d1 = x.F<T?>;
-        d2 = x.F<T>;
-        d1 = y.F<T?>;
-        d2 = y.F<T>; // 2
-        _ = new D<T?>(x.F<T?>);
-        _ = new D<T>(x.F<T>);
-        _ = new D<T?>(y.F<T?>);
-        _ = new D<T>(y.F<T>); // 3
+        d1 = x.F; // 2
+        d2 = x.F;
+        d1 = y.F;
+        d2 = y.F;
+        _ = new D<T?>(x.F); // 3
+        _ = new D<T>(x.F);
+        _ = new D<T?>(y.F);
+        _ = new D<T>(y.F);
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -96691,17 +96774,17 @@ class Program
                 // (11,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T y = null; // 1
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 15),
-                // (17,14): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F<T>(T x, T y)'.
-                //         d2 = y.F<T>; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F<T>(T x, T y)").WithLocation(17, 14),
-                // (21,22): warning CS8604: Possible null reference argument for parameter 'x' in 'void E.F<T>(T x, T y)'.
-                //         _ = new D<T>(y.F<T>); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void E.F<T>(T x, T y)").WithLocation(21, 22));
+                // (14,14): warning CS8631: The type 'T?' cannot be used as type parameter 'U' in the generic type or method 'E.F<T, U>(T, U)'. Nullability of type argument 'T?' doesn't match constraint type 'T'.
+                //         d1 = x.F; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "x.F").WithArguments("E.F<T, U>(T, U)", "T", "U", "T?").WithLocation(14, 14),
+                // (18,23): warning CS8631: The type 'T?' cannot be used as type parameter 'U' in the generic type or method 'E.F<T, U>(T, U)'. Nullability of type argument 'T?' doesn't match constraint type 'T'.
+                //         _ = new D<T?>(x.F); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "x.F").WithArguments("E.F<T, U>(T, U)", "T", "U", "T?").WithLocation(18, 23));
         }
 
         [Fact]
         [WorkItem(35274, "https://github.com/dotnet/roslyn/issues/35274")]
-        public void ExtensionMethodDelegateInferredNullability_05()
+        public void ExtensionMethodDelegateInferredNullability_06()
         {
             var source =
 @"delegate T D<T>();
@@ -96753,7 +96836,7 @@ class Program
 
         [Fact]
         [WorkItem(33637, "https://github.com/dotnet/roslyn/issues/33637")]
-        public void ExtensionMethodDelegateInferredNullability_06()
+        public void ExtensionMethodDelegateInferredNullability_07()
         {
             var source =
 @"delegate T D<T>();
