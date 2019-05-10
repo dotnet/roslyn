@@ -31,8 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         protected IProjectCodeModel ProjectCodeModel { get; set; }
         protected VisualStudioWorkspace Workspace { get; }
 
-        internal VisualStudioProject Test_VisualStudioProject => VisualStudioProject;
-
         /// <summary>
         /// The path to the directory of the project. Read-only, since although you can rename
         /// a project in Visual Studio you can't change the folder of a project without an

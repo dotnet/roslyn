@@ -2389,15 +2389,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} must return a stream that supports read and seek operations..
-        /// </summary>
-        internal static string MethodMustReturnStreamThatSupportsReadAndSeek {
-            get {
-                return ResourceManager.GetString("MethodMustReturnStreamThatSupportsReadAndSeek", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Methods.
         /// </summary>
         internal static string Methods {
@@ -3488,15 +3479,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Split_into_nested_0_statements {
             get {
                 return ResourceManager.GetString("Split_into_nested_0_statements", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Stream must support read and seek operations..
-        /// </summary>
-        internal static string StreamMustSupportReadAndSeek {
-            get {
-                return ResourceManager.GetString("StreamMustSupportReadAndSeek", resourceCulture);
             }
         }
         
