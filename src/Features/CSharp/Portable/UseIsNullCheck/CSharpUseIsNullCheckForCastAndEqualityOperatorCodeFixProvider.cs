@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -40,10 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var preferIsObject = options.GetOption(CodeStyleOptions.PreferIsObjectForNegatedNullChecksChecks);
+
             foreach (var diagnostic in diagnostics)
             {
                 if (!IsSupportedDiagnostic(diagnostic))
@@ -55,13 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
                 editor.ReplaceNode(
                     binary,
-                    (current, g) => Rewrite((BinaryExpressionSyntax)current));
+                    (current, g) => Rewrite((BinaryExpressionSyntax)current, preferIsObject));
             }
-
-            return Task.CompletedTask;
         }
 
-        private static ExpressionSyntax Rewrite(BinaryExpressionSyntax binary)
+        private static ExpressionSyntax Rewrite(BinaryExpressionSyntax binary, bool preferIsObject)
         {
             var isPattern = RewriteWorker(binary);
             if (binary.IsKind(SyntaxKind.EqualsExpression))
@@ -69,10 +71,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return isPattern;
             }
 
-            // convert:  (object)expr != null   to    !(expr is null)
-            return SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.LogicalNotExpression,
-                SyntaxFactory.ParenthesizedExpression(isPattern.WithoutTrivia())).WithTriviaFrom(isPattern);
+            if (preferIsObject)
+            {
+                // convert:  (object)expr != null   to    expr is object
+                return SyntaxFactory
+                    .BinaryExpression(
+                        SyntaxKind.IsExpression,
+                        isPattern.Expression,
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
+                    .WithTriviaFrom(isPattern);
+            }
+            else
+            {
+                // convert:  (object)expr != null   to    !(expr is null)
+                return SyntaxFactory.PrefixUnaryExpression(
+                    SyntaxKind.LogicalNotExpression,
+                    SyntaxFactory.ParenthesizedExpression(isPattern.WithoutTrivia())).WithTriviaFrom(isPattern);
+            }
         }
 
         private static IsPatternExpressionSyntax RewriteWorker(BinaryExpressionSyntax binary)

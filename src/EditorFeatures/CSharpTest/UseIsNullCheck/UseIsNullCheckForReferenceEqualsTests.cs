@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseIsNullCheck;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -122,7 +125,33 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestNegated()
+        public async Task TestNegated1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (![||]ReferenceEquals(null, s))
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (s is object)
+            return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNegated2()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -144,7 +173,9 @@ class C
         if (!(s is null))
             return;
     }
-}");
+}",
+                options: ImmutableDictionary<OptionKey, object>.Empty
+                    .SetItem(new OptionKey(CodeStyleOptions.PreferIsObjectForNegatedNullChecksChecks, LanguageNames.CSharp), false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]

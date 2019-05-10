@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         protected abstract string GetIsNullTitle();
         protected abstract string GetIsNotNullTitle();
         protected abstract SyntaxNode CreateNullCheck(SyntaxNode argument, bool isUnconstrainedGeneric);
-        protected abstract SyntaxNode CreateNotNullCheck(SyntaxNode notExpression, SyntaxNode argument, bool isUnconstrainedGeneric);
+        protected abstract SyntaxNode CreateNotNullCheck(SyntaxNode notExpression, SyntaxNode argument, bool preferIsObject, bool isUnconstrainedGeneric);
 
         private static bool IsSupportedDiagnostic(Diagnostic diagnostic)
             => diagnostic.Properties[UseIsNullConstants.Kind] == UseIsNullConstants.ReferenceEqualsKey;
@@ -47,11 +48,13 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var preferIsObject = options.GetOption(CodeStyleOptions.PreferIsObjectForNegatedNullChecksChecks);
 
             // Order in reverse so we process inner diagnostics before outer diagnostics.
             // Otherwise, we won't be able to find the nodes we want to replace if they're
@@ -74,15 +77,13 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
 
                 var toReplace = negate ? invocation.Parent : invocation;
                 var replacement = negate
-                    ? CreateNotNullCheck(invocation.Parent, argument, isUnconstrainedGeneric)
+                    ? CreateNotNullCheck(invocation.Parent, argument, preferIsObject, isUnconstrainedGeneric)
                     : CreateNullCheck(argument, isUnconstrainedGeneric);
 
                 editor.ReplaceNode(
                     toReplace,
                     replacement.WithTriviaFrom(toReplace));
             }
-
-            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
