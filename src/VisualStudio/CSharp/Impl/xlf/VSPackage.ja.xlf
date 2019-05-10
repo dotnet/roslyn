@@ -122,6 +122,8 @@ string.Format の呼び出しで無効なプレースホルダーをレポート
 プロパティの生成時;
 スロー プロパティを優先する;
 自動プロパティを優先する;
+正規表現;
+正規表現;
 拡張された色を使用する;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
@@ -374,12 +376,12 @@ Enter キーで常に新しい行を追加する;
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">空の C# スクリプト ファイルです。</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Visual C# スクリプト</target>
         <note />
       </trans-unit>
     </body>

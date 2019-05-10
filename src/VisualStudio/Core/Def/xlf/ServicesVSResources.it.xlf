@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="new">A new namespace will be created</target>
+        <target state="translated">Verrà creato un nuovo spazio dei nomi</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="new">Enable nullable reference analysis IDE features</target>
+        <target state="translated">Abilita le funzionalità IDE per l'analisi dei riferimenti nullable</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -139,12 +139,12 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="new">Move to Namespace</target>
+        <target state="translated">Sposta nello spazio dei nomi</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="new">Namespace</target>
+        <target state="translated">Spazio dei nomi</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="translated">Preferisci campi di sola lettura</target>
+        <target state="translated">Preferisci campi readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
@@ -279,12 +279,12 @@
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="new">Target Namespace:</target>
+        <target state="translated">Spazio dei nomi di destinazione:</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="new">This is an invalid namespace</target>
+        <target state="translated">Questo è uno spazio dei nomi non valido</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -589,7 +589,7 @@
       </trans-unit>
       <trans-unit id="DocumentPath_is_illegal">
         <source>DocumentPath is illegal</source>
-        <target state="translated">Il percorso del documento non è valido</target>
+        <target state="translated">Il valore di DocumentPath non è valido</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_Path_is_illegal">

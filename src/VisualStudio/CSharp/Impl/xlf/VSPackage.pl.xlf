@@ -80,7 +80,7 @@ regex;
 regular expression;
 Use enhanced colors;</source>
         <target state="translated">Pokaż dane diagnostyczne dla zamkniętych plików;
-Koloruj wyrażenie regularne; 
+Koloruj wyrażenia regularne; 
 Wyróżnij powiązane składniki pod kursorem; 
 Raportuj nieprawidłowe wyrażenia regularne;
 Włącz pełną analizę rozwiązania;
@@ -89,7 +89,7 @@ Włącz nawigowanie do dekompilowanych źródeł;
 Dyrektywy using;
 Umieść najpierw dyrektywy system podczas sortowania deklaracji using;
 Oddziel grupy dyrektywy using;
-Sugeruj dyrektywy using dla typów w zestawach referencyjnych;
+Sugeruj dyrektywy using dla typów w zestawach odwołania;
 Sugeruj dyrektywy using dla typów w pakietach NuGet;
 Wyróżnianie;
 Wyróżnij odwołania do symbolu pod kursorem;
@@ -105,11 +105,11 @@ Zanikanie;
 Zanikanie nieużywanych dyrektyw using;
 Zanikanie nieosiągalnego kodu;
 Prowadnice struktury blokowej;
-Pokaż przewodniki dla konstrukcji na poziomie deklaracji;
-Pokaż przewodniki dla konstrukcji na poziomie kodu;
+Pokaż prowadnice dla konstrukcji na poziomie deklaracji;
+Pokaż prowadnice dla konstrukcji na poziomie kodu;
 Pomoc edytora;
-Generuj komentarze dokumentacji XML dla ///;
-Wstawiaj znak * na początku nowych wierszy podczas pisania komentarzy (/* */);
+Generuj komentarze dokumentacji XML dla elementów ///;
+Wstaw znak * na początku nowych wierszy podczas pisania komentarzy (/* */);
 Pokaż podgląd śledzenia zmian nazw;
 Dziel literały ciągów po naciśnięciu klawisza Enter;
 Zgłaszaj nieprawidłowe symbole zastępcze w wywołaniach metody string.Format;
@@ -117,11 +117,13 @@ Wyodrębnianie metody;
 Nie umieszczaj parametrów ref i out w strukturze niestandardowej;
 Implementuj interfejs lub klasę abstrakcyjną;
 W przypadku wstawiania właściwości, zdarzeń i metod umieszczaj je;
-z innymi składowymi tego samego rodzaju;
+razem z innymi składowymi tego samego rodzaju;
 na końcu;
 Podczas generowania właściwości;
 preferuj właściwości przerzucane;
 preferuj właściwości automatyczne;
+wyrażenie regularne;
+wyrażenie regularne;
 Użyj ulepszonych kolorów;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
@@ -374,12 +376,12 @@ Pokaż sugestie dotyczące nazwy;</target>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">Pusty plik skryptu C#.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Skrypt Visual C# Script</target>
         <note />
       </trans-unit>
     </body>
