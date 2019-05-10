@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// So as a compromise,  we cache data that can be calculated from Roslyn completion item to avoid repeated 
         /// calculation cost for cached Roslyn completion items.
         /// </summary>
-        private class VSCompletionItemData
+        private readonly struct VSCompletionItemData
         {
             public VSCompletionItemData(string displayText, ImageElement icon, ImmutableArray<AsyncCompletionData.CompletionFilter> filters, ImmutableArray<ImageElement> attributeIcons, string insertionText)
             {
