@@ -300,12 +300,12 @@ Lambda(
             TestBinaryOperator_ConcatenatePlus(True, result:=ExpTreeTestResources.CheckedConcatenate)
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <Fact>
         Public Sub TestBinaryOperator_Unchecked_Like()
             TestBinaryOperator_Like(False, result:=ExpTreeTestResources.UncheckedLike)
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <Fact>
         Public Sub TestBinaryOperator_Checked_Like()
             TestBinaryOperator_Like(True, result:=ExpTreeTestResources.CheckedLike)
         End Sub
@@ -2857,7 +2857,7 @@ c => c.Process()
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="CoreClr uses ConvertChecked(..., Int32) rather than ConvertChecked(...)")>
         Public Sub Relaxation02()
             Dim file = <file name="expr.vb"><![CDATA[
 Imports System
@@ -7031,7 +7031,7 @@ End Module]]></file>
         End Sub
 
         <WorkItem(545757, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545757")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="CoreClr uses Convert(..., Object) rather than Convert(...)")>
         Public Sub Bug_14402()
             Dim source = <compilation>
                              <file name="a.vb"><![CDATA[
@@ -8233,7 +8233,7 @@ BC35000: Requested operation is not available because the runtime library functi
 #End Region
 
         <WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="CoreClr uses Convert(..., Nullable`1) rather than Convert(...)")>
         Public Sub Bug808608_01()
 
             Dim source = <compilation>
@@ -8299,7 +8299,7 @@ End Module
         End Sub
 
         <WorkItem(808608, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808608")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="CoreClr uses Convert(..., Nullable`1) rather than Convert(...)")>
         Public Sub Bug808608_02()
 
             Dim source = <compilation>

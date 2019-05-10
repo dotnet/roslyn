@@ -104,7 +104,7 @@ End Class
             Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", text, StringComparison.Ordinal)
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <Fact>
         Public Sub MyConsoleApp()
 
 

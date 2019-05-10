@@ -784,7 +784,7 @@ End Module
 
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <Fact>
         Public Sub TruncatePrecisionFloat()
 
             Dim verifier = CompileAndVerify(

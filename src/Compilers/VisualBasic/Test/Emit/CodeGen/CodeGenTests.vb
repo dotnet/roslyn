@@ -11124,7 +11124,7 @@ True
         End Sub
 
         <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <Fact>
         Public Sub TestMSVBTypeNameAPI()
             Dim vbCompilation = CreateVisualBasicCompilation("TestMSVBTypeNameAPI",
             <![CDATA[Public Module Program
@@ -12469,7 +12469,7 @@ End Module
         End Sub
 
         <WorkItem(529162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529162")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <Fact>
         Public Sub Bug529162()
             Dim source =
 <compilation>

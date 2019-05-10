@@ -2181,7 +2181,7 @@ End Class
         End Sub
 
         <WorkItem(544946, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544946")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <Fact>
         Public Sub LiftedBinaryConcatLikeWithNothingLiteral()
             Dim source =
                 <compilation>

@@ -585,7 +585,7 @@ End Module
 
         End Sub
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <Fact>
         Public Sub MidAssignment1()
 
             Dim compilationDef =
@@ -1064,7 +1064,7 @@ End Class
         End Sub
 
         <WorkItem(642269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642269")>
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
+        <Fact>
         Public Sub Bug642269()
 
             Dim compilationDef =
