@@ -5,74 +5,92 @@
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
         <source>Explicitly define the importing constructor</source>
         <note />
+        <target state="translated">İçeri aktarma oluşturucusunu açıkça tanımlayın</target>
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute">
         <source>Add 'ImportingConstructor' attribute</source>
         <note />
+        <target state="translated">'ImportingConstructor' özniteliği ekle</target>
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor">
         <source>Make constructor public</source>
         <note />
+        <target state="translated">Oluşturucuyu genel yapın</target>
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
         <source>Exported parts should have [ImportingConstructor]</source>
         <note />
+        <target state="translated">Dışarı aktarılan bölümlerde [ImportingConstructor] olması gerekir</target>
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
         <source>'{0}' is MEF-exported and should have a single importing constructor of the correct form</source>
         <note />
+        <target state="translated">'{0}', MEF ile dışarı aktarıldı ve doğru biçimde tek bir içeri aktarma oluşturucusuna sahip olmalıdır</target>
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
         <source>Exported parts should have [ImportingConstructor]</source>
         <note />
+        <target state="translated">Dışarı aktarılan bölümlerde [ImportingConstructor] olması gerekir</target>
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
         <source>Set ObsoleteAttribute.Error to true</source>
         <note />
+        <target state="translated">ObsoleteAttribute.Error özniteliğini true olarak ayarlayın</target>
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
         <source>Use correct ObsoleteAttribute message</source>
         <note />
+        <target state="translated">Doğru ObsoleteAttribute iletisini kullanın</target>
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
         <source>Add ObsoleteAttribute</source>
         <note />
+        <target state="translated">ObsoleteAttribute ekle</target>
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
         <source>Configure ObsoleteAttribute for importing constructor</source>
         <note />
+        <target state="translated">İçeri aktarma oluşturucusu için ObsoleteAttribute özniteliğini yapılandırın</target>
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
         <source>Set ObsoleteAttribute.Error to true</source>
         <note />
+        <target state="translated">ObsoleteAttribute.Error özniteliğini true olarak ayarlayın</target>
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
         <source>Importing constructor should be [Obsolete]</source>
         <note />
+        <target state="translated">İçeri aktarma oluşturucusunun [Obsolete] olması gerekir</target>
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
         <source>Importing constructor should be [Obsolete]</source>
         <note />
+        <target state="translated">İçeri aktarma oluşturucusunun [Obsolete] olması gerekir</target>
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
         <source>Importing constructor should be [Obsolete]</source>
         <note />
+        <target state="translated">İçeri aktarma oluşturucusunun [Obsolete] olması gerekir</target>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply PartNotDiscoverableAttribute</source>
         <note />
+        <target state="translated">PartNotDiscoverableAttribute uygula</target>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
         <source>Test exports should not be discoverable</source>
         <note />
+        <target state="translated">Test dışarı aktarmaları bulunabilir olmamalıdır</target>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
         <source>'{0}' is exported for test purposes and should be marked PartNotDiscoverable</source>
         <note />
+        <target state="translated">'{0}', test amaçları doğrultusunda dışarı aktarıldı ve PartNotDiscoverable olarak işaretlenmelidir</target>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
         <source>Test exports should not be discoverable</source>
         <note />
+        <target state="translated">Test dışarı aktarmaları bulunabilir olmamalıdır</target>
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
         <source>Use SpecializedCollections.EmptyEnumerable()</source>
