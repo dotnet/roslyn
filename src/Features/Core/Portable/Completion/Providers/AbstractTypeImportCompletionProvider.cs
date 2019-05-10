@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Experiments;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -53,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
             }
 
-            var telemetryCounter = new TelemetryCounter();
-            using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, KeyValueLogMessage.Create(telemetryCounter.SetProperty), cancellationToken))
+            using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
+            using (var telemetryCounter = new TelemetryCounter())
             {
                 await AddCompletionItemsAsync(completionContext, syntaxContext, telemetryCounter, cancellationToken).ConfigureAwait(false);
             }
@@ -249,6 +251,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return true;
                 }
 
+                // Certain documents, e.g. Razor document, don't support adding imports
+                var documentSupportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
+                if (!documentSupportsFeatureService.SupportsRefactorings(document))
+                {
+                    return true;
+                }
+
                 return false;
             }
         }
@@ -262,15 +271,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => TypeImportCompletionItem.GetCompletionDescriptionAsync(document, item, cancellationToken);
 
-        private class TelemetryCounter
+        private class TelemetryCounter : IDisposable
         {
-            public int ReferenceCount { get; set; }
+            private int _tick;
+
             public int ItemsCount { get; set; }
 
-            public void SetProperty(Dictionary<string, object> map)
+            public int ReferenceCount { get; set; }
+
+            public TelemetryCounter()
             {
-                map[nameof(ItemsCount)] = ItemsCount;
-                map[nameof(ReferenceCount)] = ReferenceCount;
+                _tick = Environment.TickCount;
+            }
+
+            public void Dispose()
+            {
+                var delta = Environment.TickCount - _tick;
+                CompletionProvidersLogger.LogTypeImportCompletionTicksDataPoint(delta);
+                CompletionProvidersLogger.LogTypeImportCompletionItemCountDataPoint(ItemsCount);
+                CompletionProvidersLogger.LogTypeImportCompletionReferenceCountDataPoint(ReferenceCount);
             }
         }
     }

@@ -9162,5 +9162,56 @@ public unsafe class Test
 }}",
                 changedOptionSet: changedOptionSet);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
+        public async Task SpaceAroundDeclaration()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true);
+            await AssertFormatAsync(
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}",
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
+        public async Task SpaceAroundDeclarationAndPreserveSingleLine()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true);
+            changingOptions.Add(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false);
+            await AssertFormatAsync(
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}",
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}", changedOptionSet: changingOptions);
+        }
     }
 }

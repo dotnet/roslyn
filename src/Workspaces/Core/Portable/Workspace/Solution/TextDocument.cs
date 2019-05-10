@@ -116,5 +116,13 @@ namespace Microsoft.CodeAnalysis
         {
             return State.GetTopLevelChangeTextVersionAsync(cancellationToken);
         }
+
+        /// <summary>
+        /// True if the info of the document change (name, folders, file path; not the content)
+        /// </summary>
+        internal virtual bool HasInfoChanged(TextDocument otherTextDocument)
+        {
+            return State.Attributes != otherTextDocument.State.Attributes;
+        }
     }
 }
