@@ -16,11 +16,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// <summary>
     /// Handler for a request to classify the document. This is used for semantic colorization and only works for C#\VB.
     /// TODO - Move once defined as a custom protocol.
+    /// Note, this must return object instead of ClassificationSpan b/c liveshare uses dynamic to convert handler results.
+    /// Unfortunately, ClassificationSpan is an internal type and cannot be defined in the external access layer.
     /// </summary>
     [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, RoslynMethods.ClassificationsName)]
-    internal class ClassificationsHandler : ILspRequestHandler<ClassificationParams, ClassificationSpan[], Solution>
+    internal class ClassificationsHandler : ILspRequestHandler<ClassificationParams, object[], Solution>
     {
-        public async Task<ClassificationSpan[]> HandleAsync(ClassificationParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public async Task<object[]> HandleAsync(ClassificationParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             var actualDocumentURI = requestContext.ProtocolConverter.FromProtocolUri(request.TextDocument.Uri);
             var document = requestContext.Context.GetDocumentFromURI(actualDocumentURI);
