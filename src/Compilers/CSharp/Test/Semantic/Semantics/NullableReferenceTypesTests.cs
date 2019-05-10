@@ -5544,7 +5544,7 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute(null)] //1
-class C { } 
+class C { }
 
 [MyAttribute(null, null)] // 2, 3
 class D { }
@@ -5580,8 +5580,8 @@ class MyAttribute : System.Attribute
     public MyAttribute(string s, string s2 = null) { } //1
 }
 
-[MyAttribute(""str"")] 
-class C { } 
+[MyAttribute(""str"")]
+class C { }
 
 [MyAttribute(""str"", null)] // 2
 class D { }
@@ -6194,7 +6194,7 @@ class MyAttribute : System.Attribute
     new string[] { null }, // 2
     PropertyArray = null, // 3
     PropertyNullableArray = new string[] { null } // 4
-)] 
+)]
 class C { }
 ";
             var comp = CreateCompilation(source);
@@ -10681,7 +10681,7 @@ class B : A
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             compilation.VerifyDiagnostics(
                 // (8,23): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public void M2<T>(T? x) 
+                //     public void M2<T>(T? x)
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(8, 23),
                 // (27,26): error CS0115: 'B.M2<T>(T?)': no suitable method found to override
                 //     public override void M2<T>(T? x)
@@ -11726,10 +11726,10 @@ class B2 : A2
 
             compilation.VerifyDiagnostics(
                 // (27,39): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
-                //     public override string[] P1 {get; set;} 
+                //     public override string[] P1 {get; set;}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, "set").WithArguments("value").WithLocation(27, 39),
                 // (28,35): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
-                //     public override string[]? P2 {get; set;} 
+                //     public override string[]? P2 {get; set;}
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "get").WithLocation(28, 35),
                 // (33,9): warning CS8610: Nullability of reference types in type of parameter 'value' doesn't match overridden member.
                 //         set {}
@@ -13770,10 +13770,10 @@ class B : IA
 
             compilation.VerifyDiagnostics(
                 // (20,13): error CS0539: 'B.M2<T>(T?[])' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     void IA.M2<T>(T?[] x)  
+                //     void IA.M2<T>(T?[] x)
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("B.M2<T>(T?[])").WithLocation(20, 13),
                 // (24,13): error CS0539: 'B.M3<T>(T?[]?)' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     void IA.M3<T>(T?[]? x)  
+                //     void IA.M3<T>(T?[]? x)
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M3").WithArguments("B.M3<T>(T?[]?)").WithLocation(24, 13),
                 // (16,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M1(string[] x)'.
                 //     void IA.M1(string?[] x)
@@ -13785,10 +13785,10 @@ class B : IA
                 // class B : IA
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IA").WithArguments("B", "IA.M2<T>(T[])").WithLocation(14, 11),
                 // (20,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     void IA.M2<T>(T?[] x)  
+                //     void IA.M2<T>(T?[] x)
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(20, 24),
                 // (24,25): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     void IA.M3<T>(T?[]? x)  
+                //     void IA.M3<T>(T?[]? x)
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(24, 25));
         }
 
@@ -26432,7 +26432,6 @@ class CL1
             Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/35039: wants to change the type of the null literal from null to error type
         [Fact]
         public void Var_FlowAnalysis_02()
         {
@@ -26441,7 +26440,7 @@ class CL1
 {
     static void F(string? s)
     {
-        t = null;
+        t = null/*T:<null>?*/;
         var t = s;
         t.ToString();
     }
@@ -26455,6 +26454,7 @@ class CL1
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         t.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(7, 9));
+            comp.VerifyTypes();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -27354,7 +27354,7 @@ class C
                 //         u7[0][0,0] = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 22),
                 // (32,46): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         object [][,]? u8 = new object [][,] {null, 
+                //         object [][,]? u8 = new object [][,] {null,
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(32, 46),
                 // (33,53): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //                                     new object[,] {{null}}};
@@ -29360,7 +29360,7 @@ struct S1
                 //         x9 = v9.p2;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "v9.p2").WithLocation(84, 14),
                 // (100,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         x10 = u10.a2.p2; // 6 
+                //         x10 = u10.a2.p2; // 6
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "u10.a2.p2").WithLocation(100, 15));
         }
 
@@ -36877,13 +36877,13 @@ class CL1
                 //         CL1 u5 = --x5;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "--x5").WithLocation(32, 18),
                 // (37,9): warning CS8601: Possible null reference assignment.
-                //         x6--; 
+                //         x6--;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x6--").WithLocation(37, 9),
                 // (43,9): error CS0165: Use of unassigned local variable 'x7'
-                //         x7--; 
+                //         x7--;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x7").WithArguments("x7").WithLocation(43, 9),
                 // (43,9): warning CS8601: Possible null reference assignment.
-                //         x7--; 
+                //         x7--;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x7--").WithLocation(43, 9)
                 );
         }
@@ -49187,6 +49187,31 @@ class Program
         }
 
         [Fact]
+        [WorkItem(35334, "https://github.com/dotnet/roslyn/issues/35334")]
+        public void Conversions_ExplicitNullable_UserDefinedIntroducingNullability()
+        {
+            var source =
+@"
+class A { public static explicit operator B(A a) => throw null!; }
+class B
+{
+    void M(A a)
+    {
+        var b = ((B?)a)/*T:B?*/;
+        b.ToString(); // 1
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Dereference of a possibly null reference.
+                //         b.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b").WithLocation(8, 9));
+        }
+
+        [Fact]
         [WorkItem(32531, "https://github.com/dotnet/roslyn/issues/32531")]
         public void Tuple_Conversions_ImplicitNullable_01()
         {
@@ -51369,6 +51394,7 @@ class D
         }
 
         [Fact]
+        [WorkItem(35334, "https://github.com/dotnet/roslyn/issues/35334")]
         public void ExplicitCast_UserDefined_01()
         {
             var source =
@@ -51411,17 +51437,17 @@ class C
     {
         B? b;
         b = ((B)x3)/*T:B!*/;
-        b = ((B?)x3)/*T:B!*/;
+        b = ((B?)x3)/*T:B?*/;
         b = ((B)y3)/*T:B!*/;
-        b = ((B?)y3)/*T:B!*/;
+        b = ((B?)y3)/*T:B?*/;
     }
     static void F4(A4? x4, A4 y4)
     {
         B? b;
         b = ((B)x4)/*T:B!*/;
-        b = ((B?)x4)/*T:B!*/;
+        b = ((B?)x4)/*T:B?*/;
         b = ((B)y4)/*T:B!*/;
-        b = ((B?)y4)/*T:B!*/;
+        b = ((B?)y4)/*T:B?*/;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -52842,7 +52868,7 @@ namespace System.Reflection {
 
     public sealed class DefaultMemberAttribute : Attribute
     {
-        public DefaultMemberAttribute(String memberName) 
+        public DefaultMemberAttribute(String memberName)
         {}
     }
 }
@@ -56728,8 +56754,8 @@ class Program
     static void F2((int, int) t2)
     {
         var u2 = ((B?, A))t2; // 3
-        u2.Item1.ToString();
-        u2.Item2.ToString(); // 4
+        u2.Item1.ToString(); // 4
+        u2.Item2.ToString(); // 5
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -56738,14 +56764,17 @@ class Program
                 // (13,22): warning CS8601: Possible null reference assignment.
                 //         (A, B?) u1 = t1; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t1").WithLocation(13, 22),
-                // (14,9): warning CS8602: Possible dereference of a null reference.
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         u1.Item1.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u1.Item1").WithLocation(14, 9),
                 // (19,18): warning CS8601: Possible null reference assignment.
                 //         var u2 = ((B?, A))t2; // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "((B?, A))t2").WithLocation(19, 18),
-                // (21,9): warning CS8602: Possible dereference of a null reference.
-                //         u2.Item2.ToString(); // 4
+                // (20,9): warning CS8602: Dereference of a possibly null reference.
+                //         u2.Item1.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2.Item1").WithLocation(20, 9),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         u2.Item2.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2.Item2").WithLocation(21, 9));
         }
 
@@ -61477,10 +61506,10 @@ delegate C<object?> D(C<object?> p); // 8
                 //     C<object?> I.Property => Field; // 6
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Property").WithArguments("C<T>", "object", "T", "object?").WithLocation(15, 18),
                 // (16,18): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     C<object?> I.Method(C<object?> p) => Field; // 7 
+                //     C<object?> I.Method(C<object?> p) => Field; // 7
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Method").WithArguments("C<T>", "object", "T", "object?").WithLocation(16, 18),
                 // (16,36): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
-                //     C<object?> I.Method(C<object?> p) => Field; // 7 
+                //     C<object?> I.Method(C<object?> p) => Field; // 7
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "p").WithArguments("C<T>", "object", "T", "object?").WithLocation(16, 36),
                 // (19,12): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
                 // delegate C<object?> D(C<object?> p); // 8
@@ -61544,10 +61573,10 @@ delegate C<object?> D(C<object?> p); // 8
                 //     C<object?> I.Property => Field; // 6
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "Property").WithArguments("C<T>", "T", "object?").WithLocation(15, 18),
                 // (16,18): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'class' constraint.
-                //     C<object?> I.Method(C<object?> p) => Field; // 7 
+                //     C<object?> I.Method(C<object?> p) => Field; // 7
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "Method").WithArguments("C<T>", "T", "object?").WithLocation(16, 18),
                 // (16,36): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'class' constraint.
-                //     C<object?> I.Method(C<object?> p) => Field; // 7 
+                //     C<object?> I.Method(C<object?> p) => Field; // 7
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "p").WithArguments("C<T>", "T", "object?").WithLocation(16, 36),
                 // (19,12): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T>'. Nullability of type argument 'object?' doesn't match 'class' constraint.
                 // delegate C<object?> D(C<object?> p); // 8
@@ -86245,6 +86274,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(35334, "https://github.com/dotnet/roslyn/issues/35334")]
         public void NullableT_StructToClass()
         {
             var source =
@@ -86271,26 +86301,29 @@ class Program
         if (ns.HasValue)
         {
             var c1 = (C?)ns;
-            _ = c1.ToString();
+            _ = c1.ToString(); // 1
             C? c2 = ns;
             _ = c2.ToString();
         }
         else
         {
             var c3 = (C?)ns;
-            _ = c3.ToString(); // 1
+            _ = c3.ToString(); // 2
             C? c4 = ns;
-            _ = c4.ToString(); // 2
+            _ = c4.ToString(); // 3
         }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
+                // (24,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = c1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1").WithLocation(24, 17),
                 // (31,17): warning CS8602: Dereference of a possibly null reference.
-                //             _ = c3.ToString(); // 1
+                //             _ = c3.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c3").WithLocation(31, 17),
                 // (33,17): warning CS8602: Dereference of a possibly null reference.
-                //             _ = c4.ToString(); // 2
+                //             _ = c4.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c4").WithLocation(33, 17));
         }
 
@@ -86357,6 +86390,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(35334, "https://github.com/dotnet/roslyn/issues/35334")]
         public void NullableT_NullableStructToClass()
         {
             var source =
@@ -86383,21 +86417,27 @@ class Program
         if (ns.HasValue)
         {
             var c1 = (C?)ns;
-            _ = c1.ToString();
+            _ = c1.ToString(); // 1
             C? c2 = ns;
             _ = c2.ToString();
         }
         else
         {
             var c3 = (C?)ns;
-            _ = c3.ToString();
+            _ = c3.ToString(); // 2
             C? c4 = ns;
             _ = c4.ToString();
         }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (24,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = c1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1").WithLocation(24, 17),
+                // (31,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = c3.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c3").WithLocation(31, 17));
         }
 
         [Fact]
@@ -86790,6 +86830,7 @@ class C<T>
         }
 
         [Fact]
+        [WorkItem(35334, "https://github.com/dotnet/roslyn/issues/35334")]
         public void NullableT_StructToTypeParameterClassConstraint()
         {
             var source =
@@ -86813,30 +86854,34 @@ class C<T> where T : class
         if (ns.HasValue)
         {
             var t1 = (T?)ns;
-            _ = t1.ToString();
+            _ = t1.ToString(); // 1
             T? t2 = ns;
             _ = t2.ToString();
         }
         else
         {
             var t3 = (T?)ns;
-            _ = t3.ToString(); // 1
+            _ = t3.ToString(); // 2
             T? t4 = ns;
-            _ = t4.ToString(); // 2
+            _ = t4.ToString(); // 3
         }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
+                // (21,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = t1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(21, 17),
                 // (28,17): warning CS8602: Dereference of a possibly null reference.
-                //             _ = t3.ToString(); // 1
+                //             _ = t3.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t3").WithLocation(28, 17),
                 // (30,17): warning CS8602: Dereference of a possibly null reference.
-                //             _ = t4.ToString(); // 2
+                //             _ = t4.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t4").WithLocation(30, 17));
         }
 
         [Fact]
+        [WorkItem(35334, "https://github.com/dotnet/roslyn/issues/35334")]
         public void NullableT_NullableStructToTypeParameterClassConstraint()
         {
             var source =
@@ -86860,21 +86905,27 @@ class C<T> where T : class
         if (ns.HasValue)
         {
             var t1 = (T?)ns;
-            _ = t1.ToString();
+            _ = t1.ToString(); // 1
             T? t2 = ns;
             _ = t2.ToString();
         }
         else
         {
             var t3 = (T?)ns;
-            _ = t3.ToString();
+            _ = t3.ToString(); // 2
             T? t4 = ns;
             _ = t4.ToString();
         }
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (21,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = t1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(21, 17),
+                // (28,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = t3.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t3").WithLocation(28, 17));
         }
 
         [Fact]
@@ -91559,25 +91610,24 @@ class Program
 {
     static void F<T>((object, (S<T?>, S<T>)) t) where T : class, new()
     {
-        (object a, (S<T>? x, S<T?>? y) b) = t; // 1, 2
-        b.x.Value.F.ToString(); // 3
-        b.y.Value.F.ToString();
+        (object a, (S<T>? x, S<T?>? y) b) = t; // 1
+        b.x.Value.F.ToString(); // 2
+        b.y.Value.F.ToString(); // 3, 4
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/34302: Track state at each Conversion.
             comp.VerifyDiagnostics(
                 // (10,45): warning CS8619: Nullability of reference types in value of type '(S<T?>, S<T>)' doesn't match target type '(S<T>? x, S<T?>? y)'.
-                //         (object a, (S<T>? x, S<T?>? y) b) = t; // 1, 2
+                //         (object a, (S<T>? x, S<T?>? y) b) = t; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t").WithArguments("(S<T?>, S<T>)", "(S<T>? x, S<T?>? y)").WithLocation(10, 45),
                 // (11,9): warning CS8629: Nullable value type may be null.
-                //         b.x.Value.F.ToString(); // 3
+                //         b.x.Value.F.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "b.x").WithLocation(11, 9),
                 // (12,9): warning CS8629: Nullable value type may be null.
-                //         b.y.Value.F.ToString();
+                //         b.y.Value.F.ToString(); // 3, 4
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "b.y").WithLocation(12, 9),
                 // (12,9): warning CS8602: Possible dereference of a null reference.
-                //         b.y.Value.F.ToString();
+                //         b.y.Value.F.ToString(); // 3, 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.y.Value.F").WithLocation(12, 9));
         }
 
@@ -91600,8 +91650,8 @@ class Program
         (object x, (B?, B) y) = t;
     }
 }";
+            // https://github.com/dotnet/roslyn/issues/33011 Should have warnings about conversions from B? to B and from A? to A
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/34302: Track state at each Conversion.
             comp.VerifyDiagnostics();
         }
 
@@ -94175,7 +94225,7 @@ partial class C<T> where T : I1, I2?
             var comp1 = CreateCompilation(new[] { source });
             comp1.VerifyDiagnostics(
                 // (12,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
-                // partial class C<T> where T : I1?, 
+                // partial class C<T> where T : I1?,
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(12, 15)
                 );
 
@@ -94216,7 +94266,7 @@ partial class C<T> where T : I1?, I2
             var comp1 = CreateCompilation(new[] { source });
             comp1.VerifyDiagnostics(
                 // (12,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
-                // partial class C<T> where T : I1, 
+                // partial class C<T> where T : I1,
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(12, 15)
                 );
 
@@ -94255,7 +94305,7 @@ partial class C<T> where T : I1?, I2
             var comp1 = CreateCompilation(new[] { source });
             comp1.VerifyDiagnostics(
                 // (12,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
-                // partial class C<T> where T : I1, 
+                // partial class C<T> where T : I1,
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(12, 15)
                 );
 
@@ -94294,7 +94344,7 @@ partial class C<T> where T : I1, I2?
             var comp1 = CreateCompilation(new[] { source });
             comp1.VerifyDiagnostics(
                 // (12,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
-                // partial class C<T> where T : I1, 
+                // partial class C<T> where T : I1,
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(12, 15)
                 );
 
