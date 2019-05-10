@@ -86,8 +86,8 @@ Signaler les expressions régulières non valides ;
 Activer l'analyse complète de la solution ;
 Effectuer l'analyse des fonctionnalités de l'éditeur dans un processus externe ;
 Activer la navigation vers les sources décompilées ;
-Directives Using ;
-Placer en premier les directives system au moment du tri des directives using ;
+Directives using ;
+Placer en premier les directives system au moment du tri des using ;
 Séparer les groupes de directives using ;
 Suggérer des using pour les types dans les assemblys de référence ;
 Suggérer des using pour les types dans les packages NuGet ;
@@ -100,9 +100,9 @@ Afficher les séparateurs de ligne de procédure ;
 Afficher le mode Plan pour les constructions au niveau des déclarations ;
 Afficher le mode Plan pour les constructions au niveau du code ;
 Afficher le mode Plan pour les commentaires et les régions du préprocesseur ;
-Réduire regions au moment de la réduction aux définitions ;
+Réduire les régions au moment de la réduction aux définitions ;
 Suppression ;
-Supprimer les instructions using inutilisées ;
+Supprimer les using inutilisés ;
 Supprimer le code inaccessible ;
 Repères de structure de bloc ;
 Afficher les repères pour les constructions au niveau des déclarations ;
@@ -122,6 +122,8 @@ avec d'autres membres du même genre ;
 Durant la génération des propriétés ;
 préférer les propriétés de levée d'exceptions ;
 préférer les propriétés automatiques ;
+regex ;
+expression régulière ;
 Utiliser des couleurs améliorées ;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
@@ -374,12 +376,12 @@ Afficher les suggestions de nom ;</target>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">Fichier de script C# vide.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Script Visual C#</target>
         <note />
       </trans-unit>
     </body>

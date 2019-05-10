@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
         <source>Allow unsafe code in this project</source>
-        <target state="new">Allow unsafe code in this project</target>
+        <target state="translated">Bu projede güvenli olmayan koda izin ver</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
-        <target state="new">Fix return type</target>
+        <target state="translated">Dönüş türünü düzelt</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Make_ref_struct">
         <source>Make 'ref struct'</source>
-        <target state="new">Make 'ref struct'</target>
+        <target state="translated">'ref struct' yap</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
-        <target state="new">Unseal class '{0}'</target>
+        <target state="translated">'{0}' sınıfının mührünü aç</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
-        <target state="translated">R &amp; Kaldır ve Sıralama Usings</target>
+        <target state="translated">&amp;Kaldır ve Sıralama Usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_await">
@@ -509,7 +509,7 @@
       </trans-unit>
       <trans-unit id="ref_local_or_expression">
         <source>ref local or expression</source>
-        <target state="translated">yerel başvuru veya ifade</target>
+        <target state="translated">yerel ref veya ifade</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="v7_switch">
@@ -519,7 +519,7 @@
       </trans-unit>
       <trans-unit id="global_statement">
         <source>global statement</source>
-        <target state="translated">genel deyim</target>
+        <target state="translated">global deyimi</target>
         <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_namespace">
