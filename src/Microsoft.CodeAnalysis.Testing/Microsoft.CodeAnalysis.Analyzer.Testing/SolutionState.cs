@@ -233,6 +233,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <see cref="MarkupHandling"/>, and returns a new <see cref="SolutionState"/> with the <see cref="Sources"/>,
         /// <see cref="AdditionalFiles"/>, and <see cref="ExpectedDiagnostics"/> updated accordingly.
         /// </summary>
+        /// <param name="markupOptions">Additional options to apply during markup processing.</param>
         /// <param name="defaultDiagnostic">The diagnostic descriptor to use for markup spans without an explicit name,
         /// or <see langword="null"/> if no such default exists.</param>
         /// <param name="supportedDiagnostics">The diagnostics supported by analyzers used by the test.</param>
@@ -244,15 +245,15 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <see cref="MarkupMode.None"/>.</returns>
         /// <exception cref="InvalidOperationException">If <see cref="InheritanceMode"/> is not
         /// <see cref="StateInheritanceMode.Explicit"/>.</exception>
-        public SolutionState WithProcessedMarkup(DiagnosticDescriptor defaultDiagnostic, ImmutableArray<DiagnosticDescriptor> supportedDiagnostics, ImmutableArray<string> fixableDiagnostics, string defaultPath)
+        public SolutionState WithProcessedMarkup(MarkupOptions markupOptions, DiagnosticDescriptor defaultDiagnostic, ImmutableArray<DiagnosticDescriptor> supportedDiagnostics, ImmutableArray<string> fixableDiagnostics, string defaultPath)
         {
             if (InheritanceMode != StateInheritanceMode.Explicit)
             {
                 throw new InvalidOperationException("Inheritance processing must complete before markup processing.");
             }
 
-            (var expected, var testSources) = ProcessMarkupSources(Sources, ExpectedDiagnostics, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
-            var (additionalExpected, additionalFiles) = ProcessMarkupSources(AdditionalFiles.Concat(AdditionalFilesFactories.SelectMany(factory => factory())), expected, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+            (var expected, var testSources) = ProcessMarkupSources(Sources, ExpectedDiagnostics, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+            var (additionalExpected, additionalFiles) = ProcessMarkupSources(AdditionalFiles.Concat(AdditionalFilesFactories.SelectMany(factory => factory())), expected, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
 
             var result = new SolutionState(_defaultPrefix, _defaultExtension);
             result.MarkupHandling = MarkupMode.None;
@@ -267,6 +268,7 @@ namespace Microsoft.CodeAnalysis.Testing
         private (DiagnosticResult[], (string filename, SourceText content)[]) ProcessMarkupSources(
             IEnumerable<(string filename, SourceText content)> sources,
             IEnumerable<DiagnosticResult> explicitDiagnostics,
+            MarkupOptions markupOptions,
             DiagnosticDescriptor defaultDiagnostic,
             ImmutableArray<DiagnosticDescriptor> supportedDiagnostics,
             ImmutableArray<string> fixableDiagnostics,
@@ -303,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 var sourceText = SourceText.From(output, content.Encoding, content.ChecksumAlgorithm);
                 foreach (var position in positions)
                 {
-                    var diagnostic = CreateDiagnosticForPosition(defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, string.Empty, filename, sourceText, position);
+                    var diagnostic = CreateDiagnosticForPosition(markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, string.Empty, filename, sourceText, position);
                     if (!diagnostic.HasValue)
                     {
                         continue;
@@ -316,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     foreach (var span in spans)
                     {
-                        var diagnostic = CreateDiagnosticForSpan(defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, name, filename, sourceText, span);
+                        var diagnostic = CreateDiagnosticForSpan(markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, name, filename, sourceText, span);
                         if (!diagnostic.HasValue)
                         {
                             continue;
@@ -331,6 +333,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         private DiagnosticResult? CreateDiagnosticForPosition(
+            MarkupOptions markupOptions,
             DiagnosticDescriptor defaultDiagnostic,
             ImmutableArray<DiagnosticDescriptor> supportedDiagnostics,
             ImmutableArray<string> fixableDiagnostics,
@@ -339,17 +342,18 @@ namespace Microsoft.CodeAnalysis.Testing
             SourceText content,
             int position)
         {
-            var diagnosticResult = CreateDiagnostic(defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, diagnosticId);
+            var diagnosticResult = CreateDiagnostic(markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, diagnosticId);
             if (diagnosticResult == null)
             {
                 return null;
             }
 
             var linePosition = content.Lines.GetLinePosition(position);
-            return diagnosticResult.Value.WithLocation(filename, linePosition);
+            return diagnosticResult.Value.WithLocation(filename, linePosition, DiagnosticLocationOptions.IgnoreAdditionalLocations);
         }
 
         private DiagnosticResult? CreateDiagnosticForSpan(
+            MarkupOptions markupOptions,
             DiagnosticDescriptor defaultDiagnostic,
             ImmutableArray<DiagnosticDescriptor> supportedDiagnostics,
             ImmutableArray<string> fixableDiagnostics,
@@ -358,17 +362,18 @@ namespace Microsoft.CodeAnalysis.Testing
             SourceText content,
             TextSpan span)
         {
-            var diagnosticResult = CreateDiagnostic(defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, diagnosticId);
+            var diagnosticResult = CreateDiagnostic(markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, diagnosticId);
             if (diagnosticResult == null)
             {
                 return null;
             }
 
             var linePositionSpan = content.Lines.GetLinePositionSpan(span);
-            return diagnosticResult.Value.WithSpan(new FileLinePositionSpan(filename, linePositionSpan));
+            return diagnosticResult.Value.WithSpan(new FileLinePositionSpan(filename, linePositionSpan), DiagnosticLocationOptions.IgnoreAdditionalLocations);
         }
 
         private DiagnosticResult? CreateDiagnostic(
+            MarkupOptions markupOptions,
             DiagnosticDescriptor defaultDiagnostic,
             ImmutableArray<DiagnosticDescriptor> supportedDiagnostics,
             ImmutableArray<string> fixableDiagnostics,
@@ -384,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 if (defaultDiagnostic is null)
                 {
-                    throw new InvalidOperationException("Markup syntax can only omit the diagnostic ID if the first analyzer only supports a single diagnostic");
+                    throw new InvalidOperationException($"Markup syntax can only omit the diagnostic ID if the first analyzer only supports a single diagnostic. To customize the default value, override {nameof(AnalyzerTest<DefaultVerifier>)}<TVerifier>.{nameof(AnalyzerTest<DefaultVerifier>.GetDefaultDiagnostic)} or specify {nameof(MarkupOptions)}.{nameof(MarkupOptions.UseFirstDescriptor)}.");
                 }
 
                 if (MarkupHandling == MarkupMode.IgnoreFixable && fixableDiagnostics.Contains(defaultDiagnostic.Id))
@@ -401,9 +406,16 @@ namespace Microsoft.CodeAnalysis.Testing
                     return null;
                 }
 
-                var descriptor = supportedDiagnostics.SingleOrDefault(d => d.Id == diagnosticId);
+                var descriptors = supportedDiagnostics.Where(d => d.Id == diagnosticId);
+                var descriptor = descriptors.FirstOrDefault();
                 if (descriptor != null)
                 {
+                    if (!markupOptions.HasFlag(MarkupOptions.UseFirstDescriptor)
+                        && descriptors.Skip(1).Any())
+                    {
+                        throw new InvalidOperationException($"Multiple diagnostic descriptors with ID {diagnosticId} were found. Use the explicitly diagnostic creation syntax or specify {nameof(MarkupOptions)}.{nameof(MarkupOptions.UseFirstDescriptor)} to use the first matching diagnostic.");
+                    }
+
                     diagnosticResult = new DiagnosticResult(descriptor);
                 }
                 else

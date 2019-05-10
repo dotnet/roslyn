@@ -86,6 +86,12 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         public CompilerDiagnostics CompilerDiagnostics { get; set; } = CompilerDiagnostics.Errors;
 
+        /// <summary>
+        /// Gets or sets options for the markup processor when markup is used for diagnostics. The default value is
+        /// <see cref="MarkupOptions.None"/>.
+        /// </summary>
+        public MarkupOptions MarkupOptions { get; set; }
+
         public SolutionState TestState { get; }
 
         /// <summary>
@@ -125,12 +131,49 @@ namespace Microsoft.CodeAnalysis.Testing
             Verify.NotEmpty($"{nameof(TestState)}.{nameof(SolutionState.Sources)}", TestState.Sources);
 
             var analyzers = GetDiagnosticAnalyzers().ToArray();
-            var defaultDiagnostic = analyzers.Length > 0 && analyzers[0].SupportedDiagnostics.Length == 1 ? analyzers[0].SupportedDiagnostics[0] : null;
+            var defaultDiagnostic = GetDefaultDiagnostic(analyzers);
             var supportedDiagnostics = analyzers.SelectMany(analyzer => analyzer.SupportedDiagnostics).ToImmutableArray();
             var fixableDiagnostics = ImmutableArray<string>.Empty;
-            var testState = TestState.WithInheritedValuesApplied(null, fixableDiagnostics).WithProcessedMarkup(defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, DefaultFilePath);
+            var testState = TestState.WithInheritedValuesApplied(null, fixableDiagnostics).WithProcessedMarkup(MarkupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, DefaultFilePath);
 
             await VerifyDiagnosticsAsync(testState.Sources.ToArray(), testState.AdditionalFiles.ToArray(), testState.AdditionalReferences.ToArray(), testState.ExpectedDiagnostics.ToArray(), Verify, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Gets the default diagnostic to use during markup processing. By default, the <em>single</em> diagnostic of
+        /// the first analyzer is used, and no default diagonostic is available if multiple diagnostics are provided by
+        /// the analyzer. If <see cref="MarkupOptions.UseFirstDescriptor"/> is used, the first available diagnostic
+        /// is used.
+        /// </summary>
+        /// <param name="analyzers">The analyzers to consider.</param>
+        /// <returns>The default diagnostic to use during markup processing.</returns>
+        protected internal virtual DiagnosticDescriptor GetDefaultDiagnostic(DiagnosticAnalyzer[] analyzers)
+        {
+            if (analyzers.Length == 0)
+            {
+                return null;
+            }
+
+            if (MarkupOptions.HasFlag(MarkupOptions.UseFirstDescriptor))
+            {
+                foreach (var analyzer in analyzers)
+                {
+                    if (analyzer.SupportedDiagnostics.Any())
+                    {
+                        return analyzer.SupportedDiagnostics[0];
+                    }
+                }
+
+                return null;
+            }
+            else if (analyzers[0].SupportedDiagnostics.Length == 1)
+            {
+                return analyzers[0].SupportedDiagnostics[0];
+            }
+            else
+            {
+                return null;
+            }
         }
 
         /// <summary>
@@ -239,16 +282,19 @@ namespace Microsoft.CodeAnalysis.Testing
                 else
                 {
                     VerifyDiagnosticLocation(analyzers, actual, actual.Location, expected.Spans[0], verifier);
-                    var additionalLocations = actual.AdditionalLocations.ToArray();
-
-                    verifier.Equal(
-                        expected.Spans.Length - 1,
-                        additionalLocations.Length,
-                        $"Expected {expected.Spans.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:\r\n    {FormatDiagnostics(analyzers, actual)}\r\n");
-
-                    for (var j = 0; j < additionalLocations.Length; ++j)
+                    if (!expected.Spans[0].Options.HasFlag(DiagnosticLocationOptions.IgnoreAdditionalLocations))
                     {
-                        VerifyDiagnosticLocation(analyzers, actual, additionalLocations[j], expected.Spans[j + 1], verifier);
+                        var additionalLocations = actual.AdditionalLocations.ToArray();
+
+                        verifier.Equal(
+                            expected.Spans.Length - 1,
+                            additionalLocations.Length,
+                            $"Expected {expected.Spans.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:\r\n    {FormatDiagnostics(analyzers, actual)}\r\n");
+
+                        for (var j = 0; j < additionalLocations.Length; ++j)
+                        {
+                            VerifyDiagnosticLocation(analyzers, actual, additionalLocations[j], expected.Spans[j + 1], verifier);
+                        }
                     }
                 }
 

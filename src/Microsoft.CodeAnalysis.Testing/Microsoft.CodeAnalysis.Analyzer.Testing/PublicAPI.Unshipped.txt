@@ -6,6 +6,8 @@ Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProject((string fil
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DisabledDiagnostics.get -> System.Collections.Generic.List<string>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ExpectedDiagnostics.get -> System.Collections.Generic.List<Microsoft.CodeAnalysis.Testing.DiagnosticResult>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.GetSortedDiagnosticsAsync(Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, Microsoft.CodeAnalysis.Testing.CompilerDiagnostics compilerDiagnostics, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.MarkupOptions.get -> Microsoft.CodeAnalysis.Testing.MarkupOptions
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.MarkupOptions.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.OptionsTransforms.get -> System.Collections.Generic.List<System.Func<Microsoft.CodeAnalysis.Options.OptionSet, Microsoft.CodeAnalysis.Options.OptionSet>>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.SolutionTransforms.get -> System.Collections.Generic.List<System.Func<Microsoft.CodeAnalysis.Solution, Microsoft.CodeAnalysis.ProjectId, Microsoft.CodeAnalysis.Solution>>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestBehaviors.get -> Microsoft.CodeAnalysis.Testing.TestBehaviors
@@ -31,6 +33,7 @@ Microsoft.CodeAnalysis.Testing.DiagnosticLocation.DiagnosticLocation(Microsoft.C
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation.Options.get -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation.Span.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
 Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
+Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.IgnoreAdditionalLocations = 2 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.IgnoreLength = 1 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.None = 0 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticResult
@@ -49,12 +52,14 @@ Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLineOffset(int offset) -> Mi
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(Microsoft.CodeAnalysis.Text.LinePosition location) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(int line, int column) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(string path, Microsoft.CodeAnalysis.Text.LinePosition location) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(string path, Microsoft.CodeAnalysis.Text.LinePosition location, Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions options) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(string path, int line, int column) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithMessage(string message) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithMessageFormat(Microsoft.CodeAnalysis.LocalizableString messageFormat) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithNoLocation() -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity severity) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSpan(Microsoft.CodeAnalysis.FileLinePositionSpan span) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSpan(Microsoft.CodeAnalysis.FileLinePositionSpan span, Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions options) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSpan(int startLine, int startColumn, int endLine, int endColumn) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSpan(string path, int startLine, int startColumn, int endLine, int endColumn) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer
@@ -75,6 +80,9 @@ Microsoft.CodeAnalysis.Testing.MarkupMode.Allow = 3 -> Microsoft.CodeAnalysis.Te
 Microsoft.CodeAnalysis.Testing.MarkupMode.Ignore = 1 -> Microsoft.CodeAnalysis.Testing.MarkupMode
 Microsoft.CodeAnalysis.Testing.MarkupMode.IgnoreFixable = 2 -> Microsoft.CodeAnalysis.Testing.MarkupMode
 Microsoft.CodeAnalysis.Testing.MarkupMode.None = 0 -> Microsoft.CodeAnalysis.Testing.MarkupMode
+Microsoft.CodeAnalysis.Testing.MarkupOptions
+Microsoft.CodeAnalysis.Testing.MarkupOptions.None = 0 -> Microsoft.CodeAnalysis.Testing.MarkupOptions
+Microsoft.CodeAnalysis.Testing.MarkupOptions.UseFirstDescriptor = 1 -> Microsoft.CodeAnalysis.Testing.MarkupOptions
 Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection
 Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection.Add(System.Reflection.Assembly assembly) -> void
 Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection.Add(string path) -> void
@@ -92,7 +100,7 @@ Microsoft.CodeAnalysis.Testing.SolutionState.MarkupHandling.set -> void
 Microsoft.CodeAnalysis.Testing.SolutionState.SolutionState(string defaultPrefix, string defaultExtension) -> void
 Microsoft.CodeAnalysis.Testing.SolutionState.Sources.get -> Microsoft.CodeAnalysis.Testing.SourceFileList
 Microsoft.CodeAnalysis.Testing.SolutionState.WithInheritedValuesApplied(Microsoft.CodeAnalysis.Testing.SolutionState baseState, System.Collections.Immutable.ImmutableArray<string> fixableDiagnostics) -> Microsoft.CodeAnalysis.Testing.SolutionState
-Microsoft.CodeAnalysis.Testing.SolutionState.WithProcessedMarkup(Microsoft.CodeAnalysis.DiagnosticDescriptor defaultDiagnostic, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor> supportedDiagnostics, System.Collections.Immutable.ImmutableArray<string> fixableDiagnostics, string defaultPath) -> Microsoft.CodeAnalysis.Testing.SolutionState
+Microsoft.CodeAnalysis.Testing.SolutionState.WithProcessedMarkup(Microsoft.CodeAnalysis.Testing.MarkupOptions markupOptions, Microsoft.CodeAnalysis.DiagnosticDescriptor defaultDiagnostic, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor> supportedDiagnostics, System.Collections.Immutable.ImmutableArray<string> fixableDiagnostics, string defaultPath) -> Microsoft.CodeAnalysis.Testing.SolutionState
 Microsoft.CodeAnalysis.Testing.SourceFileCollection
 Microsoft.CodeAnalysis.Testing.SourceFileCollection.Add((string filename, string content) file) -> void
 Microsoft.CodeAnalysis.Testing.SourceFileCollection.SourceFileCollection() -> void
@@ -154,6 +162,7 @@ virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFilePath.g
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFilePathPrefix.get -> string
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultTestProjectName.get -> string
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.GetAnalyzerOptions(Microsoft.CodeAnalysis.Project project) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
+virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.GetDefaultDiagnostic(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer[] analyzers) -> Microsoft.CodeAnalysis.DiagnosticDescriptor
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 virtual Microsoft.CodeAnalysis.Testing.DefaultVerifier.CreateMessage(string message) -> string
 virtual Microsoft.CodeAnalysis.Testing.DefaultVerifier.Empty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
