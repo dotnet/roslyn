@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../ServicesVSResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../ServicesVSResources.resx">
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="new">A new namespace will be created</target>
+        <target state="translated">將會建立新的命名空間</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="new">Enable nullable reference analysis IDE features</target>
+        <target state="translated">啟用可為 null 的參考分析 IDE 功能</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -139,12 +139,12 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="new">Move to Namespace</target>
+        <target state="translated">移到命名空間</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="new">Namespace</target>
+        <target state="translated">命名空間</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -189,17 +189,17 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="translated">建議使用唯讀欄位</target>
+        <target state="translated">優先使用唯讀欄位</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
-        <target state="translated">建議使用簡單的 'using' 陳述式</target>
+        <target state="translated">優先使用簡單的 'using' 陳述式</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
-        <target state="translated">建議使用靜態區域函式</target>
+        <target state="translated">優先使用靜態區域函式</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -279,12 +279,12 @@
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="new">Target Namespace:</target>
+        <target state="translated">目標命名空間:</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="new">This is an invalid namespace</target>
+        <target state="translated">這是無效的命名空間</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -299,7 +299,7 @@
       </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
-        <target state="translated">使用 C# 和 Basic 的增強色彩</target>
+        <target state="translated">使用 C# 和 Basic 的進階色彩</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -329,7 +329,7 @@
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
-        <target state="translated">此工作區不支援更新的 Visual Basic 編譯選項。</target>
+        <target state="translated">此工作區不支援更新 Visual Basic 編譯選項。</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">

@@ -290,9 +290,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (bestItem != null)
             {
                 selectedItemIndex = itemsInList.IndexOf(i => Equals(i.FilterResult.CompletionItem, bestItem));
-                if (selectedItemIndex > -1 && bestItem != null && matchingItems.Length == 1 && filterText.Length > 0)
+                var deduplicatedList = matchingItems.Where(r => !r.DisplayText.StartsWith("★"));
+                if (selectedItemIndex > -1 &&
+                    deduplicatedList.Count() == 1 &&
+                    filterText.Length > 0)
                 {
-                    uniqueItem = highlightedList[selectedItemIndex].CompletionItem;
+                    var uniqueItemIndex = itemsInList.IndexOf(i => Equals(i.FilterResult.CompletionItem, deduplicatedList.First()));
+                    uniqueItem = highlightedList[uniqueItemIndex].CompletionItem;
                 }
             }
 

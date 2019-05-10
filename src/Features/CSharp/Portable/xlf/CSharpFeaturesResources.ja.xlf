@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
         <source>Allow unsafe code in this project</source>
-        <target state="new">Allow unsafe code in this project</target>
+        <target state="translated">このプロジェクトでアンセーフ コードを許可する</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
-        <target state="new">Fix return type</target>
+        <target state="translated">戻り値の型の修正</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Make_ref_struct">
         <source>Make 'ref struct'</source>
-        <target state="new">Make 'ref struct'</target>
+        <target state="translated">'ref struct' を作成します</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
-        <target state="new">Unseal class '{0}'</target>
+        <target state="translated">クラス '{0}' のシールを解除</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
@@ -409,12 +409,12 @@
       </trans-unit>
       <trans-unit id="checked_statement">
         <source>checked statement</source>
-        <target state="translated">確認済みのステートメント</target>
+        <target state="translated">checked ステートメント</target>
         <note>{Locked="checked"} "checked" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="unchecked_statement">
         <source>unchecked statement</source>
-        <target state="translated">未確認のステートメント</target>
+        <target state="translated">unchecked ステートメント</target>
         <note>{Locked="unchecked"} "unchecked" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_statement">
@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="await_expression">
         <source>await expression</source>
-        <target state="translated">Await 式</target>
+        <target state="translated">await 式</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="lambda">
@@ -519,7 +519,7 @@
       </trans-unit>
       <trans-unit id="global_statement">
         <source>global statement</source>
-        <target state="translated">グローバル ステートメント</target>
+        <target state="translated">global ステートメント</target>
         <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_namespace">
