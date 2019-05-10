@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -32,11 +33,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
 
         protected void ToggleCommentMultiple(string markup, string[] expectedText)
         {
-            var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic)
-                .CreateExportProvider();
-
-            using (var workspace = GetWorkspace(markup, exportProvider))
+            using (var workspace = GetWorkspace(markup, GetExportProvider()))
             {
                 var doc = workspace.Documents.First();
                 SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
@@ -52,6 +49,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
                 }
             }
         }
+
+        protected void ToggleCommentWithProjectionBuffer(string surfaceBufferMarkup, string subjectBufferMarkup, string entireExpectedMarkup)
+        {
+            using (var workspace = GetWorkspace(subjectBufferMarkup, GetExportProvider()))
+            {
+                var document = workspace.CreateProjectionBufferDocument(surfaceBufferMarkup, workspace.Documents, LanguageNames.CSharp);
+                SetupSelection(document.GetTextView(), document.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
+
+                var commandHandler = GetToggleCommentCommandHandler(workspace);
+                var textView = document.GetTextView();
+                var originalSubjectBuffer = GetBufferForContentType(ContentTypeNames.CSharpContentType, textView);
+
+                commandHandler.ExecuteCommand(textView, originalSubjectBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
+                AssertCommentResult(textView.TextBuffer, textView, entireExpectedMarkup);
+            }
+        }
+
+        private static ExportProvider GetExportProvider()
+            => ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic)
+                .CreateExportProvider();
+
+        private static ITextBuffer GetBufferForContentType(string contentTypeName, ITextView textView)
+            => textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(contentTypeName)).Single();
 
         private static void AssertCommentResult(ITextBuffer textBuffer, IWpfTextView textView, string expectedText)
         {

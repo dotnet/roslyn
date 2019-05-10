@@ -1141,7 +1141,7 @@ namespace Microsoft.CodeAnalysis
         {
             return AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions),
-                (project, documents) => (project.AddDocuments(documents), new CompilationTranslationAction.AddDocumentsAction(documents)));
+                (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationTranslationAction.AddDocumentsAction(documents)));
         }
 
         /// <summary>
@@ -1225,7 +1225,11 @@ namespace Microsoft.CodeAnalysis
             // attached to them, so we'll just replace all syntax trees in that case.
             return AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => new AnalyzerConfigDocumentState(documentInfo, _solutionServices),
-                (projectState, documents) => (projectState.AddAnalyzerConfigDocuments(documents), new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(projectState)));
+                (oldProject, documents) =>
+                {
+                    var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
+                    return (newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                });
         }
 
         public SolutionState RemoveAnalyzerConfigDocument(DocumentId documentId)

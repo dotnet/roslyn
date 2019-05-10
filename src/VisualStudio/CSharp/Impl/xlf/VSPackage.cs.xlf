@@ -108,11 +108,11 @@ Vodítka pro strukturu bloku;
 Zobrazit vodítka pro konstrukty na úrovni deklarace;
 Zobrazit vodítka pro konstrukty na úrovni kódu;
 Nápověda k editoru;
-_Generovat komentáře dokumentace XML pro ///;
+Generovat komentáře dokumentace XML pro ///;
 Při psaní komentářů /* */ vkládat na začátek nových řádků hvězdičku (*);
 Zobrazovat náhled pro sledování přejmenování;
 Rozdělit literály řetězců u Enter;
-Oznamovat neplatné zástupné symboly ve voláních String.Format;
+Oznamovat neplatné zástupné symboly ve voláních string.Format;
 Extrahovat metodu;
 Nevkládat odkaz nebo výstup do vlastní struktury;
 Implementovat rozhraní nebo abstraktní třídu;
@@ -122,6 +122,8 @@ na konec;
 Při generování vlastnosti;
 preferovat vyvolávací vlastnosti;
 preferovat automatické vlastnosti;
+reg. výr.;
+regulární výraz;
 Používat rozšířené barvy;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
@@ -374,12 +376,12 @@ Zobrazovat návrhy názvů;</target>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">Prázdný soubor skriptu C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Skript Visual C#</target>
         <note />
       </trans-unit>
     </body>
