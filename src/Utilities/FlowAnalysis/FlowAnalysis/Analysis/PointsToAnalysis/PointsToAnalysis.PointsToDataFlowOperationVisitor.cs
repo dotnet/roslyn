@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
@@ -558,12 +559,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 ImmutableArray<ArgumentInfo<PointsToAbstractValue>> argumentValues,
                 IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
                 IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
+                IDictionary<AnalysisEntity, ValueContentAbstractValue> valueContentValuesOpt,
                 bool isLambdaOrLocalFunction,
                 bool hasParameterWithDelegateType)
             {
                 pointsToValuesOpt = CurrentAnalysisData.CoreAnalysisData;
-                var initialAnalysisData = base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt, thisOrMeInstanceForCallerOpt,
-                    argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
+                var initialAnalysisData = base.GetInitialInterproceduralAnalysisData(invokedMethod,
+                    invocationInstanceOpt, thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt,
+                    copyValuesOpt, valueContentValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
                 AssertValidPointsToAnalysisData(initialAnalysisData);
                 return initialAnalysisData;
             }

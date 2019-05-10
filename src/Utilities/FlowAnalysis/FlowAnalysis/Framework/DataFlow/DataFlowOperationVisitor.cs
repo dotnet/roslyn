@@ -10,6 +10,7 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 #pragma warning disable CA1707 // Identifiers should not contain underscores
@@ -604,6 +605,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return true;
                 }
 
+                if (DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null &&
+                    isPredicateAlwaysFalseForBranch(DataFlowAnalysisContext.ValueContentAnalysisResultOpt.GetPredicateKind(branch.BranchValueOpt)))
+                {
+                    return true;
+                }
+
                 return false;
             }
 
@@ -883,6 +890,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
+        protected virtual ValueContentAbstractValue GetValueContentAbstractValue(IOperation operation)
+        {
+            if (DataFlowAnalysisContext.ValueContentAnalysisResultOpt == null)
+            {
+                return ValueContentAbstractValue.MayBeContainsNonLiteralState;
+            }
+            else
+            {
+                return DataFlowAnalysisContext.ValueContentAnalysisResultOpt[operation];
+            }
+        }
+
         protected ImmutableHashSet<AbstractLocation> GetEscapedLocations(IOperation operation)
         {
             if (operation == null || DataFlowAnalysisContext.PointsToAnalysisResultOpt == null)
@@ -1107,7 +1126,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             return basicBlock.IsReachable &&
                 (DataFlowAnalysisContext.CopyAnalysisResultOpt == null || DataFlowAnalysisContext.CopyAnalysisResultOpt[basicBlock].IsReachable) &&
-                (DataFlowAnalysisContext.PointsToAnalysisResultOpt == null || DataFlowAnalysisContext.PointsToAnalysisResultOpt[basicBlock].IsReachable);
+                (DataFlowAnalysisContext.PointsToAnalysisResultOpt == null || DataFlowAnalysisContext.PointsToAnalysisResultOpt[basicBlock].IsReachable) &&
+                (DataFlowAnalysisContext.ValueContentAnalysisResultOpt == null || DataFlowAnalysisContext.ValueContentAnalysisResultOpt[basicBlock].IsReachable);
         }
 
         protected bool IsCurrentBlockReachable()
@@ -1739,6 +1759,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> arguments,
             IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
             IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
+            IDictionary<AnalysisEntity, ValueContentAbstractValue> valueContentValuesOpt,
             bool isLambdaOrLocalFunction,
             bool hasParameterWithDelegateType)
             => GetClonedCurrentAnalysisData();
@@ -1855,10 +1876,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Compute the dependent interprocedural PointsTo and Copy analysis results, if any.
             var pointsToAnalysisResultOpt = (PointsToAnalysisResult)DataFlowAnalysisContext.PointsToAnalysisResultOpt?.TryGetInterproceduralResult(originalOperation);
             var copyAnalysisResultOpt = DataFlowAnalysisContext.CopyAnalysisResultOpt?.TryGetInterproceduralResult(originalOperation);
+            var valueContentAnalysisResultOpt = DataFlowAnalysisContext.ValueContentAnalysisResultOpt?.TryGetInterproceduralResult(originalOperation);
 
             // Compute the CFG for the invoked method.
             var cfg = pointsToAnalysisResultOpt?.ControlFlowGraph ??
                 copyAnalysisResultOpt?.ControlFlowGraph ??
+                valueContentAnalysisResultOpt?.ControlFlowGraph ??
                 getCfg();
             if (cfg == null)
             {
@@ -1870,6 +1893,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Ensure we are using the same control flow graphs across analyses.
             Debug.Assert(pointsToAnalysisResultOpt?.ControlFlowGraph == null || cfg == pointsToAnalysisResultOpt?.ControlFlowGraph);
             Debug.Assert(copyAnalysisResultOpt?.ControlFlowGraph == null || cfg == copyAnalysisResultOpt?.ControlFlowGraph);
+            Debug.Assert(valueContentAnalysisResultOpt?.ControlFlowGraph == null || cfg == valueContentAnalysisResultOpt?.ControlFlowGraph);
 
             // Append operation to interprocedural call stack.
             _interproceduralCallStack.Push(originalOperation);
@@ -1883,7 +1907,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 // Create analysis context for interprocedural analysis.
                 var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
-                    invokedMethod, cfg, originalOperation, pointsToAnalysisResultOpt, copyAnalysisResultOpt, interproceduralAnalysisData);
+                    invokedMethod, cfg, originalOperation, pointsToAnalysisResultOpt, copyAnalysisResultOpt, valueContentAnalysisResultOpt, interproceduralAnalysisData);
 
                 // Check if the client configured skipping analysis for the given interprocedural analysis context.
                 if (DataFlowAnalysisContext.InterproceduralAnalysisPredicateOpt?.SkipInterproceduralAnalysis(interproceduralDataFlowAnalysisContext) == true)
@@ -1983,8 +2007,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 var argumentValues = GetArgumentValues(ref invocationInstance);
                 var pointsToValuesOpt = pointsToAnalysisResultOpt?[cfg.GetEntry()].Data;
                 var copyValuesOpt = copyAnalysisResultOpt?[cfg.GetEntry()].Data;
+                var valueContentValuesOpt = valueContentAnalysisResultOpt?[cfg.GetEntry()].Data;
                 var initialAnalysisData = GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstance,
-                    thisOrMeInstance, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
+                    thisOrMeInstance, argumentValues, pointsToValuesOpt, copyValuesOpt, valueContentValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
 
                 return new InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>(
                     initialAnalysisData,

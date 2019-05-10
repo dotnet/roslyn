@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 #pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
 
@@ -15,6 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
     using InterproceduralParameterValidationAnalysisData = InterproceduralAnalysisData<DictionaryAnalysisData<AbstractLocation, ParameterValidationAbstractValue>, ParameterValidationAnalysisContext, ParameterValidationAbstractValue>;
     using ParameterValidationAnalysisData = DictionaryAnalysisData<AbstractLocation, ParameterValidationAbstractValue>;
+    using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     /// <summary>
     /// Analysis context for execution of <see cref="ParameterValidationAnalysis"/> on a control flow graph.
@@ -33,9 +33,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             ControlFlowGraph parentControlFlowGraphOpt,
             InterproceduralParameterValidationAnalysisData interproceduralAnalysisDataOpt,
             bool trackHazardousParameterUsages)
-            : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis,
-                  predicateAnalysis: false, exceptionPathsAnalysis: false, copyAnalysisResultOpt: null, pointsToAnalysisResultOpt,
-                  getOrComputeAnalysisResult, parentControlFlowGraphOpt, interproceduralAnalysisDataOpt, interproceduralAnalysisPredicateOpt: null)
+            : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig,
+                  pessimisticAnalysis, predicateAnalysis: false, exceptionPathsAnalysis: false,
+                  copyAnalysisResultOpt: null, pointsToAnalysisResultOpt, valueContentAnalysisResultOpt: null,
+                  getOrComputeAnalysisResult, parentControlFlowGraphOpt, interproceduralAnalysisDataOpt,
+                  interproceduralAnalysisPredicateOpt: null)
         {
             TrackHazardousParameterUsages = trackHazardousParameterUsages;
         }
@@ -62,10 +64,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             IOperation operation,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             CopyAnalysisResult copyAnalysisResultOpt,
+            ValueContentAnalysisResult valueContentAnalysisResultOpt,
             InterproceduralParameterValidationAnalysisData interproceduralAnalysisData)
         {
             Debug.Assert(pointsToAnalysisResultOpt != null);
             Debug.Assert(copyAnalysisResultOpt == null);
+            Debug.Assert(valueContentAnalysisResultOpt == null);
 
             // Do not invoke any interprocedural analysis more than one level down.
             // We only care about analyzing validation methods.

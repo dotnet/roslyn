@@ -299,5 +299,6 @@ namespace Analyzer.Utilities
         public const string MicrosoftWindowsAzureStorageCloudStorageAccount = "Microsoft.WindowsAzure.Storage.CloudStorageAccount";
         public const string SystemNullable1 = "System.Nullable`1";
         public const string MicrosoftWindowsAzureStorageSharedAccessProtocol = "Microsoft.WindowsAzure.Storage.SharedAccessProtocol";
+        public const string SystemSecurityCryptographyHashAlgorithmName = "System.Security.Cryptography.HashAlgorithmName";
     }
 }
