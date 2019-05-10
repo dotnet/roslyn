@@ -4835,15 +4835,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
                 }
-                if (method.Arity > 0 && HasImplicitTypeArguments(group.Syntax))
+                if (method.IsGenericMethod && HasImplicitTypeArguments(group.Syntax))
                 {
                     var arguments = ArrayBuilder<BoundExpression>.GetInstance();
                     if (invokedAsExtensionMethod)
                     {
                         arguments.Add(CreatePlaceholderIfNecessary(receiverOpt, receiverType.ToTypeWithAnnotations()));
                     }
-                    // Create placeholders for the arguments. See Conversions.GetDelegateArguments()
-                    // which is used for that purpose in initial binding.
+                    // Create placeholders for the arguments. (See Conversions.GetDelegateArguments()
+                    // which is used for that purpose in initial binding.)
                     foreach (var parameter in delegateType.DelegateInvokeMethod.Parameters)
                     {
                         var parameterType = parameter.TypeWithAnnotations;

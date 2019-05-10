@@ -96869,5 +96869,70 @@ class Program
                 //         _ = new D<T?>(y.F); // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "y.F").WithArguments("E.F<T>(T)", "T", "T?").WithLocation(16, 23));
         }
+
+        [Fact]
+        [WorkItem(33637, "https://github.com/dotnet/roslyn/issues/33637")]
+        public void ExtensionMethodDelegateInferredNullability_08()
+        {
+            var source =
+@"delegate T D<T>();
+static class E
+{
+    internal static T F<T>(this T t) => t;
+}
+class Program
+{
+    static void M<T>() where T : class, new()
+    {
+        T x;
+        N(() =>
+        {
+            x = null; // 1
+            D<T> d = x.F; // 2
+            _ = new D<T>(x.F); // 3
+        });
+    }
+    static void N(System.Action a) { }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 17),
+                // (14,22): warning CS8621: Nullability of reference types in return type of 'T? E.F<T?>(T? t)' doesn't match the target delegate 'D<T>'.
+                //             D<T> d = x.F; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "x.F").WithArguments("T? E.F<T?>(T? t)", "D<T>").WithLocation(14, 22),
+                // (15,26): warning CS8621: Nullability of reference types in return type of 'T? E.F<T?>(T? t)' doesn't match the target delegate 'D<T>'.
+                //             _ = new D<T>(x.F); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "x.F").WithArguments("T? E.F<T?>(T? t)", "D<T>").WithLocation(15, 26));
+        }
+
+        [Fact]
+        [WorkItem(33637, "https://github.com/dotnet/roslyn/issues/33637")]
+        public void ExtensionMethodDelegateInferredNullability_09()
+        {
+            var source =
+@"delegate T D<T>();
+static class E
+{
+    internal static T F<T>(this T t) => t;
+}
+class A : System.Attribute
+{
+    internal A(D<string> d) { }
+}
+[A(default(string).F)]
+class Program
+{
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,2): error CS0181: Attribute constructor parameter 'd' has type 'D<string>', which is not a valid attribute parameter type
+                // [A(default(string).F)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("d", "D<string>").WithLocation(10, 2),
+                // (10,4): warning CS8621: Nullability of reference types in return type of 'string? E.F<string?>(string? t)' doesn't match the target delegate 'D<string>'.
+                // [A(default(string).F)]
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "default(string).F").WithArguments("string? E.F<string?>(string? t)", "D<string>").WithLocation(10, 4));
+        }
     }
 }
