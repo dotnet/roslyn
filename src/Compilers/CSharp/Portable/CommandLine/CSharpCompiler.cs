@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consoleOutput"></param>
         public override void PrintLogo(TextWriter consoleOutput)
         {
-            consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine1, Culture), GetToolName(), GetAssemblyFileVersion());
+            consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine1, Culture), GetToolName(), GetCompilerVersion());
             consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_LogoLine2, Culture));
             consoleOutput.WriteLine();
         }

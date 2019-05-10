@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion: conversion.UserDefinedFromConversion,
                 isCast: false,
                 conversionGroup,
-                wasCompilerGenerated: true,
+                wasCompilerGenerated: false,
                 destination: conversion.BestUserDefinedConversionAnalysis.FromType,
                 diagnostics: diagnostics);
 
