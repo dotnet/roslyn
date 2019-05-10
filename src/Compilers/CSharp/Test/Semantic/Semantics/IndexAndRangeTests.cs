@@ -16,6 +16,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private const string RangeAllSignature = "System.Range System.Range.All.get";
 
         [Fact]
+        public void RangeBadIndexerTypes()
+        {
+            var src = @"
+using System;
+
+public static class Program {
+    public static void Main() {
+        var a = new Span<byte>();
+        var b = a[""str2""];
+        var c = a[null];
+        var d = a[Main()];
+        var e = a[new object()];
+        Console.WriteLine(zzz[0]);
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src);
+            comp.VerifyDiagnostics(
+                // (7,19): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+                //         var b = a["str2"];
+                Diagnostic(ErrorCode.ERR_BadArgType, @"""str2""").WithArguments("1", "string", "int").WithLocation(7, 19),
+                // (8,19): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
+                //         var c = a[null];
+                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(8, 19),
+                // (9,19): error CS1503: Argument 1: cannot convert from 'void' to 'int'
+                //         var d = a[Main()];
+                Diagnostic(ErrorCode.ERR_BadArgType, "Main()").WithArguments("1", "void", "int").WithLocation(9, 19),
+                // (10,19): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         var e = a[new object()];
+                Diagnostic(ErrorCode.ERR_BadArgType, "new object()").WithArguments("1", "object", "int").WithLocation(10, 19),
+                // (11,27): error CS0103: The name 'zzz' does not exist in the current context
+                //         Console.WriteLine(zzz[0]);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "zzz").WithArguments("zzz").WithLocation(11, 27));
+        }
+
+        [Fact]
         public void PatternIndexRangeLangVer()
         {
             var src = @"
