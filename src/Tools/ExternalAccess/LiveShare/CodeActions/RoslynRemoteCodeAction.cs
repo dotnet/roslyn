@@ -55,7 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
 
             // We have a command - this will be executed on the host but the host may have a preview for the current document.
-            var runCodeActionParams = ((JToken)_command.Arguments?.Single())?.ToObject<RunCodeActionParams>();
+            var runCodeActionsCommand = ((JToken)_command.Arguments?.Single()).ToObject<LSP.Command>();
+            var runCodeActionParams = ((JToken)runCodeActionsCommand.Arguments?.Single())?.ToObject<RunCodeActionParams>();
 
             var request = new LSP.LspRequest<RunCodeActionParams, LSP.TextEdit[]>(RoslynMethods.CodeActionPreviewName);
             var textEdits = await _lspClient.RequestAsync(request, runCodeActionParams, cancellationToken).ConfigureAwait(false);

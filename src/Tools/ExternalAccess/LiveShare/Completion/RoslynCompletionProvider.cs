@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
             }
 
-            var parts = resolvedCompletionItem.Description.Runs.Select(run => new TaggedText(run.ClassificationTypeName, run.Text)).AsImmutable();
+            var parts = resolvedCompletionItem.Description.Select(tt => tt.ToTaggedText()).AsImmutable();
             return CompletionDescription.Create(parts);
         }
 
