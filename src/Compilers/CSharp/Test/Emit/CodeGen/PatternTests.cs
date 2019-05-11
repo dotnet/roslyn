@@ -1544,21 +1544,23 @@ False
 }");
             compVerifier.VerifyIL("Program.Test2<T>(T)",
 @"{
-  // Code size       30 (0x1e)
+  // Code size       35 (0x23)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  box        ""T""
   IL_0006:  isinst     ""int""
-  IL_000b:  brfalse.s  IL_001c
+  IL_000b:  brfalse.s  IL_0021
   IL_000d:  ldarg.0
   IL_000e:  box        ""T""
-  IL_0013:  unbox.any  ""int""
-  IL_0018:  ldc.i4.0
-  IL_0019:  ceq
-  IL_001b:  ret
-  IL_001c:  ldc.i4.0
-  IL_001d:  ret
-}");
+  IL_0013:  isinst     ""int""
+  IL_0018:  unbox.any  ""int""
+  IL_001d:  ldc.i4.0
+  IL_001e:  ceq
+  IL_0020:  ret
+  IL_0021:  ldc.i4.0
+  IL_0022:  ret
+}
+");
             compVerifier.VerifyIL("Program.Test3<T>(T)",
 @"{
   // Code size       29 (0x1d)
@@ -1598,21 +1600,23 @@ False
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C<T>.Test(C<T>.S)",
 @"{
-  // Code size       30 (0x1e)
+  // Code size       35 (0x23)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  box        ""C<T>.S""
   IL_0006:  isinst     ""int""
-  IL_000b:  brfalse.s  IL_001c
+  IL_000b:  brfalse.s  IL_0021
   IL_000d:  ldarg.0
   IL_000e:  box        ""C<T>.S""
-  IL_0013:  unbox.any  ""int""
-  IL_0018:  ldc.i4.1
-  IL_0019:  ceq
-  IL_001b:  ret
-  IL_001c:  ldc.i4.0
-  IL_001d:  ret
-}");
+  IL_0013:  isinst     ""int""
+  IL_0018:  unbox.any  ""int""
+  IL_001d:  ldc.i4.1
+  IL_001e:  ceq
+  IL_0020:  ret
+  IL_0021:  ldc.i4.0
+  IL_0022:  ret
+}
+");
         }
 
         [Fact]
@@ -2382,6 +2386,224 @@ public class Class1
   IL_0018:  ldloc.0
   IL_0019:  ret
 }");
+                }
+            }
+        }
+
+        [Fact, WorkItem(35584, "https://github.com/dotnet/roslyn/issues/35584")]
+        public void MatchToTypeParameterUnbox_01()
+        {
+            var source = @"
+class Program
+{
+    public static void Main() => System.Console.WriteLine(P<int>(0));
+    public static string P<T>(T t) => (t is object o) ? o.ToString() : string.Empty;
+}
+";
+            var expectedOutput = @"0";
+            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
+            {
+                var compilation = CreateCompilation(source, options: options);
+                compilation.VerifyDiagnostics();
+                var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                if (options.OptimizationLevel == OptimizationLevel.Debug)
+                {
+                    compVerifier.VerifyIL("Program.P<T>",
+@"{
+  // Code size       24 (0x18)
+  .maxstack  1
+  .locals init (object V_0) //o
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_0011
+  IL_000a:  ldsfld     ""string string.Empty""
+  IL_000f:  br.s       IL_0017
+  IL_0011:  ldloc.0
+  IL_0012:  callvirt   ""string object.ToString()""
+  IL_0017:  ret
+}
+");
+                }
+                else
+                {
+                    compVerifier.VerifyIL("Program.P<T>",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (object V_0) //o
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_0010
+  IL_000a:  ldsfld     ""string string.Empty""
+  IL_000f:  ret
+  IL_0010:  ldloc.0
+  IL_0011:  callvirt   ""string object.ToString()""
+  IL_0016:  ret
+}
+");
+                }
+            }
+        }
+
+        [Fact, WorkItem(35584, "https://github.com/dotnet/roslyn/issues/35584")]
+        public void MatchToTypeParameterUnbox_02()
+        {
+            var source =
+@"using System;
+ class Program
+{
+    public static void Main()
+    {
+        var nonGenericfoo = new NonGenericFoo(0);  // no problem
+        var genericFoo = new GenericFoo<int>(0); // Kaboom exception thrown
+    }
+}
+public class NonGenericFoo
+{
+    public NonGenericFoo(int value)
+    {
+        if (value is object obj && obj == null)
+        {
+            throw new Exception(""Kaboom!"");
+        }
+    }
+}
+public class GenericFoo<T>
+{
+    public GenericFoo(T value)
+    {
+        if (value is object obj && obj == null)
+        {
+            throw new Exception(""Kaboom!"");
+        }
+    }
+}
+";
+            var expectedOutput = @"";
+            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
+            {
+                var compilation = CreateCompilation(source, options: options);
+                compilation.VerifyDiagnostics();
+                var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                if (options.OptimizationLevel == OptimizationLevel.Debug)
+                {
+                    compVerifier.VerifyIL("GenericFoo<T>..ctor(T)",
+@"{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  .locals init (object V_0, //obj
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  nop
+  IL_0007:  nop
+  IL_0008:  ldarg.1
+  IL_0009:  box        ""T""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brfalse.s  IL_0018
+  IL_0012:  ldloc.0
+  IL_0013:  ldnull
+  IL_0014:  ceq
+  IL_0016:  br.s       IL_0019
+  IL_0018:  ldc.i4.0
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  brfalse.s  IL_0029
+  IL_001d:  nop
+  IL_001e:  ldstr      ""Kaboom!""
+  IL_0023:  newobj     ""System.Exception..ctor(string)""
+  IL_0028:  throw
+  IL_0029:  ret
+}
+");
+                }
+                else
+                {
+                    compVerifier.VerifyIL("GenericFoo<T>..ctor(T)",
+@"{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (object V_0) //obj
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.1
+  IL_0007:  box        ""T""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  brfalse.s  IL_001e
+  IL_0010:  ldloc.0
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldstr      ""Kaboom!""
+  IL_0018:  newobj     ""System.Exception..ctor(string)""
+  IL_001d:  throw
+  IL_001e:  ret
+}
+");
+                }
+            }
+        }
+
+        [Fact, WorkItem(35584, "https://github.com/dotnet/roslyn/issues/35584")]
+        public void MatchToTypeParameterUnbox_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main() => System.Console.WriteLine(P<Enum>(null));
+    public static string P<T>(T t) where T: Enum => (t is ValueType o) ? o.ToString() : ""1"";
+}
+";
+            var expectedOutput = @"1";
+            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
+            {
+                var compilation = CreateCompilation(source, options: options);
+                compilation.VerifyDiagnostics();
+                var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                if (options.OptimizationLevel == OptimizationLevel.Debug)
+                {
+                    compVerifier.VerifyIL("Program.P<T>",
+@"{
+  // Code size       24 (0x18)
+  .maxstack  1
+  .locals init (System.ValueType V_0) //o
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_0011
+  IL_000a:  ldstr      ""1""
+  IL_000f:  br.s       IL_0017
+  IL_0011:  ldloc.0
+  IL_0012:  callvirt   ""string object.ToString()""
+  IL_0017:  ret
+}
+");
+                }
+                else
+                {
+                    compVerifier.VerifyIL("Program.P<T>",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (System.ValueType V_0) //o
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_0010
+  IL_000a:  ldstr      ""1""
+  IL_000f:  ret
+  IL_0010:  ldloc.0
+  IL_0011:  callvirt   ""string object.ToString()""
+  IL_0016:  ret
+}
+");
                 }
             }
         }
