@@ -1542,7 +1542,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     // We have more than one project outputting to the same path. This shouldn't happen but we'll convert back
                     // because now we don't know which project to reference.
-                    ConvertProjectReferencesToMetadataReferences_NoLock(projectId, outputPath);
+                    foreach (var otherProjectId in projectsForOutputPath)
+                    {
+                        // We know that since we're adding a path to projectId and we're here that we couldn't have already
+                        // had a converted reference to us, instead we need to convert things that are pointing to the project
+                        // we're colliding with
+                        if (otherProjectId != projectId)
+                        {
+                            ConvertProjectReferencesToMetadataReferences_NoLock(otherProjectId, outputPath);
+                        }
+                    }
                 }
             }
         }
@@ -1752,11 +1761,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (_projectsByOutputPath.TryGetValue(outputPath, out var remainingProjectsForOutputPath))
                 {
-                    if (remainingProjectsForOutputPath.Distinct().Count() == 1)
+                    var distinctRemainingProjects = remainingProjectsForOutputPath.Distinct();
+                    if (distinctRemainingProjects.Count() == 1)
                     {
                         // We had more than one project outputting to the same path. Now we're back down to one
                         // so we can reference that one again
-                        ConvertMetadataReferencesToProjectReferences_NoLock(_projectsByOutputPath[outputPath].Single(), outputPath);
+                        ConvertMetadataReferencesToProjectReferences_NoLock(distinctRemainingProjects.Single(), outputPath);
                     }
                 }
                 else
