@@ -1623,10 +1623,4 @@ This version used in: {2}</value>
   <data name="Target_type_matches" xml:space="preserve">
     <value>Target type matches</value>
   </data>
-  <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
-    <value>Stream must support read and seek operations.</value>
-  </data>
-  <data name="MethodMustReturnStreamThatSupportsReadAndSeek" xml:space="preserve">
-    <value>{0} must return a stream that supports read and seek operations.</value>
-  </data>
 </root>
