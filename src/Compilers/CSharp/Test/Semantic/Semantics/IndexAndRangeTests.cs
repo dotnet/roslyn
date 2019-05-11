@@ -347,16 +347,13 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // At binding time we don't look for all the necessary members
-                // on the Index and Range types.
+                // (21,13): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+                //         _ = this[^0];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this[^0]").WithArguments("System.Index", "GetOffset").WithLocation(21, 13),
+                // (22,13): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+                //         _ = this[0..];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this[0..]").WithArguments("System.Index", "GetOffset").WithLocation(22, 13)
                 );
-            comp.VerifyEmitDiagnostics(
-                // (20,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
-                //     {
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
-        _ = this[^0];
-        _ = this[0..];
-    }").WithArguments("System.Index", "GetOffset").WithLocation(20, 5));
         }
 
         [Theory]

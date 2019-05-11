@@ -7455,13 +7455,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out BoundIndexOrRangePatternIndexerAccess patternIndexerAccess)
         {
+            patternIndexerAccess = null;
+
             // Verify a few things up-front, namely that we have a single argument
             // to this indexer that has an Index or Range type and that there is
             // a real receiver with a known type
 
             if (arguments.Count != 1)
             {
-                patternIndexerAccess = null;
                 return false;
             }
 
@@ -7476,7 +7477,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((!argIsIndex && !argIsRange) ||
                 !(receiverOpt?.Type is TypeSymbol receiverType))
             {
-                patternIndexerAccess = null;
                 return false;
             }
 
@@ -7500,7 +7500,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!tryLookupLengthOrCount(WellKnownMemberNames.LengthPropertyName, out lengthOrCountProperty) &&
                 !tryLookupLengthOrCount(WellKnownMemberNames.CountPropertyName, out lengthOrCountProperty))
             {
-                patternIndexerAccess = null;
                 return false;
             }
 
@@ -7531,7 +7530,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             property.OriginalDefinition is { ParameterCount: 1 } original &&
                             isIntNotByRef(original.Parameters[0]))
                         {
-                            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,
@@ -7539,8 +7537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 property,
                                 arguments[0],
                                 property.Type);
-                            cleanup(lookupResult, ref useSiteDiagnostics);
-                            return true;
+                            break;
                         }
                     }
                 }
@@ -7550,9 +7547,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(argIsRange);
                 // Look for Substring
                 var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
-                if (substring is { })
+                if (substring is object)
                 {
-                    _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
                     patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                         syntax,
                         receiverOpt,
@@ -7560,8 +7556,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         substring,
                         arguments[0],
                         substring.ReturnType);
-                    cleanup(lookupResult, ref useSiteDiagnostics);
-                    return true;
                 }
             }
             else
@@ -7592,7 +7586,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isIntNotByRef(original.Parameters[0]) &&
                             isIntNotByRef(original.Parameters[1]))
                         {
-                            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,
@@ -7600,16 +7593,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method,
                                 arguments[0],
                                 method.ReturnType);
-                            cleanup(lookupResult, ref useSiteDiagnostics);
-                            return true;
+                            break;
                         }
                     }
                 }
             }
 
             cleanup(lookupResult, ref useSiteDiagnostics);
-            patternIndexerAccess = null;
-            return false;
+            if (patternIndexerAccess is null)
+            {
+                return false;
+            }
+
+            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
+            // Check for some required well-known members. They may not be needed
+            // during lowering, but it's simpler to always require them to prevent
+            // the user from getting surprising errors when optimizations fail
+            _ = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__GetOffset, diagnostics, syntax: syntax);
+            return true;
 
             static void cleanup(LookupResult lookupResult, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             {
