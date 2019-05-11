@@ -7469,7 +7469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool argIsIndex = TypeSymbol.Equals(argType,
                 Compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything);
-            bool argIsRange = !argIsIndex || TypeSymbol.Equals(argType,
+            bool argIsRange = !argIsIndex && TypeSymbol.Equals(argType,
                 Compilation.GetWellKnownType(WellKnownType.System_Range),
                 TypeCompareKind.ConsiderEverything);
 
