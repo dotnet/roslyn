@@ -459,6 +459,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // which typically appears to be set to the default value ("Other").
                 var category = (result.Category != DkmEvaluationResultCategory.Other) ? result.Category : value.Category;
 
+                var nullableMemberInfo = value.GetDataItem<NullableMemberInfo>();
+
                 // Valid value
                 return DkmSuccessEvaluationResult.Create(
                     InspectionContext: inspectionContext,
@@ -469,10 +471,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     Value: display,
                     EditableValue: result.EditableValue,
                     Type: typeName,
-                    Category: category,
-                    Access: value.Access,
-                    StorageType: value.StorageType,
-                    TypeModifierFlags: value.TypeModifierFlags,
+                    Category: nullableMemberInfo?.Category ?? category,
+                    Access: nullableMemberInfo?.Access ?? value.Access,
+                    StorageType: nullableMemberInfo?.StorageType ?? value.StorageType,
+                    TypeModifierFlags: nullableMemberInfo?.TypeModifierFlags ?? value.TypeModifierFlags,
                     Address: value.Address,
                     CustomUIVisualizers: customUIVisualizers,
                     ExternalModules: null,
@@ -557,6 +559,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 else
                 {
+                    // nullableValue is taken from an internal field.
+                    // It may have different category, access, etc comparing the original member.
+                    // For example, the orignal member can be a property not a field.
+                    // Save original member values to restore them later.
+                    if (value != nullableValue)
+                    {
+                        var nullableMemberInfo = new NullableMemberInfo(value.Category, value.Access, value.StorageType, value.TypeModifierFlags);
+                        nullableValue.SetDataItem(DkmDataCreationDisposition.CreateAlways, nullableMemberInfo);
+                    }
+
                     value = nullableValue;
                     Debug.Assert(lmrNullableTypeArg.Equals(value.Type.GetLmrType())); // If this is not the case, add a test for includeRuntimeTypeIfNecessary.
                     // CONSIDER: The DynamicAttribute for the type argument should just be Skip(1) of the original flag array.
@@ -1056,6 +1068,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
                 }
                 _state = State.Executed;
+            }
+        }
+
+        private class NullableMemberInfo : DkmDataItem
+        {
+            public readonly DkmEvaluationResultCategory Category;
+            public readonly DkmEvaluationResultAccessType Access;
+            public readonly DkmEvaluationResultStorageType StorageType;
+            public readonly DkmEvaluationResultTypeModifierFlags TypeModifierFlags;
+
+            public NullableMemberInfo(DkmEvaluationResultCategory category, DkmEvaluationResultAccessType access, DkmEvaluationResultStorageType storageType, DkmEvaluationResultTypeModifierFlags typeModifierFlags)
+            {
+                Category = category;
+                Access = access;
+                StorageType = storageType;
+                TypeModifierFlags = typeModifierFlags;
             }
         }
     }
