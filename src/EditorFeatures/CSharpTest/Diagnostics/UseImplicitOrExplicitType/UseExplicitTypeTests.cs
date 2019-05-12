@@ -38,11 +38,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
         private IDictionary<OptionKey, object> ExplicitTypeExceptWhereApparent() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsExplicit, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
         private IDictionary<OptionKey, object> ExplicitTypeForBuiltInTypesOnly() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsExplicit, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
         private IDictionary<OptionKey, object> ExplicitTypeEnforcements() => OptionsSet(
@@ -279,7 +281,7 @@ class C
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
-        public async Task InArrayType()
+        public async Task InArrayType_1()
         {
             var before = @"
 class Program
@@ -299,7 +301,37 @@ class Program
 }";
             // The type is apparent and not intrinsic
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task InArrayType_2()
+        {
+            var before = @"
+class Program
+{
+    void Method()
+    {
+        [|var|] x = new Program[0];
+    }
+}";
+            // The type is apparent and not intrinsic
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(23907, "https://github.com/dotnet/roslyn/issues/23907")]
+        public async Task InArrayType_3()
+        {
+            var before = @"
+class Program
+{
+    void Method()
+    {
+        [|var|] x = new Program[0];
+    }
+}";
+            // The type is apparent and not intrinsic
             await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeExceptWhereApparent()));
         }
 
