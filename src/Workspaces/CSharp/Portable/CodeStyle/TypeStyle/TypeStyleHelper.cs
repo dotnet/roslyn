@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             }
 
             // explicit conversion cases: 
-            //      (type)expr, expr is type, expr as type
+            //      (type)expr, expr as type
             if (initializerExpression is CastExpressionSyntax castExpression)
             {
                 return typeInDeclaration.Equals(
