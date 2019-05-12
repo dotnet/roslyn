@@ -42,6 +42,16 @@
         <target state="translated">在關係運算子中: &lt; &gt; &lt;= &gt;= 如同 == !=</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inside_namespace">
+        <source>Inside namespace</source>
+        <target state="new">Inside namespace</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="new">Outside namespace</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
         <target state="translated">在格式化期間執行額外程式碼清除</target>
@@ -52,14 +62,29 @@
         <target state="translated">參考相等檢查最好使用 'is null'</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Preferred_using_directive_placement">
+        <source>Preferred 'using' directive placement</source>
+        <target state="new">Preferred 'using' directive placement</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">移除不必要的 Using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="new">Show items from unimported namespaces (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
         <target state="translated">排序 Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
+        <source>Suggest usings for types in .NET Framework assemblies</source>
+        <target state="new">Suggest usings for types in .NET Framework assemblies</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -517,11 +542,6 @@
         <target state="translated">將屬性、索引子及事件的左邊大括號放在新行</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_reference_assemblies">
-        <source>Suggest usings for types in _reference assemblies</source>
-        <target state="translated">為參考組件中的類型建議 Using(_R)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">為 NuGet 封裝中的類型建議 Using(_N)</target>
@@ -591,6 +611,11 @@
         <source>'this.' preferences:</source>
         <target state="translated">'this.' 喜好設定:</target>
         <note />
+      </trans-unit>
+      <trans-unit id="using_preferences_colon">
+        <source>'using' preferences:</source>
+        <target state="new">'using' preferences:</target>
+        <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="var_preferences_colon">
         <source>'var' preferences:</source>

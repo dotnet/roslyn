@@ -378,10 +378,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
-                // Currently, OOP diagnostics don't work with code action tests.
-                workspace.Options = workspace.Options.WithChangedOption(
-                    RemoteFeatureOptions.DiagnosticsEnabled, false);
-
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
                 await TestActionAsync(
                     workspace, expected, action,

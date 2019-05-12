@@ -214,10 +214,6 @@ function BuildSolution() {
   $enableAnalyzers = !$skipAnalyzers
   $toolsetBuildProj = InitializeToolset
 
-  # Have to disable quiet restore during bootstrap builds to work around 
-  # an arcade bug
-  # https://github.com/dotnet/arcade/issues/2220
-  $quietRestore = !($ci -or ($bootstrapDir -ne ""))
   $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.0%3Bnetcoreapp2.1" } else { "" }
   
   $ibcSourceBranchName = GetIbcSourceBranchName
@@ -250,8 +246,6 @@ function BuildSolution() {
       /p:OfficialBuildId=$officialBuildId `
       /p:UseRoslynAnalyzers=$enableAnalyzers `
       /p:BootstrapBuildPath=$bootstrapDir `
-      /p:QuietRestore=$quietRestore `
-      /p:QuietRestoreBinaryLog=$binaryLog `
       /p:TestTargetFrameworks=$testTargetFrameworks `
       /p:TreatWarningsAsErrors=true `
       /p:VisualStudioIbcSourceBranchName=$ibcSourceBranchName `
@@ -504,6 +498,49 @@ function Ensure-ProcDump() {
   return $outDir
 }
 
+# Setup the CI machine for running our integration tests.
+function Setup-IntegrationTestRun() {
+  $processesToStopOnExit += "devenv"
+  $screenshotPath = (Join-Path $LogDir "StartingBuild.png")
+  try {
+    Capture-Screenshot $screenshotPath
+  }
+  catch {
+    Write-Host "Screenshot failed; attempting to connect to the console"
+
+    # Keep the session open so we have a UI to interact with
+    $quserItems = ((quser $env:USERNAME | select -Skip 1) -split '\s+')
+    $sessionid = $quserItems[2]
+    if ($sessionid -eq 'Disc') {
+      # When the session isn't connected, the third value is 'Disc' instead of the ID
+      $sessionid = $quserItems[1]
+    }
+
+    if ($quserItems[1] -eq 'console') {
+      Write-Host "Disconnecting from console before attempting reconnection"
+      try {
+        tsdiscon
+      } catch {
+        # ignore
+      }
+
+      # Disconnection is asynchronous, so wait a few seconds for it to complete
+      Start-Sleep -Seconds 3
+      query user
+    }
+
+    Write-Host "tscon $sessionid /dest:console"
+    tscon $sessionid /dest:console
+
+    # Connection is asynchronous, so wait a few seconds for it to complete
+    Start-Sleep 3
+    query user
+
+    # Make sure we can capture a screenshot. An exception at this point will fail-fast the build.
+    Capture-Screenshot $screenshotPath
+  }
+}
+
 function Prepare-TempDir() {
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
@@ -528,66 +565,22 @@ try {
 
   $regKeyProperty = Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name "LongPathsEnabled" -ErrorAction Ignore
   if (($null -eq $regKeyProperty) -or ($regKeyProperty.LongPathsEnabled -ne 1)) {
-    Write-Host "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with ``reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1``"
+    Write-Host "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with `"reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1`""
   }
 
   Process-Arguments
 
   . (Join-Path $PSScriptRoot "build-utils.ps1")
 
-  if ($testVsi) {
-    $processesToStopOnExit += "devenv"
-  }
-
   Push-Location $RepoRoot
 
   if ($ci) {
     List-Processes
     Prepare-TempDir
-
     if ($testVsi) {
-      $screenshotPath = (Join-Path $LogDir "StartingBuild.png")
-      try {
-        Capture-Screenshot $screenshotPath
-      }
-      catch {
-        Write-Host "Screenshot failed; attempting to connect to the console"
-
-        # Keep the session open so we have a UI to interact with
-        $quserItems = ((quser $env:USERNAME | select -Skip 1) -split '\s+')
-        $sessionid = $quserItems[2]
-        if ($sessionid -eq 'Disc') {
-          # When the session isn't connected, the third value is 'Disc' instead of the ID
-          $sessionid = $quserItems[1]
-        }
-
-        if ($quserItems[1] -eq 'console') {
-          Write-Host "Disconnecting from console before attempting reconnection"
-          try {
-            tsdiscon
-          } catch {
-            # ignore
-          }
-
-          # Disconnection is asynchronous, so wait a few seconds for it to complete
-          Start-Sleep -Seconds 3
-          query user
-        }
-
-        Write-Host "tscon $sessionid /dest:console"
-        tscon $sessionid /dest:console
-
-        # Connection is asynchronous, so wait a few seconds for it to complete
-        Start-Sleep 3
-        query user
-
-        # Make sure we can capture a screenshot. An exception at this point will fail-fast the build.
-        Capture-Screenshot $screenshotPath
-      }
+      Setup-IntegrationTestRun 
     }
-  }
 
-  if ($ci) {
     $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
     InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
 
@@ -597,7 +590,7 @@ try {
   }
 
   if ($bootstrap) {
-    $bootstrapDir = Make-BootstrapBuild
+    $bootstrapDir = Make-BootstrapBuild -force32:$test32
   }
 
   if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {

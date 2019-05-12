@@ -580,9 +580,9 @@ public class B : A
 {
     public override void M<T>() where T : System.Enum { }
 }").VerifyDiagnostics(
-                // (8,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (8,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : System.Enum { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "System.Enum").WithLocation(8, 43));
         }
 
         [Fact]
@@ -599,9 +599,9 @@ public class B : A
 {
     public override void M<T>() where T : System.Enum { }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (4,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : System.Enum { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(4, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "System.Enum").WithLocation(4, 43));
         }
 
         [Fact]
@@ -1095,9 +1095,9 @@ public class B : A
 {
     public override void M<T>() where T : System.Delegate { }
 }").VerifyDiagnostics(
-                // (8,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (8,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : System.Delegate { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "System.Delegate").WithLocation(8, 43));
         }
 
         [Fact]
@@ -1114,9 +1114,9 @@ public class B : A
 {
     public override void M<T>() where T : System.Delegate { }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (4,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : System.Delegate { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(4, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "System.Delegate").WithLocation(4, 43));
         }
 
         [Fact]
@@ -1580,9 +1580,9 @@ public class B : A
 {
     public override void M<T>() where T : System.MulticastDelegate { }
 }").VerifyDiagnostics(
-                // (8,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (8,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : System.MulticastDelegate { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "System.MulticastDelegate").WithLocation(8, 43));
         }
 
         [Fact]
@@ -1599,9 +1599,9 @@ public class B : A
 {
     public override void M<T>() where T : System.MulticastDelegate { }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (4,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : System.MulticastDelegate { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(4, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "System.MulticastDelegate").WithLocation(4, 43));
         }
 
         [Fact]
@@ -2277,9 +2277,9 @@ public class B : A
 {
     public override void M<T>() where T : unmanaged { }
 }").VerifyDiagnostics(
-                // (8,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (8,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : unmanaged { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(8, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "unmanaged").WithLocation(8, 43));
         }
 
         [Fact]
@@ -2447,9 +2447,9 @@ public class B : A
 {
     public override void M<T>() where T : unmanaged { }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,33): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
+                // (4,43): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.
                 //     public override void M<T>() where T : unmanaged { }
-                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "where").WithLocation(4, 33));
+                Diagnostic(ErrorCode.ERR_OverrideWithConstraints, "unmanaged").WithLocation(4, 43));
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]

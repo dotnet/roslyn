@@ -240,6 +240,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             VisualStudioProject.OutputFilePath = FileUtilities.NormalizeAbsolutePath(Path.Combine(outputDirectory, targetFileName));
+
+            if (ErrorHandler.Succeeded(storage.GetPropertyValue("TargetRefPath", null, (uint)_PersistStorageType.PST_PROJECT_FILE, out var targetRefPath)) && !string.IsNullOrEmpty(targetRefPath))
+            {
+                VisualStudioProject.OutputRefFilePath = targetRefPath;
+            }
+            else
+            {
+                VisualStudioProject.OutputRefFilePath = null;
+            }
         }
 
         private static Guid GetProjectIDGuid(IVsHierarchy hierarchy)

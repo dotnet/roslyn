@@ -296,8 +296,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// What kind of comparison to use? 
         /// You can ignore custom modifiers, ignore the distinction between object and dynamic, or ignore tuple element names differences.
         /// </param>
+        /// <param name="isValueTypeOverrideOpt">
+        /// A map from a type parameter symbol to a boolean value that should be used as a replacement for a value returned by
+        /// <see cref="TypeParameterSymbol.IsValueType"/> property. Used when accessing the property for a type parameter symbol
+        /// that has an entry in the map is not safe and can cause a cycle.  
+        /// </param>
         /// <returns>True if the types are equivalent.</returns>
-        internal virtual bool Equals(TypeSymbol t2, TypeCompareKind compareKind = TypeCompareKind.ConsiderEverything)
+        internal virtual bool Equals(TypeSymbol t2, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             return ReferenceEquals(this, t2);
         }
@@ -766,6 +771,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Is this a symbol for a Tuple.
         /// </summary>
         bool ITypeSymbol.IsTupleType => this.IsTupleType;
+
+        public string ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
+        {
+            return SymbolDisplay.ToDisplayString(this, topLevelNullability, format);
+        }
+
+        public ImmutableArray<SymbolDisplayPart> ToDisplayParts(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
+        {
+            return SymbolDisplay.ToDisplayParts(this, topLevelNullability, format);
+        }
+
+        public string ToMinimalDisplayString(
+            SemanticModel semanticModel,
+            CodeAnalysis.NullableFlowState topLevelNullability,
+            int position,
+            SymbolDisplayFormat format = null)
+        {
+            return SymbolDisplay.ToMinimalDisplayString(this, topLevelNullability, semanticModel, position, format);
+        }
+
+        public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
+            SemanticModel semanticModel,
+            CodeAnalysis.NullableFlowState topLevelNullability,
+            int position,
+            SymbolDisplayFormat format = null)
+        {
+            return SymbolDisplay.ToMinimalDisplayParts(this, topLevelNullability, semanticModel, position, format);
+        }
 
         #endregion
 
@@ -1884,14 +1917,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public static bool Equals(TypeSymbol left, TypeSymbol right, TypeCompareKind comparison)
+        public static bool Equals(TypeSymbol left, TypeSymbol right, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             if (left is null)
             {
                 return right is null;
             }
 
-            return left.Equals(right, comparison);
+            return left.Equals(right, comparison, isValueTypeOverrideOpt);
         }
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]

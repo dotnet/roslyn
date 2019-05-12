@@ -185,10 +185,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                     {
                                         w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
                                     }
+                                    else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                                    {
+                                        w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                                    }
                                     else
                                     {
-                                        Debug.Assert(w.CurrentSolution.ContainsAdditionalDocument(documentId));
-                                        w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                                        // TODO: implement the ability for analyze config documents to be opened against
+                                        // a live text editor. This is tracked by
+                                        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/750120
+                                        Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
                                     }
                                 }
                             }
@@ -354,10 +360,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             {
                                 w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
                             }
+                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                            {
+                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                            }
                             else
                             {
-                                Debug.Assert(w.CurrentSolution.ContainsAdditionalDocument(documentId));
-                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                // TODO: implement the ability for analyze config documents to be opened against
+                                // a live text editor. This is tracked by
+                                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/750120
+                                Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
                             }
                         }
                     }

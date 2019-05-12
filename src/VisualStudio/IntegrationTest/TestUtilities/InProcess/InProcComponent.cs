@@ -47,29 +47,30 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        protected static void BeginInvokeOnUIThread(Action action)
+        protected static void InvokeOnUIThread(Action<CancellationToken> action)
+        {
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.BeginInvoke(action, DispatcherPriority.Background);
+            CurrentApplicationDispatcher.Invoke(() => action(cancellationTokenSource.Token), DispatcherPriority.Background, cancellationToken: cancellationTokenSource.Token);
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+        }
 
-        protected static void InvokeOnUIThread(Action action)
+        protected static T InvokeOnUIThread<T>(Func<CancellationToken, T> action)
+        {
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.Invoke(action, DispatcherPriority.Background);
+            return CurrentApplicationDispatcher.Invoke(() => action(cancellationTokenSource.Token), DispatcherPriority.Background, cancellationToken: cancellationTokenSource.Token);
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
-
-        protected static T InvokeOnUIThread<T>(Func<T> action)
-#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.Invoke(action, DispatcherPriority.Background);
-#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+        }
 
         protected static TInterface GetGlobalService<TService, TInterface>()
             where TService : class
             where TInterface : class
-        => InvokeOnUIThread(() => (TInterface)ServiceProvider.GlobalProvider.GetService(typeof(TService)));
+        => InvokeOnUIThread(cancellationToken => (TInterface)ServiceProvider.GlobalProvider.GetService(typeof(TService)));
 
         protected static TService GetComponentModelService<TService>()
             where TService : class
-         => InvokeOnUIThread(() => GetComponentModel().GetService<TService>());
+         => InvokeOnUIThread(cancellationToken => GetComponentModel().GetService<TService>());
 
         protected static DTE GetDTE()
             => GetGlobalService<SDTE, DTE>();
@@ -89,9 +90,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// <summary>
         /// Waiting for the application to 'idle' means that it is done pumping messages (including WM_PAINT).
         /// </summary>
-        protected static void WaitForApplicationIdle()
+        protected static void WaitForApplicationIdle(TimeSpan timeout)
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+            => CurrentApplicationDispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle).Wait(timeout);
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         protected static void WaitForSystemIdle()

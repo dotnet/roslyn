@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                    DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
-            var defaultAccess = isInterface ? (explicitInterfaceImplementation ? DeclarationModifiers.Protected : DeclarationModifiers.Public) : DeclarationModifiers.Private;
+            var defaultAccess = isInterface && !explicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, location, Name);
             }
-            else if (this.Type.SpecialType == SpecialType.System_Void)
+            else if (this.Type.IsVoidType())
             {
                 // Diagnostic reported by parser.
             }

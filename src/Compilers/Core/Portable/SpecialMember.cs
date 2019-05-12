@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis
         System_String__Length,
         System_String__Chars,
         System_String__Format,
+        System_String__Substring,
 
         System_Double__IsNaN,
         System_Single__IsNaN,

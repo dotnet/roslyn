@@ -65,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
                     foreach (var member in fields)
                     {
                         member.IsCheckable = !isInterface;
+                        member.TooltipText = isInterface ? ServicesVSResources.Interface_cannot_have_field : string.Empty;
                     }
 
                     foreach (var member in makeAbstractEnabledCheckboxes)

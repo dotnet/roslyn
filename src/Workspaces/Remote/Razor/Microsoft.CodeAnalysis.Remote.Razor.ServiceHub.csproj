@@ -21,13 +21,14 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35079" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Remote\JsonRpcMessageHandler.cs">

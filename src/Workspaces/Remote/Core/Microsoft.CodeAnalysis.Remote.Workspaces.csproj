@@ -15,10 +15,10 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\EditorConfigDocumentOptionsProvider.cs" Link="Services\Options\EditorConfigDocumentOptionsProvider.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\EditorConfigDocumentOptionsProvider.DocumentOptions.cs" Link="Services\Options\EditorConfigDocumentOptionsProvider.DocumentOptions.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\EditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" Link="Services\Options\EditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\EditorConfigDocumentOptionsProviderFactory.cs" Link="Services\Options\EditorConfigDocumentOptionsProviderFactory.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.cs" Link="Services\Options\LegacyEditorConfigDocumentOptionsProvider.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.DocumentOptions.cs" Link="Services\Options\LegacyEditorConfigDocumentOptionsProvider.DocumentOptions.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" Link="Services\Options\LegacyEditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core.Wpf\Options\LegacyEditorConfigDocumentOptionsProviderFactory.cs" Link="Services\Options\LegacyEditorConfigDocumentOptionsProviderFactory.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -42,12 +42,12 @@
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" WorkItem="https://github.com/dotnet/roslyn/issues/35078" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" WorkItem="https://github.com/dotnet/roslyn/issues/35078" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Roslyn.Services.UnitTests.Utilities" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(CompletionTestsKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(CompletionTestsKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
   </ItemGroup>
 </Project>

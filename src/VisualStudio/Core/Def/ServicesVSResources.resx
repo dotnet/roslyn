@@ -1054,8 +1054,8 @@ I agree to all of the foregoing:</value>
   <data name="Analyzing_0" xml:space="preserve">
     <value>Analyzing '{0}'</value>
   </data>
-  <data name="Live_code_analysis" xml:space="preserve">
-    <value>Live code analysis</value>
+  <data name="Live_analysis" xml:space="preserve">
+    <value>Live analysis</value>
   </data>
   <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
     <value>Prefer conditional expression over 'if' with assignments</value>
@@ -1200,6 +1200,9 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
     <value>Use enhanced colors for C# and Basic</value>
+  </data>
+  <data name="Enable_nullable_reference_analysis_IDE_features" xml:space="preserve">
+    <value>Enable nullable reference analysis IDE features</value>
   </data>
   <data name="Move_to_namespace" xml:space="preserve">
     <value>Move to Namespace</value>

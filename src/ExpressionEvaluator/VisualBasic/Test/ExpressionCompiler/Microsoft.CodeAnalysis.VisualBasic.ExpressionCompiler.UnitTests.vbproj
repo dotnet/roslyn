@@ -5,7 +5,6 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.UnitTests</AssemblyName>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="File References">

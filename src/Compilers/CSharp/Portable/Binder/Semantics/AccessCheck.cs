@@ -451,6 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)withinType != null);
             Debug.Assert((object)originalContainingType != null);
+            Debug.Assert(originalContainingType.IsDefinition);
 
             // Walk up my parent chain and see if I eventually hit the owner.  If so then I'm a
             // nested type of that owner and I'm allowed access to everything inside of it.
@@ -458,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while ((object)current != null)
             {
                 Debug.Assert(current.IsDefinition);
-                if (current.Equals(originalContainingType))
+                if (current == (object)originalContainingType)
                 {
                     return true;
                 }
@@ -500,7 +501,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while ((object)current != null)
             {
-                if (baseTypeIsInterface == current.IsInterfaceType() && current.Equals(baseType))
+                Debug.Assert(current.IsDefinition);
+                if (baseTypeIsInterface == current.IsInterfaceType() &&
+                    current == (object)baseType)
                 {
                     result = true;
                     break;
@@ -541,7 +544,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (currentBase.Equals(baseType))
+                    Debug.Assert(currentBase.IsDefinition);
+                    if (currentBase == (object)baseType)
                     {
                         result = true;
                         break;

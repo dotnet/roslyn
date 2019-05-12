@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -96,9 +97,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // later in this call chain, do not await them.
                 SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
                 {
-                    using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, waitContext.CancellationToken))
+                    using (var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken))
                     {
-                        InnerInvoke(waitContext.ProgressTracker, linkedSource.Token);
+                        InnerInvoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
                         foreach (var actionCallback in SourceProvider.ActionCallbacks)
                         {
                             actionCallback.Value.OnSuggestedActionExecuted(this);

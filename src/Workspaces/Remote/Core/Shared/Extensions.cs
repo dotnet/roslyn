@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
 
             projectChecksums.Find(project.State, Flatten(projectChecksums), map, cancellationToken);
 
-            foreach (var document in project.Documents.Concat(project.AdditionalDocuments))
+            foreach (var document in project.Documents.Concat(project.AdditionalDocuments).Concat(project.AnalyzerConfigDocuments))
             {
                 await document.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             }
