@@ -196,14 +196,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_is_null_check_over_reference_equality_method"),
                 new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferIsNullCheckOverReferenceEqualityMethod)}") });
 
-        internal static readonly PerLanguageOption<bool> PreferIsObjectForNegatedNullChecksChecks = CreateOption(
-            CodeStyleOptionGroups.ExpressionLevelPreferences,
-            nameof(PreferIsObjectForNegatedNullChecksChecks),
-            defaultValue: true,
-            storageLocations: new OptionStorageLocation[] {
-                EditorConfigStorageLocation.ForBoolOption("dotnet_style_prefer_is_object_for_negated_null_checks"),
-                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferIsObjectForNegatedNullChecksChecks)}") });
-
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferConditionalExpressionOverAssignment = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferConditionalExpressionOverAssignment),
             defaultValue: TrueWithSilentEnforcement,

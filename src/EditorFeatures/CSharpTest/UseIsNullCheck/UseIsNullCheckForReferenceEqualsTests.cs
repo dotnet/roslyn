@@ -125,7 +125,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestNegated1()
+        public async Task TestNegated()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -148,34 +148,6 @@ class C
             return;
     }
 }");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestNegated2()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M(string s)
-    {
-        if (![||]ReferenceEquals(null, s))
-            return;
-    }
-}",
-@"using System;
-
-class C
-{
-    void M(string s)
-    {
-        if (!(s is null))
-            return;
-    }
-}",
-                options: ImmutableDictionary<OptionKey, object>.Empty
-                    .SetItem(new OptionKey(CodeStyleOptions.PreferIsObjectForNegatedNullChecksChecks, LanguageNames.CSharp), false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]

@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         protected override string GetIsNotNullTitle()
             => GetIsNullTitle();
 
-        private static SyntaxNode CreateEqualsNullCheck(SyntaxNode argument, SyntaxKind comparisonOperator)
+        private static SyntaxNode CreateEqualsNullCheck(SyntaxNode argument)
             => SyntaxFactory.BinaryExpression(
-                comparisonOperator,
+                SyntaxKind.EqualsExpression,
                 (ExpressionSyntax)argument,
                 SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)).Parenthesize();
 
@@ -28,29 +28,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 (ExpressionSyntax)argument,
                 SyntaxFactory.ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))).Parenthesize();
 
-        private static SyntaxNode CreateIsNotNullCheck(SyntaxNode notExpression, SyntaxNode argument, bool preferIsObject)
+        private static SyntaxNode CreateIsNotNullCheck(SyntaxNode argument)
         {
-            if (preferIsObject)
-            {
-                return SyntaxFactory
-                    .BinaryExpression(
-                        SyntaxKind.IsExpression,
-                        (ExpressionSyntax)argument,
-                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
-                    .Parenthesize();
-            }
-
-            return ((PrefixUnaryExpressionSyntax)notExpression).WithOperand((ExpressionSyntax)CreateIsNullCheck(argument));
+            return SyntaxFactory
+                .BinaryExpression(
+                    SyntaxKind.IsExpression,
+                    (ExpressionSyntax)argument,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))
+                .Parenthesize();
         }
 
         protected override SyntaxNode CreateNullCheck(SyntaxNode argument, bool isUnconstrainedGeneric)
             => isUnconstrainedGeneric
-                ? CreateEqualsNullCheck(argument, SyntaxKind.EqualsExpression)
+                ? CreateEqualsNullCheck(argument)
                 : CreateIsNullCheck(argument);
 
-        protected override SyntaxNode CreateNotNullCheck(SyntaxNode notExpression, SyntaxNode argument, bool preferIsObject, bool isUnconstrainedGeneric)
-            => isUnconstrainedGeneric && !preferIsObject
-                ? CreateEqualsNullCheck(argument, SyntaxKind.NotEqualsExpression)
-                : CreateIsNotNullCheck(notExpression, argument, preferIsObject);
+        protected override SyntaxNode CreateNotNullCheck(SyntaxNode argument)
+            => CreateIsNotNullCheck(argument);
     }
 }

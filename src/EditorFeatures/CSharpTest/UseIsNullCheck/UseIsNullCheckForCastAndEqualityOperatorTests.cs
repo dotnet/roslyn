@@ -72,7 +72,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestNotEquality1()
+        public async Task TestNotEquality()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -98,35 +98,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestNotEquality2()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M(string s)
-    {
-        if ([||](object)s != null)
-            return;
-    }
-}",
-@"using System;
-
-class C
-{
-    void M(string s)
-    {
-        if (!(s is null))
-            return;
-    }
-}",
-                options: ImmutableDictionary<OptionKey, object>.Empty
-                    .SetItem(new OptionKey(CodeStyleOptions.PreferIsObjectForNegatedNullChecksChecks, LanguageNames.CSharp), false));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestNotEqualitySwapped1()
+        public async Task TestNotEqualitySwapped()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -149,34 +121,6 @@ class C
             return;
     }
 }");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestNotEqualitySwapped2()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M(string s)
-    {
-        if ([||]null != (object)s)
-            return;
-    }
-}",
-@"using System;
-
-class C
-{
-    void M(string s)
-    {
-        if (!(s is null))
-            return;
-    }
-}",
-                options: ImmutableDictionary<OptionKey, object>.Empty
-                    .SetItem(new OptionKey(CodeStyleOptions.PreferIsObjectForNegatedNullChecksChecks, LanguageNames.CSharp), false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
