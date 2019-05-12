@@ -1,20 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
 using System.IO;
-using System.Reflection.Metadata;
+using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.DiaSymReader;
 using Microsoft.DiaSymReader.PortablePdb;
-using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
 {
     public class EditAndContinueMethodDebugInfoReaderTests
     {
@@ -23,24 +22,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             public object GetMetadataImport() => throw new NotImplementedException();
         }
 
-        [Fact]
-        public void Create_Errors()
+        private class DummySymReaderMetadataProvider : ISymReaderMetadataProvider
         {
-            Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create((ISymUnmanagedReader5)null));
-            Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create((MetadataReader)null));
-            Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create(null, 1));
+            public unsafe bool TryGetStandaloneSignature(int standaloneSignatureToken, out byte* signature, out int length)
+                => throw new NotImplementedException();
 
-            var mockSymReader = new Mock<ISymUnmanagedReader5>().Object;
-            Assert.Throws<ArgumentOutOfRangeException>(() => EditAndContinueMethodDebugInfoReader.Create(mockSymReader, 0));
-            Assert.Throws<ArgumentOutOfRangeException>(() => EditAndContinueMethodDebugInfoReader.Create(mockSymReader, -1));
+            public bool TryGetTypeDefinitionInfo(int typeDefinitionToken, out string namespaceName, out string typeName, out TypeAttributes attributes)
+                => throw new NotImplementedException();
+
+            public bool TryGetTypeReferenceInfo(int typeReferenceToken, out string namespaceName, out string typeName)
+                => throw new NotImplementedException();
         }
 
         [Theory]
-        [InlineData(DebugInformationFormat.PortablePdb, true)]
-        [InlineData(DebugInformationFormat.PortablePdb, false)]
-        [InlineData(DebugInformationFormat.Pdb, true)]
-        public void DebugInfo(DebugInformationFormat format, bool useSymReader)
+        [InlineData(DebugInformationFormat.PortablePdb)]
+        [InlineData(DebugInformationFormat.Pdb)]
+        public void DebugInfo(DebugInformationFormat format)
         {
+            var symBinder = new SymBinder();
+            var metadataImportProvider = new DummyMetadataImportProvider();
+
             var source = @"
 using System;
 delegate void D();
@@ -60,21 +61,21 @@ class C
             compilation.EmitToArray(new EmitOptions(debugInformationFormat: format), pdbStream: pdbStream);
             pdbStream.Position = 0;
 
-            DebugInformationReaderProvider provider;
-            EditAndContinueMethodDebugInfoReader reader;
+            var pdbStreamCom = SymUnmanagedStreamFactory.CreateStream(pdbStream);
 
-            if (format == DebugInformationFormat.PortablePdb && useSymReader)
+            ISymUnmanagedReader5 symReader5;
+            if (format == DebugInformationFormat.PortablePdb)
             {
-                var pdbStreamCom = SymUnmanagedStreamFactory.CreateStream(pdbStream);
-                var metadataImportProvider = new DummyMetadataImportProvider();
-                Assert.Equal(0, new SymBinder().GetReaderFromPdbStream(metadataImportProvider, pdbStreamCom, out var symReader));
-                reader = EditAndContinueMethodDebugInfoReader.Create((ISymUnmanagedReader5)symReader, version: 1);
+                int hr = symBinder.GetReaderFromPdbStream(metadataImportProvider, pdbStreamCom, out var symReader);
+                Assert.Equal(0, hr);
+                symReader5 = (ISymUnmanagedReader5)symReader;
             }
             else
             {
-                provider = DebugInformationReaderProvider.CreateFromStream(pdbStream);
-                reader = provider.CreateEditAndContinueMethodDebugInfoReader();
+                symReader5 = SymUnmanagedReaderFactory.CreateReader<ISymUnmanagedReader5>(pdbStream, new DummySymReaderMetadataProvider());
             }
+
+            var reader = EditAndContinueMethodDebugInfoReader.Create(symReader5, version: 1);
 
             // Main method
             var debugInfo = reader.GetDebugInfo(MetadataTokens.MethodDefinitionHandle(5));
