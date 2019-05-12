@@ -86,6 +86,7 @@ dotnet_code_quality_unused_parameters = all:suggestion
 csharp_style_var_elsewhere = false:silent
 csharp_style_var_for_built_in_types = false:silent
 csharp_style_var_when_type_is_apparent = false:silent
+csharp_style_var_when_type_is_explicit = false:silent
 
 # Expression-bodied members
 csharp_style_expression_bodied_accessors = true:silent
@@ -294,6 +295,7 @@ dotnet_code_quality_unused_parameters = all:suggestion
 csharp_style_var_elsewhere = false:silent
 csharp_style_var_for_built_in_types = false:silent
 csharp_style_var_when_type_is_apparent = false:silent
+csharp_style_var_when_type_is_explicit = false:silent
 
 # Expression-bodied members
 csharp_style_expression_bodied_accessors = true:silent
