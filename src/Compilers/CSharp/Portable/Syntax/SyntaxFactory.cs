@@ -2531,9 +2531,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             => NamespaceDeclaration(attributeLists: default, modifiers: default,
                 namespaceKeyword, name, openBraceToken, externs, usings, members, closeBraceToken, semicolonToken);
 
-        ///// <summary>Creates a new BaseExpressionSyntax instance.</summary>
-        //// public static BaseExpressionSyntax BaseExpression()
-
         // BACK COMPAT OVERLOAD DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(
