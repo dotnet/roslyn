@@ -37,10 +37,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
             }
 
-            if (isTypeApparentContext || isTypeExplicitContext)
+            if (isTypeApparentContext &&
+                stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent))
             {
-                return (isTypeApparentContext && stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent)) ||
-                       (isTypeExplicitContext && stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit));
+                return true;
+            }
+
+            if (isTypeExplicitContext &&
+                stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit))
+            {
+                return true;
             }
 
             return stylePreferences.HasFlag(UseVarPreference.Elsewhere);
@@ -57,10 +63,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 return !stylePreferences.HasFlag(UseVarPreference.ForBuiltInTypes);
             }
 
-            if (isTypeApparentContext || isTypeExplicitContext)
+            if (isTypeApparentContext &&
+                !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent))
             {
-                return (isTypeApparentContext && !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsApparent)) ||
-                       (isTypeExplicitContext && !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit));
+                return true;
+            }
+
+            if (isTypeExplicitContext &&
+                !stylePreferences.HasFlag(UseVarPreference.WhenTypeIsExplicit))
+            {
+                return true;
             }
 
             return !stylePreferences.HasFlag(UseVarPreference.Elsewhere);
