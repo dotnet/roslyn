@@ -60,14 +60,44 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpVSResources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Options\AdvancedOptionPage.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Options\AdvancedOptionPageControl.xaml.cs">
       <DependentUpon>AdvancedOptionPageControl.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Options\Formatting\CodeStylePage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Options\Formatting\FormattingIndentationOptionPage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Options\Formatting\FormattingNewLinesPage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Options\Formatting\FormattingOptionPage.cs">
+      <SubType>Code</SubType>
     </Compile>
     <Compile Update="Options\Formatting\FormattingOptionPageControl.xaml.cs">
       <DependentUpon>FormattingOptionPageControl.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Options\Formatting\FormattingSpacingPage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Options\Formatting\FormattingWrappingPage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Options\IntelliSenseOptionPage.cs">
+      <SubType>Code</SubType>
     </Compile>
     <Compile Update="Options\IntelliSenseOptionPageControl.xaml.cs">
       <DependentUpon>IntelliSenseOptionPageControl.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Options\NamingStylesOptionPage.cs">
+      <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>

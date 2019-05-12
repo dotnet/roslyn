@@ -70,11 +70,19 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Options\AbstractOptionPage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Options\AbstractOptionPageControl.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Options\GridOptionPreviewControl.xaml.cs">
       <DependentUpon>GridOptionPreviewControl.xaml</DependentUpon>
+      <SubType>Code</SubType>
     </Compile>
     <Compile Update="Options\OptionPreviewControl.xaml.cs">
       <DependentUpon>OptionPreviewControl.xaml</DependentUpon>
+      <SubType>Code</SubType>
     </Compile>
     <Compile Update="Options\Style\NamingPreferences\ManageNamingStylesInfoDialog.xaml.cs">
       <DependentUpon>ManageNamingStylesInfoDialog.xaml</DependentUpon>
@@ -84,6 +92,7 @@
     </Compile>
     <Compile Update="Options\Style\NamingPreferences\NamingStyleOptionPageControl.xaml.cs">
       <DependentUpon>NamingStyleOptionPageControl.xaml</DependentUpon>
+      <SubType>Code</SubType>
     </Compile>
     <Compile Update="Options\Style\NamingPreferences\SymbolSpecification\SymbolSpecificationDialog.xaml.cs">
       <DependentUpon>SymbolSpecificationDialog.xaml</DependentUpon>
