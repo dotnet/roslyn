@@ -67,30 +67,6 @@
     <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="OptionPages\ExperimentationPage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="OptionPages\InternalComponentsOnOffPage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="OptionPages\InternalDiagnosticsPage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="OptionPages\InternalFeaturesOnOffPage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="OptionPages\InternalOptionsControl.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="OptionPages\InternalSolutionCrawlerPage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="OptionPages\PerformanceFunctionIdPage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="OptionPages\PerformanceLoggersPage.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
