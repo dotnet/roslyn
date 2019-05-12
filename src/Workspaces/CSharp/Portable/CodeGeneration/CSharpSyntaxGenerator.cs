@@ -4173,6 +4173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern)
             => SyntaxFactory.IsPatternExpression((ExpressionSyntax)expression, (PatternSyntax)pattern);
 
+        internal override SyntaxNode ConstantPattern(SyntaxNode expression)
+            => SyntaxFactory.ConstantPattern((ExpressionSyntax)expression);
+
         internal override SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name)
             => SyntaxFactory.DeclarationPattern(
                 type.GenerateTypeSyntax(),

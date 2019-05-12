@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This `ManualResetValueTaskSourceCore<bool>` struct implements the `IValueTaskSource` logic
         internal FieldSymbol PromiseOfValueOrEndField { get; }
 
+        // This `CancellationTokenSource` field helps combine two cancellation tokens
+        internal FieldSymbol CombinedTokensField { get; }
+
         // Stores the current/yielded value
         internal FieldSymbol CurrentField { get; }
 
@@ -24,10 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Method to fulfill the promise with an exception: `void ManualResetValueTaskSourceCore<T>.SetException(Exception error)`
         internal MethodSymbol SetExceptionMethod { get; }
 
-        public AsyncIteratorInfo(FieldSymbol promiseOfValueOrEndField, FieldSymbol currentField, FieldSymbol disposeModeField,
+        public AsyncIteratorInfo(FieldSymbol promiseOfValueOrEndField, FieldSymbol combinedTokensField, FieldSymbol currentField, FieldSymbol disposeModeField,
             MethodSymbol setResultMethod, MethodSymbol setExceptionMethod)
         {
             PromiseOfValueOrEndField = promiseOfValueOrEndField;
+            CombinedTokensField = combinedTokensField;
             CurrentField = currentField;
             DisposeModeField = disposeModeField;
             SetResultMethod = setResultMethod;

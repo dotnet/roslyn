@@ -42,10 +42,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                // we always mark it as handled if entry is ours
-                e.Handled = true;
-
-                roslynSnapshot.TryNavigateTo(index, e.IsPreview);
+                // don't be too strict on navigation on our item. if we can't handle the item,
+                // let default handler to handle it at least.
+                // we might fail to navigate if we don't see the document in our solution anymore.
+                // that can happen if error is staled build error or user used #line pragma in C#
+                // to point to some random file in error or more.
+                e.Handled = roslynSnapshot.TryNavigateTo(index, e.IsPreview);
             }
         }
     }

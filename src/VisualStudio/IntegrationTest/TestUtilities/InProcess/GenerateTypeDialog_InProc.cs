@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
-    internal class GenerateTypeDialog_InProc : InProcComponent
+    internal class GenerateTypeDialog_InProc : AbstractCodeRefactorDialog_InProc<GenerateTypeDialog, GenerateTypeDialog.TestAccessor>
     {
         private GenerateTypeDialog_InProc()
         {
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static GenerateTypeDialog_InProc Create()
             => new GenerateTypeDialog_InProc();
 
-        public void VerifyOpen()
+        public override void VerifyOpen()
         {
             using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
             {
@@ -35,31 +35,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     {
                         // Thread.Yield is insufficient; something in the light bulb must be relying on a UI thread
                         // message at lower priority than the Background priority used in testing.
-                        WaitForApplicationIdle();
+                        WaitForApplicationIdle(Helper.HangMitigatingTimeout);
                         continue;
                     }
 
-                    WaitForApplicationIdle();
+                    WaitForApplicationIdle(Helper.HangMitigatingTimeout);
                     return;
-                }
-            }
-        }
-
-        public void VerifyClosed()
-        {
-            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
-            {
-                var cancellationToken = cancellationTokenSource.Token;
-                while (true)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var window = JoinableTaskFactory.Run(() => TryGetDialogAsync(cancellationToken));
-                    if (window is null)
-                    {
-                        return;
-                    }
-
-                    Thread.Yield();
                 }
             }
         }
@@ -175,24 +156,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        private async Task<GenerateTypeDialog> GetDialogAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            return Application.Current.Windows.OfType<GenerateTypeDialog>().Single();
-        }
-
-        private async Task<GenerateTypeDialog> TryGetDialogAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            return Application.Current.Windows.OfType<GenerateTypeDialog>().SingleOrDefault();
-        }
-
-        private async Task ClickAsync(Func<GenerateTypeDialog.TestAccessor, ButtonBase> buttonSelector, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            var dialog = await GetDialogAsync(cancellationToken);
-            var button = buttonSelector(dialog.GetTestAccessor());
-            Contract.ThrowIfFalse(await button.SimulateClickAsync(JoinableTaskFactory));
-        }
+        protected override GenerateTypeDialog.TestAccessor GetAccessor(GenerateTypeDialog dialog) => dialog.GetTestAccessor();
     }
 }

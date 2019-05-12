@@ -5142,7 +5142,7 @@ _ = this is  C( 1 , 2 ){}  ; }
 {
     void M()
     {
-        _ = this is C(1, 2) {};
+        _ = this is C(1, 2) { };
     }
 }";
             // no space separates the type and the positional pattern
@@ -5165,7 +5165,7 @@ _ = this is  C( 1 , 2 ){}  ; }
 {
     void M()
     {
-        _ = this is C (1, 2) {};
+        _ = this is C (1, 2) { };
     }
 }";
             await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
@@ -5188,8 +5188,8 @@ _ = this is  C(  ){}  ; }
 {
     void M()
     {
-        _ = this is C( 1, 2 ) {};
-        _ = this is C() {};
+        _ = this is C( 1, 2 ) { };
+        _ = this is C() { };
     }
 }";
             await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
@@ -5212,8 +5212,8 @@ _ = this is  C(  ){}  ; }
 {
     void M()
     {
-        _ = this is C(1, 2) {};
-        _ = this is C( ) {};
+        _ = this is C(1, 2) { };
+        _ = this is C( ) { };
     }
 }";
             await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
@@ -5290,7 +5290,7 @@ M();
 {
     void M()
     {
-        _ = this is {}
+        _ = this is { }
         M();
     }
 }";
@@ -5313,7 +5313,7 @@ M();
 {
     void M()
     {
-        _ = this is (1, 2) {}
+        _ = this is (1, 2) { }
         M();
     }
 }";
@@ -5786,6 +5786,74 @@ using (null)
 {
     void M()
     {
+        using (null)
+        using (null)
+        {
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoIndentForNestedUsingWithoutBraces2()
+        {
+            var code = @"class C
+{
+    void M()
+    {
+        using (null)
+            using (null)
+            using (null)
+            {
+            }
+    }
+}
+";
+
+            var expected = @"class C
+{
+    void M()
+    {
+        using (null)
+        using (null)
+        using (null)
+        {
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoIndentForNestedUsingWithoutBraces3()
+        {
+            var code = @"class C
+{
+    void M()
+    {
+        using (null)
+            using (null)
+            using (null)
+        {
+        }
+    }
+}
+";
+
+            var expected = @"class C
+{
+    void M()
+    {
+        using (null)
         using (null)
         using (null)
         {
@@ -9069,91 +9137,6 @@ public class Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task EmptyIsPropertyPattern()
-        {
-            var code = @"
-class C
-{
-    void M()
-    {
-        _ = x is { }
-    }
-}
-";
-            var expected = @"
-class C
-{
-    void M()
-    {
-        _ = x is {}
-    }
-}
-";
-
-            await AssertFormatAsync(expected, code);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task EmptySwitchCasePropertyPattern()
-        {
-            var code = @"
-class C
-{
-    void M()
-    {
-        switch (x)
-        {
-            case { }
-        }
-    }
-}
-";
-            var expected = @"
-class C
-{
-    void M()
-    {
-        switch (x)
-        {
-            case {}
-        }
-    }
-}
-";
-
-            await AssertFormatAsync(expected, code);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task EmptySwitchExpressionCasePropertyPattern()
-        {
-            var code = @"
-class C
-{
-    void M()
-    {
-        _ = x switch
-        {
-            { } =>
-    }
-}
-";
-            var expected = @"
-class C
-{
-    void M()
-    {
-        _ = x switch
-        {
-            {} =>
-    }
-}
-";
-
-            await AssertFormatAsync(expected, code);
-        }
-
         [Theory, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(31571, "https://github.com/dotnet/roslyn/issues/31571")]
         [WorkItem(33910, "https://github.com/dotnet/roslyn/issues/33910")]
@@ -9178,6 +9161,57 @@ public unsafe class Test
     public static {operatorType} operator {targetType}{initialSpacing}() => throw null;
 }}",
                 changedOptionSet: changedOptionSet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
+        public async Task SpaceAroundDeclaration()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true);
+            await AssertFormatAsync(
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}",
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
+        public async Task SpaceAroundDeclarationAndPreserveSingleLine()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true);
+            changingOptions.Add(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false);
+            await AssertFormatAsync(
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}",
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}", changedOptionSet: changingOptions);
         }
     }
 }

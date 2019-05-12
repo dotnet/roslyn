@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
@@ -6,14 +8,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         public static string ToEditorConfigString(this NotificationOption notificationOption)
         {
-            if (notificationOption == NotificationOption.Silent)
+            return notificationOption.Severity switch
             {
-                return nameof(NotificationOption.Silent).ToLowerInvariant();
-            }
-            else
-            {
-                return notificationOption.ToString().ToLowerInvariant();
-            }
+                ReportDiagnostic.Suppress => EditorConfigSeverityStrings.None,
+                ReportDiagnostic.Hidden => EditorConfigSeverityStrings.Silent,
+                ReportDiagnostic.Info => EditorConfigSeverityStrings.Suggestion,
+                ReportDiagnostic.Warn => EditorConfigSeverityStrings.Warning,
+                ReportDiagnostic.Error => EditorConfigSeverityStrings.Error,
+                _ => throw ExceptionUtilities.UnexpectedValue(notificationOption.Severity)
+            };
         }
     }
 }

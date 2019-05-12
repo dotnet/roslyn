@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -24,8 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         internal abstract IChainedCommandHandler<AutomaticLineEnderCommandArgs> CreateCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperations,
-            IAsyncCompletionBroker asyncCompletionBroker);
+            IEditorOperationsFactoryService editorOperations);
 
         protected void Test(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
         {
@@ -39,8 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
                 var commandHandler = CreateCommandHandler(
                                         GetExportedValue<ITextUndoHistoryRegistry>(workspace),
-                                        GetExportedValue<IEditorOperationsFactoryService>(workspace),
-                                        GetExportedValue<IAsyncCompletionBroker>(workspace));
+                                        GetExportedValue<IEditorOperationsFactoryService>(workspace));
 
                 commandHandler.ExecuteCommand(new AutomaticLineEnderCommandArgs(view, buffer),
                                                     assertNextHandlerInvoked

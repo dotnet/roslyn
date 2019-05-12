@@ -17,6 +17,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SemanticTests : CSharpTestBase
     {
         [Fact]
+        public void PatternIndexAndRangeIndexers()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+class C
+{
+    int Length => 0;
+    int this[int i] => i;
+    char Slice(int i, int j) => 'a';
+    void M()
+    {
+        _ = this[^0];
+        _ = this[0..];
+    }
+}");
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var accesses = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToList();
+            var indexerAccess = accesses[0];
+
+            var typeInfo = model.GetTypeInfo(indexerAccess);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+            var symbolInfo = model.GetSymbolInfo(indexerAccess);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            indexerAccess = accesses[1];
+
+            typeInfo = model.GetTypeInfo(indexerAccess);
+            Assert.Equal(SpecialType.System_Char, typeInfo.Type.SpecialType);
+            symbolInfo = model.GetSymbolInfo(indexerAccess);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact]
         public void RefReassignSymbolInfo()
         {
             var comp = CreateCompilation(@"

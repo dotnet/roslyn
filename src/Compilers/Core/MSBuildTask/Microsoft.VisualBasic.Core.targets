@@ -18,7 +18,8 @@
                   @(CustomAdditionalCompileInputs);
                   $(ResolvedCodeAnalysisRuleSet);
                   @(AdditionalFiles);
-                  @(EmbeddedFiles)"
+                  @(EmbeddedFiles);
+                  @(EditorConfigFiles)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
                    @(IntermediateRefAssembly);
@@ -42,6 +43,7 @@
          AdditionalLibPaths="$(AdditionalLibPaths)"
          AddModules="@(AddModules)"
          AdditionalFiles="@(AdditionalFiles)"
+         AnalyzerConfigFiles="@(EditorConfigFiles)"
          Analyzers="@(Analyzer)"
          BaseAddress="$(BaseAddress)"
          ChecksumAlgorithm="$(ChecksumAlgorithm)"

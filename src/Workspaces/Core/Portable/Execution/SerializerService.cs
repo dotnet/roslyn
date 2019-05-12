@@ -160,6 +160,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.Projects:
                     case WellKnownSynchronizationKind.Documents:
                     case WellKnownSynchronizationKind.TextDocuments:
+                    case WellKnownSynchronizationKind.AnalyzerConfigDocuments:
                     case WellKnownSynchronizationKind.ProjectReferences:
                     case WellKnownSynchronizationKind.MetadataReferences:
                     case WellKnownSynchronizationKind.AnalyzerReferences:

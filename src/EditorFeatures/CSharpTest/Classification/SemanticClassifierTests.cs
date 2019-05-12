@@ -2291,6 +2291,34 @@ struct Type<T>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NameOfLocalMethod()
+        {
+            await TestAsync(
+@"class C
+{
+    void goo()
+    {
+        var x = nameof(M);
+
+        void M()
+        {
+        }
+
+        void M(int a)
+        {
+        }
+
+        void M(string s)
+        {
+        }
+    }
+}",
+                Keyword("var"),
+                Keyword("nameof"),
+                Method("M"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task MethodCalledNameOfInScope()
         {
             await TestAsync(
@@ -3411,6 +3439,20 @@ class True
                 Class("True"),
                 Class("True"),
                 Class("True"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCatchDeclarationVariable()
+        {
+            await TestInMethodAsync(@"
+try
+{
+}
+catch (Exception ex)
+{
+    throw ex;
+}",
+                Local("ex"));
         }
     }
 }

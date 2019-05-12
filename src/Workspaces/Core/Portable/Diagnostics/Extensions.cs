@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -210,6 +211,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return builder.ToImmutable();
+        }
+
+        public static NotificationOption ToNotificationOption(this ReportDiagnostic reportDiagnostic, DiagnosticSeverity defaultSeverity)
+        {
+            switch (reportDiagnostic.WithDefaultSeverity(defaultSeverity))
+            {
+                case ReportDiagnostic.Error:
+                    return NotificationOption.Error;
+
+                case ReportDiagnostic.Warn:
+                    return NotificationOption.Warning;
+
+                case ReportDiagnostic.Info:
+                    return NotificationOption.Suggestion;
+
+                case ReportDiagnostic.Hidden:
+                    return NotificationOption.Silent;
+
+                case ReportDiagnostic.Suppress:
+                    return NotificationOption.None;
+
+                case ReportDiagnostic.Default:
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(reportDiagnostic);
+            }
         }
     }
 }

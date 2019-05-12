@@ -130,6 +130,11 @@ namespace Microsoft.CodeAnalysis
         public bool ContainsAdditionalDocument(DocumentId documentId) => _state.ContainsAdditionalDocument(documentId);
 
         /// <summary>
+        /// True if the solution contains the analyzer config document in one of its projects
+        /// </summary>
+        public bool ContainsAnalyzerConfigDocument(DocumentId documentId) => _state.ContainsAnalyzerConfigDocument(documentId);
+
+        /// <summary>
         /// Gets the documentId in this solution with the specified syntax tree.
         /// </summary>
         public DocumentId GetDocumentId(SyntaxTree syntaxTree) => GetDocumentId(syntaxTree, projectId: null);
@@ -178,6 +183,19 @@ namespace Microsoft.CodeAnalysis
             if (documentId != null && this.ContainsAdditionalDocument(documentId))
             {
                 return this.GetProject(documentId.ProjectId).GetAdditionalDocument(documentId);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the additional document in this solution with the specified document ID.
+        /// </summary>
+        public AnalyzerConfigDocument GetAnalyzerConfigDocument(DocumentId documentId)
+        {
+            if (documentId != null && this.ContainsAnalyzerConfigDocument(documentId))
+            {
+                return this.GetProject(documentId.ProjectId).GetAnalyzerConfigDocument(documentId);
             }
 
             return null;
@@ -771,7 +789,26 @@ namespace Microsoft.CodeAnalysis
 
         public Solution AddAdditionalDocument(DocumentInfo documentInfo)
         {
-            var newState = _state.AddAdditionalDocument(documentInfo);
+            return AddAdditionalDocuments(ImmutableArray.Create(documentInfo));
+        }
+
+        public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            var newState = _state.AddAdditionalDocuments(documentInfos);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new Solution instance that contains a new compiler configuration document like a .editorconfig file.
+        /// </summary>
+        public Solution AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            var newState = _state.AddAnalyzerConfigDocuments(documentInfos);
             if (newState == _state)
             {
                 return this;
@@ -800,6 +837,17 @@ namespace Microsoft.CodeAnalysis
         public Solution RemoveAdditionalDocument(DocumentId documentId)
         {
             var newState = _state.RemoveAdditionalDocument(documentId);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        public Solution RemoveAnalyzerConfigDocument(DocumentId documentId)
+        {
+            var newState = _state.RemoveAnalyzerConfigDocument(documentId);
             if (newState == _state)
             {
                 return this;
@@ -968,6 +1016,36 @@ namespace Microsoft.CodeAnalysis
         public Solution WithAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var newState = _state.WithAdditionalDocumentTextLoader(documentId, loader, mode);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text
+        /// supplied by the text loader.
+        /// </summary>
+        public Solution WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        {
+            var newState = _state.WithAnalyzerConfigDocumentText(documentId, text, mode);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text
+        /// supplied by the text loader.
+        /// </summary>
+        public Solution WithAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        {
+            var newState = _state.WithAnalyzerConfigDocumentTextLoader(documentId, loader, mode);
             if (newState == _state)
             {
                 return this;

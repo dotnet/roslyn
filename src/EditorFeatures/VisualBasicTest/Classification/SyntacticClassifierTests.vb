@@ -5221,5 +5221,23 @@ End Sub"
                 Keyword("Sub"))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestCatchStatement() As Task
+            Dim code =
+"Try
+
+Catch ex As Exception
+
+End Try"
+
+            Await TestInMethodAsync(code,
+                ControlKeyword("Try"),
+                ControlKeyword("Catch"),
+                Local("ex"),
+                Keyword("As"),
+                Identifier("Exception"),
+                ControlKeyword("End"),
+                ControlKeyword("Try"))
+        End Function
     End Class
 End Namespace

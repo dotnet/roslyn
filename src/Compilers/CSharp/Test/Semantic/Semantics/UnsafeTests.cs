@@ -6691,7 +6691,11 @@ class Program
     }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = stackalloc int[2]) //CS0213 - already fixed
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "stackalloc int[2]").WithLocation(6, 25));
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = stackalloc int[2]) //CS0213 - already fixed
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "stackalloc int[2]").WithLocation(6, 25));
@@ -8018,7 +8022,17 @@ unsafe class C
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                //         { var p = (int*)stackalloc int[1]; }
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(int*)stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 19),
+                // (7,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'void*' is not possible.
+                //         { var p = (void*)stackalloc int[1]; }
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(void*)stackalloc int[1]").WithArguments("int", "void*").WithLocation(7, 19),
+                // (8,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'C' is not possible.
+                //         { var p = (C)stackalloc int[1]; }
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(C)stackalloc int[1]").WithArguments("int", "C").WithLocation(8, 19));
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (6,19): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
                 //         { var p = (int*)stackalloc int[1]; }
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "(int*)stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 19),
@@ -8039,10 +8053,16 @@ unsafe class C
     int* p = stackalloc int[1];
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,14): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (4,14): error CS8652: The feature 'stackalloc in nested expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc").WithArguments("stackalloc in nested expressions").WithLocation(4, 14)
+                );
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (4,14): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                //     int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(4, 14)
+            );
         }
 
         [Fact]
@@ -8056,10 +8076,10 @@ unsafe class C
     }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,21): error CS1525: Invalid expression term 'stackalloc'
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,21): error CS1736: Default parameter value for 'p' must be a compile-time constant
                 //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "stackalloc int[1]").WithArguments("p").WithLocation(4, 21)
             );
         }
 
@@ -8081,15 +8101,43 @@ unsafe class C
         }
 
         [Fact]
-        public void StackAllocNotExpression_GlobalDeclaration()
+        public void StackAllocNotExpression_GlobalDeclaration_01()
         {
             var text = @"
 unsafe int* p = stackalloc int[1];
 ";
-            CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (4,14): error CS1525: Invalid expression term 'stackalloc'
-                //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"));
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (2,17): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                // unsafe int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(2, 17)
+            );
+        }
+
+        [Fact]
+        public void StackAllocNotExpression_GlobalDeclaration_02()
+        {
+            var text = @"
+using System;
+Span<int> p = stackalloc int[1];
+";
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (3,1): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
+                // Span<int> p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(3, 1)
+            );
+        }
+
+        [Fact]
+        public void StackAllocNotExpression_GlobalDeclaration_03()
+        {
+            var text = @"
+var p = stackalloc int[1];
+";
+            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
+                // (2,1): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
+                // var p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "var").WithArguments("System.Span<int>").WithLocation(2, 1)
+            );
         }
 
         #endregion stackalloc diagnostic tests
@@ -9192,6 +9240,27 @@ unsafe class C
                 // (17,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* f = &(s_f.Buf[0]);
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&(s_f.Buf[0])").WithLocation(17, 18));
+        }
+
+        [Fact, WorkItem(34693, "https://github.com/dotnet/roslyn/issues/34693")]
+        public void Repro_34693()
+        {
+            var csharp = @"
+namespace Interop
+{
+    public unsafe struct PROPVARIANT
+    {
+        public CAPROPVARIANT ca;
+    }
+
+    public unsafe struct CAPROPVARIANT
+    {
+        public uint cElems;
+        public PROPVARIANT* pElems;
+    }
+}";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
     }
 }

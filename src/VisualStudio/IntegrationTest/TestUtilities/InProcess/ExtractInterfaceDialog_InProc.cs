@@ -1,19 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls.Primitives;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
-    internal class ExtractInterfaceDialog_InProc : InProcComponent
+    internal class ExtractInterfaceDialog_InProc : AbstractCodeRefactorDialog_InProc<ExtractInterfaceDialog, ExtractInterfaceDialog.TestAccessor>
     {
         private ExtractInterfaceDialog_InProc()
         {
@@ -22,7 +16,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static ExtractInterfaceDialog_InProc Create()
             => new ExtractInterfaceDialog_InProc();
 
-        public void VerifyOpen()
+        public override void VerifyOpen()
         {
             using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
             {
@@ -35,31 +29,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     {
                         // Thread.Yield is insufficient; something in the light bulb must be relying on a UI thread
                         // message at lower priority than the Background priority used in testing.
-                        WaitForApplicationIdle();
+                        WaitForApplicationIdle(Helper.HangMitigatingTimeout);
                         continue;
                     }
 
-                    WaitForApplicationIdle();
+                    WaitForApplicationIdle(Helper.HangMitigatingTimeout);
                     return;
-                }
-            }
-        }
-
-        public void VerifyClosed()
-        {
-            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
-            {
-                var cancellationToken = cancellationTokenSource.Token;
-                while (true)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var window = JoinableTaskFactory.Run(() => TryGetDialogAsync(cancellationToken));
-                    if (window is null)
-                    {
-                        return;
-                    }
-
-                    Thread.Yield();
                 }
             }
         }
@@ -176,24 +151,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        private async Task<ExtractInterfaceDialog> GetDialogAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            return Application.Current.Windows.OfType<ExtractInterfaceDialog>().Single();
-        }
-
-        private async Task<ExtractInterfaceDialog> TryGetDialogAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            return Application.Current.Windows.OfType<ExtractInterfaceDialog>().SingleOrDefault();
-        }
-
-        private async Task ClickAsync(Func<ExtractInterfaceDialog.TestAccessor, ButtonBase> buttonSelector, CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-            var dialog = await GetDialogAsync(cancellationToken);
-            var button = buttonSelector(dialog.GetTestAccessor());
-            Contract.ThrowIfFalse(await button.SimulateClickAsync(JoinableTaskFactory));
-        }
+        protected override ExtractInterfaceDialog.TestAccessor GetAccessor(ExtractInterfaceDialog dialog) => dialog.GetTestAccessor();
     }
 }

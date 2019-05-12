@@ -5,7 +5,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.RemoteHostClientMock</RootNamespace>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>Vsix</RoslynProjectType>
     <IsShipping>false</IsShipping>
 
     <!-- VSIX -->
@@ -16,6 +15,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>

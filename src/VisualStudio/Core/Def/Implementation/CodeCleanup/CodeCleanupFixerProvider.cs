@@ -13,12 +13,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 {
-    /// <summary>
-    /// This is intentionally not exported as a concrete type and not an instance of
-    /// <see cref="ICodeCleanUpFixerProvider"/>. Roslyn is responsible for registering its own fixer provider, as
-    /// opposed to the implementation importing the instances of some interface.
-    /// </summary>
-    [Export]
+    [Export(typeof(ICodeCleanUpFixerProvider))]
+    [AppliesToProject(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.CSharpContentType)]
     internal class CodeCleanUpFixerProvider : ICodeCleanUpFixerProvider
     {
         private readonly ImmutableArray<Lazy<CodeCleanUpFixer, ContentTypeMetadata>> _codeCleanUpFixers;

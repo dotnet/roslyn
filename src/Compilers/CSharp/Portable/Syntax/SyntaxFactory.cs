@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -1545,6 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions)options, path, encoding);
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Produces a syntax tree by parsing the source text.
         /// </summary>
@@ -1553,9 +1556,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParseOptions options = null,
             string path = "",
             Encoding encoding = null,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, cancellationToken);
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, cancellationToken);
         }
 
         /// <summary>
@@ -1565,10 +1569,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceText text,
             ParseOptions options = null,
             string path = "",
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, diagnosticOptions, cancellationToken);
         }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
         /// Parse a list of trivia rules for leading trivia.
@@ -2525,16 +2531,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             => NamespaceDeclaration(attributeLists: default, modifiers: default,
                 namespaceKeyword, name, openBraceToken, externs, usings, members, closeBraceToken, semicolonToken);
 
-        /// <summary>Creates a new BaseExpressionSyntax instance.</summary>
-        public static BaseExpressionSyntax BaseExpression()
+        ///// <summary>Creates a new BaseExpressionSyntax instance.</summary>
+        //// public static BaseExpressionSyntax BaseExpression()
+
+        // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree ParseSyntaxTree(
+            string text,
+            ParseOptions options,
+            string path,
+            Encoding encoding,
+            CancellationToken cancellationToken)
         {
-            return BaseExpression(null);
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions: null, cancellationToken);
         }
 
-        /// <summary>Creates a new BaseExpressionSyntax instance.</summary>
-        public static BaseExpressionSyntax BaseExpression(SyntaxToken token)
+        // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree ParseSyntaxTree(
+            SourceText text,
+            ParseOptions options,
+            string path,
+            CancellationToken cancellationToken)
         {
-            return BaseExpression(token, null);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, diagnosticOptions: null, cancellationToken);
         }
     }
 }

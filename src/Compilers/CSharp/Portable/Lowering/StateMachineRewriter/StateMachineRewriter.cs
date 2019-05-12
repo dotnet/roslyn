@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (isDebugBuild)
                         {
-                            // Calculate local debug id. 
+                            // Calculate local debug id.
                             //
                             // EnC: When emitting the baseline (gen 0) the id is stored in a custom debug information attached to the kickoff method.
                             //      When emitting a delta the id is only used to map to the existing field in the previous generation.
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // The field needs to be public iff it is initialized directly from the kickoff method 
+                        // The field needs to be public iff it is initialized directly from the kickoff method
                         // (i.e. not for IEnumerable which loads the values from parameter proxies).
                         var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, parameter.Name, isPublic: !PreserveInitialParameterValuesAndThreadId);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
@@ -374,7 +374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    {
             //        result = new {StateMachineType}({initialState});
             //    }
-            //    result.parameter = this.parameterProxy; // copy all of the parameter proxies
+            //
+            //    result.parameter = this.parameterProxy; // OR more complex initialization for async-iterator parameter marked with [EnumeratorCancellation]
 
             // The implementation doesn't depend on the method body of the iterator method.
             // Only on its parameters and staticness.
@@ -451,16 +452,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CapturedSymbolReplacement proxy;
                 if (copyDest.TryGetValue(parameter, out proxy))
                 {
-                    bodyBuilder.Add(
-                        F.Assignment(
-                            proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable)),
-                            copySrc[parameter].Replacement(F.Syntax, stateMachineType => F.This())));
+                    // result.parameter
+                    BoundExpression resultParameter = proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable));
+                    // this.parameterProxy
+                    BoundExpression parameterProxy = copySrc[parameter].Replacement(F.Syntax, stateMachineType => F.This());
+                    BoundStatement copy = InitializeParameterField(getEnumeratorMethod, parameter, resultParameter, parameterProxy);
+
+                    bodyBuilder.Add(copy);
                 }
             }
 
             bodyBuilder.Add(F.Return(F.Local(resultVariable)));
             F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), bodyBuilder.ToImmutableAndFree()));
             return getEnumerator;
+        }
+
+        protected virtual BoundStatement InitializeParameterField(MethodSymbol getEnumeratorMethod, ParameterSymbol parameter, BoundExpression resultParameter, BoundExpression parameterProxy)
+        {
+            Debug.Assert(!method.IsIterator || !method.IsAsync); // an override handles async-iterators
+
+            // result.parameter = this.parameterProxy;
+            return F.Assignment(resultParameter, parameterProxy);
         }
 
         /// <summary>

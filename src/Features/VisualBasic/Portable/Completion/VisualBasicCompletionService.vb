@@ -43,7 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             New OverrideCompletionProvider(),
             New XmlDocCommentCompletionProvider(),
             New InternalsVisibleToCompletionProvider(),
-            New EmbeddedLanguageCompletionProvider(VisualBasicEmbeddedLanguageFeaturesProvider.Instance))
+            New EmbeddedLanguageCompletionProvider(VisualBasicEmbeddedLanguageFeaturesProvider.Instance),
+            New TypeImportCompletionProvider())
 
         Private ReadOnly _workspace As Workspace
 

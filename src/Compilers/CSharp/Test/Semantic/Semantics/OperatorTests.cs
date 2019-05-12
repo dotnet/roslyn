@@ -5183,7 +5183,7 @@ class Program
 
         [WorkItem(543294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543294")]
         [Fact()]
-        public void TestIsOperatorWithTypeParameter()
+        public void TestIsOperatorWithTypeParameter_01()
         {
             var source = @"
 using System;
@@ -5213,6 +5213,64 @@ class Program
                 // (13,18): warning CS0184: The given expression is never of the provided ('T') type
                 //         bool b = Main() is T;
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "Main() is T").WithArguments("T"));
+        }
+
+        [Fact]
+        [WorkItem(34679, "https://github.com/dotnet/roslyn/issues/34679")]
+        public void TestIsOperatorWithTypeParameter_02()
+        {
+            var source = @"
+class A<T>
+{
+    public virtual void M1<S>(S x) where S : T { }
+}
+
+class C : A<int?>
+{
+
+    static void Main()
+    {
+        var x = new C();
+        int? y = null;
+        x.M1(y);
+        x.Test(y);
+        y = 0;
+        x.M1(y);
+        x.Test(y);
+    }
+
+    void Test(int? x)
+    {
+        if (x is System.ValueType)
+        {
+            System.Console.WriteLine(""Test if"");
+        }
+        else
+        {
+            System.Console.WriteLine(""Test else"");
+        }
+    }
+
+    public override void M1<S>(S x)
+    {
+        if (x is System.ValueType)
+        {
+            System.Console.WriteLine(""M1 if"");
+        }
+        else
+        {
+            System.Console.WriteLine(""M1 else"");
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"M1 else
+Test else
+M1 if
+Test if");
         }
 
         [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
