@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Host
             var service = GetService<TLanguageService>();
             if (service == null)
             {
-                throw new InvalidOperationException(WorkspacesResources.Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace);
+                throw new InvalidOperationException(string.Format(WorkspacesResources.Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace, typeof(TLanguageService)));
             }
 
             return service;

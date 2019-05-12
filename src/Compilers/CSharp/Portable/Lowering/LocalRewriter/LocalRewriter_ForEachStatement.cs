@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
 
             MethodSymbol getEnumeratorMethod = enumeratorInfo.GetEnumeratorMethod;
-            TypeSymbol enumeratorType = getEnumeratorMethod.ReturnType.TypeSymbol;
-            TypeSymbol elementType = enumeratorInfo.ElementType.TypeSymbol;
+            TypeSymbol enumeratorType = getEnumeratorMethod.ReturnType;
+            TypeSymbol elementType = enumeratorInfo.ElementType;
 
             // E e
             LocalSymbol enumeratorVar = _factory.SynthesizedLocal(enumeratorType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachEnumerator);
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     allowExtensionAndOptionalParameters: isAsync);
             if (isAsync)
             {
-                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, node.AwaitOpt, node.AwaitOpt.GetResult.ReturnType.TypeSymbol, used: true);
+                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, node.AwaitOpt, node.AwaitOpt.GetResult.ReturnType, used: true);
             }
 
             BoundStatement whileLoop = RewriteWhileStatement(
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundStatement WrapWithAwait(CommonForEachStatementSyntax forEachSyntax, BoundExpression disposeCall, AwaitableInfo disposeAwaitableInfoOpt)
         {
-            TypeSymbol awaitExpressionType = disposeAwaitableInfoOpt.GetResult?.ReturnType.TypeSymbol ?? _compilation.DynamicType;
+            TypeSymbol awaitExpressionType = disposeAwaitableInfoOpt.GetResult?.ReturnType ?? _compilation.DynamicType;
             var awaitExpr = RewriteAwaitExpression(forEachSyntax, disposeCall, disposeAwaitableInfoOpt, awaitExpressionType, used: false);
             return new BoundExpressionStatement(forEachSyntax, awaitExpr);
         }
@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create<BoundExpression>(boundPositionVar),
-                    type: arrayType.ElementType.TypeSymbol),
+                    type: arrayType.ElementType),
                 conversion: node.ElementConversion,
                 rewrittenType: node.IterationVariableType.Type,
                 @checked: node.Checked);
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenOperand: new BoundArrayAccess(forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create((BoundExpression[])boundPositionVar),
-                    type: arrayType.ElementType.TypeSymbol),
+                    type: arrayType.ElementType),
                 conversion: node.ElementConversion,
                 rewrittenType: node.IterationVariableType.Type,
                 @checked: node.Checked);

@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -112,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
-            this.ComponentModel.GetService<DiagnosticProgressReporter>();
+            this.ComponentModel.GetService<TaskCenterSolutionAnalysisProgressReporter>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTable>();
             this.ComponentModel.GetService<VisualStudioTodoListTable>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
@@ -200,6 +201,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             PersistedVersionStampLogger.ReportTelemetry();
             LinkedFileDiffMergingLogger.ReportTelemetry();
             SolutionLogger.ReportTelemetry();
+            AsyncCompletionLogger.ReportTelemetry();
+            CompletionProvidersLogger.ReportTelemetry();
         }
 
         private void DisposeVisualStudioServices()

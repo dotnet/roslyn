@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// This is needed over the normal 'string.GetHashCode()' because we need to be able to generate
         /// 'k' different well distributed hashes for any given string s.  Also, we want to be able to
         /// generate these hashes without allocating any memory.  My ideal solution would be to use an
-        /// MD5 hash.  However, there appears to be no way to do MD5 in .Net where you can:
+        /// MD5 hash.  However, there appears to be no way to do MD5 in .NET where you can:
         /// 
         /// a) feed it individual values instead of a byte[]
         /// 

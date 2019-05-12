@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="DateTimeKind_must_be_Utc">
         <source>DateTimeKind must be Utc</source>
-        <target state="new">DateTimeKind must be Utc</target>
+        <target state="translated">DateTimeKind は Utc にする必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -52,6 +52,16 @@
         <target state="translated">修飾子設定</target>
         <note />
       </trans-unit>
+      <trans-unit id="Naming_rules">
+        <source>Naming rules</source>
+        <target state="new">Naming rules</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_styles">
+        <source>Naming styles</source>
+        <target state="new">Naming styles</target>
+        <note />
+      </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
         <target state="translated">改行設定</target>
@@ -69,17 +79,17 @@
       </trans-unit>
       <trans-unit id="Prefix_0_does_not_match_expected_prefix_1">
         <source>Prefix '{0}' does not match expected prefix '{1}'</source>
-        <target state="new">Prefix '{0}' does not match expected prefix '{1}'</target>
+        <target state="translated">プレフィックス '{0}' が予想されるプレフィックス '{1}' と一致しません</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefix_0_is_not_expected">
         <source>Prefix '{0}' is not expected</source>
-        <target state="new">Prefix '{0}' is not expected</target>
+        <target state="translated">プレフィックス '{0}' は予期されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
-        <target state="translated">Refactoring Only</target>
+        <target state="translated">リファクタリングのみ</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
@@ -1277,6 +1287,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">プロジェクトの追加はサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_specifications">
+        <source>Symbol specifications</source>
+        <target state="new">Symbol specifications</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_BaseType">
         <source>Base Type</source>
         <target state="new">Base Type</target>
@@ -1292,24 +1307,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="new">Declare</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
-        <source>Qualify</source>
-        <target state="new">Qualify</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
-        <source>Type Constraint</source>
-        <target state="new">Type Constraint</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="Visual_Basic_files">
-        <source>Visual Basic files</source>
-        <target state="translated">Visual Basic ファイル</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Import">
         <source>Import</source>
         <target state="new">Import</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
+        <source>Qualify</source>
+        <target state="new">Qualify</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
@@ -1317,25 +1322,20 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="new">Type Argument</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
+      <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
+        <source>Type Constraint</source>
+        <target state="new">Type Constraint</target>
+        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
+      </trans-unit>
       <trans-unit id="ValueUsageInfo_Name">
         <source>Name</source>
         <target state="new">Name</target>
         <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
-      <trans-unit id="ValueUsageInfo_Read">
-        <source>Read</source>
-        <target state="new">Read</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Reference">
-        <source>Reference</source>
-        <target state="new">Reference</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Write">
-        <source>Write</source>
-        <target state="new">Write</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
+      <trans-unit id="Visual_Basic_files">
+        <source>Visual Basic files</source>
+        <target state="translated">Visual Basic ファイル</target>
+        <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
@@ -2227,9 +2227,24 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">正規表現の問題: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
       </trans-unit>
+      <trans-unit id="ValueUsageInfo_Read">
+        <source>Read</source>
+        <target state="needs-review-translation">読み取り</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Reference">
+        <source>Reference</source>
+        <target state="needs-review-translation">参照</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
+      </trans-unit>
+      <trans-unit id="ValueUsageInfo_Write">
+        <source>Write</source>
+        <target state="needs-review-translation">書き込み</target>
+        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
+      </trans-unit>
       <trans-unit id="Parameter_preferences">
         <source>Parameter preferences</source>
-        <target state="new">Parameter preferences</target>
+        <target state="translated">パラメーターの設定</target>
         <note />
       </trans-unit>
     </body>

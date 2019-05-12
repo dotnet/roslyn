@@ -41,6 +41,35 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        Public Async Function TestMultipleCaseLineContinuation() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub M(i As Integer)
+        [||]If i = 1 OrElse 2 = i OrElse i = 3 _
+           Then
+            M(0)
+        ElseIf i = 4 OrElse 5 = i OrElse i = 6 Then
+            M(1)
+        Else
+            M(2)
+        End If
+    End Sub
+End Class",
+"Class C
+    Sub M(i As Integer)
+        Select i
+            Case 1, 2, 3 _
+                M(0)
+            Case 4, 5, 6
+                M(1)
+            Case Else
+                M(2)
+        End Select
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
         Public Async Function TestConstantExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

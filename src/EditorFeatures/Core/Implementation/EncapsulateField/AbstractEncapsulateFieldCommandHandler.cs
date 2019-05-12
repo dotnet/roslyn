@@ -37,15 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 
         public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return false;
-            }
-
-            var workspace = document.Project.Solution.Workspace;
-            var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
+            if (!args.SubjectBuffer.SupportsRefactorings())
             {
                 return false;
             }
@@ -60,20 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
         {
             using (var token = _listener.BeginAsyncOperation("EncapsulateField"))
             {
-                var text = args.TextView.TextBuffer.CurrentSnapshot.AsText();
                 var cancellationToken = waitScope.Context.UserCancellationToken;
-                if (!Workspace.TryGetWorkspace(text.Container, out var workspace))
-                {
-                    return false;
-                }
-
-                var documentId = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (documentId == null)
-                {
-                    return false;
-                }
-
-                var document = workspace.CurrentSolution.GetDocument(documentId);
+                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                    waitScope.Context).WaitAndGetResult(cancellationToken);
                 if (document == null)
                 {
                     return false;
@@ -90,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                 // and also will take it into consideration when measuring command handling duration.
                 waitScope.Context.TakeOwnership();
 
+                var workspace = document.Project.Solution.Workspace;
                 if (result == null)
                 {
                     var notificationService = workspace.Services.GetService<INotificationService>();
@@ -136,20 +118,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
         }
 
         public VSCommanding.CommandState GetCommandState(EncapsulateFieldCommandArgs args)
-        {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            return VSCommanding.CommandState.Available;
-        }
+            => args.SubjectBuffer.SupportsRefactorings() ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
     }
 }

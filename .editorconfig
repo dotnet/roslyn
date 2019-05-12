@@ -26,10 +26,18 @@ indent_size = 2
 [*.json]
 indent_size = 2
 
+# Powershell files
+[*.ps1]
+indent_size = 2
+
 # Shell script files
 [*.sh]
 end_of_line = lf
 indent_size = 2
+
+# Dotnet diagnostic settings
+[*.{cs,vb}]
+dotnet_diagnostic.xUnit2018.severity = suppress # "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now
 
 # Dotnet code style settings:
 [*.{cs,vb}]

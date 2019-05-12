@@ -136,10 +136,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // wait for listener
             var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
-            await workspaceListener.CreateWaitTask();
+            await workspaceListener.CreateExpeditedWaitTask();
 
             var listener = listenerProvider.GetWaiter(FeatureAttribute.RemoteHostClient);
-            await listener.CreateWaitTask();
+            await listener.CreateExpeditedWaitTask();
 
             // checksum should already exist
             Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out var checksums));
@@ -259,7 +259,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 Event = new ManualResetEvent(false);
 
-                Rpc.StartListening();
+                StartService();
             }
 
             public readonly ManualResetEvent Event;

@@ -34,12 +34,17 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="new">Never</target>
+        <target state="translated">안 함 </target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">참조 같음 검사에 대해 'Is Nothing' 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="new">Show items from unimported namespaces (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -264,7 +269,7 @@
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
-        <target state="new">Unused local</target>
+        <target state="translated">사용하지 않는 로컬</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">

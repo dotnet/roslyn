@@ -120,8 +120,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return GetCodeActionEquivalenceKey(assemblyName, typeName, explicitly, abstractly, throughMember, codeActionTypeName);
             }
 
-            // internal for testing purposes.
-            internal static string GetCodeActionEquivalenceKey(
+            private static string GetCodeActionEquivalenceKey(
                 string interfaceTypeAssemblyName,
                 string interfaceTypeFullyQualifiedName,
                 bool explicitly,

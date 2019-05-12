@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var argument = new BoundLiteral(
                 syntax,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_address),
-                method.Parameters[0].Type.TypeSymbol);
+                method.Parameters[0].Type);
             var call = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: null,
                 method: method,
                 arguments: ImmutableArray.Create<BoundExpression>(argument));
-            Debug.Assert(TypeSymbol.Equals(call.Type, this.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert(TypeSymbol.Equals(call.Type, this.Type, TypeCompareKind.ConsiderEverything2));
             return call;
         }
     }

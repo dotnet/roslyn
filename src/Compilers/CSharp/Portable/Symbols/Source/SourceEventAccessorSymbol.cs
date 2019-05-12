@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceEventSymbol _event;
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeSymbolWithAnnotations _lazyReturnType;
+        private TypeWithAnnotations _lazyReturnType;
 
         public SourceEventAccessorSymbol(
             SourceEventSymbol @event,
@@ -64,9 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // EventRegistrationToken add_E(EventDelegate d);
 
                         // Leave the returns void bit in this.flags false.
-                        _lazyReturnType = TypeSymbolWithAnnotations.Create(eventTokenType);
+                        _lazyReturnType = TypeWithAnnotations.Create(eventTokenType);
 
-                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.Type, 0);
+                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0);
                         _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                     }
                     else
@@ -77,10 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
                         Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
-                        _lazyReturnType = TypeSymbolWithAnnotations.Create(voidType);
+                        _lazyReturnType = TypeWithAnnotations.Create(voidType);
                         this.SetReturnsVoid(returnsVoid: true);
 
-                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, TypeSymbolWithAnnotations.Create(eventTokenType), 0);
+                        var parameter = new SynthesizedAccessorValueParameterSymbol(this, TypeWithAnnotations.Create(eventTokenType), 0);
                         _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                     }
                 }
@@ -91,10 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
                     Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
-                    _lazyReturnType = TypeSymbolWithAnnotations.Create(voidType);
+                    _lazyReturnType = TypeWithAnnotations.Create(voidType);
                     this.SetReturnsVoid(returnsVoid: true);
 
-                    var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.Type, 0);
+                    var parameter = new SynthesizedAccessorValueParameterSymbol(this, _event.TypeWithAnnotations, 0);
                     _lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
                 }
             }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return RefKind.None; }
         }
 
-        public sealed override TypeSymbolWithAnnotations ReturnType
+        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
+        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal Location Location

@@ -151,6 +151,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\SimpleIntervalTree.cs" Link="Formatting\SimpleIntervalTree.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\SimpleIntervalTree`1.cs" Link="Formatting\Context\SimpleIntervalTree`1.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Collections\TextSpanIntervalIntrospector.cs" Link="Formatting\TextSpanIntervalIntrospector.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\ChildSyntaxListExtensions.cs" Link="Formatting\ChildSyntaxListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\LinkedListExtensions.cs" Link="Formatting\LinkedListExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SimpleIntervalTreeExtensions.cs" Link="Formatting\SimpleIntervalTreeExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Shared\Extensions\SourceTextExtensions_SharedWithCodeStyle.cs" Link="Formatting\SourceTextExtensions_SharedWithCodeStyle.cs" />

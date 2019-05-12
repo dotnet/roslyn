@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(container, WellKnownMemberNames.ObjectEquals)
             {
                 _parameters = ImmutableArray.Create<ParameterSymbol>(
-                    SynthesizedParameterSymbol.Create(this, TypeSymbolWithAnnotations.Create(this.Manager.System_Object), 0, RefKind.None, "value"));
+                    SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(this.Manager.System_Object), 0, RefKind.None, "value"));
             }
 
             public override MethodKind MethodKind
@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return RefKind.None; }
             }
 
-            public override TypeSymbolWithAnnotations ReturnType
+            public override TypeWithAnnotations ReturnTypeWithAnnotations
             {
-                get { return TypeSymbolWithAnnotations.Create(this.Manager.System_Boolean); }
+                get { return TypeWithAnnotations.Create(this.Manager.System_Boolean); }
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters

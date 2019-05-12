@@ -4,27 +4,27 @@
     <body>
       <trans-unit id="Add_Await">
         <source>Add Await</source>
-        <target state="new">Add Await</target>
+        <target state="translated">Await の追加</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
         <source>Add Await and 'ConfigureAwait(false)'</source>
-        <target state="new">Add Await and 'ConfigureAwait(false)'</target>
+        <target state="translated">Await と 'ConfigureAwait(false)' の追加</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Obsolete">
         <source>Add &lt;Obsolete&gt;</source>
-        <target state="new">Add &lt;Obsolete&gt;</target>
+        <target state="translated">&lt;Obsolete&gt; の追加</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
-        <target state="new">Add missing Imports</target>
+        <target state="translated">欠落しているインポートの追加</target>
         <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
-        <target state="new">Add 'Shadows'</target>
+        <target state="translated">'Shadows' の追加</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="Introduce_Using_statement">
         <source>Introduce 'Using' statement</source>
-        <target state="new">Introduce 'Using' statement</target>
+        <target state="translated">’Using’ ステートメントの導入</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="new">Make '{0}' inheritable</target>
+        <target state="translated">'{0}' を継承可能にします</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -499,7 +499,7 @@ Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</targ
       </trans-unit>
       <trans-unit id="Used_to_release_array_variables_and_deallocate_the_memory_used_for_their_elements">
         <source>Used to release array variables and deallocate the memory used for their elements.</source>
-        <target state="translated">配列変数を解放し、それらの要素に使用されるメモリの割り当てを解除します。</target>
+        <target state="translated">アレイ変数を解放し、それらの要素に使用されるメモリの割り当てを解除します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Declares_a_user_defined_event">
@@ -800,7 +800,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Specifies_that_a_procedure_parameter_takes_an_optional_array_of_elements_of_the_specified_type">
         <source>Specifies that a procedure parameter takes an optional array of elements of the specified type.</source>
-        <target state="translated">プロシージャのパラメーターが、指定された型の、省略可能な要素の配列を受け取ることを示します。</target>
+        <target state="translated">プロシージャのパラメーターが、指定された型の、省略可能な要素のアレイを受け取ることを示します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Indicates_that_a_method_class_or_structure_declaration_is_a_partial_definition_of_the_method_class_or_structure">
@@ -815,7 +815,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Prevents_the_contents_of_an_array_from_being_cleared_when_the_dimensions_of_the_array_are_changed">
         <source>Prevents the contents of an array from being cleared when the dimensions of the array are changed.</source>
-        <target state="translated">配列の次元が変更されるときに配列の内容が消去されないようにします。</target>
+        <target state="translated">アレイの次元が変更されるときにアレイの内容が消去されないようにします。</target>
         <note />
       </trans-unit>
       <trans-unit id="Specifies_that_one_or_more_declared_programming_elements_are_accessible_only_from_within_their_module_class_or_structure">
@@ -850,7 +850,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Reallocates_storage_space_for_an_array_variable">
         <source>Reallocates storage space for an array variable.</source>
-        <target state="translated">配列変数の記憶域を再割り当てします。</target>
+        <target state="translated">アレイ変数の記憶域を再割り当てします。</target>
         <note />
       </trans-unit>
       <trans-unit id="Performs_an_arithmetic_right_shift_on_a_bit_pattern">
@@ -890,7 +890,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range">
         <source>Separates the beginning and ending values of a loop counter or array bounds or that of a value match range.</source>
-        <target state="translated">ループ カウンター、配列の範囲、または値が一致する範囲の開始値と終了値を分割します。</target>
+        <target state="translated">ループ カウンター、アレイの範囲、または値が一致する範囲の開始値と終了値を分割します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Determines_the_run_time_type_of_an_object_reference_variable_and_compares_it_to_a_data_type_Returns_True_or_False_depending_on_whether_the_two_types_are_compatible_result_TypeOf_objectExpression_Is_typeName">
@@ -1211,7 +1211,7 @@ Option Infer {On | Off}</target>
       </trans-unit>
       <trans-unit id="Computes_a_value_for_each_item_in_the_query_and_assigns_the_value_to_a_new_range_variable">
         <source>Computes a value for each item in the query, and assigns the value to a new range variable.</source>
-        <target state="translated">クエリ内の各項目の値を計算し、新しい範囲変数に値を割り当てます。</target>
+        <target state="translated">クエリ内の各項目の値をコンピューティングし、新しい範囲変数に値を割り当てます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Terminates_a_loop_that_is_introduced_with_a_Do_statement">
@@ -1733,7 +1733,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Add_Overloads">
         <source>Add 'Overloads'</source>
-        <target state="needs-review-translation">オーバーロードを追加します</target>
+        <target state="translated">'Overloads' の追加</target>
         <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">

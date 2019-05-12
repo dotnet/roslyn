@@ -497,9 +497,6 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
         {
-            this.CheckDocumentIsInCurrentSolution(documentId);
-            this.CheckDocumentIsOpen(documentId);
-
             // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/,
             // where we have one theory that OnDocumentClosed is running but failing somewhere in the middle and thus failing to get to the RaiseDocumentClosedEventAsync() line. 
             // We are choosing ReportWithoutCrashAndPropagate because this is a public API that has callers outside VS and also non-VisualStudioWorkspace callers inside VS, and
@@ -508,6 +505,9 @@ namespace Microsoft.CodeAnalysis
             {
                 using (_serializationLock.DisposableWait())
                 {
+                    this.CheckDocumentIsInCurrentSolution(documentId);
+                    this.CheckDocumentIsOpen(documentId);
+
                     // forget any open document info
                     ClearOpenDocument(documentId);
 

@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
-        <target state="new">A language name cannot be specified for this option.</target>
+        <target state="translated">Für diese Option kann kein Sprachenname angegeben werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_must_be_specified_for_this_option">
         <source>A language name must be specified for this option.</source>
-        <target state="new">A language name must be specified for this option.</target>
+        <target state="translated">Für diese Option muss ein Sprachenname angegeben werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
-        <target state="new">Error</target>
+        <target state="translated">Fehler</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_formatting">
@@ -24,22 +24,22 @@
       </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
-        <target state="new">Indentation and spacing</target>
+        <target state="translated">Einzüge und Abstände</target>
         <note />
       </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
-        <target state="new">New line preferences</target>
+        <target state="translated">Einstellungen für neue Zeilen</target>
         <note />
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="new">None</target>
+        <target state="translated">NONE</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
-        <target state="new">Refactoring Only</target>
+        <target state="translated">Nur Refactoring</target>
         <note />
       </trans-unit>
       <trans-unit id="Style">
@@ -49,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
-        <target state="new">Suggestion</target>
+        <target state="translated">Vorschlag</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
-        <target state="new">Warning</target>
+        <target state="translated">Warnung</target>
         <note />
       </trans-unit>
     </body>

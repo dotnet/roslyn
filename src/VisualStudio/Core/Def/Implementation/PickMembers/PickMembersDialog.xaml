@@ -158,6 +158,7 @@
                     Margin="0, 11, 0, 0"
                     Orientation="Horizontal">
             <Button x:Uid="OkButton" 
+                    Name="OKButton"
                     Content="{Binding ElementName=dialog, Path=OK}" 
                     Margin="0, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
@@ -166,6 +167,7 @@
                     MinWidth="73"
                     MinHeight="21"/>
             <Button x:Uid="CancelButton" 
+                    Name="CancelButton"
                     Content="{Binding ElementName=dialog, Path=Cancel}"
                     Margin="7, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"

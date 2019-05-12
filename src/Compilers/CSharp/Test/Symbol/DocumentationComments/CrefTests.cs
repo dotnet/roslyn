@@ -1558,7 +1558,7 @@ class C<T, U, V>
             AssertEx.None(actualTypeParameters, p => p.HasReferenceTypeConstraint);
             AssertEx.None(actualTypeParameters, p => p.HasConstructorConstraint);
             AssertEx.All(actualTypeParameters, p => p.ContainingSymbol == null);
-            AssertEx.All(actualTypeParameters, p => p.GetConstraintTypes(null, early: false).Length == 0);
+            AssertEx.All(actualTypeParameters, p => p.GetConstraintTypes(null).Length == 0);
             AssertEx.All(actualTypeParameters, p => p.GetInterfaces(null).Length == 0);
 
             foreach (var p in actualTypeParameters)
@@ -1603,7 +1603,7 @@ class B
             Assert.Equal("U", typeArgument.Name);
             Assert.IsType<CrefTypeParameterSymbol>(typeArgument);
             Assert.Equal(0, ((TypeParameterSymbol)typeArgument).Ordinal);
-            Assert.Equal(typeArgument, actualSymbol.GetParameters().Single().Type.TypeSymbol);
+            Assert.Equal(typeArgument, actualSymbol.GetParameters().Single().Type);
         }
 
         [Fact]
@@ -1628,8 +1628,8 @@ class A<M, N>
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedOriginalDefinitionSymbol, actualSymbol.OriginalDefinition);
 
-            var expectedOriginalParameterTypes = expectedOriginalDefinitionSymbol.Parameters.Select(p => p.Type.TypeSymbol).Cast<TypeParameterSymbol>();
-            var actualParameterTypes = actualSymbol.GetParameters().Select(p => p.Type.TypeSymbol).Cast<TypeParameterSymbol>();
+            var expectedOriginalParameterTypes = expectedOriginalDefinitionSymbol.Parameters.Select(p => p.Type).Cast<TypeParameterSymbol>();
+            var actualParameterTypes = actualSymbol.GetParameters().Select(p => p.Type).Cast<TypeParameterSymbol>();
 
             AssertEx.Equal(expectedOriginalParameterTypes.Select(t => t.Ordinal), actualParameterTypes.Select(t => t.Ordinal));
             AssertEx.None(expectedOriginalParameterTypes.Zip(actualParameterTypes, object.Equals), x => x);
@@ -1661,7 +1661,7 @@ class A<T, U>
 
             Assert.False(actualWinner.IsDefinition);
 
-            var actualParameterType = actualWinner.GetParameters().Single().Type.TypeSymbol;
+            var actualParameterType = actualWinner.GetParameters().Single().Type;
             AssertEx.All(actualWinner.ContainingType.TypeArguments(), typeParam => TypeSymbol.Equals(typeParam, actualParameterType, TypeCompareKind.ConsiderEverything2)); //CONSIDER: Would be different in Dev11.
             Assert.Equal(1, ((TypeParameterSymbol)actualParameterType).Ordinal);
 
@@ -1699,7 +1699,7 @@ class A<T>
 
             Assert.False(actualWinner.IsDefinition);
 
-            var actualParameterType = actualWinner.GetParameters().Single().Type.TypeSymbol;
+            var actualParameterType = actualWinner.GetParameters().Single().Type;
             Assert.Equal(actualParameterType, actualWinner.ContainingType.TypeArguments().Single());
             Assert.Equal(actualParameterType, actualWinner.ContainingType.ContainingType.TypeArguments().Single());
 
@@ -1731,7 +1731,7 @@ class U { }
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedOriginalDefinitionSymbol, actualSymbol.OriginalDefinition);
-            Assert.Equal(TypeKind.TypeParameter, actualSymbol.GetParameterTypes().Single().TypeKind);
+            Assert.Equal(TypeKind.TypeParameter, actualSymbol.GetParameterTypes().Single().Type.TypeKind);
         }
 
         [Fact]
@@ -1757,7 +1757,7 @@ class A<T>
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedOriginalDefinitionSymbol, actualSymbol.OriginalDefinition);
-            Assert.Equal(TypeKind.TypeParameter, actualSymbol.GetParameterTypes().Single().TypeKind);
+            Assert.Equal(TypeKind.TypeParameter, actualSymbol.GetParameterTypes().Single().Type.TypeKind);
         }
 
         [Fact]
@@ -2377,7 +2377,7 @@ class C
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.LogicalNotOperatorName).OfType<MethodSymbol>().
-                Single(method => method.ParameterTypes.Single().SpecialType == SpecialType.System_Int32);
+                Single(method => method.ParameterTypesWithAnnotations.Single().SpecialType == SpecialType.System_Int32);
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedSymbol, actualSymbol);
@@ -2562,7 +2562,7 @@ class C
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.DivisionOperatorName).OfType<MethodSymbol>().
-                Single(method => method.ParameterTypes.First().SpecialType == SpecialType.System_Int32);
+                Single(method => method.ParameterTypesWithAnnotations.First().SpecialType == SpecialType.System_Int32);
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedSymbol, actualSymbol);
@@ -2770,7 +2770,7 @@ class C
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.ImplicitConversionName).OfType<MethodSymbol>().
-                Single(method => method.ParameterTypes.Single().SpecialType == SpecialType.System_Int32);
+                Single(method => method.ParameterTypesWithAnnotations.Single().SpecialType == SpecialType.System_Int32);
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedSymbol, actualSymbol);
@@ -2806,7 +2806,7 @@ class C
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
             var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.ImplicitConversionName).OfType<MethodSymbol>().
-                Single(method => method.ParameterTypes.Single().SpecialType == SpecialType.System_Int32 && method.ReturnType.SpecialType == SpecialType.System_Int32);
+                Single(method => method.ParameterTypesWithAnnotations.Single().SpecialType == SpecialType.System_Int32 && method.ReturnType.SpecialType == SpecialType.System_Int32);
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedSymbol, actualSymbol);
@@ -5874,7 +5874,7 @@ enum E { }
             compilation.VerifyDiagnostics();
 
             var expectedSymbol = compilation.GetSpecialType(SpecialType.System_String).
-                InstanceConstructors.Single(ctor => ctor.ParameterCount == 1 && ctor.ParameterTypes[0].TypeSymbol.IsArray());
+                InstanceConstructors.Single(ctor => ctor.ParameterCount == 1 && ctor.GetParameterType(0).IsArray());
 
             var cref = GetCrefSyntaxes(compilation).Single();
 
@@ -6029,7 +6029,7 @@ enum E { }
             var methodSymbol = model.GetSymbolInfo(methodNameSyntax).Symbol;
             Assert.Equal(SymbolKind.Method, methodSymbol.Kind);
 
-            var members = model.LookupSymbols(methodNameSyntax.SpanStart, ((MethodSymbol)methodSymbol).ReturnType.TypeSymbol);
+            var members = model.LookupSymbols(methodNameSyntax.SpanStart, ((MethodSymbol)methodSymbol).ReturnType);
             Assert.Equal(0, members.Length);
         }
 

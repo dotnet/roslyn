@@ -82,6 +82,11 @@
         <target state="translated">Preferenze per ritorno a capo</target>
         <note />
       </trans-unit>
+      <trans-unit id="using_directive_preferences">
+        <source>'using' directive preferences</source>
+        <target state="new">'using' directive preferences</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="var_preferences">
         <source>var preferences</source>
         <target state="translated">Preferenze per var</target>

@@ -1474,9 +1474,9 @@ class D
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,21): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                // (6,29): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                 //         int[] arr = new int[m];    // Invalid
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new int[m]").WithArguments("bool", "int"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "m").WithArguments("bool", "int").WithLocation(6, 29));
         }
 
         [Fact]
@@ -2030,40 +2030,42 @@ class C
             var text = @"
 interface I
 {
-    event System.Action E1 { add; } // CS0069 on add
-    event System.Action E2 { remove; } // CS0069 on remove
-    event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
+    event System.Action E1 { add; }
+    event System.Action E2 { remove; }
+    event System.Action E3 { add; remove; }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (4,30): error CS0069: An event in an interface cannot have add or remove accessors
-                //     event System.Action E1 { add; } // CS0069 on add
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "add"),
-                // (5,30): error CS0069: An event in an interface cannot have add or remove accessors
-                //     event System.Action E2 { remove; } // CS0069 on remove
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"),
-                // (6,30): error CS0069: An event in an interface cannot have add or remove accessors
-                //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "add"),
-                // (6,35): error CS0069: An event in an interface cannot have add or remove accessors
-                //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
-                Diagnostic(ErrorCode.ERR_EventPropertyInInterface, "remove"),
-
-                // CONSIDER: dev10 doesn't report these, but we report them in the parser so they're
-                // hard to suppress.
-
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                // (4,30): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     event System.Action E1 { add; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(4, 30),
                 // (4,33): error CS0073: An add or remove accessor must have a body
-                //     event System.Action E1 { add; } // CS0069 on add
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
+                //     event System.Action E1 { add; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 33),
+                // (5,30): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     event System.Action E2 { remove; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(5, 30),
                 // (5,36): error CS0073: An add or remove accessor must have a body
-                //     event System.Action E2 { remove; } // CS0069 on remove
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
+                //     event System.Action E2 { remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(5, 36),
+                // (6,30): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     event System.Action E3 { add; remove; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(6, 30),
                 // (6,33): error CS0073: An add or remove accessor must have a body
-                //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
+                //     event System.Action E3 { add; remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 33),
+                // (6,35): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     event System.Action E3 { add; remove; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(6, 35),
                 // (6,41): error CS0073: An add or remove accessor must have a body
-                //     event System.Action E3 { add; remove; } // CS0069 on both (i.e. x 2)
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"));
+                //     event System.Action E3 { add; remove; }
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 41),
+                // (4,25): error CS0065: 'I.E1': event property must have both add and remove accessors
+                //     event System.Action E1 { add; }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I.E1").WithLocation(4, 25),
+                // (5,25): error CS0065: 'I.E2': event property must have both add and remove accessors
+                //     event System.Action E2 { remove; }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E2").WithArguments("I.E2").WithLocation(5, 25));
         }
 
         [Fact]
@@ -3153,11 +3155,11 @@ class Error
             var constructedMethodSymbol = (MethodSymbol)(boundCall.CandidateSymbols[0]);
             Assert.Equal("void Error.Goo<A.ProtectedClass>(I<A.ProtectedClass> i)", constructedMethodSymbol.ToTestDisplayString());
 
-            var typeArgSymbol = constructedMethodSymbol.TypeArguments.Single().TypeSymbol;
+            var typeArgSymbol = constructedMethodSymbol.TypeArgumentsWithAnnotations.Single().Type;
             Assert.Equal("A.ProtectedClass", typeArgSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Protected inner class is inaccessible");
 
-            var paramTypeSymbol = constructedMethodSymbol.Parameters.Single().Type.TypeSymbol;
+            var paramTypeSymbol = constructedMethodSymbol.Parameters.Single().Type;
             Assert.Equal("I<A.ProtectedClass>", paramTypeSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Type should be inaccessible since type argument is inaccessible");
 
@@ -8982,8 +8984,9 @@ enum Number
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,20): error CS0266: Cannot implicitly convert type 'Number' to 'int'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new int[Number.One][]").WithArguments("Number", "int"));
+                // (6,28): error CS0266: Cannot implicitly convert type 'Number' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         var cube = new int[Number.One][];
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "Number.One").WithArguments("Number", "int").WithLocation(6, 28));
         }
 
         [WorkItem(541718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541718")]
@@ -9007,9 +9010,16 @@ class C1
 }
 ";
             CreateCompilation(text).
-                VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new int[x]").WithArguments("double", "int"),
-                                  Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new int[y]").WithArguments("float", "int"),
-                                  Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new int[z]").WithArguments("decimal", "int"));
+                VerifyDiagnostics(
+                    // (7,30): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         int[] arr4 = new int[x];// Invalid
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("double", "int").WithLocation(7, 30),
+                    // (10,30): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         int[] arr5 = new int[y];// Invalid
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("float", "int").WithLocation(10, 30),
+                    // (13,30): error CS0266: Cannot implicitly convert type 'decimal' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         int[] arr6 = new int[z];// Invalid
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "z").WithArguments("decimal", "int").WithLocation(13, 30));
         }
 
         [Fact]
@@ -21827,15 +21837,134 @@ static class C
     }
     static void E(this object o) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (20,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'object' is null
+                //         default(object).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(object).GetHashCode").WithArguments("object").WithLocation(20, 9),
                 // (24,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
+                //         default(T4).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T4).GetHashCode").WithArguments("T4").WithLocation(24, 9),
                 // (26,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
+                //         default(T6).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).GetHashCode").WithArguments("T6").WithLocation(26, 9),
                 // (28,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
+                //         default(T6).P = null;
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).P").WithArguments("T6").WithLocation(28, 9));
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
+                );
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.SafeOnlyWarnings)).VerifyDiagnostics(
+                // (20,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(object).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(object)").WithLocation(20, 9),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T1).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T1)").WithLocation(21, 9),
+                // (22,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T2).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(22, 9),
+                // (24,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T4).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T4)").WithLocation(24, 9),
+                // (25,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T5).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T5)").WithLocation(25, 9),
+                // (26,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T6).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T6)").WithLocation(26, 9),
+                // (27,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T7).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T7)").WithLocation(27, 9),
+                // (28,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T6).P = null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T6)").WithLocation(28, 9),
+                // (29,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T7).P = null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T7)").WithLocation(29, 9));
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.SafeOnly)).VerifyDiagnostics(
+                // (3,21): warning CS8618: Non-nullable property 'P' is uninitialized.
+                //     internal object P { get; set; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P").WithArguments("property", "P").WithLocation(3, 21),
+                // (20,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(object).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(object)").WithLocation(20, 9),
+                // (21,9): warning CS8653: A default expression introduces a null value when 'T1' is a non-nullable reference type.
+                //         default(T1).GetHashCode();
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T1)").WithArguments("T1").WithLocation(21, 9),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T1).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T1)").WithLocation(21, 9),
+                // (22,9): warning CS8653: A default expression introduces a null value when 'T2' is a non-nullable reference type.
+                //         default(T2).GetHashCode();
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T2)").WithArguments("T2").WithLocation(22, 9),
+                // (22,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T2).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(22, 9),
+                // (24,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T4).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T4)").WithLocation(24, 9),
+                // (25,9): warning CS8653: A default expression introduces a null value when 'T5' is a non-nullable reference type.
+                //         default(T5).GetHashCode();
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T5)").WithArguments("T5").WithLocation(25, 9),
+                // (25,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T5).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T5)").WithLocation(25, 9),
+                // (26,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T6).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T6)").WithLocation(26, 9),
+                // (27,9): warning CS8653: A default expression introduces a null value when 'T7' is a non-nullable reference type.
+                //         default(T7).GetHashCode();
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T7)").WithArguments("T7").WithLocation(27, 9),
+                // (27,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T7).GetHashCode();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T7)").WithLocation(27, 9),
+                // (28,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T6).P = null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T6)").WithLocation(28, 9),
+                // (28,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         default(T6).P = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(28, 25),
+                // (29,9): warning CS8653: A default expression introduces a null value when 'T7' is a non-nullable reference type.
+                //         default(T7).P = null;
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T7)").WithArguments("T7").WithLocation(29, 9),
+                // (29,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T7).P = null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T7)").WithLocation(29, 9),
+                // (29,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         default(T7).P = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(29, 25),
+                // (31,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         default(object).E();
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(object)").WithLocation(31, 9),
+                // (32,9): warning CS8653: A default expression introduces a null value when 'T1' is a non-nullable reference type.
+                //         default(T1).E();
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T1)").WithArguments("T1").WithLocation(32, 9),
+                // (32,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.E(object o)'.
+                //         default(T1).E();
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "default(T1)").WithArguments("o", "void C.E(object o)").WithLocation(32, 9),
+                // (33,9): warning CS8653: A default expression introduces a null value when 'T2' is a non-nullable reference type.
+                //         default(T2).E();
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T2)").WithArguments("T2").WithLocation(33, 9),
+                // (33,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.E(object o)'.
+                //         default(T2).E();
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "default(T2)").WithArguments("o", "void C.E(object o)").WithLocation(33, 9),
+                // (35,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         default(T4).E();
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T4)").WithLocation(35, 9),
+                // (36,9): warning CS8653: A default expression introduces a null value when 'T5' is a non-nullable reference type.
+                //         default(T5).E();
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T5)").WithArguments("T5").WithLocation(36, 9),
+                // (36,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.E(object o)'.
+                //         default(T5).E();
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "default(T5)").WithArguments("o", "void C.E(object o)").WithLocation(36, 9),
+                // (37,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         default(T6).E(); // Dev10 (incorrectly) reports CS1720
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T6)").WithLocation(37, 9),
+                // (38,9): warning CS8653: A default expression introduces a null value when 'T7' is a non-nullable reference type.
+                //         default(T7).E();
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T7)").WithArguments("T7").WithLocation(38, 9),
+                // (38,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.E(object o)'.
+                //         default(T7).E();
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "default(T7)").WithArguments("o", "void C.E(object o)").WithLocation(38, 9));
         }
 
         [Fact]
@@ -21882,7 +22011,7 @@ class C
         default(T4)[1] = o;
     }
 }";
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (23,13): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'A' is null
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(A)[0]").WithArguments("A").WithLocation(23, 13),
                 // (25,13): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'I' is null
@@ -21903,8 +22032,52 @@ class C
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T1)[1]").WithArguments("T1").WithLocation(35, 9),
                 // (37,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T3)[1]").WithLocation(37, 9), // Incorrect? See CS0131ERR_AssgLvalueExpected03 unit test.
-                                                                                                    // (38,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
+                // (38,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T4)[1]").WithArguments("T4").WithLocation(38, 9));
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (37,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(T3)[1] = o;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T3)[1]").WithLocation(37, 9));
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithNullableContextOptions(NullableContextOptions.SafeOnlyWarnings)).VerifyDiagnostics(
+                // (23,13): warning CS8602: Dereference of a possibly null reference.
+                //         o = default(A)[0];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(A)").WithLocation(23, 13),
+                // (25,13): warning CS8602: Dereference of a possibly null reference.
+                //         o = default(I)[0];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(I)").WithLocation(25, 13),
+                // (26,13): warning CS8602: Dereference of a possibly null reference.
+                //         o = default(object[])[0];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(object[])").WithLocation(26, 13),
+                // (27,13): warning CS8602: Dereference of a possibly null reference.
+                //         o = default(T1)[0];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T1)").WithLocation(27, 13),
+                // (28,13): warning CS8602: Dereference of a possibly null reference.
+                //         o = default(T2)[0];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(28, 13),
+                // (30,13): warning CS8602: Dereference of a possibly null reference.
+                //         o = default(T4)[0];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T4)").WithLocation(30, 13),
+                // (32,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(A)[1] = o;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(A)").WithLocation(32, 9),
+                // (33,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(I)[1] = o;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(I)").WithLocation(33, 9),
+                // (34,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(object[])[1] = o;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(object[])").WithLocation(34, 9),
+                // (35,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T1)[1] = o;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T1)").WithLocation(35, 9),
+                // (36,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T2)[1] = o;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(36, 9),
+                // (37,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(T3)[1] = o;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T3)[1]").WithLocation(37, 9),
+                // (38,9): warning CS8602: Dereference of a possibly null reference.
+                //         default(T4)[1] = o;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T4)").WithLocation(38, 9));
         }
 
         [Fact]
@@ -21924,12 +22097,18 @@ class C
     }
 }
 ";
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // Do not report the following warning:
                 // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
                 //         System.Console.WriteLine(default(string).IsNull());
                 // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithNullableContextOptions(NullableContextOptions.SafeOnlyWarnings)).VerifyDiagnostics();
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithNullableContextOptions(NullableContextOptions.SafeOnly)).VerifyDiagnostics(
+                // (5,34): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         System.Console.WriteLine(default(string).IsNull());
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(5, 34));
         }
 
         [Fact]

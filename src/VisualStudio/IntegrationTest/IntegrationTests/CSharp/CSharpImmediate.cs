@@ -45,12 +45,12 @@ class Program
 }
 ");
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.Debugger.SetBreakPoint("Program.cs", "}");
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.ImmediateWindow.ShowImmediateWindow(clearAll: true);
             VisualStudio.SendKeys.Send("?n");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.CompletionSet);
             VisualStudio.SendKeys.Send("1", VirtualKey.Tab, VirtualKey.Enter);
             Assert.Contains("?n1Var\r\n42", VisualStudio.ImmediateWindow.GetText());
         }

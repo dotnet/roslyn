@@ -24,14 +24,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             _outputHelper = outputHelper
         End Sub
 
-        Private Async Function TestAPIAndFeature(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly)
-            Await TestStreamingFeature(definition, searchSingleFileOnly, uiVisibleOnly)
+        Public Enum TestKind
+            API
+            StreamingFeature
+        End Enum
+
+        Public Enum TestHost
+            InProcess
+            OutOfProcess
+        End Enum
+
+        Private Async Function TestAPIAndFeature(definition As XElement, kind As TestKind, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+            If kind = TestKind.API Then
+                Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly, options:=Nothing)
+            Else
+                Assert.Equal(TestKind.StreamingFeature, kind)
+                Await TestStreamingFeature(definition, host, searchSingleFileOnly, uiVisibleOnly)
+            End If
         End Function
 
-        Private Async Function TestStreamingFeature(element As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=False)
-            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=True)
+        Private Async Function TestStreamingFeature(element As XElement, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, outOfProcess:=host = TestHost.OutOfProcess)
         End Function
 
         Private Async Function TestStreamingFeature(element As XElement,
@@ -159,11 +172,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         Private Async Function TestAPI(
                 definition As XElement,
+                host As TestHost,
                 Optional searchSingleFileOnly As Boolean = False,
                 Optional uiVisibleOnly As Boolean = False,
                 Optional options As FindReferencesSearchOptions = Nothing) As Task
-            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, options, outOfProcess:=False)
-            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, options, outOfProcess:=True)
+            Await TestAPI(definition, searchSingleFileOnly, uiVisibleOnly, options, outOfProcess:=host = TestHost.OutOfProcess)
         End Function
 
         Private Async Function TestAPI(definition As XElement,

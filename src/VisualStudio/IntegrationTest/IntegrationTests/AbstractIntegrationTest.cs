@@ -66,6 +66,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
         /// </summary>
         public virtual Task DisposeAsync()
         {
+            if (VisualStudio?.Editor.IsCompletionActive() ?? false)
+            {
+                // Make sure completion isn't visible.
+                // 🐛 Only needed as a workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/801435
+                VisualStudio.SendKeys.Send(VirtualKey.Escape);
+            }
+
             _visualStudioContext.Dispose();
             return Task.CompletedTask;
         }

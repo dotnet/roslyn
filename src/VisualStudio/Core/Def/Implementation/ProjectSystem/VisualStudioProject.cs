@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken> _documentFileWatchingTokens = new Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken>();
 
         /// <summary>
-        /// A file change context used to watch source files and additional files for this project. It's automatically set to watch the user's project
+        /// A file change context used to watch source files, additional files, and analyzer config files for this project. It's automatically set to watch the user's project
         /// directory so we avoid file-by-file watching.
         /// </summary>
         private readonly FileChangeWatcher.IContext _documentFileChangeContext;
@@ -91,6 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly BatchingDocumentCollection _sourceFiles;
         private readonly BatchingDocumentCollection _additionalFiles;
+        private readonly BatchingDocumentCollection _analyzerConfigFiles;
 
         public ProjectId Id { get; }
         public string Language { get; }
@@ -137,6 +138,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 (w, d) => w.OnAdditionalDocumentAdded(d),
                 (w, documentId) => w.OnAdditionalDocumentRemoved(documentId),
                 documentTextLoaderChangedAction: (w, d, loader) => w.OnAdditionalDocumentTextLoaderChanged(d, loader));
+
+            _analyzerConfigFiles = new BatchingDocumentCollection(this,
+                (s, d) => s.ContainsAnalyzerConfigDocument(d),
+                (w, d) => w.OnAnalyzerConfigDocumentAdded(d),
+                (w, documentId) => w.OnAnalyzerConfigDocumentRemoved(documentId),
+                documentTextLoaderChangedAction: (w, d, loader) => w.OnAnalyzerConfigDocumentTextLoaderChanged(d, loader));
         }
 
         private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, Action<Workspace> changeValue)
@@ -349,24 +356,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentFileNamesAdded = ImmutableArray.CreateBuilder<string>();
                 var documentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
                 var additionalDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
+                var analyzerConfigDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
 
-                _workspace.ApplyBatchChangeToProject(Id, solution =>
+                _workspace.ApplyBatchChangeToWorkspace(solution =>
                 {
-                    solution = _sourceFiles.UpdateSolutionForBatch(
-                        solution,
+                    var solutionChanges = new SolutionChangeAccumulator(startingSolution: solution);
+
+                    _sourceFiles.UpdateSolutionForBatch(
+                        solutionChanges,
                         documentFileNamesAdded,
                         documentsToOpen,
-                        (s, documents) => solution.AddDocuments(documents),
+                        (s, documents) => s.AddDocuments(documents),
+                        WorkspaceChangeKind.DocumentAdded,
                         (s, id) =>
                         {
                             // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveDocument directly this is
                             // called, but since we're doing this in one large batch we need to do it now.
                             _workspace.ClearDocumentData(id);
                             return s.RemoveDocument(id);
-                        });
+                        },
+                        WorkspaceChangeKind.DocumentRemoved);
 
-                    solution = _additionalFiles.UpdateSolutionForBatch(
-                        solution,
+                    _additionalFiles.UpdateSolutionForBatch(
+                        solutionChanges,
                         documentFileNamesAdded,
                         additionalDocumentsToOpen,
                         (s, documents) =>
@@ -378,13 +390,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                             return s;
                         },
+                        WorkspaceChangeKind.AdditionalDocumentAdded,
                         (s, id) =>
                         {
                             // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveDocument directly this is
                             // called, but since we're doing this in one large batch we need to do it now.
                             _workspace.ClearDocumentData(id);
                             return s.RemoveAdditionalDocument(id);
-                        });
+                        },
+                        WorkspaceChangeKind.AdditionalDocumentRemoved);
+
+                    _analyzerConfigFiles.UpdateSolutionForBatch(
+                        solutionChanges,
+                        documentFileNamesAdded,
+                        analyzerConfigDocumentsToOpen,
+                        (s, documents) => s.AddAnalyzerConfigDocuments(documents),
+                        WorkspaceChangeKind.AnalyzerConfigDocumentAdded,
+                        (s, id) =>
+                        {
+                            // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveAnalyzerConfigDocument directly this is
+                            // called, but since we're doing this in one large batch we need to do it now.
+                            _workspace.ClearDocumentData(id);
+                            return s.RemoveAnalyzerConfigDocument(id);
+                        },
+                        WorkspaceChangeKind.AnalyzerConfigDocumentRemoved);
 
                     // Metadata reference adding...
                     if (_metadataReferencesAddedInBatch.Count > 0)
@@ -407,8 +436,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             }
                         }
 
-                        solution = solution.AddProjectReferences(Id, projectReferencesCreated)
-                                           .AddMetadataReferences(Id, metadataReferencesCreated);
+                        solutionChanges.UpdateSolutionForProjectAction(
+                            Id,
+                            solutionChanges.Solution.AddProjectReferences(Id, projectReferencesCreated)
+                                                    .AddMetadataReferences(Id, metadataReferencesCreated));
 
                         ClearAndZeroCapacity(_metadataReferencesAddedInBatch);
                     }
@@ -420,7 +451,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                         if (projectReference != null)
                         {
-                            solution = solution.RemoveProjectReference(Id, projectReference);
+                            solutionChanges.UpdateSolutionForProjectAction(
+                                Id,
+                                solutionChanges.Solution.RemoveProjectReference(Id, projectReference));
                         }
                         else
                         {
@@ -430,32 +463,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                             _workspace.FileWatchedReferenceFactory.StopWatchingReference(metadataReference);
 
-                            solution = solution.RemoveMetadataReference(Id, metadataReference);
+                            solutionChanges.UpdateSolutionForProjectAction(
+                                Id,
+                                newSolution: solutionChanges.Solution.RemoveMetadataReference(Id, metadataReference));
                         }
                     }
 
                     ClearAndZeroCapacity(_metadataReferencesRemovedInBatch);
 
                     // Project reference adding...
-                    solution = solution.AddProjectReferences(Id, _projectReferencesAddedInBatch);
+                    solutionChanges.UpdateSolutionForProjectAction(
+                        Id,
+                        newSolution: solutionChanges.Solution.AddProjectReferences(Id, _projectReferencesAddedInBatch));
                     ClearAndZeroCapacity(_projectReferencesAddedInBatch);
 
                     // Project reference removing...
                     foreach (var projectReference in _projectReferencesRemovedInBatch)
                     {
-                        solution = solution.RemoveProjectReference(Id, projectReference);
+                        solutionChanges.UpdateSolutionForProjectAction(
+                            Id,
+                            newSolution: solutionChanges.Solution.RemoveProjectReference(Id, projectReference));
                     }
 
                     ClearAndZeroCapacity(_projectReferencesRemovedInBatch);
 
                     // Analyzer reference adding...
-                    solution = solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch.Select(a => a.GetReference()));
+                    solutionChanges.UpdateSolutionForProjectAction(
+                        Id,
+                        newSolution: solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch.Select(a => a.GetReference())));
                     ClearAndZeroCapacity(_analyzersAddedInBatch);
 
                     // Analyzer reference removing...
                     foreach (var analyzerReference in _analyzersRemovedInBatch)
                     {
-                        solution = solution.RemoveAnalyzerReference(Id, analyzerReference.GetReference());
+                        solutionChanges.UpdateSolutionForProjectAction(
+                            Id,
+                            newSolution: solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference.GetReference()));
                     }
 
                     ClearAndZeroCapacity(_analyzersRemovedInBatch);
@@ -463,12 +506,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // Other property modifications...
                     foreach (var propertyModification in _projectPropertyModificationsInBatch)
                     {
-                        solution = propertyModification(solution);
+                        solutionChanges.UpdateSolutionForProjectAction(
+                            Id,
+                            propertyModification(solutionChanges.Solution));
                     }
 
                     ClearAndZeroCapacity(_projectPropertyModificationsInBatch);
 
-                    return solution;
+                    return solutionChanges;
                 });
 
                 foreach (var (documentId, textContainer) in documentsToOpen)
@@ -482,7 +527,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // Check for those files being opened to start wire-up if necessary
-                _workspace.CheckForOpenDocuments(documentFileNamesAdded.ToImmutable());
+                _workspace.QueueCheckForFilesBeingOpen(documentFileNamesAdded.ToImmutable());
             }
         }
 
@@ -538,6 +583,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void RemoveAdditionalFile(string fullPath)
         {
             _additionalFiles.RemoveFile(fullPath);
+        }
+
+        #endregion
+
+        #region Analyzer Config File Addition/Removal
+
+        public void AddAnalyzerConfigFile(string fullPath)
+        {
+            // TODO: do we need folders for analyzer config files?
+            _analyzerConfigFiles.AddFile(fullPath, SourceCodeKind.Regular, folders: default);
+        }
+
+        public bool ContainsAnalyzerConfigFile(string fullPath)
+        {
+            return _analyzerConfigFiles.ContainsFile(fullPath);
+        }
+
+        public void RemoveAnalyzerConfigFile(string fullPath)
+        {
+            _analyzerConfigFiles.RemoveFile(fullPath);
         }
 
         #endregion
@@ -685,6 +750,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _sourceFiles.ProcessFileChange(fullFilePath);
             _additionalFiles.ProcessFileChange(fullFilePath);
+            _analyzerConfigFiles.ProcessFileChange(fullFilePath);
         }
 
         #region Metadata Reference Addition/Removal
@@ -1078,7 +1144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     else
                     {
                         _project._workspace.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
-                        _project._workspace.CheckForOpenDocuments(ImmutableArray.Create(fullPath));
+                        _project._workspace.QueueCheckForFilesBeingOpen(ImmutableArray.Create(fullPath));
                     }
                 }
 
@@ -1430,20 +1496,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                     else
                     {
-                        _project._workspace.ApplyBatchChangeToProject(_project.Id, solution => solution.WithProjectDocumentsOrder(_project.Id, documentIds.ToImmutable()));
+                        _project._workspace.ApplyBatchChangeToWorkspace(solution =>
+                        {
+                            var solutionChanges = new SolutionChangeAccumulator(solution);
+                            solutionChanges.UpdateSolutionForProjectAction(
+                                _project.Id,
+                                solutionChanges.Solution.WithProjectDocumentsOrder(_project.Id, documentIds.ToImmutable()));
+                            return solutionChanges;
+                        });
                     }
                 }
             }
 
-            internal Solution UpdateSolutionForBatch(
-                Solution solution,
+            internal void UpdateSolutionForBatch(
+                SolutionChangeAccumulator solutionChanges,
                 ImmutableArray<string>.Builder documentFileNamesAdded,
                 List<(DocumentId documentId, SourceTextContainer textContainer)> documentsToOpen,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
-                Func<Solution, DocumentId, Solution> removeDocument)
+                WorkspaceChangeKind addDocumentChangeKind,
+                Func<Solution, DocumentId, Solution> removeDocument,
+                WorkspaceChangeKind removeDocumentChangeKind)
             {
                 // Document adding...
-                solution = addDocuments(solution, _documentsAddedInBatch.ToImmutable());
+                solutionChanges.UpdateSolutionForDocumentAction(
+                    newSolution: addDocuments(solutionChanges.Solution, _documentsAddedInBatch.ToImmutable()),
+                    changeKind: addDocumentChangeKind,
+                    documentIds: _documentsAddedInBatch.Select(d => d.Id));
 
                 foreach (var documentInfo in _documentsAddedInBatch)
                 {
@@ -1460,7 +1538,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Document removing...
                 foreach (var documentId in _documentsRemovedInBatch)
                 {
-                    solution = removeDocument(solution, documentId);
+                    solutionChanges.UpdateSolutionForDocumentAction(removeDocument(solutionChanges.Solution, documentId),
+                        removeDocumentChangeKind,
+                        SpecializedCollections.SingletonEnumerable(documentId));
                 }
 
                 ClearAndZeroCapacity(_documentsRemovedInBatch);
@@ -1468,11 +1548,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Update project's order of documents.
                 if (_orderedDocumentsInBatch != null)
                 {
-                    solution = solution.WithProjectDocumentsOrder(_project.Id, _orderedDocumentsInBatch);
+                    solutionChanges.UpdateSolutionForProjectAction(
+                        _project.Id,
+                        solutionChanges.Solution.WithProjectDocumentsOrder(_project.Id, _orderedDocumentsInBatch));
                     _orderedDocumentsInBatch = null;
                 }
-
-                return solution;
             }
 
             private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, IEnumerable<string> folders)

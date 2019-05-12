@@ -4,12 +4,22 @@
     <body>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
-        <target state="new">Add member name</target>
+        <target state="translated">新增成員名稱</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_optional_parameter_to_constructor">
+        <source>Add optional parameter to constructor</source>
+        <target state="new">Add optional parameter to constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
         <target state="translated">將參數新增至 '{0}' (以及覆寫/執行)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_constructor">
+        <source>Add parameter to constructor</source>
+        <target state="new">Add parameter to constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -29,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Add_tuple_element_name_0">
         <source>Add tuple element name '{0}'</source>
-        <target state="new">Add tuple element name '{0}'</target>
+        <target state="translated">新增元組元素名稱 ‘{0}’</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
@@ -39,22 +49,32 @@
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
         <source>Align wrapped arguments</source>
-        <target state="new">Align wrapped arguments</target>
+        <target state="translated">對齊包裝的引數</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_parameters">
         <source>Align wrapped parameters</source>
-        <target state="new">Align wrapped parameters</target>
+        <target state="translated">對齊包裝的參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names">
+        <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="new">Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
+        <source>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="new">Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
-        <target state="new">Change namespace to '{0}'</target>
+        <target state="translated">將命名空間變更為 ‘{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_global_namespace">
         <source>Change to global namespace</source>
-        <target state="new">Change to global namespace</target>
+        <target state="translated">變更為全域命名空間</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Quality">
@@ -74,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_class">
         <source>Convert to class</source>
-        <target state="translated">Convert to class</target>
+        <target state="translated">轉換為類別</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq_call_form">
@@ -84,22 +104,22 @@
       </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
-        <target state="translated">Convert to struct</target>
+        <target state="translated">轉換為結構</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="translated">Convert to tuple</target>
+        <target state="translated">轉換為元組</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
         <source>Expression value is never used</source>
-        <target state="new">Expression value is never used</target>
+        <target state="translated">永遠不會使用運算式值</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
-        <target state="new">Failed to analyze data-flow for: {0}</target>
+        <target state="translated">無法分析下列項目的資料流程: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_formatting">
@@ -119,22 +139,57 @@
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
-        <target state="new">Indent all arguments</target>
+        <target state="translated">將所有引數縮排</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_parameters">
         <source>Indent all parameters</source>
-        <target state="new">Indent all parameters</target>
+        <target state="translated">將所有餐數縮排</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_wrapped_arguments">
         <source>Indent wrapped arguments</source>
-        <target state="new">Indent wrapped arguments</target>
+        <target state="translated">將包裝的引數縮排</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_wrapped_parameters">
         <source>Indent wrapped parameters</source>
-        <target state="new">Indent wrapped parameters</target>
+        <target state="translated">將換行參數縮排</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexing_can_be_simplified">
+        <source>Indexing can be simplified</source>
+        <target state="translated">可簡化索引</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_constant">
+        <source>Introduce constant</source>
+        <target state="translated">引進常數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_field">
+        <source>Introduce field</source>
+        <target state="translated">引進欄位</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_local">
+        <source>Introduce local</source>
+        <target state="translated">引進區域函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_query_variable">
+        <source>Introduce query variable</source>
+        <target state="translated">引進查詢變數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_readonly_fields_writable">
+        <source>Make readonly fields writable</source>
+        <target state="new">Make readonly fields writable</target>
+        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Invert_conditional">
+        <source>Invert conditional</source>
+        <target state="translated">反轉條件</target>
         <note />
       </trans-unit>
       <trans-unit id="Local_function_can_be_made_static">
@@ -167,49 +222,24 @@
         <target state="new">Merge with previous '{0}' statement</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_contents_to_namespace">
+        <source>Move contents to namespace...</source>
+        <target state="new">Move contents to namespace...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_file_to_0">
         <source>Move file to '{0}'</source>
-        <target state="new">Move file to '{0}'</target>
+        <target state="translated">將檔案移至 ‘{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_project_root_folder">
         <source>Move file to project root folder</source>
-        <target state="new">Move file to project root folder</target>
+        <target state="translated">將檔案移到專案根資料夾</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexing_can_be_simplified">
-        <source>Indexing can be simplified</source>
-        <target state="new">Indexing can be simplified</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_constant">
-        <source>Introduce constant</source>
-        <target state="new">Introduce constant</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_field">
-        <source>Introduce field</source>
-        <target state="new">Introduce field</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_local">
-        <source>Introduce local</source>
-        <target state="new">Introduce local</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_query_variable">
-        <source>Introduce query variable</source>
-        <target state="new">Introduce query variable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_readonly_fields_writable">
-        <source>Make readonly fields writable</source>
-        <target state="new">Make readonly fields writable</target>
-        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Invert_conditional">
-        <source>Invert conditional</source>
-        <target state="new">Invert conditional</target>
+      <trans-unit id="Move_to_namespace">
+        <source>Move to namespace...</source>
+        <target state="new">Move to namespace...</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -229,22 +259,27 @@
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
         <source>Private method '{0}' can be removed as it is never invoked.</source>
-        <target state="new">Private method '{0}' can be removed as it is never invoked.</target>
+        <target state="translated">因為永遠不會叫用私用方法 ‘{0}’，所以可予以移除。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
+        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
+        <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
         <source>Pull '{0}' up</source>
-        <target state="new">Pull '{0}' up</target>
+        <target state="translated">向上提取 ‘{0}’</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up_to_1">
         <source>Pull '{0}' up to '{1}'</source>
-        <target state="new">Pull '{0}' up to '{1}'</target>
+        <target state="translated">提取 '{0}' 最多 '{1}’</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
-        <target state="new">Pull members up to base type...</target>
+        <target state="translated">將成員提取直到基底類型...</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
@@ -254,7 +289,7 @@
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
-        <target state="new">Remove redundant assignment</target>
+        <target state="translated">移除多餘的指派</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -269,27 +304,27 @@
       </trans-unit>
       <trans-unit id="Remove_unused_parameter">
         <source>Remove unused parameter</source>
-        <target state="new">Remove unused parameter</target>
+        <target state="translated">移除未使用的參數</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter_0">
         <source>Remove unused parameter '{0}'</source>
-        <target state="new">Remove unused parameter '{0}'</target>
+        <target state="translated">移除未使用的參數 ‘{0}’</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API">
         <source>Remove unused parameter '{0}' if it is not part of a shipped public API</source>
-        <target state="new">Remove unused parameter '{0}' if it is not part of a shipped public API</target>
+        <target state="translated">如果未使用的參數 ‘{0}’ 不屬於已發行的公用 API，請予以移除</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
         <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="new">Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</target>
+        <target state="translated">如果未使用的參數 '{0}' 不屬於已發行的公用 API，請予以移除，永遠不會使用其初始值</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
         <source>Remove unused parameter '{0}', its initial value is never used</source>
-        <target state="new">Remove unused parameter '{0}', its initial value is never used</target>
+        <target state="translated">移除未使用的參數 '{0}'，永遠不會使用其初始值</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_private_members">
@@ -299,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
-        <target state="new">Replace '{0}' with '{1}' </target>
+        <target state="translated">將 ‘{0}’ 取代為 ‘{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -312,39 +347,54 @@
         <target state="new">Split into nested '{0}' statements</target>
         <note />
       </trans-unit>
+      <trans-unit id="Target_type_matches">
+        <source>Target type matches</source>
+        <target state="new">Target type matches</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_assignment_of_a_value">
+        <source>Unnecessary assignment of a value</source>
+        <target state="new">Unnecessary assignment of a value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
+        <source>Unnecessary assignment of a value to '{0}'</source>
+        <target state="new">Unnecessary assignment of a value to '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
-        <target state="new">Unwrap all arguments</target>
+        <target state="translated">將所有引數取消換行</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
-        <target state="new">Unwrap all parameters</target>
+        <target state="translated">將所有參數取消換行</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_arguments">
         <source>Unwrap and indent all arguments</source>
-        <target state="new">Unwrap and indent all arguments</target>
+        <target state="translated">將所有引數取消換行並縮排</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
         <source>Unwrap and indent all parameters</source>
-        <target state="new">Unwrap and indent all parameters</target>
+        <target state="translated">將所有參數取消換行並縮排</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_argument_list">
         <source>Unwrap argument list</source>
-        <target state="new">Unwrap argument list</target>
+        <target state="translated">將引數清單取消換行</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
-        <target state="new">Unwrap expression</target>
+        <target state="translated">將運算式取消換行</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
         <source>Unwrap parameter list</source>
-        <target state="new">Unwrap parameter list</target>
+        <target state="translated">將參數清單取消換行</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -354,22 +404,22 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
         <source>Use block body for local functions</source>
-        <target state="new">Use block body for local functions</target>
+        <target state="translated">為區域函式使用區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_compound_assignment">
         <source>Use compound assignment</source>
-        <target state="new">Use compound assignment</target>
+        <target state="translated">使用複合指派</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discard_underscore">
         <source>Use discard '_'</source>
-        <target state="new">Use discard '_'</target>
+        <target state="translated">使用捨棄 '_’</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discarded_local">
         <source>Use discarded local</source>
-        <target state="new">Use discarded local</target>
+        <target state="translated">使用捨棄的區域函式</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
@@ -379,17 +429,22 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
         <source>Use expression body for local functions</source>
-        <target state="new">Use expression body for local functions</target>
+        <target state="translated">為區域函式使用運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_index_operator">
         <source>Use index operator</source>
-        <target state="new">Use index operator</target>
+        <target state="translated">使用索引運算子</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">使用插入的逐字字串</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_range_operator">
+        <source>Use range operator</source>
+        <target state="translated">使用範圍運算子</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
@@ -399,22 +454,7 @@
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
-        <target state="new">Warning: Changing namespace may produce invalid code and change code meaning.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_range_operator">
-        <source>Use range operator</source>
-        <target state="new">Use range operator</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_assigned_to_0_is_never_used">
-        <source>Value assigned to '{0}' is never used</source>
-        <target state="new">Value assigned to '{0}' is never used</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_assigned_to_symbol_is_never_used">
-        <source>Value assigned to symbol is never used</source>
-        <target state="new">Value assigned to symbol is never used</target>
+        <target state="translated">警告: 變更命名空間可能會產生無效的程式碼及變更程式碼意義。</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
@@ -424,37 +464,37 @@
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
-        <target state="new">Wrap every argument</target>
+        <target state="translated">包裝每個引數</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_parameter">
         <source>Wrap every parameter</source>
-        <target state="new">Wrap every parameter</target>
+        <target state="translated">將每個參數換行</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_expression">
         <source>Wrap expression</source>
-        <target state="new">Wrap expression</target>
+        <target state="translated">換行運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
-        <target state="new">Wrap long argument list</target>
+        <target state="translated">包裝長引數清單</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
         <source>Wrap long parameter list</source>
-        <target state="new">Wrap long parameter list</target>
+        <target state="translated">將長參數清單換行</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
-        <target state="new">Wrapping</target>
+        <target state="translated">換行</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
-        <target state="new">{0} can be simplified</target>
+        <target state="translated">可簡化 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -670,36 +710,6 @@
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
         <target state="translated">實作介面</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Loading_context_from_0">
-        <source>Loading context from '{0}'.</source>
-        <target state="translated">正在載入 '{0}' 的內容。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Sharphelp_for_more_information">
-        <source>Type "#help" for more information.</source>
-        <target state="translated">如需詳細資訊，請輸入 "#help"。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_file_not_found_colon_0">
-        <source>Specified file not found: {0}</source>
-        <target state="translated">找不到指定的檔案: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_file_not_found">
-        <source>Specified file not found.</source>
-        <target state="translated">找不到指定的檔案</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Searched_in_directory_colon">
-        <source>Searched in directory:</source>
-        <target state="translated">在下列目錄中搜尋:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Searched_in_directories_colon">
-        <source>Searched in directories:</source>
-        <target state="translated">在下列目錄中搜尋:</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">
@@ -1232,54 +1242,9 @@
         <target state="translated">產生方法 '{1}.{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
-        <source>Failed to create a remote process for interactive code execution.</source>
-        <target state="translated">無法為互動式程式碼執行，建立遠端處理序。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_initialize_remote_interactive_process">
-        <source>Failed to initialize remote interactive process.</source>
-        <target state="translated">無法初始化遠端互動式處理序。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
-        <source>Attempt to connect to process #{0} failed, retrying ...</source>
-        <target state="translated">嘗試連接到處理序 #{0} 失敗，正在重試...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
-        <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
-        <target state="translated">無法啟動 '{0}' 處理序 (結束代碼: {1})，輸出如下: </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Hosting_process_exited_with_exit_code_0">
-        <source>Hosting process exited with exit code {0}.</source>
-        <target state="translated">裝載處理序已結束，結束代碼為 {0}。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Host_not_initialized">
-        <source>Interactive Host not initialized.</source>
-        <target state="translated">未初始化互動式主機。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_resolve_reference_0">
-        <source>Cannot resolve reference '{0}'.</source>
-        <target state="translated">無法解析參考 '{0}'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
         <source>Requested assembly already loaded from '{0}'.</source>
         <target state="translated">已從 '{0}' 載入所要求的組件。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="plus_additional_0_1">
-        <source> + additional {0} {1}</source>
-        <target state="translated"> + 額外的 {0} {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unable_to_create_hosting_process">
-        <source>Unable to create hosting process.</source>
-        <target state="translated">無法建立裝載處理序。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">
@@ -2477,22 +2442,22 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
         <source>updating usages in containing member</source>
-        <target state="translated">updating usages in containing member</target>
+        <target state="translated">正在更新包含成員中的使用方式</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_project">
         <source>updating usages in containing project</source>
-        <target state="translated">updating usages in containing project</target>
+        <target state="translated">正在更新包含專案中的使用方式</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_type">
         <source>updating usages in containing type</source>
-        <target state="translated">updating usages in containing type</target>
+        <target state="translated">正在更新包含類型中的使用方式</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
-        <target state="translated">updating usages in dependent projects</target>
+        <target state="translated">正在更新相依專案中的使用方式</target>
         <note />
       </trans-unit>
       <trans-unit id="using_statement_can_be_simplified">

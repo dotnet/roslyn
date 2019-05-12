@@ -262,8 +262,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // representing System.Xml.XmlReader will say it implements IDisposable, but
             // the XmlReader.Dispose() method will not be an explicit implementation of
             // IDisposable.Dispose()
-            if (!semanticFacts.SupportsImplicitInterfaceImplementation &&
-                typeSymbol.Locations.Any(location => location.IsInSource))
+            if ((!semanticFacts.SupportsImplicitInterfaceImplementation &&
+                typeSymbol.Locations.Any(location => location.IsInSource)) ||
+                typeSymbol.TypeKind == TypeKind.Interface)
             {
                 return explicitMatches.FirstOrDefault();
             }
@@ -341,13 +342,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type.GetBaseTypesAndThis().Contains(t => SymbolEquivalenceComparer.Instance.Equals(t, baseType));
         }
 
-        // Determine if "type" inherits from "baseType", ignoring constructed types, and dealing
+        // Determine if "type" inherits from or implements "baseType", ignoring constructed types, and dealing
         // only with original types.
-        public static bool InheritsFromOrEqualsIgnoringConstruction(
+        public static bool InheritsFromOrImplementsOrEqualsIgnoringConstruction(
             this ITypeSymbol type, ITypeSymbol baseType)
         {
             var originalBaseType = baseType.OriginalDefinition;
-            return type.GetBaseTypesAndThis().Contains(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalBaseType));
+            type = type.OriginalDefinition;
+
+            if (SymbolEquivalenceComparer.Instance.Equals(type, originalBaseType))
+            {
+                return true;
+            }
+
+            IEnumerable<ITypeSymbol> baseTypes = (baseType.TypeKind == TypeKind.Interface) ? type.AllInterfaces : type.GetBaseTypes();
+            return baseTypes.Contains(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalBaseType));
         }
 
         // Determine if "type" inherits from "baseType", ignoring constructed types, and dealing
@@ -378,12 +387,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ITypeSymbol type, ITypeSymbol interfaceType)
         {
             var originalInterfaceType = interfaceType.OriginalDefinition;
-            if (type is INamedTypeSymbol && type.TypeKind == TypeKind.Interface)
-            {
-                // Interfaces don't implement other interfaces. They extend them.
-                return false;
-            }
-
             return type.AllInterfaces.Any(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalInterfaceType));
         }
 

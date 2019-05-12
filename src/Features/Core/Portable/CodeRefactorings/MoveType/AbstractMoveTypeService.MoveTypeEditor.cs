@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// 3. Add this forked document to the solution.
             /// 4. Finally, update the original document and remove the type from it.
             /// </remarks>
-            internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
+            public override async Task<Solution> GetModifiedSolutionAsync()
             {
                 var solution = SemanticDocument.Document.Project.Solution;
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var solutionWithBothDocumentsUpdated = await RemoveTypeFromSourceDocumentAsync(
                       sourceDocument, documentWithMovedType).ConfigureAwait(false);
 
-                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(solutionWithBothDocumentsUpdated));
+                return solutionWithBothDocumentsUpdated;
             }
 
             /// <summary>

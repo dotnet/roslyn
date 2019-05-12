@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, indexCreation);
 
             // default
-            BoundExpression alternative = new BoundDefaultExpression(node.Syntax, constantValueOpt: null, node.Type);
+            BoundExpression alternative = new BoundDefaultExpression(node.Syntax, node.Type);
 
             // operand.HasValue ? new Nullable(new Index(operand, fromEnd: true)) : default
             BoundExpression conditionalExpression = RewriteConditionalOperator(

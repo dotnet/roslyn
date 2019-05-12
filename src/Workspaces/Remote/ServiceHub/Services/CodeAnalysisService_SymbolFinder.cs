@@ -172,12 +172,10 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             public Task ReportProgressAsync(int current, int maximum)
-                => _service.Rpc.InvokeWithCancellationAsync(
-                    nameof(ReportProgressAsync), new object[] { current, maximum }, _cancellationToken);
+                => _service.InvokeAsync(nameof(ReportProgressAsync), new object[] { current, maximum }, _cancellationToken);
 
             public Task OnReferenceFoundAsync(Document document, TextSpan span)
-                => _service.Rpc.InvokeWithCancellationAsync(
-                    nameof(OnReferenceFoundAsync), new object[] { document.Id, span }, _cancellationToken);
+                => _service.InvokeAsync(nameof(OnReferenceFoundAsync), new object[] { document.Id, span }, _cancellationToken);
         }
 
         private class FindReferencesProgressCallback : IStreamingFindReferencesProgress
@@ -193,39 +191,29 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             public Task OnStartedAsync()
-                => _service.Rpc.InvokeWithCancellationAsync(nameof(OnStartedAsync), Array.Empty<object>(), _cancellationToken);
+                => _service.InvokeAsync(nameof(OnStartedAsync), _cancellationToken);
 
             public Task OnCompletedAsync()
-                => _service.Rpc.InvokeWithCancellationAsync(nameof(OnCompletedAsync), Array.Empty<object>(), _cancellationToken);
+                => _service.InvokeAsync(nameof(OnCompletedAsync), _cancellationToken);
 
             public Task ReportProgressAsync(int current, int maximum)
-                => _service.Rpc.InvokeWithCancellationAsync(
-                    nameof(ReportProgressAsync), new object[] { current, maximum }, _cancellationToken);
+                => _service.InvokeAsync(nameof(ReportProgressAsync), new object[] { current, maximum }, _cancellationToken);
 
             public Task OnFindInDocumentStartedAsync(Document document)
-                => _service.Rpc.InvokeWithCancellationAsync(
-                    nameof(OnFindInDocumentStartedAsync), new object[] { document.Id }, _cancellationToken);
+                => _service.InvokeAsync(nameof(OnFindInDocumentStartedAsync), new object[] { document.Id }, _cancellationToken);
 
             public Task OnFindInDocumentCompletedAsync(Document document)
-                => _service.Rpc.InvokeWithCancellationAsync(
-                    nameof(OnFindInDocumentCompletedAsync), new object[] { document.Id }, _cancellationToken);
+                => _service.InvokeAsync(nameof(OnFindInDocumentCompletedAsync), new object[] { document.Id }, _cancellationToken);
 
             public Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
-                => _service.Rpc.InvokeWithCancellationAsync(
-                    nameof(OnDefinitionFoundAsync),
-                    new object[] { SerializableSymbolAndProjectId.Dehydrate(definition) },
-                    _cancellationToken);
+                => _service.InvokeAsync(nameof(OnDefinitionFoundAsync), new object[] { SerializableSymbolAndProjectId.Dehydrate(definition) }, _cancellationToken);
 
             public Task OnReferenceFoundAsync(
                 SymbolAndProjectId definition, ReferenceLocation reference)
             {
-                return _service.Rpc.InvokeWithCancellationAsync(
-                    nameof(OnReferenceFoundAsync),
-                    new object[]
-                    {
-                        SerializableSymbolAndProjectId.Dehydrate(definition),
-                        SerializableReferenceLocation.Dehydrate(reference),
-                    }, _cancellationToken);
+                return _service.InvokeAsync(nameof(OnReferenceFoundAsync),
+                    new object[] { SerializableSymbolAndProjectId.Dehydrate(definition), SerializableReferenceLocation.Dehydrate(reference) },
+                    _cancellationToken);
             }
         }
     }

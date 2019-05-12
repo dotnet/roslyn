@@ -556,9 +556,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      resorting to .Equals
 
             // the condition is expected to be folded when inlining "someSymbol == null"
-            if (((object)right == null))
+            if (right is null)
             {
-                return (object)left == (object)null;
+                return left is null;
             }
 
             // this part is expected to disappear when inlining "someSymbol == null"
@@ -581,9 +581,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      since that sometimes results in a worse code
 
             // the condition is expected to be folded when inlining "someSymbol != null"
-            if (((object)right == null))
+            if (right is null)
             {
-                return (object)left != (object)null;
+                return left is object;
             }
 
             // this part is expected to disappear when inlining "someSymbol != null"
@@ -935,15 +935,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MergeUseSiteDiagnostics(ref result, info);
         }
 
-        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeSymbolWithAnnotations type)
+        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, type.TypeSymbol) ||
+            return DeriveUseSiteDiagnosticFromType(ref result, type.Type) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers);
         }
 
         internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo result, ParameterSymbol param)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, param.Type) ||
+            return DeriveUseSiteDiagnosticFromType(ref result, param.TypeWithAnnotations) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers);
         }
 
@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeSymbolWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
+        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
             foreach (var t in types)
             {
@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
+                if (parameter.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.RefCustomModifiers, owner, ref checkedTypes))
                 {
                     return true;

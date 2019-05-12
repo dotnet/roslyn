@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             // Would like to use CWT.AddOrUpdate. But that is not available on the 
-            // version of .Net that we're using.  So we need to take lock as we're
+            // version of .NET that we're using.  So we need to take lock as we're
             // making multiple mutations.
             lock (s_lastProjectSearchCache)
             {

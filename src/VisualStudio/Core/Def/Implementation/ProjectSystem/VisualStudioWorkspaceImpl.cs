@@ -131,12 +131,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _openFileTrackerOpt = openFileTracker;
             }
 
-            openFileTracker.CheckForOpenDocumentsByEnumeratingTheRunningDocumentTable();
+            openFileTracker.ProcessQueuedWorkOnUIThread();
         }
 
-        public void CheckForOpenDocuments(ImmutableArray<string> newFileNames)
+        public void QueueCheckForFilesBeingOpen(ImmutableArray<string> newFileNames)
         {
-            _openFileTrackerOpt?.CheckForFilesBeingOpen(newFileNames);
+            _openFileTrackerOpt?.QueueCheckForFilesBeingOpen(newFileNames);
+        }
+
+        public void ProcessQueuedWorkOnUIThread()
+        {
+            _openFileTrackerOpt?.ProcessQueuedWorkOnUIThread();
         }
 
         internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy hierarchy, Guid guid, string projectSystemName)
@@ -383,7 +388,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (this.TryGetHierarchy(project.Id, out var hierarchy))
             {
-                // Currently renaming files in CPS projects (i.e. .Net Core) doesn't work proprey.
+                // Currently renaming files in CPS projects (i.e. .NET Core) doesn't work proprey.
                 // This is because the remove/add of the documents in CPS is not synchronous
                 // (despite the DTE interfaces being synchronous).  So Roslyn calls the methods
                 // expecting the changes to happen immediately.  Because they are deferred in CPS
@@ -427,6 +432,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.ChangeAdditionalDocument:
                 case ApplyChangesKind.ChangeCompilationOptions:
                 case ApplyChangesKind.ChangeParseOptions:
+                case ApplyChangesKind.ChangeDocumentInfo:
                     return true;
 
                 default:
@@ -1081,6 +1087,84 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        protected override void ApplyDocumentInfoChanged(DocumentId documentId, DocumentInfo updatedInfo)
+        {
+            var document = CurrentSolution.GetDocument(documentId);
+
+            FailIfDocumentInfoChangesNotSupported(document, updatedInfo);
+
+            if (document.Name != updatedInfo.Name)
+            {
+                GetProjectData(updatedInfo.Id.ProjectId, out var _, out var dteProject);
+
+                var projectItemForDocument = dteProject.FindItemByPath(document.FilePath, StringComparer.OrdinalIgnoreCase);
+
+                if (projectItemForDocument == null)
+                {
+                    // TODO(https://github.com/dotnet/roslyn/issues/34276):
+                    Debug.Assert(false, "Attempting to change the name of a file in a Shared Project");
+                    return;
+                }
+
+                // Must save the document first for things like Breakpoints to be preserved.
+                projectItemForDocument.Save();
+
+                var uniqueName = projectItemForDocument.Collection.GetUniqueName(
+                    Path.GetFileNameWithoutExtension(updatedInfo.Name),
+                    Path.GetExtension(updatedInfo.Name));
+
+                // Get the current undoManager before any file renames/documentId changes happen
+                var undoManager = TryGetUndoManager();
+
+                // By setting this property, Visual Studio will perform the file rename, which 
+                // will cause the workspace's current solution to update and will fire the 
+                // necessary workspace changed events.
+                projectItemForDocument.Name = uniqueName;
+
+                if (projectItemForDocument.TryGetFullPath(out var newPath))
+                {
+                    undoManager?.Add(new RenameDocumentUndoUnit(this, uniqueName, document.Name, newPath));
+                }
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="VisualStudioWorkspace"/> currently supports only a subset of <see cref="DocumentInfo"/> 
+        /// changes.
+        /// </summary>
+        private void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
+        {
+            if (document.SourceCodeKind != updatedInfo.SourceCodeKind)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.SourceCodeKind)}.");
+            }
+
+            if (document.FilePath != updatedInfo.FilePath)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.FilePath)}.");
+            }
+
+            if (document.Id != updatedInfo.Id)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.Id)}.");
+            }
+
+            if (document.Folders != updatedInfo.Folders)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.Folders)}.");
+            }
+
+            if (document.State.Attributes.IsGenerated != updatedInfo.IsGenerated)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.State.Attributes.IsGenerated)} state.");
+            }
+        }
+
         private string GetPreferredExtension(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
             // No extension was provided.  Pick a good one based on the type of host project.
@@ -1352,22 +1436,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <remarks>This is needed to synchronize with <see cref="ApplyChangeToWorkspace(Action{Workspace})" /> to avoid any races. This
         /// method could be moved down to the core Workspace layer and then could use the synchronization lock there.</remarks>
-        /// <param name="projectId">The <see cref="ProjectId" /> to change.</param>
-        /// <param name="mutation">A function that, given the old <see cref="CodeAnalysis.Project"/> will produce a new one.</param>
-        public void ApplyBatchChangeToProject(ProjectId projectId, Func<CodeAnalysis.Solution, CodeAnalysis.Solution> mutation)
+        public void ApplyBatchChangeToWorkspace(Func<CodeAnalysis.Solution, SolutionChangeAccumulator> mutation)
         {
             lock (_gate)
             {
                 var oldSolution = this.CurrentSolution;
-                var newSolution = mutation(oldSolution);
+                var solutionChangeAccumulator = mutation(oldSolution);
 
-                if (oldSolution == newSolution)
+                if (!solutionChangeAccumulator.HasChange)
                 {
                     return;
                 }
 
-                SetCurrentSolution(newSolution);
-                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+                SetCurrentSolution(solutionChangeAccumulator.Solution);
+                RaiseWorkspaceChangedEventAsync(
+                    solutionChangeAccumulator.WorkspaceChangeKind,
+                    oldSolution,
+                    solutionChangeAccumulator.Solution,
+                    solutionChangeAccumulator.WorkspaceChangeProjectId,
+                    solutionChangeAccumulator.WorkspaceChangeDocumentId);
             }
         }
 
@@ -1455,7 +1542,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     // We have more than one project outputting to the same path. This shouldn't happen but we'll convert back
                     // because now we don't know which project to reference.
-                    ConvertProjectReferencesToMetadataReferences_NoLock(projectId, outputPath);
+                    foreach (var otherProjectId in projectsForOutputPath)
+                    {
+                        // We know that since we're adding a path to projectId and we're here that we couldn't have already
+                        // had a converted reference to us, instead we need to convert things that are pointing to the project
+                        // we're colliding with
+                        if (otherProjectId != projectId)
+                        {
+                            ConvertProjectReferencesToMetadataReferences_NoLock(otherProjectId, outputPath);
+                        }
+                    }
                 }
             }
         }
@@ -1665,11 +1761,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (_projectsByOutputPath.TryGetValue(outputPath, out var remainingProjectsForOutputPath))
                 {
-                    if (remainingProjectsForOutputPath.Distinct().Count() == 1)
+                    var distinctRemainingProjects = remainingProjectsForOutputPath.Distinct();
+                    if (distinctRemainingProjects.Count() == 1)
                     {
                         // We had more than one project outputting to the same path. Now we're back down to one
                         // so we can reference that one again
-                        ConvertMetadataReferencesToProjectReferences_NoLock(_projectsByOutputPath[outputPath].Single(), outputPath);
+                        ConvertMetadataReferencesToProjectReferences_NoLock(distinctRemainingProjects.Single(), outputPath);
                     }
                 }
                 else

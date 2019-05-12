@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // otherwise construct type using the field types
-            var typeArguments = typeDescr.Fields.SelectAsArray(f => f.Type.TypeSymbol);
+            var typeArguments = typeDescr.Fields.SelectAsArray(f => f.Type);
             return template.Construct(typeArguments);
         }
 

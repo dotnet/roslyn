@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
-        <target state="translated">Convert to method</target>
+        <target state="translated">轉換為方法</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -149,7 +149,7 @@
       </trans-unit>
       <trans-unit id="member_name">
         <source>&lt;member name&gt; = </source>
-        <target state="translated">&lt;member name&gt; =</target>
+        <target state="translated">&lt;成員名稱&gt; =</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
@@ -654,7 +654,7 @@
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;class name&gt;</target>
+        <target state="translated">&lt;類別名稱&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="interface_name">
@@ -694,7 +694,7 @@
       </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
-        <target state="translated">&lt;Name&gt;</target>
+        <target state="translated">&lt;名稱&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_member_declaration">
@@ -744,17 +744,17 @@
       </trans-unit>
       <trans-unit id="Add_Obsolete">
         <source>Add [Obsolete]</source>
-        <target state="new">Add [Obsolete]</target>
+        <target state="translated">新增 [Obsolete]</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_0">
         <source>Use '{0}'</source>
-        <target state="new">Use '{0}'</target>
+        <target state="translated">使用 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
-        <target state="new">Introduce 'using' statement</target>
+        <target state="translated">引進 'using’ 陳述式</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>

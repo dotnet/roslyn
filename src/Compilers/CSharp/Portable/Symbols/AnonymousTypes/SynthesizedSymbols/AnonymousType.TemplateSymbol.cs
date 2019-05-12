@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     typeParametersBuilder.Add(typeParameter);
 
                     // Add a property
-                    AnonymousTypePropertySymbol property = new AnonymousTypePropertySymbol(this, field, TypeSymbolWithAnnotations.Create(typeParameter), fieldIndex);
+                    AnonymousTypePropertySymbol property = new AnonymousTypePropertySymbol(this, field, TypeWithAnnotations.Create(typeParameter), fieldIndex);
                     propertiesBuilder.Add(property);
 
                     // Property related symbols
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-            internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+            internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
             {
                 get { return GetTypeParametersAsTypeArguments(); }
             }
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override bool IsReadOnly
+            public sealed override bool IsReadOnly
             {
                 get { return false; }
             }

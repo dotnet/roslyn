@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -10,37 +10,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     /// </summary>
     public class PickMembersDialog_OutOfProc : OutOfProcComponent
     {
-        private const string PickMembersDialogID = "PickMembersDialog";
+        private readonly PickMembersDialog_InProc _inProc;
 
         public PickMembersDialog_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
+            _inProc = CreateInProcComponent<PickMembersDialog_InProc>(visualStudioInstance);
         }
 
         public bool CloseWindow()
-        {
-            var dialog = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), PickMembersDialogID, isOpen: true, wait: false);
-            if (dialog == null)
-            {
-                return false;
-            }
-
-            ClickCancel();
-            return true;
-        }
+            => _inProc.CloseWindow();
 
         /// <summary>
         /// Clicks the "Cancel" button and waits for the Pick Members operation to complete.
         /// </summary>
         public void ClickCancel()
         {
-            DialogHelpers.PressButton(GetMainWindowHWnd(), PickMembersDialogID, "CancelButton");
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
-        }
-
-        private IntPtr GetMainWindowHWnd()
-        {
-            return VisualStudioInstance.Shell.GetHWnd();
+            _inProc.ClickCancel();
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
         }
     }
 }

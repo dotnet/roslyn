@@ -20,6 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.InsertMissingCast
             End Get
         End Property
 
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            ' Fix All is not supported by this code fix
+            ' https://github.com/dotnet/roslyn/issues/34469
+            Return Nothing
+        End Function
+
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim document = context.Document
             Dim span = context.Span

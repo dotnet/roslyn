@@ -923,6 +923,31 @@ i", options);
             ScriptingTestHelpers.EvaluateScriptWithOutput(script, "Hello World!");
         }
 
+        [Fact]
+        public void CreateScriptWithFeatureThatIsNotSupportedInTheSelectedLanguageVersion()
+        {
+            var script = CSharpScript.Create(@"string x = default;", ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7));
+            var compilation = script.GetCompilation();
+
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").
+                    WithArguments("default literal", "7.1").
+                    WithLocation(1, 12)
+            );
+        }
+
+        [Fact]
+        public void CreateScriptWithNullableContextWithCSharp8()
+        {
+            var script = CSharpScript.Create(@"#nullable enable
+                string x = null;", ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+            var compilation = script.GetCompilation();
+
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(2, 28)
+            );
+        }
+
         private class StreamOffsetResolver : SourceReferenceResolver
         {
             public override bool Equals(object other) => ReferenceEquals(this, other);

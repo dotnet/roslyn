@@ -271,10 +271,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             }
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [WorkItem(33505, "https://github.com/dotnet/roslyn/pull/33505")]
-        public void RuleSet_FileChangingOnDiskRefreshes()
+        public void RuleSet_FileChangingOnDiskRefreshes(bool useCpsProject)
         {
             string ruleSetSource = @"<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""Ruleset1"" Description=""Test""  ToolsVersion=""12.0"">
@@ -286,8 +287,16 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             {
                 File.WriteAllText(ruleSetFile.Path, ruleSetSource);
 
-                var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
-                ((IAnalyzerHost)project).SetRuleSetFile(ruleSetFile.Path);
+                if (useCpsProject)
+                {
+                    CSharpHelpers.CreateCSharpCPSProject(environment, "Test", binOutputPath: null, $"/ruleset:\"{ruleSetFile.Path}\"");
+                }
+                else
+                {
+                    // Test legacy project handling
+                    var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
+                    ((IAnalyzerHost)project).SetRuleSetFile(ruleSetFile.Path);
+                }
 
                 var options = (CSharpCompilationOptions)environment.GetUpdatedCompilationOptionOfSingleProject();
 
@@ -300,7 +309,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
                 var listenerProvider = environment.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
                 var waiter = listenerProvider.GetWaiter(FeatureAttribute.RuleSetEditor);
-                waiter.CreateWaitTask().JoinUsingDispatcher(CancellationToken.None);
+                waiter.CreateExpeditedWaitTask().JoinUsingDispatcher(CancellationToken.None);
 
                 options = (CSharpCompilationOptions)environment.GetUpdatedCompilationOptionOfSingleProject();
                 Assert.Equal(expected: ReportDiagnostic.Warn, actual: options.GeneralDiagnosticOption);

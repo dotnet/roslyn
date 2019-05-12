@@ -4,27 +4,27 @@
     <body>
       <trans-unit id="Add_Await">
         <source>Add Await</source>
-        <target state="new">Add Await</target>
+        <target state="translated">Ajouter Await</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
         <source>Add Await and 'ConfigureAwait(false)'</source>
-        <target state="new">Add Await and 'ConfigureAwait(false)'</target>
+        <target state="translated">Ajouter Await et 'ConfigureAwait(false)'</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Obsolete">
         <source>Add &lt;Obsolete&gt;</source>
-        <target state="new">Add &lt;Obsolete&gt;</target>
+        <target state="translated">Ajouter &lt;Obsolete&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
-        <target state="new">Add missing Imports</target>
+        <target state="translated">Ajouter les importations manquantes</target>
         <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
-        <target state="new">Add 'Shadows'</target>
+        <target state="translated">Ajouter 'Shadows'</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="Introduce_Using_statement">
         <source>Introduce 'Using' statement</source>
-        <target state="new">Introduce 'Using' statement</target>
+        <target state="translated">Introduire l'instruction 'Using'</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="new">Make '{0}' inheritable</target>
+        <target state="translated">Rendre '{0}' héritable</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -1734,7 +1734,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Add_Overloads">
         <source>Add 'Overloads'</source>
-        <target state="needs-review-translation">Ajouter des surcharges</target>
+        <target state="translated">Ajouter 'Overloads'</target>
         <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">

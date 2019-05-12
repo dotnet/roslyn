@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private struct Data
+        private readonly struct Data
         {
             public readonly Workspace Workspace;
             public readonly ProjectId ProjectId;

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
+<!-- 
+ To re-generate source from this file, run eng/generate-compiler-code.cmd
+-->
+
 <Tree Root="SyntaxNode">
   <PredefinedNode Name="CSharpSyntaxNode" Base="SyntaxNode"/>
   <PredefinedNode Name="SyntaxToken" Base="CSharpSyntaxNode"/>

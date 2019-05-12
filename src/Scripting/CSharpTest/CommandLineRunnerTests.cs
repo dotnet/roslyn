@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 
     public class CommandLineRunnerTests : TestBase
     {
-        private static readonly string s_compilerVersion =
-            typeof(CSharpInteractiveCompiler).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private static readonly string s_compilerVersion = CommonCompiler.GetProductVersion(typeof(CSharpInteractiveCompiler));
 
         private string LogoAndHelpPrompt => $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
 {CSharpScriptingResources.LogoLine2}
@@ -169,7 +168,9 @@ $@"{ logoOutput }
 >", runner.Console.Out.ToString());
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30924")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")]
+        // https://github.com/dotnet/roslyn/issues/33564: Was [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30924")]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         [WorkItem(7133, "http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture2()
         {
@@ -491,19 +492,19 @@ $@"{ string.Format(CSharpScriptingResources.LogoLine1, s_compilerVersion) }
         {
             var runner = CreateRunner(new[] { "/version" });
             Assert.Equal(0, runner.RunInteractive());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString());
 
             runner = CreateRunner(new[] { "/version", "/help" });
             Assert.Equal(0, runner.RunInteractive());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString());
 
             runner = CreateRunner(new[] { "/version", "/r:somefile" });
             Assert.Equal(0, runner.RunInteractive());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString());
 
             runner = CreateRunner(new[] { "/version", "/nologo" });
             Assert.Equal(0, runner.RunInteractive());
-            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"{s_compilerVersion}", runner.Console.Out.ToString());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(s_compilerVersion, runner.Console.Out.ToString());
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]

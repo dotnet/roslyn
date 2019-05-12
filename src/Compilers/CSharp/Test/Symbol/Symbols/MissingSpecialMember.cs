@@ -511,7 +511,15 @@ namespace System
             {
                 var symbol = comp.GetSpecialType(special);
                 Assert.NotNull(symbol);
-                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+
+                if (special == SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+                {
+                    Assert.Equal(SymbolKind.ErrorType, symbol.Kind); // Not available
+                }
+                else
+                {
+                    Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+                }
             }
         }
 
@@ -526,7 +534,14 @@ namespace System
                 if (special == SpecialMember.Count) continue; // Not a real value;
 
                 var symbol = comp.GetSpecialTypeMember(special);
-                Assert.NotNull(symbol);
+                if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces)
+                {
+                    Assert.Null(symbol); // Not available
+                }
+                else
+                {
+                    Assert.NotNull(symbol);
+                }
             }
         }
 
@@ -896,6 +911,8 @@ namespace System
                     case WellKnownMember.System_Range__StartAt:
                     case WellKnownMember.System_Range__EndAt:
                     case WellKnownMember.System_Range__get_All:
+                    case WellKnownMember.System_Range__get_Start:
+                    case WellKnownMember.System_Range__get_End:
                     case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor:
                     case WellKnownMember.System_IAsyncDisposable__DisposeAsync:

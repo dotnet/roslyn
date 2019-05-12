@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 {
     internal abstract partial class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
     {
-        private struct SymbolResult : IEquatable<SymbolResult>, IComparable<SymbolResult>
+        private readonly struct SymbolResult : IEquatable<SymbolResult>, IComparable<SymbolResult>
         {
             public readonly INamespaceOrTypeSymbol Symbol;
             public readonly int Weight;

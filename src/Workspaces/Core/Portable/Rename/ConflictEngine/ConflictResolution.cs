@@ -104,14 +104,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return _renamedSpansTracker.GetAdjustedPosition(startingPosition, documentId);
         }
 
-        // test hook only
-        public TextSpan GetResolutionTextSpan(
-            TextSpan originalSpan,
-            DocumentId documentId)
-        {
-            return _renamedSpansTracker.GetResolutionTextSpan(originalSpan, documentId);
-        }
-
         /// <summary>
         /// The list of all document ids of documents that have been touched for this rename operation.
         /// </summary>
@@ -170,5 +162,25 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// The original text that is the rename replacement.
         /// </summary>
         public string ReplacementText { get; }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly ConflictResolution _conflictResolution;
+
+            public TestAccessor(ConflictResolution conflictResolution)
+            {
+                _conflictResolution = conflictResolution;
+            }
+
+            internal TextSpan GetResolutionTextSpan(
+                TextSpan originalSpan,
+                DocumentId documentId)
+            {
+                return _conflictResolution._renamedSpansTracker.GetTestAccessor().GetResolutionTextSpan(originalSpan, documentId);
+            }
+        }
     }
 }

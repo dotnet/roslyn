@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            TypeSymbolWithAnnotations fieldType = this.Type;
-            var customModifiers = fieldType.CustomModifiers;
+            TypeWithAnnotations fieldTypeWithAnnotations = this.TypeWithAnnotations;
+            var customModifiers = fieldTypeWithAnnotations.CustomModifiers;
             var isFixed = this.IsFixedSizeBuffer;
-            var implType = isFixed ? this.FixedImplementationType(moduleBeingBuilt) : fieldType.TypeSymbol;
+            var implType = isFixed ? this.FixedImplementationType(moduleBeingBuilt) : fieldTypeWithAnnotations.Type;
             var type = moduleBeingBuilt.Translate(implType,
                                                   syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                   diagnostics: context.Diagnostics);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // because this method is called by the ReferenceIndexer in the metadata-only case
                 // (and we specifically don't want to prevent metadata-only emit because of a bad
                 // constant).  If the constant value is bad, we'll end up exposing null to CCI.
-                return ((PEModuleBuilder)context.Module).CreateConstant(this.Type.TypeSymbol, this.ConstantValue,
+                return ((PEModuleBuilder)context.Module).CreateConstant(this.Type, this.ConstantValue,
                                                                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                                diagnostics: context.Diagnostics);
             }

@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Cannot declare a variable of static type '{0}'
                 diagnostics.Add(ErrorCode.ERR_VarDeclIsStaticClass, this.ErrorLocation, type);
             }
-            else if (type.SpecialType == SpecialType.System_Void)
+            else if (type.IsVoidType())
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax?.Location ?? this.Locations[0]);
             }
@@ -276,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly bool _hasInitializer;
 
-        private TypeSymbolWithAnnotations.Builder _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
@@ -297,6 +298,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!modifierErrors)
             {
                 this.ReportModifiersDiagnostics(diagnostics);
+            }
+
+            if (containingType.IsInterface)
+            {
+                if (this.IsStatic)
+                {
+                    Binder.CheckFeatureAvailability(declarator, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, ErrorLocation);
+
+                    if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ErrorLocation);
+                    }
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, ErrorLocation);
+                }
             }
         }
 
@@ -351,12 +369,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!_lazyType.IsDefault)
+                if (_lazyType != null)
                 {
-                    Debug.Assert(_lazyType.DefaultType.IsPointerType() ==
+                    Debug.Assert(_lazyType.Value.DefaultType.IsPointerType() ==
                         IsPointerFieldSyntactically());
 
-                    return _lazyType.DefaultType.IsPointerType();
+                    return _lazyType.Value.DefaultType.IsPointerType();
                 }
 
                 return IsPointerFieldSyntactically();
@@ -385,13 +403,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal sealed override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if (!_lazyType.IsDefault)
+            if (_lazyType != null)
             {
-                return _lazyType.ToType();
+                return _lazyType.Value;
             }
 
             var declarator = VariableDeclaratorNode;
@@ -401,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
 
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSymbolWithAnnotations type;
+            TypeWithAnnotations type;
 
             // When we have multiple declarators, we report the type diagnostics on only the first.
             DiagnosticBag diagnosticsForFirstDeclarator = DiagnosticBag.GetInstance();
@@ -417,11 +435,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // CONSIDER: Do we want to guard against the possibility that someone has created their own EventRegistrationTokenTable<T>
                     // type that has additional generic constraints?
-                    type = TypeSymbolWithAnnotations.Create(tokenTableType.Construct(ImmutableArray.Create(@event.Type)));
+                    type = TypeWithAnnotations.Create(tokenTableType.Construct(ImmutableArray.Create(@event.TypeWithAnnotations)));
                 }
                 else
                 {
-                    type = @event.Type;
+                    type = @event.TypeWithAnnotations;
                 }
             }
             else
@@ -473,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
                                 {
-                                    type = TypeSymbolWithAnnotations.Create(initializerOpt.Type);
+                                    type = TypeWithAnnotations.Create(initializerOpt.Type);
                                 }
 
                                 _lazyFieldTypeInferred = 1;
@@ -482,21 +500,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (!type.HasType)
                         {
-                            type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
+                            type = TypeWithAnnotations.Create(binder.CreateErrorType("var"));
                         }
                     }
                 }
 
                 if (IsFixedSizeBuffer)
                 {
-                    type = TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(type));
+                    type = TypeWithAnnotations.Create(new PointerTypeSymbol(type));
 
                     if (ContainingType.TypeKind != TypeKind.Struct)
                     {
                         diagnostics.Add(ErrorCode.ERR_FixedNotInStruct, ErrorLocation);
                     }
 
-                    var elementType = ((PointerTypeSymbol)type.TypeSymbol).PointedAtType.TypeSymbol;
+                    var elementType = ((PointerTypeSymbol)type.Type).PointedAtType;
                     int elementSize = elementType.FixedBufferElementSizeInBytes();
                     if (elementSize == 0)
                     {
@@ -512,9 +530,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // update the lazyType only if it contains value last seen by the current thread:
-            if (_lazyType.InterlockedInitialize(type.WithModifiers(this.RequiredCustomModifiers)))
+            if (Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type.WithModifiers(this.RequiredCustomModifiers)), null) == null)
             {
-                TypeChecks(type.TypeSymbol, diagnostics);
+                TypeChecks(type.Type, diagnostics);
 
                 // CONSIDER: SourceEventFieldSymbol would like to suppress these diagnostics.
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
@@ -530,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Free();
             diagnosticsForFirstDeclarator.Free();
-            return _lazyType.ToType();
+            return _lazyType.Value;
         }
 
         internal bool FieldTypeInferred(ConsList<FieldSymbol> fieldsBeingBound)

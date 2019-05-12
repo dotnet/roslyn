@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         WrittenReference,
     }
 
-    internal struct HighlightSpan
+    internal readonly struct HighlightSpan
     {
         public TextSpan TextSpan { get; }
         public HighlightSpanKind Kind { get; }
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
     }
 
-    internal struct DocumentHighlights
+    internal readonly struct DocumentHighlights
     {
         public Document Document { get; }
         public ImmutableArray<HighlightSpan> HighlightSpans { get; }

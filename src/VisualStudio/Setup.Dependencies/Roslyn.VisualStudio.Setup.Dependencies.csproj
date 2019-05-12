@@ -5,7 +5,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Setup.Dependencies</RootNamespace>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>Vsix</RoslynProjectType>
     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
 
     <!-- VSIX -->
@@ -13,7 +12,7 @@
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
+    <ExtensionInstallationRoot>$(CommonExtensionInstallationRoot)</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\Dependencies</ExtensionInstallationFolder>
   </PropertyGroup>
   <ItemGroup>
@@ -41,6 +40,8 @@
   <ItemGroup>
     <!-- Needed to use RegistrationAttribute -->
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <!-- Work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/725508 -->
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)" />
     <!-- All packages that we depend on, either as facades or implementations -->
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />

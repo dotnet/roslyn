@@ -3,10 +3,10 @@
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
-    /// Provides a way to map from an assembly name to the actual path of the .Net framework 
+    /// Provides a way to map from an assembly name to the actual path of the .NET Framework 
     /// assemby with that name in the context of a specified project.  For example, if the 
-    /// assembly name is "System.Data" then a project targetting .Net 2.0 would resolve this
-    /// to a different path than a project targetting .Net 4.5.
+    /// assembly name is "System.Data" then a project targetting .NET 2.0 would resolve this
+    /// to a different path than a project targetting .NET 4.5.
     /// </summary>
     internal interface IFrameworkAssemblyPathResolver : IWorkspaceService
     {

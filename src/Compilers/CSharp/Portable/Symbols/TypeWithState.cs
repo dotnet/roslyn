@@ -10,21 +10,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal readonly struct TypeWithState
     {
-        public TypeSymbol Type { get; }
-        public NullableFlowState State { get; }
+        public readonly TypeSymbol Type;
+        public readonly NullableFlowState State;
         public bool HasNullType => Type is null;
         public bool MayBeNull => State == NullableFlowState.MaybeNull;
         public bool IsNotNull => State == NullableFlowState.NotNull;
-        public static TypeWithState ForType(TypeSymbol type) => new TypeWithState(type, type?.CanContainNull() == true ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
-        public TypeWithState(TypeSymbol type, NullableFlowState state) => (Type, State) = (type, state);
+
+        public static TypeWithState ForType(TypeSymbol type)
+        {
+            var state = type?.CanContainNull() != false ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+            return new TypeWithState(type, state);
+        }
+
+        public static TypeWithState Create(TypeSymbol type, NullableFlowState defaultState)
+        {
+            var state = defaultState == NullableFlowState.MaybeNull && type?.CanContainNull() != false ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+            return new TypeWithState(type, state);
+        }
+
+        private TypeWithState(TypeSymbol type, NullableFlowState state)
+        {
+            Debug.Assert(state == NullableFlowState.NotNull || type?.CanContainNull() != false);
+            Type = type;
+            State = state;
+        }
+
         public void Deconstruct(out TypeSymbol type, out NullableFlowState state) => (type, state) = (Type, State);
+
         public string GetDebuggerDisplay() => $"{{Type:{Type?.GetDebuggerDisplay()}, State:{State}{"}"}";
+
+        public override string ToString() => GetDebuggerDisplay();
+
         public TypeWithState WithNotNullState() => new TypeWithState(Type, NullableFlowState.NotNull);
-        public TypeSymbolWithAnnotations ToTypeSymbolWithAnnotations()
+
+        public TypeWithAnnotations ToTypeWithAnnotations()
         {
             NullableAnnotation annotation = this.State.IsNotNull() || Type?.CanContainNull() == false || Type?.IsTypeParameterDisallowingAnnotation() == true
                 ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
-            return TypeSymbolWithAnnotations.Create(this.Type, annotation);
+            return TypeWithAnnotations.Create(this.Type, annotation);
         }
     }
 }
