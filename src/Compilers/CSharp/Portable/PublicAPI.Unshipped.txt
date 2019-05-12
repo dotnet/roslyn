@@ -15,6 +15,19 @@
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 *REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
+*REMOVED*abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseFieldDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
+*REMOVED*abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseFieldDeclarationSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
+*REMOVED*abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseMethodDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
+*REMOVED*abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseMethodDeclarationSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
+*REMOVED*abstract Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
+*REMOVED*abstract Microsoft.CodeAnalysis.CSharp.Syntax.BasePropertyDeclarationSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
+*REMOVED*abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
+*REMOVED*abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.DelegateDeclarationSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.EnumMemberDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
+*REMOVED*Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax.Modifiers.get -> Microsoft.CodeAnalysis.SyntaxTokenList
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.ParseOptions options = null, string path = "", System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(string text, Microsoft.CodeAnalysis.ParseOptions options = null, string path = "", System.Text.Encoding encoding = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.AwaitKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
