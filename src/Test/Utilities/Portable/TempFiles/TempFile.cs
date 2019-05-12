@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 try
                 {
-                    TempRoot.CreateStream(_path);
+                    TempRoot.CreateStream(_path, FileMode.CreateNew);
                     break;
                 }
                 catch (PathTooLongException)

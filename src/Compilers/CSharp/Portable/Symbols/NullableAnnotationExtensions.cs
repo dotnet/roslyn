@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+// https://github.com/dotnet/roslyn/issues/34962 IDE005 "Fix formatting" does a poor job with a switch expression as the body of an expression-bodied method
+#pragma warning disable IDE0055
+
+namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class NullableAnnotationExtensions
     {
@@ -60,5 +64,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _ => throw ExceptionUtilities.UnexpectedValue(variance)
             };
         }
+
+        /// <summary>
+        /// The attribute (metadata) representation of <see cref="NullableAnnotation.NotAnnotated"/>.
+        /// </summary>
+        public const byte NotAnnotatedAttributeValue = (byte)NullableAnnotation.NotAnnotated;
+
+        /// <summary>
+        /// The attribute (metadata) representation of <see cref="NullableAnnotation.Annotated"/>.
+        /// </summary>
+        public const byte AnnotatedAttributeValue = (byte)NullableAnnotation.Annotated;
+
+        /// <summary>
+        /// The attribute (metadata) representation of <see cref="NullableAnnotation.Oblivious"/>.
+        /// </summary>
+        public const byte ObliviousAttributeValue = (byte)NullableAnnotation.Oblivious;
+
+        internal static NullabilityInfo ToNullabilityInfo(this CodeAnalysis.NullableAnnotation annotation, TypeSymbol type)
+        {
+            if (annotation == CodeAnalysis.NullableAnnotation.NotApplicable)
+            {
+                return default;
+            }
+
+            CSharp.NullableAnnotation internalAnnotation = annotation.ToInternalAnnotation();
+            return internalAnnotation.ToNullabilityInfo(type);
+        }
+
+        internal static NullabilityInfo ToNullabilityInfo(this NullableAnnotation annotation, TypeSymbol type)
+        {
+            var flowState = TypeWithAnnotations.Create(type, annotation).ToTypeWithState().State;
+            return new NullabilityInfo(annotation.ToPublicAnnotation(), flowState.ToPublicFlowState());
+        }
+
+        internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(this CSharp.NullableAnnotation annotation) =>
+            annotation switch
+            {
+                CSharp.NullableAnnotation.Annotated => CodeAnalysis.NullableAnnotation.Annotated,
+                CSharp.NullableAnnotation.NotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
+                CSharp.NullableAnnotation.Oblivious => CodeAnalysis.NullableAnnotation.Disabled,
+                _ => throw ExceptionUtilities.UnexpectedValue(annotation)
+            };
+
+        internal static CSharp.NullableAnnotation ToInternalAnnotation(this CodeAnalysis.NullableAnnotation annotation) =>
+            annotation switch
+            {
+                CodeAnalysis.NullableAnnotation.NotApplicable => CSharp.NullableAnnotation.Oblivious,
+                CodeAnalysis.NullableAnnotation.Disabled => CSharp.NullableAnnotation.Oblivious,
+                CodeAnalysis.NullableAnnotation.NotAnnotated => CSharp.NullableAnnotation.NotAnnotated,
+                CodeAnalysis.NullableAnnotation.Annotated => CSharp.NullableAnnotation.Annotated,
+                _ => throw ExceptionUtilities.UnexpectedValue(annotation)
+            };
     }
 }

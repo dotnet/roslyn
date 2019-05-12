@@ -27,6 +27,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             End Get
         End Property
 
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            ' Fix All is not supported by this code fix
+            ' https://github.com/dotnet/roslyn/issues/34474
+            Return Nothing
+        End Function
+
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
 

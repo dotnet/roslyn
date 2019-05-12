@@ -1480,19 +1480,19 @@ public readonly struct S
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Signature.ReturnParam.Handle));
-                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p1).Handle));
-                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p2).Handle));
-                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p3).Handle));
-                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Signature.ReturnParam.Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.SetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.SetMethod).Signature.ReturnParam.Handle));
@@ -1500,7 +1500,7 @@ public readonly struct S
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p4).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Signature.ReturnParam.Handle));
-                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p5).Handle));
@@ -1556,44 +1556,43 @@ public readonly struct S2
             {
                 var s1 = comp.GetMember<NamedTypeSymbol>("S1");
 
-                verifyReadOnly(s1.GetMethod("M1"), false, false, RefKind.Ref);
-                verifyReadOnly(s1.GetMethod("M2"), true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetMethod("M1"), false, RefKind.Ref);
+                verifyReadOnly(s1.GetMethod("M2"), true, RefKind.RefReadOnly);
 
-                verifyReadOnly(s1.GetProperty("P1").GetMethod, true, true, RefKind.RefReadOnly);
-                verifyReadOnly(s1.GetProperty("P1").SetMethod, false, false, RefKind.Ref);
+                verifyReadOnly(s1.GetProperty("P1").GetMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P1").SetMethod, false, RefKind.Ref);
 
-                verifyReadOnly(s1.GetProperty("P2").GetMethod, true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P2").GetMethod, true, RefKind.RefReadOnly);
 
-                verifyReadOnly(s1.GetProperty("P3").GetMethod, true, true, RefKind.RefReadOnly);
-                verifyReadOnly(s1.GetProperty("P3").SetMethod, false, false, RefKind.Ref);
+                verifyReadOnly(s1.GetProperty("P3").GetMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P3").SetMethod, false, RefKind.Ref);
 
-                verifyReadOnly(s1.GetProperty("P4").GetMethod, false, false, RefKind.Ref);
-                verifyReadOnly(s1.GetProperty("P4").SetMethod, true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P4").GetMethod, false, RefKind.Ref);
+                verifyReadOnly(s1.GetProperty("P4").SetMethod, true, RefKind.RefReadOnly);
 
-                verifyReadOnly(s1.GetProperty("P5").GetMethod, false, false, null);
-                verifyReadOnly(s1.GetProperty("P5").SetMethod, false, false, null);
+                verifyReadOnly(s1.GetProperty("P5").GetMethod, false, null);
+                verifyReadOnly(s1.GetProperty("P5").SetMethod, false, null);
 
-                verifyReadOnly(s1.GetEvent("E").AddMethod, true, true, RefKind.RefReadOnly);
-                verifyReadOnly(s1.GetEvent("E").RemoveMethod, true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetEvent("E").AddMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetEvent("E").RemoveMethod, true, RefKind.RefReadOnly);
 
                 var s2 = comp.GetMember<NamedTypeSymbol>("S2");
 
-                verifyReadOnly(s2.GetMethod("M1"), false, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetMethod("M1"), true, RefKind.RefReadOnly);
 
-                verifyReadOnly(s2.GetProperty("P1").GetMethod, true, true, RefKind.RefReadOnly);
-                verifyReadOnly(s2.GetProperty("P2").GetMethod, false, true, RefKind.RefReadOnly);
-                verifyReadOnly(s2.GetProperty("P3").SetMethod, false, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetProperty("P1").GetMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetProperty("P2").GetMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetProperty("P3").SetMethod, true, RefKind.RefReadOnly);
 
-                verifyReadOnly(s2.GetProperty("P4").GetMethod, false, false, null);
-                verifyReadOnly(s2.GetProperty("P4").SetMethod, false, false, null);
+                verifyReadOnly(s2.GetProperty("P4").GetMethod, false, null);
+                verifyReadOnly(s2.GetProperty("P4").SetMethod, false, null);
 
-                verifyReadOnly(s2.GetEvent("E").AddMethod, false, true, RefKind.RefReadOnly);
-                verifyReadOnly(s2.GetEvent("E").RemoveMethod, false, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetEvent("E").AddMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetEvent("E").RemoveMethod, true, RefKind.RefReadOnly);
 
-                void verifyReadOnly(MethodSymbol method, bool declared, bool effective, RefKind? refKind)
+                void verifyReadOnly(MethodSymbol method, bool isReadOnly, RefKind? refKind)
                 {
-                    Assert.Equal(declared, method.IsDeclaredReadOnly);
-                    Assert.Equal(effective, method.IsEffectivelyReadOnly);
+                    Assert.Equal(isReadOnly, method.IsEffectivelyReadOnly);
                     Assert.Equal(refKind, method.ThisParameter?.RefKind);
                 }
             }
@@ -1856,7 +1855,7 @@ public static class C
   .locals init (S V_0, //copy
                 S V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""void S.M1()""
+  IL_0001:  call       ""readonly void S.M1()""
   IL_0006:  ldarg.0
   IL_0007:  ldfld      ""int S.i""
   IL_000c:  call       ""void System.Console.Write(int)""
@@ -1932,7 +1931,7 @@ public static class C
   .locals init (S V_0, //copy
                 S V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int S.P1.get""
+  IL_0001:  call       ""readonly int S.P1.get""
   IL_0006:  pop
   IL_0007:  ldarg.0
   IL_0008:  ldfld      ""int S.i""
@@ -1976,7 +1975,7 @@ public struct S
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int S.M2()""
+  IL_0001:  call       ""readonly int S.M2()""
   IL_0006:  ldc.i4.1
   IL_0007:  add
   IL_0008:  ret
@@ -2002,7 +2001,7 @@ public struct S
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int S.P2.get""
+  IL_0001:  call       ""readonly int S.P2.get""
   IL_0006:  ldc.i4.1
   IL_0007:  add
   IL_0008:  ret
@@ -2027,7 +2026,7 @@ public struct S
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int S.P2.get""
+  IL_0001:  call       ""readonly int S.P2.get""
   IL_0006:  ldc.i4.1
   IL_0007:  add
   IL_0008:  ret
@@ -2053,7 +2052,7 @@ public struct S
   // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""int S.M2()""
+  IL_0001:  call       ""readonly int S.M2()""
   IL_0006:  ldc.i4.1
   IL_0007:  add
   IL_0008:  ret
@@ -2089,7 +2088,7 @@ public struct S2
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""S1 S2.s1""
-  IL_0006:  call       ""void S1.M1()""
+  IL_0006:  call       ""readonly void S1.M1()""
   IL_000b:  ret
 }");
 
@@ -2465,17 +2464,17 @@ public struct S
   // Code size       99 (0x63)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""System.Type S.GetType()""
+  IL_0001:  call       ""readonly System.Type S.GetType()""
   IL_0006:  pop
   IL_0007:  ldarg.0
-  IL_0008:  call       ""string S.ToString()""
+  IL_0008:  call       ""readonly string S.ToString()""
   IL_000d:  pop
   IL_000e:  ldarg.0
-  IL_000f:  call       ""int S.GetHashCode()""
+  IL_000f:  call       ""readonly int S.GetHashCode()""
   IL_0014:  pop
   IL_0015:  ldarg.0
   IL_0016:  ldnull
-  IL_0017:  call       ""bool S.Equals(object)""
+  IL_0017:  call       ""readonly bool S.Equals(object)""
   IL_001c:  pop
   IL_001d:  ldarg.0
   IL_001e:  ldobj      ""S""
@@ -2527,6 +2526,57 @@ struct S
 }
 ";
             CompileAndVerify(csharp, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: "42");
+        }
+
+        public static TheoryData<bool, CSharpParseOptions, Verification> ReadOnlyGetter_LangVersion_Data() =>
+            new TheoryData<bool, CSharpParseOptions, Verification>
+            {
+                {  false, TestOptions.Regular7_3, Verification.Passes },
+                {  true, null, Verification.Fails }
+            };
+
+        [Theory]
+        [MemberData(nameof(ReadOnlyGetter_LangVersion_Data))]
+        public void ReadOnlyGetter_LangVersion(bool isReadOnly, CSharpParseOptions parseOptions, Verification verify)
+        {
+            var csharp = @"
+struct S
+{
+    public int P { get; }
+
+    static readonly S Field = default;
+    static void M()
+    {
+        _ = Field.P;
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp, parseOptions: parseOptions, verify: verify);
+            var type = verifier.Compilation.GetMember<NamedTypeSymbol>("S");
+            Assert.Equal(isReadOnly, type.GetProperty("P").GetMethod.IsDeclaredReadOnly);
+            Assert.Equal(isReadOnly, type.GetProperty("P").GetMethod.IsEffectivelyReadOnly);
+        }
+
+        [Fact]
+        public void ReadOnlyEvent_Emit()
+        {
+            var csharp = @"
+public struct S
+{
+    public readonly event System.Action E { add { } remove { } }
+}
+";
+            CompileAndVerify(csharp, symbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var testStruct = module.ContainingAssembly.GetTypeByMetadataName("S");
+
+                var peModule = (PEModuleSymbol)module;
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)testStruct.GetEvent("E").AddMethod).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)testStruct.GetEvent("E").RemoveMethod).Handle));
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
+            }
         }
     }
 }

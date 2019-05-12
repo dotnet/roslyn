@@ -2,11 +2,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>Custom</RoslynProjectType>
 
     <!-- The package is inserted to Visual Studio CoreXT package store -->
     <IsShipping>false</IsShipping>
-    <IsVisualStudioInsertionPackage>true</IsVisualStudioInsertionPackage>
+    <IsVisualStudioBuildPackage>true</IsVisualStudioBuildPackage>
 
     <IsPackable>true</IsPackable>
     <PackageId>VS.ExternalAPIs.Roslyn</PackageId>
@@ -102,7 +101,6 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.CSharp\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.CSharp.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Implementation\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Implementation.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll" TargetDir="" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.FSharp\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.SolutionExplorer\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.VisualBasic\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Xaml\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Xaml.dll" TargetDir="" />

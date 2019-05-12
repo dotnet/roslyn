@@ -1194,5 +1194,24 @@ internal sealed class CustomSerializingType : ISerializable
     }
 }", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
+
+        [WorkItem(34301, "https://github.com/dotnet/roslyn/issues/34301")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task GenericLocalFunction()
+        {
+            await TestDiagnosticsAsync(
+@"class C
+{
+    void M()
+    {
+        LocalFunc(0);
+
+        void LocalFunc<T>(T [|value|])
+        {
+        }
+    }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
     }
 }

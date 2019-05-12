@@ -911,6 +911,8 @@ namespace System
                     case WellKnownMember.System_Range__StartAt:
                     case WellKnownMember.System_Range__EndAt:
                     case WellKnownMember.System_Range__get_All:
+                    case WellKnownMember.System_Range__get_Start:
+                    case WellKnownMember.System_Range__get_End:
                     case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor:
                     case WellKnownMember.System_IAsyncDisposable__DisposeAsync:

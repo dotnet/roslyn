@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
@@ -1208,6 +1209,34 @@ class Customer2
 }}
 ";
 
+        private static readonly string[] s_usingDirectivePlacement = new[] { $@"
+//[
+    namespace Namespace
+    {{
+        // {CSharpVSResources.Inside_namespace}
+        using System;
+        using System.Linq;
+
+        class Customer
+        {{
+        }}
+    }}
+//]", $@"
+//[
+    // {CSharpVSResources.Outside_namespace}
+    using System;
+    using System.Linq;
+
+    namespace Namespace
+    {{
+        class Customer
+        {{
+        }}
+    }}
+//]
+" };
+
+
         private static readonly string s_preferStaticLocalFunction = $@"
 class Customer1
 {{
@@ -1554,11 +1583,18 @@ class C2
             var predefinedTypesGroupTitle = CSharpVSResources.predefined_type_preferences_colon;
             var varGroupTitle = CSharpVSResources.var_preferences_colon;
             var nullCheckingGroupTitle = CSharpVSResources.null_checking_colon;
+            var usingsGroupTitle = CSharpVSResources.using_preferences_colon;
             var modifierGroupTitle = ServicesVSResources.Modifier_preferences_colon;
             var codeBlockPreferencesGroupTitle = ServicesVSResources.Code_block_preferences_colon;
             var expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon;
             var variablePreferencesGroupTitle = ServicesVSResources.Variable_preferences_colon;
             var parameterPreferencesGroupTitle = ServicesVSResources.Parameter_preferences_colon;
+
+            var usingDirectivePlacementPreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(CSharpVSResources.Inside_namespace, isChecked: false),
+                new CodeStylePreference(CSharpVSResources.Outside_namespace, isChecked: false),
+            };
 
             var qualifyMemberAccessPreferences = new List<CodeStylePreference>
             {
@@ -1629,6 +1665,12 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionStore, nullCheckingGroupTitle));
+
+            // Using directive preferences.
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<AddImportPlacement>(
+                CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CSharpVSResources.Preferred_using_directive_placement,
+                new[] { AddImportPlacement.InsideNamespace, AddImportPlacement.OutsideNamespace },
+                s_usingDirectivePlacement, this, optionStore, usingsGroupTitle, usingDirectivePlacementPreferences));
 
             // Modifier preferences.
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly_fields, s_preferReadonly, s_preferReadonly, this, optionStore, modifierGroupTitle));

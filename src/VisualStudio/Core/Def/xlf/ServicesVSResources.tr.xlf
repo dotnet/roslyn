@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Classifications">
         <source>Classifications</source>
-        <target state="new">Classifications</target>
+        <target state="translated">Sınıflandırmalar</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -75,6 +75,11 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">Öğe geçerli değil.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
+        <source>Enable nullable reference analysis IDE features</source>
+        <target state="new">Enable nullable reference analysis IDE features</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -112,6 +117,11 @@
         <target state="translated">Tür</target>
         <note />
       </trans-unit>
+      <trans-unit id="Live_analysis">
+        <source>Live analysis</source>
+        <target state="new">Live analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
         <target state="translated">'{0}' değerini soyut yap</target>
@@ -129,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="new">Modifier preferences:</target>
+        <target state="translated">Değiştirici tercihleri:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -184,17 +194,17 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="new">Prefer readonly fields</target>
+        <target state="translated">Salt okunur alanları tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
-        <target state="new">Prefer simple 'using' statement</target>
+        <target state="translated">Basit 'using' deyimini tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
-        <target state="new">Prefer static local functions</target>
+        <target state="translated">Statik yerel işlevleri tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -209,7 +219,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
-        <target state="new">Rename {0} to {1}</target>
+        <target state="translated">{0} öğesini {1} olarak yeniden adlandır</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -239,12 +249,12 @@
       </trans-unit>
       <trans-unit id="Select_Dependents">
         <source>Select _Dependents</source>
-        <target state="needs-review-translation">_Bağımlıları seçin</target>
+        <target state="translated">Bağımlıları _seçin</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
         <source>Select _Public</source>
-        <target state="needs-review-translation">_Ortak seçin</target>
+        <target state="translated">Ortak _seçin</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
@@ -269,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
-        <target state="new">Show completion list</target>
+        <target state="translated">Tamamlanma listesini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -294,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
-        <target state="new">Use enhanced colors for C# and Basic</target>
+        <target state="translated">C# ve Basic için gelişmiş renkleri kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -324,7 +334,7 @@
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
-        <target state="new">This workspace does not support updating Visual Basic compilation options.</target>
+        <target state="translated">Bu çalışma alanı Visual Basic derleme seçeneklerinin güncelleştirilmesini desteklemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -1841,11 +1851,6 @@ Aşağıdakilerin tümünü onaylıyorum:</target>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
         <target state="translated">Adlandırma stillerini yönetme</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Live_code_analysis">
-        <source>Live code analysis</source>
-        <target state="translated">Canlı kod analizi</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
