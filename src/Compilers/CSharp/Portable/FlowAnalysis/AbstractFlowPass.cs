@@ -1188,6 +1188,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        {
+            // Index or Range pattern indexers evaluate the following in order:
+            // 1. The receiver
+            // 1. The Count or Length method off the receiver
+            // 2. The argument to the access
+            // 3. The pattern method
+            VisitRvalue(node.Receiver);
+            var method = GetReadMethod(node.LengthOrCountProperty);
+            VisitReceiverAfterCall(node.Receiver, method);
+            VisitRvalue(node.Argument);
+            method = node.PatternSymbol switch
+            {
+                PropertySymbol p => GetReadMethod(p),
+                MethodSymbol m => m,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.PatternSymbol)
+            };
+            VisitReceiverAfterCall(node.Receiver, method);
+
+            return null;
+        }
+
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
             VisitRvalue(node.ReceiverOpt);
@@ -2877,6 +2899,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Join(ref this.State, ref savedState);
+            return null;
+        }
+
+        public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
+        {
+            VisitRvalue(node.Operand);
             return null;
         }
 

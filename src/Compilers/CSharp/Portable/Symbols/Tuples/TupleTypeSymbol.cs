@@ -1172,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             if ((comparison & TypeCompareKind.IgnoreTupleNames) != 0)
             {
@@ -1181,10 +1181,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     t2 = t2.TupleUnderlyingType;
                 }
 
-                return _underlyingType.Equals(t2, comparison);
+                return _underlyingType.Equals(t2, comparison, isValueTypeOverrideOpt);
             }
 
-            return this.Equals(t2 as TupleTypeSymbol, comparison);
+            return this.Equals(t2 as TupleTypeSymbol, comparison, isValueTypeOverrideOpt);
         }
 
         internal bool Equals(TupleTypeSymbol other)
@@ -1192,14 +1192,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
-        private bool Equals(TupleTypeSymbol other, TypeCompareKind comparison)
+        private bool Equals(TupleTypeSymbol other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
         {
             if (ReferenceEquals(this, other))
             {
                 return true;
             }
 
-            if ((object)other == null || !other._underlyingType.Equals(_underlyingType, comparison))
+            if ((object)other == null || !other._underlyingType.Equals(_underlyingType, comparison, isValueTypeOverrideOpt))
             {
                 return false;
             }

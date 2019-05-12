@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken> _documentFileWatchingTokens = new Dictionary<DocumentId, FileChangeWatcher.IFileWatchingToken>();
 
         /// <summary>
-        /// A file change context used to watch source files and additional files for this project. It's automatically set to watch the user's project
+        /// A file change context used to watch source files, additional files, and analyzer config files for this project. It's automatically set to watch the user's project
         /// directory so we avoid file-by-file watching.
         /// </summary>
         private readonly FileChangeWatcher.IContext _documentFileChangeContext;
@@ -91,6 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly BatchingDocumentCollection _sourceFiles;
         private readonly BatchingDocumentCollection _additionalFiles;
+        private readonly BatchingDocumentCollection _analyzerConfigFiles;
 
         public ProjectId Id { get; }
         public string Language { get; }
@@ -137,6 +138,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 (w, d) => w.OnAdditionalDocumentAdded(d),
                 (w, documentId) => w.OnAdditionalDocumentRemoved(documentId),
                 documentTextLoaderChangedAction: (w, d, loader) => w.OnAdditionalDocumentTextLoaderChanged(d, loader));
+
+            _analyzerConfigFiles = new BatchingDocumentCollection(this,
+                (s, d) => s.ContainsAnalyzerConfigDocument(d),
+                (w, d) => w.OnAnalyzerConfigDocumentAdded(d),
+                (w, documentId) => w.OnAnalyzerConfigDocumentRemoved(documentId),
+                documentTextLoaderChangedAction: (w, d, loader) => w.OnAnalyzerConfigDocumentTextLoaderChanged(d, loader));
         }
 
         private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, Action<Workspace> changeValue)
@@ -349,6 +356,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentFileNamesAdded = ImmutableArray.CreateBuilder<string>();
                 var documentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
                 var additionalDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
+                var analyzerConfigDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
 
                 _workspace.ApplyBatchChangeToWorkspace(solution =>
                 {
@@ -391,6 +399,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             return s.RemoveAdditionalDocument(id);
                         },
                         WorkspaceChangeKind.AdditionalDocumentRemoved);
+
+                    _analyzerConfigFiles.UpdateSolutionForBatch(
+                        solutionChanges,
+                        documentFileNamesAdded,
+                        analyzerConfigDocumentsToOpen,
+                        (s, documents) => s.AddAnalyzerConfigDocuments(documents),
+                        WorkspaceChangeKind.AnalyzerConfigDocumentAdded,
+                        (s, id) =>
+                        {
+                            // Clear any document-specific data now (like open file trackers, etc.). If we called OnRemoveAnalyzerConfigDocument directly this is
+                            // called, but since we're doing this in one large batch we need to do it now.
+                            _workspace.ClearDocumentData(id);
+                            return s.RemoveAnalyzerConfigDocument(id);
+                        },
+                        WorkspaceChangeKind.AnalyzerConfigDocumentRemoved);
 
                     // Metadata reference adding...
                     if (_metadataReferencesAddedInBatch.Count > 0)
@@ -564,6 +587,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         #endregion
 
+        #region Analyzer Config File Addition/Removal
+
+        public void AddAnalyzerConfigFile(string fullPath)
+        {
+            // TODO: do we need folders for analyzer config files?
+            _analyzerConfigFiles.AddFile(fullPath, SourceCodeKind.Regular, folders: default);
+        }
+
+        public bool ContainsAnalyzerConfigFile(string fullPath)
+        {
+            return _analyzerConfigFiles.ContainsFile(fullPath);
+        }
+
+        public void RemoveAnalyzerConfigFile(string fullPath)
+        {
+            _analyzerConfigFiles.RemoveFile(fullPath);
+        }
+
+        #endregion
+
         #region Non Source File Addition/Removal
 
         public void AddDynamicSourceFile(string dynamicFilePath, ImmutableArray<string> folders)
@@ -707,6 +750,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _sourceFiles.ProcessFileChange(fullFilePath);
             _additionalFiles.ProcessFileChange(fullFilePath);
+            _analyzerConfigFiles.ProcessFileChange(fullFilePath);
         }
 
         #region Metadata Reference Addition/Removal

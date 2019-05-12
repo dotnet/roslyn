@@ -324,6 +324,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable roaming settings to avoid interference from the online user profile
                 Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"").WaitForExit();
 
+                // Disable background download UI to avoid toasts
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0").WaitForExit();
+
                 // Enable or disable async completion as necessary for integration testing
                 var usingAsyncCompletion = LegacyCompletionCondition.Instance.ShouldSkip;
                 var useAsyncCompletionSetting = usingAsyncCompletion ? 1 : -1;

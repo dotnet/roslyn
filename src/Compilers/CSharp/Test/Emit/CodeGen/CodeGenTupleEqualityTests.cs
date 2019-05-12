@@ -2191,6 +2191,7 @@ public class C
 Operator '!=' cannot be applied to operands of type 'System.ValueTuple<int,int,int>' and 'System.ValueTuple<int,int,int>'");
         }
 
+        // https://github.com/dotnet/roslyn/issues/35010 Support deconstruction assignment
         [Fact]
         public void TestComparisonWithDeconstructionResult()
         {

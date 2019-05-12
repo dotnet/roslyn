@@ -141,7 +141,7 @@ class C
             VisualStudio.Editor.Verify.TextContains("Second?.");
         }
 
-        [CriticalWpfFact]
+        [ConditionalWpfFact(typeof(LegacyEditorConfigCondition))]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]

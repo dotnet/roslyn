@@ -257,14 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // empty {} in pattern
-            if (previousToken.Kind() == SyntaxKind.OpenBraceToken &&
-                currentToken.Kind() == SyntaxKind.CloseBraceToken &&
-                currentToken.Parent.IsKind(SyntaxKindEx.PropertyPatternClause))
-            {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
-
             // attribute case
             // , [
             if (previousToken.Kind() == SyntaxKind.CommaToken && currentToken.Kind() == SyntaxKind.OpenBracketToken && currentToken.Parent is AttributeListSyntax)

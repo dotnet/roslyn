@@ -1,0 +1,56 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+
+    <!-- VS Insertion -->
+    <TargetVsixContainerName>Roslyn.VisualStudio.Setup.ServiceHub.vsix</TargetVsixContainerName>
+    <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.LanguageServices</VisualStudioInsertionComponent>
+
+    <!-- ServiceHub AssemblyPath -->
+    <!-- Path to our servicehub entry point dll in Common7\IDE\CommonExtensions\Microsoft\ManagedLanguages\VBCSharp\LanguageServices (our vsix directory)
+         relative to Common7\ServiceHub\Services\RoslynCodeAnalysisService where our in-box servicehub.service.json files are -->
+    <ServiceHubAssemblyBasePath>..\..\..\IDE\$(CommonExtensionInstallationRoot)\$(LanguageServicesExtensionInstallationFolder)\</ServiceHubAssemblyBasePath>
+  </PropertyGroup>
+
+  <Target Name="_SetSwrFilePath">
+    <PropertyGroup>
+      <_SwrFilePath>$(IntermediateOutputPath)Roslyn.VisualStudio.Setup.ServiceHub.swr</_SwrFilePath>
+    </PropertyGroup>
+  </Target>
+  
+  <Target Name="_GenerateSwrFile" 
+          AfterTargets="Build"
+          BeforeTargets="SwixBuild"
+          DependsOnTargets="_SetSwrFilePath;GenerateServiceHubConfigurationFiles"
+          Outputs="$(_SwrFilePath)">
+
+    <ItemGroup>
+      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="" />
+      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="64" />
+      <_FileEntries Include='file source="$(IntermediateOutputPath)%(_ServiceHubConfigFiles.FileName)%(_ServiceHubConfigFiles.FileSuffix).servicehub.service.json"'/>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_Lines>
+        <![CDATA[use vs
+
+package name=$(MSBuildProjectName)
+        version=$(VsixVersion)
+
+folder InstallDir:\Common7\ServiceHub\Services\RoslynCodeAnalysisService
+  @(_FileEntries, '%0d%0a  ')
+]]>
+      </_Lines>
+    </PropertyGroup>
+    
+    <WriteLinesToFile File="$(_SwrFilePath)" Lines="$(_Lines)" Overwrite="true"/>
+
+    <ItemGroup>
+      <FileWrites Include="$(_SwrFilePath)"/>
+      <SwrFile Include="$(_SwrFilePath)"/>
+    </ItemGroup>
+  </Target>
+  
+  <Import Project="$(RepositoryEngineeringDir)targets\GenerateServiceHubConfigurationFiles.targets" />
+</Project>

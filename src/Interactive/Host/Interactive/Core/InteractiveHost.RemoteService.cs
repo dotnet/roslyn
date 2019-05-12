@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Interactive
             private SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
-            private Thread _readOutputThread;           // nulled on dispose
-            private Thread _readErrorOutputThread;      // nulled on dispose
             private InteractiveHost _host;              // nulled on dispose
+            private Thread _readOutputThread;           // nulled on dispose	
+            private Thread _readErrorOutputThread;      // nulled on dispose
             private volatile ProcessExitHandlerStatus _processExitHandlerStatus;  // set to Handled on dispose
 
             internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 catch (ThreadStateException)
                 {
-                    // thread hasn't started
+                    // thread hasn't started	
                 }
 
                 try
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 catch (ThreadStateException)
                 {
-                    // thread hasn't started
+                    // thread hasn't started	
                 }
 
                 // null the host so that we don't attempt to write to the buffer anymore:

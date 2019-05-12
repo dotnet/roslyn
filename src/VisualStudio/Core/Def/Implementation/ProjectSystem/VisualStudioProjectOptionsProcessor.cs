@@ -2,7 +2,9 @@
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -22,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private CommandLineArguments _commandLineArgumentsForCommandLine;
         private string _explicitRuleSetFilePath;
         private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>> _ruleSetFile = null;
+        private readonly IOptionService _optionService;
 
         public VisualStudioProjectOptionsProcessor(VisualStudioProject project, HostWorkspaceServices workspaceServices)
         {
@@ -31,6 +34,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in the constructor so nothing can race.
             ReparseCommandLine_NoLock();
+
+            _optionService = workspaceServices.GetRequiredService<IOptionService>();
+
+            // For C#, we need to listen to the options for NRT analysis 
+            // that can change in VS through tools > options
+            if (_project.Language == LanguageNames.CSharp)
+            {
+                _optionService.OptionChanged += OptionService_OptionChanged;
+            }
         }
 
         public string CommandLine
@@ -98,6 +110,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
+        {
+            if (e.Option.Name == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Name
+                && e.Option.Feature == FeatureOnOffOptions.UseNullableReferenceTypeAnalysis.Feature)
+            {
+                UpdateProjectForNewHostValues();
+            }
+        }
+
         private void DisposeOfRuleSetFile_NoLock()
         {
             if (_ruleSetFile != null)
@@ -154,6 +175,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var parseOptions = _commandLineArgumentsForCommandLine.ParseOptions
                 .WithDocumentationMode(documentationMode);
 
+            parseOptions = ComputeOptionsServiceParseOptions(parseOptions);
+
             // We've computed what the base values should be; we now give an opportunity for any host-specific settings to be computed
             // before we apply them
             compilationOptions = ComputeCompilationOptionsWithHostValues(compilationOptions, this._ruleSetFile?.Target.Value);
@@ -172,6 +195,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project.ParseOptions = parseOptions;
         }
 
+        private ParseOptions ComputeOptionsServiceParseOptions(ParseOptions parseOptions)
+        {
+            if (_project.Language == LanguageNames.CSharp)
+            {
+                var useNullableReferenceAnalysisOption = _optionService.GetOption(FeatureOnOffOptions.UseNullableReferenceTypeAnalysis);
+
+                if (useNullableReferenceAnalysisOption == -1)
+                {
+                    parseOptions = parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "false") });
+                }
+                else if (useNullableReferenceAnalysisOption == 1)
+                {
+                    parseOptions = parseOptions.WithFeatures(new[] { KeyValuePairUtil.Create("run-nullable-analysis", "true") });
+                }
+            }
+
+            return parseOptions;
+        }
+
         private void RuleSetFile_UpdatedOnDisk(object sender, EventArgs e)
         {
             lock (_gate)
@@ -184,8 +226,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                // The IRuleSetFile held by _ruleSetFile is now out of date. Our model is we now request a new one which will have up-to-date values.
+                // The IRuleSetFile held by _ruleSetFile is now out of date. We'll dispose our old one first so as to let go of any old cached values.
+                // Then, we must reparse: in the case where the command line we have from the project system includes a /ruleset, the computation of the
+                // effective values was potentially done by the act of parsing the command line. Even though the command line didn't change textually,
+                // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
+                // includes in the IDE so we can be watching for changes again.
                 DisposeOfRuleSetFile_NoLock();
+                ReparseCommandLine_NoLock();
                 UpdateProjectOptions_NoLock();
             }
         }
@@ -225,6 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 DisposeOfRuleSetFile_NoLock();
+                _optionService.OptionChanged -= OptionService_OptionChanged;
             }
         }
     }

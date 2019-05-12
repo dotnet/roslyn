@@ -189,6 +189,34 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Maps a subset of immutable array to another immutable array.
+        /// </summary>
+        /// <typeparam name="TItem">Type of the source array items</typeparam>
+        /// <typeparam name="TResult">Type of the transformed array items</typeparam>
+        /// <param name="array">The array to transform</param>
+        /// <param name="predicate">The condition to use for filtering the array content.</param>
+        /// <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
+        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        public static ImmutableArray<TResult> SelectAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, TResult> selector)
+        {
+            if (array.Length == 0)
+            {
+                return ImmutableArray<TResult>.Empty;
+            }
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in array)
+            {
+                if (predicate(item))
+                {
+                    builder.Add(selector(item));
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
         /// Zips two immutable arrays together through a mapping function, producing another immutable array.
         /// </summary>
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
@@ -512,6 +540,13 @@ namespace Microsoft.CodeAnalysis
 
         internal static ReadOnlySpan<T> AsSpan<T>(this ImmutableArray<T> array)
             => array.DangerousGetUnderlyingArray();
+
+        internal static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>(ref T[] array)
+        {
+            var proxy = new ImmutableArrayProxy<T> { MutableArray = array };
+            array = null;
+            return Unsafe.As<ImmutableArrayProxy<T>, ImmutableArray<T>>(ref proxy);
+        }
 
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
         {

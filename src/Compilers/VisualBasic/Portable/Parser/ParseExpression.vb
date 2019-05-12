@@ -949,7 +949,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 TryEatNewLine(ScannerState.VB)
             Else
                 operatorToken = DirectCast(HandleUnexpectedToken(SyntaxKind.IsKeyword), KeywordSyntax)
-                ReportSyntaxError(operatorToken, ERRID.ERR_MissingIsInTypeOf)
             End If
 
             Dim typeName = ParseGeneralType()
