@@ -3,15 +3,16 @@
 using System;
 using System.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
     [Shared]
-    [ExportLanguageService(typeof(ISynchronousIndentationService), LanguageNames.FSharp)]
-    internal class FSharpSynchronousIndentationService : ISynchronousIndentationService
+    [ExportLanguageService(typeof(IIndentationService), LanguageNames.FSharp)]
+    internal class FSharpSynchronousIndentationService : IIndentationService
     {
         private readonly IFSharpSynchronousIndentationService _service;
 
@@ -22,17 +23,23 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _service = service;
         }
 
-        public CodeAnalysis.Editor.IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)
+        public IndentationResult GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)
         {
             var result = _service.GetDesiredIndentation(document, lineNumber, cancellationToken);
             if (result.HasValue)
             {
-                return new CodeAnalysis.Editor.IndentationResult(result.Value.BasePosition, result.Value.Offset);
+                return new IndentationResult(result.Value.BasePosition, result.Value.Offset);
             }
             else
             {
-                return null;
+                return default;
             }
+        }
+
+        IndentationResult IIndentationService.GetBlankLineIndentation(
+            Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
+        {
+            return default;
         }
     }
 }
