@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             if (initializerExpression.IsKind(SyntaxKind.TupleExpression))
             {
                 var tuple = (TupleExpressionSyntax)initializerExpression;
-                if (typeInDeclaration == null || !typeInDeclaration.IsTupleType)
+                if (!typeInDeclaration.IsTupleType)
                 {
                     return false;
                 }
