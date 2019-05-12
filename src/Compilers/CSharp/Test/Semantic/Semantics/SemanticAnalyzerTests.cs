@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -75,16 +76,21 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-// (8,40): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
-//         var o1 = (D)(delegate{ var s = default(C).ToString();});
-Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"),
-
-// (9,42): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
-//         var o2 = new D(delegate{ var s = default(C).ToString();});
-Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C")
-                );
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (8,40): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
+                //         var o1 = (D)(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"),
+                // (9,42): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
+                //         var o2 = new D(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"));
+            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.SafeOnlyWarnings)).VerifyDiagnostics(
+                // (8,40): warning CS8602: Dereference of a possibly null reference.
+                //         var o1 = (D)(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(C)").WithLocation(8, 40),
+                // (9,42): warning CS8602: Dereference of a possibly null reference.
+                //         var o2 = new D(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(C)").WithLocation(9, 42));
         }
 
         [Fact]

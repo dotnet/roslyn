@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+  <!--
+    The inclusion of this file will cause *.servicehub.service.json files to be created. and these json files contain configuration for the servicehub on how it
+    should configure our services in servicehub process
+  -->
+  <ItemGroup>
+    <ServiceHubService Include="roslynCodeAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.CodeAnalysisService" />
+    <ServiceHubService Include="roslynRemoteHost" ClassName="Microsoft.CodeAnalysis.Remote.RemoteHostService" />
+    <ServiceHubService Include="roslynSnapshot" ClassName="Microsoft.CodeAnalysis.Remote.SnapshotService" />
+    <ServiceHubService Include="roslynRemoteSymbolSearchUpdateEngine" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateEngine" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GenerateServiceHubConfigurationFiles</GetVsixSourceItemsDependsOn>
+  </PropertyGroup>
+
+  <Target Name="CalculateServiceHubConfigurationFiles">
+    <ItemGroup>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="" HostSuffix=".x86" HostIdSuffix="32" />
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" />
+
+      <_JsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.FileName)%(_ServicesWithBitness.FileSuffix).servicehub.service.json">
+        <Content>
+          <![CDATA[{
+  "host": "desktopClr%(_ServicesWithBitness.HostSuffix)",
+  "hostId": "RoslynCodeAnalysisService%(_ServicesWithBitness.HostIdSuffix)",
+  "hostGroupAllowed": true,
+  "serviceOverride": true, 
+  "entryPoint": {
+    "assemblyPath": "$(ServiceHubAssemblyBasePath.Replace('\', '\\'))Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
+    "fullClassName": "%(_ServicesWithBitness.ClassName)",
+    "appBasePath": "%VSAPPIDDIR%",
+    "configPath": "%PkgDefApplicationConfigFile%"
+  }
+}
+]]>
+        </Content>
+      </_JsonFile>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GenerateServiceHubConfigurationFiles"
+          DependsOnTargets="CalculateServiceHubConfigurationFiles"
+          BeforeTargets="CreateVsixContainer"
+          Inputs="$(MSBuildProjectFullPath)"
+          Outputs="@(_JsonFile)">
+
+    <WriteLinesToFile File="%(_JsonFile.Identity)" Lines="%(_JsonFile.Content)" Overwrite="true"/>
+
+    <ItemGroup>
+      <FileWrites Include="@(_JsonFile->'%(Identity)')"/>
+      <VSIXSourceItem Include="@(_JsonFile->'%(Identity)')" />
+    </ItemGroup>
+  </Target>
+</Project>

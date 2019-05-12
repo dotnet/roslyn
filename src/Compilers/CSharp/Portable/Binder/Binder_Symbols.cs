@@ -786,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  SyntaxFacts.IsInTypeOnlyContext(node)) &&
                 node.Identifier.ValueText == "dynamic" &&
                 !IsViableType(result) &&
-                ((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
+                Compilation.LanguageVersion >= MessageID.IDS_FeatureDynamic.RequiredVersion())
             {
                 bindingResult = Compilation.DynamicType;
                 ReportUseSiteDiagnosticForDynamic(diagnostics, node);

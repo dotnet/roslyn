@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private bool IsDestructor => this.MethodKind == MethodKind.Destructor;
 
-        public override bool ReturnsVoid => this.ReturnType.SpecialType == SpecialType.System_Void;
+        public override bool ReturnsVoid => this.ReturnType.IsVoidType();
 
         internal override int ParameterCount
         {
@@ -737,19 +737,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var containingPEModuleSymbol = _containingType.ContainingPEModule;
 
                 // Could this possibly be an extension method?
-                bool alreadySet = _packedFlags.IsExtensionMethodIsPopulated;
-                bool checkForExtension = alreadySet
+                bool isExtensionAlreadySet = _packedFlags.IsExtensionMethodIsPopulated;
+                bool checkForExtension = isExtensionAlreadySet
                     ? _packedFlags.IsExtensionMethod
                     : this.MethodKind == MethodKind.Ordinary
                         && IsValidExtensionMethodSignature()
                         && _containingType.MightContainExtensionMethods;
 
+                bool isReadOnlyAlreadySet = _packedFlags.IsReadOnlyPopulated;
+                bool checkForIsReadOnly = isReadOnlyAlreadySet
+                     ? _packedFlags.IsReadOnly
+                     : IsValidReadOnlyTarget;
+
                 bool isExtensionMethod = false;
-                if (checkForExtension)
+                bool isReadOnly = false;
+                if (checkForExtension || checkForIsReadOnly)
                 {
-                    containingPEModuleSymbol.LoadCustomAttributesFilterExtensions(_handle,
+                    containingPEModuleSymbol.LoadCustomAttributesFilterCompilerAttributes(_handle,
                         ref attributeData,
-                        out isExtensionMethod);
+                        out isExtensionMethod,
+                        out isReadOnly);
                 }
                 else
                 {
@@ -757,9 +764,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         ref attributeData);
                 }
 
-                if (!alreadySet)
+                if (!isExtensionAlreadySet)
                 {
                     _packedFlags.InitializeIsExtensionMethod(isExtensionMethod);
+                }
+
+                if (!isReadOnlyAlreadySet)
+                {
+                    _packedFlags.InitializeIsReadOnly(isReadOnly);
                 }
 
                 // Store the result in uncommon fields only if it's not empty.

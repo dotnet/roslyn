@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return ImmutableArray<MethodSymbol>.Empty; }
             }
 
-            internal sealed override bool IsDeclaredReadOnly => true;
+            // methods on classes are never 'readonly'
+            internal sealed override bool IsDeclaredReadOnly => false;
 
             public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
             {

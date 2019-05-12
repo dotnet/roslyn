@@ -92,13 +92,6 @@ namespace Microsoft.CodeAnalysis.Recommendations
         private ImmutableArray<ITypeSymbol> GetTypeSymbols(ImmutableArray<ISymbol> candidateSymbols, int ordinalInInvocation, int ordinalInLambda)
         {
             var expressionSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
-            var funcSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Func<>).FullName);
-            // We cannot help if semantic model is corrupted or incomplete (e.g. during solution loading) and those symbols are not loaded. 
-            // Just bail out.
-            if (expressionSymbol == null || funcSymbol == null)
-            {
-                return default;
-            }
 
             var builder = ArrayBuilder<ITypeSymbol>.GetInstance();
 
@@ -108,11 +101,12 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 {
                     if (method.Parameters.Length > ordinalInInvocation)
                     {
-                        var methodParameterSymbool = method.Parameters[ordinalInInvocation];
-                        var type = methodParameterSymbool.Type;
+                        var type = method.Parameters[ordinalInInvocation].Type;
                         // If type is <see cref="Expression{TDelegate}"/>, ignore <see cref="Expression"/> and use TDelegate.
-                        if (type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
-                            Equals(expressionSymbolNamedTypeCandidate.OriginalDefinition, expressionSymbol))
+                        // Ignore this check if expressionSymbol is null, e.g. semantic model is broken or incomplete or if the framework does not contain <see cref="Expression"/>.
+                        if (expressionSymbol != null &&
+                            type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
+                            expressionSymbolNamedTypeCandidate.OriginalDefinition.Equals(expressionSymbol))
                         {
                             var allTypeArguments = type.GetAllTypeArguments();
                             if (allTypeArguments.Length != 1)
@@ -123,19 +117,21 @@ namespace Microsoft.CodeAnalysis.Recommendations
                             type = allTypeArguments[0];
                         }
 
-                        // If type is <see cref="Func{TSomeArguments, TResult}"/>, extract TSomeArguments 
-                        // and find the type of thee argument corresponding to the ordinal.
-                        if (type is INamedTypeSymbol funcSymbolNamedTypeCandidate &&
-                            Equals(funcSymbolNamedTypeCandidate.Name, funcSymbol.Name) &&
-                            Equals(funcSymbolNamedTypeCandidate.ContainingNamespace, funcSymbol.ContainingNamespace))
+                        if (type.IsDelegateType())
                         {
-                            var allTypeArguments = type.GetAllTypeArguments();
-                            if (allTypeArguments.Length < ordinalInLambda)
+                            var methods = type.GetMembers(WellKnownMemberNames.DelegateInvokeName);
+                            if (methods.Length != 1)
                             {
                                 continue;
                             }
 
-                            type = allTypeArguments[ordinalInLambda];
+                            var parameters = methods[0].GetParameters();
+                            if (parameters.Length <= ordinalInLambda)
+                            {
+                                continue;
+                            }
+
+                            type = parameters[ordinalInLambda].Type;
                         }
 
                         builder.Add(type);
