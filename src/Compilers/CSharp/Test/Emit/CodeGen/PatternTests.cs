@@ -2458,23 +2458,12 @@ class Program
 {
     public static void Main()
     {
-        var nonGenericfoo = new NonGenericFoo(0);  // no problem
-        var genericFoo = new GenericFoo<int>(0); // Kaboom exception thrown
+        var generic = new Generic<int>(0);
     }
 }
-public class NonGenericFoo
+public class Generic<T>
 {
-    public NonGenericFoo(int value)
-    {
-        if (value is object obj && obj == null)
-        {
-            throw new Exception(""Kaboom!"");
-        }
-    }
-}
-public class GenericFoo<T>
-{
-    public GenericFoo(T value)
+    public Generic(T value)
     {
         if (value is object obj && obj == null)
         {
@@ -2491,7 +2480,7 @@ public class GenericFoo<T>
                 var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
                 if (options.OptimizationLevel == OptimizationLevel.Debug)
                 {
-                    compVerifier.VerifyIL("GenericFoo<T>..ctor(T)",
+                    compVerifier.VerifyIL("Generic<T>..ctor(T)",
 @"{
   // Code size       42 (0x2a)
   .maxstack  2
@@ -2524,7 +2513,7 @@ public class GenericFoo<T>
                 }
                 else
                 {
-                    compVerifier.VerifyIL("GenericFoo<T>..ctor(T)",
+                    compVerifier.VerifyIL("Generic<T>..ctor(T)",
 @"{
   // Code size       31 (0x1f)
   .maxstack  1
