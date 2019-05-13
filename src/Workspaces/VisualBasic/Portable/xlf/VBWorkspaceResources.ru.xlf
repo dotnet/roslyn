@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse">
         <source>If &lt;condition&gt; returns True, the function calculates and returns &lt;expressionIfTrue&gt;. Otherwise, it returns &lt;expressionIfFalse&gt;.</source>
-        <target state="translated">Если &lt;условие&gt; возвращает значение True, то функция вычисляет и возвращает &lt;expressionIfTrue&gt;. В противном случае она возвращает &lt;expressionIfFalse&gt;.</target>
+        <target state="translated">Если &lt;condition&gt; возвращает значение True, то функция вычисляет и возвращает &lt;expressionIfTrue&gt;. В противном случае она возвращает &lt;expressionIfFalse&gt;.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_expression_to_evaluate">

@@ -85,14 +85,14 @@ Normal ifadeyi renklendir;
 Geçersiz normal ifadeleri bildir;
 Tam çözüm analizini etkinleştir;
 Dış işlemde düzenleyici özellik analizi gerçekleştir;
-Derlemesi ayrılan kaynaklar için gezintiyi etkinleştir;
+Kaynak koda dönüştürülen kaynaklar için gezintiyi etkinleştir;
 Using yönergeleri;
 using deyimlerini sıralarken sistem yönergelerini ilk sıraya yerleştir;
 using yönerge gruplarını ayır;
 Başvuru bütünleştirilmiş kodlarında türler için using öner;
 NuGet paketlerinde türler için using öner;
 Vurgulama;
-İmlecin altındaki sembole başvuruları vurgula;
+İmlecin altındaki sembole yönelik başvuruları vurgula;
 İmlecin altında ilgili anahtar sözcükleri vurgula;
 Ana Hat Oluşturma;
 Dosyalar açılırken ana hat oluşturma moduna gir;
@@ -100,27 +100,30 @@ Yordam satır ayırıcılarını göster;
 Bildirim düzeyinde yapılar için ana hattı göster;
 Kod düzeyinde yapılar için ana hattı göster;
 Açıklamalar ve ön işlemci bölgeleri için ana hattı göster;
-Tanımlara daraltırken region öğelerini daralt;
+Tanımlara daraltırken bölgeleri daralt;
 Soluklaştırma;
 Kullanılmayan using deyimlerini soluklaştır;
 Erişilemeyen kodu soluklaştır;
 Blok Yapısı Kılavuzları;
 Bildirim düzeyinde yapılar için kılavuzları göster;
 Kod düzeyinde yapılar için kılavuzları göster;
-Düzenleyici Yardımı
+Düzenleyici Yardımı;
 /// için XML belge açıklamaları oluştur;
 /* */ açıklamaları yazarken her yeni satırın başına * ekle;
 Yeniden adlandırma izlemesi için önizleme göster;
-Enter tuşuna basıldığında dize değişmez değerlerini böl;
+Enter tuşuna basıldığında dize sabit değerlerini böl;
 string.Format çağrılarındaki geçersiz yer tutucuları bildir;
 Ayıklama Metodu;
-Özel struct'a ref veya out koyma;
-Interface veya Abstract Sınıfı Uygula;
-Özellik, olay ve metot eklerken, bunları şuraya yerleştir;
-aynı türden başka üyelerle birlikte, sonda;
+Özel yapıya ref veya out koyma;
+Arabirim veya Soyut Sınıfı Uygula;
+Özellik, olay ve metot eklerken, bunları;
+aynı türden başka üyelerle birlikte;
+sona yerleştir;
 Özellik oluştururken;
-özel durum oluşturan özellikleri tercih et;
+oluşturma özelliklerini tercih et;
 otomatik özellikleri tercih et;
+normal ifade;
+normal ifade;
 Gelişmiş renkleri kullan;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
@@ -373,12 +376,12 @@ Ad önerilerini göster;</target>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">Boş C# betik dosyası.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Visual C# Betiği</target>
         <note />
       </trans-unit>
     </body>
