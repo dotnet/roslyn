@@ -4516,10 +4516,7 @@ class safeonly
 
         private static string GetExpectedVersion()
         {
-            Assembly assembly = typeof(CSharpCompiler).GetTypeInfo().Assembly;
-            string fileVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-            string hash = CommonCompiler.ExtractShortCommitHash(assembly.GetCustomAttribute<CommitHashAttribute>().Hash);
-            return $"{fileVersion} ({hash})";
+            return CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
         }
     }
 }
