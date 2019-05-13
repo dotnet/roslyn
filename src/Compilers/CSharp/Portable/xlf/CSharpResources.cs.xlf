@@ -277,21 +277,6 @@
         <target state="translated">{0}: typ použitý v příkazu using musí být implicitně převoditelný na System.IDisposable nebo implementovat odpovídající metodu Dispose. Neměli jste v úmyslu použít await using místo using?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotBaseOrImplementedInterface">
-        <source>'{0}' is not base type or interface of {1}.</source>
-        <target state="translated">{0} není základní typ nebo rozhraní {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotDeclaredInBase">
-        <source>'{0}' is not an immediate member of {1}.</source>
-        <target state="translated">{0} není pomocný člen pro {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotImplementedInBase">
-        <source>'{0}' is not implemented in base interface {1}.</source>
-        <target state="translated">{0} se neimplementuje v základním rozhraní {1}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
         <target state="translated">Očekávala se hodnota enable, safeonly, disable nebo restore.</target>

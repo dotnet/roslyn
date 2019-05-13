@@ -277,21 +277,6 @@
         <target state="translated">"{0}": тип, используемый в операторе using, должен допускать неявное преобразование в тип "System.IDisposable" или реализовывать подходящий метод "Dispose". Возможно, вы имели в виду "await using", а не "using"?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotBaseOrImplementedInterface">
-        <source>'{0}' is not base type or interface of {1}.</source>
-        <target state="translated">"{0}" не является базовым типом или интерфейсом {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotDeclaredInBase">
-        <source>'{0}' is not an immediate member of {1}.</source>
-        <target state="translated">"{0}" не является непосредственно членом {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotImplementedInBase">
-        <source>'{0}' is not implemented in base interface {1}.</source>
-        <target state="translated">"{0}" не реализован в базовом интерфейсе {1}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
         <target state="translated">Ожидается "enable", "safeonly", "disable" или "restore"</target>

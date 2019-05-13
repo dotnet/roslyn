@@ -277,21 +277,6 @@
         <target state="translated">'{0}': Bir using deyiminde kullanılan tür örtük olarak 'System.IDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'Dispose' yöntemi uygulamalıdır. 'using' yerine 'await using' mi kullanmak istediniz?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotBaseOrImplementedInterface">
-        <source>'{0}' is not base type or interface of {1}.</source>
-        <target state="translated">'{0}', {1} temel türü veya arabirimi değil.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotDeclaredInBase">
-        <source>'{0}' is not an immediate member of {1}.</source>
-        <target state="translated">'{0}', anlık bir {1} üyesi değil.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotImplementedInBase">
-        <source>'{0}' is not implemented in base interface {1}.</source>
-        <target state="translated">'{0}', {1} temel arabiriminde uygulanmadı.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
         <target state="translated">'enable', 'safeonly', 'disable' veya 'restore' bekleniyordu</target>

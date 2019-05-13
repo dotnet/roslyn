@@ -277,21 +277,6 @@
         <target state="translated">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있거나 적합한 'Dispose' 메서드를 구현해야 합니다. 'using' 대신 'await using'을 사용하시겠습니까?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotBaseOrImplementedInterface">
-        <source>'{0}' is not base type or interface of {1}.</source>
-        <target state="translated">'{0}'이(가) {1}의 기본 형식 또는 인터페이스가 아닙니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotDeclaredInBase">
-        <source>'{0}' is not an immediate member of {1}.</source>
-        <target state="translated">'{0}'이(가) {1}의 직계 멤버가 아닙니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotImplementedInBase">
-        <source>'{0}' is not implemented in base interface {1}.</source>
-        <target state="translated">'{0}'은(는) 기본 인터페이스 {1}에서 구현되지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
         <target state="translated">'enable', 'safeonly', 'disable' 또는 'restore'가 필요합니다.</target>
@@ -751,11 +736,6 @@
 -modulename:&lt;문자열&gt;          소스 모듈의 이름을 지정합니다.
 </target>
         <note>Visual C# Compiler Options</note>
-      </trans-unit>
-      <trans-unit id="IDS_BaseTypeInBaseExpression">
-        <source>specifying base type in base expression</source>
-        <target state="translated">기본 식에 기본 형식 지정</target>
-        <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
