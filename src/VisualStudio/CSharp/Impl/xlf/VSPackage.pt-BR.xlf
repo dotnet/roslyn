@@ -79,20 +79,20 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;</source>
-        <target state="translated">Mostrar diagnósticos para arquivos fechados;
-Colorir a expressão regular;
-Realçar componentes relacionados sob o cursor;
+        <target state="translated">Mostrar diagnósticos de arquivos fechados;
+Colorir a expressão regular; 
+Realçar os componentes relacionados sob o cursor; 
 Relatar expressões regulares inválidas;
-Habilitar análise completa da solução;
+Habilitar a análise completa da solução;
 Executar análise de recurso do editor em processo externo;
-Habilitar a navegação para fontes decompostas;
-Usando diretivas;
-Colocar as diretivas do sistema primeiro ao classificar os usos;
-Separar usando grupos diretivos;
-Sugerir usos para tipos em conjuntos de referência;
-Sugerir usos para tipos em pacotes NuGet;
+Habilitar a navegação para fontes decompiladas;
+Diretivas using;
+Colocar as diretivas do sistema primeiro ao classificar usings;
+Separar grupos de diretiva using;
+Sugerir usings para tipos em assemblies de referência;
+Sugerir usings para tipos em pacotes NuGet;
 Realce;
-Realçar referências ao símbolo sob o cursor;
+Realçar as referências a símbolo sob o cursor;
 Realçar as palavras-chave relacionadas sob o cursor;
 Estrutura de tópicos;
 Inserir modo de estrutura de tópicos quando os arquivos são abertos;
@@ -102,27 +102,29 @@ Mostrar estrutura de tópicos para constructos de nível de código;
 Mostrar estrutura de tópicos para comentários e regiões de pré-processador;
 Recolher regiões ao recolher definições;
 Esmaecendo;
-Esmaecer os usos não utilizados;
+Esmaecer usings não usadas;
 Esmaecer código inacessível;
 Bloquear Guias de Estrutura;
 Mostrar guias para constructos de nível de declaração;
-Mostrar guias para constructos de nível de código;
+Mostrar guias de constructos de nível de código;
 Ajuda do Editor;
-Gerar comentários de documentação XML para ///;
-Inserir * no início de novas linhas ao escrever / * * / comentários;
+Gerar comentários da documentação XML para ///;
+Inserir * no início de novas linhas ao escrever /* */ comentários;
 Mostrar visualização para acompanhamento de renomeação;
-Dividir literais de cadeia de caracteres ao inserir;
-Relatar espaços reservados inválidos na corda. Chamadas do formato;
+Dividir literais de cadeia de caracteres ao pressionar Enter;
+Relatar espaços reservados inválidos nas chamadas a string.Format;
 Extrair Método;
-Não colocar referência ou out na estrutura personalizada;
-Implementar interface ou classe abstrata;
-Ao inserir propriedades, eventos e métodos, coloque-os;
+Não colocar ref ou out na estrutura personalizada;
+Implementar a Classe Interface ou Abstrata;
+Ao inserir propriedades, eventos e métodos, colocá-los;
 com outros membros do mesmo tipo;
 no fim;
 Ao gerar propriedade;
-prefira propriedades de lançamento;
-prefira propriedades automáticas;
-Usar cores aprimoradas;</target>
+preferir propriedades de lançamento;
+preferir propriedades automáticas;
+regex;
+expressão regular;
+Usar cores avançadas;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -374,12 +376,12 @@ Mostrar sugestões de nomes;</target>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">Um arquivo de script C# vazio.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Script do Visual C#</target>
         <note />
       </trans-unit>
     </body>

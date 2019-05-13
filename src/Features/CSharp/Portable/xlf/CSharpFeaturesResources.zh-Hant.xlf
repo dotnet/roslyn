@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CSharpFeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../CSharpFeaturesResources.resx">
     <body>
       <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
         <source>Add await and ConfigureAwait(false)</source>
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
         <source>Allow unsafe code in this project</source>
-        <target state="new">Allow unsafe code in this project</target>
+        <target state="translated">在此專案中允許不安全的程式碼</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
-        <target state="new">Fix return type</target>
+        <target state="translated">修正傳回型別</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Make_ref_struct">
         <source>Make 'ref struct'</source>
-        <target state="new">Make 'ref struct'</target>
+        <target state="translated">設為 'ref struct'</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
-        <target state="new">Unseal class '{0}'</target>
+        <target state="translated">為類別 '{0}' 解密</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
@@ -484,7 +484,7 @@
       </trans-unit>
       <trans-unit id="is_pattern">
         <source>is pattern</source>
-        <target state="translated">為模式</target>
+        <target state="translated">is 模式</target>
         <note>{Locked="is"} "is" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="deconstruction">
@@ -509,7 +509,7 @@
       </trans-unit>
       <trans-unit id="ref_local_or_expression">
         <source>ref local or expression</source>
-        <target state="translated">參考本機或運算式</target>
+        <target state="translated">ref 本機或運算式</target>
         <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="v7_switch">
