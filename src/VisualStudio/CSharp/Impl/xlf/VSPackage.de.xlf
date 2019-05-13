@@ -86,11 +86,11 @@ Ungültige reguläre Ausdrücke melden;
 Vollständige Lösungsanalyse aktivieren;
 Editor-Funktionsanalyse in externem Prozess ausführen ;
 Navigation zu dekompilierten Quellen aktivieren;
-Using-Direktiven;
-System-Direktiven beim Sortieren von Using-Direktiven an erster Stelle platzieren;
-Using-Direktivengruppen trennen;
-Using-Direktiven für Typen in Verweisassemblys vorschlagen;
-Using-Direktiven für Typen in NuGet-Paketen vorschlagen;
+Using-Anweisungen;
+Systemanweisungen beim Sortieren von Using-Anweisungen an erster Stelle platzieren;
+Using-Anweisungsgruppen trennen;
+Using-Anweisungen für Typen in Verweisassemblys vorschlagen;
+Using-Anweisungen für Typen in NuGet-Paketen vorschlagen;
 Hervorhebung;
 Verweise auf Symbol unter Cursor hervorheben;
 Verwandte Schlüsselbegriffe unter Cursor anzeigen;
@@ -122,6 +122,8 @@ am Ende;
 Beim Generieren von Eigenschaften;
 ausgelöste Eigenschaften bevorzugen;
 automatische Eigenschaften bevorzugen;
+regex;
+regulärer Ausdruck;
 Erweiterte Farben verwenden;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
@@ -374,12 +376,12 @@ Namensvorschläge anzeigen;</target>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">Eine leere C#-Skriptdatei.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Visual C#-Skript</target>
         <note />
       </trans-unit>
     </body>

@@ -122,6 +122,8 @@ al final;
 Al generar una propiedad;
 preferir propiedades de lanzamiento;
 preferir propiedades automáticas;
+regex;
+expresión regular;
 Usar colores mejorados;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
@@ -374,12 +376,12 @@ Mostrar sugerencias de nombre;</target>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">Archivo de script de C# vacío.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Script de Visual C#</target>
         <note />
       </trans-unit>
     </body>
