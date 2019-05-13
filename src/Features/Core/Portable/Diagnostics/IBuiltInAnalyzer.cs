@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
         /// <summary>
-        /// This indicates whether this builtin analyzer will only run on opened files.
+        /// This indicates whether this built-in analyzer will only run on opened files.
         /// </summary>
         bool OpenFileOnly(Workspace workspace);
     }
