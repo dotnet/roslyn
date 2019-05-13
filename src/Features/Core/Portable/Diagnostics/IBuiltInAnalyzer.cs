@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// This indicates whether this builtin analyzer will only run on opened files.
-        /// 
-        /// all analyzers that want to run on closed files must be able to run in remote host.
         /// </summary>
         bool OpenFileOnly(Workspace workspace);
     }
