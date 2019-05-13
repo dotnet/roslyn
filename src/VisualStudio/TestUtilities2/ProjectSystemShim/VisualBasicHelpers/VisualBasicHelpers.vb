@@ -21,16 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
         Public Function CreateVisualBasicProjectWithNullBinPath(environment As TestEnvironment, projectName As String) As VisualBasicProject
             Return New VisualBasicProject(projectName,
                                           MockCompilerHost.FullFrameworkCompilerHost,
-                                          environment.CreateHierarchy(projectName, projectBinPath:=Nothing, projectCapabilities:="VB"),
-                                          environment.ServiceProvider,
-                                          environment.ThreadingContext,
-                                          commandLineParserServiceOpt:=New VisualBasicCommandLineParserService())
-        End Function
-
-        Public Function CreateVisualBasicProjectWithNullBinPath(environment As TestEnvironment, projectName As String) As VisualBasicProject
-            Return New VisualBasicProject(projectName,
-                                          MockCompilerHost.FullFrameworkCompilerHost,
-                                          environment.CreateHierarchy(projectName, projectBinPath:=Nothing, projectCapabilities:="VB"),
+                                          environment.CreateHierarchy(projectName, projectBinPath:=Nothing, projectRefPath:=Nothing, "VB"),
                                           environment.ServiceProvider,
                                           environment.ThreadingContext,
                                           commandLineParserServiceOpt:=New VisualBasicCommandLineParserService())
