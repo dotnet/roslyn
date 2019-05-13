@@ -200,7 +200,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 pooledObject.Object.Add(scope.SolutionInfo);
                 pooledObject.Object.AddRange(arguments);
 
-                await connection.Target.InvokeAsync(targetName, pooledObject.Object, cancellationToken).ConfigureAwait(false);
+                // convert to array until the bug is fixed - https://github.com/microsoft/vs-streamjsonrpc/issues/272
+                await connection.Target.InvokeAsync(targetName, pooledObject.Object.ToArray(), cancellationToken).ConfigureAwait(false);
                 return true;
             }
         }
@@ -219,7 +220,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 pooledObject.Object.Add(scope.SolutionInfo);
                 pooledObject.Object.AddRange(arguments);
 
-                return await connection.Target.InvokeAsync<T>(targetName, pooledObject.Object, cancellationToken).ConfigureAwait(false);
+                // convert to array until the bug is fixed - https://github.com/microsoft/vs-streamjsonrpc/issues/272
+                return await connection.Target.InvokeAsync<T>(targetName, pooledObject.Object.ToArray(), cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -238,7 +240,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 pooledObject.Object.Add(scope.SolutionInfo);
                 pooledObject.Object.AddRange(arguments);
 
-                await connection.Target.InvokeAsync(targetName, pooledObject.Object, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
+                // convert to array until the bug is fixed - https://github.com/microsoft/vs-streamjsonrpc/issues/272
+                await connection.Target.InvokeAsync(targetName, pooledObject.Object.ToArray(), funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
                 return true;
             }
         }
@@ -258,7 +261,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 pooledObject.Object.Add(scope.SolutionInfo);
                 pooledObject.Object.AddRange(arguments);
 
-                return await connection.Target.InvokeAsync(targetName, pooledObject.Object, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
+                // convert to array until the bug is fixed - https://github.com/microsoft/vs-streamjsonrpc/issues/272
+                return await connection.Target.InvokeAsync(targetName, pooledObject.Object.ToArray(), funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
             }
         }
 
