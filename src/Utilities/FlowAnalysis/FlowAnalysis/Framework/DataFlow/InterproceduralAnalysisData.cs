@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             TAnalysisData initialAnalysisData,
             (AnalysisEntity, PointsToAbstractValue)? invocationInstanceOpt,
             (AnalysisEntity, PointsToAbstractValue)? thisOrMeInstanceForCallerOpt,
-            ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> arguments,
+            ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> argumentValuesMap,
             ImmutableDictionary<ISymbol, PointsToAbstractValue> capturedVariablesMap,
             ImmutableDictionary<AnalysisEntity, CopyAbstractValue> addressSharedEntities,
             ImmutableStack<IOperation> callStack,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Func<ISymbol, ImmutableStack<IOperation>> getInterproceduralCallStackForOwningSymbol)
         {
             Debug.Assert(initialAnalysisData != null);
-            Debug.Assert(!arguments.IsDefault);
+            Debug.Assert(argumentValuesMap != null);
             Debug.Assert(addressSharedEntities != null);
             Debug.Assert(callStack != null);
             Debug.Assert(methodsBeingAnalyzed != null);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InitialAnalysisData = initialAnalysisData;
             InvocationInstanceOpt = invocationInstanceOpt;
             ThisOrMeInstanceForCallerOpt = thisOrMeInstanceForCallerOpt;
-            Arguments = arguments;
+            ArgumentValuesMap = argumentValuesMap;
             CapturedVariablesMap = capturedVariablesMap;
             AddressSharedEntities = addressSharedEntities;
             CallStack = callStack;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public TAnalysisData InitialAnalysisData { get; }
         public (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? InvocationInstanceOpt { get; }
         public (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? ThisOrMeInstanceForCallerOpt { get; }
-        public ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> Arguments { get; }
+        public ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> ArgumentValuesMap { get; }
         public ImmutableDictionary<ISymbol, PointsToAbstractValue> CapturedVariablesMap { get; }
         public ImmutableDictionary<AnalysisEntity, CopyAbstractValue> AddressSharedEntities { get; }
         public ImmutableStack<IOperation> CallStack { get; }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             builder.Add(InitialAnalysisData.GetHashCodeOrDefault());
             AddHashCodeParts(InvocationInstanceOpt, builder);
             AddHashCodeParts(ThisOrMeInstanceForCallerOpt, builder);
-            builder.Add(HashUtilities.Combine(Arguments));
+            builder.Add(HashUtilities.Combine(ArgumentValuesMap));
             builder.Add(HashUtilities.Combine(CapturedVariablesMap));
             builder.Add(HashUtilities.Combine(AddressSharedEntities));
             builder.Add(HashUtilities.Combine(CallStack));
