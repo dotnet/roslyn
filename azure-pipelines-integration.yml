@@ -71,6 +71,15 @@ jobs:
       condition: not(succeeded())
 
     - task: PublishBuildArtifacts@1
+      displayName: Publish Secondary Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log2\$(_configuration)'
+        ArtifactName: '$(System.JobAttempt)-Secondary Logs $(_configuration) $(_completionName) $(Build.BuildNumber)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+    - task: PublishBuildArtifacts@1
       displayName: Publish Screenshots
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\$(_configuration)\net472\xUnitResults'
