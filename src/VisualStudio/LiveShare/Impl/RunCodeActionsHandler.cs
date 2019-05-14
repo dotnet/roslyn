@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         public RunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext)
             : base(codeFixService, codeRefactoringService)
         {
+            _threadingContext = threadingContext;
         }
 
         public async Task<object> HandleAsync(LSP.ExecuteCommandParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
