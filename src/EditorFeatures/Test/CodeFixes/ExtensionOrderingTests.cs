@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             // This test will fail if a cycle is detected in the ordering of our suppression fix providers.
             // If this test fails, you can break the cycle by inspecting and fixing up the contents of
             // any [ExtensionOrder()] attributes present on our suppression fix providers.
-            var providers = ExportProvider.GetExports<ISuppressionFixProvider, CodeChangeProviderMetadata>();
+            var providers = ExportProvider.GetExports<ISuppressionOrConfigurationFixProvider, CodeChangeProviderMetadata>();
             var providersPerLanguage = providers.ToPerLanguageMapWithMultipleLanguages();
 
             var csharpProviders = providersPerLanguage[LanguageNames.CSharp];

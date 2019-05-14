@@ -10,7 +10,7 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionOrConfigurationFixProvider
     {
         internal abstract class AbstractGlobalSuppressMessageCodeAction : AbstractSuppressionCodeAction
         {

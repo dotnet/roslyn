@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddBraces = nameof(AddBraces);
         public const string ChangeReturnType = nameof(ChangeReturnType);
         public const string ChangeToYield = nameof(ChangeToYield);
+        public const string ConfigureSeverity = nameof(ConfigureSeverity);
         public const string ConvertToAsync = nameof(ConvertToAsync);
         public const string ConvertToIterator = nameof(ConvertToIterator);
         public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);

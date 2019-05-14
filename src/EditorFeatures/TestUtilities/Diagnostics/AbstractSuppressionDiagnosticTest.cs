@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex);
         }
 
-        internal abstract Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
+        internal abstract Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
         private ImmutableArray<Diagnostic> FilterDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
             var fixer = providerAndFixer.Item2;
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span))
-                .Where(d => fixer.CanBeSuppressedOrUnsuppressed(d));
+                .Where(d => fixer.IsFixableDiagnostic(d));
 
             var filteredDiagnostics = FilterDiagnostics(diagnostics);
 
