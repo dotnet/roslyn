@@ -3467,7 +3467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds,
                 arguments,
                 ref useSiteDiagnostics,
-                getTypeWithAnnotationOpt: s_getTypeWithAnnotations);
+                new MethodInferenceExtensions(this));
 
             if (!result.Success)
             {
@@ -3477,8 +3477,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return definition.Construct(result.InferredTypeArguments);
         }
 
-        private readonly static Func<BoundExpression, TypeWithAnnotations> s_getTypeWithAnnotations =
-            (expr) => TypeWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr));
+        private sealed class MethodInferenceExtensions : MethodTypeInferrer.Extensions
+        {
+            private readonly NullableWalker _walker;
+
+            internal MethodInferenceExtensions(NullableWalker walker)
+            {
+                _walker = walker;
+            }
+
+            internal override TypeWithAnnotations GetTypeWithAnnotations(BoundExpression expr)
+            {
+                return TypeWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr));
+            }
+
+            internal override TypeWithAnnotations GetMethodGroupResultType(BoundMethodGroup group, MethodSymbol method)
+            {
+                if (_walker.TryGetMethodGroupReceiverNullability(group.ReceiverOpt, out TypeWithState receiverType))
+                {
+                    if (!method.IsStatic)
+                    {
+                        method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
+                    }
+                }
+                return method.ReturnTypeWithAnnotations;
+            }
+        }
 
         private ImmutableArray<BoundExpression> GetArgumentsForMethodTypeInference(ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitArgumentResult> argumentResults)
         {

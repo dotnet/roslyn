@@ -2133,10 +2133,10 @@ class Test
         s2 /*T:string?*/ .ToString(); // 2
 
         var s3 = M(M2);
-        s3 /*T:string!*/ .ToString(); // 3
+        s3 /*T:string?*/ .ToString(); // 3
 
         var s4 = M(M2!); // suppressed
-        s4 /*T:string!*/ .ToString(); // 4
+        s4 /*T:string?*/ .ToString(); // 4
     }
     static T M<T>(System.Func<T> x) => throw null!;
     static string? M2() => throw null!;
@@ -2144,17 +2144,19 @@ class Test
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
 
-            // Missing warnings on s3 and s4
-            // Tracked by https://github.com/dotnet/roslyn/issues/32697
-
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Dereference of a possibly null reference.
                 //         s /*T:string?*/ .ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9),
                 // (9,9): warning CS8602: Dereference of a possibly null reference.
                 //         s2 /*T:string?*/ .ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(9, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(9, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         s3 /*T:string?*/ .ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s3").WithLocation(12, 9),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
+                //         s4 /*T:string?*/ .ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s4").WithLocation(15, 9));
             CompileAndVerify(comp);
         }
 
@@ -2268,12 +2270,12 @@ class A
     void M()
     {
         IEnumerable<string?> c = null!;
-        c.S(G)/*T:IEnumerable<object!>!*/; // 1
-        c.S(G!)/*T:IEnumerable<object!>!*/;
+        c.S(G)/*T:System.Collections.Generic.IEnumerable<object!>!*/; // 1
+        c.S(G!)/*T:System.Collections.Generic.IEnumerable<object!>!*/;
 
         IEnumerable<string> c2 = null!;
-        c2.S(G)/*T:IEnumerable<object!>!*/;
-        c2.S(G2)/*T:IEnumerable<object!>!*/;
+        c2.S(G)/*T:System.Collections.Generic.IEnumerable<object!>!*/;
+        c2.S(G2)/*T:System.Collections.Generic.IEnumerable<object!>!*/;
     }
     static object G(string s) => throw null!;
     static object G2(string? s) => throw null!;
@@ -2292,8 +2294,7 @@ static class E
                 //         c.S(G)/*T:IEnumerable<object!>!*/; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "G").WithArguments("s", "object A.G(string s)", "System.Func<string?, object>").WithLocation(8, 13)
                 );
-            // https://github.com/dotnet/roslyn/issues/33635
-            // comp.VerifyTypes();
+            comp.VerifyTypes();
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
@@ -73004,8 +73005,7 @@ public delegate (T, U) MyDelegate<T, U>(U u);
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
-            // https://github.com/dotnet/roslyn/issues/33637
-            //comp.VerifyTypes();
+            comp.VerifyTypes();
         }
 
         [WorkItem(33638, "https://github.com/dotnet/roslyn/issues/33638")]
