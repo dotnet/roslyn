@@ -1336,7 +1336,7 @@ moreArguments:
             // widest possible escape via writeable ref-like receiver or ref/out argument.
             uint escapeTo = scopeOfTheContainingExpression;
 
-            var isReadOnlyInvocation = symbol switch
+            var isReceiverRefReadOnly = symbol switch
             {
                 MethodSymbol m => m.IsEffectivelyReadOnly,
                 // TODO: val escape checks should be skipped for property accesses when
@@ -1350,7 +1350,7 @@ moreArguments:
 
             // collect all writeable ref-like arguments, including receiver
             var receiverType = receiverOpt?.Type;
-            if (receiverType?.IsRefLikeType == true && !isReadOnlyInvocation)
+            if (receiverType?.IsRefLikeType == true && !isReceiverRefReadOnly)
             {
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
             }
