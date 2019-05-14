@@ -81,12 +81,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString messageFormat,
             bool isUnneccessary = false,
             bool isConfigurable = true,
+            LocalizableString description = null,
             params string[] customTags)
             => new DiagnosticDescriptor(
                     id, title, messageFormat,
                     DiagnosticCategory.Style,
                     DiagnosticSeverity.Hidden,
                     isEnabledByDefault: true,
+                    description: description,
                     customTags: DiagnosticCustomTags.Create(isUnneccessary, isConfigurable, customTags));
 
         public sealed override void Initialize(AnalysisContext context)

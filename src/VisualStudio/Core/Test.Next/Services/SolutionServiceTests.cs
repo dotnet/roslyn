@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -278,6 +279,37 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 await VerifySolutionUpdate(workspace, s =>
                 {
                     return s.RemoveAdditionalDocument(additionalDocumentId);
+                });
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestAnalyzerConfigDocument()
+        {
+            var code = @"class Test { void Method() { } }";
+            using (var workspace = TestWorkspace.CreateCSharp(code))
+            {
+                var projectId = workspace.CurrentSolution.ProjectIds.First();
+                var analyzerConfigDocumentId = DocumentId.CreateNewId(projectId);
+                var analyzerConfigDocumentInfo = DocumentInfo.Create(
+                    analyzerConfigDocumentId, ".editorconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("root = true"), VersionStamp.Create())));
+
+                await VerifySolutionUpdate(workspace, s =>
+                {
+                    return s.AddAnalyzerConfigDocuments(ImmutableArray.Create(analyzerConfigDocumentInfo));
+                });
+
+                workspace.OnAnalyzerConfigDocumentAdded(analyzerConfigDocumentInfo);
+
+                await VerifySolutionUpdate(workspace, s =>
+                {
+                    return s.WithAnalyzerConfigDocumentText(analyzerConfigDocumentId, SourceText.From("root = false"));
+                });
+
+                await VerifySolutionUpdate(workspace, s =>
+                {
+                    return s.RemoveAnalyzerConfigDocument(analyzerConfigDocumentId);
                 });
             }
         }

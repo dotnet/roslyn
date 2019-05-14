@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -147,8 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 _currentWindow = value;
                 _workspace.Window = value;
 
-                _interactiveHost.SetOutput(_currentWindow.OutputWriter);
-                _interactiveHost.SetErrorOutput(_currentWindow.ErrorOutputWriter);
+                Task.Run(() => _interactiveHost.SetOutputs(_currentWindow.OutputWriter, _currentWindow.ErrorOutputWriter));
 
                 _currentWindow.SubmissionBufferAdded += SubmissionBufferAdded;
                 _interactiveCommands = _commandsFactory.CreateInteractiveCommands(_currentWindow, CommandPrefix, _commands);
@@ -460,8 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var window = GetCurrentWindowOrThrow();
             var resetOptions = ResetOptions;
 
-            _interactiveHost.SetOutput(window.OutputWriter);
-            _interactiveHost.SetErrorOutput(window.ErrorOutputWriter);
+            _interactiveHost.SetOutputs(window.OutputWriter, window.ErrorOutputWriter);
 
             return ResetAsyncWorker(GetHostOptions(initialize: true, resetOptions.Is64Bit));
         }

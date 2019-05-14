@@ -25,12 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var operand = conversion.Operand;
 
-            if (conversion.ConversionKind.IsUserDefinedConversion())
-            {
-                EmitSpecialUserDefinedConversion(conversion, used, operand);
-                return;
-            }
-
             if (!used && !conversion.ConversionHasSideEffects())
             {
                 EmitExpression(operand, false); // just do expr side effects
@@ -43,9 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitPopIfUnused(used);
         }
 
-        private void EmitSpecialUserDefinedConversion(BoundConversion conversion, bool used, BoundExpression operand)
+        private void EmitReadOnlySpanFromArrayExpression(BoundReadOnlySpanFromArray expression, bool used)
         {
-            var typeTo = (NamedTypeSymbol)conversion.Type;
+            BoundExpression operand = expression.Operand;
+            var typeTo = (NamedTypeSymbol)expression.Type;
 
             Debug.Assert((operand.Type.IsArray()) &&
                          this._module.Compilation.IsReadOnlySpanType(typeTo),
@@ -60,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     // consumes 1 argument (array) and produces one result (span)
                     _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
-                    EmitSymbolToken(conversion.SymbolOpt, conversion.Syntax, optArgList: null);
+                    EmitSymbolToken(expression.ConversionMethod, expression.Syntax, optArgList: null);
                 }
             }
         }

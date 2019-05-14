@@ -77,21 +77,20 @@ class Program
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-// (8,40): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
-//         var o1 = (D)(delegate{ var s = default(C).ToString();});
-Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"),
-
-// (9,42): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
-//         var o2 = new D(delegate{ var s = default(C).ToString();});
-Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C")
-                );
+                // (8,40): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
+                //         var o1 = (D)(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"),
+                // (9,42): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
+                //         var o2 = new D(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("Program.C"));
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.SafeOnlyWarnings)).VerifyDiagnostics(
                 // (8,40): warning CS8602: Dereference of a possibly null reference.
                 //         var o1 = (D)(delegate{ var s = default(C).ToString();});
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(C)").WithLocation(8, 40)
-                // Missing warning due to https://github.com/dotnet/roslyn/issues/32698
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(C)").WithLocation(8, 40),
+                // (9,42): warning CS8602: Dereference of a possibly null reference.
+                //         var o2 = new D(delegate{ var s = default(C).ToString();});
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(C)").WithLocation(9, 42));
         }
 
         [Fact]

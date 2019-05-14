@@ -8,9 +8,11 @@ Project level nullable context can be set by using "nullable" command line switc
 -nullable[+|-]                        Specify nullable context option enable|disable.
 -nullable:{enable|disable|safeonly|warnings|safeonlywarnings}   Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
 
-Through msbuild the context could be set by supplying an argument for a "NullableContextOptions" parameter of Csc build task.
+Through msbuild the context could be set by supplying an argument for a "Nullable" parameter of Csc build task.
 Accepted values are "enable", "disable", "safeonly", "warnings", "safeonlywarnings", or null (for the default nullable context according to the compiler).
-The Microsoft.CSharp.Core.targets passes value of msbuild property named "NullableContextOptions" for that parameter.
+The Microsoft.CSharp.Core.targets passes value of msbuild property named "Nullable" for that parameter.
+
+Note that in previous preview releases of C# 8.0 this "Nullable" property was successively named "NullableReferenceTypes" then "NullableContextOptions".
 
 ## Annotations
 In source, nullable reference types are annotated with `?`.

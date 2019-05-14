@@ -36,9 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
             Path.Combine("dependency", "vbc.exe"))
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
-        Private Shared ReadOnly s_compilerVersion As String = FileVersionInfo.GetVersionInfo(GetType(CommandLineTests).Assembly.Location).FileVersion
-        Private Shared ReadOnly s_compilerShortCommitHash As String =
-            CommonCompiler.ExtractShortCommitHash(GetType(CommandLineTests).Assembly.GetCustomAttribute(Of CommitHashAttribute).Hash)
+        Private Shared ReadOnly s_compilerVersion As String = CommonCompiler.GetProductVersion(GetType(CommandLineTests))
 
         Private Shared Function DefaultParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
@@ -514,28 +512,26 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
-            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D")
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\d\w]+)?", "version A.B.C-d")
             patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
-Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)
+Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 </text>.Value.Replace(vbLf, vbCrLf).Trim,
                 patched)
-            ' Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
-            ' making the last part optional will fix this.
 
             CleanupAllGeneratedFiles(src)
         End Sub
 
         <Theory,
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (<developer build>)",
-                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (ABCDEF01)",
-                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (abcdef90)",
-                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (12345678)",
-                       "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)")>
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C-d (<developer build>)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C-d (ABCDEF01)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C-d (abcdef90)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C-d (12345678)",
+                       "Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)")>
         Public Sub TestReplaceCommitHash(orig As String, expected As String)
             Assert.Equal(expected, ReplaceCommitHash(orig))
         End Sub
@@ -557,15 +553,13 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
-            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(\.\d+)?", "version A.B.C.D")
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\w\d]+)?", "version A.B.C-d")
             patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
-Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)
+Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.
 </text>.Value.Replace(vbLf, vbCrLf).Trim,
                 patched)
-            ' Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
-            ' making the last part optional will fix this.
 
             CleanupAllGeneratedFiles(src)
         End Sub
@@ -6056,7 +6050,7 @@ PATH(6) : error BC30203: Identifier expected.
         End Sub
 
         Private Shared Function ReplacePathAndVersionAndHash(result As XElement, file As TempFile) As String
-            Return result.Value.Replace("PATH", file.Path).Replace("VERSION", s_compilerVersion).Replace("HASH", s_compilerShortCommitHash).Replace(vbLf, vbCrLf)
+            Return result.Value.Replace("PATH", file.Path).Replace("VERSION (HASH)", s_compilerVersion).Replace(vbLf, vbCrLf)
         End Function
 
         <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
@@ -8914,7 +8908,6 @@ End Class
         <Fact()>
         Public Sub Version()
             Dim folderName = Temp.CreateDirectory().ToString()
-            Dim expected As String = $"{s_compilerVersion} ({s_compilerShortCommitHash})"
 
             Dim argss = {
                 "/version",
@@ -8924,7 +8917,7 @@ End Class
 
             For Each args In argss
                 Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, args, startFolder:=folderName)
-                Assert.Equal(expected, output.Trim())
+                Assert.Equal(s_compilerVersion, output.Trim())
             Next
         End Sub
 
