@@ -21,8 +21,18 @@ namespace Analyzer.Utilities.PooledObjects
 
         public ImmutableDictionary<K, V> ToImmutableDictionaryAndFree()
         {
-            var result = this.ToImmutableDictionary();
-            this.Free();
+            ImmutableDictionary<K, V> result;
+            if (Count == 0)
+            {
+                result = ImmutableDictionary<K, V>.Empty;
+            }
+            else
+            {
+                result = this.ToImmutableDictionary();
+                this.Clear();
+            }
+
+            _pool?.Free(this);
             return result;
         }
 
