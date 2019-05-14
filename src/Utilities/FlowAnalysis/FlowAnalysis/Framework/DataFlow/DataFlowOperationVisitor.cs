@@ -1279,7 +1279,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             continue;
 
                         case OperationKind.FlowCapture:
-                            if (AnalysisEntityFactory.TryCreate(current, out var targetEntity))
+                            if (AnalysisEntityFactory.TryCreate(current, out var targetEntity) &&
+                                targetEntity.IsCandidatePredicateEntity())
                             {
                                 Debug.Assert(targetEntity.CaptureIdOpt != null);
                                 return targetEntity;
