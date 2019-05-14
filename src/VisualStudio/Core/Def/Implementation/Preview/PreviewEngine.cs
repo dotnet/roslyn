@@ -133,6 +133,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             allDocumentsWithChanges.AddRange(addedAdditionalDocuments);
             allDocumentsWithChanges.AddRange(removedAdditionalDocuments);
 
+            // AnalyzerConfig Documents
+            var changedAnalyzerConfigDocuments = projectChanges.SelectMany(p => p.GetChangedAnalyzerConfigDocuments());
+            var addedAnalyzerConfigDocuments = projectChanges.SelectMany(p => p.GetAddedAnalyzerConfigDocuments());
+            var removedAnalyzerConfigDocuments = projectChanges.SelectMany(p => p.GetRemovedAnalyzerConfigDocuments());
+
+            allDocumentsWithChanges.AddRange(changedAnalyzerConfigDocuments);
+            allDocumentsWithChanges.AddRange(addedAnalyzerConfigDocuments);
+            allDocumentsWithChanges.AddRange(removedAnalyzerConfigDocuments);
+
             AppendFileChanges(allDocumentsWithChanges, builder);
 
             // References (metadata/project/analyzer)

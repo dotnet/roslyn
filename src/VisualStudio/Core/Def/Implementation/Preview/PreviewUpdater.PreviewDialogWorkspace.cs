@@ -25,25 +25,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             public void CloseDocument(TextDocument document, SourceText text)
             {
-                if (document is Document)
+                switch (document)
                 {
-                    OnDocumentClosed(document.Id, new PreviewTextLoader(text));
-                }
-                else
-                {
-                    OnAdditionalDocumentClosed(document.Id, new PreviewTextLoader(text));
+                    case Document _:
+                        OnDocumentClosed(document.Id, new PreviewTextLoader(text));
+                        break;
+
+                    case AnalyzerConfigDocument _:
+                        OnAnalyzerConfigDocumentClosed(document.Id, new PreviewTextLoader(text));
+                        break;
+
+                    default:
+                        OnAdditionalDocumentClosed(document.Id, new PreviewTextLoader(text));
+                        break;
                 }
             }
 
             public void OpenDocument(TextDocument document)
             {
-                if (document is Document)
+                switch (document)
                 {
-                    OpenDocument(document.Id);
-                }
-                else
-                {
-                    OpenAdditionalDocument(document.Id);
+                    case Document _:
+                        OpenDocument(document.Id);
+                        break;
+
+                    case AnalyzerConfigDocument _:
+                        OpenAnalyzerConfigDocument(document.Id);
+                        break;
+
+                    default:
+                        OpenAdditionalDocument(document.Id);
+                        break;
                 }
             }
 
@@ -55,6 +67,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             protected override void ApplyAdditionalDocumentTextChanged(DocumentId id, SourceText text)
             {
                 OnAdditionalDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
+            }
+
+            protected override void ApplyAnalyzerConfigDocumentTextChanged(DocumentId id, SourceText text)
+            {
+                OnAnalyzerConfigDocumentTextChanged(id, text, PreservationMode.PreserveIdentity);
             }
 
             private class PreviewTextLoader : TextLoader

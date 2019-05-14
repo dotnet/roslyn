@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
@@ -313,11 +314,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (var pc in projectChanges)
             {
                 if (pc.GetAddedAdditionalDocuments().Any() ||
+                    pc.GetAddedAnalyzerConfigDocuments().Any() ||
                     pc.GetAddedAnalyzerReferences().Any() ||
                     pc.GetAddedDocuments().Any() ||
                     pc.GetAddedMetadataReferences().Any() ||
                     pc.GetAddedProjectReferences().Any() ||
                     pc.GetRemovedAdditionalDocuments().Any() ||
+                    pc.GetRemovedAnalyzerConfigDocuments().Any() ||
                     pc.GetRemovedAnalyzerReferences().Any() ||
                     pc.GetRemovedDocuments().Any() ||
                     pc.GetRemovedMetadataReferences().Any() ||
@@ -433,6 +436,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.ChangeCompilationOptions:
                 case ApplyChangesKind.ChangeParseOptions:
                 case ApplyChangesKind.ChangeDocumentInfo:
+                case ApplyChangesKind.AddAnalyzerConfigDocument:
+                case ApplyChangesKind.RemoveAnalyzerConfigDocument:
+                case ApplyChangesKind.ChangeAnalyzerConfigDocument:
                     return true;
 
                 default:
@@ -712,16 +718,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override void ApplyDocumentAdded(DocumentInfo info, SourceText text)
         {
-            AddDocumentCore(info, text, isAdditionalDocument: false);
+            AddDocumentCore(info, text, isAdditionalDocument: false, isAnalyzerConfigDocument: false);
         }
 
         protected override void ApplyAdditionalDocumentAdded(DocumentInfo info, SourceText text)
         {
-            AddDocumentCore(info, text, isAdditionalDocument: true);
+            AddDocumentCore(info, text, isAdditionalDocument: true, isAnalyzerConfigDocument: false);
         }
 
-        private void AddDocumentCore(DocumentInfo info, SourceText initialText, bool isAdditionalDocument)
+        protected override void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
         {
+            AddDocumentCore(info, text, isAdditionalDocument: false, isAnalyzerConfigDocument: true);
+        }
+
+        private void AddDocumentCore(DocumentInfo info, SourceText initialText, bool isAdditionalDocument, bool isAnalyzerConfigDocument)
+        {
+            Debug.Assert(!(isAdditionalDocument && isAnalyzerConfigDocument));
+
+            var isAdditionalOrAnalyzerConfigDocument = isAdditionalDocument || isAnalyzerConfigDocument;
             GetProjectData(info.Id.ProjectId, out var hierarchy, out var project);
 
             // If the first namespace name matches the name of the project, then we don't want to
@@ -736,15 +750,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (IsWebsite(project))
             {
-                AddDocumentToFolder(project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
+                AddDocumentToFolder(project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, info.SourceCodeKind, initialText, info.FilePath, isAdditionalOrAnalyzerConfigDocument);
             }
             else if (folders.Any())
             {
-                AddDocumentToFolder(project, info.Id, folders, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
+                AddDocumentToFolder(project, info.Id, folders, info.Name, info.SourceCodeKind, initialText, info.FilePath, isAdditionalOrAnalyzerConfigDocument);
             }
             else
             {
-                AddDocumentToProject(project, info.Id, info.Name, info.SourceCodeKind, initialText, isAdditionalDocument: isAdditionalDocument, filePath: info.FilePath);
+                AddDocumentToProject(project, info.Id, info.Name, info.SourceCodeKind, initialText, info.FilePath, isAdditionalOrAnalyzerConfigDocument);
             }
 
             var undoManager = TryGetUndoManager();
@@ -752,6 +766,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (isAdditionalDocument)
             {
                 undoManager?.Add(new RemoveAdditionalDocumentUndoUnit(this, info.Id));
+            }
+            else if (isAnalyzerConfigDocument)
+            {
+                undoManager?.Add(new RemoveAnalyzerConfigDocumentUndoUnit(this, info.Id));
             }
             else
             {
@@ -823,7 +841,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SourceCodeKind sourceCodeKind,
             SourceText initialText = null,
             string filePath = null,
-            bool isAdditionalDocument = false)
+            bool isAdditionalOrAnalyzerConfigDocument = false)
         {
             string folderPath = null;
             if (filePath == null && !project.TryGetFullPath(out folderPath))
@@ -832,7 +850,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
-            return AddDocumentToProjectItems(project.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
+            return AddDocumentToProjectItems(project.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalOrAnalyzerConfigDocument);
         }
 
         private ProjectItem AddDocumentToFolder(
@@ -843,7 +861,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SourceCodeKind sourceCodeKind,
             SourceText initialText = null,
             string filePath = null,
-            bool isAdditionalDocument = false)
+            bool isAdditionalOrAnalyzerConfigDocument = false)
         {
             var folder = project.FindOrCreateFolder(folders);
 
@@ -854,7 +872,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new Exception(ServicesVSResources.Could_not_find_location_of_folder_on_disk);
             }
 
-            return AddDocumentToProjectItems(folder.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalDocument);
+            return AddDocumentToProjectItems(folder.ProjectItems, documentId, folderPath, documentName, sourceCodeKind, initialText, filePath, isAdditionalOrAnalyzerConfigDocument);
         }
 
         private ProjectItem AddDocumentToProjectItems(
@@ -865,12 +883,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SourceCodeKind sourceCodeKind,
             SourceText initialText,
             string filePath,
-            bool isAdditionalDocument)
+            bool isAdditionalOrAnalyzerConfigDocument)
         {
             if (filePath == null)
             {
                 var baseName = Path.GetFileNameWithoutExtension(documentName);
-                var extension = isAdditionalDocument ? Path.GetExtension(documentName) : GetPreferredExtension(documentId, sourceCodeKind);
+                var extension = isAdditionalOrAnalyzerConfigDocument ? Path.GetExtension(documentName) : GetPreferredExtension(documentId, sourceCodeKind);
                 var uniqueName = projectItems.GetUniqueName(baseName, extension);
                 filePath = Path.Combine(folderPath, uniqueName);
             }
@@ -889,8 +907,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         private void RemoveDocumentCore(
-            DocumentId documentId, bool isAdditionalDocument)
+            DocumentId documentId, bool isAdditionalDocument, bool isAnalyzerConfigDocument)
         {
+            Debug.Assert(!(isAdditionalDocument && isAnalyzerConfigDocument));
+
             if (documentId == null)
             {
                 throw new ArgumentNullException(nameof(documentId));
@@ -919,6 +939,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     undoManager?.Add(new AddAdditionalDocumentUndoUnit(this, docInfo, text));
                 }
+                else if (isAnalyzerConfigDocument)
+                {
+                    undoManager?.Add(new AddAnalyzerConfigDocumentUndoUnit(this, docInfo, text));
+                }
                 else
                 {
                     undoManager?.Add(new AddDocumentUndoUnit(this, docInfo, text));
@@ -928,12 +952,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override void ApplyDocumentRemoved(DocumentId documentId)
         {
-            RemoveDocumentCore(documentId, isAdditionalDocument: false);
+            RemoveDocumentCore(documentId, isAdditionalDocument: false, isAnalyzerConfigDocument: false);
         }
 
         protected override void ApplyAdditionalDocumentRemoved(DocumentId documentId)
         {
-            RemoveDocumentCore(documentId, isAdditionalDocument: true);
+            RemoveDocumentCore(documentId, isAdditionalDocument: true, isAnalyzerConfigDocument: false);
+        }
+
+        protected override void ApplyAnalyzerConfigDocumentRemoved(DocumentId documentId)
+        {
+            RemoveDocumentCore(documentId, isAdditionalDocument: false, isAnalyzerConfigDocument: true);
         }
 
         public override void OpenDocument(DocumentId documentId, bool activate = true)
@@ -946,12 +975,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             OpenDocumentCore(documentId, activate);
         }
 
+        public override void OpenAnalyzerConfigDocument(DocumentId documentId, bool activate = true)
+        {
+            OpenDocumentCore(documentId, activate);
+        }
+
         public override void CloseDocument(DocumentId documentId)
         {
             CloseDocumentCore(documentId);
         }
 
         public override void CloseAdditionalDocument(DocumentId documentId)
+        {
+            CloseDocumentCore(documentId);
+        }
+
+        public override void CloseAnalyzerConfigDocument(DocumentId documentId)
         {
             CloseDocumentCore(documentId);
         }
@@ -1057,6 +1096,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ApplyTextDocumentChange(documentId, newText);
         }
 
+        protected override void ApplyAnalyzerConfigDocumentTextChanged(DocumentId documentId, SourceText newText)
+        {
+            ApplyTextDocumentChange(documentId, newText);
+        }
+
         private void ApplyTextDocumentChange(DocumentId documentId, SourceText newText)
         {
             EnsureEditableDocuments(documentId);
@@ -1070,7 +1114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (IsDocumentOpen(documentId))
                 {
-                    var textBuffer = this.CurrentSolution.GetDocument(documentId).GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Container.TryGetTextBuffer();
+                    var textBuffer = this.CurrentSolution.GetTextDocument(documentId).GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Container.TryGetTextBuffer();
 
                     if (textBuffer != null)
                     {

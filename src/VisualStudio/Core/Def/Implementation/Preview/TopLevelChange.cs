@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
                 // Apply file change to document.
                 ApplyFileChangesCore(oldTextDocument, updatedTextDocument?.Id, updatedDocumentTextOpt,
-                    fileChange.CheckState, fileChange.IsAdditionalDocumentChange);
+                    fileChange.CheckState, fileChange.IsAdditionalDocumentChange, fileChange.IsAnalyzerConfigDocumentChange);
 
                 // Now apply file change to linked documents.
                 if (oldTextDocument is Document oldDocument)
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                         var newLinkedDocumentIdOpt = updatedDocumentTextOpt != null ? oldLinkedDocument.Id : null;
 
                         ApplyFileChangesCore(oldLinkedDocument, newLinkedDocumentIdOpt, updatedDocumentTextOpt,
-                            fileChange.CheckState, fileChange.IsAdditionalDocumentChange);
+                            fileChange.CheckState, fileChange.IsAdditionalDocumentChange, fileChange.IsAnalyzerConfigDocumentChange);
                     }
                 }
                 else if (updatedTextDocument is Document updatedDocument)
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                     foreach (var newLinkedDocumentId in updatedDocument.GetLinkedDocumentIds())
                     {
                         ApplyFileChangesCore(oldTextDocument, newLinkedDocumentId, updatedDocumentTextOpt,
-                            fileChange.CheckState, fileChange.IsAdditionalDocumentChange);
+                            fileChange.CheckState, fileChange.IsAdditionalDocumentChange, fileChange.IsAnalyzerConfigDocumentChange);
                     }
                 }
             }
@@ -116,10 +116,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 DocumentId updatedDocumentIdOpt,
                 SourceText updateDocumentTextOpt,
                 __PREVIEWCHANGESITEMCHECKSTATE checkState,
-                bool isAdditionalDoc)
+                bool isAdditionalDoc,
+                bool isAnalyzerConfigDoc)
             {
                 Debug.Assert(oldDocument != null || updatedDocumentIdOpt != null);
                 Debug.Assert((updatedDocumentIdOpt != null) == (updateDocumentTextOpt != null));
+                Debug.Assert(!(isAdditionalDoc && isAnalyzerConfigDoc));
 
                 if (oldDocument == null)
                 {
@@ -129,6 +131,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                     {
                         solution = isAdditionalDoc ?
                             solution.RemoveAdditionalDocument(updatedDocumentIdOpt) :
+                            isAnalyzerConfigDoc ?
+                            solution.RemoveAnalyzerConfigDocument(updatedDocumentIdOpt) :
                             solution.RemoveDocument(updatedDocumentIdOpt);
                     }
                 }
@@ -141,6 +145,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                         var oldText = oldDocument.GetTextAsync().Result.ToString();
                         solution = isAdditionalDoc ?
                             solution.AddAdditionalDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath) :
+                            isAnalyzerConfigDoc ?
+                            solution.AddAnalyzerConfigDocument(oldDocument.Id, oldDocument.Name, SourceText.From(oldText), oldDocument.Folders, oldDocument.FilePath) :
                             solution.AddDocument(oldDocument.Id, oldDocument.Name, oldText, oldDocument.Folders, oldDocument.FilePath);
                     }
                 }
@@ -151,6 +157,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                     // Changed document.
                     solution = isAdditionalDoc ?
                         solution.WithAdditionalDocumentText(updatedDocumentIdOpt, updateDocumentTextOpt) :
+                        isAnalyzerConfigDoc ?
+                        solution.WithAnalyzerConfigDocumentText(updatedDocumentIdOpt, updateDocumentTextOpt) :
                         solution.WithDocumentText(updatedDocumentIdOpt, updateDocumentTextOpt);
                 }
             }

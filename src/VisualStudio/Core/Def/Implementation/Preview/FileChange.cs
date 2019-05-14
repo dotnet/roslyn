@@ -210,7 +210,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             return _right.WithText(UpdateBufferText());
         }
 
-        public bool IsAdditionalDocumentChange => !((_left ?? _right) is Document);
+        public bool IsAdditionalDocumentChange => !((_left ?? _right) is Document) && !IsAnalyzerConfigDocumentChange;
+        public bool IsAnalyzerConfigDocumentChange => (_left ?? _right) is AnalyzerConfigDocument;
 
         internal override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
         {

@@ -526,6 +526,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _workspace.ApplyChangeToWorkspace(w => w.OnAdditionalDocumentOpened(documentId, textContainer));
                 }
 
+                foreach (var (documentId, textContainer) in analyzerConfigDocumentsToOpen)
+                {
+                    _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerConfigDocumentOpened(documentId, textContainer));
+                }
+
                 // Check for those files being opened to start wire-up if necessary
                 _workspace.QueueCheckForFilesBeingOpen(documentFileNamesAdded.ToImmutable());
             }
