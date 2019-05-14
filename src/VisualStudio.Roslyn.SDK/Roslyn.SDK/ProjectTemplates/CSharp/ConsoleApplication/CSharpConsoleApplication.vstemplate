@@ -22,6 +22,7 @@
     <ProjectTypeTag>Console</ProjectTypeTag>
     <ProjectTypeTag>VSSDK</ProjectTypeTag>
     <ProjectTypeTag>Roslyn</ProjectTypeTag>
+    <ProjectTypeTag>Extensions</ProjectTypeTag>
   </TemplateData>
   <TemplateContent>
     <Project File="ConsoleApplication.csproj" TargetFileName="$projectname$.csproj" ReplaceParameters="true">

@@ -21,6 +21,7 @@
     <PlatformTag>macOS</PlatformTag>
     <ProjectTypeTag>VSSDK</ProjectTypeTag>
     <ProjectTypeTag>Roslyn</ProjectTypeTag>
+    <ProjectTypeTag>Extensions</ProjectTypeTag>
   </TemplateData>
   <TemplateContent>
     <!-- These projects are created in the order they are listed. 
