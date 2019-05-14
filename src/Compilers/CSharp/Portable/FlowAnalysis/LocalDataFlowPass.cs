@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -33,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected int nextVariableSlot = 1;
 
+        private readonly int _maxSlotDepth;
+
         /// <summary>
         /// A cache for remember which structs are empty.
         /// </summary>
@@ -43,9 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol member,
             BoundNode node,
             EmptyStructTypeCache emptyStructs,
-            bool trackUnassignments)
+            bool trackUnassignments,
+            int maxSlotDepth = 0)
             : base(compilation, member, node, nonMonotonicTransferFunction: trackUnassignments)
         {
+            _maxSlotDepth = maxSlotDepth;
             _emptyStructTypeCache = emptyStructs;
         }
 
@@ -109,6 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return -1;
                 }
 
+                if (_maxSlotDepth > 0 && GetSlotDepth(containingSlot) >= _maxSlotDepth)
+                {
+                    return -1;
+                }
+
                 slot = nextVariableSlot++;
                 _variableSlot.Add(identifier, slot);
                 if (slot >= variableBySlot.Length)
@@ -130,6 +138,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return slot;
+        }
+
+        private int GetSlotDepth(int slot)
+        {
+            int depth = 0;
+            while (slot > 0)
+            {
+                depth++;
+                slot = variableBySlot[slot].ContainingSlot;
+            }
+            return depth;
         }
 
         protected abstract void Normalize(ref TLocalState state);
