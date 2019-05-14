@@ -278,5 +278,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             return false;
         }
+
+        internal bool IsCandidatePredicateEntity()
+            => Type.SpecialType == SpecialType.System_Boolean ||
+               Type.IsNullableOfBoolean() ||
+               Type.Language == LanguageNames.VisualBasic && Type.SpecialType == SpecialType.System_Object;
     }
 }

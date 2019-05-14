@@ -85,9 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, DictionaryAnalysisData<TKey, TValue> truePredicatedData, DictionaryAnalysisData<TKey, TValue> falsePredicatedData)
         {
-            Debug.Assert(predicatedEntity.Type.SpecialType == SpecialType.System_Boolean ||
-                predicatedEntity.Type.IsNullableOfBoolean() ||
-                predicatedEntity.Type.Language == LanguageNames.VisualBasic && predicatedEntity.Type.SpecialType == SpecialType.System_Object);
+            Debug.Assert(predicatedEntity.IsCandidatePredicateEntity());
             Debug.Assert(predicatedEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
 
             AssertValidAnalysisData();
