@@ -2092,9 +2092,12 @@ HandleAsAGeneralExpression:
                     End Select
 
                     Dim delegateParams As ImmutableArray(Of ParameterSymbol) = invokeMethod.Parameters
-                    Dim minCount As Integer = Math.Min(lambdaParams.Length, delegateParams.Length)
 
-                    For i As Integer = 0 To minCount - 1 Step 1
+                    If lambdaParams.Length > delegateParams.Length Then
+                        Return True
+                    End If
+
+                    For i As Integer = 0 To lambdaParams.Length - 1 Step 1
                         Dim lambdaParam As ParameterSymbol = lambdaParams(i)
                         Dim delegateParam As ParameterSymbol = delegateParams(i)
 

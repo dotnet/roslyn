@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return VisitIndexerAccess(node, isLeftOfAssignment: false);
         }
+
         private BoundExpression VisitIndexerAccess(BoundIndexerAccess node, bool isLeftOfAssignment)
         {
             PropertySymbol indexer = node.Indexer;
@@ -158,16 +159,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
         {
+            return VisitIndexOrRangePatternIndexerAccess(node, isLeftOfAssignment: false);
+        }
+
+        private BoundExpression VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
+        {
             if (TypeSymbol.Equals(
                 node.Argument.Type,
                 _compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything))
             {
                 return VisitIndexPatternIndexerAccess(
+                    node.Syntax,
                     node.Receiver,
                     node.LengthOrCountProperty,
-                    node.PatternMethod,
-                    node.Argument);
+                    (PropertySymbol)node.PatternSymbol,
+                    node.Argument,
+                    isLeftOfAssignment: isLeftOfAssignment);
             }
             else
             {
@@ -178,26 +186,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitRangePatternIndexerAccess(
                     node.Receiver,
                     node.LengthOrCountProperty,
-                    node.PatternMethod,
+                    (MethodSymbol)node.PatternSymbol,
                     node.Argument);
             }
         }
 
         private BoundExpression VisitIndexPatternIndexerAccess(
+            SyntaxNode syntax,
             BoundExpression receiver,
             PropertySymbol lengthOrCountProperty,
-            MethodSymbol intIndexerGetter,
-            BoundExpression argument)
+            PropertySymbol intIndexer,
+            BoundExpression argument,
+            bool isLeftOfAssignment)
         {
             // Lowered code:
-            // var receiver = receiverExpr;
+            // ref var receiver = receiverExpr;
             // int length = receiver.length;
             // int index = argument.GetOffset(length);
-            // receiver.get_Item(index);
+            // receiver[index];
 
             var F = _factory;
 
-            var receiverLocal = F.StoreToTemp(VisitExpression(receiver), out var receiverStore);
+            var receiverLocal = F.StoreToTemp(
+                VisitExpression(receiver),
+                out var receiverStore,
+                // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
+                receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
             var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
             var indexLocal = F.StoreToTemp(
                 F.Call(
@@ -209,7 +223,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return F.Sequence(
                 ImmutableArray.Create(receiverLocal.LocalSymbol, lengthLocal.LocalSymbol, indexLocal.LocalSymbol),
                 ImmutableArray.Create<BoundExpression>(receiverStore, lengthStore, indexStore),
-                F.Call(receiverLocal, intIndexerGetter, indexLocal));
+                MakeIndexerAccess(
+                    syntax,
+                    receiverLocal,
+                    intIndexer,
+                    ImmutableArray.Create<BoundExpression>(indexLocal),
+                    default,
+                    default,
+                    expanded: false,
+                    argsToParamsOpt: default,
+                    intIndexer.Type,
+                    oldNodeOpt: null,
+                    isLeftOfAssignment));
         }
 
         private BoundExpression VisitRangePatternIndexerAccess(

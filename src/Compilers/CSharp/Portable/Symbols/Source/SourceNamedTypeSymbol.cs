@@ -273,24 +273,49 @@ next:;
             int arity = typeParameters.Length;
             if (arity > 0)
             {
+                bool skipPartialDeclarationsWithoutConstraintClauses = false;
+
+                foreach (var decl in declaration.Declarations)
+                {
+                    if (GetConstraintClauses((CSharpSyntaxNode)decl.SyntaxReference.GetSyntax(), out _).Count != 0)
+                    {
+                        skipPartialDeclarationsWithoutConstraintClauses = true;
+                        break;
+                    }
+                }
+
                 foreach (var decl in declaration.Declarations)
                 {
                     var syntaxRef = decl.SyntaxReference;
-                    var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax());
-                    if (constraintClauses.Count == 0)
+                    var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax(), out TypeParameterListSyntax typeParameterList);
+
+                    if (skipPartialDeclarationsWithoutConstraintClauses && constraintClauses.Count == 0)
                     {
                         continue;
                     }
 
                     var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntaxRef.SyntaxTree);
-                    var binder = binderFactory.GetBinder(constraintClauses[0]);
+                    Binder binder;
+                    ImmutableArray<TypeParameterConstraintClause> constraints;
 
-                    // Wrap binder from factory in a generic constraints specific binder 
-                    // to avoid checking constraints when binding type names.
-                    Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-                    binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+                    if (constraintClauses.Count == 0)
+                    {
+                        binder = binderFactory.GetBinder(typeParameterList.Parameters[0]);
 
-                    var constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, constraintClauses, diagnostics);
+                        constraints = binder.GetDefaultTypeParameterConstraintClauses(typeParameterList);
+                    }
+                    else
+                    {
+                        binder = binderFactory.GetBinder(constraintClauses[0]);
+
+                        // Wrap binder from factory in a generic constraints specific binder 
+                        // to avoid checking constraints when binding type names.
+                        Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+                        binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+
+                        constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, typeParameterList, constraintClauses, diagnostics);
+                    }
+
                     Debug.Assert(constraints.Length == arity);
 
                     if (results.Length == 0)
@@ -304,6 +329,11 @@ next:;
                         results = results.ZipAsArray(constraints, (x, y) => x.AddPartialDeclaration(y));
                     }
                 }
+
+                if (results.ContainsOnlyEmptyConstraintClauses())
+                {
+                    results = ImmutableArray<TypeParameterConstraintClause>.Empty;
+                }
             }
 
             return results;
@@ -313,83 +343,226 @@ next:;
             ImmutableArray<TypeParameterConstraintClause> constraintClauses,
             DiagnosticBag diagnostics)
         {
-            var typeParameters = TypeParameters;
-            int arity = typeParameters.Length;
-
             Debug.Assert(constraintClauses.IsEarly());
-            Debug.Assert(constraintClauses.Length == arity);
 
-            for (int i = 0; i < arity; i++)
+            ImmutableArray<TypeParameterConstraintClause> results = MergeConstraintsForPartialDeclarations(constraintClauses, diagnostics);
+
+            results = ConstraintsHelper.MakeTypeParameterConstraintsLate(TypeParameters, results, diagnostics);
+
+            if (results.ContainsOnlyEmptyConstraintClauses())
             {
-                var constraint = constraintClauses[i];
-                // Constraints defined on multiple partial declarations.
-                // Report any mismatched constraints.
-                foreach (var other in constraint.OtherPartialDeclarations)
-                {
-                    if (!HaveSameConstraints(constraint, other))
-                    {
-                        // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
-                        diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
-                    }
-                }
+                results = ImmutableArray<TypeParameterConstraintClause>.Empty;
             }
 
-            return ConstraintsHelper.MakeTypeParameterConstraintsLate(typeParameters, constraintClauses, diagnostics);
+            return results;
         }
 
-        private static SyntaxList<TypeParameterConstraintClauseSyntax> GetConstraintClauses(CSharpSyntaxNode node)
+        private static SyntaxList<TypeParameterConstraintClauseSyntax> GetConstraintClauses(CSharpSyntaxNode node, out TypeParameterListSyntax typeParameterList)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
-                    return ((TypeDeclarationSyntax)node).ConstraintClauses;
+                    var typeDeclaration = (TypeDeclarationSyntax)node;
+                    typeParameterList = typeDeclaration.TypeParameterList;
+                    return typeDeclaration.ConstraintClauses;
                 case SyntaxKind.DelegateDeclaration:
-                    return ((DelegateDeclarationSyntax)node).ConstraintClauses;
+                    var delegateDeclaration = (DelegateDeclarationSyntax)node;
+                    typeParameterList = delegateDeclaration.TypeParameterList;
+                    return delegateDeclaration.ConstraintClauses;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
 
-        private static bool HaveSameConstraints(TypeParameterConstraintClause clause1, TypeParameterConstraintClause clause2)
+        /// <summary>
+        /// Note, only nullability aspects are merged if possible, other mismatches are treated as failures.
+        /// </summary>
+        private ImmutableArray<TypeParameterConstraintClause> MergeConstraintsForPartialDeclarations(ImmutableArray<TypeParameterConstraintClause> constraintClauses, DiagnosticBag diagnostics)
         {
-            if ((clause1 == null) || (clause2 == null))
-            {
-                return (clause1 == null) && (clause2 == null);
-            }
+            ArrayBuilder<TypeParameterConstraintClause> builder = null;
+            var typeParameters = TypeParameters;
+            int arity = typeParameters.Length;
 
-            if (clause1.Constraints != clause2.Constraints)
-            {
-                return false;
-            }
+            Debug.Assert(constraintClauses.Length == arity);
 
-            if (clause1.ConstraintTypes.Length == 0 && clause2.ConstraintTypes.Length == 0)
+            for (int i = 0; i < arity; i++)
             {
-                return true;
-            }
+                var constraint = constraintClauses[i];
 
-            var comparer = TypeWithAnnotations.EqualsComparer.Instance;
-            var constraintTypes1 = clause1.ConstraintTypes.ToImmutableHashSet(comparer);
-            var constraintTypes2 = clause2.ConstraintTypes.ToImmutableHashSet(comparer);
-
-            foreach (var constraintType in constraintTypes1)
-            {
-                if (!constraintTypes2.Contains(constraintType))
+                if (constraint.OtherPartialDeclarations.IsEmpty)
                 {
-                    return false;
+                    continue;
+                }
+
+                TypeParameterConstraintKind mergedKind = constraint.Constraints;
+                ImmutableArray<TypeWithAnnotations> originalConstraintTypes = constraint.ConstraintTypes;
+                ArrayBuilder<TypeWithAnnotations> mergedConstraintTypes = null;
+                SmallDictionary<TypeWithAnnotations, int> originalConstraintTypesMap = null;
+
+                // Constraints defined on multiple partial declarations.
+                // Report any mismatched constraints.
+                foreach (var other in constraint.OtherPartialDeclarations)
+                {
+                    if (!mergeConstraints(ref mergedKind, originalConstraintTypes, ref originalConstraintTypesMap, ref mergedConstraintTypes, other))
+                    {
+                        // "Partial declarations of '{0}' have inconsistent constraints for type parameter '{1}'"
+                        diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
+                    }
+                }
+
+                if (constraint.Constraints != mergedKind || mergedConstraintTypes != null)
+                {
+                    Debug.Assert((constraint.Constraints & TypeParameterConstraintKind.AllNonNullableKinds) == (mergedKind & TypeParameterConstraintKind.AllNonNullableKinds));
+                    Debug.Assert((mergedKind & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) == 0 ||
+                                 (constraint.Constraints & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) != 0);
+                    Debug.Assert((constraint.Constraints & TypeParameterConstraintKind.AllReferenceTypeKinds) == (mergedKind & TypeParameterConstraintKind.AllReferenceTypeKinds) ||
+                                 (constraint.Constraints & TypeParameterConstraintKind.AllReferenceTypeKinds) == TypeParameterConstraintKind.ReferenceType);
+#if DEBUG
+                    if (mergedConstraintTypes != null)
+                    {
+                        Debug.Assert(originalConstraintTypes.Length == mergedConstraintTypes.Count);
+
+                        for (int j = 0; j < originalConstraintTypes.Length; j++)
+                        {
+                            Debug.Assert(TypeWithAnnotations.EqualsComparer.UnknownNullableModifierMatchesAnyComparer.Equals(originalConstraintTypes[j], mergedConstraintTypes[j]));
+                        }
+                    }
+#endif
+                    if (builder == null)
+                    {
+                        builder = ArrayBuilder<TypeParameterConstraintClause>.GetInstance(constraintClauses.Length);
+                        builder.AddRange(constraintClauses);
+                    }
+
+                    builder[i] = TypeParameterConstraintClause.Create(mergedKind,
+                                                                      mergedConstraintTypes?.ToImmutableAndFree() ?? originalConstraintTypes,
+                                                                      constraint.TypeConstraintsSyntax);
                 }
             }
 
-            foreach (var constraintType in constraintTypes2)
+            if (builder != null)
             {
-                if (!constraintTypes1.Contains(constraintType))
+                constraintClauses = builder.ToImmutableAndFree();
+            }
+
+            return constraintClauses;
+
+            static bool mergeConstraints(ref TypeParameterConstraintKind mergedKind, ImmutableArray<TypeWithAnnotations> originalConstraintTypes,
+                                         ref SmallDictionary<TypeWithAnnotations, int> originalConstraintTypesMap, ref ArrayBuilder<TypeWithAnnotations> mergedConstraintTypes,
+                                         TypeParameterConstraintClause clause)
+            {
+                bool result = true;
+
+                if ((mergedKind & TypeParameterConstraintKind.AllNonNullableKinds) != (clause.Constraints & TypeParameterConstraintKind.AllNonNullableKinds))
+                {
+                    result = false;
+                }
+
+                if ((mergedKind & TypeParameterConstraintKind.ReferenceType) != 0 && (clause.Constraints & TypeParameterConstraintKind.ReferenceType) != 0)
+                {
+                    // Try merging nullability of a 'class' constraint
+                    TypeParameterConstraintKind clause1Constraints = mergedKind & TypeParameterConstraintKind.AllReferenceTypeKinds;
+                    TypeParameterConstraintKind clause2Constraints = clause.Constraints & TypeParameterConstraintKind.AllReferenceTypeKinds;
+                    if (clause1Constraints != clause2Constraints)
+                    {
+                        if (clause1Constraints == TypeParameterConstraintKind.ReferenceType) // Oblivious
+                        {
+                            // Take nullability from clause2
+                            mergedKind = (mergedKind & (~TypeParameterConstraintKind.AllReferenceTypeKinds)) | clause2Constraints;
+                        }
+                        else if (clause2Constraints != TypeParameterConstraintKind.ReferenceType)
+                        {
+                            // Neither nullability is oblivious and they do not match. Cannot merge.
+                            result = false;
+                        }
+                    }
+                }
+
+                if (originalConstraintTypes.Length == 0)
+                {
+                    if (clause.ConstraintTypes.Length == 0)
+                    {
+                        // Try merging nullability of implied 'object' constraint
+                        if (((mergedKind | clause.Constraints) & ~(TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor)) == 0 &&
+                            (mergedKind & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) != 0 && // 'object~'
+                            (clause.Constraints & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) == 0)   // 'object?' 
+                        {
+                            // Merged value is 'object?'
+                            mergedKind &= ~TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType;
+                        }
+
+                        return result;
+                    }
+
+                    return false;
+                }
+                else if (clause.ConstraintTypes.Length == 0)
                 {
                     return false;
                 }
+
+                originalConstraintTypesMap ??= toDictionary(originalConstraintTypes);
+                SmallDictionary<TypeWithAnnotations, int> clauseConstraintTypesMap = toDictionary(clause.ConstraintTypes);
+
+                foreach (int index1 in originalConstraintTypesMap.Values)
+                {
+                    TypeWithAnnotations constraintType1 = mergedConstraintTypes?[index1] ?? originalConstraintTypes[index1];
+                    int index2;
+
+                    if (!clauseConstraintTypesMap.TryGetValue(constraintType1, out index2))
+                    {
+                        // No matching type
+                        result = false;
+                        continue;
+                    }
+
+                    TypeWithAnnotations constraintType2 = clause.ConstraintTypes[index2];
+
+                    if (!TypeWithAnnotations.EqualsComparer.UnknownNullableModifierMatchesAnyComparer.Equals(constraintType1, constraintType2))
+                    {
+                        // Nullability mismatch that doesn't involve oblivious
+                        result = false;
+                        continue;
+                    }
+
+                    if (!TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer.Equals(constraintType1, constraintType2))
+                    {
+                        // Mismatch with oblivious, merge
+                        if (mergedConstraintTypes == null)
+                        {
+                            mergedConstraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(originalConstraintTypes.Length);
+                            mergedConstraintTypes.AddRange(originalConstraintTypes);
+                        }
+
+                        mergedConstraintTypes[index1] = constraintType1.MergeNullability(constraintType2, VarianceKind.None);
+                    }
+                }
+
+                foreach (var constraintType in clauseConstraintTypesMap.Keys)
+                {
+                    if (!originalConstraintTypesMap.ContainsKey(constraintType))
+                    {
+                        result = false;
+                        break;
+                    }
+                }
+
+                return result;
             }
 
-            return true;
+            static SmallDictionary<TypeWithAnnotations, int> toDictionary(ImmutableArray<TypeWithAnnotations> constraintTypes)
+            {
+                var result = new SmallDictionary<TypeWithAnnotations, int>(TypeWithAnnotations.EqualsComparer.IgnoreNullableModifiersForReferenceTypesComparer);
+
+                for (int i = constraintTypes.Length - 1; i >= 0; i--)
+                {
+                    result[constraintTypes[i]] = i; // Use the first type among the duplicates as the source of the nullable information
+                }
+
+                return result;
+            }
         }
 
         internal sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics

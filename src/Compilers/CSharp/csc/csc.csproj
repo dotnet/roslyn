@@ -34,7 +34,6 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CompilerServer.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

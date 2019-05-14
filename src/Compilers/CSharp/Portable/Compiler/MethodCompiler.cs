@@ -1625,6 +1625,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyBinder.ValidateIteratorMethods(diagnostics);
 
                     BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
+                    if (bodyBinder.Compilation.NullableAnalysisEnabled)
+                    {
+                        // Currently, we're passing an empty DiagnosticBag here because the flow analysis pass later will
+                        // also run the nullable walker, and issue duplicate warnings. We should try to only run the pass
+                        // once.
+                        // https://github.com/dotnet/roslyn/issues/35041
+                        methodBody = NullableWalker.AnalyzeAndRewrite(bodyBinder.Compilation, method, methodBody, bodyBinder.Conversions, new DiagnosticBag());
+                    }
                     forSemanticModel = (syntaxNode, methodBody, bodyBinder);
 
                     switch (methodBody.Kind)

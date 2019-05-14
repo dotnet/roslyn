@@ -40,14 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The resulting nodes will be "spilled" to move such statements to the top
             // level (i.e. into the enclosing statement list).
             _needsSpilling = true;
-            BoundLocal replacement = _factory.StoreToTemp(
-                rewrittenAwait, out BoundAssignmentOperator saveToTemp, kind: SynthesizedLocalKind.Spill, syntaxOpt: rewrittenAwait.Syntax);
             return new BoundSpillSequence(
                 syntax: rewrittenAwait.Syntax,
-                locals: ImmutableArray.Create<LocalSymbol>(replacement.LocalSymbol),
-                sideEffects: ImmutableArray.Create<BoundStatement>(_factory.ExpressionStatement(saveToTemp)),
-                value: replacement,
-                type: replacement.Type);
+                locals: ImmutableArray<LocalSymbol>.Empty,
+                sideEffects: ImmutableArray<BoundStatement>.Empty,
+                value: rewrittenAwait,
+                type: rewrittenAwait.Type);
         }
     }
 }

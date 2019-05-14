@@ -212,6 +212,11 @@
         <target state="new">Merge with previous '{0}' statement</target>
         <note />
       </trans-unit>
+      <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
+        <source>{0} must return a stream that supports read and seek operations.</source>
+        <target state="new">{0} must return a stream that supports read and seek operations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="new">Move contents to namespace...</target>
@@ -250,6 +255,11 @@
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
         <source>Private method '{0}' can be removed as it is never invoked.</source>
         <target state="translated">因為永遠不會叫用私用方法 ‘{0}’，所以可予以移除。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
+        <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
+        <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -330,6 +340,16 @@
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
         <target state="new">Split into nested '{0}' statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="new">Stream must support read and seek operations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Target_type_matches">
+        <source>Target type matches</source>
+        <target state="new">Target type matches</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">

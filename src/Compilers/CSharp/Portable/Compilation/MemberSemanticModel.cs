@@ -1530,6 +1530,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If not, bind the outermost expression containing the lambda and then fill in the map.
             ImmutableArray<BoundNode> nodes;
 
+            EnsureRootBoundForNullabilityIfNecessary();
+
             using (_nodeMapLock.DisposableRead())
             {
                 nodes = GuardedGetBoundNodesFromMap(lambdaOrQuery);
@@ -1587,6 +1589,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (_nodeMapLock.DisposableWrite())
             {
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
+
+                // https://github.com/dotnet/roslyn/issues/35038: Rewrite the above node and add a test that hits this path with nullable
+                // enabled
+
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
             }
 
@@ -1615,6 +1621,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (_nodeMapLock.DisposableWrite())
             {
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, lambdaOrQuery, _ignoredDiagnostics);
+
+                // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
+#if DEBUG
+                var diagnostics = new DiagnosticBag();
+                _ = RewriteNullableBoundNodes(boundOuterExpression, incrementalBinder.Conversions, diagnostics);
+#endif
+
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
             }
 
@@ -1789,6 +1802,65 @@ done:
         }
 
         /// <summary>
+        /// If we're doing nullable analysis, we need to fully bind this member, and then run
+        /// nullable analysis on the resulting nodes before putting them in the map. Nullable
+        /// analysis does not run a subset of code, so we need to fully bind the entire member
+        /// first
+        /// </summary>
+        private void EnsureRootBoundForNullabilityIfNecessary()
+        {
+            // In DEBUG without nullable analysis enabled, we want to use a temp diagnosticbag
+            // that can't produce any observable side effects
+            DiagnosticBag diagnostics = _ignoredDiagnostics;
+
+            // If we're in DEBUG mode, always enable the analysis, but throw away the results
+            // https://github.com/dotnet/roslyn/issues/35037: Disable speculative semantic models for now.
+            if (!Compilation.NullableAnalysisEnabled || IsSpeculativeSemanticModel)
+            {
+#if DEBUG
+                diagnostics = new DiagnosticBag();
+#else
+                return;
+#endif
+            }
+
+            var bindableRoot = GetBindableSyntaxNode(Root);
+            using var upgradeableLock = _nodeMapLock.DisposableUpgradeableRead();
+
+            if (_guardedNodeMap.ContainsKey(bindableRoot)
+#if DEBUG
+                // In DEBUG mode, we don't want to increase test run times, so if
+                // nullable analysis isn't enabled and some node has already been bound
+                // we assume we've already done this test binding and just return
+                || (!Compilation.NullableAnalysisEnabled && _guardedNodeMap.Count > 0)
+#endif
+                )
+            {
+                return;
+            }
+
+            upgradeableLock.EnterWrite();
+
+            Debug.Assert(Root == GetBindableSyntaxNode(Root));
+
+            // https://github.com/dotnet/roslyn/issues/35037: Speculative models are going to have to do something more advanced
+            // here. They will need to run nullable analysis up to the point that is being speculated on, and
+            // then take that state and run analysis on the statement or expression being speculated on.
+            // Currently, it will return incorrect info because it's just running analysis on the speculated
+            // part.
+            var binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
+            var boundRoot = Bind(binder, bindableRoot, diagnostics);
+            boundRoot = RewriteNullableBoundNodes(boundRoot, binder.Conversions, diagnostics);
+
+            if (Compilation.NullableAnalysisEnabled && !IsSpeculativeSemanticModel)
+            {
+                GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot);
+            }
+        }
+
+        protected abstract BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Conversions conversions, DiagnosticBag diagnostics);
+
+        /// <summary>
         /// Get all bounds nodes associated with a node, ordered from highest to lowest in the bound tree.
         /// Strictly speaking, the order is that of a pre-order traversal of the bound tree.
         /// </summary>
@@ -1801,6 +1873,8 @@ done:
                 node = GetBindableSyntaxNode(Root);
             }
             Debug.Assert(node == GetBindableSyntaxNode(node));
+
+            EnsureRootBoundForNullabilityIfNecessary();
 
             // We have one SemanticModel for each method.
             //
@@ -1860,6 +1934,7 @@ done:
 
             if (results.IsDefaultOrEmpty)
             {
+                // https://github.com/dotnet/roslyn/issues/35038: We have to run analysis on this node in some manner
                 using (_nodeMapLock.DisposableWrite())
                 {
                     var boundNode = this.Bind(binder, node, _ignoredDiagnostics);

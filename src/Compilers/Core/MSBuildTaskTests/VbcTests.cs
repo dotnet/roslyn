@@ -421,5 +421,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.DisableSdkPath = true;
             Assert.Equal(@"/optionstrict:custom /nosdkpath", vbc.GenerateResponseFileContents());
         }
+
+        [Fact]
+        public void EditorConfig()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig");
+            Assert.Equal(@"/optionstrict:custom /out:test.exe /analyzerconfig:.editorconfig test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb", "subdir\\test.vb");
+            vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
+            Assert.Equal(@"/optionstrict:custom /out:test.exe /analyzerconfig:.editorconfig /analyzerconfig:subdir\.editorconfig test.vb subdir\test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems("..\\.editorconfig", "sub dir\\.editorconfig");
+            Assert.Equal(@"/optionstrict:custom /out:test.exe /analyzerconfig:..\.editorconfig /analyzerconfig:""sub dir\.editorconfig"" test.vb", vbc.GenerateResponseFileContents());
+        }
     }
 }

@@ -248,7 +248,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type = type.WithTypeAndModifiers(
                             CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.Type, type.Type, this.ContainingAssembly),
                             overriddenPropertyType.CustomModifiers);
-                        _lazyType = default;
+
+                        // Although we only do this in error scenarios, it is undesirable to mutate the symbol by setting its type twice.
+                        // Tracked by https://github.com/dotnet/roslyn/issues/35381
+                        _lazyType.InterlockedDangerousReset();
                         _lazyType.InterlockedInitialize(type);
                     }
 
@@ -1534,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Add(_location, useSiteDiagnostics);
 
-            if (type.SpecialType == SpecialType.System_Void)
+            if (type.IsVoidType())
             {
                 ErrorCode errorCode = this.IsIndexer ? ErrorCode.ERR_IndexerCantHaveVoidType : ErrorCode.ERR_PropertyCantHaveVoidType;
                 diagnostics.Add(errorCode, _location, this);

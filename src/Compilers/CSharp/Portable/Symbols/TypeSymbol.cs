@@ -128,6 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer =
                                                                   new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
+        internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableComparer =
+                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.AllNullableIgnoreOptions));
+
         internal static readonly EqualityComparer<TypeSymbol> EqualsCLRSignatureComparer = new TypeSymbolComparer(TypeCompareKind.CLRSignatureCompareOptions);
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -766,6 +769,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Is this a symbol for a Tuple.
         /// </summary>
         bool ITypeSymbol.IsTupleType => this.IsTupleType;
+
+        public string ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
+        {
+            return SymbolDisplay.ToDisplayString(this, topLevelNullability, format);
+        }
+
+        public ImmutableArray<SymbolDisplayPart> ToDisplayParts(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
+        {
+            return SymbolDisplay.ToDisplayParts(this, topLevelNullability, format);
+        }
+
+        public string ToMinimalDisplayString(
+            SemanticModel semanticModel,
+            CodeAnalysis.NullableFlowState topLevelNullability,
+            int position,
+            SymbolDisplayFormat format = null)
+        {
+            return SymbolDisplay.ToMinimalDisplayString(this, topLevelNullability, semanticModel, position, format);
+        }
+
+        public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
+            SemanticModel semanticModel,
+            CodeAnalysis.NullableFlowState topLevelNullability,
+            int position,
+            SymbolDisplayFormat format = null)
+        {
+            return SymbolDisplay.ToMinimalDisplayParts(this, topLevelNullability, semanticModel, position, format);
+        }
 
         #endregion
 

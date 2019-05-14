@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return ReturnType.IsVoidType(); }
         }
 
         public override MethodKind MethodKind
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 droppedBag.Free();
 
                 Debug.Assert(
-                    ReturnType.SpecialType == SpecialType.System_Void ||
+                    ReturnType.IsVoidType() ||
                     ReturnType.SpecialType == SpecialType.System_Int32);
             }
 
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 base(containingType)
             {
                 Debug.Assert(containingType.IsScriptClass);
-                Debug.Assert(returnType.SpecialType == SpecialType.System_Void);
+                Debug.Assert(returnType.IsVoidType());
                 _returnType = returnType;
             }
 
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 base(containingType)
             {
                 Debug.Assert(containingType.IsSubmissionClass);
-                Debug.Assert(returnType.SpecialType != SpecialType.System_Void);
+                Debug.Assert(!returnType.IsVoidType());
                 _parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(this,
                     TypeWithAnnotations.Create(submissionArrayType), 0, RefKind.None, "submissionArray"));
 

@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 var document = solution.GetDocument(documentId);
                                 if (document != null)
                                 {
-                                    await ProcessDocumentAnalyzersAsync(document, analyzers, workItem, cancellationToken).ConfigureAwait(false);
+                                    await _processor.ProcessDocumentAnalyzersAsync(document, analyzers, workItem, cancellationToken).ConfigureAwait(false);
                                 }
 
                                 if (!cancellationToken.IsCancellationRequested)

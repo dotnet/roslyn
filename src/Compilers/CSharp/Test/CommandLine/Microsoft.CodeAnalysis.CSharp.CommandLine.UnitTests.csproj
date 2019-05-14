@@ -5,7 +5,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests</RootNamespace>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
-    <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
   <ItemGroup>

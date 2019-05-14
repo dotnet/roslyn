@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Tags;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Roslyn.Utilities;
@@ -58,17 +57,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // to give them something non-empty so they know to go get the async description.
                 "...";
 
-        public Task<CompletionDescription> GetDescriptionAsync(CancellationToken cancellationToken)
+        public Task<CompletionDescription> GetDescriptionAsync(Document document, CancellationToken cancellationToken)
         {
-            var service = CompletionService.GetService(this.CompletionItem.Document);
+            var service = CompletionService.GetService(document);
             return service == null ?
                 Task.FromResult(CompletionDescription.Empty) :
-                service.GetDescriptionAsync(this.CompletionItem.Document, this.CompletionItem, cancellationToken);
-        }
-
-        public string GetDescription_TestingOnly()
-        {
-            return GetDescriptionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Text;
+                service.GetDescriptionAsync(document, this.CompletionItem, cancellationToken);
         }
 
         public override ImageMoniker IconMoniker => _imageMoniker;

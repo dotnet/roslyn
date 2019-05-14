@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project>
-  <PropertyGroup>
-    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
-  </PropertyGroup>
   <!--
     Roslyn version
   -->
   <PropertyGroup>
-    <VersionPrefix>3.1.0</VersionPrefix>
-    <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
+    <VersionPrefix>3.2.0</VersionPrefix>
+    <PreReleaseVersionLabel>beta1</PreReleaseVersionLabel>
     <SemanticVersioningV1>true</SemanticVersioningV1>
     <!-- 
       By default the assembly version in official builds is "$(VersionPrefix).0".
@@ -74,8 +71,7 @@
     <MicrosoftNetCoreILAsmVersion>3.0.0-preview4-27525-72</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNetCoreILDasmVersion>3.0.0-preview4-27525-72</MicrosoftNetCoreILDasmVersion>
     <MicrosoftNETCorePlatformsVersion>2.1.2</MicrosoftNETCorePlatformsVersion>
-    <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/1764 -->
-    <MicrosoftNETTestSdkVersion>15.9.0-dev2</MicrosoftNETTestSdkVersion>
+    <MicrosoftNETTestSdkVersion>16.0.1</MicrosoftNETTestSdkVersion>
     <MicrosoftNETCoreTestHostVersion>1.1.0</MicrosoftNETCoreTestHostVersion>
     <MicrosoftNetFX20Version>1.0.3</MicrosoftNetFX20Version>
     <MicrosoftNetFrameworkReferenceAssembliesVersion>1.0.0-alpha-004</MicrosoftNetFrameworkReferenceAssembliesVersion>

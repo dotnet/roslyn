@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, ReturnTypeSyntax.Location, _lazyReturnType.Type);
             }
 
-            this.SetReturnsVoid(_lazyReturnType.SpecialType == SpecialType.System_Void);
+            this.SetReturnsVoid(_lazyReturnType.IsVoidType());
 
             // If we have a conversion/equality/inequality operator in an interface or static class then we already 
             // have reported that fact as an error. No need to cascade the error further.

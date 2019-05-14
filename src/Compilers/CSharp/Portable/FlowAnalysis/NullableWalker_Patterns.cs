@@ -28,6 +28,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             LearnFromAnyNullPatterns(slot, expression.Type, pattern);
         }
 
+        private void VisitPatternForRewriting(BoundPattern pattern)
+        {
+            // Don't let anything under the pattern actually affect current state,
+            // as we're only visiting for nullable information.
+            Debug.Assert(!IsConditionalState);
+            var currentState = State;
+            VisitWithoutDiagnostics(pattern);
+            SetState(currentState);
+        }
+
+        public override BoundNode VisitSubpattern(BoundSubpattern node)
+        {
+            Visit(node.Pattern);
+            return null;
+        }
+
+        public override BoundNode VisitRecursivePattern(BoundRecursivePattern node)
+        {
+            VisitAll(node.Deconstruction);
+            VisitAll(node.Properties);
+            Visit(node.VariableAccess);
+            return null;
+        }
+
+        public override BoundNode VisitConstantPattern(BoundConstantPattern node)
+        {
+            Visit(node.Value);
+            return null;
+        }
+
+        public override BoundNode VisitDeclarationPattern(BoundDeclarationPattern node)
+        {
+            Visit(node.VariableAccess);
+            Visit(node.DeclaredType);
+            return null;
+        }
+
+        public override BoundNode VisitDiscardPattern(BoundDiscardPattern node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitITuplePattern(BoundITuplePattern node)
+        {
+            VisitAll(node.Subpatterns);
+            return null;
+        }
+
         /// <summary>
         /// Learn from any constant null patterns appearing in the pattern.
         /// </summary>
@@ -41,6 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (inputSlot <= 0)
                 return;
+
+            // https://github.com/dotnet/roslyn/issues/35041 We only need to do this when we're rewriting, so we
+            // can get information for any nodes in the pattern.
+            VisitPatternForRewriting(pattern);
 
             switch (pattern)
             {
@@ -446,6 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversions.Add(conversion);
                 var armType = VisitRvalueWithState(expression);
                 resultTypes.Add(armType);
+                TrackInferredTypesThroughConversions(arm.Value, expression, _visitResult);
                 Join(ref endState, ref this.State);
 
                 // Build placeholders for inference in order to preserve annotations.
@@ -462,8 +515,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
             for (int i = 0; i < numSwitchArms; i++)
             {
-                var placeholder = placeholders[i];
-                resultTypes[i] = ApplyConversion(placeholder, placeholder, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
+                var expression = expressions[i];
+                resultTypes[i] = ApplyConversion(expression, expression, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
                     fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
             }
 
@@ -475,8 +528,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var nodeForSyntax = expressions[i];
                 // Report top-level warnings
-                _ = ApplyConversion(nodeForSyntax, operandOpt: nodeForSyntax, Conversion.Identity, targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
-                    checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
+                _ = ApplyConversion(nodeForSyntax, operandOpt: nodeForSyntax, conversions[i], targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
+                    checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false, reportTopLevelWarnings: true);
             }
 
             conversions.Free();
@@ -484,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             expressions.Free();
             labelStateMap.Free();
             SetState(endState);
-            SetResult(resultType, inferredTypeWithAnnotations);
+            SetResult(node, resultType, inferredTypeWithAnnotations);
             return null;
         }
 

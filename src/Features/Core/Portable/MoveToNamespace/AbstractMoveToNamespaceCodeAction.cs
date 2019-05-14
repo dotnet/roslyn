@@ -2,9 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
@@ -39,19 +42,47 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
                 if (moveToNamespaceResult.Succeeded)
                 {
-                    return SpecializedCollections.SingletonEnumerable(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
+                    return CreateRenameOperations(moveToNamespaceResult);
                 }
             }
 
             return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
         }
 
+        private static ImmutableArray<CodeActionOperation> CreateRenameOperations(MoveToNamespaceResult moveToNamespaceResult)
+        {
+            Debug.Assert(moveToNamespaceResult.Succeeded);
+
+            var operations = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance();
+            operations.Add(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
+
+            var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+
+            // It's possible we're not in a host context providing this service, in which case
+            // just provide a code action that won't notify of the symbol rename.
+            // Without the symbol rename operation, code generators (like WPF) may not
+            // know to regenerate code correctly.
+            if (symbolRenameCodeActionOperationFactory != null)
+            {
+                foreach (var (newName, symbol) in moveToNamespaceResult.NewNameOriginalSymbolMapping)
+                {
+                    operations.Add(symbolRenameCodeActionOperationFactory.CreateSymbolRenamedOperation(
+                        symbol,
+                        newName,
+                        moveToNamespaceResult.OriginalSolution,
+                        moveToNamespaceResult.UpdatedSolution));
+                }
+            }
+
+            return operations.ToImmutableAndFree();
+        }
+
         public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
             => analysisResult.Container switch
-        {
-            MoveToNamespaceAnalysisResult.ContainerType.NamedType => (AbstractMoveToNamespaceCodeAction)new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
-            MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult),
-            _ => throw new InvalidOperationException($"Unexpected type {analysisResult.Container}")
-        };
+            {
+                MoveToNamespaceAnalysisResult.ContainerType.NamedType => (AbstractMoveToNamespaceCodeAction)new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
+                MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult),
+                _ => throw ExceptionUtilities.UnexpectedValue(analysisResult.Container)
+            };
     }
 }

@@ -31,7 +31,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var providerFactory in exportProvider.GetExports<IDocumentOptionsProviderFactory>())
             {
-                Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(providerFactory.Value.Create(this));
+                var optionsProvider = providerFactory.Value.TryCreate(this);
+
+                if (optionsProvider != null)
+                {
+                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
+                }
             }
 
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);

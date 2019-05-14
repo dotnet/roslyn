@@ -5,6 +5,9 @@
 # Stop script if unbound variable found (use ${var:-} if intentional)
 set -u
 
+# Stop script if subcommand fails
+set -e 
+
 usage()
 {
   echo "Common settings:"
@@ -121,6 +124,8 @@ while [[ $# > 0 ]]; do
       ;;
     --bootstrap)
       bootstrap=true
+      # Bootstrap requires restore
+      restore=true
       ;;
     --skipanalyzers)
       skip_analyzers=true
@@ -184,7 +189,7 @@ function MakeBootstrapBuild {
   local package_name="Microsoft.Net.Compilers.Toolset"
   local project_path=src/NuGet/$package_name/$package_name.Package.csproj
 
-  dotnet pack -nologo "$project_path" -p:ContinuousIntegrationBuild=$ci -p:DotNetUseShippingVersions=true -p:InitialDefineConstants=BOOTSTRAP -p:PackageOutputPath="$dir"
+  dotnet pack -nologo "$project_path" -p:ContinuousIntegrationBuild=$ci -p:DotNetUseShippingVersions=true -p:InitialDefineConstants=BOOTSTRAP -p:PackageOutputPath="$dir" -bl:"$log_dir/Bootstrap.binlog"
   unzip "$dir/$package_name.*.nupkg" -d "$dir"
   chmod -R 755 "$dir"
 
@@ -224,11 +229,6 @@ function BuildSolution {
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
     disable_parallel_restore=true
-  fi
-
-  local quiet_restore=""
-  if [[ "$ci" != true ]]; then
-    quiet_restore=true
   fi
 
   local test=false
@@ -271,8 +271,6 @@ function BuildSolution {
     /p:UseRoslynAnalyzers=$enable_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
-    /p:QuietRestore=$quiet_restore \
-    /p:QuietRestoreBinaryLog="$binary_log" \
     /p:TreatWarningsAsErrors=true \
     /p:RestoreDisableParallel=$disable_parallel_restore \
     $test_runtime \
