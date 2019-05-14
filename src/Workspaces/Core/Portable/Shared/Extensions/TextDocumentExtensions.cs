@@ -12,12 +12,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static TextDocument WithText(this TextDocument textDocument, SourceText text)
         {
-            if (textDocument is Document document)
+            switch (textDocument)
             {
-                return document.WithText(text);
-            }
+                case Document document:
+                    return document.WithText(text);
 
-            return textDocument.WithAdditionalDocumentText(text);
+                case AnalyzerConfigDocument analyzerConfigDocument:
+                    return analyzerConfigDocument.WithAnalyzerConfigDocumentText(text);
+
+                default:
+                    return textDocument.WithAdditionalDocumentText(text);
+            }
         }
 
         /// <summary>
@@ -27,6 +32,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             Contract.ThrowIfTrue(textDocument is Document);
             return textDocument.Project.Solution.WithAdditionalDocumentText(textDocument.Id, text, PreservationMode.PreserveIdentity).GetTextDocument(textDocument.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this analyzer config document updated to have the text specified.
+        /// </summary>
+        public static TextDocument WithAnalyzerConfigDocumentText(this TextDocument textDocument, SourceText text)
+        {
+            Contract.ThrowIfFalse(textDocument is AnalyzerConfigDocument);
+            return textDocument.Project.Solution.WithAnalyzerConfigDocumentText(textDocument.Id, text, PreservationMode.PreserveIdentity).GetTextDocument(textDocument.Id);
         }
     }
 }

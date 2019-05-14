@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -48,19 +49,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static TextDocument GetTextDocument(this Solution solution, DocumentId documentId)
         {
-            return solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId);
+            return solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId) ?? solution.GetAnalyzerConfigDocument(documentId);
         }
 
         public static Solution WithTextDocumentText(this Solution solution, DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveIdentity)
         {
-            var document = solution.GetTextDocument(documentId);
-            if (document is Document)
+            var textDocument = solution.GetTextDocument(documentId);
+            switch (textDocument)
             {
-                return solution.WithDocumentText(documentId, text, mode);
-            }
-            else
-            {
-                return solution.WithAdditionalDocumentText(documentId, text, mode);
+                case Document _:
+                    return solution.WithDocumentText(documentId, text, mode);
+
+                case AnalyzerConfigDocument _:
+                    return solution.WithAnalyzerConfigDocumentText(documentId, text, mode);
+
+                default:
+                    return solution.WithAdditionalDocumentText(documentId, text, mode);
             }
         }
 

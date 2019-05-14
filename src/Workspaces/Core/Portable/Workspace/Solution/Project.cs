@@ -264,6 +264,11 @@ namespace Microsoft.CodeAnalysis
             return _projectState.GetAdditionalDocumentState(documentId);
         }
 
+        internal TextDocumentState GetAnalyzerConfigDocumentState(DocumentId documentId)
+        {
+            return _projectState.GetAnalyzerConfigDocumentState(documentId);
+        }
+
         internal async Task<bool> ContainsSymbolsWithNameAsync(string name, SymbolFilter filter, CancellationToken cancellationToken)
         {
             return this.SupportsCompilation &&
@@ -566,6 +571,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new analyzer config document in a new instance of this project.
+        /// </summary>
+        public TextDocument AddAnalyzerConfigDocument(string name, SourceText text, IEnumerable<string> folders = null, string filePath = null)
+        {
+            var id = DocumentId.CreateNewId(this.Id);
+            return this.Solution.AddAnalyzerConfigDocument(id, name, text, folders, filePath).GetAnalyzerConfigDocument(id);
+        }
+
+        /// <summary>
         /// Creates a new instance of this project updated to no longer include the specified document.
         /// </summary>
         public Project RemoveDocument(DocumentId documentId)
@@ -579,6 +593,14 @@ namespace Microsoft.CodeAnalysis
         public Project RemoveAdditionalDocument(DocumentId documentId)
         {
             return this.Solution.RemoveAdditionalDocument(documentId).GetProject(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this project updated to no longer include the specified analyzer config document.
+        /// </summary>
+        public Project RemoveAnalyzerConfigDocument(DocumentId documentId)
+        {
+            return this.Solution.RemoveAnalyzerConfigDocument(documentId).GetProject(this.Id);
         }
 
         private string GetDebuggerDisplay()

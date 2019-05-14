@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Call this method when the text of a document is updated in the host environment.
+        /// Call this method when the text of an additional document is updated in the host environment.
         /// </summary>
         protected internal void OnAdditionalDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
         {
@@ -792,6 +792,22 @@ namespace Microsoft.CodeAnalysis
                 (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
                 (solution, docId, text, preservationMode) => solution.WithAdditionalDocumentText(docId, text, preservationMode),
                 WorkspaceChangeKind.AdditionalDocumentChanged,
+                isCodeDocument: false);
+        }
+
+        /// <summary>
+        /// Call this method when the text of an analyzer config document is updated in the host environment.
+        /// </summary>
+        protected internal void OnAnalyzerConfigDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
+        {
+            OnAnyDocumentTextChanged(
+                documentId,
+                newText,
+                mode,
+                CheckAnalyzerConfigDocumentIsInCurrentSolution,
+                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
+                (solution, docId, text, preservationMode) => solution.WithAnalyzerConfigDocumentText(docId, text, preservationMode),
+                WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
                 isCodeDocument: false);
         }
 
@@ -955,7 +971,7 @@ namespace Microsoft.CodeAnalysis
 
                 this.ClearDocumentData(documentId);
 
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveAdditionalDocument(documentId));
+                var newSolution = this.SetCurrentSolution(oldSolution.RemoveAnalyzerConfigDocument(documentId));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentRemoved, oldSolution, newSolution, documentId: documentId);
             }
@@ -1203,6 +1219,21 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(WorkspacesResources.Changing_additional_documents_is_not_supported);
             }
 
+            if (projectChanges.GetAddedAnalyzerConfigDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.AddAnalyzerConfigDocument))
+            {
+                throw new NotSupportedException(WorkspacesResources.Adding_analyzer_config_documents_is_not_supported);
+            }
+
+            if (projectChanges.GetRemovedAnalyzerConfigDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.RemoveAnalyzerConfigDocument))
+            {
+                throw new NotSupportedException(WorkspacesResources.Removing_analyzer_config_documents_is_not_supported);
+            }
+
+            if (projectChanges.GetChangedAnalyzerConfigDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.ChangeAnalyzerConfigDocument))
+            {
+                throw new NotSupportedException(WorkspacesResources.Changing_analyzer_config_documents_is_not_supported);
+            }
+
             if (projectChanges.GetAddedProjectReferences().Any() && !this.CanApplyChange(ApplyChangesKind.AddProjectReference))
             {
                 throw new NotSupportedException(WorkspacesResources.Adding_project_references_is_not_supported);
@@ -1317,6 +1348,12 @@ namespace Microsoft.CodeAnalysis
                 this.ApplyAdditionalDocumentRemoved(documentId);
             }
 
+            // removed analyzer config documents
+            foreach (var documentId in projectChanges.GetRemovedAnalyzerConfigDocuments())
+            {
+                this.ApplyAnalyzerConfigDocumentRemoved(documentId);
+            }
+
             // added documents
             foreach (var documentId in projectChanges.GetAddedDocuments())
             {
@@ -1335,6 +1372,15 @@ namespace Microsoft.CodeAnalysis
                 this.ApplyAdditionalDocumentAdded(info, text);
             }
 
+            // added analyzer config documents
+            foreach (var documentId in projectChanges.GetAddedAnalyzerConfigDocuments())
+            {
+                var document = projectChanges.NewProject.GetAnalyzerConfigDocument(documentId);
+                var text = document.GetTextSynchronously(CancellationToken.None);
+                var info = this.CreateDocumentInfoWithoutText(document);
+                this.ApplyAnalyzerConfigDocumentAdded(info, text);
+            }
+
             // changed documents
             foreach (var documentId in projectChanges.GetChangedDocuments())
             {
@@ -1350,6 +1396,17 @@ namespace Microsoft.CodeAnalysis
                 // We don't understand the text of additional documents and so we just replace the entire text.
                 var currentText = newDoc.GetTextSynchronously(CancellationToken.None); // needs wait
                 this.ApplyAdditionalDocumentTextChanged(documentId, currentText);
+            }
+
+            // changed analyzer config documents
+            foreach (var documentId in projectChanges.GetChangedAnalyzerConfigDocuments())
+            {
+                var oldDoc = projectChanges.OldProject.GetAnalyzerConfigDocument(documentId);
+                var newDoc = projectChanges.NewProject.GetAnalyzerConfigDocument(documentId);
+
+                // We don't understand the text of analyzer config documents and so we just replace the entire text.
+                var currentText = newDoc.GetTextSynchronously(CancellationToken.None); // needs wait
+                this.ApplyAnalyzerConfigDocumentTextChanged(documentId, currentText);
             }
         }
 
@@ -1428,7 +1485,8 @@ namespace Microsoft.CodeAnalysis
                 project.IsSubmission,
                 project.State.HostObjectType,
                 project.OutputRefFilePath)
-                .WithDefaultNamespace(project.DefaultNamespace);
+                .WithDefaultNamespace(project.DefaultNamespace)
+                .WithAnalyzerConfigDocuments(project.AnalyzerConfigDocuments.Select(d => CreateDocumentInfoWithText(d)));
         }
 
         private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
@@ -1634,6 +1692,39 @@ namespace Microsoft.CodeAnalysis
             this.OnAdditionalDocumentTextChanged(id, text, PreservationMode.PreserveValue);
         }
 
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a new analyzer config document to a project.
+        ///
+        /// Override this method to implement the capability of adding analyzer config documents.
+        /// </summary>
+        protected virtual void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.AddAnalyzerConfigDocument));
+            this.OnAnalyzerConfigDocumentAdded(info.WithTextLoader(TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()))));
+        }
+
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to remove an analyzer config document from a project.
+        ///
+        /// Override this method to implement the capability of removing analyzer config documents.
+        /// </summary>
+        protected virtual void ApplyAnalyzerConfigDocumentRemoved(DocumentId documentId)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveAnalyzerConfigDocument));
+            this.OnAnalyzerConfigDocumentRemoved(documentId);
+        }
+
+        /// <summary>
+        /// This method is called to change the text of an analyzer config document.
+        ///
+        /// Override this method to implement the capability of changing analyzer config document text.
+        /// </summary>
+        protected virtual void ApplyAnalyzerConfigDocumentTextChanged(DocumentId id, SourceText text)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeAnalyzerConfigDocument));
+            this.OnAnalyzerConfigDocumentTextLoaderChanged(id, TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())));
+        }
+
         #endregion
 
         #region Checks and Asserts
@@ -1832,7 +1923,7 @@ namespace Microsoft.CodeAnalysis
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_already_part_of_the_workspace,
-                    this.GetDocumentName(documentId)));
+                    this.GetAnalyzerConfigDocumentName(documentId)));
             }
         }
 
@@ -1862,6 +1953,16 @@ namespace Microsoft.CodeAnalysis
         protected virtual string GetAdditionalDocumentName(DocumentId documentId)
         {
             var document = this.CurrentSolution.GetAdditionalDocument(documentId);
+            var name = document != null ? document.Name : "<Document" + documentId.Id + ">";
+            return name;
+        }
+
+        /// <summary>
+        /// Gets the name to use for an analyzer document in an error message.
+        /// </summary>
+        protected virtual string GetAnalyzerConfigDocumentName(DocumentId documentId)
+        {
+            var document = this.CurrentSolution.GetAnalyzerConfigDocument(documentId);
             var name = document != null ? document.Name : "<Document" + documentId.Id + ">";
             return name;
         }
