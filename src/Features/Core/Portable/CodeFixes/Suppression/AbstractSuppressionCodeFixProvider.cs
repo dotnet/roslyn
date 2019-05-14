@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         protected abstract SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine);
 
         protected abstract SyntaxNode AddGlobalSuppressMessageAttribute(SyntaxNode newRoot, ISymbol targetSymbol, Diagnostic diagnostic, Workspace workspace, CancellationToken cancellationToken);
+        protected abstract SyntaxNode AddLocalSuppressMessageAttribute(SyntaxNode targetNode, ISymbol targetSymbol, Diagnostic diagnostic);
 
         protected abstract string DefaultFileExtension { get; }
         protected abstract string SingleLineCommentStart { get; }
@@ -152,6 +153,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     {
                         // global assembly-level suppress message attribute.
                         nestedActions.Add(new GlobalSuppressMessageCodeAction(suppressionTargetInfo.TargetSymbol, project, diagnostic, this));
+
+                        // local suppress message attribute
+                        // please note that in order to avoid issues with exising unit tests referencing the code fix
+                        // by their index this needs to be the last added to nestedActions
+                        if (suppressionTargetInfo.TargetMemberNode != null && suppressionTargetInfo.TargetSymbol.Kind != SymbolKind.Namespace)
+                        {
+                            nestedActions.Add(new LocalSuppressMessageCodeAction(this, suppressionTargetInfo.TargetSymbol, suppressionTargetInfo.TargetMemberNode, documentOpt, diagnostic));
+                        }
                     }
 
                     if (nestedActions.Count > 0)
@@ -180,6 +189,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public SyntaxToken StartToken { get; set; }
             public SyntaxToken EndToken { get; set; }
             public SyntaxNode NodeWithTokens { get; set; }
+            public SyntaxNode TargetMemberNode { get; set; }
         }
 
         private async Task<SuppressionTargetInfo> GetSuppressionTargetInfoAsync(Document document, TextSpan span, CancellationToken cancellationToken)
@@ -261,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 targetSymbol = semanticModel.Compilation.Assembly;
             }
 
-            return new SuppressionTargetInfo() { TargetSymbol = targetSymbol, NodeWithTokens = nodeWithTokens, StartToken = startToken, EndToken = endToken };
+            return new SuppressionTargetInfo() { TargetSymbol = targetSymbol, NodeWithTokens = nodeWithTokens, StartToken = startToken, EndToken = endToken, TargetMemberNode = targetMemberNode };
         }
 
         internal SyntaxNode GetNodeWithTokens(SyntaxToken startToken, SyntaxToken endToken, SyntaxNode root)

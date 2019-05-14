@@ -507,6 +507,11 @@
         <target state="translated">универсальные перегрузки</target>
         <note />
       </trans-unit>
+      <trans-unit id="in_Source_attribute">
+        <source>in Source (attribute)</source>
+        <target state="new">in Source (attribute)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="overload">
         <source>overload</source>
         <target state="translated">перегрузка</target>
