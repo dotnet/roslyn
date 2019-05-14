@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 source="${BASH_SOURCE[0]}"
-darcVersion="1.1.0-beta.19205.4"
+darcVersion="1.1.0-beta.19258.3"
 
 while [[ $# > 0 ]]; do
   opt="$(echo "$1" | awk '{print tolower($0)}')"
@@ -45,7 +45,7 @@ function InstallDarcCli {
     echo $($dotnet_root/dotnet tool uninstall $darc_cli_package_name -g)
   fi
 
-  local arcadeServicesSource="https://dotnetfeed.blob.core.windows.net/dotnet-arcade/index.json"
+  local arcadeServicesSource="https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json"
 
   echo "Installing Darc CLI version $toolset_version..."
   echo "You may need to restart your command shell if this is the first dotnet tool you have installed."
