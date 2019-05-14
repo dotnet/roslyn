@@ -662,6 +662,51 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyMethod_CallEventAccessor()
+        {
+            var csharp = @"
+using System;
+
+public struct S
+{
+    public readonly void M()
+    {
+            Console.WriteLine(E is null);
+            // should create local copy
+            E += () => {}; // warning
+            Console.WriteLine(E is null);
+            E -= () => {}; // warning
+
+            // explicit local copy, no warning
+            var copy = this;
+            copy.E += () => {};
+            Console.WriteLine(copy.E is null);
+    }
+
+    public event Action E;
+
+    static void Main()
+    {
+        var s = new S();
+        s.M();
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyDiagnostics(
+                // (10,13): warning CS8656: Call to non-readonly member 'S.E.add' from a 'readonly' member results in an implicit copy of 'this'.
+                //             E += () => {}; // warning
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.add", "this").WithLocation(10, 13),
+                // (11,13): warning CS8656: Call to non-readonly member 'S.E.remove' from a 'readonly' member results in an implicit copy of 'this'.
+                //             E -= () => {}; // warning
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.remove", "this").WithLocation(11, 13));
+        }
+
+        [Fact]
         public void ReadOnlyMethod_CallSetAccessor()
         {
             var csharp = @"
