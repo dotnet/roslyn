@@ -134,6 +134,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                             CreateRemovedAdditionalDocumentPreviewViewAsync(oldSolution.GetAdditionalDocument(documentId), zoomLevel, c)));
                     }
 
+                    foreach (var documentId in projectChanges.GetChangedAnalyzerConfigDocuments())
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>
+                            CreateChangedAnalyzerConfigDocumentPreviewViewAsync(oldSolution.GetAnalyzerConfigDocument(documentId), newSolution.GetAnalyzerConfigDocument(documentId), zoomLevel, c)));
+                    }
+
+                    foreach (var documentId in projectChanges.GetAddedAnalyzerConfigDocuments())
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>
+                            CreateAddedAnalyzerConfigDocumentPreviewViewAsync(newSolution.GetAnalyzerConfigDocument(documentId), zoomLevel, c)));
+                    }
+
+                    foreach (var documentId in projectChanges.GetRemovedAnalyzerConfigDocuments())
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId, c =>
+                            CreateRemovedAnalyzerConfigDocumentPreviewViewAsync(oldSolution.GetAnalyzerConfigDocument(documentId), zoomLevel, c)));
+                    }
+
                     foreach (var metadataReference in projectChanges.GetAddedMetadataReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -278,6 +299,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return CreateAddedDocumentPreviewViewCoreAsync(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
         }
 
+        public Task<object> CreateAddedAnalyzerConfigDocumentPreviewViewAsync(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var newBuffer = CreateNewPlainTextBuffer(document, cancellationToken);
+
+            // Create PreviewWorkspace around the buffer to be displayed in the diff preview
+            // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
+            var rightWorkspace = new PreviewWorkspace(
+                document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, newBuffer.AsTextContainer().CurrentText));
+            rightWorkspace.OpenAnalyzerConfigDocument(document.Id);
+
+            return CreateAddedDocumentPreviewViewCoreAsync(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
+        }
+
         public Task<object> CreateRemovedDocumentPreviewViewAsync(Document document, CancellationToken cancellationToken)
         {
             return CreateRemovedDocumentPreviewViewAsync(document, DefaultZoomLevel, cancellationToken);
@@ -353,6 +388,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var leftDocument = leftSolution.GetAdditionalDocument(leftDocumentId);
             var leftWorkspace = new PreviewWorkspace(leftSolution);
             leftWorkspace.OpenAdditionalDocument(leftDocumentId);
+
+            return CreateRemovedDocumentPreviewViewCoreAsync(oldBuffer, leftWorkspace, leftDocument, zoomLevel, cancellationToken);
+        }
+
+        public Task<object> CreateRemovedAnalyzerConfigDocumentPreviewViewAsync(TextDocument document, double zoomLevel, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Note: We don't use the original buffer that is associated with oldDocument
+            // (and possibly open in the editor) for oldBuffer below. This is because oldBuffer
+            // will be used inside a projection buffer inside our inline diff preview below
+            // and platform's implementation currently has a bug where projection buffers
+            // are being leaked. This leak means that if we use the original buffer that is
+            // currently visible in the editor here, the projection buffer span calculation
+            // would be triggered every time user changes some code in this buffer (even though
+            // the diff view would long have been dismissed by the time user edits the code)
+            // resulting in crashes. Instead we create a new buffer from the same content.
+            // TODO: We could use ITextBufferCloneService instead here to clone the original buffer.
+            var oldBuffer = CreateNewPlainTextBuffer(document, cancellationToken);
+
+            // Create PreviewWorkspace around the buffer to be displayed in the diff preview
+            // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
+            var leftDocumentId = DocumentId.CreateNewId(document.Project.Id);
+            var leftSolution = document.Project.Solution
+                .RemoveAnalyzerConfigDocument(document.Id)
+                .AddAnalyzerConfigDocument(leftDocumentId, document.Name, oldBuffer.AsTextContainer().CurrentText);
+            var leftDocument = leftSolution.GetAnalyzerConfigDocument(leftDocumentId);
+            var leftWorkspace = new PreviewWorkspace(leftSolution);
+            leftWorkspace.OpenAnalyzerConfigDocument(leftDocumentId);
 
             return CreateRemovedDocumentPreviewViewCoreAsync(oldBuffer, leftWorkspace, leftDocument, zoomLevel, cancellationToken);
         }
@@ -488,6 +552,55 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var rightWorkSpace = new PreviewWorkspace(
                 oldDocument.Project.Solution.WithAdditionalDocumentText(oldDocument.Id, newBuffer.AsTextContainer().CurrentText));
             rightWorkSpace.OpenAdditionalDocument(newDocument.Id);
+
+            return CreateChangedDocumentViewAsync(
+                oldBuffer, newBuffer, description, originalLineSpans, changedLineSpans,
+                leftWorkspace, rightWorkSpace, zoomLevel, cancellationToken);
+        }
+
+        public Task<object> CreateChangedAnalyzerConfigDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Note: We don't use the original buffer that is associated with oldDocument
+            // (and currently open in the editor) for oldBuffer below. This is because oldBuffer
+            // will be used inside a projection buffer inside our inline diff preview below
+            // and platform's implementation currently has a bug where projection buffers
+            // are being leaked. This leak means that if we use the original buffer that is
+            // currently visible in the editor here, the projection buffer span calculation
+            // would be triggered every time user changes some code in this buffer (even though
+            // the diff view would long have been dismissed by the time user edits the code)
+            // resulting in crashes. Instead we create a new buffer from the same content.
+            // TODO: We could use ITextBufferCloneService instead here to clone the original buffer.
+            var oldBuffer = CreateNewPlainTextBuffer(oldDocument, cancellationToken);
+            var newBuffer = CreateNewPlainTextBuffer(newDocument, cancellationToken);
+
+            // Convert the diffs to be line based.  
+            // Compute the diffs between the old text and the new.
+            var diffResult = ComputeEditDifferences(oldDocument, newDocument, cancellationToken);
+
+            // Need to show the spans in the right that are different.
+            var originalSpans = GetOriginalSpans(diffResult, cancellationToken);
+            var changedSpans = GetChangedSpans(diffResult, cancellationToken);
+
+            string description = null;
+            var originalLineSpans = CreateLineSpans(oldBuffer.CurrentSnapshot, originalSpans, cancellationToken);
+            var changedLineSpans = CreateLineSpans(newBuffer.CurrentSnapshot, changedSpans, cancellationToken);
+
+            // TODO: Why aren't we attaching conflict / warning annotations here like we do for regular documents above?
+
+            // Create PreviewWorkspaces around the buffers to be displayed on the left and right
+            // so that all IDE services (colorizer, squiggles etc.) light up in these buffers.
+            var leftDocumentId = DocumentId.CreateNewId(oldDocument.Project.Id);
+            var leftSolution = oldDocument.Project.Solution
+                .RemoveAnalyzerConfigDocument(oldDocument.Id)
+                .AddAnalyzerConfigDocument(leftDocumentId, oldDocument.Name, oldBuffer.AsTextContainer().CurrentText);
+            var leftWorkspace = new PreviewWorkspace(leftSolution);
+            leftWorkspace.OpenAnalyzerConfigDocument(leftDocumentId);
+
+            var rightWorkSpace = new PreviewWorkspace(
+                oldDocument.Project.Solution.WithAnalyzerConfigDocumentText(oldDocument.Id, newBuffer.AsTextContainer().CurrentText));
+            rightWorkSpace.OpenAnalyzerConfigDocument(newDocument.Id);
 
             return CreateChangedDocumentViewAsync(
                 oldBuffer, newBuffer, description, originalLineSpans, changedLineSpans,
