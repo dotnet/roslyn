@@ -1454,11 +1454,11 @@ public class C {
 #nullable enable
 
 public class Person {
-    public virtual string? Name { get;}
+    public virtual string? Name { get; }
 }
 
 public class Student : Person {
-    public override string Name { get => Name; }
+    public override string Name { get => base.Name ?? """"; }
 }
 
 public class C {

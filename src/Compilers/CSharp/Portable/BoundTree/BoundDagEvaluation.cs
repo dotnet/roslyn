@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A BoundDagTypeEvaluation doesn't change the underlying object being pointed to
         /// So two evaluations act on the same input so long as they have the same original input.
         /// </summary>
-        /// <returns></returns>
         private BoundDagTemp GetOriginalInput()
         {
             var input = this.Input;
