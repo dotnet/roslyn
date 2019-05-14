@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
                 shouldSucceed)
         End Function
 
-#Region "Classes And Interfaces"
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestEmptyFile() As Task
             Dim workspace =
@@ -30,6 +29,8 @@ $$
 
             Await TestAsync(workspace, shouldSucceed:=False)
         End Function
+
+#Region "Classes And Interfaces"
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithSingleClass() As Task
@@ -89,22 +90,6 @@ class $$D : C { }
         <Document>
 class [|D|] { }
 sealed class $$C : D
-{
-}
-        </Document>
-    </Project>
-</Workspace>
-
-            Await TestAsync(workspace)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
-        Public Async Function TestWithStruct() As Task
-            Dim workspace =
-<Workspace>
-    <Project Language="C#" CommonReferences="true">
-        <Document>
-struct $$C
 {
 }
         </Document>
@@ -182,7 +167,7 @@ interface [|I|] { }
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
-        Public Async Function TestClassHeirarchyWithParentSiblings() As Task
+        Public Async Function TestClassHierarchyWithParentSiblings() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -206,7 +191,64 @@ interface [|J2|] { }
 
 #End Region
 
+#Region "Structs"
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithStruct() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+struct $$C
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithSingleStructImplementation() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+struct $$C : I { }
+interface [|I|] { }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestStructWithInterfaceHierarchy() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+struct $$S : I2 { }
+interface [|I2|] : I { }
+interface I1 : I { }
+interface [|I|] : J1, J2 { }
+interface [|J1|] { }
+interface [|J2|] { }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+#End Region
+
 #Region "Methods"
+
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithOneMethodImplementation_01() As Task
             Dim workspace =
@@ -321,6 +363,21 @@ interface C : I
     void $$M();
 }
 interface I { void M() {} }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOneMethodImplementationInStruct() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+struct S : I { public void $$M() { } }
+interface I { void [|M|](); }
         </Document>
     </Project>
 </Workspace>
@@ -658,6 +715,125 @@ using System;
 
 class C : I { public event EventHandler $$E; }
 interface I { event EventHandler [|E|]; }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOneEventImplementationInStruct() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct S : I { public event EventHandler $$E; }
+interface I { event EventHandler [|E|]; }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOneEventExplicitImplementation() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class C : I { event EventHandler I.$$E; }
+interface I { event EventHandler [|E|]; }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOneEventExplicitImplementationInStruct() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct S : I { event EventHandler I.$$E; }
+interface I { event EventHandler [|E|]; }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOnePropertyImplementation() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class C : I { public int $$P { get; set; } }
+interface I { int [|P|] { get; set; } }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOnePropertyExplicitImplementation() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+class C : I { int I.$$P { get; set; } }
+interface I { int [|P|] { get; set; } }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOnePropertyImplementationInStruct() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct S : I { public int $$P { get; set; } }
+interface I { int [|P|] { get; set; } }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOnePropertyExplicitImplementationInStruct() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+struct S : I { int I.$$P { get; set; } }
+interface I { int [|P|] { get; set; } }
         </Document>
     </Project>
 </Workspace>

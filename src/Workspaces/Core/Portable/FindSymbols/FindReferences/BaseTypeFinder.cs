@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
         }
 
         public static async Task<ImmutableArray<SymbolAndProjectId>> FindOverriddenAndImplementedMembersAsync(
-            ISymbol symbol, Project project, CancellationToken cancellationToken = default)
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             var baseClassesAndInterfaces = FindBaseTypesAndInterfaces(symbol.ContainingType);
             var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
 
-            // These are implicit interface implementaitons not matching by name such as void I.M();
+            // These are implicit interface implementations not matching by name such as void I.M();
             results.AddRange(
                 await ConvertToSymbolAndProjectIdsAsync(
                     symbol.ExplicitInterfaceImplementations(),
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
 
                     if (sourceMember.Symbol != null)
                     {
-                        // These are explicit interface imlementations matching by name.
+                        // These are explicit interface implementations matching by name.
                         if (type?.TypeKind == TypeKind.Interface)
                         {
-                            if (symbol.ContainingType?.TypeKind == TypeKind.Class)
+                            if (symbol.ContainingType?.TypeKind == TypeKind.Class || symbol.ContainingType?.TypeKind == TypeKind.Struct)
                             {
                                 var implementation = symbol.ContainingType.FindImplementations(sourceMember.Symbol, solution.Workspace);
 

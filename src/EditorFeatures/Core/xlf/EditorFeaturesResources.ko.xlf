@@ -317,6 +317,11 @@
         <target state="translated">이름 바꾸기로 {1}개의 파일에서 {0}개의 참조가 업데이트됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="new">'{0}' bases</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
         <source>{0} conflict(s) will be resolved</source>
         <target state="translated">충돌 {0}개가 해결됩니다.</target>

@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                 return null;
             }
 
-            var symbol = symbolAndProject?.symbol;
-            var project = symbolAndProject?.project;
+            var symbol = symbolAndProject.Value.symbol;
+            var project = symbolAndProject.Value.project;
 
             var bases = await FindBasesWorkerAsync(symbol, project, cancellationToken).ConfigureAwait(false);
             var filteredSymbols = bases.WhereAsArray(s => s.Symbol.Locations.Any(l => l.IsInSource));
@@ -35,11 +35,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
         private static async Task<ImmutableArray<SymbolAndProjectId>> FindBasesWorkerAsync(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (symbol is INamedTypeSymbol namedTypeSymbol && (namedTypeSymbol.TypeKind == TypeKind.Class || namedTypeSymbol.TypeKind == TypeKind.Interface))
+            if (symbol is INamedTypeSymbol namedTypeSymbol &&
+                (namedTypeSymbol.TypeKind == TypeKind.Class || namedTypeSymbol.TypeKind == TypeKind.Interface || namedTypeSymbol.TypeKind == TypeKind.Struct))
             {
                 return await BaseTypeFinder.FindBaseTypesAndInterfacesAsync(namedTypeSymbol, project, cancellationToken).ConfigureAwait(false);
             }
-            else if (symbol?.Kind == SymbolKind.Property || symbol?.Kind == SymbolKind.Method || symbol?.Kind == SymbolKind.Event)
+            else if (symbol.Kind == SymbolKind.Property || symbol.Kind == SymbolKind.Method || symbol.Kind == SymbolKind.Event)
             {
                 return await BaseTypeFinder.FindOverriddenAndImplementedMembersAsync(symbol, project, cancellationToken).ConfigureAwait(false);
             }

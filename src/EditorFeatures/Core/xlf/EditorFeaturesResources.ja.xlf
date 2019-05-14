@@ -317,6 +317,11 @@
         <target state="translated">名前を変更すると、{1} 個のファイル内の {0} 個の参照が更新されます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="new">'{0}' bases</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
         <source>{0} conflict(s) will be resolved</source>
         <target state="translated">{0} 個の競合が解決されます</target>

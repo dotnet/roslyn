@@ -252,7 +252,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // the current type and base types for implicit matches.
             var explicitMatches =
                 from member in typeSymbol.GetMembers().OfType<TSymbol>()
-                where member.ExplicitInterfaceImplementations().Length > 0
                 from explicitInterfaceMethod in member.ExplicitInterfaceImplementations()
                 where SymbolEquivalenceComparer.Instance.Equals(explicitInterfaceMethod, constructedInterfaceMember)
                 select member;

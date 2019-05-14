@@ -61,6 +61,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; bases.
+        /// </summary>
+        internal static string _0_bases {
+            get {
+                return ResourceManager.GetString("_0_bases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} conflict(s) will be resolved.
         /// </summary>
         internal static string _0_conflict_s_will_be_resolved {

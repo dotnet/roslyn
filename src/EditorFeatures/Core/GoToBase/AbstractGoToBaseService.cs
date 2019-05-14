@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             }
 
             await context.SetSearchTitleAsync(
-                string.Format(EditorFeaturesResources._0_implementations,
+                string.Format(EditorFeaturesResources._0_bases,
                 FindUsagesHelpers.GetDisplayName(tuple.Value.symbol))).ConfigureAwait(false);
 
             var solution = document.Project.Solution;

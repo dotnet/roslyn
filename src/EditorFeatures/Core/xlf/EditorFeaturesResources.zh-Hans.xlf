@@ -317,6 +317,11 @@
         <target state="translated">重命名将更新 {1} 个文件中的 {0} 个引用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="new">'{0}' bases</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
         <source>{0} conflict(s) will be resolved</source>
         <target state="translated">将解决 {0} 个冲突</target>
