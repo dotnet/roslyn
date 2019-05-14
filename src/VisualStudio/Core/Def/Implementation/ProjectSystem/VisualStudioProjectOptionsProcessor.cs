@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
@@ -21,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// Gate to guard all mutable fields in this class.
         /// The lock hierarchy means you are allowed to call out of this class and into <see cref="_project"/> while holding the lock.
         /// </summary>
-        private readonly object _gate = new object();
+        private object _gate = new object();
         private string _commandLine = "";
         private CommandLineArguments _commandLineArgumentsForCommandLine;
         private string _explicitRuleSetFilePath;

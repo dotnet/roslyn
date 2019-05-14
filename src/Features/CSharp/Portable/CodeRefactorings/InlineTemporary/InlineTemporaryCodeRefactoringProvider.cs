@@ -59,8 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var variableDeclarator = (VariableDeclaratorSyntax)node;
             var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
-            var localDeclarationStatement = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
-
             if (variableDeclarator.Identifier != token ||
                 variableDeclarator.Initializer == null ||
                 variableDeclarator.Initializer.Value.IsMissing ||
@@ -76,7 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
             }
 
-            if (localDeclarationStatement.ContainsDiagnostics)
+            var localDeclarationStatement = (LocalDeclarationStatementSyntax)variableDeclaration.Parent;
+            if (localDeclarationStatement.ContainsDiagnostics ||
+                localDeclarationStatement.UsingKeyword != default)
             {
                 return;
             }

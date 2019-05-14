@@ -4687,5 +4687,24 @@ class C
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(35645, "https://github.com/dotnet/roslyn/issues/35645")]
+        public async Task UsingDeclaration()
+        {
+            var code = @"
+using System;
+class C : IDisposable
+{
+    public void M()
+    {
+        using var [||]c = new C();
+        c.ToString();
+    }
+    public void Dispose() { }
+}";
+
+            await TestMissingInRegularAndScriptAsync(code, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)));
+        }
     }
 }

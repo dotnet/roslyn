@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
             }
 
-            protected override BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Conversions conversions, DiagnosticBag diagnostics)
+            protected override BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics)
             {
                 // https://github.com/dotnet/roslyn/issues/35037: Speculative models are going to have to do something more advanced
                 // here. They will need to run nullable analysis up to the point that is being speculated on, and
                 // then take that state and run analysis on the statement or expression being speculated on.
                 // Currently, it will return incorrect info because it's just running analysis on the speculated
                 // part.
-                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, conversions, diagnostics);
+                return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics);
             }
 
             internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)

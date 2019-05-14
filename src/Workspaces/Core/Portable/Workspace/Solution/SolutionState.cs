@@ -533,7 +533,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
-            => projectState.DocumentStates.Values.Concat(projectState.AdditionalDocumentStates.Values);
+            => projectState.DocumentStates.Values
+                   .Concat(projectState.AdditionalDocumentStates.Values)
+                   .Concat(projectState.AnalyzerConfigDocumentStates.Values);
 
         /// <summary>
         /// Create a new solution instance without the project specified.

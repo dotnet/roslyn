@@ -214,10 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
             var lengthLocal = F.StoreToTemp(F.Property(receiverLocal, lengthOrCountProperty), out var lengthStore);
             var indexLocal = F.StoreToTemp(
-                F.Call(
-                    VisitExpression(argument),
-                    WellKnownMember.System_Index__GetOffset,
-                    lengthLocal),
+                MakePatternIndexOffsetExpression(argument, lengthLocal),
                 out var indexStore);
 
             return F.Sequence(
@@ -235,6 +232,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     intIndexer.Type,
                     oldNodeOpt: null,
                     isLeftOfAssignment));
+        }
+
+        private BoundExpression MakePatternIndexOffsetExpression(BoundExpression unloweredExpr, BoundLocal lengthAccess)
+        {
+            Debug.Assert(TypeSymbol.Equals(
+                unloweredExpr.Type,
+                _compilation.GetWellKnownType(WellKnownType.System_Index),
+                TypeCompareKind.ConsiderEverything));
+
+            // If the System.Index argument is `^index`, we can replace the
+            // `argument.GetOffset(length)` call with `length - index`
+            var F = _factory;
+
+            if (unloweredExpr is BoundFromEndIndexExpression hatExpression)
+            {
+                Debug.Assert(hatExpression.Operand.Type.SpecialType == SpecialType.System_Int32);
+                return F.IntSubtract(lengthAccess, VisitExpression(hatExpression.Operand));
+            }
+            else
+            {
+                return F.Call(
+                    VisitExpression(unloweredExpr),
+                    WellKnownMember.System_Index__GetOffset,
+                    lengthAccess);
+            }
         }
 
         private BoundExpression VisitRangePatternIndexerAccess(
