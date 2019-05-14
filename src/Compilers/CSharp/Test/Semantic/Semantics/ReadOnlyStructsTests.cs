@@ -701,9 +701,31 @@ False");
                 // (10,13): warning CS8656: Call to non-readonly member 'S.E.add' from a 'readonly' member results in an implicit copy of 'this'.
                 //             E += () => {}; // warning
                 Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.add", "this").WithLocation(10, 13),
-                // (11,13): warning CS8656: Call to non-readonly member 'S.E.remove' from a 'readonly' member results in an implicit copy of 'this'.
+                // (12,13): warning CS8656: Call to non-readonly member 'S.E.remove' from a 'readonly' member results in an implicit copy of 'this'.
                 //             E -= () => {}; // warning
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.remove", "this").WithLocation(11, 13));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.remove", "this").WithLocation(12, 13));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallReadOnlyEventAccessor()
+        {
+            var csharp = @"
+using System;
+
+public struct S
+{
+    public readonly void M()
+    {
+        E += () => {};
+        E -= () => {};
+    }
+
+    public readonly event Action E { add {} remove {} }
+}
+";
+
+            var verifier = CreateCompilation(csharp);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -824,9 +846,14 @@ public struct S
     }
 }
 ";
-            // should warn about E += handler in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
+                // (9,9): warning CS8656: Call to non-readonly member 'S.E.add' from a 'readonly' member results in an implicit copy of 'this'.
+                //         E += handler;
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.add", "this").WithLocation(9, 9),
+                // (10,9): warning CS8656: Call to non-readonly member 'S.E.remove' from a 'readonly' member results in an implicit copy of 'this'.
+                //         E -= handler;
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.remove", "this").WithLocation(10, 9),
                 // (11,9): error CS1604: Cannot assign to 'E' because it is read-only
                 //         E = handler;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "E").WithArguments("E").WithLocation(11, 9));
