@@ -1322,6 +1322,11 @@ moreArguments:
             uint scopeOfTheContainingExpression,
             DiagnosticBag diagnostics)
         {
+            // SPEC:
+            // In a method invocation, the following constraints apply:
+            // - If there is a ref or out argument of a ref struct type (including the receiver), with safe-to-escape E1, then
+            // - no argument (including the receiver) may have a narrower safe-to-escape than E1.
+
             if (symbol.IsStatic)
             {
                 // ignore receiver when symbol is static
