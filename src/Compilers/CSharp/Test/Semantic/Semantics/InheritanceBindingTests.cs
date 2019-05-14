@@ -2962,7 +2962,7 @@ class Concrete : Abstract2
         }
 
         [Fact]
-        public void TestNoImplementationOfInterfaceMethod()
+        public void TestNoImplementationOfInterfaceMethod_01()
         {
             var text = @"
 interface Interface
@@ -2994,6 +2994,56 @@ class Class : Interface
                 // (10,15): error CS0535: 'Class' does not implement interface member 'Interface.Method1()'
                 // class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Method1()").WithLocation(10, 15));
+        }
+
+        [Fact]
+        public void TestNoImplementationOfInterfaceMethod_02()
+        {
+            var source1 =
+@"
+public class C1 {}
+";
+
+            var comp11 = CreateCompilation(new AssemblyIdentity("lib1", new Version("4.2.1.0"), publicKeyOrToken: SigningTestHelpers.PublicKey, hasPublicKey: true),
+                                           new[] { source1 }, TargetFrameworkUtil.GetReferences(TargetFramework.Standard, null).ToArray(), TestOptions.DebugDll.WithPublicSign(true));
+            comp11.VerifyDiagnostics();
+            var comp12 = CreateCompilation(new AssemblyIdentity("lib1", new Version("4.1.0.0"), publicKeyOrToken: SigningTestHelpers.PublicKey, hasPublicKey: true),
+                                           new[] { source1 }, TargetFrameworkUtil.GetReferences(TargetFramework.Standard, null).ToArray(), TestOptions.DebugDll.WithPublicSign(true));
+            comp12.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C2 : C1 {}
+";
+
+            var comp2 = CreateCompilation(new[] { source2 }, references: new[] { comp12.EmitToImageReference() }, assemblyName: "lib2");
+            comp2.VerifyDiagnostics();
+
+            var source3 =
+@"
+interface I1
+{
+    void Method1();
+}
+
+#pragma warning disable CS1701
+class C3 : C2,
+#pragma warning restore CS1701
+               I1
+{
+}
+";
+            var comp3 = CreateCompilation(new[] { source3 }, references: new[] { comp11.EmitToImageReference(), comp2.EmitToImageReference() }, assemblyName: "lib3");
+
+            // The unification warning shouldn't suppress the CS0535 error.
+            comp3.VerifyDiagnostics(
+                // (10,16): warning CS1701: Assuming assembly reference 'lib1, Version=4.1.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'lib2' matches identity 'lib1, Version=4.2.1.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'lib1', you may need to supply runtime policy
+                //                I1
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "I1").WithArguments("lib1, Version=4.1.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "lib2", "lib1, Version=4.2.1.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "lib1").WithLocation(10, 16),
+                // (10,16): error CS0535: 'C3' does not implement interface member 'I1.Method1()'
+                // class C3 : C2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.Method1()").WithLocation(10, 16)
+                );
         }
 
         [Fact]

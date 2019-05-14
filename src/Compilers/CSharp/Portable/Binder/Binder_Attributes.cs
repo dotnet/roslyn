@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)attributeType != null);
 
-            NullableWalker.AnalyzeIfNeeded(Compilation, boundAttribute, Conversions, diagnostics);
+            NullableWalker.AnalyzeIfNeeded(this, boundAttribute, diagnostics);
 
             bool hasErrors = boundAttribute.HasAnyErrors;
 

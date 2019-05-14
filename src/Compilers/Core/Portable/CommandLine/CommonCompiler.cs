@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="consoleOutput"></param>
         public virtual void PrintVersion(TextWriter consoleOutput)
         {
-            consoleOutput.WriteLine(GetAssemblyFileVersion());
+            consoleOutput.WriteLine(GetCompilerVersion());
         }
 
         protected abstract bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code);
@@ -132,18 +132,17 @@ namespace Microsoft.CodeAnalysis
         internal abstract Type Type { get; }
 
         /// <summary>
-        /// The assembly file version of this compiler, used in logo and /version output.
+        /// The version of this compiler with commit hash, used in logo and /version output.
         /// </summary>
-        internal virtual string GetAssemblyFileVersion()
+        internal string GetCompilerVersion()
         {
-            Assembly assembly = Type.GetTypeInfo().Assembly;
-            return GetAssemblyFileVersion(assembly);
+            return GetProductVersion(Type);
         }
 
-        internal static string GetAssemblyFileVersion(Assembly assembly)
+        internal static string GetProductVersion(Type type)
         {
-            string assemblyVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
-            string hash = ExtractShortCommitHash(assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash);
+            string assemblyVersion = GetInformationalVersionWithoutHash(type);
+            string hash = GetShortCommitHash(type);
             return $"{assemblyVersion} ({hash})";
         }
 
@@ -156,6 +155,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             return hash;
+        }
+
+        private static string GetInformationalVersionWithoutHash(Type type)
+        {
+            // The attribute stores a SemVer2-formatted string: `A.B.C(-...)?(+...)?`
+            // We remove the section after the + (if any is present)
+            return type.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0];
+        }
+
+        private static string GetShortCommitHash(Type type)
+        {
+            var hash = type.Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
+            return ExtractShortCommitHash(hash);
         }
 
         /// <summary>
@@ -575,7 +587,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                logger = new StreamErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
+                logger = new StreamErrorLogger(errorLog, GetToolName(), GetCompilerVersion(), GetAssemblyVersion(), Culture);
             }
 
             ReportDiagnostics(diagnostics.ToReadOnlyAndFree(), consoleOutput, errorLoggerOpt: logger);
@@ -870,8 +882,8 @@ namespace Microsoft.CodeAnalysis
             cancellationToken.ThrowIfCancellationRequested();
 
             string outputName = GetOutputFileName(compilation, cancellationToken);
-            var finalPeFilePath = Arguments.GetOutputFilePath(outputName);
-            var finalPdbFilePath = Arguments.GetPdbFilePath(outputName);
+            var finalPeFilePath = Path.Combine(Arguments.OutputDirectory, outputName);
+            var finalPdbFilePath = Arguments.PdbPath ?? Path.ChangeExtension(finalPeFilePath, ".pdb");
             var finalXmlFilePath = Arguments.DocumentationPath;
 
             NoThrowStreamDisposer sourceLinkStreamDisposerOpt = null;
@@ -1023,8 +1035,10 @@ namespace Microsoft.CodeAnalysis
 
                     if (success)
                     {
+                        bool emitPdbFile = Arguments.EmitPdb && emitOptions.DebugInformationFormat != Emit.DebugInformationFormat.Embedded;
+
                         var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath);
-                        var pdbStreamProviderOpt = Arguments.EmitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
+                        var pdbStreamProviderOpt = emitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
 
                         string finalRefPeFilePath = Arguments.OutputRefFilePath;
                         var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;

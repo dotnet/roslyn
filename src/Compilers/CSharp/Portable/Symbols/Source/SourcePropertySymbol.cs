@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeWithAnnotations.Builder _lazyType;
+        private TypeWithAnnotations.Boxed _lazyType;
 
         /// <summary>
         /// Set in constructor, might be changed while decoding <see cref="IndexerNameAttribute"/>.
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // and the property name is required to add the property to the containing type, and
                 // the type and parameters are required to determine the override or implementation.
                 var type = this.ComputeType(bodyBinder, syntax, diagnostics);
-                _lazyType.InterlockedInitialize(type);
+                _lazyType = new TypeWithAnnotations.Boxed(type);
                 _lazyParameters = this.ComputeParameters(bodyBinder, syntax, diagnostics);
 
                 bool isOverride = false;
@@ -248,8 +248,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type = type.WithTypeAndModifiers(
                             CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.Type, type.Type, this.ContainingAssembly),
                             overriddenPropertyType.CustomModifiers);
-                        _lazyType = default;
-                        _lazyType.InterlockedInitialize(type);
+
+                        _lazyType = new TypeWithAnnotations.Boxed(type);
                     }
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
@@ -516,20 +516,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyType.IsDefault)
+                if (_lazyType == null)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
                     var binder = this.CreateBinderForTypeAndParameters();
                     var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
                     var result = this.ComputeType(binder, syntax, diagnostics);
-                    if (_lazyType.InterlockedInitialize(result))
+                    if (Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(result), null) == null)
                     {
                         this.AddDeclarationDiagnostics(diagnostics);
                     }
                     diagnostics.Free();
                 }
 
-                return _lazyType.ToType();
+                return _lazyType.Value;
             }
         }
 
@@ -537,9 +537,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!_lazyType.IsDefault)
+                if (_lazyType != null)
                 {
-                    return _lazyType.DefaultType.IsPointerType();
+                    return _lazyType.Value.DefaultType.IsPointerType();
                 }
 
                 var syntax = (BasePropertyDeclarationSyntax)_syntaxRef.GetSyntax();
@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                    Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
-            var defaultAccess = isInterface ? (isExplicitInterfaceImplementation ? DeclarationModifiers.Protected : DeclarationModifiers.Public) : DeclarationModifiers.Private;
+            var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Unsafe;
@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnostics.Add(_location, useSiteDiagnostics);
 
-            if (type.SpecialType == SpecialType.System_Void)
+            if (type.IsVoidType())
             {
                 ErrorCode errorCode = this.IsIndexer ? ErrorCode.ERR_IndexerCantHaveVoidType : ErrorCode.ERR_PropertyCantHaveVoidType;
                 diagnostics.Add(errorCode, _location, this);

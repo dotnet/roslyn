@@ -106,13 +106,6 @@ namespace BuildBoss
                         string.Empty,
                         assetRelativeNames);
 
-            // Temporarily inserting Microsoft.DiaSymReader.Native.arm.dll while SDK team tracks down why 
-            // it's being inserted into destkop builds.
-            // https://github.com/dotnet/cli/issues/10979
-            allGood &= VerifyVsix(
-                        textWriter,
-                        FindVsix("Roslyn.Compilers.Extension"),
-                        assetRelativeNames.Concat(new[] { "Roslyn.Compilers.Extension.dll", "Microsoft.DiaSymReader.Native.arm.dll" }));
             return allGood;
         }
 

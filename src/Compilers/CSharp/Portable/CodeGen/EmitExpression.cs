@@ -111,6 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitConvertedStackAllocExpression((BoundConvertedStackAllocExpression)expression, used);
                     break;
 
+                case BoundKind.ReadOnlySpanFromArray:
+                    EmitReadOnlySpanFromArrayExpression((BoundReadOnlySpanFromArray)expression, used);
+                    break;
+
                 case BoundKind.Conversion:
                     EmitConversionExpression((BoundConversion)expression, used);
                     break;

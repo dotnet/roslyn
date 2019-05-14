@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (expression.HasExpressionType())
                 {
-                    if (expressionType.SpecialType == SpecialType.System_Void)
+                    if (expressionType.IsVoidType())
                     {
                         errorArg = expressionType;
                         expressionType = CreateErrorType(SyntaxFacts.GetText(SyntaxKind.VoidKeyword));

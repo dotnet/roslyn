@@ -359,6 +359,7 @@ public class C
         }
 
         [Fact]
+        [WorkItem(35034, "https://github.com/dotnet/roslyn/issues/35034")]
         public void MethodDeclarationReceiver()
         {
             var source = @"
@@ -725,6 +726,98 @@ class C
                     syntaxContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor, syntaxContext.Node.GetLocation(), syntaxContext.Node, info.Nullability.FlowState, info.Nullability.Annotation));
                 }, SyntaxKind.IdentifierName);
             }
+        }
+
+        [Fact]
+        public void MultipleConversions()
+        {
+            var source = @"
+class A { public static explicit operator C(A a) => new D(); }
+class B : A { }
+class C { }
+class D : C { }
+class E
+{
+    void M()
+    {
+        var d = (D)(C?)new B();
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            comp.VerifyDiagnostics(
+                // (10,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var d = (D)(C?)new B();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)(C?)new B()").WithLocation(10, 17));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var aType = comp.GetTypeByMetadataName("A");
+            var bType = comp.GetTypeByMetadataName("B");
+            var cType = comp.GetTypeByMetadataName("C");
+            var dType = comp.GetTypeByMetadataName("D");
+
+            var nullable = new NullabilityInfo(PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
+            var notNullable = new NullabilityInfo(PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.NotNull);
+
+            var dCast = (CastExpressionSyntax)root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value;
+            var dInfo = model.GetTypeInfo(dCast);
+            Assert.Equal(dType, dInfo.Type);
+            Assert.Equal(dType, dInfo.ConvertedType);
+            Assert.Equal(nullable, dInfo.Nullability);
+            Assert.Equal(nullable, dInfo.ConvertedNullability);
+
+            var cCast = (CastExpressionSyntax)dCast.Expression;
+            var cInfo = model.GetTypeInfo(cCast);
+            Assert.Equal(cType, cInfo.Type);
+            Assert.Equal(cType, cInfo.ConvertedType);
+            Assert.Equal(nullable, cInfo.Nullability);
+            Assert.Equal(nullable, cInfo.ConvertedNullability);
+
+            var objectCreation = cCast.Expression;
+            var creationInfo = model.GetTypeInfo(objectCreation);
+            Assert.Equal(bType, creationInfo.Type);
+            Assert.Equal(aType, creationInfo.ConvertedType);
+            Assert.Equal(notNullable, creationInfo.Nullability);
+            Assert.Equal(nullable, creationInfo.ConvertedNullability);
+        }
+
+        [Fact]
+        public void ConditionalOperator_InvalidType()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var x = new Undefined() ? new object() : null;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS0246: The type or namespace name 'Undefined' could not be found (are you missing a using directive or an assembly reference?)
+                //         var x = new Undefined() ? new object() : null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Undefined").WithArguments("Undefined").WithLocation(6, 21));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var conditional = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+
+            var notNull = new NullabilityInfo(PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.NotNull);
+            var @null = new NullabilityInfo(PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
+
+            var leftInfo = model.GetTypeInfo(conditional.WhenTrue);
+            var rightInfo = model.GetTypeInfo(conditional.WhenFalse);
+
+            Assert.Equal(notNull, leftInfo.Nullability);
+            Assert.Equal(notNull, leftInfo.ConvertedNullability);
+            Assert.Equal(@null, rightInfo.Nullability);
+            Assert.Equal(notNull, rightInfo.ConvertedNullability);
         }
     }
 }
