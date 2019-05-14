@@ -6226,7 +6226,7 @@ class C
             CleanupAllGeneratedFiles(file.Path);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35696")]
         public void NoLogo_2()
         {
             string source = @"
