@@ -15,6 +15,12 @@
     <DefaultName>CodeRefactoring</DefaultName>
     <ProvideDefaultName>true</ProvideDefaultName>
     <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+    <LanguageTag>C#</LanguageTag>
+    <PlatformTag>Windows</PlatformTag>
+    <PlatformTag>Linux</PlatformTag>
+    <PlatformTag>macOS</PlatformTag>
+    <ProjectTypeTag>VSSDK</ProjectTypeTag>
+    <ProjectTypeTag>Roslyn</ProjectTypeTag>
   </TemplateData>
   <TemplateContent>
     <!-- These projects are created in the order they are listed. 

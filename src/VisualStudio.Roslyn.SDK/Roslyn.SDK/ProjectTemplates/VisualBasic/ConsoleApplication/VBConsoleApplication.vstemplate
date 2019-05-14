@@ -15,6 +15,13 @@
     <DefaultName>CodeAnalysisApp</DefaultName>
     <ProvideDefaultName>true</ProvideDefaultName>
     <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+    <LanguageTag>Visual Basic</LanguageTag>
+    <PlatformTag>Windows</PlatformTag>
+    <PlatformTag>Linux</PlatformTag>
+    <PlatformTag>macOS</PlatformTag>
+    <ProjectTypeTag>Console</ProjectTypeTag>
+    <ProjectTypeTag>VSSDK</ProjectTypeTag>
+    <ProjectTypeTag>Roslyn</ProjectTypeTag>
   </TemplateData>
   <TemplateContent>
     <Project File="ConsoleApplication.vbproj" TargetFileName="$projectname$.vbproj" ReplaceParameters="true">

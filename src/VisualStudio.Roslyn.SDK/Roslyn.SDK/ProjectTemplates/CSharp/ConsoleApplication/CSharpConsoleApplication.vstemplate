@@ -15,6 +15,13 @@
     <DefaultName>CodeAnalysisApp</DefaultName>
     <ProvideDefaultName>true</ProvideDefaultName>
     <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+    <LanguageTag>C#</LanguageTag>
+    <PlatformTag>Windows</PlatformTag>
+    <PlatformTag>Linux</PlatformTag>
+    <PlatformTag>macOS</PlatformTag>
+    <ProjectTypeTag>Console</ProjectTypeTag>
+    <ProjectTypeTag>VSSDK</ProjectTypeTag>
+    <ProjectTypeTag>Roslyn</ProjectTypeTag>
   </TemplateData>
   <TemplateContent>
     <Project File="ConsoleApplication.csproj" TargetFileName="$projectname$.csproj" ReplaceParameters="true">
