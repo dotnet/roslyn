@@ -499,7 +499,7 @@ End Class
             CleanupAllGeneratedFiles(src)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35696")>
         Public Sub VbcNologo_2()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Class C
@@ -540,7 +540,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.
             Return Regex.Replace(s, "(\((<developer build>|[a-fA-F0-9]{8})\))", "(HASH)")
         End Function
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35696")>
         Public Sub VbcNologo_2a()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Class C
