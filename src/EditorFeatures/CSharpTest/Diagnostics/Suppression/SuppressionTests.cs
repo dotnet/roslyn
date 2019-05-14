@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
     {
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions) => actions[0].NestedCodeActions;
-
         protected override string GetLanguage() => LanguageNames.CSharp;
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)

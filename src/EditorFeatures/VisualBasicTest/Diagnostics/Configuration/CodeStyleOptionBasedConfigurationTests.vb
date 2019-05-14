@@ -18,10 +18,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
                 If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
-        Protected Overrides Function MassageActions(ByVal actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
-            Return actions(0).NestedCodeActions
-        End Function
-
         Protected Overrides Function GetLanguage() As String
             Return LanguageNames.VisualBasic
         End Function

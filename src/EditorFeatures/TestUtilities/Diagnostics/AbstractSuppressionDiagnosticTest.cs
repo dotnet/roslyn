@@ -29,6 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         internal abstract Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        {
+            return actions.SelectMany(a => a is AbstractTopLevelConfigurationOrSuppressionCodeAction
+                ? a.NestedCodeActions
+                : ImmutableArray.Create(a)).ToImmutableArray();
+        }
+
         private ImmutableArray<Diagnostic> FilterDiagnostics(IEnumerable<Diagnostic> diagnostics)
         {
             if (!IncludeNoLocationDiagnostics)
