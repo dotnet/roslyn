@@ -97,6 +97,11 @@
         <target state="translated">シンボル - 静的</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="new">The symbol has no base.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Members_Constants">
         <source>User Members - Constants</source>
         <target state="translated">ユーザー メンバー - 定数</target>
