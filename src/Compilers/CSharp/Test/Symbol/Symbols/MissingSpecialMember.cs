@@ -2253,6 +2253,31 @@ struct X
         }
 
         [Fact]
+        public void System_String__ConcatObject()
+        {
+            // It isn't possible to trigger this diagnostic, as we don't use String.Concat(object)
+
+            var source = @"
+using System;
+public class Test
+{
+    private static string S = ""F"";
+    private static object O = ""O"";
+    static void Main()
+    {
+        Console.WriteLine(O + null);
+        Console.WriteLine(S + null);
+    }
+}
+    ";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObject);
+            compilation.VerifyEmitDiagnostics(); // We don't expect any
+            CompileAndVerify(compilation, expectedOutput: @"O
+F");
+        }
+
+        [Fact]
         public void System_Object__ToString()
         {
             var source = @"
