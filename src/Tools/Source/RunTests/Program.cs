@@ -20,11 +20,6 @@ namespace RunTests
 {
     internal sealed partial class Program
     {
-        private static readonly ImmutableHashSet<string> PrimaryProcessNames = ImmutableHashSet.Create(
-            StringComparer.OrdinalIgnoreCase,
-            "devenv",
-            "xunit.console.x86");
-
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
 
@@ -228,12 +223,10 @@ namespace RunTests
             var procDumpInfo = GetProcDumpInfo(options);
             if (procDumpInfo != null)
             {
+                var dumpDir = procDumpInfo.Value.DumpDirectory;
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
                 {
-                    var dumpDir = PrimaryProcessNames.Contains(proc.ProcessName)
-                        ? procDumpInfo.Value.DumpDirectory
-                        : procDumpInfo.Value.SecondaryDumpDirectory;
                     var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
                     await DumpProcess(proc, procDumpInfo.Value.ProcDumpFilePath, dumpFilePath);
                     counter++;
@@ -251,7 +244,7 @@ namespace RunTests
         {
             if (!string.IsNullOrEmpty(options.ProcDumpDirectory))
             {
-                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.LogFilesOutputDirectory, options.LogFilesSecondaryOutputDirectory);
+                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.LogFilesOutputDirectory);
             }
 
             return null;
