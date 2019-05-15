@@ -167,14 +167,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             set
             {
                 // We merge values into Nullable, prioritizing Nullable value over NullableContextOptions value
-                if (string.IsNullOrEmpty((string)_store[nameof(Nullable)]))
+                if (string.IsNullOrEmpty(Nullable))
                 {
-                    _store[nameof(Nullable)] = value;
+                    Nullable = value;
                 }
             }
-            get { return (string)_store[nameof(Nullable)]; }
+            get { return Nullable; }
         }
-
 
         #endregion
 
