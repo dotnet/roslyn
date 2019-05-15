@@ -1887,35 +1887,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBaseReference BindBase(BaseExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            TypeSymbol baseType;
-            BoundTypeExpression boundType = null;
             bool hasErrors = false;
-
-            if (node.TypeClause is null)
-            {
-                baseType = this.ContainingType is null ? null : this.ContainingType.BaseTypeNoUseSiteDiagnostics;
-            }
-            else
-            {
-                baseType = this.BindType(node.TypeClause.BaseType, diagnostics, out AliasSymbol alias).Type;
-                hasErrors = baseType.IsErrorType();
-
-                if (!hasErrors && !(this.ContainingType is null))
-                {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    if (!this.ContainingType.IsDerivedFrom(baseType, TypeCompareKind.ConsiderEverything, ref useSiteDiagnostics) &&
-                        !this.ContainingType.ImplementsInterface(baseType, ref useSiteDiagnostics))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_NotBaseOrImplementedInterface, node.TypeClause.BaseType, baseType, this.ContainingType);
-                        diagnostics.Add(node.TypeClause.BaseType, useSiteDiagnostics);
-                        hasErrors = true;
-                    }
-                }
-
-                boundType = new BoundTypeExpression(node.TypeClause.BaseType, alias, baseType, hasErrors);
-            }
-
+            TypeSymbol baseType = this.ContainingType is null ? null : this.ContainingType.BaseTypeNoUseSiteDiagnostics;
             bool inStaticContext;
+
             if (!HasThis(isExplicit: true, inStaticContext: out inStaticContext))
             {
                 //this error is returned in the field initializer case
@@ -1938,7 +1913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return new BoundBaseReference(node, boundType, baseType, hasErrors);
+            return new BoundBaseReference(node, baseType, hasErrors);
         }
 
         private BoundExpression BindCast(CastExpressionSyntax node, DiagnosticBag diagnostics)
@@ -5923,7 +5898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool leftIsBaseReference = boundLeft.Kind == BoundKind.BaseReference;
                 if (leftIsBaseReference)
                 {
-                    options |= (LookupOptions.UseBaseReferenceAccessibility | LookupOptions.NoObjectMembersOnInterfaces);
+                    options |= LookupOptions.UseBaseReferenceAccessibility;
                 }
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -6601,7 +6576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.ContainingType?.IsInterface == true && !Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation && Compilation.SourceModule != symbol.ContainingModule)
             {
                 if (!symbol.IsStatic && !(symbol is TypeSymbol) &&
-                    (!symbol.IsImplementableInterfaceMember() || (receiverOpt as BoundBaseReference)?.ExplicitBaseReferenceOpt?.Type.IsInterfaceType() == true))
+                    !symbol.IsImplementableInterfaceMember())
                 {
                     Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, node);
                 }
@@ -7189,7 +7164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(analyzedArguments != null);
 
             LookupResult lookupResult = LookupResult.GetInstance();
-            LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? (LookupOptions.UseBaseReferenceAccessibility | LookupOptions.NoObjectMembersOnInterfaces) : LookupOptions.Default;
+            LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? LookupOptions.UseBaseReferenceAccessibility : LookupOptions.Default;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             this.LookupMembersWithFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: lookupOptions);
             diagnostics.Add(node, useSiteDiagnostics);
@@ -7480,13 +7455,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out BoundIndexOrRangePatternIndexerAccess patternIndexerAccess)
         {
+            patternIndexerAccess = null;
+
             // Verify a few things up-front, namely that we have a single argument
             // to this indexer that has an Index or Range type and that there is
             // a real receiver with a known type
 
             if (arguments.Count != 1)
             {
-                patternIndexerAccess = null;
                 return false;
             }
 
@@ -7494,14 +7470,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool argIsIndex = TypeSymbol.Equals(argType,
                 Compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything);
-            bool argIsRange = !argIsIndex || TypeSymbol.Equals(argType,
+            bool argIsRange = !argIsIndex && TypeSymbol.Equals(argType,
                 Compilation.GetWellKnownType(WellKnownType.System_Range),
                 TypeCompareKind.ConsiderEverything);
 
             if ((!argIsIndex && !argIsRange) ||
                 !(receiverOpt?.Type is TypeSymbol receiverType))
             {
-                patternIndexerAccess = null;
                 return false;
             }
 
@@ -7525,7 +7500,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!tryLookupLengthOrCount(WellKnownMemberNames.LengthPropertyName, out lengthOrCountProperty) &&
                 !tryLookupLengthOrCount(WellKnownMemberNames.CountPropertyName, out lengthOrCountProperty))
             {
-                patternIndexerAccess = null;
                 return false;
             }
 
@@ -7556,7 +7530,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             property.OriginalDefinition is { ParameterCount: 1 } original &&
                             isIntNotByRef(original.Parameters[0]))
                         {
-                            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,
@@ -7564,8 +7537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 property,
                                 arguments[0],
                                 property.Type);
-                            cleanup(lookupResult, ref useSiteDiagnostics);
-                            return true;
+                            break;
                         }
                     }
                 }
@@ -7575,9 +7547,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(argIsRange);
                 // Look for Substring
                 var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
-                if (substring is { })
+                if (substring is object)
                 {
-                    _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
                     patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                         syntax,
                         receiverOpt,
@@ -7585,8 +7556,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         substring,
                         arguments[0],
                         substring.ReturnType);
-                    cleanup(lookupResult, ref useSiteDiagnostics);
-                    return true;
                 }
             }
             else
@@ -7617,7 +7586,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isIntNotByRef(original.Parameters[0]) &&
                             isIntNotByRef(original.Parameters[1]))
                         {
-                            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,
@@ -7625,16 +7593,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method,
                                 arguments[0],
                                 method.ReturnType);
-                            cleanup(lookupResult, ref useSiteDiagnostics);
-                            return true;
+                            break;
                         }
                     }
                 }
             }
 
             cleanup(lookupResult, ref useSiteDiagnostics);
-            patternIndexerAccess = null;
-            return false;
+            if (patternIndexerAccess is null)
+            {
+                return false;
+            }
+
+            _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax.Location);
+            // Check for some required well-known members. They may not be needed
+            // during lowering, but it's simpler to always require them to prevent
+            // the user from getting surprising errors when optimizations fail
+            _ = GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__GetOffset, diagnostics, syntax: syntax);
+            return true;
 
             static void cleanup(LookupResult lookupResult, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             {

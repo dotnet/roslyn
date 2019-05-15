@@ -3771,10 +3771,6 @@ partial class H2<T, U, V> where T : IA<V> where U : IB { }";
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E2").WithArguments("E2<T, U>", "T").WithLocation(35, 15),
                 // (35,15): error CS0265: Partial declarations of 'E2<T, U>' have inconsistent constraints for type parameter 'U'
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E2").WithArguments("E2<T, U>", "U").WithLocation(35, 15),
-                // (35,15): error CS0265: Partial declarations of 'E2<T, U>' have inconsistent constraints for type parameter 'T'
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E2").WithArguments("E2<T, U>", "T").WithLocation(35, 15),
-                // (35,15): error CS0265: Partial declarations of 'E2<T, U>' have inconsistent constraints for type parameter 'U'
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E2").WithArguments("E2<T, U>", "U").WithLocation(35, 15),
                 // (43,15): error CS0265: Partial declarations of 'F2<T, U>' have inconsistent constraints for type parameter 'U'
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "F2").WithArguments("F2<T, U>", "U").WithLocation(43, 15),
                 // (48,16): error CS0265: Partial declarations of 'G2<T, U>' have inconsistent constraints for type parameter 'U'

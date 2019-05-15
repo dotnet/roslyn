@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -184,16 +185,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = this.Locations[0];
             if (IsAsync)
             {
-                // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
                 var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
                 var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+                var enumeratorCancellationCount = Parameters.Count(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true });
                 if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
-                    (Bodies.blockBody != null || Bodies.arrowBody != null) &&
-                    ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)) &&
-                    !Parameters.Any(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true }))
+                    (Bodies.blockBody != null || Bodies.arrowBody != null))
                 {
-                    // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
-                    diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, location, this);
+                    if (enumeratorCancellationCount == 0 &&
+                        ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)))
+                    {
+                        // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
+                        // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
+                        diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, location, this);
+                    }
+
+                    if (enumeratorCancellationCount > 1)
+                    {
+                        // The [EnumeratorCancellation] attribute can only be used on one parameter
+                        diagnostics.Add(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, location);
+                    }
                 }
             }
 
@@ -228,8 +238,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Binder.CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_OverrideWithConstraints, diagnostics,
                                                     syntax.ConstraintClauses[0].WhereKeyword.GetLocation());
 
+                    IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
                     declaredConstraints = signatureBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks).
                                               BindTypeParameterConstraintClauses(this, _typeParameters, syntax.TypeParameterList, syntax.ConstraintClauses,
+                                                                                 ref isValueTypeOverride,
                                                                                  diagnostics, isForOverride: true);
                 }
 
@@ -567,19 +579,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
         {
-            var clauses = _lazyTypeParameterConstraints;
-            if (clauses.IsDefault)
+            if (_lazyTypeParameterConstraints.IsDefault)
             {
-                // Early step.
                 var diagnostics = DiagnosticBag.GetInstance();
                 var syntax = GetSyntax();
                 var withTypeParametersBinder =
                     this.DeclaringCompilation
                     .GetBinderFactory(syntax.SyntaxTree)
                     .GetBinder(syntax.ReturnType, syntax, this);
-                var constraints = this.MakeTypeParameterConstraintsEarly(
+                var constraints = this.MakeTypeParameterConstraints(
                     withTypeParametersBinder,
                     TypeParameters,
                     syntax.TypeParameterList,
@@ -587,20 +597,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax.Identifier.GetLocation(),
                     diagnostics);
                 if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, constraints))
-                {
-                    this.AddDeclarationDiagnostics(diagnostics);
-                }
-                diagnostics.Free();
-                clauses = _lazyTypeParameterConstraints;
-            }
-
-            if (!early && clauses.IsEarly())
-            {
-                // Late step.
-                var diagnostics = DiagnosticBag.GetInstance();
-                var constraints = ConstraintsHelper.MakeTypeParameterConstraintsLate(TypeParameters, clauses, diagnostics);
-                Debug.Assert(!constraints.IsEarly());
-                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, clauses) == clauses)
                 {
                     this.AddDeclarationDiagnostics(diagnostics);
                 }
@@ -835,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool isInterface = this.ContainingType.IsInterface;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
-            var defaultAccess = isInterface && modifiers.IndexOf(SyntaxKind.PartialKeyword) < 0 ? (isExplicitInterfaceImplementation ? DeclarationModifiers.Protected : DeclarationModifiers.Public) : DeclarationModifiers.Private;
+            var defaultAccess = isInterface && modifiers.IndexOf(SyntaxKind.PartialKeyword) < 0 && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;

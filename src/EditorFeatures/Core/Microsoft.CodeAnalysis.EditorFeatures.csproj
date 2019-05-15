@@ -112,9 +112,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Update="Shared\Extensions\ITextViewExtensions.AutoClosingViewProperty.cs">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="EditorFeaturesResources.resx">

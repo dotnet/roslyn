@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return commonTypeKind;
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
             if (ReferenceEquals(this, t2))
             {
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return
-                ((object)this.ContainingType != null ? this.ContainingType.Equals(other.ContainingType, comparison) :
+                ((object)this.ContainingType != null ? this.ContainingType.Equals(other.ContainingType, comparison, isValueTypeOverrideOpt) :
                  (object)this.ContainingSymbol == null ? (object)other.ContainingSymbol == null : this.ContainingSymbol.Equals(other.ContainingSymbol)) &&
                 this.Name == other.Name && this.Arity == other.Arity;
         }

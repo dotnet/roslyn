@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
                         var receiver = (method.IsStatic && !oldNode.IsExtensionMethod) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
                         _factory.Syntax = oldSyntax;
-                        return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: AdjustMethodForBaseInterfaceCall(receiver, method),
+                        return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
                                                                    isExtensionMethod: oldNode.IsExtensionMethod, type: rewrittenType);
                     }
                 default:
@@ -1025,16 +1025,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // do not rewrite user defined conversion 
-            // - in expression trees or 
-            // - special situations when converting from array to ReadOnlySpan, which has special support in codegen
-            bool doNotLowerToCall = _inExpressionLambda ||
-                                    (rewrittenOperand.Type.IsArray()) && _compilation.IsReadOnlySpanType(rewrittenType);
+            // do not rewrite user defined conversion in expression trees
+            if (_inExpressionLambda)
+            {
+                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, explicitCastInCode: true, conversionGroupOpt: null, default(ConstantValue), rewrittenType);
+            }
 
-            BoundExpression result =
-                doNotLowerToCall
-                ? BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, explicitCastInCode: true, conversionGroupOpt: null, default(ConstantValue), rewrittenType)
-                : (BoundExpression)BoundCall.Synthesized(syntax, null, conversion.Method, rewrittenOperand);
+            if ((rewrittenOperand.Type.IsArray()) && _compilation.IsReadOnlySpanType(rewrittenType))
+            {
+                return new BoundReadOnlySpanFromArray(syntax, rewrittenOperand, conversion.Method, rewrittenType) { WasCompilerGenerated = true };
+            }
+
+            BoundExpression result = BoundCall.Synthesized(syntax, null, conversion.Method, rewrittenOperand);
             Debug.Assert(TypeSymbol.Equals(result.Type, rewrittenType, TypeCompareKind.ConsiderEverything2));
             return result;
         }

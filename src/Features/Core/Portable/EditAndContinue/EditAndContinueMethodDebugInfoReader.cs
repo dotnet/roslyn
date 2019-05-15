@@ -139,32 +139,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        /// <summary>
-        /// Creates <see cref="EditAndContinueMethodDebugInfoReader"/> backed by a given <see cref="ISymUnmanagedReader5"/>.
-        /// </summary>
-        /// <param name="symReader">SymReader open on a Portable or Windows PDB.</param>
-        /// <param name="version">The version of the PDB to read.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="symReader"/> is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="version"/> is less than 1.</exception>
-        /// <exception cref="COMException">Error reading debug information.</exception>
-        /// <returns>
-        /// The resulting reader does not take ownership of the <paramref name="symReader"/> or the memory it reads.
-        /// </returns>
-        /// <remarks>
-        /// Automatically detects the underlying PDB format and returns the appropriate reader.
-        /// </remarks>
-        public unsafe static EditAndContinueMethodDebugInfoReader Create(ISymUnmanagedReader5 symReader, int version = 1)
+        public unsafe static EditAndContinueMethodDebugInfoReader Create(ISymUnmanagedReader5 symReader, int version)
         {
-            if (symReader == null)
-            {
-                throw new ArgumentNullException(nameof(symReader));
-            }
-
-            if (version <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(version));
-            }
-
             int hr = symReader.GetPortableDebugMetadataByVersion(version, metadata: out byte* metadata, size: out int size);
             Marshal.ThrowExceptionForHR(hr);
 
@@ -177,16 +153,5 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return new Native(symReader, version);
             }
         }
-
-        /// <summary>
-        /// Creates <see cref="EditAndContinueMethodDebugInfoReader"/> back by a given <see cref="MetadataReader"/>.
-        /// </summary>
-        /// <param name="pdbReader"><see cref="MetadataReader"/> open on a Portable PDB.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="pdbReader"/> is null.</exception>
-        /// <returns>
-        /// The resulting reader does not take ownership of the <paramref name="pdbReader"/> or the memory it reads.
-        /// </returns>
-        public unsafe static EditAndContinueMethodDebugInfoReader Create(MetadataReader pdbReader)
-           => new Portable(pdbReader ?? throw new ArgumentNullException(nameof(pdbReader)));
     }
 }

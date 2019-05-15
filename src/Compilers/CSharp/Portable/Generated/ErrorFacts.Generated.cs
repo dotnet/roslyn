@@ -197,7 +197,6 @@
                 case ErrorCode.WRN_NullReferenceArgument:
                 case ErrorCode.WRN_UnboxPossibleNull:
                 case ErrorCode.WRN_NullReferenceIterationVariable:
-                case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:

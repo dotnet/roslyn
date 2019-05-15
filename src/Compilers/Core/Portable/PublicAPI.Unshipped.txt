@@ -1,8 +1,5 @@
 *REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
 *REMOVED*Microsoft.CodeAnalysis.SpecialType.Count = 43 -> Microsoft.CodeAnalysis.SpecialType
-Microsoft.CodeAnalysis.CommandLineArguments.EmitPdbFile.get -> bool
-Microsoft.CodeAnalysis.CommandLineArguments.GetOutputFilePath(string outputFileName) -> string
-Microsoft.CodeAnalysis.CommandLineArguments.GetPdbFilePath(string outputFileName) -> string
 Microsoft.CodeAnalysis.IArrayTypeSymbol.ElementNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IDiscardSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IEventSymbol.NullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
