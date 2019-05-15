@@ -1015,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (targetType.Type.IsReferenceType ||
                         targetType.TypeKind == TypeKind.TypeParameter ||
-                       targetType.IsNullableType())
+                        targetType.IsNullableType())
                     {
                         // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
                         // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).

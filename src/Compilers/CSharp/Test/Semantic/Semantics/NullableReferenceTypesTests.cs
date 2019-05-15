@@ -82223,7 +82223,7 @@ class Program
         }
 
         /// <summary>
-        /// NullableWalker tracks members of variables up to a fixed depth.
+        /// Nullability of variable members is tracked up to a fixed depth.
         /// </summary>
         [Fact]
         [WorkItem(31395, "https://github.com/dotnet/roslyn/issues/31395")]
@@ -82259,7 +82259,7 @@ class Program
         }
 
         /// <summary>
-        /// NullableWalker tracks members of variables up to a fixed depth.
+        /// Nullability of variable members is tracked up to a fixed depth.
         /// </summary>
         [Fact]
         [WorkItem(31395, "https://github.com/dotnet/roslyn/issues/31395")]
