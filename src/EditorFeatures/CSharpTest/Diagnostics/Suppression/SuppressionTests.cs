@@ -1595,9 +1595,9 @@ class Class { }
                     }
                 }
 
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider>(
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
