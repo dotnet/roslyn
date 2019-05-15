@@ -24,7 +24,9 @@ pr:
 
 jobs:
 - job: VS_Integration
-  pool: dotnet-external-vs2019-preview
+  pool:
+    name: NetCorePublic-Pool
+    queue: buildpool.windows.10.amd64.vs2019.pre.open
   strategy:
     maxParallel: 4
     matrix:
@@ -64,6 +66,15 @@ jobs:
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
         ArtifactName: '$(System.JobAttempt)-Logs $(_configuration) $(_completionName) $(Build.BuildNumber)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Secondary Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log2\$(_configuration)'
+        ArtifactName: '$(System.JobAttempt)-Secondary Logs $(_configuration) $(_completionName) $(Build.BuildNumber)'
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())
