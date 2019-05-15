@@ -3,6 +3,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
     }
 }";
             var (solution, locations) = CreateTestSolution(markup);
-            var expected = CreateCommand("Use implicit type", locations["caret"].First());
+            var expected = CreateCommand(CSharpFeaturesResources.Use_implicit_type, locations["caret"].First());
 
             var results = await RunCodeActionsAsync(solution, locations["caret"].First());
             AssertCodeActionCommandsEqual(expected, results.Single());
