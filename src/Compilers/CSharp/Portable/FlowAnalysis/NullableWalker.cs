@@ -3683,7 +3683,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Gets the corresponding member for a symbol from initial binding to match an updated receiver type in NullableWalker.
-        /// For instance, this will map from List&lt;string~&gt;.Add(string~) to List&lt;string?&gt;.Add(string?)
+        /// For instance, this will map from List&lt;string~&gt;.Add(string~) to List&lt;string?&gt;.Add(string?) in the following example:
+        /// <example>
+        /// string s = null;
+        /// var list = new[] { s }.ToList();
+        /// list.Add(null);
+        /// </example>
         /// </summary>
         private static Symbol AsMemberOfType(TypeSymbol type, Symbol symbol)
         {
