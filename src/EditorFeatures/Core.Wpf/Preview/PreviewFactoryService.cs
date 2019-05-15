@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -496,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 leftWorkspace, rightWorkspace, zoomLevel, cancellationToken);
         }
 
-        public Task<object> CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
+        private Task<object> CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
             TextDocument oldDocument,
             TextDocument newDocument,
             double zoomLevel,
@@ -506,6 +507,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             Action<Workspace, DocumentId> openTextDocument,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
+
             cancellationToken.ThrowIfCancellationRequested();
 
             // Note: We don't use the original buffer that is associated with oldDocument

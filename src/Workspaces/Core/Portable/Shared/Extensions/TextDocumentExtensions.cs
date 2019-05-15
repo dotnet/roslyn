@@ -20,8 +20,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 case AnalyzerConfigDocument analyzerConfigDocument:
                     return analyzerConfigDocument.WithAnalyzerConfigDocumentText(text);
 
+                case AdditionalDocument additionalDocument:
+                    return additionalDocument.WithAdditionalDocumentText(text);
+
                 default:
-                    return textDocument.WithAdditionalDocumentText(text);
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -30,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static TextDocument WithAdditionalDocumentText(this TextDocument textDocument, SourceText text)
         {
-            Contract.ThrowIfTrue(textDocument is Document);
+            Contract.ThrowIfFalse(textDocument is AdditionalDocument);
             return textDocument.Project.Solution.WithAdditionalDocumentText(textDocument.Id, text, PreservationMode.PreserveIdentity).GetTextDocument(textDocument.Id);
         }
 

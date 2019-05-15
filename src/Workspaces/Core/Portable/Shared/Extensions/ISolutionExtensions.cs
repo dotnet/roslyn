@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -52,19 +53,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return solution.GetDocument(documentId) ?? solution.GetAdditionalDocument(documentId) ?? solution.GetAnalyzerConfigDocument(documentId);
         }
 
+        public static TextDocumentKind GetDocumentKind(this Solution solution, DocumentId documentId)
+        {
+            return solution.GetTextDocument(documentId).Kind;
+        }
+
         public static Solution WithTextDocumentText(this Solution solution, DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveIdentity)
         {
-            var textDocument = solution.GetTextDocument(documentId);
-            switch (textDocument)
+            var documentKind = solution.GetDocumentKind(documentId);
+            switch (documentKind)
             {
-                case Document _:
+                case TextDocumentKind.Document:
                     return solution.WithDocumentText(documentId, text, mode);
 
-                case AnalyzerConfigDocument _:
+                case TextDocumentKind.AnalyzerConfigDocument:
                     return solution.WithAnalyzerConfigDocumentText(documentId, text, mode);
 
-                default:
+                case TextDocumentKind.AdditionalDocument:
                     return solution.WithAdditionalDocumentText(documentId, text, mode);
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 

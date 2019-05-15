@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
@@ -25,37 +26,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             public void CloseDocument(TextDocument document, SourceText text)
             {
-                switch (document)
+                switch (document.Kind)
                 {
-                    case Document _:
+                    case TextDocumentKind.Document:
                         OnDocumentClosed(document.Id, new PreviewTextLoader(text));
                         break;
 
-                    case AnalyzerConfigDocument _:
+                    case TextDocumentKind.AnalyzerConfigDocument:
                         OnAnalyzerConfigDocumentClosed(document.Id, new PreviewTextLoader(text));
                         break;
 
-                    default:
+                    case TextDocumentKind.AdditionalDocument:
                         OnAdditionalDocumentClosed(document.Id, new PreviewTextLoader(text));
                         break;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable;
                 }
             }
 
             public void OpenDocument(TextDocument document)
             {
-                switch (document)
+                switch (document.Kind)
                 {
-                    case Document _:
+                    case TextDocumentKind.Document:
                         OpenDocument(document.Id);
                         break;
 
-                    case AnalyzerConfigDocument _:
+                    case TextDocumentKind.AnalyzerConfigDocument:
                         OpenAnalyzerConfigDocument(document.Id);
                         break;
 
-                    default:
+                    case TextDocumentKind.AdditionalDocument:
                         OpenAdditionalDocument(document.Id);
                         break;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable;
                 }
             }
 

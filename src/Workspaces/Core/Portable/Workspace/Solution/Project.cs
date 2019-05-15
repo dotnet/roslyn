@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Solution _solution;
         private readonly ProjectState _projectState;
         private ImmutableHashMap<DocumentId, Document> _idToDocumentMap = ImmutableHashMap<DocumentId, Document>.Empty;
-        private ImmutableHashMap<DocumentId, TextDocument> _idToAdditionalDocumentMap = ImmutableHashMap<DocumentId, TextDocument>.Empty;
+        private ImmutableHashMap<DocumentId, AdditionalDocument> _idToAdditionalDocumentMap = ImmutableHashMap<DocumentId, AdditionalDocument>.Empty;
         private ImmutableHashMap<DocumentId, AnalyzerConfigDocument> _idToAnalyzerConfigDocumentMap = ImmutableHashMap<DocumentId, AnalyzerConfigDocument>.Empty;
 
         internal Project(Solution solution, ProjectState projectState)
@@ -292,10 +292,10 @@ namespace Microsoft.CodeAnalysis
             return new Document(project, project._projectState.GetDocumentState(documentId));
         }
 
-        private static readonly Func<DocumentId, Project, TextDocument> s_createAdditionalDocumentFunction = CreateAdditionalDocument;
-        private static TextDocument CreateAdditionalDocument(DocumentId documentId, Project project)
+        private static readonly Func<DocumentId, Project, AdditionalDocument> s_createAdditionalDocumentFunction = CreateAdditionalDocument;
+        private static AdditionalDocument CreateAdditionalDocument(DocumentId documentId, Project project)
         {
-            return new TextDocument(project, project._projectState.GetAdditionalDocumentState(documentId));
+            return new AdditionalDocument(project, project._projectState.GetAdditionalDocumentState(documentId));
         }
 
         private static readonly Func<DocumentId, Project, AnalyzerConfigDocument> s_createAnalyzerConfigDocumentFunction = CreateAnalyzerConfigDocument;
