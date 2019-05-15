@@ -410,7 +410,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.VisualStudio.Setup.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.LiveShare", "src\VisualStudio\LiveShare\Impl\Microsoft.VisualStudio.LanguageServices.LiveShare.csproj", "{453C8E28-81D4-431E-BFB0-F3D413346E51}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests", "src\VisualStudio\LiveShare\Test\Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests.csproj", "{CE7F7553-DB2D-4839-92E3-F042E4261B4E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests", "src\VisualStudio\LiveShare\Test\Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests.csproj", "{CE7F7553-DB2D-4839-92E3-F042E4261B4E}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
