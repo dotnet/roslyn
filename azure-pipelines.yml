@@ -28,7 +28,7 @@ stages:
   - stage: Bootstrap
 
     jobs:
-    - job: Build Bootstrap
+    - job: Build_Bootstrap
       pool:
         name: NetCorePublic-Pool
         queue: BuildPool.Windows.10.Amd64.VS2017.Open
