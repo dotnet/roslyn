@@ -23,6 +23,7 @@ param (
   # Actions
   [switch][Alias('r')]$restore,
   [switch][Alias('b')]$build,
+  [switch]$buildBootstrap,
   [switch]$rebuild,
   [switch]$sign,
   [switch]$pack,
@@ -74,6 +75,7 @@ function Print-Usage() {
   Write-Host "  -buildServerLog           Create Roslyn build server log"
   Write-Host ""
   Write-Host "Actions:"
+  Write-Host "  -buildBootstrap           Build the bootstrap compiler"
   Write-Host "  -restore                  Restore packages (short: -r)"
   Write-Host "  -build                    Build main solution (short: -b)"
   Write-Host "  -rebuild                  Rebuild main solution"
@@ -590,6 +592,10 @@ try {
     # Make sure a 2.1 runtime is installed so we can run our tests. Most of them still 
     # target netcoreapp2.1.
     InstallDotNetSdk $global:_DotNetInstallDir "2.1.503"
+  }
+
+  if ($buildBootstrap) {
+    $bootstrapDir = Make-BootstrapBuild -force32:$test32
   }
 
   if ($bootstrap) {
