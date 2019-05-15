@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -1942,7 +1943,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected virtual string GetDocumentName(DocumentId documentId)
         {
-            var document = this.CurrentSolution.GetDocument(documentId);
+            var document = this.CurrentSolution.GetTextDocument(documentId);
             var name = document != null ? document.Name : "<Document" + documentId.Id + ">";
             return name;
         }
@@ -1951,21 +1952,13 @@ namespace Microsoft.CodeAnalysis
         /// Gets the name to use for an additional document in an error message.
         /// </summary>
         protected virtual string GetAdditionalDocumentName(DocumentId documentId)
-        {
-            var document = this.CurrentSolution.GetAdditionalDocument(documentId);
-            var name = document != null ? document.Name : "<Document" + documentId.Id + ">";
-            return name;
-        }
+            => GetDocumentName(documentId);
 
         /// <summary>
         /// Gets the name to use for an analyzer document in an error message.
         /// </summary>
         protected virtual string GetAnalyzerConfigDocumentName(DocumentId documentId)
-        {
-            var document = this.CurrentSolution.GetAnalyzerConfigDocument(documentId);
-            var name = document != null ? document.Name : "<Document" + documentId.Id + ">";
-            return name;
-        }
+            => GetDocumentName(documentId);
 
         #endregion
     }
