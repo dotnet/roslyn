@@ -351,6 +351,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("/nullable:disable /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
 
+        [Theory]
+        [InlineData(null, "disable")]
+        [InlineData("", "disable")]
+        [InlineData("enable", "disable")]
+        [InlineData("disable", null)]
+        [InlineData("disable", "")]
+        public void NullableReferenceTypes_NullableWins_Disable(string nullableContextOptions, string nullable)
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.NullableContextOptions = nullableContextOptions;
+            csc.Nullable = nullable;
+            Assert.Equal("/nullable:disable /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
         [Fact]
         public void NullableReferenceTypes_Safeonly()
         {
