@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression RewriteStringConcatenationOneExpr(SyntaxNode syntax, BoundExpression loweredOperand)
         {
-            // If it's a call to 'string.Concat' (or is something which ends in '?? ""', which this method also extracts,
+            // If it's a call to 'string.Concat' (or is something which ends in '?? ""', which this method also extracts),
             // we know the result cannot be null. Otherwise return loweredOperand ?? ""
             if (TryExtractStringConcatArgs(loweredOperand, out _))
             {
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If it's a special value type, it should have its own ToString method (but we might fail to find
-            // it if object.ToString is missing).  Assume that this won't be removed, and emit a direct call rather
+            // it if object.ToString is missing). Assume that this won't be removed, and emit a direct call rather
             // than a constrained virtual call. This keeps in the spirit of #7079, but expands the range of
             // types to all special value types.
             if (structToStringMethod != null && expr.Type.SpecialType != SpecialType.None)
