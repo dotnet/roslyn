@@ -47,8 +47,6 @@
 
       <!-- If we are targeting winmdobj we want to specifically the pdbFile property since we do not want it to collide with the output of winmdexp-->
       <PdbFile Condition="'$(PdbFile)' == '' AND '$(OutputType)' == 'winmdobj' AND '$(_DebugSymbolsProduced)' == 'true'">$(IntermediateOutputPath)$(TargetName).compile.pdb</PdbFile>
-
-      <Nullable Condition="'$(Nullable)' == '' AND '$(NullableContextOptions)' != ''">$(NullableContextOptions)</Nullable>
     </PropertyGroup>
 
     <PropertyGroup>
