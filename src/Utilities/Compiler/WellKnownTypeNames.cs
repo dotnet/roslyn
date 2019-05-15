@@ -300,5 +300,9 @@ namespace Analyzer.Utilities
         public const string SystemNullable1 = "System.Nullable`1";
         public const string MicrosoftWindowsAzureStorageSharedAccessProtocol = "Microsoft.WindowsAzure.Storage.SharedAccessProtocol";
         public const string SystemSecurityCryptographyHashAlgorithmName = "System.Security.Cryptography.HashAlgorithmName";
+        public const string SystemSecurityCryptographyRSA = "System.Security.Cryptography.RSA";
+        public const string SystemSecurityCryptographyDSA = "System.Security.Cryptography.DSA";
+        public const string SystemSecurityCryptographyAsymmetricAlgorithm = "System.Security.Cryptography.AsymmetricAlgorithm";
+        public const string SystemSecurityCryptographyCryptoConfig = "System.Security.Cryptography.CryptoConfig";
     }
 }
