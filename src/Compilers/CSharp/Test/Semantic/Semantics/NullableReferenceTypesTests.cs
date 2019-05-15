@@ -34098,7 +34098,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29844: Should not warn for `b`, `e`, `h`.
+            // https://github.com/dotnet/roslyn/issues/32564: Delegate conversions should allow `b`, `e`, `h` without warning.
             comp.VerifyDiagnostics(
                 // (10,23): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<object?>(out object? t)' doesn't match the target delegate 'D<object>'.
                 //         D<object> a = F<object?>;
@@ -35844,7 +35844,7 @@ class CL0<T>
         public void MethodGroupConversion_06()
         {
             var source =
-@"delegate void D<T>(T t) where T : A;
+@"delegate void D<T>(T t);
 class A { }
 class B<T>
 {
@@ -35853,21 +35853,34 @@ class B<T>
 class C
 {
     static B<T> Create<T>(T t) => new B<T>();
-    static void G(A x, A? y)
+    static void F1(A x, A? y)
     {
-        D<A> d;
-        d = Create(x).F;
-        d = Create(y).F; // warning
-        x = y;
-        d = Create(x).F; // warning
+        D<A> d1;
+        d1 = Create(x).F;
+        d1 = Create(y).F;
+        x = y; // 1
+        d1 = Create(x).F;
+    }
+    static void F2(A x, A? y)
+    {
+        D<A?> d2;
+        d2 = Create(x).F; // 2
+        d2 = Create(y).F;
+        x = y; // 3
+        d2 = Create(x).F;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29844: Report conversion warnings.
             comp.VerifyDiagnostics(
                 // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         x = y;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(15, 13));
+                //         x = y; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(15, 13),
+                // (21,14): warning CS8622: Nullability of reference types in type of parameter 't' of 'void B<A>.F(A t)' doesn't match the target delegate 'D<A?>'.
+                //         d2 = Create(x).F; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "Create(x).F").WithArguments("t", "void B<A>.F(A t)", "D<A?>").WithLocation(21, 14),
+                // (23,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x = y; // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(23, 13));
         }
 
         [Fact]
