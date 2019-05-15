@@ -82222,6 +82222,69 @@ class Program
             comp.VerifyTypes();
         }
 
+        /// <summary>
+        /// NullableWalker tracks members of variables up to a fixed depth.
+        /// </summary>
+        [Fact]
+        [WorkItem(31395, "https://github.com/dotnet/roslyn/issues/31395")]
+        public void InheritNullabilityMaxDepth_01()
+        {
+            var source =
+@"#pragma warning disable 8618
+class A
+{
+    internal B? B;
+}
+class B
+{
+    internal A? A;
+}
+class Program
+{
+    static void F()
+    {
+        var a1 = new A() { B = new B() };
+        var a2 = new A() { B = new B() { A = a1 } };
+        var a3 = new A() { B = new B() { A = a2 } };
+        a1.B.ToString();
+        a2.B.A.B.ToString();
+        a3.B.A.B.A.B.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
+                //         a3.B.A.B.A.B.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a3.B.A.B.A.B").WithLocation(19, 9));
+        }
+
+        /// <summary>
+        /// NullableWalker tracks members of variables up to a fixed depth.
+        /// </summary>
+        [Fact]
+        [WorkItem(31395, "https://github.com/dotnet/roslyn/issues/31395")]
+        public void InheritNullabilityMaxDepth_02()
+        {
+            var source =
+@"class Program
+{
+    static void F(string x, object y)
+    {
+        (((((string? x5, object? y5) x4, string? y4) x3, object? y3) x2, string? y2) x1, object? y1) t = (((((x, y), x), y), x), y);
+        t.y1.ToString();
+        t.x1.y2.ToString();
+        t.x1.x2.y3.ToString();
+        t.x1.x2.x3.y4.ToString();
+        t.x1.x2.x3.x4.y5.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         t.x1.x2.x3.x4.y5.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.x1.x2.x3.x4.y5").WithLocation(10, 9));
+        }
+
         [Fact]
         public void DiagnosticOptions_01()
         {
