@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -102,7 +103,8 @@ namespace Microsoft.CodeAnalysis.Remote
         protected Task<TResult> InvokeAsync<TResult>(
             string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            return _rpc.InvokeWithCancellationAsync<TResult>(targetName, arguments, cancellationToken);
+            // convert to array until the bug is fixed - https://github.com/microsoft/vs-streamjsonrpc/issues/272
+            return _rpc.InvokeWithCancellationAsync<TResult>(targetName, arguments?.ToArray(), cancellationToken);
         }
 
         protected Task<TResult> InvokeAsync<TResult>(
@@ -120,7 +122,8 @@ namespace Microsoft.CodeAnalysis.Remote
         protected Task InvokeAsync(
             string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            return _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken);
+            // convert to array until the bug is fixed - https://github.com/microsoft/vs-streamjsonrpc/issues/272
+            return _rpc.InvokeWithCancellationAsync(targetName, arguments?.ToArray(), cancellationToken);
         }
 
         protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
