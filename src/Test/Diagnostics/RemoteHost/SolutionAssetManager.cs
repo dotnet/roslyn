@@ -86,7 +86,7 @@ namespace Roslyn.Hosting.Diagnostics.RemoteHost
             }
 
             // get new solution info
-            var solutionInfo = await solutionCreator.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false);
+            var solutionInfo = await SolutionInfoCreator.CreateSolutionInfoAsync(assetService, solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             // otherwise, just return new solution
             return adhocWorkspace.AddSolution(solutionInfo);

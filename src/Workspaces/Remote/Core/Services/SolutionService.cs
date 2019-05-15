@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
             await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             // get new solution info
-            var solutionInfo = await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false);
+            var solutionInfo = await SolutionInfoCreator.CreateSolutionInfoAsync(_assetService, solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             if (fromPrimaryBranch)
             {
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // otherwise, just return new solution
-            var workspace = new TemporaryWorkspace(await updater.CreateSolutionInfoAsync(solutionChecksum).ConfigureAwait(false));
+            var workspace = new TemporaryWorkspace(await SolutionInfoCreator.CreateSolutionInfoAsync(_assetService, solutionChecksum, cancellationToken).ConfigureAwait(false));
             return workspace.CurrentSolution;
         }
 
