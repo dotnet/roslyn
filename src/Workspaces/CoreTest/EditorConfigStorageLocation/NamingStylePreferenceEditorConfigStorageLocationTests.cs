@@ -11,7 +11,7 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.EditorCon
 
 namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
 {
-    public class EditorConfigStorageLocationTests
+    public class NamingStylePreferenceEditorConfigStorageLocationTests
     {
         [Fact]
         public static void TestEmptyDictionaryReturnNoNamingStylePreferencesObjectReturnsFalse()
