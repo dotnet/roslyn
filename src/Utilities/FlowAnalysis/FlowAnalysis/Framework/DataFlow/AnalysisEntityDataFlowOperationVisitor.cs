@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IMethodSymbol invokedMethod,
             (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
             (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCallerOpt,
-            ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> argumentValues,
+            ImmutableDictionary<IParameterSymbol, ArgumentInfo<TAbstractAnalysisValue>> argumentValuesMap,
             IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
             IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
             IDictionary<AnalysisEntity, ValueContentAbstractValue> valueContentValuesOpt,
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (isLambdaOrLocalFunction || hasParameterWithDelegateType || pointsToValuesOpt == null)
             {
                 return base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt,
-                    thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt, copyValuesOpt, valueContentValuesOpt,
+                    thisOrMeInstanceForCallerOpt, argumentValuesMap, pointsToValuesOpt, copyValuesOpt, valueContentValuesOpt,
                     isLambdaOrLocalFunction, hasParameterWithDelegateType);
             }
 
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     AddWorklistPointsToValue(thisOrMeInstanceForCallerOpt.Value.PointsToValue);
                 }
 
-                foreach (var argument in argumentValues)
+                foreach (var argument in argumentValuesMap.Values)
                 {
                     if (!AddWorklistEntityAndPointsToValue(argument.AnalysisEntityOpt))
                     {
