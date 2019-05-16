@@ -4952,6 +4952,182 @@ namespace NS2
             End Using
         End Function
 
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypingRangeExpressionAfterInt(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        int first = 3;
+        int[] array = new int[100];
+        var range = array[first$$];
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var range = array[first..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypingRangeExpressionAfterClassWithInt(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        var d = new D();
+        int[] array = new int[100];
+        var range = array[d$$];
+    }
+}
+
+class D
+{
+    public int A;
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem("A", isHardSelected:=True)
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var range = array[d.A..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypingRangeExpressionAfterClassWithMethodAndInt(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        var d = new D();
+        int[] array = new int[100];
+        var range = array[d$$];
+    }
+}
+
+class D
+{
+    public int A() => 0;
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem("A", isHardSelected:=True)
+                state.SendTypeChars("().")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var range = array[d.A()..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypingRangeExpressionAfterClassWithDecimal(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        var d = new D();
+        int[] array = new int[100];
+        var range = array[d$$];
+    }
+}
+
+class D
+{
+    public decimal A;
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem("GetHashCode", isHardSelected:=True)
+                state.SendTypeChars("A.")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var range = array[d.A..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypingRangeExpressionAfterClassWithMethodAndDouble(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        var d = new D();
+        int[] array = new int[100];
+        var range = array[d$$];
+    }
+}
+
+class D
+{
+    public double A() => 0;
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem("GetHashCode", isHardSelected:=True)
+                state.SendTypeChars("A().")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var range = array[d.A()..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestArrayDeclarationIsNotRangeExpresison(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        int d = 1;
+        var array = new int[d$$];
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem("CompareTo", isHardSelected:=True)
+                state.SendTypeChars(".")
+                Assert.Contains("var array = new int[d.CompareTo.];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 

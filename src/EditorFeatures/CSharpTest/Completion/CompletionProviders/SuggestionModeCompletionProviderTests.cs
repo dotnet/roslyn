@@ -1099,6 +1099,168 @@ public static class Repro
             await VerifyNotBuilderAsync(markup);
         }
 
+        [WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RangeExpressionAfterInt()
+        {
+            var markup = @"
+class C 
+{
+    void M()
+    {
+        int first = 3;
+        int[] array = new int[100];
+        var range = array[first.$$];
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoRangeExpressionAfterClass()
+        {
+            var markup = @"
+class C 
+{
+    void M()
+    {
+        var d = new D();
+        int[] array = new int[100];
+        var range = array[d.$$];
+    }
+}
+
+class D
+{
+}
+";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RangeExpressionAfterIntProperty()
+        {
+            var markup = @"
+class C 
+{
+    void M()
+    {
+        var d = new D();
+        int[] array = new int[100];
+        var range = array[d.A.$$];
+    }
+}
+
+class D
+{
+    public int A { get; set; }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RangeExpressionAfterIntMethod()
+        {
+            var markup = @"
+class C 
+{
+    void M()
+    {
+        var d = new D();
+        int[] array = new int[100];
+        var range = array[d.A().$$];
+    }
+}
+
+class D
+{
+    public int A() => 0;
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RangeExpressionAfterDecimalMethod()
+        {
+            var markup = @"
+class C 
+{
+    void M()
+    {
+        var d = new D();
+        int[] array = new int[100];
+        var range = array[d.A().$$];
+    }
+}
+
+class D
+{
+    public decimal A() => 0;
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoRangeExpressionInArrayDeclaration()
+        {
+            var markup = @"
+class C 
+{
+    void M()
+    {
+        int d = 1;
+        var array = new int[d.$$];
+    }
+}
+";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RangeExpressionInArgumentListWithinArrayDeclaration()
+        {
+            var markup = @"
+class C 
+{
+    void M()
+    {
+        int d = 1;
+        var array1 = new int[100];
+        var array2 = new int[array1[d.$$]];
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoRangeExpressionInArrayDeclarationWithinArgumentList()
+        {
+            var markup = @"
+class C 
+{
+    void M()
+    {
+        int d = 1;
+        var array1 = new int[100];
+        var array2 = array1[new int[d.$$]];
+    }
+}
+";
+            await VerifyBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
         {
             await VerifyWorkerAsync(markup, isBuilder: false);

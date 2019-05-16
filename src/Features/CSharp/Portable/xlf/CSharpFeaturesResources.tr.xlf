@@ -62,6 +62,11 @@
         <target state="translated">'this.' nitelemesi tercihlerini uygula</target>
         <note />
       </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_potential_range_expression">
+        <source>Autoselect disabled due to potential range expression.</source>
+        <target state="new">Autoselect disabled due to potential range expression.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Yönteme dönüştür</target>
@@ -165,6 +170,11 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
         <source>Autoselect disabled due to possible tuple type element creation.</source>
         <target state="translated">Olası demet türü öğe oluşturma işleminden dolayı Otomatik seçim devre dışı bırakıldı.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="range_expression">
+        <source>range expression</source>
+        <target state="new">range expression</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">

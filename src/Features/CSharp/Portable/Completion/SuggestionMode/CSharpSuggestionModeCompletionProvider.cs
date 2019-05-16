@@ -41,6 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.lambda_expression, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_lambda_declaration);
                 }
+                if (IsRangeExpression(semanticModel, token, cancellationToken))
+                {
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.range_expression, CSharpFeaturesResources.Autoselect_disabled_due_to_potential_range_expression);
+                }
                 else if (IsAnonymousObjectCreation(token))
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.member_name, CSharpFeaturesResources.Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation);
@@ -79,17 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             }
 
             return null;
-        }
-
-        private bool IsImplicitArrayCreation(SemanticModel semanticModel, SyntaxToken token, int position, ITypeInferenceService typeInferrer, CancellationToken cancellationToken)
-        {
-            if (token.IsKind(SyntaxKind.NewKeyword) && token.Parent.IsKind(SyntaxKind.ObjectCreationExpression))
-            {
-                var type = typeInferrer.InferType(semanticModel, token.Parent, objectAsDefault: false, cancellationToken: cancellationToken);
-                return type != null && type is IArrayTypeSymbol;
-            }
-
-            return false;
         }
 
         private bool IsAnonymousObjectCreation(SyntaxToken token)
@@ -192,6 +185,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             }
 
             return typeSymbol.GetDelegateType(compilation);
+        }
+
+        private bool IsRangeExpression(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            if (!token.IsKind(SyntaxKind.DotToken) || !(token.Parent is MemberAccessExpressionSyntax memberAccessExpression))
+            {
+                return false;
+            }
+
+            // On walking up, we should meet BracketedArgumentList before Statement. 
+            // Otherwise, it is not a range expression.
+            SyntaxNode currentNode = memberAccessExpression;
+            while (!currentNode.IsKind(SyntaxKind.BracketedArgumentList))
+            {
+                currentNode = currentNode.Parent;
+
+                if (currentNode == null || currentNode is StatementSyntax || currentNode is VariableDeclaratorSyntax)
+                {
+                    return false;
+                }
+            }
+
+            var typeInfo = semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken);
+            return typeInfo.Type.IsNumericType();
         }
     }
 }

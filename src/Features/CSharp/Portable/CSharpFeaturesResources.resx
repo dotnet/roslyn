@@ -599,4 +599,10 @@
     <value>Make 'ref struct'</value>
     <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
   </data>
+  <data name="Autoselect_disabled_due_to_potential_range_expression" xml:space="preserve">
+    <value>Autoselect disabled due to potential range expression.</value>
+  </data>
+  <data name="range_expression" xml:space="preserve">
+    <value>range expression</value>
+  </data>
 </root>
