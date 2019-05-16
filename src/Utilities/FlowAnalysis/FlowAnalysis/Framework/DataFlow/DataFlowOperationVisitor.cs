@@ -2102,6 +2102,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
 
                         var argumentValue = GetCachedAbstractValue(argument);
+                        if (ReferenceEquals(argumentValue, ValueDomain.Bottom))
+                        {
+                            argumentValue = ValueDomain.UnknownOrMayBeValue;
+                        }
 
                         builder.Add(GetMappedParameterForArgument(argument), new ArgumentInfo<TAbstractAnalysisValue>(argument, argumentEntity, instanceLocation, argumentValue));
                         _pendingArgumentsToReset.Remove(argument);
