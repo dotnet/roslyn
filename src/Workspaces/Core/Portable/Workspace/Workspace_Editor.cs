@@ -498,6 +498,9 @@ namespace Microsoft.CodeAnalysis
                 onDocumentTextChanged: (w, id, text, mode) => w.OnAnalyzerConfigDocumentTextChanged(id, text, mode));
         }
 
+        // NOTE: We are only sharing this code between additional documents and analyzer config documents,
+        // which are essentially plain text documents. Regular source documents need special handling
+        // and hence have a different implementation.
         private void OnAdditionalOrAnalyzerConfigDocumentOpened(
             DocumentId documentId,
             SourceTextContainer textContainer,
@@ -605,6 +608,9 @@ namespace Microsoft.CodeAnalysis
                 withTextDocumentTextLoader: (oldSolution, documentId, textLoader, mode) => oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, textLoader, mode));
         }
 
+        // NOTE: We are only sharing this code between additional documents and analyzer config documents,
+        // which are essentially plain text documents. Regular source documents need special handling
+        // and hence have a different implementation.
         private void OnAdditionalOrAnalyzerConfigDocumentClosed(
             DocumentId documentId,
             TextLoader reloader,

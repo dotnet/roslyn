@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(document.Kind);
                 }
             }
 

@@ -775,7 +775,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(documentKind);
             }
         }
 
@@ -949,7 +949,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(documentKind);
                 }
             }
         }

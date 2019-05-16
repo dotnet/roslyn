@@ -497,6 +497,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 leftWorkspace, rightWorkspace, zoomLevel, cancellationToken);
         }
 
+        // NOTE: We are only sharing this code between additional documents and analyzer config documents,
+        // which are essentially plain text documents. Regular source documents need special handling
+        // and hence have a different implementation.
         private Task<object> CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
             TextDocument oldDocument,
             TextDocument newDocument,

@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                                 break;
 
                             default:
-                                throw ExceptionUtilities.Unreachable;
+                                throw ExceptionUtilities.UnexpectedValue(changedDocumentKind);
                         }
                     }
                 }
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                                 break;
 
                             default:
-                                throw ExceptionUtilities.Unreachable;
+                                throw ExceptionUtilities.UnexpectedValue(changedDocumentKind);
                         }
                     }
                 }

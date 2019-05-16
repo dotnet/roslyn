@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return solution.WithAdditionalDocumentText(documentId, text, mode);
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(documentKind);
             }
         }
 
