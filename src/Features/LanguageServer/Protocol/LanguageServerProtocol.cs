@@ -1,137 +1,115 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     /// <summary>
     /// Implements Language Server Protocol
+    /// TODO - Make this public when we're ready.
     /// </summary>
-    public sealed class LanguageServerProtocol
+    [Shared]
+    [Export(typeof(LanguageServerProtocol))]
+    internal sealed class LanguageServerProtocol
     {
-        // for now, it is null but later we might use this to provide info on types on dlls
-        private readonly IMetadataAsSourceFileService _metadataAsSourceService = null;
+        private readonly ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> _requestHandlers;
 
-        // TODO - Move hierarchicalDocumentSymbolSupport to client capabilities.
-        // https://github.com/dotnet/roslyn/projects/45#card-20033973
-        private readonly bool _hierarchicalDocumentSymbolSupport;
-        private readonly LSP.ClientCapabilities _clientCapabilities;
-
-        public LanguageServerProtocol(LSP.ClientCapabilities clientCapabilities, bool hierarchicalDocumentSymbolSupport)
+        [ImportingConstructor]
+        public LanguageServerProtocol([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
         {
-            _hierarchicalDocumentSymbolSupport = hierarchicalDocumentSymbolSupport;
-            _clientCapabilities = clientCapabilities;
+            _requestHandlers = CreateMethodToHandlerMap(requestHandlers);
         }
 
-        /// <summary>
-        /// Returns the capabilities of this LSP server.
-        /// </summary>
-        public LSP.ServerCapabilities GetServerCapabilities()
+        private static ImmutableDictionary<string, Lazy<IRequestHandler, IRequestHandlerMetadata>> CreateMethodToHandlerMap(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)
         {
-            return new LSP.ServerCapabilities
+            var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<string, Lazy<IRequestHandler, IRequestHandlerMetadata>>();
+            foreach (var lazyHandler in requestHandlers)
             {
-                DefinitionProvider = true,
-                ReferencesProvider = true,
-                DocumentHighlightProvider = true,
-                DocumentSymbolProvider = true,
-                WorkspaceSymbolProvider = true,
-                HoverProvider = true,
-            };
+                requestHandlerDictionary.Add(lazyHandler.Metadata.MethodName, lazyHandler);
+            }
+
+            return requestHandlerDictionary.ToImmutable();
         }
 
-        /// <summary>
-        /// Answers a document symbols request by returning a list of symbols in the document.
-        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_documentSymbol
-        /// </summary>
-        /// <param name="solution">the solution containing the document.</param>
-        /// <param name="request">the document to get symbols from.</param>
-        /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>a list of symbols in the document.</returns>
-        public async Task<object[]> GetDocumentSymbolsAsync(Solution solution, LSP.DocumentSymbolParams request, CancellationToken cancellationToken)
+        private Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, Solution solution, RequestType request,
+            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
-            return await DocumentSymbolsHandler.GetDocumentSymbolsAsync(solution, request, _hierarchicalDocumentSymbolSupport, cancellationToken).ConfigureAwait(false);
+            var handler = (IRequestHandler<RequestType, ResponseType>)_requestHandlers[methodName].Value;
+            return handler.HandleRequestAsync(solution, request, clientCapabilities, cancellationToken);
         }
 
         /// <summary>
-        /// Answers a workspace symbols request by providing a list of symbols found in a given workspace.
-        /// https://microsoft.github.io/language-server-protocol/specification#workspace_symbol
-        /// </summary>
-        /// <param name="solution">the current solution.</param>
-        /// <param name="request">the workspace request with the query to invoke.</param>
-        /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>a list of symbols in the workspace.</returns>
-        public async Task<LSP.SymbolInformation[]> GetWorkspaceSymbolsAsync(Solution solution, LSP.WorkspaceSymbolParams request, CancellationToken cancellationToken)
-        {
-            return await WorkspaceSymbolsHandler.GetWorkspaceSymbolsAsync(solution, request, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Answers a Hover request by returning the quick info at the requested location.
-        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_hover
-        /// </summary>
-        /// <param name="solution">the solution containing any documents in the request.</param>
-        /// <param name="request">the hover requesst.</param>
-        /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>the Hover using MarkupContent.</returns>
-        public async Task<LSP.Hover> GetHoverAsync(Solution solution, LSP.TextDocumentPositionParams request, CancellationToken cancellationToken)
-        {
-            return await HoverHandler.GetHoverAsync(solution, request, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Answers a goto definition request by returning the location for a given symbol definition.
-        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_definition
-        /// </summary>
-        /// <param name="solution">the solution containing the request.</param>
-        /// <param name="request">the document position of the symbol to go to.</param>
-        /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>the location of a given symbol.</returns>
-        public async Task<LSP.Location[]> GoToDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, CancellationToken cancellationToken)
-        {
-            return await GoToDefinitionHandler.GetDefinitionAsync(solution, request, false, _metadataAsSourceService, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Answers a goto type definition request by returning the location of a given type definition.
-        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_typeDefinition
-        /// </summary>
-        /// <param name="solution">the solution containing the request.</param>
-        /// <param name="request">the document position of the type to go to.</param>
-        /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>the location of a type definition.</returns>
-        public async Task<LSP.Location[]> GoToTypeDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, CancellationToken cancellationToken)
-        {
-            return await GoToDefinitionHandler.GetDefinitionAsync(solution, request, true, _metadataAsSourceService, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Answers a find references request by returning the location of references to the given symbol.
-        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_references
-        /// </summary>
-        /// <param name="solution">the solution containing the symbol.</param>
-        /// <param name="request">the request symbol document location.</param>
-        /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>a list of locations of references to the given symbol.</returns>
-        public async Task<LSP.Location[]> FindAllReferencesAsync(Solution solution, LSP.ReferenceParams request, CancellationToken cancellationToken)
-        {
-            return await FindAllReferencesHandler.FindAllReferencesAsync(solution, request, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Answers a goto implementation request by returning the implementation location(s) of a given symbol.
+        /// Answers an implementation request by returning the implementation location(s) of a given symbol.
         /// https://microsoft.github.io/language-server-protocol/specification#textDocument_implementation
         /// </summary>
         /// <param name="solution">the solution containing the request document.</param>
         /// <param name="request">the request document symbol location.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the location(s) of the implementations of the symbol.</returns>
-        public async Task<LSP.Location[]> GotoImplementationAsync(Solution solution, LSP.TextDocumentPositionParams request, CancellationToken cancellationToken)
-        {
-            return await GoToImplementationHandler.GotoImplementationAsync(solution, request, cancellationToken).ConfigureAwait(false);
-        }
+        public Task<object> FindImplementationsAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, object>(LSP.Methods.TextDocumentImplementationName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a format document request to format the entire document.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_formatting
+        /// </summary>
+        /// <param name="solution">the solution containing the document.</param>
+        /// <param name="request">the request document and formatting options.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the text edits describing the document modifications.</returns>
+        public Task<LSP.TextEdit[]> FormatDocumentAsync(Solution solution, LSP.DocumentFormattingParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentFormattingName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a format document on type request to format parts of the document during typing.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_onTypeFormatting
+        /// </summary>
+        /// <param name="solution">the solution containing the document.</param>
+        /// <param name="request">the request document, formatting options, and typing information.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the text edits describing the document modifications.</returns>
+        public Task<LSP.TextEdit[]> FormatDocumentOnTypeAsync(Solution solution, LSP.DocumentOnTypeFormattingParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentOnTypeFormattingName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a format document range request to format a specific range in the document.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_rangeFormatting
+        /// </summary>
+        /// <param name="solution">the solution containing the document.</param>
+        /// <param name="request">the request document, formatting options, and range to format.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the text edits describing the document modifications.</returns>
+        public Task<LSP.TextEdit[]> FormatDocumentRangeAsync(Solution solution, LSP.DocumentRangeFormattingParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentRangeFormattingName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a code action request by returning the code actions for the document and range.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_codeAction
+        /// </summary>
+        /// <param name="solution">the solution containing the document.</param>
+        /// <param name="request">the document and range to get code actions for.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>a list of commands representing code actions.</returns>
+        public Task<LSP.Command[]> GetCodeActionsAsync(Solution solution, LSP.CodeActionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.CodeActionParams, LSP.Command[]>(LSP.Methods.TextDocumentCodeActionName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a completion request by returning the valid completions at the location.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_completion
+        /// </summary>
+        /// <param name="solution">the solution containing the document.</param>
+        /// <param name="request">the document position and completion context.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>a list of completions.</returns>
+        public Task<object> GetCompletionsAsync(Solution solution, LSP.CompletionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.CompletionParams, object>(LSP.Methods.TextDocumentCompletionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a document highlights request by returning the highlights for a given document location.
@@ -141,10 +119,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the request document location.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>the highlights in the document for the given document location.</returns>
-        public async Task<LSP.DocumentHighlight[]> GetDocumentHighlightAsync(Solution solution, LSP.TextDocumentPositionParams request, CancellationToken cancellationToken)
-        {
-            return await DocumentHighlightsHandler.GetDocumentHighlightsAsync(solution, request, cancellationToken).ConfigureAwait(false);
-        }
+        public Task<LSP.DocumentHighlight[]> GetDocumentHighlightAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a document symbols request by returning a list of symbols in the document.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_documentSymbol
+        /// </summary>
+        /// <param name="solution">the solution containing the document.</param>
+        /// <param name="request">the document to get symbols from.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>a list of symbols in the document.</returns>
+        public Task<object[]> GetDocumentSymbolsAsync(Solution solution, LSP.DocumentSymbolParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.DocumentSymbolParams, object[]>(LSP.Methods.TextDocumentDocumentSymbolName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a folding range request by returning all folding ranges in a given document.
@@ -154,9 +141,84 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the request document.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
         /// <returns>a list of folding ranges in the document.</returns>
-        public async Task<LSP.FoldingRange[]> GetFoldingRangeAsync(Solution solution, LSP.FoldingRangeParams request, CancellationToken cancellationToken)
-        {
-            return await FoldingRangesHandler.GetFoldingRangeAsync(solution, request, cancellationToken).ConfigureAwait(false);
-        }
+        public Task<LSP.FoldingRange[]> GetFoldingRangeAsync(Solution solution, LSP.FoldingRangeParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.FoldingRangeParams, LSP.FoldingRange[]>(LSP.Methods.TextDocumentFoldingRangeName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a Hover request by returning the quick info at the requested location.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_hover
+        /// </summary>
+        /// <param name="solution">the solution containing any documents in the request.</param>
+        /// <param name="request">the hover requesst.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the Hover using MarkupContent.</returns>
+        public Task<LSP.Hover> GetHoverAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a signature help request to get signature information at a given cursor position.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_signatureHelp
+        /// </summary>
+        /// <param name="solution">the solution containing the document.</param>
+        /// <param name="request">the request document position.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the signature help at a given location.</returns>
+        public Task<LSP.SignatureHelp> GetSignatureHelpAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SignatureHelp>(LSP.Methods.TextDocumentSignatureHelpName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a workspace symbols request by providing a list of symbols found in a given workspace.
+        /// https://microsoft.github.io/language-server-protocol/specification#workspace_symbol
+        /// </summary>
+        /// <param name="solution">the current solution.</param>
+        /// <param name="request">the workspace request with the query to invoke.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>a list of symbols in the workspace.</returns>
+        public Task<LSP.SymbolInformation[]> GetWorkspaceSymbolsAsync(Solution solution, LSP.WorkspaceSymbolParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.WorkspaceSymbolParams, LSP.SymbolInformation[]>(LSP.Methods.WorkspaceSymbolName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a goto definition request by returning the location for a given symbol definition.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_definition
+        /// </summary>
+        /// <param name="solution">the solution containing the request.</param>
+        /// <param name="request">the document position of the symbol to go to.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the location of a given symbol.</returns>
+        public Task<LSP.Location[]> GoToDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a goto type definition request by returning the location of a given type definition.
+        /// https://microsoft.github.io/language-server-protocol/specification#textDocument_typeDefinition
+        /// </summary>
+        /// <param name="solution">the solution containing the request.</param>
+        /// <param name="request">the document position of the type to go to.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the location of a type definition.</returns>
+        public Task<LSP.Location[]> GoToTypeDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentTypeDefinitionName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers an initialize request by returning the server capabilities.
+        /// https://microsoft.github.io/language-server-protocol/specification#initialize
+        /// </summary>
+        /// <param name="solution">the solution containing the document.</param>
+        /// <param name="request">the initialize parameters.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>the server cababilities.</returns>
+        public Task<LSP.InitializeResult> InitializeAsync(Solution solution, LSP.InitializeParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, solution, request, clientCapabilities, cancellationToken);
+
+        /// <summary>
+        /// Answers a request to resolve a completion item.
+        /// https://microsoft.github.io/language-server-protocol/specification#completionItem_resolve
+        /// </summary>
+        /// <param name="solution">the solution containing the document.</param>
+        /// <param name="request">the completion item to resolve.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>a resolved completion item.</returns>
+        public Task<LSP.CompletionItem> ResolveCompletionItemAsync(Solution solution, LSP.CompletionItem request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, solution, request, clientCapabilities, cancellationToken);
     }
 }
