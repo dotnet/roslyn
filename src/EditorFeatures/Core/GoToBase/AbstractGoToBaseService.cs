@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                 return;
             }
 
-            var message = tuple.Value.message;
+            var (symbol, implementations, message) = tuple.Value;
 
             if (message != null)
             {
@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_bases,
-                FindUsagesHelpers.GetDisplayName(tuple.Value.symbol))).ConfigureAwait(false);
+                FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
             var solution = document.Project.Solution;
 
-            foreach (var implementation in tuple.Value.implementations)
+            foreach (var implementation in implementations)
             {
                 var definitionItem = await implementation.Symbol.ToClassifiedDefinitionItemAsync(
                     solution.GetProject(implementation.ProjectId), includeHiddenLocations: false,

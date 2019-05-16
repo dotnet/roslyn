@@ -8,11 +8,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToBase
     <ExportLanguageService(GetType(IGoToBaseService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicGoToBaseService
         Inherits AbstractGoToBaseService
-
-        <ImportingConstructor>
-        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New()
-            MyBase.New()
-        End Sub
     End Class
 End Namespace

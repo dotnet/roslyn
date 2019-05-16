@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
 
             foreach (var type in baseClassesAndInterfaces)
             {
-                foreach (var m in type.GetMembers(symbol.Name))
+                foreach (var member in type.GetMembers(symbol.Name))
                 {
                     var sourceMember = await SymbolFinder.FindSourceDefinitionAsync(
-                        SymbolAndProjectId.Create(m, project.Id),
+                        SymbolAndProjectId.Create(member, project.Id),
                         solution,
                         cancellationToken).ConfigureAwait(false);
 
