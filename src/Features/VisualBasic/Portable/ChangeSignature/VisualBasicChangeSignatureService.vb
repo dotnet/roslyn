@@ -569,7 +569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                         convertedType = If(Await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution).ConfigureAwait(False), convertedType)
                     End If
 
-                    If convertedType Is symbol.ContainingType Then
+                    If Equals(convertedType, symbol.ContainingType) Then
                         convertedType = semanticModel.GetSymbolInfo(u.Operand).Symbol
                         If convertedType IsNot Nothing Then
                             results.Add(convertedType)
@@ -588,7 +588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                             nodeType = If(Await SymbolFinder.FindSourceDefinitionAsync(nodeType, document.Project.Solution).ConfigureAwait(False), nodeType)
                         End If
 
-                        If nodeType Is symbol.ContainingType Then
+                        If Equals(nodeType, symbol.ContainingType) Then
                             results.Add(semanticModel.GetDeclaredSymbol(cast.Identifier.Parent))
                         End If
                     End If
