@@ -2156,7 +2156,7 @@ class C<T> : System.Attribute { }";
 {
     partial void I.M();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
                 // (3,20): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I.M();
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(3, 20),

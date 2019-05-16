@@ -80,12 +80,9 @@ abstract class A
                 // (5,33): error CS0073: An add or remove accessor must have a body
                 //     event Action E { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
-                // (9,41): error CS0073: An add or remove accessor must have a body
+                // (9,36): error CS8052: 'A.E': abstract event cannot use event accessor syntax
                 //     public abstract event Action E { add; remove; }
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"),
-                // (9,49): error CS0073: An add or remove accessor must have a body
-                //     public abstract event Action E { add; remove; }
-                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";"));
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("A.E").WithLocation(9, 36));
         }
 
         [Fact]

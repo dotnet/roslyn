@@ -429,14 +429,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // error if it is overridden - it emits a virtual method without the newslot
         // modifier as for a normal override.  It is not clear how the runtime rules
         // interpret this overriding method since the overridden method is invalid.
-        public override bool IsSealed => this.IsMetadataFinal && !this.IsAbstract && this.IsOverride; //slowest check last
+        public override bool IsSealed => this.IsMetadataFinal &&
+                                         (this._containingType.IsInterface ?
+                                            this.IsAbstract && this.IsMetadataVirtual() && !this.IsMetadataNewSlot() :
+                                            !this.IsAbstract && this.IsOverride); //slowest check last
 
         public override bool HidesBaseMethodsByName => !HasFlag(MethodAttributes.HideBySig);
 
         // Has to be metadata virtual and cannot be a destructor.  Cannot be either abstract or override.
         // Final is a little special - if a method has the virtual, newslot, and final attr
         // (and is not an explicit override) then we treat it as non-virtual for C# purposes.
-        public override bool IsVirtual => this.IsMetadataVirtual() && !this.IsDestructor && !this.IsMetadataFinal && !this.IsAbstract && !this.IsOverride;
+        public override bool IsVirtual => this.IsMetadataVirtual() && !this.IsDestructor && !this.IsMetadataFinal && !this.IsAbstract &&
+                                          (this._containingType.IsInterface ? this.IsMetadataNewSlot() : !this.IsOverride);
 
         // Has to be metadata virtual and cannot be a destructor.  
         // Must either lack the newslot flag or be an explicit override (i.e. via the MethodImpl table).
@@ -450,8 +454,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // This means that a virtual method without NewSlot flag in a type that doesn't have a base
         // is a new virtual method and doesn't override anything.
         public override bool IsOverride =>
-            this.IsMetadataVirtual() && !this.IsDestructor &&
-                       ((!this.IsMetadataNewSlot() && (object)_containingType.BaseTypeNoUseSiteDiagnostics != null) || this.IsExplicitClassOverride);
+            this._containingType.IsInterface ?
+                false :
+                (this.IsMetadataVirtual() && !this.IsDestructor &&
+                    ((!this.IsMetadataNewSlot() && (object)_containingType.BaseTypeNoUseSiteDiagnostics != null) || this.IsExplicitClassOverride));
 
         public override bool IsStatic => HasFlag(MethodAttributes.Static);
 
