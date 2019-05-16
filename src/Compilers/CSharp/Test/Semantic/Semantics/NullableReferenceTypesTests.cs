@@ -56248,6 +56248,95 @@ class Program
         }
 
         [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        public void Conversions_NullableConversions_05()
+        {
+            var source =
+@"struct S
+{
+    internal object? P { get; set; }
+    internal object Q { get; set; }
+}
+class Program
+{
+    static void Main()
+    {
+        S? s = new S() { P = 1, Q = null }; // 1
+        s.Value.P.ToString();
+        s.Value.Q.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         S? s = new S() { P = 1, Q = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 37),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.Q.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value.Q").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        public void Conversions_NullableConversions_06()
+        {
+            var source =
+@"struct S
+{
+    private object? _p;
+    private object _q;
+    internal object? P { get { return _p; } set { _p = value; } }
+    internal object Q { get { return _q; } set { _q = value; } }
+}
+class Program
+{
+    static void Main()
+    {
+        S? s = new S() { P = 1, Q = null }; // 1
+        s.Value.P.ToString();
+        s.Value.Q.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         S? s = new S() { P = 1, Q = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 37),
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.Q.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value.Q").WithLocation(14, 9));
+        }
+
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        public void Conversions_NullableConversions_07()
+        {
+            var source =
+@"struct S
+{
+    internal object? P { get { return 1; } set { } }
+    internal object Q { get { return 2; } set { } }
+}
+class Program
+{
+    static void Main()
+    {
+        S? s = new S() { P = 1, Q = null }; // 1
+        s.Value.P.ToString();
+        s.Value.Q.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         S? s = new S() { P = 1, Q = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 37),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.Q.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value.Q").WithLocation(12, 9));
+        }
+
+        [Fact]
         [WorkItem(29977, "https://github.com/dotnet/roslyn/issues/29977")]
         public void Conversions_TupleConversions_01()
         {
@@ -57573,6 +57662,36 @@ class C
                 // (19,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.P.F.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.P.F").WithLocation(19, 9));
+        }
+
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        public void Members_StructProperty_Default()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S
+{
+    internal object F;
+    private object _p;
+    internal object P { get { return _p; } set { _p = value; } }
+    internal object Q { get; set; }
+}
+class Program
+{
+    static void Main()
+    {
+        S s = default;
+        s.F.ToString(); // 1
+        s.P.ToString();
+        s.Q.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.F.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.F").WithLocation(14, 9));
         }
 
         [Fact]

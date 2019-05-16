@@ -1687,8 +1687,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private int GetOrCreatePlaceholderSlot(BoundExpression node)
         {
-            if (_emptyStructTypeCache.IsEmptyStructType(node.Type))
+            if (IsEmptyStructType(node.Type))
+            {
                 return -1;
+            }
 
             return GetOrCreatePlaceholderSlot(node, TypeWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated));
         }
