@@ -1672,6 +1672,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool IsEmptyStructType(TypeSymbol type)
         {
+            if (type.TypeKind != TypeKind.Struct)
+            {
+                return false;
+            }
+
             if (!_emptyStructTypeCache.IsEmptyStructType(type))
             {
                 return false;
@@ -1682,13 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var namedType = type as NamedTypeSymbol;
-            if (namedType is null)
-            {
-                return true;
-            }
-
-            foreach (var member in namedType.GetMembersUnordered())
+            foreach (var member in ((NamedTypeSymbol)type).GetMembersUnordered())
             {
                 switch (member.Kind)
                 {
