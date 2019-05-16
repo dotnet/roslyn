@@ -178,6 +178,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                     Case GetType(SVsFileChangeEx)
                         Return _fileChangeEx
 
+                    Case GetType(SVsRunningDocumentTable)
+                        Dim rdtMock As New Mock(Of IVsRunningDocumentTable4)(MockBehavior.Loose)
+                        Return rdtMock.Object
+
                     Case Else
                         Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")
                 End Select
