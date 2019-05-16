@@ -671,16 +671,16 @@ public struct S
 {
     public readonly void M()
     {
-            Console.WriteLine(E is null);
-            // should create local copy
-            E += () => {}; // warning
-            Console.WriteLine(E is null);
-            E -= () => {}; // warning
+        Console.WriteLine(E is null);
+        // should create local copy
+        E += () => {}; // warning
+        Console.WriteLine(E is null);
+        E -= () => {}; // warning
 
-            // explicit local copy, no warning
-            var copy = this;
-            copy.E += () => {};
-            Console.WriteLine(copy.E is null);
+        // explicit local copy, no warning
+        var copy = this;
+        copy.E += () => {};
+        Console.WriteLine(copy.E is null);
     }
 
     public event Action E;
