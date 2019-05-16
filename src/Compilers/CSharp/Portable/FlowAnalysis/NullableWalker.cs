@@ -1672,17 +1672,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool IsEmptyStructType(TypeSymbol type)
         {
-            if (_emptyStructTypeCache.IsEmptyStructType(type))
+            if (!_emptyStructTypeCache.IsEmptyStructType(type))
             {
-                if (type.SpecialType != SpecialType.None)
+                return false;
+            }
+
+            if (type.SpecialType != SpecialType.None)
+            {
+                return true;
+            }
+
+            var namedType = type as NamedTypeSymbol;
+            if (namedType is null)
+            {
+                return true;
+            }
+
+            foreach (var member in namedType.GetMembersUnordered())
+            {
+                switch (member.Kind)
                 {
-                    return true;
+                    case SymbolKind.Field:
+                        // We're not expecting fields because IsEmptyStructType() returned
+                        // true, so the field must represent a cycle. Treat the type as empty.
+                        return true;
+                    case SymbolKind.Property:
+                        return false;
                 }
             }
-            // We could return true if there are no properties but that check
-            // might be more expensive than any performance improvement
-            // from skipping types with no fields or properties.
-            return false;
+
+            return true;
         }
 
         private int GetOrCreatePlaceholderSlot(BoundExpression node)
