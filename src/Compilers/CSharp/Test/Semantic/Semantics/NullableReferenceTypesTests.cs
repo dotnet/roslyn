@@ -48429,18 +48429,18 @@ class Program
         if (x.G != null) return;
         C y = x;
         x.F.ToString();
-        x.G.ToString(); // warning
+        x.G.ToString(); // 1
         y.F.ToString();
-        y.G.ToString(); // warning
+        y.G.ToString(); // 2
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (16,9): warning CS8602: Dereference of a possibly null reference.
-                //         x.G.ToString(); // warning
+                //         x.G.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.G").WithLocation(16, 9),
                 // (18,9): warning CS8602: Dereference of a possibly null reference.
-                //         y.G.ToString(); // warning
+                //         y.G.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.G").WithLocation(18, 9));
         }
 
@@ -82465,13 +82465,13 @@ class Program
         var a3 = new A() { B = new B() { A = a2 } };
         a1.B.ToString();
         a2.B.A.B.ToString();
-        a3.B.A.B.A.B.ToString();
+        a3.B.A.B.A.B.ToString(); // 1
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (19,9): warning CS8602: Dereference of a possibly null reference.
-                //         a3.B.A.B.A.B.ToString();
+                //         a3.B.A.B.A.B.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a3.B.A.B.A.B").WithLocation(19, 9));
         }
 
@@ -82492,13 +82492,13 @@ class Program
         t.x1.y2.ToString();
         t.x1.x2.y3.ToString();
         t.x1.x2.x3.y4.ToString();
-        t.x1.x2.x3.x4.y5.ToString();
+        t.x1.x2.x3.x4.y5.ToString(); // 1
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Dereference of a possibly null reference.
-                //         t.x1.x2.x3.x4.y5.ToString();
+                //         t.x1.x2.x3.x4.y5.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.x1.x2.x3.x4.y5").WithLocation(10, 9));
         }
 
