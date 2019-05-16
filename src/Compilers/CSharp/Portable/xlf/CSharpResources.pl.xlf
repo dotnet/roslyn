@@ -257,6 +257,11 @@
         <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
+        <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
+        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Ograniczenie „new()” nie może być używane z ograniczeniem „unmanaged”</target>
@@ -270,21 +275,6 @@
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
         <target state="translated">„{0}”: Typ użyty w instrukcji using musi być jawnie konwertowalny na typ „System.IDisposable” lub musi implementować odpowiednią metodę „Dispose”. Czy chodziło Ci o użycie instrukcji „await using”, a nie „using”?</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotBaseOrImplementedInterface">
-        <source>'{0}' is not base type or interface of {1}.</source>
-        <target state="translated">„{0}” nie jest typem podstawowym lub interfejsem elementu {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotDeclaredInBase">
-        <source>'{0}' is not an immediate member of {1}.</source>
-        <target state="translated">„{0}” nie jest bezpośrednią składową elementu {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotImplementedInBase">
-        <source>'{0}' is not implemented in base interface {1}.</source>
-        <target state="translated">Element „{0}” nie jest implementowany w interfejsie podstawowym elementu {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -746,11 +736,6 @@
 -modulename:&lt;ciąg&gt;            Określ nazwę modułu źródłowego
 </target>
         <note>Visual C# Compiler Options</note>
-      </trans-unit>
-      <trans-unit id="IDS_BaseTypeInBaseExpression">
-        <source>specifying base type in base expression</source>
-        <target state="translated">określanie typu podstawowego w wyrażeniu podstawowym</target>
-        <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
@@ -1660,16 +1645,6 @@
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type doesn't match implicitly implemented member.</source>
         <target state="translated">Obsługa wartości null dla typów referencyjnych w typie jest niezgodna z niejawnie implementowaną składową.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie jest niezgodna z przesłoniętą składową.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Obsługa wartości null dla typów referencyjnych w typie jest niezgodna z przesłoniętą składową.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">

@@ -412,7 +412,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Lang
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests", "src\VisualStudio\LiveShare\Test\Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests.csproj", "{CE7F7553-DB2D-4839-92E3-F042E4261B4E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.ExternalAccess.LiveShare", "src\Tools\ExternalAccess\LiveShare\Microsoft.CodeAnalysis.ExternalAccess.LiveShare.csproj", "{F7FE21C5-98AB-4E0D-A900-5829296B80FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.LiveShare", "src\Tools\ExternalAccess\LiveShare\Microsoft.CodeAnalysis.ExternalAccess.LiveShare.csproj", "{F7FE21C5-98AB-4E0D-A900-5829296B80FD}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution

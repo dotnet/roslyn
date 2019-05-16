@@ -5328,12 +5328,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UnboxPossibleNull_Title" xml:space="preserve">
     <value>Unboxing a possibly null value.</value>
   </data>
-  <data name="WRN_NullabilityMismatchInTypeOnOverride" xml:space="preserve">
-    <value>Nullability of reference types in type doesn't match overridden member.</value>
-  </data>
-  <data name="WRN_NullabilityMismatchInTypeOnOverride_Title" xml:space="preserve">
-    <value>Nullability of reference types in type doesn't match overridden member.</value>
-  </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOnOverride" xml:space="preserve">
     <value>Nullability of reference types in return type doesn't match overridden member.</value>
   </data>
@@ -5835,9 +5829,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_DefaultInterfaceImplementation" xml:space="preserve">
     <value>default interface implementation</value>
   </data>
-  <data name="IDS_BaseTypeInBaseExpression" xml:space="preserve">
-    <value>specifying base type in base expression</value>
-  </data>
   <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation" xml:space="preserve">
     <value>Target runtime doesn't support default interface implementation.</value>
   </data>
@@ -5856,17 +5847,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
     <value>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</value>
   </data>
-  <data name="ERR_NotBaseOrImplementedInterface" xml:space="preserve">
-    <value>'{0}' is not base type or interface of {1}.</value>
-  </data>
   <data name="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember" xml:space="preserve">
     <value>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</value>
-  </data>
-  <data name="ERR_NotImplementedInBase" xml:space="preserve">
-    <value>'{0}' is not implemented in base interface {1}.</value>
-  </data>
-  <data name="ERR_NotDeclaredInBase" xml:space="preserve">
-    <value>'{0}' is not an immediate member of {1}.</value>
   </data>
   <data name="ERR_DefaultInterfaceImplementationInNoPIAType" xml:space="preserve">
     <value>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</value>
@@ -5900,6 +5882,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_UndecoratedCancellationTokenParameter_Title" xml:space="preserve">
     <value>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;>.GetAsyncEnumerator' will be unconsumed</value>
+  </data>
+  <data name="ERR_MultipleEnumeratorCancellationAttributes" xml:space="preserve">
+    <value>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</value>
   </data>
   <data name="ERR_OverrideRefConstraintNotSatisfied" xml:space="preserve">
     <value>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</value>

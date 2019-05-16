@@ -603,6 +603,9 @@ public abstract class C
             var source = "System.Console.WriteLine(1);";
             var compilation = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyEmitDiagnostics(
+                // error CS1061: 'Task<object>' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'Task<object>' could be found (are you missing a using directive or an assembly reference?)
+                //
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("System.Threading.Tasks.Task<object>", "GetAwaiter").WithLocation(1, 1),
                 // (1,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1' is not defined or imported
                 // System.Console.WriteLine(1);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "System.Console.WriteLine(1);").WithArguments("System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1").WithLocation(1, 1),

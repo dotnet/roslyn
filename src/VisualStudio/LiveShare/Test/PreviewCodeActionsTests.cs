@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -24,7 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             var (solution, locations) = CreateTestSolution(markup);
             var expected = CreateTextEdit("var", locations["edit"].First().Range);
 
-            var results = await TestHandleAsync<RunCodeActionParams, LSP.TextEdit[]>(solution, CreateRunCodeActionParams(locations["caret"].First(), "Use implicit type"));
+            var results = await TestHandleAsync<RunCodeActionParams, LSP.TextEdit[]>(solution, CreateRunCodeActionParams(locations["caret"].First(),
+                CSharpFeaturesResources.Use_implicit_type));
             AssertCollectionsEqual(new LSP.TextEdit[] { expected }, results, AssertTextEditsEqual);
         }
 

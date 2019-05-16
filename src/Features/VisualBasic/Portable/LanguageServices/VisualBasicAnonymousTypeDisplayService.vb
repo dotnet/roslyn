@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             ' So ugly.  We remove the 'Invoke' name that was added by the symbol display service.
             Dim result = New List(Of SymbolDisplayPart)
             For Each part In parts
-                If part.Symbol Is delegateInvoke Then
+                If Equals(part.Symbol, delegateInvoke) Then
                     Continue For
                 End If
 

@@ -135,10 +135,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             var line = error.iLine;
             var column = error.iCol;
-            /* TODO: make work again
-            if (hostDocument is ContainedDocument containedDocument)
+
+            // something we should move to document service one day. but until then, we keep the old way.
+            // build basically output error location on surface buffer and we map it back to
+            // subject buffer for contained document. so that contained document can map
+            // it back to surface buffer when navigate. whole problem comes in due to the mapped span.
+            // unlike live error, build outputs mapped span and we save it as original span (since we
+            // have no idea whether it is mapped or not). for contained document case, we do know it is
+            // mapped span, so we calculate original span and put that in original span.
+            var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
+            if (containedDocument != null)
             {
-                var span = new VsTextSpan
+                var span = new TextSpan
                 {
                     iStartLine = line,
                     iStartIndex = column,
@@ -146,15 +154,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     iEndIndex = column,
                 };
 
-                var spans = new VsTextSpan[1];
-                Marshal.ThrowExceptionForHR(containedDocument.ContainedLanguage.BufferCoordinator.MapPrimaryToSecondarySpan(
+                var spans = new TextSpan[1];
+                Marshal.ThrowExceptionForHR(containedDocument.BufferCoordinator.MapPrimaryToSecondarySpan(
                     span,
                     spans));
 
                 line = spans[0].iStartLine;
                 column = spans[0].iStartIndex;
             }
-            */
 
             return GetDiagnosticData(error, documentId, line, column);
         }

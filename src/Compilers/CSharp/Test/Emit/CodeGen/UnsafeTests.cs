@@ -7583,13 +7583,13 @@ unsafe struct S
   // Code size       74 (0x4a)
   .maxstack  3
   .locals init (S V_0, //s
-  S* V_1,
-  int V_2)
+                S* V_1,
+                int V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  dup
-  IL_000b:  call       ""S* S.P.get""
+  IL_000b:  call       ""readonly S* S.P.get""
   IL_0010:  stloc.1
   IL_0011:  ldloc.1
   IL_0012:  sizeof     ""S""
@@ -7608,7 +7608,7 @@ unsafe struct S
   IL_0036:  ldloc.1
   IL_0037:  call       ""void S.this[int].set""
   IL_003c:  ldloca.s   V_0
-  IL_003e:  call       ""S* S.P.get""
+  IL_003e:  call       ""readonly S* S.P.get""
   IL_0043:  conv.i4
   IL_0044:  call       ""void System.Console.Write(int)""
   IL_0049:  ret
@@ -7764,7 +7764,7 @@ unsafe struct S
   IL_0002:  initobj    ""S""
   IL_0008:  ldloca.s   V_0
   IL_000a:  dup
-  IL_000b:  call       ""S* S.P.get""
+  IL_000b:  call       ""readonly S* S.P.get""
   IL_0010:  ldc.i4.3
   IL_0011:  conv.i
   IL_0012:  sizeof     ""S""
@@ -7787,7 +7787,7 @@ unsafe struct S
   IL_003a:  sub
   IL_003b:  call       ""void S.this[int].set""
   IL_0040:  ldloca.s   V_0
-  IL_0042:  call       ""S* S.P.get""
+  IL_0042:  call       ""readonly S* S.P.get""
   IL_0047:  conv.i4
   IL_0048:  call       ""void System.Console.Write(int)""
   IL_004d:  ret
