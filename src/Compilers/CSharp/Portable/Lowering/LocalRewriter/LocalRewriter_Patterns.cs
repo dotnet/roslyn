@@ -176,9 +176,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagTypeEvaluation t:
                         {
                             TypeSymbol inputType = input.Type;
-                            if (inputType.IsDynamic() || inputType.ContainsTypeParameter())
+                            if (inputType.IsDynamic())
                             {
+                                // Avoid using dynamic conversions for pattern-matching.
                                 inputType = _factory.SpecialType(SpecialType.System_Object);
+                                input = _factory.Convert(inputType, input);
                             }
 
                             TypeSymbol type = t.Type;
@@ -335,17 +337,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out BoundExpression sideEffect,
                 out BoundExpression testExpression)
             {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+                // case 1: type test followed by cast to that type
                 if (test is BoundDagTypeTest typeDecision &&
-                    evaluation is BoundDagTypeEvaluation typeEvaluation &&
+                    evaluation is BoundDagTypeEvaluation typeEvaluation1 &&
                     typeDecision.Type.IsReferenceType &&
-                    typeEvaluation.Type.Equals(typeDecision.Type, TypeCompareKind.AllIgnoreOptions) &&
-                    typeEvaluation.Input == typeDecision.Input
-                    )
+                    typeEvaluation1.Type.Equals(typeDecision.Type, TypeCompareKind.AllIgnoreOptions) &&
+                    typeEvaluation1.Input == typeDecision.Input)
                 {
                     BoundExpression input = _tempAllocator.GetTemp(test.Input);
-                    BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, typeEvaluation.Type, evaluation));
-                    sideEffect = _factory.AssignmentExpression(output, _factory.As(input, typeEvaluation.Type));
+                    BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, typeEvaluation1.Type, evaluation));
+                    sideEffect = _factory.AssignmentExpression(output, _factory.As(input, typeEvaluation1.Type));
                     testExpression = _factory.ObjectNotEqual(output, _factory.Null(output.Type));
+                    return true;
+                }
+
+                // case 2: null check followed by cast to a base type
+                if (test is BoundDagNonNullTest nonNullTest &&
+                    evaluation is BoundDagTypeEvaluation typeEvaluation2 &&
+                    _factory.Compilation.Conversions.ClassifyBuiltInConversion(test.Input.Type, typeEvaluation2.Type, ref useSiteDiagnostics) is Conversion conv &&
+                    (conv.IsIdentity || conv.Kind == ConversionKind.ImplicitReference || conv.IsBoxing) &&
+                    typeEvaluation2.Input == nonNullTest.Input)
+                {
+                    BoundExpression input = _tempAllocator.GetTemp(test.Input);
+                    var baseType = typeEvaluation2.Type;
+                    BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, baseType, evaluation));
+                    sideEffect = _factory.AssignmentExpression(output, _factory.Convert(baseType, input));
+                    testExpression = _factory.ObjectNotEqual(output, _factory.Null(baseType));
+                    _localRewriter._diagnostics.Add(test.Syntax, useSiteDiagnostics);
                     return true;
                 }
 

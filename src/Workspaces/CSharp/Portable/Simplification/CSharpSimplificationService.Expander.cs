@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             ExpressionSyntax left;
 
                             // Assumption here is, if the enclosing and containing types are different then there is inheritance relationship
-                            if (_semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken) != symbol.ContainingType)
+                            if (!Equals(_semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken), symbol.ContainingType))
                             {
                                 left = SyntaxFactory.BaseExpression();
                             }
@@ -822,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private bool IsTypeArgumentDefinedRecursive(ISymbol symbol, IList<ISymbol> typeArgumentSymbols, bool enterContainingSymbol)
             {
-                if (symbol == symbol.OriginalDefinition)
+                if (Equals(symbol, symbol.OriginalDefinition))
                 {
                     return false;
                 }

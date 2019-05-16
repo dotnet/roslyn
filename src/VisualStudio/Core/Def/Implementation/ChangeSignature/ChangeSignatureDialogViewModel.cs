@@ -483,7 +483,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         }
 
                         if (_changeSignatureDialogViewModel._thisParameter != null &&
-                            ParameterSymbol == _changeSignatureDialogViewModel._thisParameter.ParameterSymbol)
+                            Equals(ParameterSymbol, _changeSignatureDialogViewModel._thisParameter.ParameterSymbol))
                         {
                             return @this ?? string.Empty;
                         }
