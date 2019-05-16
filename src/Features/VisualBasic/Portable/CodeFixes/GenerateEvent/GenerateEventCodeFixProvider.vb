@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             Dim existingSymbols = existingSymbolAndProjectIds.SelectAsArray(Function(t) t.Symbol)
             If existingSymbols.Any(Function(existingSymbol) existingSymbol IsNot Nothing _
-                                                   AndAlso existingSymbol.ContainingNamespace Is targetType.ContainingNamespace) Then
+                                                   AndAlso Equals(existingSymbol.ContainingNamespace, targetType.ContainingNamespace)) Then
                 ' There already exists a delegate that matches the event handler name
                 Return Nothing
             End If

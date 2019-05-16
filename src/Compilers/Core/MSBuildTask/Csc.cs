@@ -149,6 +149,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(WarningsNotAsErrors)]; }
         }
 
+        public string NullableContextOptions { get { return null; } set { } }
+
         public string Nullable
         {
             set { _store[nameof(Nullable)] = value; }

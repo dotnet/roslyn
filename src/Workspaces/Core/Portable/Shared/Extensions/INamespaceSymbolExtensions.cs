@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // Assume that any namespace in our own assembly is accessible to us.  This saves a
                 // lot of cpu time checking namespaces.
-                if (constituent.ContainingAssembly == assembly)
+                if (Equals(constituent.ContainingAssembly, assembly))
                 {
                     return true;
                 }

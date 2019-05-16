@@ -91,6 +91,11 @@ namespace RunTests
         /// </summary>
         public string LogFilesOutputDirectory { get; set; }
 
+        /// <summary>
+        /// Directory to hold secondary dump files created while running tests.
+        /// </summary>
+        public string LogFilesSecondaryOutputDirectory { get; set; }
+
         internal static Options Parse(string[] args)
         {
             if (args == null || args.Any(a => a == null) || args.Length < 2)
@@ -152,6 +157,11 @@ namespace RunTests
                 else if (isOption(current, "-logs", out string logsPath))
                 {
                     opt.LogFilesOutputDirectory = logsPath;
+                    index++;
+                }
+                else if (isOption(current, "-secondaryLogs", out string secondaryLogsPath))
+                {
+                    opt.LogFilesSecondaryOutputDirectory = secondaryLogsPath;
                     index++;
                 }
                 else if (isOption(current, "-display", out value))
@@ -237,6 +247,9 @@ namespace RunTests
             {
                 opt.LogFilesOutputDirectory = opt.TestResultXmlOutputDirectory;
             }
+
+            // If we weren't passed both -secondaryLogs and -logs but just -logs (or -out), use the same value for -secondaryLogs too.
+            opt.LogFilesSecondaryOutputDirectory ??= opt.LogFilesOutputDirectory;
 
             opt.Assemblies = args.Skip(index).ToList();
             return allGood ? opt : null;

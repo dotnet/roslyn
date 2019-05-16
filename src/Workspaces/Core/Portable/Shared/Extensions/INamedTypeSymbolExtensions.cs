@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 (t, m) =>
                 {
                     var implementation = classOrStructType.FindImplementationForInterfaceMember(m);
-                    return implementation != null && implementation.ContainingType == classOrStructType;
+                    return implementation != null && Equals(implementation.ContainingType, classOrStructType);
                 },
                 GetMembers,
                 allowReimplementation: true,
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 (t, m) =>
                 {
                     var implementation = classOrStructType.FindImplementationForInterfaceMember(m);
-                    return implementation != null && implementation.ContainingType == classOrStructType;
+                    return implementation != null && Equals(implementation.ContainingType, classOrStructType);
                 },
                 interfaceMemberGetter,
                 allowReimplementation: true,
