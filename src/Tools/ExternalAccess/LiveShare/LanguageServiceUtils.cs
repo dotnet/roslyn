@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         public static bool HasVisualStudioLspCapability(this ClientCapabilities clientCapabilities)
         {
-
             if (clientCapabilities is VSClientCapabilities vsClientCapabilities)
             {
                 return vsClientCapabilities.SupportsVisualStudioExtensions;
