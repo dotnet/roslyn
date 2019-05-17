@@ -400,7 +400,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(_controlFlowGraph.DescendantOperations().Contains(flowCaptureOrReference));
             if (!_captureIdEntityMap.TryGetValue(captureId, out var entity))
             {
-                entity = AnalysisEntity.Create(captureId, type, _controlFlowGraph, _getIsLValueFlowCapture(captureId));
+                var isLValueFlowCapture = _getIsLValueFlowCapture(captureId);
+                var interproceduralCaptureId = new InterproceduralCaptureId(captureId, _controlFlowGraph, isLValueFlowCapture);
+                var instanceLocation = PointsToAbstractValue.Create(
+                    AbstractLocation.CreateFlowCaptureLocation(interproceduralCaptureId, type, _interproceduralCallStackOpt),
+                    mayBeNull: false);
+                entity = AnalysisEntity.Create(interproceduralCaptureId, type, instanceLocation);
                 _captureIdEntityMap.Add(captureId, entity);
             }
 
