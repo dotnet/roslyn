@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isWithinAsyncMethod,
             bool isPossibleTupleContext,
             bool isPatternContext,
+            bool isSoftSelectionContext,
             CancellationToken cancellationToken)
         {
             this.Workspace = workspace;
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsPossibleTupleContext = isPossibleTupleContext;
             this.IsPatternContext = isPatternContext;
             this.InferredTypes = ComputeInferredTypes(workspace, semanticModel, position, cancellationToken);
+            this.IsSoftSelectionContext = isSoftSelectionContext;
         }
 
         public Workspace Workspace { get; }
@@ -87,6 +89,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsWithinAsyncMethod { get; }
         public bool IsPossibleTupleContext { get; }
         public bool IsPatternContext { get; }
+
+        public bool IsSoftSelectionContext { get; }
 
         public ImmutableArray<ITypeSymbol> InferredTypes { get; }
 
