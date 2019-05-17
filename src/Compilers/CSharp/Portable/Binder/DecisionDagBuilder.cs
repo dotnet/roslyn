@@ -1011,11 +1011,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// runtime type test for the purpose of building the decision tree.
         /// We accomodate a special behavior of the runtime here, which does not match the language rules.
         /// A value of type `int[]` is an "instanceof" (i.e. result of the `isinst` instruction) the type
-        /// `uing[]` and vice versa.  It is similarly so for every pair of same-sized numeric types, and
+        /// `uint[]` and vice versa.  It is similarly so for every pair of same-sized numeric types, and
         /// arrays of enums are considered to be their underlying type.  We need the dag construction to
         /// recognize this runtime behavior, so we pretend that matching one of them gives no information
         /// on whether the other will be matched.  That isn't quite correct (nothing reasonable we do
-        /// could be), but it comes closest to preserving the existing C#7 behavior without undersireable
+        /// could be), but it comes closest to preserving the existing C#7 behavior without undersirable
         /// side-effects, and permits the code-gen strategy to preserve the dynamic semantic equivalence
         /// of a switch (on the one hand) and a series of if-then-else statements (on the other).
         /// See, for example, https://github.com/dotnet/roslyn/issues/35661
