@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -188,6 +190,82 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             else
             {
                 return HazardousUsageEvaluationResult.Unflagged;
+            }
+        }
+
+        /// <summary>
+        /// Enumerates literal values to map to a property set abstract value.
+        /// </summary>
+        /// <param name="valueContentAbstractValue">Abstract value containing the literal values to examine.</param>
+        /// <param name="badLiteralValuePredicate">Predicate function to determine if a literal value is bad.</param>
+        /// <returns>Mapped kind.</returns>
+        /// <remarks>
+        /// Null is not handled by this.  Look at the <see cref="PointsToAbstractValue"/> if you need to treat null as bad.
+        /// 
+        /// All literal values are bad => Flagged
+        /// Some but not all literal are bad => MaybeFlagged
+        /// All literal values are known and none are bad => Unflagged
+        /// Otherwise => Unknown
+        /// </remarks>
+        public static PropertySetAbstractValueKind EvaluateLiteralValues(
+            ValueContentAbstractValue valueContentAbstractValue,
+            Func<object, bool> badLiteralValuePredicate)
+        {
+            Debug.Assert(valueContentAbstractValue != null);
+            Debug.Assert(badLiteralValuePredicate != null);
+
+            switch (valueContentAbstractValue.NonLiteralState)
+            {
+                case ValueContainsNonLiteralState.No:
+                    if (valueContentAbstractValue.LiteralValues.IsEmpty)
+                    {
+                        return PropertySetAbstractValueKind.Unflagged;
+                    }
+
+                    bool allValuesBad = true;
+                    bool someValuesBad = false;
+                    foreach (object literalValue in valueContentAbstractValue.LiteralValues)
+                    {
+                        if (badLiteralValuePredicate(literalValue))
+                        {
+                            someValuesBad = true;
+                        }
+                        else
+                        {
+                            allValuesBad = false;
+                        }
+
+                        if (!allValuesBad && someValuesBad)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (allValuesBad)
+                    {
+                        return PropertySetAbstractValueKind.Flagged;
+                    }
+                    else if (someValuesBad)
+                    {
+                        return PropertySetAbstractValueKind.MaybeFlagged;
+                    }
+                    else
+                    {
+                        return PropertySetAbstractValueKind.Unflagged;
+                    }
+
+                case ValueContainsNonLiteralState.Maybe:
+                    if (valueContentAbstractValue.LiteralValues.Any(badLiteralValuePredicate))
+                    {
+                        return PropertySetAbstractValueKind.MaybeFlagged;
+                    }
+                    else
+                    {
+                        return PropertySetAbstractValueKind.Unknown;
+                    }
+
+                default:
+                    return PropertySetAbstractValueKind.Unknown;
             }
         }
 
