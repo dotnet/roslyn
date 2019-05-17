@@ -1670,6 +1670,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
         }
 
+        /// <summary>
+        /// Returns true if the type is a struct with no fields or properties.
+        /// </summary>
         protected override bool IsEmptyStructType(TypeSymbol type)
         {
             if (type.TypeKind != TypeKind.Struct)
@@ -1677,6 +1680,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            // EmptyStructTypeCache.IsEmptyStructType() returns false
+            // if there are non-cyclic fields.
             if (!_emptyStructTypeCache.IsEmptyStructType(type))
             {
                 return false;
@@ -1687,17 +1692,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            foreach (var member in ((NamedTypeSymbol)type).GetMembersUnordered())
+            var members = ((NamedTypeSymbol)type).GetMembersUnordered();
+
+            // EmptyStructTypeCache.IsEmptyStructType() returned true. If there
+            // are fields, those must be cyclic, so treat the type as empty.
+            if (members.Any(m => m.Kind == SymbolKind.Field))
             {
-                switch (member.Kind)
-                {
-                    case SymbolKind.Field:
-                        // We're not expecting fields because IsEmptyStructType() returned
-                        // true, so the field must represent a cycle. Treat the type as empty.
-                        return true;
-                    case SymbolKind.Property:
-                        return false;
-                }
+                return true;
+            }
+
+            // If there are properties, the type is not empty.
+            if (members.Any(m => m.Kind == SymbolKind.Property))
+            {
+                return false;
             }
 
             return true;

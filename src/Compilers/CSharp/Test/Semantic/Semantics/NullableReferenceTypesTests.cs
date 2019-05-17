@@ -49997,6 +49997,152 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        public void StructField_Cycle_01()
+        {
+            var source =
+@"#pragma warning disable 649
+struct S
+{
+    internal S F;
+    internal object? P => null;
+}
+class Program
+{
+    static void F(S x, S y)
+    {
+        if (y.P == null) return;
+        x.P.ToString(); // 1
+        y.P.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,16): error CS0523: Struct member 'S.F' of type 'S' causes a cycle in the struct layout
+                //     internal S F;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "F").WithArguments("S.F", "S").WithLocation(4, 16),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.P.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.P").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        public void StructField_Cycle_02()
+        {
+            var source0 =
+@".class public sealed S extends [mscorlib]System.ValueType
+{
+  .field public valuetype [mscorlib]System.Nullable`1<valuetype S> F
+}";
+            var ref0 = CompileIL(source0);
+            var source =
+@"class Program
+{
+    static void F(S x, S y)
+    {
+        if (y.F == null) return;
+        _ = x.F.Value; // 1
+        _ = y.F.Value;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, new[] { ref0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8629: Nullable value type may be null.
+                //         _ = x.F.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x.F").WithLocation(6, 13));
+        }
+
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        public void StructField_Cycle_03()
+        {
+            var source0 =
+@".class public sealed S extends [mscorlib]System.ValueType
+{
+  .field public valuetype S F
+  .field public object G
+}";
+            var ref0 = CompileIL(source0);
+            var source =
+@"class Program
+{
+    static void F(S s)
+    {
+        s.G = null;
+        s.G.ToString(); // 1
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, new[] { ref0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.G.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.G").WithLocation(6, 9));
+        }
+
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        public void StructField_Cycle_04()
+        {
+            var source0 =
+@".class public sealed S extends [mscorlib]System.ValueType
+{
+  .field public valuetype S F
+  .method public instance object get_P() { ldnull ret }
+  .method public instance void set_P(object 'value') { ret }
+  .property instance object P()
+  {
+    .get instance object S::get_P()
+    .set instance void S::set_P(object)
+  }
+}";
+            var ref0 = CompileIL(source0);
+            var source =
+@"class Program
+{
+    static void F(S s)
+    {
+        s.P = null;
+        s.P.ToString(); // 1
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, new[] { ref0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        public void StructPropertyNoBackingField()
+        {
+            var source0 =
+@".class public sealed S extends [mscorlib]System.ValueType
+{
+  .method public instance object get_P() { ldnull ret }
+  .method public instance void set_P(object 'value') { ret }
+  .property instance object P()
+  {
+    .get instance object S::get_P()
+    .set instance void S::set_P(object)
+  }
+}";
+            var ref0 = CompileIL(source0);
+            var source =
+@"class Program
+{
+    static void F(S s)
+    {
+        s.P = null;
+        s.P.ToString(); // 1
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, new[] { ref0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.P.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.P").WithLocation(6, 9));
+        }
+
         // `default` expression in a split state.
         [Fact]
         public void IsPattern_DefaultTrackableStruct()
