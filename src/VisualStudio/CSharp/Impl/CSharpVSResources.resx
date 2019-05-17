@@ -593,4 +593,8 @@
     <value>'using' preferences:</value>
     <comment>'using' is a C# keyword and should not be localized</comment>
   </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+    <comment>Title of the control group on the General Formatting options page</comment>
+  </data>
 </root>

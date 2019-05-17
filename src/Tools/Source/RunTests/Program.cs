@@ -207,7 +207,7 @@ namespace RunTests
                     // backup is to test for the dump file being present.
                     if (File.Exists(dumpFilePath))
                     {
-                        ConsoleUtil.WriteLine("succeeded");
+                        ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
                     }
                     else
                     {

@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
                 Dim newFunctionStatement = functionStatement.WithAsClause(newAsClause)
                 newFunctionStatement = RemoveAsyncKeyword(newFunctionStatement)
                 Return node.WithSubOrFunctionStatement(newFunctionStatement)
-            ElseIf methodSymbol.ReturnType.OriginalDefinition Is knownTypes._taskType Then
+            ElseIf Equals(methodSymbol.ReturnType.OriginalDefinition, knownTypes._taskType) Then
                 ' Convert this to a 'Sub' method.
                 Dim subStatement = SyntaxFactory.SubStatement(
                     functionStatement.AttributeLists,
