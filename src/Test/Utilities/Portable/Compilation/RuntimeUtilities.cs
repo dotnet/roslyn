@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #endif
         internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
 
+        internal static bool IsCoreClr30OrLater => IsCoreClrRuntime && System.Environment.Version.Major >= 3;
+
         internal static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null, string tempDirectory = null)
         {
             tempDirectory = tempDirectory ?? Path.GetTempPath();

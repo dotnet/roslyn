@@ -153,12 +153,11 @@ Friend Module CompilationUtils
         Return CreateEmptyCompilationWithReferences(source, references, options, parseOptions:=parseOptions, assemblyName:=assemblyName)
     End Function
 
-    Public Function CreateCompilationWithMscorlib40AndVBRuntime(source As IEnumerable(Of SyntaxTree),
+    Public Function CreateCompilationWithMscorlib40AndVBRuntime(source As SyntaxTree(),
                                                               options As VisualBasicCompilationOptions,
                                                               Optional assemblyName As String = Nothing) As VisualBasicCompilation
 
-        Dim references = {MscorlibRef, SystemRef, MsvbRef}
-        Return CreateEmptyCompilation(source.ToArray(), references, options:=options, assemblyName:=assemblyName)
+        Return CreateCompilation(source, options:=options, targetFramework:=TargetFramework.StandardAndVBRuntime, assemblyName:=assemblyName)
     End Function
 
     Public Function CreateCompilationWithMscorlib40AndVBRuntime(source As XElement,

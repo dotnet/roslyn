@@ -12,7 +12,7 @@ namespace Roslyn.Test.Utilities
         internal static string GetMessageFromResult(IEnumerable<Diagnostic> diagnostics, string directory)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Emit Failed, binaries saved to: ");
+            sb.AppendLine("Emit failed, binaries saved to: ");
             sb.AppendLine(directory);
             foreach (var d in diagnostics)
             {
