@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.LiveShare;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.LanguageServer.Protocol;

@@ -3,7 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
 {
     internal static class HostLanguageServicesExtensions
     {

@@ -7,13 +7,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects;
-using Microsoft.VisualStudio.LanguageServices.LiveShare.Client;
-using Microsoft.VisualStudio.LanguageServices.Remote;
+using CustomProtocol = Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.Remote.Guest
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects
 {
     //[Export(typeof(IRemoteProjectInfoProvider))]
     internal class RoslynRemoteProjectInfoProvider : IRemoteProjectInfoProvider
@@ -43,10 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote.Guest
                 return ImmutableArray<ProjectInfo>.Empty;
             }
 
-            LiveShare.CustomProtocol.Project[] projects;
+            CustomProtocol.Project[] projects;
             try
             {
-                var request = new LSP.LspRequest<object, LiveShare.CustomProtocol.Project[]>(LiveShare.CustomProtocol.RoslynMethods.ProjectsName);
+                var request = new LSP.LspRequest<object, CustomProtocol.Project[]>(CustomProtocol.RoslynMethods.ProjectsName);
                 projects = await lspClient.RequestAsync(request, new object(), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception)
@@ -95,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote.Guest
             var projectId = ProjectId.CreateNewId();
             var docInfos = ImmutableArray.CreateBuilder<DocumentInfo>();
 
-            foreach (string file in files)
+            foreach (var file in files)
             {
                 var fileName = Path.GetFileNameWithoutExtension(file);
                 var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(projectId),

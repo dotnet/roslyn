@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -14,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
 {
     internal class RoslynClassificationService : ISyntaxClassificationService
     {

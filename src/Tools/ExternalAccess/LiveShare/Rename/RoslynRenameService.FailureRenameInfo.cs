@@ -3,12 +3,11 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Rename
 {
     internal partial class RoslynRenameService
     {

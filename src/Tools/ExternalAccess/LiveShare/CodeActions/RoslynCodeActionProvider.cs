@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
 {
     internal class RoslynCodeActionProvider : CodeRefactoringProvider
     {
@@ -66,8 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 // If a Command, leave it unchanged; we want to dispatch it to the host to execute.
                 // If a CodeAction, unwrap the CodeAction so the guest can run it locally.
                 var commandArguments = command.Arguments.Single();
-                var codeAction = (commandArguments is LSP.CodeAction) ? (LSP.CodeAction)commandArguments : null;
-                context.RegisterRefactoring(new RoslynRemoteCodeAction(context.Document, (codeAction == null) ? command : null, codeAction, lspClient));
+                var codeAction = commandArguments is LSP.CodeAction ? (LSP.CodeAction)commandArguments : null;
+                context.RegisterRefactoring(new RoslynRemoteCodeAction(context.Document, codeAction == null ? command : null, codeAction, lspClient));
             }
         }
     }

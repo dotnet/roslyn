@@ -11,7 +11,7 @@ using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using LiveShareProtocol = Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
 {
     internal class RoslynFindUsagesService : IFindUsagesService
     {

@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -17,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Navigation
 {
     internal class RoslynNavigationBarItemService : AbstractNavigationBarItemService
     {

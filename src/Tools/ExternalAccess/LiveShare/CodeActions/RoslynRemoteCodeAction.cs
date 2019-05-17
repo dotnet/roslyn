@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -16,14 +15,14 @@ using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
 {
     /// <summary>
     /// A codeaction that takes either a LSP command or a LSP codeaction.
     /// If a command is provided, then that is executed on the host side. If a codeaction is
     /// provided then the edits are applied locally on the guest side.
     /// </summary>
-    internal class RoslynRemoteCodeAction : CodeAnalysis.CodeActions.CodeAction
+    internal class RoslynRemoteCodeAction : CodeAction
     {
         private readonly Document _document;
         private readonly LSP.Command _command;

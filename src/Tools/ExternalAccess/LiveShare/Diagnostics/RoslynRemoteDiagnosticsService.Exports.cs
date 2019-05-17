@@ -3,7 +3,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Diagnostics
 {
     [ExportLanguageService(typeof(IRemoteDiagnosticsService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspRemoteDiagnosticsService : RoslynRemoteDiagnosticsService

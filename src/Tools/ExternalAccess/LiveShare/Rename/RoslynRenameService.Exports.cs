@@ -4,7 +4,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Rename
 {
     [ExportLanguageService(typeof(IEditorInlineRenameService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspRenameService : RoslynRenameService

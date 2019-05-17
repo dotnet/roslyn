@@ -2,12 +2,12 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
 {
     [ExportLanguageServiceFactory(typeof(CompletionService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspCompletionServiceFactory : ILanguageServiceFactory

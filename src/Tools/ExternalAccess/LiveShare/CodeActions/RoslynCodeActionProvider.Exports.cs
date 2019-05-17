@@ -4,7 +4,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
 {
     [Shared]
     [ExportCodeRefactoringProvider(StringConstants.CSharpLspLanguageName)]

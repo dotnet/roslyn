@@ -4,7 +4,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Highlights
 {
     [ExportLanguageService(typeof(IDocumentHighlightsService), StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspDocumentHighlightsService : RoslynDocumentHighlightsService

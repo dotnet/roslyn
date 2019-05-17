@@ -4,13 +4,12 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Diagnostics
 {
     internal class RoslynRemoteDiagnosticsService : IRemoteDiagnosticsService
     {

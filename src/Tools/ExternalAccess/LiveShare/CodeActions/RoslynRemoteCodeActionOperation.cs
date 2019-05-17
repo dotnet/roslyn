@@ -3,12 +3,11 @@
 using System;
 using System.Threading;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
 {
     internal class RoslynRemoteCodeActionOperation : CodeActionOperation
     {

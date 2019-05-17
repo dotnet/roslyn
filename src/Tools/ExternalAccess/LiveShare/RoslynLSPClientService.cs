@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LiveShare;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
 {
     [Export]
     [ExportCollaborationService(typeof(RoslynLSPClientLifeTimeService),
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             var languageServerGuestService = (ILanguageServerGuestService)collaborationSession.GetService(typeof(ILanguageServerGuestService));
 
-            collaborationSession.RemoteServicesChanged += (object sender, RemoteServicesChangedEventArgs e) =>
+            collaborationSession.RemoteServicesChanged += (sender, e) =>
             {
                 // VS will expose a roslyn LSP server and VSCode will expose a "any" LSP provider and both support roslyn languages.
                 var roslynLspServerProviderName = LanguageServicesUtils.GetLanguageServerProviderServiceName(RoslynProviderName);

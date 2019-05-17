@@ -3,9 +3,8 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Remote
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects
 {
     interface IRemoteProjectInfoProvider
     {

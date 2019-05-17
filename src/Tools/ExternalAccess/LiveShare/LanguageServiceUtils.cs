@@ -3,7 +3,7 @@
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
 {
     internal static class LanguageServicesUtils
     {

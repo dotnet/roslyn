@@ -3,7 +3,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
 {
     [ExportCompletionProvider("CSharpLspCompletionProvider", StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspCompletionProvider : RoslynCompletionProvider

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
 {
 
     [ExportLanguageService(typeof(IGoToDefinitionService), StringConstants.CSharpLspLanguageName), Shared]

@@ -18,7 +18,7 @@ using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using TPL = System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
 {
     internal class RoslynGotoDefinitionService : IGoToDefinitionService
     {

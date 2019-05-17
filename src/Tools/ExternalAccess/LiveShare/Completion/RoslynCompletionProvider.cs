@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
@@ -13,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
+namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
 {
     internal class RoslynCompletionProvider : CommonCompletionProvider
     {
@@ -24,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
         }
 
-        public override async Task ProvideCompletionsAsync(CodeAnalysis.Completion.CompletionContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             // This provider is exported for all workspaces - so limit it to just our workspace & the debugger's intellisense workspace
             if (context.Document.Project.Solution.Workspace.Kind != WorkspaceKind.AnyCodeRoslynWorkspace &&
@@ -78,12 +77,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
                 properties.Add("InsertionText", item.InsertText);
                 properties.Add("ResolveData", JToken.FromObject(item).ToString());
-                var completionItem = CodeAnalysis.Completion.CompletionItem.Create(item.Label, item.FilterText, item.SortText, properties: properties.ToImmutable(), tags: tags);
+                var completionItem = CompletionItem.Create(item.Label, item.FilterText, item.SortText, properties: properties.ToImmutable(), tags: tags);
                 context.AddItem(completionItem);
             }
         }
 
-        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CodeAnalysis.Completion.CompletionItem item, CancellationToken cancellationToken)
+        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
@@ -91,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
             }
 
-            if (!item.Properties.TryGetValue("ResolveData", out string serializedItem))
+            if (!item.Properties.TryGetValue("ResolveData", out var serializedItem))
             {
                 return await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
             }
@@ -110,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private LSP.CompletionTriggerKind GetTriggerKind(CompletionTrigger trigger)
         {
-            if (trigger.Kind == CodeAnalysis.Completion.CompletionTriggerKind.Insertion || trigger.Kind == CodeAnalysis.Completion.CompletionTriggerKind.Deletion)
+            if (trigger.Kind == CompletionTriggerKind.Insertion || trigger.Kind == CompletionTriggerKind.Deletion)
             {
                 return LSP.CompletionTriggerKind.TriggerCharacter;
             }
@@ -118,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             return LSP.CompletionTriggerKind.Invoked;
         }
 
-        public override Task<TextChange?> GetTextChangeAsync(Document document, CodeAnalysis.Completion.CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
             selectedItem.Properties.TryGetValue("InsertionText", out var text);
             if (text != null)
