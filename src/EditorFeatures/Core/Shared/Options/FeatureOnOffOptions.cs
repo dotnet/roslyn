@@ -76,6 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption<bool> StreamingGoToImplementation = new PerLanguageOption<bool>(
             nameof(FeatureOnOffOptions), nameof(StreamingGoToImplementation), defaultValue: true);
 
+        public static readonly PerLanguageOption<bool> StreamingGoToBase = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(StreamingGoToBase), defaultValue: true);
+
         public static readonly Option<bool> NavigateToDecompiledSources = new Option<bool>(
             nameof(FeatureOnOffOptions), nameof(NavigateToDecompiledSources), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(NavigateToDecompiledSources)}"));
@@ -127,6 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.StreamingGoToImplementation,
             FeatureOnOffOptions.NavigateToDecompiledSources,
             FeatureOnOffOptions.AcceptedDecompilerDisclaimer,
-            FeatureOnOffOptions.UseEnhancedColors);
+            FeatureOnOffOptions.UseEnhancedColors,
+            FeatureOnOffOptions.StreamingGoToBase);
     }
 }

@@ -62,6 +62,11 @@
         <target state="translated">執行額外清除的格式化文件</target>
         <note />
       </trans-unit>
+      <trans-unit id="Go_To_Base">
+        <source>Go To Base</source>
+        <target state="new">Go To Base</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="translated">組件名稱無效</target>
@@ -75,6 +80,16 @@
       <trans-unit id="Keyword_Control">
         <source>Keyword - Control</source>
         <target state="translated">關鍵字 - 控制項</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locating_bases">
+        <source>Locating bases...</source>
+        <target state="new">Locating bases...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
+        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
+        <target state="translated">作業未做好 "{0}" 的準備。如需詳細資料，請查看左下角。</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">

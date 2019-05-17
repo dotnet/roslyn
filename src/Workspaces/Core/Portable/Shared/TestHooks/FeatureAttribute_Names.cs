@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string ErrorSquiggles = nameof(ErrorSquiggles);
         public const string EventHookup = nameof(EventHookup);
         public const string FindReferences = nameof(FindReferences);
+        public const string GoToBase = nameof(GoToBase);
         public const string GlobalOperation = nameof(GlobalOperation);
         public const string GoToImplementation = nameof(GoToImplementation);
         public const string GraphProvider = nameof(GraphProvider);

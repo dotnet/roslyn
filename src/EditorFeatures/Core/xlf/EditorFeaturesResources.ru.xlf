@@ -62,6 +62,11 @@
         <target state="translated">При форматировании документа была выполнена дополнительная очистка</target>
         <note />
       </trans-unit>
+      <trans-unit id="Go_To_Base">
+        <source>Go To Base</source>
+        <target state="new">Go To Base</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
         <target state="translated">Недопустимое имя сборки</target>
@@ -75,6 +80,16 @@
       <trans-unit id="Keyword_Control">
         <source>Keyword - Control</source>
         <target state="translated">Ключевое слово — управление</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locating_bases">
+        <source>Locating bases...</source>
+        <target state="new">Locating bases...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
+        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
+        <target state="translated">Операция еще не готова для "{0}". Дополнительные сведения см. в нижнем левом углу.</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">

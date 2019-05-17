@@ -32,6 +32,21 @@
         <target state="translated">RemoveAndSort</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidGoToBase|ButtonText">
+        <source>Go To Base</source>
+        <target state="new">Go To Base</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidGoToBase|CommandName">
+        <source>GoToBase</source>
+        <target state="new">GoToBase</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidGoToBase|LocCanonicalName">
+        <source>GoToBase</source>
+        <target state="new">GoToBase</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">
         <source>&amp;Analyzer...</source>
         <target state="translated">&amp;Analisador...</target>
