@@ -25,18 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
             var (solution, locations) = CreateTestSolution(markup);
             var expected = CreateTextEdit("var", locations["edit"].First().Range);
 
-            var results = await TestHandleAsync<RunCodeActionParams, LSP.TextEdit[]>(solution, CreateRunCodeActionParams(locations["caret"].First(),
-                CSharpFeaturesResources.Use_implicit_type));
+            var results = await TestHandleAsync<RunCodeActionParams, LSP.TextEdit[]>(solution, CreateRunCodeActionParams(CSharpFeaturesResources.Use_implicit_type, locations["caret"].First()));
             AssertCollectionsEqual(new LSP.TextEdit[] { expected }, results, AssertTextEditsEqual);
         }
-
-        private static RunCodeActionParams CreateRunCodeActionParams(LSP.Location location, string title)
-            => new RunCodeActionParams()
-            {
-                Range = location.Range,
-                TextDocument = CreateTextDocumentIdentifier(location.Uri),
-                Title = title
-            };
 
         private static LSP.TextEdit CreateTextEdit(string text, LSP.Range range)
             => new LSP.TextEdit()

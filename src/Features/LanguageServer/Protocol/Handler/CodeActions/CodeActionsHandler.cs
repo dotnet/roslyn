@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -45,7 +46,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // If we have a codeaction with a single applychangesoperation, we want to send the codeaction with the edits.
                 var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
 
-                var clientSupportsWorkspaceEdits = clientCapabilities?.Workspace?.WorkspaceEdit?.DocumentChanges == true;
+                var clientSupportsWorkspaceEdits = true;
+                if (clientCapabilities?.Experimental is JObject clientCapabilitiesExtensions)
+                {
+                    if (clientCapabilitiesExtensions.TryGetValue("supportsWorkspaceEdits", out var val))
+                    {
+                        clientSupportsWorkspaceEdits = val.ToObject<bool>();
+                    }
+                }
 
                 if (clientSupportsWorkspaceEdits && operations.Length == 1 && operations.First() is ApplyChangesOperation applyChangesOperation)
                 {
@@ -87,8 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                             {
                                 new RunCodeActionParams
                                 {
-                                    TextDocument = request.TextDocument,
-                                    Range = request.Range,
+                                    CodeActionParams = request,
                                     Title = codeAction.Title
                                 }
                             }
