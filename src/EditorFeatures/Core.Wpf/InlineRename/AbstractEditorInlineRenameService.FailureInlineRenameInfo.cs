@@ -25,13 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public string LocalizedErrorMessage { get; }
 
-            public TextSpan TriggerSpan { get { return default; } }
+            public TextSpan TriggerSpan => default;
 
             public string DisplayName => null;
 
             public string FullDisplayName => null;
 
             public Glyph Glyph => Glyph.None;
+
+            public SymbolKind SymbolKind => default;
 
             public string GetFinalSymbolName(string replacementText) { return null; }
 

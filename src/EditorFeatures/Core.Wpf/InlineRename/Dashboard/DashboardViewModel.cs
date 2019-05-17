@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly bool _isRenameOverloadsEditable;
         private bool _defaultRenameInStringsFlag;
         private bool _defaultRenameInCommentsFlag;
+        private bool _defaultRenameFileFlag;
         private bool _defaultPreviewChangesFlag;
 
         public DashboardViewModel(InlineRenameSession session)
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _defaultRenameOverloadFlag = session.OptionSet.GetOption(RenameOptions.RenameOverloads) || session.ForceRenameOverloads;
             _defaultRenameInStringsFlag = session.OptionSet.GetOption(RenameOptions.RenameInStrings);
             _defaultRenameInCommentsFlag = session.OptionSet.GetOption(RenameOptions.RenameInComments);
+            _defaultRenameFileFlag = session.OptionSet.GetOption(RenameOptions.RenameFile);
             _defaultPreviewChangesFlag = session.OptionSet.GetOption(RenameOptions.PreviewChanges);
 
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
@@ -147,6 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
+        public bool AllowFileRename => _session.KindSupportsFileRename && _session.OriginalNameMatchesFile;
         public InlineRenameSession Session => _session;
 
         public DashboardSeverity Severity => _severity;
@@ -268,6 +271,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _defaultRenameInCommentsFlag = value;
                 _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameInComments, value);
+            }
+        }
+
+        public bool DefaultRenameFileFlag
+        {
+            get => _defaultRenameFileFlag;
+            set
+            {
+                _defaultRenameFileFlag = value;
+                _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameFile, value);
             }
         }
 

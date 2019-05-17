@@ -69,6 +69,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
+        public bool OriginalNameMatchesFile { get; }
+        public bool KindSupportsFileRename { get; }
+
         /// <summary>
         /// The task which computes the main rename locations against the original workspace
         /// snapshot.
@@ -148,6 +151,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             _debuggingWorkspaceService = workspace.Services.GetService<IDebuggingWorkspaceService>();
             _debuggingWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
+
+            OriginalNameMatchesFile = _triggerDocument.Name.Substring(0, _triggerDocument.Name.Length - 3) == _renameInfo.DisplayName;
+            KindSupportsFileRename = _renameInfo.SymbolKind == SymbolKind.NamedType;
 
             InitializeOpenBuffers(triggerSpan);
         }

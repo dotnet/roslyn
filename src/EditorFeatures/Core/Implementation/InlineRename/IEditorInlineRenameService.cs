@@ -166,6 +166,12 @@ namespace Microsoft.CodeAnalysis.Editor
         Glyph Glyph { get; }
 
         /// <summary>
+        /// The symbol kind of the symbol being renamed, for use in determining whether
+        /// the file can also be renamed
+        /// </summary>
+        SymbolKind SymbolKind { get; }
+
+        /// <summary>
         /// Gets the final name of the symbol if the user has typed the provided replacement text
         /// in the editor.  Normally, the final name will be same as the replacement text.  However,
         /// that may not always be the same.  For example, when renaming an attribute the replacement

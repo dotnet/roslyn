@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public bool ForceRenameOverloads { get; }
 
             public ISymbol RenameSymbol => RenameSymbolAndProjectId.Symbol;
+            public SymbolKind SymbolKind => RenameSymbol?.Kind ?? default;
 
             public SymbolInlineRenameInfo(
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,

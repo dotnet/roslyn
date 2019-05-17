@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
             public TextSpan TriggerSpan => _renameInfo.TriggerSpan;
 
+            public SymbolKind SymbolKind => _renameInfo.Kind;
+
             public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var references = new List<InlineRenameLocation>();
