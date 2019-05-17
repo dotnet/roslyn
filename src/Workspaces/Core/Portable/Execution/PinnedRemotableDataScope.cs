@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public readonly bool FromPrimaryBranch;
 
         /// <summary>
-        /// This indicates a version of this solution. remote host engine uses this version
+        /// This indicates a Solution.WorkspaceVersion of this solution. remote host engine uses this version
         /// to decide whether caching this solution will benefit other requests or not
         /// </summary>
         public readonly int WorkspaceVersion;
