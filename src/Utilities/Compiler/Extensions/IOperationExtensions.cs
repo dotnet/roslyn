@@ -345,16 +345,23 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate)
         {
+            return operationBlock.HasAnyOperationDescendant(predicate, out _);
+        }
+
+        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate, out IOperation foundOperation)
+        {
             Debug.Assert(operationBlock != null);
             Debug.Assert(predicate != null);
             foreach (var descendant in operationBlock.DescendantsAndSelf())
             {
                 if (predicate(descendant))
                 {
+                    foundOperation = descendant;
                     return true;
                 }
             }
 
+            foundOperation = null;
             return false;
         }
 
