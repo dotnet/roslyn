@@ -662,73 +662,6 @@ public struct S
         }
 
         [Fact]
-        public void ReadOnlyMethod_CallEventAccessor()
-        {
-            var csharp = @"
-using System;
-
-public struct S
-{
-    public readonly void M()
-    {
-        Console.WriteLine(E is null);
-        // should create local copy
-        E += () => {}; // warning
-        Console.WriteLine(E is null);
-        E -= () => {}; // warning
-
-        // explicit local copy, no warning
-        var copy = this;
-        copy.E += () => {};
-        Console.WriteLine(copy.E is null);
-    }
-
-    public event Action E;
-
-    static void Main()
-    {
-        var s = new S();
-        s.M();
-    }
-}
-";
-
-            var verifier = CompileAndVerify(csharp, expectedOutput:
-@"True
-True
-False");
-            verifier.VerifyDiagnostics(
-                // (10,13): warning CS8656: Call to non-readonly member 'S.E.add' from a 'readonly' member results in an implicit copy of 'this'.
-                //             E += () => {}; // warning
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.add", "this").WithLocation(10, 13),
-                // (12,13): warning CS8656: Call to non-readonly member 'S.E.remove' from a 'readonly' member results in an implicit copy of 'this'.
-                //             E -= () => {}; // warning
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.remove", "this").WithLocation(12, 13));
-        }
-
-        [Fact]
-        public void ReadOnlyMethod_CallReadOnlyEventAccessor()
-        {
-            var csharp = @"
-using System;
-
-public struct S
-{
-    public readonly void M()
-    {
-        E += () => {};
-        E -= () => {};
-    }
-
-    public readonly event Action E { add {} remove {} }
-}
-";
-
-            var verifier = CreateCompilation(csharp);
-            verifier.VerifyDiagnostics();
-        }
-
-        [Fact]
         public void ReadOnlyMethod_CallSetAccessor()
         {
             var csharp = @"
@@ -827,7 +760,105 @@ public struct S
         }
 
         [Fact]
-        public void ReadOnlyMethod_AddRemoveEventHandlers()
+        public void ReadOnlyMethod_EventAssignment()
+        {
+            var csharp = @"
+using System;
+
+public struct S
+{
+    public readonly void M()
+    {
+        Console.WriteLine(E is null);
+        // should create local copy
+        E += () => {}; // warning
+        Console.WriteLine(E is null);
+        E -= () => {}; // warning
+
+        // explicit local copy, no warning
+        var copy = this;
+        copy.E += () => {};
+        Console.WriteLine(copy.E is null);
+    }
+
+    public event Action E;
+
+    static void Main()
+    {
+        var s = new S();
+        s.M();
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyDiagnostics(
+                // (10,9): warning CS8656: Call to non-readonly member 'S.E.add' from a 'readonly' member results in an implicit copy of 'this'.
+                //         E += () => {}; // warning
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.add", "this").WithLocation(10, 9),
+                // (12,9): warning CS8656: Call to non-readonly member 'S.E.remove' from a 'readonly' member results in an implicit copy of 'this'.
+                //         E -= () => {}; // warning
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.remove", "this").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_ReadOnlyEventAssignment()
+        {
+            var csharp = @"
+using System;
+
+public struct S
+{
+    public readonly void M()
+    {
+        E += () => {};
+        E -= () => {};
+    }
+
+    public readonly event Action E { add {} remove {} }
+}
+";
+
+            var verifier = CreateCompilation(csharp);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Field_EventAssignment()
+        {
+            var csharp = @"
+#pragma warning disable 0067
+using System;
+
+public struct S2
+{
+    public event Action E;
+}
+
+public struct S1
+{
+    public S2 s2;
+
+    public readonly void M()
+    {
+        s2.E += () => {};
+        s2.E -= () => {};
+    }
+
+    public readonly event Action E { add {} remove {} }
+}
+";
+
+            // TODO: should warn in warning wave https://github.com/dotnet/roslyn/issues/33968
+            var verifier = CreateCompilation(csharp);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_EventAssignment_Error()
         {
             var csharp = @"
 using System;
