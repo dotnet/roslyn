@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
         <source>Add optional parameter to constructor</source>
-        <target state="new">Add optional parameter to constructor</target>
+        <target state="translated">Přidat volitelný parametr do konstruktoru</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
         <source>Add parameter to constructor</source>
-        <target state="new">Add parameter to constructor</target>
+        <target state="translated">Přidat parametr do konstruktoru</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
         <source>Make readonly fields writable</source>
-        <target state="new">Make readonly fields writable</target>
+        <target state="translated">Umožnit zápis do polí jen pro čtení (readonly)</target>
         <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -194,37 +194,37 @@
       </trans-unit>
       <trans-unit id="Local_function_can_be_made_static">
         <source>Local function can be made static</source>
-        <target state="new">Local function can be made static</target>
+        <target state="translated">Místní funkce se dá nastavit jako statická.</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_local_function_static">
         <source>Make local function 'static'</source>
-        <target state="new">Make local function 'static'</target>
+        <target state="translated">Nastavit místní funkci jako statickou</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
         <source>Merge with nested '{0}' statement</source>
-        <target state="new">Merge with nested '{0}' statement</target>
+        <target state="translated">Sloučit s vnořeným příkazem {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_next_0_statement">
         <source>Merge with next '{0}' statement</source>
-        <target state="new">Merge with next '{0}' statement</target>
+        <target state="translated">Sloučit s dalším příkazem {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_outer_0_statement">
         <source>Merge with outer '{0}' statement</source>
-        <target state="new">Merge with outer '{0}' statement</target>
+        <target state="translated">Sloučit s vnějším příkazem {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_previous_0_statement">
         <source>Merge with previous '{0}' statement</source>
-        <target state="new">Merge with previous '{0}' statement</target>
+        <target state="translated">Sloučit s předchozím příkazem {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
-        <target state="new">Move contents to namespace...</target>
+        <target state="translated">Přesunout obsah do oboru názvů...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
-        <target state="new">Move to namespace...</target>
+        <target state="translated">Přesunout do oboru názvů...</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
         <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
+        <target state="translated">Privátní vlastnost {0} se dá převést na metodu, protože její přístupový objekt get se nikdy nevyvolá.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -339,17 +339,17 @@
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
         <source>Split into consecutive '{0}' statements</source>
-        <target state="new">Split into consecutive '{0}' statements</target>
+        <target state="translated">Rozdělit do následných příkazů {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
-        <target state="new">Split into nested '{0}' statements</target>
+        <target state="translated">Rozdělit do vnořených příkazů {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
-        <target state="new">Target type matches</target>
+        <target state="translated">Shody cílového typu</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -449,7 +449,7 @@
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
         <source>Use simple 'using' statement</source>
-        <target state="new">Use simple 'using' statement</target>
+        <target state="translated">Použít jednoduchý příkaz using</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
-        <target state="new">Wrap and align expression</target>
+        <target state="translated">Výraz pro zabalení a zarovnání</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -1124,7 +1124,7 @@
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace asynchronního modifikátoru nebo modifikátoru iterátoru podle aktivního příkazu bude bránit relaci ladění v tom, aby pokračovala.</target>
+        <target state="translated">Aktualizace modifikátoru async nebo iterator kolem aktivního příkazu bude bránit relaci ladění v tom, aby pokračovala.</target>
         <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing">
@@ -1530,7 +1530,7 @@ Chcete pokračovat?</target>
       </trans-unit>
       <trans-unit id="enum_value">
         <source>enum value</source>
-        <target state="translated">hodnota výčtu</target>
+        <target state="translated">hodnota enum</target>
         <note>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="const_field">
@@ -2467,7 +2467,7 @@ Tato verze se používá zde: {2}.</target>
       </trans-unit>
       <trans-unit id="using_statement_can_be_simplified">
         <source>'using' statement can be simplified</source>
-        <target state="new">'using' statement can be simplified</target>
+        <target state="translated">Příkaz using lze zjednodušit.</target>
         <note />
       </trans-unit>
     </body>
