@@ -596,7 +596,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return helper.MatchesPattern(item.FilterText, filterText, CultureInfo.CurrentCulture);
         }
 
-
         internal static bool IsHardSelection(
             string fullFilterText,
             CompletionTriggerKind initialTriggerKind,

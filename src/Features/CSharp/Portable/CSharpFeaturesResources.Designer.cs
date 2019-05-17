@@ -278,15 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Autoselect disabled due to potential range expression..
-        /// </summary>
-        internal static string Autoselect_disabled_due_to_potential_range_expression {
-            get {
-                return ResourceManager.GetString("Autoselect_disabled_due_to_potential_range_expression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to potential range variable declaration..
         /// </summary>
         internal static string Autoselect_disabled_due_to_potential_range_variable_declaration {
@@ -967,15 +958,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string query_body {
             get {
                 return ResourceManager.GetString("query_body", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to range expression.
-        /// </summary>
-        internal static string range_expression {
-            get {
-                return ResourceManager.GetString("range_expression", resourceCulture);
             }
         }
         

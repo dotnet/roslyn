@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsCrefContext;
         public readonly bool IsCatchFilterContext;
         public readonly bool IsDestructorTypeContext;
+        public readonly bool IsNumericTypeContext;
 
         private CSharpSyntaxContext(
             Workspace workspace,
@@ -99,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isDestructorTypeContext,
             bool isPossibleTupleContext,
             bool isPatternContext,
+            bool isNumericTypeContext,
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
@@ -138,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsCrefContext = isCrefContext;
             this.IsCatchFilterContext = isCatchFilterContext;
             this.IsDestructorTypeContext = isDestructorTypeContext;
+            this.IsNumericTypeContext = isNumericTypeContext;
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -195,6 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                                             targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
                                             targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
 
+            var isNumericTypeContext = IsLeftSideOfNumericType(leftToken, semanticModel, cancellationToken);
+
             return new CSharpSyntaxContext(
                 workspace: workspace,
                 semanticModel: semanticModel,
@@ -245,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isDestructorTypeContext: isDestructorTypeContext,
                 isPossibleTupleContext: syntaxTree.IsPossibleTupleContext(leftToken, position),
                 isPatternContext: syntaxTree.IsPatternContext(leftToken, position),
+                isNumericTypeContext: isNumericTypeContext,
                 cancellationToken: cancellationToken);
         }
 
@@ -334,6 +340,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
+        }
+
+        private static bool IsLeftSideOfNumericType(SyntaxToken leftToken, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!(leftToken.Parent is MemberAccessExpressionSyntax memberAccessExpression))
+            {
+                return false;
+            }
+
+            var typeInfo = semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken);
+            return typeInfo.Type.IsNumericType();
         }
 
         internal override ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace()

@@ -62,11 +62,6 @@
         <target state="translated">Appliquer les préférences de qualification 'this.'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_range_expression">
-        <source>Autoselect disabled due to potential range expression.</source>
-        <target state="new">Autoselect disabled due to potential range expression.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Convertir en méthode</target>
@@ -170,11 +165,6 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
         <source>Autoselect disabled due to possible tuple type element creation.</source>
         <target state="translated">Sélection automatique désactivée en raison de la création possible d'un élément de type tuple.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="range_expression">
-        <source>range expression</source>
-        <target state="new">range expression</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">

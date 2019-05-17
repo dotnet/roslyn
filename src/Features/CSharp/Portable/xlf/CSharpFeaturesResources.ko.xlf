@@ -62,11 +62,6 @@
         <target state="translated">'this.' 한정자 기본 설정 적용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_range_expression">
-        <source>Autoselect disabled due to potential range expression.</source>
-        <target state="new">Autoselect disabled due to potential range expression.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">메서드로 변환</target>
@@ -170,11 +165,6 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
         <source>Autoselect disabled due to possible tuple type element creation.</source>
         <target state="translated">가능한 튜플 형식 요소 만들기로 인해 자동 선택을 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="range_expression">
-        <source>range expression</source>
-        <target state="new">range expression</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
