@@ -264,12 +264,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        internal void AppendArgumentsIfNotNull(string arguments)
+        internal void AppendArgumentIfNotNull(string argument)
         {
-            if (!string.IsNullOrEmpty(arguments))
+            if (!string.IsNullOrEmpty(argument))
             {
                 AppendSpaceIfNotEmpty();
-                AppendTextUnquoted(arguments);
+                AppendTextWithQuoting(argument);
             }
         }
     }

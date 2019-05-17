@@ -56,12 +56,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void ScriptArgumentsNeedQuotes()
+        {
+            var csi = new Csi();
+            csi.Source = MSBuildUtil.CreateTaskItem("test.csx");
+            csi.ScriptArguments = new[] { @"C:\Some Path\Some File.ini", @"C:\Some Path\Some Other File.bak" };
+            Assert.Equal(@"/i- test.csx ""C:\Some Path\Some File.ini"" ""C:\Some Path\Some Other File.bak""", csi.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void QuotedScriptArguments()
         {
             var csi = new Csi();
             csi.Source = MSBuildUtil.CreateTaskItem("test.csx");
             csi.ScriptArguments = new[] { @"""C:\Some Path\Some File.ini""", @"""C:\Some Path\Some Other File.bak""" };
-            Assert.Equal(@"/i- test.csx ""C:\Some Path\Some File.ini"" ""C:\Some Path\Some Other File.bak""", csi.GenerateResponseFileContents());
+            Assert.Equal(@"/i- test.csx ""\""C:\Some Path\Some File.ini\"""" ""\""C:\Some Path\Some Other File.bak\""""", csi.GenerateResponseFileContents());
         }
 
         [Fact]
