@@ -980,9 +980,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         targetType.TypeKind == TypeKind.TypeParameter ||
                         targetType.IsNullableType())
                     {
-                        // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
-                        // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
-                        // When that issue is fixed, Nullable<T> should be handled there instead.
                         if (valueSlot > 0)
                         {
                             InheritNullableStateOfTrackableType(targetSlot, valueSlot, skipSlot: targetSlot);
@@ -1071,9 +1068,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
 
-            // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
-            // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
-            // When that issue is fixed, Nullable<T> should be handled there instead.
             if (fieldOrPropertyType.Type.IsReferenceType ||
                 fieldOrPropertyType.TypeKind == TypeKind.TypeParameter ||
                 fieldOrPropertyType.IsNullableType())
