@@ -499,7 +499,7 @@ End Class
             CleanupAllGeneratedFiles(src)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35696")>
+        <Fact>
         Public Sub VbcNologo_2()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Class C
@@ -512,7 +512,7 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
-            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\d\w]+)?", "version A.B.C-d")
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\d\w]+)*", "version A.B.C-d")
             patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
 Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)
@@ -540,7 +540,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.
             Return Regex.Replace(s, "(\((<developer build>|[a-fA-F0-9]{8})\))", "(HASH)")
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/35696")>
+        <Fact>
         Public Sub VbcNologo_2a()
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Class C
@@ -553,7 +553,7 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
-            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\w\d]+)?", "version A.B.C-d")
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\w\d]+)*", "version A.B.C-d")
             patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
 Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)
