@@ -150,6 +150,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
+        private void StopTrackingDataForParamArrayParameterIndices(AnalysisEntity analysisEntity, TAnalysisData analysisData, PooledHashSet<AnalysisEntity> allEntities)
+        {
+            Debug.Assert(analysisEntity.SymbolOpt is IParameterSymbol parameter && parameter.IsParams);
+
+            foreach (var entity in allEntities.Where(e => e.Indices.Length > 0))
+            {
+                if (entity.Indices.Length > 0 &&
+                    entity.InstanceLocation.Equals(analysisEntity.InstanceLocation))
+                {
+                    StopTrackingEntity(entity, analysisData);
+                }
+            }
+        }
+
         protected sealed override void StopTrackingDataForParameter(IParameterSymbol parameter, AnalysisEntity analysisEntity)
             => throw new InvalidOperationException("Unreachable");
 
@@ -163,9 +177,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 {
                     AddTrackedEntities(allEntities);
 
-                    foreach (AnalysisEntity parameterEntity in parameterEntities.Values)
+                    foreach (var (parameter, parameterEntity) in parameterEntities)
                     {
                         StopTrackingDataForEntity(parameterEntity, CurrentAnalysisData, allEntities);
+
+                        if (parameter.IsParams)
+                        {
+                            StopTrackingDataForParamArrayParameterIndices(parameterEntity, CurrentAnalysisData, allEntities);
+                        }
                     }
                 }
                 finally
@@ -424,7 +443,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected static bool IsChildAnalysisEntity(AnalysisEntity entity, PointsToAbstractValue instanceLocation)
         {
-            return entity.InstanceLocation.Equals(instanceLocation) && entity.IsChildOrInstanceMember;
+            return instanceLocation != PointsToAbstractValue.NoLocation &&
+                entity.InstanceLocation.Equals(instanceLocation) &&
+                entity.IsChildOrInstanceMember;
         }
 
         private ImmutableHashSet<AnalysisEntity> GetChildAnalysisEntities(Func<AnalysisEntity, bool> predicate)
