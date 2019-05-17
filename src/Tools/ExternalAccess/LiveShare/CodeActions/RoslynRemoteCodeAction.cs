@@ -10,8 +10,8 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol;
+using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -26,29 +26,48 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
     {
         private readonly Document _document;
         private readonly LSP.Command _command;
-        private readonly LSP.CodeAction _lspCodeAction;
+        private readonly string _title;
         private readonly ILanguageServerClient _lspClient;
 
-        public RoslynRemoteCodeAction(Document document, LSP.Command command, LSP.CodeAction lspCodeAction, ILanguageServerClient lspClient)
+        private readonly LSP.Command _codeActionCommand;
+        private readonly LSP.WorkspaceEdit _codeActionWorkspaceEdit;
+
+        /// <summary>
+        /// Create a remote code action wrapping a command
+        /// </summary>
+        public RoslynRemoteCodeAction(Document document, LSP.Command command, string title, ILanguageServerClient lspClient)
+        {
+            _document = document ?? throw new ArgumentNullException(nameof(document));
+            _lspClient = lspClient ?? throw new ArgumentNullException(nameof(lspClient));
+            _command = command ?? throw new ArgumentNullException(nameof(command));
+            _title = title;
+
+            _codeActionCommand = null;
+            _codeActionWorkspaceEdit = null;
+        }
+
+        /// <summary>
+        /// Create a remote code action wrapping an LSP code action.
+        /// </summary>
+        public RoslynRemoteCodeAction(Document document, LSP.Command codeActionCommand, LSP.WorkspaceEdit codeActionWorkspaceEdit, string title, ILanguageServerClient lspClient)
         {
             _document = document ?? throw new ArgumentNullException(nameof(document));
             _lspClient = lspClient ?? throw new ArgumentNullException(nameof(lspClient));
 
-            _command = command;
-            _lspCodeAction = lspCodeAction;
-            if (!(_command == null ^ _lspCodeAction == null))
-            {
-                throw new ArgumentException("Either command or codeaction and only one of those should be provided");
-            }
+            _codeActionCommand = codeActionCommand;
+            _codeActionWorkspaceEdit = codeActionWorkspaceEdit ?? throw new ArgumentNullException(nameof(codeActionWorkspaceEdit));
+            _title = title;
+
+            _command = null;
         }
 
-        public override string Title => _command?.Title ?? _lspCodeAction.Title;
+        public override string Title => _title;
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
             // If we have a codeaction, then just call the base method which will call ComputeOperationsAsync below.
             // This creates an ApplyChagesOperation so that Roslyn can show a preview of the changes.
-            if (_lspCodeAction != null)
+            if (_codeActionWorkspaceEdit != null)
             {
                 return await base.ComputePreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -80,7 +99,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
             // We have a codeaction - create an applychanges operation from it.
             var operations = new LinkedList<CodeActionOperation>();
             var newSolution = _document.Project.Solution;
-            foreach (var changePair in _lspCodeAction.Edit.Changes)
+            foreach (var changePair in _codeActionWorkspaceEdit.Changes)
             {
                 var documentName = await _lspClient.ProtocolConverter.FromProtocolUriAsync(new Uri(changePair.Key), true, cancellationToken).ConfigureAwait(false);
                 var doc = newSolution.GetDocumentFromURI(documentName);
@@ -94,9 +113,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
             }
             operations.AddLast(new ApplyChangesOperation(newSolution));
 
-            if (_lspCodeAction.Command != null)
+            if (_codeActionCommand != null)
             {
-                operations.AddLast(new RoslynRemoteCodeActionOperation(_lspCodeAction.Command, _lspClient));
+                operations.AddLast(new RoslynRemoteCodeActionOperation(_codeActionCommand, _lspClient));
             }
 
             return operations.AsImmutable();
