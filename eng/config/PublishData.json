@@ -69,7 +69,7 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev16.2", "dev16.2p2" ],
-            "vsBranch": "master",
+            "vsBranch": "lab/d16.2stg",
             "vsMajorVersion": 16
         },
         "features/NullableReferenceTypes": {
