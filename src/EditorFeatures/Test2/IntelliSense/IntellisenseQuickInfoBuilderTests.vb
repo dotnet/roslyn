@@ -539,6 +539,145 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        Public Async Sub QuickInfoForReadOnlyMethodReference()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            struct MyStruct {
+                                readonly void MyMethod() {
+                                    MyM$$ethod();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+
+            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                .DefaultValue = DefaultValue.Mock
+            }
+
+            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "readonly"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "MyStruct"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        Public Async Sub QuickInfoForReadOnlyPropertyReference()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            struct MyStruct {
+                                readonly int MyProperty => My$$Property;
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+
+            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                .DefaultValue = DefaultValue.Mock
+            }
+
+            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.PropertyPrivate)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "readonly"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "MyStruct"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.PropertyName, "MyProperty"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "{"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "get"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ";"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "}"))))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        Public Async Sub QuickInfoForReadOnlyEventReference()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            struct MyStruct {
+                                readonly event System.Action MyEvent { add { My$$Event += value; } remove { } }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+
+            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                .DefaultValue = DefaultValue.Mock
+            }
+
+            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.EventPrivate)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "readonly"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.NamespaceName, "System"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.DelegateName, "Action"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.StructName, "MyStruct"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.EventName, "MyEvent"))))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
         Public Async Sub QuickInfoForTypeParameterReference()
             Dim workspace =
                 <Workspace>

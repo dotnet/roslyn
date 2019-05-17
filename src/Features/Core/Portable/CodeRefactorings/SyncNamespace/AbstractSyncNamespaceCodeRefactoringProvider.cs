@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             var textSpan = context.Span;
             var cancellationToken = context.CancellationToken;
 
-            var workspace = document.Project.Solution.Workspace;
-            if (workspace.Kind == WorkspaceKind.MiscellaneousFiles || document.IsGeneratedCode(cancellationToken))
+            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles ||
+                document.IsGeneratedCode(cancellationToken))
             {
                 return;
             }

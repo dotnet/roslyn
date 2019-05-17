@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public AnalyzerReferenceChecksumCollection AnalyzerReferences => (AnalyzerReferenceChecksumCollection)Children[6];
 
         public TextDocumentChecksumCollection AdditionalDocuments => (TextDocumentChecksumCollection)Children[7];
+        public AnalyzerConfigDocumentChecksumCollection AnalyzerConfigDocuments => (AnalyzerConfigDocumentChecksumCollection)Children[8];
 
         public void Find(
             ProjectState state,
@@ -168,11 +169,17 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[AdditionalDocuments.Checksum] = AdditionalDocuments;
             }
 
+            if (searchingChecksumsLeft.Remove(AnalyzerConfigDocuments.Checksum))
+            {
+                result[AnalyzerConfigDocuments.Checksum] = AnalyzerConfigDocuments;
+            }
+
             Find(state.DocumentStates, searchingChecksumsLeft, result, cancellationToken);
             Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
             Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
             Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
             Find(state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken);
+            Find(state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken);
         }
 
         private static void Find<T>(

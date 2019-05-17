@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.AnalyzerConfig;
-using static Microsoft.CodeAnalysis.CommonCompiler;
 using static Roslyn.Test.Utilities.TestHelpers;
 using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
 
@@ -227,11 +226,10 @@ my_key2 = my@val");
         [Fact]
         public void LongLines()
         {
-            // PROTOTYPE(editorconfig): This example is described in the Python ConfigParser as
-            // allowing line continuation via the RFC 822 specification, section 3.1.1 LONG
-            // HEADER FIELDS. It's unclear whether it's intended for editorconfig to permit
-            // this interpretation. The VS parser does not. We should probably check other
-            // parsers for completeness.
+            // This example is described in the Python ConfigParser as allowing
+            // line continuation via the RFC 822 specification, section 3.1.1
+            // LONG HEADER FIELDS. The VS parser does not accept this as a
+            // valid parse for an editorconfig file. We follow similarly.
             var config = ParseConfigFile(@"
 long: this value continues
    in the next line");

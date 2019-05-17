@@ -320,8 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     if (errorText.Equals("version", StringComparison.Ordinal))
                     {
-                        Assembly assembly = typeof(CSharpCompiler).GetTypeInfo().Assembly;
-                        string version = CommonCompiler.GetAssemblyFileVersion(assembly);
+                        string version = CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
                         eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
                             this.Options.SpecifiedLanguageVersion.ToDisplayString());
                     }

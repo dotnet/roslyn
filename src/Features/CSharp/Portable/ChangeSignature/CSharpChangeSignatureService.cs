@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                                 convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken) ?? convertedType;
                             }
 
-                            return convertedType == symbol.ContainingType;
+                            return Equals(convertedType, symbol.ContainingType);
                         })
                 .SelectAsArray(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
 

@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
             Path.Combine("dependency", "csc.exe"));
 
-        private static readonly string s_compilerVersion = typeof(CommandLineTests).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-        private static readonly string s_compilerCommitHash = typeof(CommandLineTests).Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
-        private static readonly string s_compilerShortCommitHash = CommonCompiler.ExtractShortCommitHash(s_compilerCommitHash);
+        private static readonly string s_compilerVersion = CommonCompiler.GetProductVersion(typeof(CommandLineTests));
 
         private class TestCommandLineParser : CSharpCommandLineParser
         {
@@ -6265,27 +6263,25 @@ class C
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
 
-            var patched = Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(\\.\\d+)?", "version A.B.C.D");
+            var patched = Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(-[\\w\\d]+)*", "version A.B.C-d");
             patched = ReplaceCommitHash(patched);
             Assert.Equal(@"
-Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)
+Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
                 patched);
-            // Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
-            // making the last part optional will fix this.
 
             CleanupAllGeneratedFiles(file.Path);
         }
 
         [Theory,
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (<developer build>)",
-                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (ABCDEF01)",
-                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (abcdef90)",
-                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (12345678)",
-                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)")]
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C-d (<developer build>)",
+                "Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C-d (ABCDEF01)",
+                "Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C-d (abcdef90)",
+                "Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C-d (12345678)",
+                "Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)")]
         public void TestReplaceCommitHash(string orig, string expected)
         {
             Assert.Equal(expected, ReplaceCommitHash(orig));
@@ -8082,7 +8078,7 @@ class Program3
 
             var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/target:library /debug:portable {libSrc.Path}", startFolder: dir.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Microsoft (R) Visual C# Compiler version {s_compilerVersion} ({s_compilerShortCommitHash })
+Microsoft (R) Visual C# Compiler version {s_compilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             // reading original content from the memory map:
@@ -10242,7 +10238,6 @@ class Runner
         public void Version()
         {
             var folderName = Temp.CreateDirectory().ToString();
-            var expected = $"{FileVersionInfo.GetVersionInfo(typeof(CSharpCompiler).Assembly.Location).FileVersion} ({s_compilerShortCommitHash})";
             var argss = new[]
             {
                 "/version",
@@ -10254,7 +10249,7 @@ class Runner
             foreach (var args in argss)
             {
                 var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, args, startFolder: folderName);
-                Assert.Equal(expected, output.Trim());
+                Assert.Equal(s_compilerVersion, output.Trim());
             }
         }
 

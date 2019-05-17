@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class CsiTests : TestBase
     {
-        private static readonly string s_compilerVersion = typeof(Csi).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private static readonly string s_compilerVersion = CommonCompiler.GetProductVersion(typeof(Csi));
         private string CsiPath => typeof(Csi).GetTypeInfo().Assembly.Location;
 
         /// <summary>

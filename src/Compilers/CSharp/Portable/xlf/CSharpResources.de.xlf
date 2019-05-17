@@ -277,21 +277,6 @@
         <target state="translated">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertiert werden können oder eine geeignete Dispose-Methode implementieren. Meinten Sie "await using" anstelle von "using"?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotBaseOrImplementedInterface">
-        <source>'{0}' is not base type or interface of {1}.</source>
-        <target state="translated">"{0}" ist kein Basistyp oder keine Schnittstelle von "{1}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotDeclaredInBase">
-        <source>'{0}' is not an immediate member of {1}.</source>
-        <target state="translated">"{0}" ist kein unmittelbarer Member von "{1}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotImplementedInBase">
-        <source>'{0}' is not implemented in base interface {1}.</source>
-        <target state="translated">"{0}" ist in der Basisschnittstelle "{1}" nicht implementiert.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
         <target state="translated">Erwartet: "enable", "safeonly", "disable" oder "restore"</target>
@@ -751,11 +736,6 @@
 -modulename:&lt;Zeichenfolge&gt;          Gibt den Quellmodulnamen an.
 </target>
         <note>Visual C# Compiler Options</note>
-      </trans-unit>
-      <trans-unit id="IDS_BaseTypeInBaseExpression">
-        <source>specifying base type in base expression</source>
-        <target state="translated">Angabe von Basistyp in Basisausdruck</target>
-        <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
@@ -1665,16 +1645,6 @@
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type doesn't match implicitly implemented member.</source>
         <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ entspricht nicht dem implizit implementierten Member.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ entspricht nicht dem außer Kraft gesetzten Member.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ entspricht nicht dem außer Kraft gesetzten Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">

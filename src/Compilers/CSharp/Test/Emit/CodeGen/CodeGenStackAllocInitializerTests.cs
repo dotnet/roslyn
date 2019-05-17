@@ -193,7 +193,7 @@ unsafe class Test
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25997")]
+        [Fact]
         public void TestUnmanaged_Span()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"

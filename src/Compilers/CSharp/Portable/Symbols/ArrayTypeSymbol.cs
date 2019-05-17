@@ -334,9 +334,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitArrayType(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
-            return this.Equals(t2 as ArrayTypeSymbol, comparison);
+            return this.Equals(t2 as ArrayTypeSymbol, comparison, isValueTypeOverrideOpt);
         }
 
         internal bool Equals(ArrayTypeSymbol other)
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Equals(other, TypeCompareKind.ConsiderEverything);
         }
 
-        private bool Equals(ArrayTypeSymbol other, TypeCompareKind comparison)
+        private bool Equals(ArrayTypeSymbol other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
         {
             if (ReferenceEquals(this, other))
             {
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((object)other == null || !other.HasSameShapeAs(this) ||
-                !other.ElementTypeWithAnnotations.Equals(ElementTypeWithAnnotations, comparison))
+                !other.ElementTypeWithAnnotations.Equals(ElementTypeWithAnnotations, comparison, isValueTypeOverrideOpt))
             {
                 return false;
             }
