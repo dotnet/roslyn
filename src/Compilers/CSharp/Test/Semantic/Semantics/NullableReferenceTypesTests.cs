@@ -82648,6 +82648,27 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.x1.x2.x3.x4.y5").WithLocation(10, 9));
         }
 
+        /// <summary>
+        /// Nullability of variable members is tracked up to a fixed depth.
+        /// </summary>
+        [Fact]
+        [WorkItem(31395, "https://github.com/dotnet/roslyn/issues/31395")]
+        [WorkItem(35773, "https://github.com/dotnet/roslyn/issues/35773")]
+        public void InheritNullabilityMaxDepth_03()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        (((((string x5, string y5) x4, string y4) x3, string y3) x2, string y2) x1, string y1) t = default;
+        t.x1.x2.x3.x4.x5.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void DiagnosticOptions_01()
         {
