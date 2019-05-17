@@ -16167,10 +16167,10 @@ class Test
             CompileAndVerify(comp, expectedOutput: "24", verify: Verification.Fails);
         }
 
-        [Fact]
+        [Fact, WorkItem(35764, "https://github.com/dotnet/roslyn/issues/35764")]
         public void StackAllocExpressionIL()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            var source = @"
 using System;
 class Test
 {
@@ -16181,9 +16181,11 @@ class Test
         x = stackalloc int[0];
         Console.Write(x.Length);
     }
-}", TestOptions.ReleaseExe);
-
-            CompileAndVerify(comp, expectedOutput: "330", verify: Verification.Fails).VerifyIL("Test.Main", @"
+}";
+            var expectedOutput = "330";
+            CSharpCompilation comp;
+            comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       49 (0x31)
   .maxstack  2
@@ -16203,6 +16205,34 @@ class Test
   IL_0026:  call       ""int System.Span<int>.Length.get""
   IL_002b:  call       ""void System.Console.Write(int)""
   IL_0030:  ret
+}");
+            comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("Test.Main", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (System.Span<int> V_0, //x
+                System.Span<int> V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4     0x84
+  IL_0006:  conv.u
+  IL_0007:  localloc
+  IL_0009:  ldc.i4.s   33
+  IL_000b:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.1
+  IL_0012:  stloc.0
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       ""int System.Span<int>.Length.get""
+  IL_001a:  call       ""void System.Console.Write(int)""
+  IL_001f:  nop
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  initobj    ""System.Span<int>""
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""int System.Span<int>.Length.get""
+  IL_002f:  call       ""void System.Console.Write(int)""
+  IL_0034:  nop
+  IL_0035:  ret
 }");
         }
 
