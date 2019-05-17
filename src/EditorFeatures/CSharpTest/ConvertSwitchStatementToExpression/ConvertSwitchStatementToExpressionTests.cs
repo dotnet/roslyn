@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestAssignmnet_Array()
+        public async Task TestAssignment_Array()
         {
             await TestInCSharp8(
 @"class Program
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMissingOnDefalutBreak_01()
+        public async Task TestMissingOnDefaultBreak_01()
         {
             await TestMissingAsync(
 @"class Program
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMissingOnDefalutBreak_02()
+        public async Task TestMissingOnDefaultBreak_02()
         {
             await TestMissingAsync(
 @"class Program
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMissingOnDefalutBreak_03()
+        public async Task TestMissingOnDefaultBreak_03()
         {
             await TestMissingAsync(
 @"class Program
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMissingOnDefalutBreak_04()
+        public async Task TestMissingOnDefaultBreak_04()
         {
             await TestMissingAsync(
 @"class Program
