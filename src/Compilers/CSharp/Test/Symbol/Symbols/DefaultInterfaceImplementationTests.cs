@@ -23365,7 +23365,7 @@ public interface I1
                 // (12,34): error CS0106: The modifier 'override' is not valid for this item
                 //     override event System.Action P09 {remove{}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 34),
-                // (13,38): error CS8052: 'I1.P10': abstract event cannot use event accessor syntax
+                // (13,38): error CS8712: 'I1.P10': abstract event cannot use event accessor syntax
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P10").WithLocation(13, 38),
                 // (14,37): error CS0179: 'I1.P11.add' cannot be extern and declare a body
@@ -23732,7 +23732,7 @@ public interface I1
                 // (13,39): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(13, 39),
-                // (13,38): error CS8052: 'I1.P10': abstract event cannot use event accessor syntax
+                // (13,38): error CS8712: 'I1.P10': abstract event cannot use event accessor syntax
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P10").WithLocation(13, 38),
                 // (14,37): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -23828,7 +23828,7 @@ public interface I1
                 // (13,39): error CS8701: Target runtime doesn't support default interface implementation.
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(13, 39),
-                // (13,38): error CS8052: 'I1.P10': abstract event cannot use event accessor syntax
+                // (13,38): error CS8712: 'I1.P10': abstract event cannot use event accessor syntax
                 //     abstract event System.Action P10 {add{}}
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P10").WithLocation(13, 38),
                 // (14,37): error CS8701: Target runtime doesn't support default interface implementation.
@@ -26049,7 +26049,7 @@ class Test2 : I1, I2, I3
                 // (8,41): error CS0238: 'I2.P2' cannot be sealed because it is not an override
                 //     abstract sealed event System.Action P2 {add; remove;} 
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "P2").WithArguments("I2.P2").WithLocation(8, 41),
-                // (8,44): error CS8052: 'I2.P2': abstract event cannot use event accessor syntax
+                // (8,44): error CS8712: 'I2.P2': abstract event cannot use event accessor syntax
                 //     abstract sealed event System.Action P2 {add; remove;} 
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.P2").WithLocation(8, 44),
                 // (12,40): error CS0238: 'I3.P3' cannot be sealed because it is not an override
@@ -26273,49 +26273,49 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 // (8,42): error CS0503: The abstract event 'I1.P1' cannot be marked virtual
                 //     abstract virtual event System.Action P1 { add { throw null; } }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P1").WithArguments("event", "I1.P1").WithLocation(8, 42),
-                // (8,45): error CS8052: 'I1.P1': abstract event cannot use event accessor syntax
+                // (8,45): error CS8712: 'I1.P1': abstract event cannot use event accessor syntax
                 //     abstract virtual event System.Action P1 { add { throw null; } }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P1").WithLocation(8, 45),
                 // (12,42): error CS0503: The abstract event 'I2.P2' cannot be marked virtual
                 //     virtual abstract event System.Action P2 
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P2").WithArguments("event", "I2.P2").WithLocation(12, 42),
-                // (13,5): error CS8052: 'I2.P2': abstract event cannot use event accessor syntax
+                // (13,5): error CS8712: 'I2.P2': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.P2").WithLocation(13, 5),
                 // (20,42): error CS0503: The abstract event 'I3.P3' cannot be marked virtual
                 //     abstract virtual event System.Action P3 { remove { throw null; } }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P3").WithArguments("event", "I3.P3").WithLocation(20, 42),
-                // (20,45): error CS8052: 'I3.P3': abstract event cannot use event accessor syntax
+                // (20,45): error CS8712: 'I3.P3': abstract event cannot use event accessor syntax
                 //     abstract virtual event System.Action P3 { remove { throw null; } }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I3.P3").WithLocation(20, 45),
                 // (24,42): error CS0503: The abstract event 'I4.P4' cannot be marked virtual
                 //     abstract virtual event System.Action P4 { add => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P4").WithArguments("event", "I4.P4").WithLocation(24, 42),
-                // (24,45): error CS8052: 'I4.P4': abstract event cannot use event accessor syntax
+                // (24,45): error CS8712: 'I4.P4': abstract event cannot use event accessor syntax
                 //     abstract virtual event System.Action P4 { add => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I4.P4").WithLocation(24, 45),
                 // (28,42): error CS0503: The abstract event 'I5.P5' cannot be marked virtual
                 //     abstract virtual event System.Action P5 
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P5").WithArguments("event", "I5.P5").WithLocation(28, 42),
-                // (29,5): error CS8052: 'I5.P5': abstract event cannot use event accessor syntax
+                // (29,5): error CS8712: 'I5.P5': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I5.P5").WithLocation(29, 5),
                 // (36,42): error CS0503: The abstract event 'I6.P6' cannot be marked virtual
                 //     abstract virtual event System.Action P6 { remove => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P6").WithArguments("event", "I6.P6").WithLocation(36, 42),
-                // (36,45): error CS8052: 'I6.P6': abstract event cannot use event accessor syntax
+                // (36,45): error CS8712: 'I6.P6': abstract event cannot use event accessor syntax
                 //     abstract virtual event System.Action P6 { remove => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I6.P6").WithLocation(36, 45),
                 // (40,42): error CS0503: The abstract event 'I7.P7' cannot be marked virtual
                 //     abstract virtual event System.Action P7 { add; }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P7").WithArguments("event", "I7.P7").WithLocation(40, 42),
-                // (40,45): error CS8052: 'I7.P7': abstract event cannot use event accessor syntax
+                // (40,45): error CS8712: 'I7.P7': abstract event cannot use event accessor syntax
                 //     abstract virtual event System.Action P7 { add; }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I7.P7").WithLocation(40, 45),
                 // (44,42): error CS0503: The abstract event 'I8.P8' cannot be marked virtual
                 //     abstract virtual event System.Action P8 { remove; } 
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P8").WithArguments("event", "I8.P8").WithLocation(44, 42),
-                // (44,45): error CS8052: 'I8.P8': abstract event cannot use event accessor syntax
+                // (44,45): error CS8712: 'I8.P8': abstract event cannot use event accessor syntax
                 //     abstract virtual event System.Action P8 { remove; } 
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I8.P8").WithLocation(44, 45),
                 // (54,28): error CS0065: 'Test1.I1.P1': event property must have both add and remove accessors
@@ -27012,7 +27012,7 @@ class Test2 : I1, I2, I3, I4, I5
 }
 ";
             ValidateEventModifiers_18(source1,
-                // (4,37): error CS8052: 'I1.P1': abstract event cannot use event accessor syntax
+                // (4,37): error CS8712: 'I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action P1 {add => throw null; remove => throw null;} 
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.P1").WithLocation(4, 37),
                 // (8,42): error CS0068: 'I2.P2': instance event in interface cannot have initializer
@@ -27021,7 +27021,7 @@ class Test2 : I1, I2, I3, I4, I5
                 // (8,42): error CS0621: 'I2.P2': virtual or abstract members cannot be private
                 //     abstract private event System.Action P2 = null; 
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "P2").WithArguments("I2.P2").WithLocation(8, 42),
-                // (16,44): error CS8052: 'I4.P4': abstract event cannot use event accessor syntax
+                // (16,44): error CS8712: 'I4.P4': abstract event cannot use event accessor syntax
                 //     abstract static event System.Action P4 { add {throw null;} remove {throw null;}}
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I4.P4").WithLocation(16, 44),
                 // (16,41): error CS0112: A static member 'I4.P4' cannot be marked as override, virtual, or abstract
@@ -34801,7 +34801,7 @@ class Test1 : I1
                 // (19,47): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected abstract event System.Action I4.M1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 47),
-                // (20,5): error CS8052: 'I1.I4.M1': abstract event cannot use event accessor syntax
+                // (20,5): error CS8712: 'I1.I4.M1': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.I4.M1").WithLocation(20, 5),
                 // (30,15): error CS0535: 'Test1' does not implement interface member 'I4.M1'
@@ -50289,7 +50289,7 @@ class Test1 : I2
 }
 ";
             ValidateEventReAbstraction_014(source1,
-                // (10,5): error CS8052: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
                 // (22,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -50376,7 +50376,7 @@ class Test1 : I2
 }
 ";
             ValidateEventReAbstraction_014(source1,
-                // (10,5): error CS8052: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
                 // (16,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -50630,7 +50630,7 @@ class Test1 : I2
 }
 ";
             ValidateEventReAbstraction_014(source1,
-                // (9,40): error CS8052: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 { add => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -50659,7 +50659,7 @@ class Test1 : I2
 }
 ";
             ValidateEventReAbstraction_014(source1,
-                // (9,40): error CS8052: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 { add; }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -50688,7 +50688,7 @@ class Test1 : I2
 }
 ";
             ValidateEventReAbstraction_014(source1,
-                // (9,40): error CS8052: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 { remove => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -50717,7 +50717,7 @@ class Test1 : I2
 }
 ";
             ValidateEventReAbstraction_014(source1,
-                // (9,40): error CS8052: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 { remove; }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -50746,7 +50746,7 @@ class Test1 : I2
 }
 ";
             ValidateEventReAbstraction_014(source1,
-                // (9,40): error CS8052: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 { add; remove; }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -50775,7 +50775,7 @@ class Test1 : I2
 }
 ";
             ValidateEventReAbstraction_014(source1,
-                // (9,40): error CS8052: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 {}
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -50804,7 +50804,7 @@ class Test1 : I2
 }
 ";
             ValidateEventReAbstraction_014(source1,
-                // (9,40): error CS8052: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 { add => throw null; remove => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -50869,7 +50869,7 @@ class Test1 : I2
                 // (4,25): error CS0065: 'I1.P1': event property must have both add and remove accessors
                 //     event System.Action P1 {add => throw null;}
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25),
-                // (10,5): error CS8052: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
                 // (16,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -50934,7 +50934,7 @@ class Test1 : I2
                 // (4,25): error CS0065: 'I1.P1': event property must have both add and remove accessors
                 //     event System.Action P1 {remove => throw null;}
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25),
-                // (10,5): error CS8052: 'I2.I1.P1': abstract event cannot use event accessor syntax
+                // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
                 // (16,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'

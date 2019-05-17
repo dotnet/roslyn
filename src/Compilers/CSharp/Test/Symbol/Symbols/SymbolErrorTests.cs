@@ -7817,10 +7817,10 @@ class MyClass : I
                 // (8,57): error CS0500: 'clx.P.set' cannot declare a body because it is marked abstract
                 //         public abstract object P { get { return null; } set { } }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("NS.clx.P.set").WithLocation(8, 57),
-                // (9,47): error CS8052: 'clx.E': abstract event cannot use event accessor syntax
+                // (9,47): error CS8712: 'clx.E': abstract event cannot use event accessor syntax
                 //         public abstract event System.Action E { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("NS.clx.E").WithLocation(9, 47),
-                // (10,47): error CS8052: 'clx.X': abstract event cannot use event accessor syntax
+                // (10,47): error CS8712: 'clx.X': abstract event cannot use event accessor syntax
                 //         public abstract event System.Action X { add => throw null; remove => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("NS.clx.X").WithLocation(10, 47));
 

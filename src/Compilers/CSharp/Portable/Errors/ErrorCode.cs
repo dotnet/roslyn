@@ -1289,7 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // available 8041-8049
         ERR_InitializerOnNonAutoProperty = 8050,
         ERR_AutoPropertyMustHaveGetAccessor = 8051,
-        ERR_AbstractEventHasAccessors = 8052,
+        // ERR_AutoPropertyInitializerInInterface = 8052,
         // available 8053
 
         ERR_EnumsCantContainDefaultConstructor = 8054,
@@ -1718,6 +1718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_NotDeclaredInBase = 8710,
 
         ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
+        ERR_AbstractEventHasAccessors = 8712,
 
         #endregion diagnostics introduced for C# 8.0
 
