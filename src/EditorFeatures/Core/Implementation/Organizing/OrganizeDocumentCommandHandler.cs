@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 
         public VSCommanding.CommandState GetCommandState(OrganizeDocumentCommandArgs args)
         {
-            return GetCommandState(args, _ => EditorFeaturesResources.Organize_Document);
+            return GetCommandState(args, _ => EditorFeaturesResources.Organize_Document, needsSemantics: true);
         }
 
         public bool ExecuteCommand(OrganizeDocumentCommandArgs args, CommandExecutionContext context)
@@ -59,17 +59,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 
         public VSCommanding.CommandState GetCommandState(SortImportsCommandArgs args)
         {
-            return GetCommandState(args, o => o.SortImportsDisplayStringWithAccelerator);
+            return GetCommandState(args, o => o.SortImportsDisplayStringWithAccelerator, needsSemantics: false);
         }
 
         public VSCommanding.CommandState GetCommandState(SortAndRemoveUnnecessaryImportsCommandArgs args)
         {
-            return GetCommandState(args, o => o.SortAndRemoveUnusedImportsDisplayStringWithAccelerator);
+            return GetCommandState(args, o => o.SortAndRemoveUnusedImportsDisplayStringWithAccelerator, needsSemantics: true);
         }
 
-        private VSCommanding.CommandState GetCommandState(EditorCommandArgs args, Func<IOrganizeImportsService, string> descriptionString)
+        private VSCommanding.CommandState GetCommandState(EditorCommandArgs args, Func<IOrganizeImportsService, string> descriptionString, bool needsSemantics)
         {
-            if (IsCommandSupported(args, out var workspace))
+            if (IsCommandSupported(args, needsSemantics, out var workspace))
             {
                 var organizeImportsService = workspace.Services.GetLanguageServices(args.SubjectBuffer).GetService<IOrganizeImportsService>();
                 return new VSCommanding.CommandState(isAvailable: true, displayText: descriptionString(organizeImportsService));
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             }
         }
 
-        private bool IsCommandSupported(EditorCommandArgs args, out Workspace workspace)
+        private bool IsCommandSupported(EditorCommandArgs args, bool needsSemantics, out Workspace workspace)
         {
             workspace = null;
             if (args.SubjectBuffer.TryGetWorkspace(out var retrievedWorkspace))
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 
                 if (workspace.Kind == WorkspaceKind.MiscellaneousFiles)
                 {
-                    return false;
+                    return !needsSemantics;
                 }
 
                 return args.SubjectBuffer.SupportsRefactorings();
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         private void SortImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
         {
             var cancellationToken = operationContext.UserCancellationToken;
-            var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(operationContext).WaitAndGetResult(cancellationToken);
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
                 var newDocument = OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
