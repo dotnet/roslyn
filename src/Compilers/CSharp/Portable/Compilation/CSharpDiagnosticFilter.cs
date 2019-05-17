@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 report = isEnabledByDefault ? ReportDiagnostic.Default : ReportDiagnostic.Suppress;
             }
 
-            bool isNullableFlowAnalysisSafetyWarning = ErrorFacts.NullableFlowAnalysisWarnings.Contains(id);
+            bool isNullableFlowAnalysisWarning = ErrorFacts.NullableFlowAnalysisWarnings.Contains(id);
             if (report == ReportDiagnostic.Suppress && // check options (/nowarn)
-                !isNullableFlowAnalysisSafetyWarning)
+                !isNullableFlowAnalysisWarning)
             {
                 return ReportDiagnostic.Suppress;
             }
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (nullableOption)
             {
                 case NullableContextOptions.Disable:
-                    if (isNullableFlowAnalysisSafetyWarning)
+                    if (isNullableFlowAnalysisWarning)
                     {
                         return ReportDiagnostic.Suppress;
                     }
