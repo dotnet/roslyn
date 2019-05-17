@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return results.ToImmutableAndFree();
         }
 
-        private static bool IsOverride(
+        internal static bool IsOverride(
             Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
         {
             for (var current = member; current != null; current = current.OverriddenMember())
