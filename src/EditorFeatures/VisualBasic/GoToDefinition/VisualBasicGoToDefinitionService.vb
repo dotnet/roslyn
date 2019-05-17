@@ -3,6 +3,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -12,8 +13,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
         Inherits AbstractGoToDefinitionService
 
         <ImportingConstructor>
-        Public Sub New(<ImportMany> streamingPresenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)))
-            MyBase.New(streamingPresenters)
+        Public Sub New(<Import> threadingContext As IThreadingContext,
+                       <ImportMany> streamingPresenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)),
+                       <ImportMany> externalNavigationServices As IEnumerable(Of Lazy(Of IExternalNavigationService)))
+            MyBase.New(threadingContext, streamingPresenters, externalNavigationServices)
         End Sub
     End Class
 End Namespace

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
@@ -14,8 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
     {
         [ImportingConstructor]
         public CSharpGoToDefinitionService(
-            [ImportMany]IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
-            : base(streamingPresenters)
+            [Import] IThreadingContext threadingContext,
+            [ImportMany]IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            [ImportMany]IEnumerable<Lazy<IExternalNavigationService>> externalNavigationServices)
+            : base(threadingContext, streamingPresenters, externalNavigationServices)
         {
         }
     }

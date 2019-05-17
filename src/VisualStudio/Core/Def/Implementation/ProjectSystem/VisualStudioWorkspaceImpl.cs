@@ -46,7 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly IntPtr s_docDataExisting_Unknown = new IntPtr(-1);
         private const string AppCodeFolderName = "App_Code";
 
-        private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
 
@@ -89,10 +88,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
 
+        protected IThreadingContext ThreadingContext { get; }
+
         public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
-            _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
+            ThreadingContext = exportProvider.GetExportedValue<IThreadingContext>();
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
@@ -104,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _projectFactory = exportProvider.GetExport<VisualStudioProjectFactory>();
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            _foregroundObject = new ForegroundThreadAffinitizedObject(_threadingContext);
+            _foregroundObject = new ForegroundThreadAffinitizedObject(ThreadingContext);
 
             _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
@@ -121,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public async System.Threading.Tasks.Task ConnectToOpenFileTrackerOnUIThreadAsync(IAsyncServiceProvider asyncServiceProvider)
         {
             // Create services that are bound to the UI thread
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var openFileTracker = await OpenFileTracker.CreateAsync(this, asyncServiceProvider).ConfigureAwait(true);
 
@@ -183,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (_projectTracker == null)
             {
-                _projectTracker = new VisualStudioProjectTracker(this, _projectFactory.Value, _threadingContext);
+                _projectTracker = new VisualStudioProjectTracker(this, _projectFactory.Value, ThreadingContext);
             }
 
             return _projectTracker;

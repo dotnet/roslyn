@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     <[UseExportProvider]>
@@ -101,7 +102,10 @@ class C
                 Dim cursorBuffer = cursorDocument.TextBuffer
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim goToDefService = New CSharpGoToDefinitionService(presenters)
+                Dim goToDefService = New CSharpGoToDefinitionService(
+                    threadingContext:=workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                    streamingPresenters:=presenters,
+                    externalNavigationServices:={})
 
                 Dim waitContext = New TestUIThreadOperationContext(updatesBeforeCancel)
                 Dim commandHandler = New GoToDefinitionCommandHandler()

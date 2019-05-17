@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable4 runningDocumentTable, IComponentModel componentModel)
             {
                 _workspace = workspace;
-                _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
+                _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace.ThreadingContext, assertIsForeground: true);
                 _runningDocumentTable = runningDocumentTable;
                 _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
                 _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
