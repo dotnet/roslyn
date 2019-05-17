@@ -243,24 +243,29 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                     if (allValuesBad)
                     {
+                        // We know all values are bad, so we can say Flagged.
                         return PropertySetAbstractValueKind.Flagged;
                     }
                     else if (someValuesBad)
                     {
+                        // We know all values but some values are bad, so we can say MaybeFlagged.
                         return PropertySetAbstractValueKind.MaybeFlagged;
                     }
                     else
                     {
+                        // We know all values are good, so we can say Unflagged.
                         return PropertySetAbstractValueKind.Unflagged;
                     }
 
                 case ValueContainsNonLiteralState.Maybe:
                     if (valueContentAbstractValue.LiteralValues.Any(badLiteralValuePredicate))
                     {
+                        // We don't know all values but know some values are bad, so we can say MaybeFlagged.
                         return PropertySetAbstractValueKind.MaybeFlagged;
                     }
                     else
                     {
+                        // We don't know all values but didn't find any bad value, so we can say who knows.
                         return PropertySetAbstractValueKind.Unknown;
                     }
 
