@@ -1336,21 +1336,9 @@ moreArguments:
             // widest possible escape via writeable ref-like receiver or ref/out argument.
             uint escapeTo = scopeOfTheContainingExpression;
 
-            var isReceiverRefReadOnly = symbol switch
-            {
-                MethodSymbol m => m.IsEffectivelyReadOnly,
-                // TODO: val escape checks should be skipped for property accesses when
-                // we can determine the only accessors being called are readonly.
-                // For now we are pessimistic and check escape if any accessor is non-readonly.
-                // Tracking in https://github.com/dotnet/roslyn/issues/35606
-                PropertySymbol p => p.GetMethod?.IsEffectivelyReadOnly != false && p.SetMethod?.IsEffectivelyReadOnly != false,
-                _ => throw ExceptionUtilities.UnexpectedValue(symbol)
-            };
-
-
             // collect all writeable ref-like arguments, including receiver
             var receiverType = receiverOpt?.Type;
-            if (receiverType?.IsRefLikeType == true && !isReceiverRefReadOnly)
+            if (receiverType?.IsRefLikeType == true && !isReceiverRefReadOnly(symbol))
             {
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
             }
@@ -1449,6 +1437,17 @@ moreArguments:
             }
 
             return true;
+
+            static bool isReceiverRefReadOnly(Symbol methodOrPropertySymbol) => methodOrPropertySymbol switch
+            {
+                MethodSymbol m => m.IsEffectivelyReadOnly,
+                // TODO: val escape checks should be skipped for property accesses when
+                // we can determine the only accessors being called are readonly.
+                // For now we are pessimistic and check escape if any accessor is non-readonly.
+                // Tracking in https://github.com/dotnet/roslyn/issues/35606
+                PropertySymbol p => p.GetMethod?.IsEffectivelyReadOnly != false && p.SetMethod?.IsEffectivelyReadOnly != false,
+                _ => throw ExceptionUtilities.UnexpectedValue(methodOrPropertySymbol)
+            };
         }
 
         /// <summary>
