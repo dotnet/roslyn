@@ -534,21 +534,7 @@ class TestClass
                         "AnEnum",
                         (ValueContentAbstractValue valueContentAbstractValue) =>
                         {
-                            switch (valueContentAbstractValue.NonLiteralState)
-                            {
-                                case ValueContainsNonLiteralState.No:
-                                    // We know all values, so we can say Flagged or Unflagged.
-                                    return valueContentAbstractValue.LiteralValues.Contains(0)
-                                        ? PropertySetAbstractValueKind.Flagged
-                                        : PropertySetAbstractValueKind.Unflagged;
-                                case ValueContainsNonLiteralState.Maybe:
-                                    // We don't know all values, so we can say Flagged, or who knows.
-                                    return valueContentAbstractValue.LiteralValues.Contains(0)
-                                        ? PropertySetAbstractValueKind.Flagged
-                                        : PropertySetAbstractValueKind.Unknown;
-                                default:
-                                    return PropertySetAbstractValueKind.Unknown;
-                            }
+                            return PropertySetAnalysis.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(0));
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
@@ -613,27 +599,9 @@ class TestClass
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
-                        PropertySetAbstractValueKind kind = PropertySetAbstractValueKind.Unknown;
-                        ValueContentAbstractValue enuAbstractValue = argumentValueContentAbstractValues[0];
-                        switch (enuAbstractValue.NonLiteralState)
-                        {
-                            case ValueContainsNonLiteralState.No:
-                                // We know all values, so we can say Flagged or Unflagged.
-                                kind = enuAbstractValue.LiteralValues.Contains(0)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unflagged;
-                                break;
-                            case ValueContainsNonLiteralState.Maybe:
-                                // We don't know all values, so we can say Flagged, or who knows.
-                                kind = enuAbstractValue.LiteralValues.Contains(0)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unknown;
-                                break;
-                            default:
-                                kind = PropertySetAbstractValueKind.Unknown;
-                                break;
-                        }
-
+                        PropertySetAbstractValueKind kind = PropertySetAnalysis.EvaluateLiteralValues(
+                            argumentValueContentAbstractValues[0],
+                            v => v.Equals(0));
                         return PropertySetAbstractValue.GetInstance(kind);
                     }),
                 new PropertyMapperCollection(
@@ -641,21 +609,7 @@ class TestClass
                         "AnEnum",
                         (ValueContentAbstractValue valueContentAbstractValue) =>
                         {
-                            switch (valueContentAbstractValue.NonLiteralState)
-                            {
-                                case ValueContainsNonLiteralState.No:
-                                    // We know all values, so we can say Flagged or Unflagged.
-                                    return valueContentAbstractValue.LiteralValues.Contains(0)
-                                        ? PropertySetAbstractValueKind.Flagged
-                                        : PropertySetAbstractValueKind.Unflagged;
-                                case ValueContainsNonLiteralState.Maybe:
-                                    // We don't know all values, so we can say Flagged, or who knows.
-                                    return valueContentAbstractValue.LiteralValues.Contains(0)
-                                        ? PropertySetAbstractValueKind.Flagged
-                                        : PropertySetAbstractValueKind.Unknown;
-                                default:
-                                    return PropertySetAbstractValueKind.Unknown;
-                            }
+                            return PropertySetAnalysis.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(0));
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
@@ -722,39 +676,15 @@ class TestClass
                     "AString",
                     (ValueContentAbstractValue valueContentAbstractValue) =>
                     {
-                        switch (valueContentAbstractValue.NonLiteralState)
-                        {
-                            case ValueContainsNonLiteralState.No:
-                                return valueContentAbstractValue.LiteralValues.Any(
-                                    o => (o as string)?.StartsWith("T", StringComparison.Ordinal) == true)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unflagged;
-                            case ValueContainsNonLiteralState.Maybe:
-                                return valueContentAbstractValue.LiteralValues.Any(
-                                    o => (o as string)?.StartsWith("T", StringComparison.Ordinal) == true)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unknown;
-                            default:
-                                return PropertySetAbstractValueKind.Unknown;
-                        }
+                        return PropertySetAnalysis.EvaluateLiteralValues(
+                            valueContentAbstractValue,
+                            v => (v as string)?.StartsWith("T", StringComparison.Ordinal) == true);
                     }),
                 new PropertyMapper(
                     "AnEnum",
                     (ValueContentAbstractValue valueContentAbstractValue) =>
                     {
-                        switch (valueContentAbstractValue.NonLiteralState)
-                        {
-                            case ValueContainsNonLiteralState.No:
-                                return valueContentAbstractValue.LiteralValues.Contains(2)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unflagged;
-                            case ValueContainsNonLiteralState.Maybe:
-                                return valueContentAbstractValue.LiteralValues.Contains(2)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unknown;
-                            default:
-                                return PropertySetAbstractValueKind.Unknown;
-                        }
+                        return PropertySetAnalysis.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(2));
                     })),
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(
@@ -1035,21 +965,9 @@ class TestClass
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
-                        PropertySetAbstractValueKind kind;
-                        switch (argumentValueContentAbstractValues[2].NonLiteralState)
-                        {
-                            case ValueContainsNonLiteralState.No:
-                            case ValueContainsNonLiteralState.Maybe:
-                                kind = argumentValueContentAbstractValues[2].LiteralValues.Any(
-                                    o => (o as string)?.StartsWith("A", StringComparison.Ordinal) == true)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unflagged;
-                                break;
-                            default:
-                                kind = PropertySetAbstractValueKind.Unknown;
-                                break;
-                        }
-
+                        PropertySetAbstractValueKind kind = PropertySetAnalysis.EvaluateLiteralValues(
+                            argumentValueContentAbstractValues[2],
+                            v => (v as string)?.StartsWith("A", StringComparison.Ordinal) == true);
                         return PropertySetAbstractValue.GetInstance(kind);
                     }),
             new PropertyMapperCollection(
@@ -1057,17 +975,9 @@ class TestClass
                     "AString",
                     (ValueContentAbstractValue valueContentAbstractValue) =>
                     {
-                        switch (valueContentAbstractValue.NonLiteralState)
-                        {
-                            case ValueContainsNonLiteralState.No:
-                            case ValueContainsNonLiteralState.Maybe:
-                                return valueContentAbstractValue.LiteralValues.Any(
-                                    o => (o as string)?.StartsWith("A", StringComparison.Ordinal) == true)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unflagged;
-                            default:
-                                return PropertySetAbstractValueKind.Unknown;
-                        }
+                        return PropertySetAnalysis.EvaluateLiteralValues(
+                            valueContentAbstractValue,
+                            v => (v as string)?.StartsWith("A", StringComparison.Ordinal) == true);
                     })),
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(    // When TypeToTrackWithConstructor.Method() is invoked, need to evaluate its state.
