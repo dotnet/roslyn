@@ -120,9 +120,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             switch (prgCmds[0].cmdID)
             {
-                case ID.RoslynCommands.GoToBase:
-                    return QueryGoToBaseStatus(prgCmds);
-
                 case ID.RoslynCommands.GoToImplementation:
                     return QueryGoToImplementationStatus(prgCmds);
 
@@ -293,12 +290,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private int QueryGoToDefinitionStatus(OLECMD[] prgCmds)
-        {
-            prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
-            return VSConstants.S_OK;
-        }
-
-        private int QueryGoToBaseStatus(OLECMD[] prgCmds)
         {
             prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
             return VSConstants.S_OK;

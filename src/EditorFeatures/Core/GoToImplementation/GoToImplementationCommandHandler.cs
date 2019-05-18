@@ -3,11 +3,14 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.CommandHandlers;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
@@ -38,6 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
         }
 
         public string DisplayName => EditorFeaturesResources.Go_To_Implementation;
+
+        protected override string _scopeDescription => EditorFeaturesResources.Locating_implementations;
 
         public VSCommanding.CommandState GetCommandState(GoToImplementationCommandArgs args)
         {
@@ -139,5 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             streamingPresenter.TryNavigateToOrPresentItemsAsync(
                 document.Project.Solution.Workspace, goToImplContext.SearchTitle, definitionItems).Wait(cancellationToken);
         }
+        protected override Task FindAction(IFindUsagesService service, Document document, int caretPosition, IFindUsagesContext context)
+            => service.FindImplementationsAsync(document, caretPosition, context);
     }
 }

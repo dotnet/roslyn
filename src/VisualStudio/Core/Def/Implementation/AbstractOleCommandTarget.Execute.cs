@@ -282,10 +282,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             switch (commandId)
             {
-                case ID.RoslynCommands.GoToBase:
-                    ExecuteGoToBase(subjectBuffer, contentType, executeNextCommandTarget);
-                    break;
-
                 case ID.RoslynCommands.GoToImplementation:
                     ExecuteGoToImplementation(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
@@ -895,13 +891,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             CurrentHandlers.Execute(contentType,
                 args: new GoToDefinitionCommandArgs(ConvertTextView(), subjectBuffer),
-                lastHandler: executeNextCommandTarget);
-        }
-
-        private void ExecuteGoToBase(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
-        {
-            CurrentHandlers.Execute(contentType,
-                args: new GoToBaseCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 

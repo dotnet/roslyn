@@ -279,7 +279,7 @@
         </Strings>
       </Button>
 
-      <Button guid="guidRoslynGrpId" id="cmdidGoToBase" priority="0x0219" type="Button">
+      <Button guid="guidRoslynGrpId" id="cmdidGoToBase" priority="0x0200" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_EDIT_GOTO"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
@@ -406,7 +406,7 @@
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_WEBITEMNODE"/>
     </CommandPlacement>
 
-    <CommandPlacement guid="guidRoslynGrpId" id="cmdidGoToBase" priority="0x0219">
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidGoToBase" priority="0x0200">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
     </CommandPlacement>
     
@@ -480,8 +480,8 @@
       <IDSymbol name="cmdidAddSuppressionsInSuppressionFile"  value="0x0120" />
       <IDSymbol name="cmdidRemoveSuppressions"        value="0x0121" />
 
-      <IDSymbol name="cmdidGoToBase"        value="0x0219" />
       <IDSymbol name="cmdidGoToImplementation"        value="0x0200" />
+      <IDSymbol name="cmdidGoToBase"        value="0x0201" />
     </GuidSymbol>
 
     <GuidSymbol name="guidCSharpInteractiveCommandSet" value="{1492db0a-85a2-4e43-bf0d-ce55b89a8cc6}">
