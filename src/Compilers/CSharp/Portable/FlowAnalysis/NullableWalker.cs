@@ -639,11 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var propAccess = (BoundPropertyAccess)expr;
                         var propSymbol = propAccess.PropertySymbol;
-                        member = GetBackingFieldIfStructProperty(propSymbol);
-                        if (member is null)
-                        {
-                            return false;
-                        }
+                        member = propSymbol;
                         if (propSymbol.IsStatic)
                         {
                             return true;
@@ -659,38 +655,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)receiver != null &&
                 receiver.Kind != BoundKind.TypeExpression &&
                 (object)receiver.Type != null;
-        }
-
-        // https://github.com/dotnet/roslyn/issues/29619 Use backing field for struct property
-        // for now, to avoid cycles if the struct type contains a property of the struct type.
-        // Remove this and populate struct members lazily to match classes.
-        private Symbol GetBackingFieldIfStructProperty(Symbol symbol)
-        {
-            if (symbol.Kind == SymbolKind.Property && !symbol.ContainingType.IsNullableType())
-            {
-                var property = (PropertySymbol)symbol;
-                var containingType = property.ContainingType;
-                if (containingType.TypeKind == TypeKind.Struct)
-                {
-                    // https://github.com/dotnet/roslyn/issues/29619 Relying on field name
-                    // will not work for properties declared in other languages.
-                    var fieldName = GeneratedNames.MakeBackingFieldName(property.Name);
-                    return _emptyStructTypeCache.GetStructFields(containingType, includeStatic: symbol.IsStatic).FirstOrDefault(f => f.Name == fieldName);
-                }
-            }
-            return symbol;
-        }
-
-        // https://github.com/dotnet/roslyn/issues/29619 Temporary, until we're using
-        // properties on structs directly.
-        protected override int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
-        {
-            symbol = GetBackingFieldIfStructProperty(symbol);
-            if (symbol is null)
-            {
-                return -1;
-            }
-            return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty);
         }
 
         protected override int MakeSlot(BoundExpression node)
@@ -986,8 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations targetType,
             int targetSlot,
             TypeWithState valueType,
-            int valueSlot = -1,
-            bool skipAnalyzedNullabilityUpdate = false)
+            int valueSlot = -1)
         {
             Debug.Assert(!IsConditionalState);
 
@@ -1017,9 +980,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         targetType.TypeKind == TypeKind.TypeParameter ||
                         targetType.IsNullableType())
                     {
-                        // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
-                        // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
-                        // When that issue is fixed, Nullable<T> should be handled there instead.
                         if (valueSlot > 0)
                         {
                             InheritNullableStateOfTrackableType(targetSlot, valueSlot, skipSlot: targetSlot);
@@ -1086,11 +1046,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 skipSlot = targetSlot;
             }
 
-            // https://github.com/dotnet/roslyn/issues/29619 Handle properties not backed by fields.
-            // See ModifyMembers_StructPropertyNoBackingField and PropertyCycle_Struct tests.
-            foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
+            if (!isDefaultValue && valueSlot > 0)
             {
-                InheritNullableStateOfMember(targetSlot, valueSlot, field, isDefaultValue: isDefaultValue, skipSlot);
+                InheritNullableStateOfTrackableType(targetSlot, valueSlot, skipSlot);
+            }
+            else
+            {
+                foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
+                {
+                    InheritNullableStateOfMember(targetSlot, valueSlot, field, isDefaultValue: isDefaultValue, skipSlot);
+                }
             }
         }
 
@@ -1103,9 +1068,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
 
-            // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
-            // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
-            // When that issue is fixed, Nullable<T> should be handled there instead.
             if (fieldOrPropertyType.Type.IsReferenceType ||
                 fieldOrPropertyType.TypeKind == TypeKind.TypeParameter ||
                 fieldOrPropertyType.IsNullableType())
@@ -1702,10 +1664,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
         }
 
+        /// <summary>
+        /// Returns true if the type is a struct with no fields or properties.
+        /// </summary>
+        protected override bool IsEmptyStructType(TypeSymbol type)
+        {
+            if (type.TypeKind != TypeKind.Struct)
+            {
+                return false;
+            }
+
+            // EmptyStructTypeCache.IsEmptyStructType() returns false
+            // if there are non-cyclic fields.
+            if (!_emptyStructTypeCache.IsEmptyStructType(type))
+            {
+                return false;
+            }
+
+            if (type.SpecialType != SpecialType.None)
+            {
+                return true;
+            }
+
+            var members = ((NamedTypeSymbol)type).GetMembersUnordered();
+
+            // EmptyStructTypeCache.IsEmptyStructType() returned true. If there
+            // are fields, those must be cyclic, so treat the type as empty.
+            if (members.Any(m => m.Kind == SymbolKind.Field))
+            {
+                return true;
+            }
+
+            // If there are properties, the type is not empty.
+            if (members.Any(m => m.Kind == SymbolKind.Property))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         private int GetOrCreatePlaceholderSlot(BoundExpression node)
         {
-            if (_emptyStructTypeCache.IsEmptyStructType(node.Type))
+            if (IsEmptyStructType(node.Type))
+            {
                 return -1;
+            }
 
             return GetOrCreatePlaceholderSlot(node, TypeWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated));
         }
@@ -3281,7 +3285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // Set nullable state of argument to parameter type.
-                        TrackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argumentNoConversion), parameterWithState, skipAnalyzedNullabilityUpdate: true);
+                        TrackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argumentNoConversion), parameterWithState);
 
                         SetResultType(argumentNoConversion, parameterWithState);
                     }
