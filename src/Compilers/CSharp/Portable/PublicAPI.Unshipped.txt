@@ -15,9 +15,7 @@ Microsoft.CodeAnalysis.CSharp.LanguageVersion.Preview = 2147483646 -> Microsoft.
 Microsoft.CodeAnalysis.CSharp.NullableContextOptions
 Microsoft.CodeAnalysis.CSharp.NullableContextOptions.Disable = 0 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
 Microsoft.CodeAnalysis.CSharp.NullableContextOptions.Enable = 1 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
-Microsoft.CodeAnalysis.CSharp.NullableContextOptions.SafeOnly = 2 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
-Microsoft.CodeAnalysis.CSharp.NullableContextOptions.SafeOnlyWarnings = 4 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
-Microsoft.CodeAnalysis.CSharp.NullableContextOptions.Warnings = 3 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
+Microsoft.CodeAnalysis.CSharp.NullableContextOptions.Warnings = 2 -> Microsoft.CodeAnalysis.CSharp.NullableContextOptions
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body) -> Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseArgumentListSyntax.AddArguments(params Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseArgumentListSyntax
@@ -218,7 +216,6 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.PropertyPatternClause = 9021 -> Microso
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.QuestionQuestionEqualsToken = 8284 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RangeExpression = 8658 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecursivePattern = 9020 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.SafeOnlyKeyword = 8488 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.Subpattern = 9022 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SuppressNullableWarningExpression = 9054 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SwitchExpression = 9025 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

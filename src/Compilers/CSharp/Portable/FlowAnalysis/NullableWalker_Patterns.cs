@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 labelStateMap.TryGetValue(node.DefaultLabel, out var defaultLabelState) && defaultLabelState.believedReachable)
             {
                 SetState(defaultLabelState.state);
-                ReportSafetyDiagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, ((SwitchExpressionSyntax)node.Syntax).SwitchKeyword.GetLocation());
+                ReportDiagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, ((SwitchExpressionSyntax)node.Syntax).SwitchKeyword.GetLocation());
             }
 
             // collect expressions, conversions and result types
