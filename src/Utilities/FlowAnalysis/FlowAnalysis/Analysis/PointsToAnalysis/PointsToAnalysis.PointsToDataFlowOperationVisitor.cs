@@ -797,8 +797,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 _ = base.VisitArrayInitializer(operation, argument);
 
-                // We should have created a new PointsTo value for the associated array creation operation.
-                return GetCachedAbstractValue(operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation));
+                // We should have created a new PointsTo value for the associated array creation operation in non-error code.
+                // Bail out otherwise.
+                var arrayCreation = operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation);
+                return arrayCreation != null ? GetCachedAbstractValue(arrayCreation) : ValueDomain.UnknownOrMayBeValue;
             }
 
             public override PointsToAbstractValue VisitArrayCreation(IArrayCreationOperation operation, object argument)
