@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
     internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer
-        : DiagnosticAnalyzer, IBuiltInAnalyzer, IInProcessAnalyzer
+        : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         // NOTE: This is a trigger diagnostic, which doesn't show up in the ruleset editor and hence doesn't need a conventional IDE Diagnostic ID string.
         internal const string DiagnosticFixableId = "RemoveUnnecessaryImportsFixable";
