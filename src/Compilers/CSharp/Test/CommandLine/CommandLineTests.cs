@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
             Path.Combine("dependency", "csc.exe"));
 
-        private static readonly string s_compilerVersion = typeof(CommandLineTests).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-        private static readonly string s_compilerCommitHash = typeof(CommandLineTests).Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
-        private static readonly string s_compilerShortCommitHash = CommonCompiler.ExtractShortCommitHash(s_compilerCommitHash);
+        private static readonly string s_compilerVersion = CommonCompiler.GetProductVersion(typeof(CommandLineTests));
 
         private class TestCommandLineParser : CSharpCommandLineParser
         {
@@ -4383,7 +4381,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable:yes", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8636: Invalid option 'yes' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'
+                // error CS8636: Invalid option 'yes' for /nullable; must be 'disable', 'enable' or 'warnings'
                 Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("yes").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
@@ -4400,9 +4398,8 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", "/langversion:7.0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'SafeOnly' for C# 7.0. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "SafeOnly", "7.0", "preview").WithLocation(1, 1));
-            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1));
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -4425,7 +4422,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable:yes", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8636: Invalid option 'yes' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'
+                // error CS8636: Invalid option 'yes' for /nullable; must be 'disable', 'enable' or 'warnings'
                 Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("yes").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
@@ -4439,8 +4436,10 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:Safeonly", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'Safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("Safeonly").WithLocation(1, 1)
+                );
 
             parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable-", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -4463,7 +4462,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable:YES", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8636: Invalid option 'YES' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'
+                // error CS8636: Invalid option 'YES' for /nullable; must be 'disable', 'enable' or 'warnings'
                 Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("YES").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
@@ -4477,8 +4476,10 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable:safeonly", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1)
+                );
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable-", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -4501,7 +4502,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable:YES", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8636: Invalid option 'YES' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'
+                // error CS8636: Invalid option 'YES' for /nullable; must be 'disable', 'enable' or 'warnings'
                 Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("YES").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
@@ -4515,46 +4516,72 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable:safeonly", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1)
+                );
 
             parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable-", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1)
+                );
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1)
+                );
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable+", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1)
+                );
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable:", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1),
                 // error CS2006: Command-line syntax error: Missing '<text>' for 'nullable' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "nullable").WithLocation(1, 1)
                 );
-            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable:YES", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8636: Invalid option 'YES' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1),
+                // error CS8636: Invalid option 'YES' for /nullable; must be 'disable', 'enable' or 'warnings'
                 Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("YES").WithLocation(1, 1)
                 );
-            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable:disable", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1)
+                );
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable:enable", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1)
+                );
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", @"/nullable:safeonly", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1),
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
@@ -4565,7 +4592,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable:yeS", "/langversion:7.0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8636: Invalid option 'yeS' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'
+                // error CS8636: Invalid option 'yeS' for /nullable; must be 'disable', 'enable' or 'warnings'
                 Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("yeS").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
@@ -4601,10 +4628,10 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable:safeonly", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'Safeonly' for C# 7.3. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "SafeOnly", "7.3", "preview").WithLocation(1, 1)
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1)
                 );
-            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { "a.cs", "/langversion:8" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -4615,93 +4642,53 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:""safeonly""", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.SafeOnly, parsedArgs.CompilationOptions.NullableContextOptions);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'safeonly' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonly").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:\""enable\""", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8636: Invalid option '"enable"' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'
-                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments(@"""enable""").WithLocation(1, 1)
+                // error CS8636: Invalid option '"enable"' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("\"enable\"").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:\\disable\\", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8636: Invalid option '\\disable\\' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'
-                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments(@"\\disable\\").WithLocation(1, 1)
+                // error CS8636: Invalid option '\\disable\\' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("\\\\disable\\\\").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:\\""enable\\""", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8636: Invalid option '\enable\' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'
-                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments(@"\enable\").WithLocation(1, 1)
+                // error CS8636: Invalid option '\enable\' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("\\enable\\").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:safeonlywarnings", "/langversion:7.0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'SafeOnlyWarnings' for C# 7.0. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "SafeOnlyWarnings", "7.0", "preview").WithLocation(1, 1)
+                // error CS8636: Invalid option 'safeonlywarnings' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonlywarnings").WithLocation(1, 1)
                 );
-            Assert.Equal(NullableContextOptions.SafeOnlyWarnings, parsedArgs.CompilationOptions.NullableContextOptions);
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:SafeonlyWarnings", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.SafeOnlyWarnings, parsedArgs.CompilationOptions.NullableContextOptions);
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'SafeonlyWarnings' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("SafeonlyWarnings").WithLocation(1, 1)
+                );
+            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable-", @"/nullable:safeonlyWarnings", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.SafeOnlyWarnings, parsedArgs.CompilationOptions.NullableContextOptions);
-
-            parsedArgs = DefaultParse(new[] { @"/nullable+", @"/nullable:safeonlyWarnings", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.SafeOnlyWarnings, parsedArgs.CompilationOptions.NullableContextOptions);
-
-            parsedArgs = DefaultParse(new[] { @"/nullable:safeonlyWarnings", @"/nullable-", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
+            parsedArgs.Errors.Verify(
+                // error CS8636: Invalid option 'safeonlyWarnings' for /nullable; must be 'disable', 'enable' or 'warnings'
+                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("safeonlyWarnings").WithLocation(1, 1)
+                );
             Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
-
-            parsedArgs = DefaultParse(new[] { @"/nullable:safeonlyWarnings", @"/nullable", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
-
-            parsedArgs = DefaultParse(new[] { @"/nullable:safeonlyWarnings", @"/nullable+", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
-
-            parsedArgs = DefaultParse(new[] { @"/nullable:safeonlyWarnings", @"/nullable:", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS2006: Command-line syntax error: Missing '<text>' for 'nullable' option
-                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "nullable").WithLocation(1, 1)
-                );
-            Assert.Equal(NullableContextOptions.SafeOnlyWarnings, parsedArgs.CompilationOptions.NullableContextOptions);
-
-            parsedArgs = DefaultParse(new[] { @"/nullable:safeonlyWarnings", @"/nullable:YES", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS8636: Invalid option 'YES' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'
-                Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("YES").WithLocation(1, 1)
-                );
-            Assert.Equal(NullableContextOptions.SafeOnlyWarnings, parsedArgs.CompilationOptions.NullableContextOptions);
-
-            parsedArgs = DefaultParse(new[] { @"/nullable:safeonlyWarnings", @"/nullable:disable", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.Disable, parsedArgs.CompilationOptions.NullableContextOptions);
-
-            parsedArgs = DefaultParse(new[] { @"/nullable:safeonlyWarnings", @"/nullable:enable", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
-
-            parsedArgs = DefaultParse(new[] { @"/nullable:safeonlyWarnings", @"/nullable:safeonlyWarnings", "/langversion:8", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(NullableContextOptions.SafeOnlyWarnings, parsedArgs.CompilationOptions.NullableContextOptions);
-
-            parsedArgs = DefaultParse(new[] { @"/nullable:safeonlyWarnings", "/langversion:7.0", "a.cs" }, WorkingDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS8630: Invalid 'nullable' value: 'SafeOnlyWarnings' for C# 7.0. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "SafeOnlyWarnings", "7.0", "preview").WithLocation(1, 1)
-                );
-            Assert.Equal(NullableContextOptions.SafeOnlyWarnings, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:warnings", "/langversion:7.0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
@@ -4743,7 +4730,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { @"/nullable:Warnings", @"/nullable:YES", "/langversion:8", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
-                // error CS8636: Invalid option 'YES' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'
+                // error CS8636: Invalid option 'YES' for /nullable; must be 'disable', 'enable' or 'warnings'
                 Diagnostic(ErrorCode.ERR_BadNullableContextOption).WithArguments("YES").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Warnings, parsedArgs.CompilationOptions.NullableContextOptions);
@@ -6265,27 +6252,25 @@ class C
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
 
-            var patched = Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(\\.\\d+)?", "version A.B.C.D");
+            var patched = Regex.Replace(outWriter.ToString().Trim(), "version \\d+\\.\\d+\\.\\d+(-[\\w\\d]+)*", "version A.B.C-d");
             patched = ReplaceCommitHash(patched);
             Assert.Equal(@"
-Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)
+Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)
 Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
                 patched);
-            // Privately queued builds have 3-part version numbers instead of 4.  Since we're throwing away the version number,
-            // making the last part optional will fix this.
 
             CleanupAllGeneratedFiles(file.Path);
         }
 
         [Theory,
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (<developer build>)",
-                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (ABCDEF01)",
-                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (abcdef90)",
-                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (12345678)",
-                "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)")]
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C-d (<developer build>)",
+                "Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C-d (ABCDEF01)",
+                "Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C-d (abcdef90)",
+                "Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)"),
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C-d (12345678)",
+                "Microsoft (R) Visual C# Compiler version A.B.C-d (HASH)")]
         public void TestReplaceCommitHash(string orig, string expected)
         {
             Assert.Equal(expected, ReplaceCommitHash(orig));
@@ -7756,7 +7741,7 @@ static void Main() {
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/preferreduilang:en", source.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal(Path.GetFileName(source) + "(7,17): warning CS1634: Expected disable, restore, enable or safeonly", outWriter.ToString().Trim());
+            Assert.Equal(Path.GetFileName(source) + "(7,17): warning CS1634: Expected disable, restore or enable", outWriter.ToString().Trim());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
             exitCode = CreateCSharpCompiler(null, baseDir, new[] { "/nologo", "/nowarn:1634", source.ToString() }).Run(outWriter);
@@ -8082,7 +8067,7 @@ class Program3
 
             var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/target:library /debug:portable {libSrc.Path}", startFolder: dir.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
-Microsoft (R) Visual C# Compiler version {s_compilerVersion} ({s_compilerShortCommitHash })
+Microsoft (R) Visual C# Compiler version {s_compilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             // reading original content from the memory map:
@@ -10242,7 +10227,6 @@ class Runner
         public void Version()
         {
             var folderName = Temp.CreateDirectory().ToString();
-            var expected = $"{FileVersionInfo.GetVersionInfo(typeof(CSharpCompiler).Assembly.Location).FileVersion} ({s_compilerShortCommitHash})";
             var argss = new[]
             {
                 "/version",
@@ -10254,7 +10238,7 @@ class Runner
             foreach (var args in argss)
             {
                 var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, args, startFolder: folderName);
-                Assert.Equal(expected, output.Trim());
+                Assert.Equal(s_compilerVersion, output.Trim());
             }
         }
 

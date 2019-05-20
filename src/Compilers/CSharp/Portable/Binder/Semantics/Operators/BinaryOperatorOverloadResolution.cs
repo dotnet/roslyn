@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -746,10 +747,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Return types must match exactly, parameters might match modulo identity conversion.
                     if (op.Signature.Kind == existingSignature.Kind && // Easy out
-                        op.Signature.ReturnType.Equals(existingSignature.ReturnType) &&
-                        op.Signature.LeftType.Equals(existingSignature.LeftType, TypeCompareKind.IgnoreDynamic) &&
-                        op.Signature.RightType.Equals(existingSignature.RightType, TypeCompareKind.IgnoreDynamic) &&
-                        op.Signature.Method.ContainingType.Equals(existingSignature.Method.ContainingType, TypeCompareKind.IgnoreDynamic))
+                        equalsIgnoringNullable(op.Signature.ReturnType, existingSignature.ReturnType) &&
+                        equalsIgnoringNullableAndDynamic(op.Signature.LeftType, existingSignature.LeftType) &&
+                        equalsIgnoringNullableAndDynamic(op.Signature.RightType, existingSignature.RightType) &&
+                        equalsIgnoringNullableAndDynamic(op.Signature.Method.ContainingType, existingSignature.Method.ContainingType))
                     {
                         equivalentToExisting = true;
                         break;
@@ -761,6 +762,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.Add(op);
                 }
             }
+
+            static bool equalsIgnoringNullable(TypeSymbol a, TypeSymbol b) => a.Equals(b, TypeCompareKind.AllNullableIgnoreOptions);
+            static bool equalsIgnoringNullableAndDynamic(TypeSymbol a, TypeSymbol b) => a.Equals(b, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreDynamic);
         }
 
         private bool GetUserDefinedOperators(

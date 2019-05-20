@@ -29150,7 +29150,7 @@ I4.M1
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
             if (m1.ContainingModule is PEModuleSymbol peModule)
             {
@@ -29703,7 +29703,7 @@ class Test1 : I1
             Assert.NotEqual(m1.OriginalDefinition is PEMethodSymbol, m1.IsExtern);
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
             if (m1.ContainingModule is PEModuleSymbol peModule)
             {
@@ -29793,7 +29793,7 @@ class Test1 : I1
                 Assert.False(m1.IsExtern);
                 Assert.NotEqual(m1 is PEMethodSymbol, m1.IsAsync);
                 Assert.False(m1.IsOverride);
-                Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
                 if (m1.ContainingModule is PEModuleSymbol peModule)
                 {
@@ -32211,7 +32211,7 @@ I4.M1
             Assert.False(m1.IsStatic);
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
             ValidateAccessor(m1.GetMethod);
             ValidateAccessor(m1.SetMethod);
@@ -32829,7 +32829,7 @@ class Test1 : I1
             Assert.False(m1.IsStatic);
             Assert.NotEqual(m1.OriginalDefinition is PEPropertySymbol, m1.IsExtern);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
             ValidateAccessor(m1.GetMethod);
             ValidateAccessor(m1.SetMethod);
@@ -34426,7 +34426,7 @@ I4.M1.remove
             Assert.False(m1.IsStatic);
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
             ValidateAccessor(m1.AddMethod);
             ValidateAccessor(m1.RemoveMethod);

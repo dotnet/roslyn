@@ -11223,7 +11223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.DisableKeyword:
         case SyntaxKind.RestoreKeyword:
         case SyntaxKind.EnableKeyword:
-        case SyntaxKind.SafeOnlyKeyword:
           break;
         default:
           throw new ArgumentException(nameof(disableOrRestoreKeyword));
@@ -11459,7 +11458,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.EnableKeyword:
         case SyntaxKind.DisableKeyword:
         case SyntaxKind.RestoreKeyword:
-        case SyntaxKind.SafeOnlyKeyword:
           break;
         default:
           throw new ArgumentException(nameof(settingToken));

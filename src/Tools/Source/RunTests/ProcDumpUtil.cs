@@ -11,22 +11,27 @@ namespace RunTests
     {
         private const string KeyProcDumpFilePath = "ProcDumpFilePath";
         private const string KeyProcDumpDirectory = "ProcDumpOutputPath";
+        private const string KeyProcDumpSecondaryDirectory = "ProcDumpSecondaryOutputPath";
 
         internal string ProcDumpFilePath { get; }
         internal string DumpDirectory { get; }
+        internal string SecondaryDumpDirectory { get; }
 
-        internal ProcDumpInfo(string procDumpFilePath, string dumpDirectory)
+        internal ProcDumpInfo(string procDumpFilePath, string dumpDirectory, string secondaryDumpDirectory)
         {
             Debug.Assert(Path.IsPathRooted(procDumpFilePath));
             Debug.Assert(Path.IsPathRooted(dumpDirectory));
+            Debug.Assert(Path.IsPathRooted(secondaryDumpDirectory));
             ProcDumpFilePath = procDumpFilePath;
             DumpDirectory = dumpDirectory;
+            SecondaryDumpDirectory = secondaryDumpDirectory;
         }
 
         internal void WriteEnvironmentVariables(Dictionary<string, string> environment)
         {
             environment[KeyProcDumpFilePath] = ProcDumpFilePath;
             environment[KeyProcDumpDirectory] = DumpDirectory;
+            environment[KeyProcDumpSecondaryDirectory] = SecondaryDumpDirectory;
         }
 
         internal static ProcDumpInfo? ReadFromEnvironment()
@@ -35,13 +40,14 @@ namespace RunTests
 
             var procDumpFilePath = Environment.GetEnvironmentVariable(KeyProcDumpFilePath);
             var dumpDirectory = Environment.GetEnvironmentVariable(KeyProcDumpDirectory);
+            var secondaryDumpDirectory = Environment.GetEnvironmentVariable(KeyProcDumpSecondaryDirectory);
 
-            if (!validate(procDumpFilePath) || !validate(dumpDirectory))
+            if (!validate(procDumpFilePath) || !validate(dumpDirectory) || !validate(secondaryDumpDirectory))
             {
                 return null;
             }
 
-            return new ProcDumpInfo(procDumpFilePath, dumpDirectory);
+            return new ProcDumpInfo(procDumpFilePath, dumpDirectory, secondaryDumpDirectory);
         }
     }
 

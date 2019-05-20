@@ -694,6 +694,27 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
+        /// </summary>
+        internal static string Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names {
+            get {
+                return ResourceManager.GetString(@"Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc_These_are_treated_as_special_discard_symbol_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
+        /// </summary>
+        internal static string Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names {
+            get {
+                return ResourceManager.GetString("Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_ch" +
+                        "ange_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_i" +
+                        "nteger_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbo" +
+                        "l_names", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Awaited task returns.
         /// </summary>
         internal static string Awaited_task_returns {
@@ -1860,6 +1881,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string in_Source {
             get {
                 return ResourceManager.GetString("in_Source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to in Source (attribute).
+        /// </summary>
+        internal static string in_Source_attribute {
+            get {
+                return ResourceManager.GetString("in_Source_attribute", resourceCulture);
             }
         }
         
@@ -3754,6 +3784,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unnecessary assignment of a value.
+        /// </summary>
+        internal static string Unnecessary_assignment_of_a_value {
+            get {
+                return ResourceManager.GetString("Unnecessary_assignment_of_a_value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unnecessary assignment of a value to &apos;{0}&apos;.
+        /// </summary>
+        internal static string Unnecessary_assignment_of_a_value_to_0 {
+            get {
+                return ResourceManager.GetString("Unnecessary_assignment_of_a_value_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unreachable code detected.
         /// </summary>
         internal static string Unreachable_code_detected {
@@ -4409,24 +4457,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string using_statement_can_be_simplified {
             get {
                 return ResourceManager.GetString("using_statement_can_be_simplified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value assigned to &apos;{0}&apos; is never used.
-        /// </summary>
-        internal static string Value_assigned_to_0_is_never_used {
-            get {
-                return ResourceManager.GetString("Value_assigned_to_0_is_never_used", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Value assigned to symbol is never used.
-        /// </summary>
-        internal static string Value_assigned_to_symbol_is_never_used {
-            get {
-                return ResourceManager.GetString("Value_assigned_to_symbol_is_never_used", resourceCulture);
             }
         }
         

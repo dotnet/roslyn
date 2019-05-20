@@ -144,9 +144,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
             {
-                if ((mods & DeclarationModifiers.Partial) == 0)
+                if ((mods & DeclarationModifiers.Partial) == 0 && !isExplicitInterfaceImplementation)
                 {
-                    mods |= isExplicitInterfaceImplementation ? DeclarationModifiers.Protected : DeclarationModifiers.Public;
+                    mods |= DeclarationModifiers.Public;
                 }
                 else
                 {
