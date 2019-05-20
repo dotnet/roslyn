@@ -91,10 +91,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (_variableSlot.TryGetValue(new VariableIdentifier(symbol, containingSlot), out slot)) ? slot : -1;
         }
 
+        protected virtual bool IsEmptyStructType(TypeSymbol type)
+        {
+            return _emptyStructTypeCache.IsEmptyStructType(type);
+        }
+
         /// <summary>
         /// Force a variable to have a slot.  Returns -1 if the variable has an empty struct type.
         /// </summary>
-        protected virtual int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
+        protected int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
@@ -107,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_variableSlot.TryGetValue(identifier, out slot))
             {
                 var variableType = symbol.GetTypeOrReturnType().Type;
-                if (!forceSlotEvenIfEmpty && _emptyStructTypeCache.IsEmptyStructType(variableType))
+                if (!forceSlotEvenIfEmpty && IsEmptyStructType(variableType))
                 {
                     return -1;
                 }

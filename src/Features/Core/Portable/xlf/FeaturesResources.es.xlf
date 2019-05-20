@@ -222,6 +222,11 @@
         <target state="translated">Combinar con la instrucción "{0}" anterior</target>
         <note />
       </trans-unit>
+      <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
+        <source>{0} must return a stream that supports read and seek operations.</source>
+        <target state="new">{0} must return a stream that supports read and seek operations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="translated">Mover contenido al espacio de nombres...</target>
@@ -345,6 +350,11 @@
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
         <target state="translated">Dividir en instrucciones "{0}" anidadas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="new">Stream must support read and seek operations.</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">

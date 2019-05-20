@@ -20,9 +20,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
 
