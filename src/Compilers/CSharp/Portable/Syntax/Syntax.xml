@@ -642,51 +642,51 @@
     </FactoryComment>
   </Node>
   <Node Name="AssignmentExpressionSyntax" Base="ExpressionSyntax">
-      <Kind Name="SimpleAssignmentExpression"/>
-      <Kind Name="AddAssignmentExpression"/>
-      <Kind Name="SubtractAssignmentExpression"/>
-      <Kind Name="MultiplyAssignmentExpression"/>
-      <Kind Name="DivideAssignmentExpression"/>
-      <Kind Name="ModuloAssignmentExpression"/>
-      <Kind Name="AndAssignmentExpression"/>
-      <Kind Name="ExclusiveOrAssignmentExpression"/>
-      <Kind Name="OrAssignmentExpression"/>
-      <Kind Name="LeftShiftAssignmentExpression"/>
-      <Kind Name="RightShiftAssignmentExpression"/>
-      <Kind Name="CoalesceAssignmentExpression" />
-      <Field Name="Left" Type="ExpressionSyntax">
-        <PropertyComment>
-          <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
-        </PropertyComment>
-      </Field>
-      <Field Name="OperatorToken" Type="SyntaxToken">
-        <Kind Name="EqualsToken"/>
-        <Kind Name="PlusEqualsToken"/>
-        <Kind Name="MinusEqualsToken"/>
-        <Kind Name="AsteriskEqualsToken"/>
-        <Kind Name="SlashEqualsToken"/>
-        <Kind Name="PercentEqualsToken"/>
-        <Kind Name="AmpersandEqualsToken"/>
-        <Kind Name="CaretEqualsToken"/>
-        <Kind Name="BarEqualsToken"/>
-        <Kind Name="LessThanLessThanEqualsToken"/>
-        <Kind Name="GreaterThanGreaterThanEqualsToken"/>
-        <Kind Name="QuestionQuestionEqualsToken" />
-        <PropertyComment>
-          <summary>SyntaxToken representing the operator of the assignment expression.</summary>
-        </PropertyComment>
-      </Field>
-      <Field Name="Right" Type="ExpressionSyntax">
-        <PropertyComment>
-          <summary>ExpressionSyntax node representing the expression on the right of the assignment operator.</summary>
-        </PropertyComment>
-      </Field>
-      <TypeComment>
-        <summary>Class which represents an expression that has an assignment operator.</summary>
-      </TypeComment>
-      <FactoryComment>
-        <summary>Creates an AssignmentExpressionSyntax node.</summary>
-      </FactoryComment>
+    <Kind Name="SimpleAssignmentExpression"/>
+    <Kind Name="AddAssignmentExpression"/>
+    <Kind Name="SubtractAssignmentExpression"/>
+    <Kind Name="MultiplyAssignmentExpression"/>
+    <Kind Name="DivideAssignmentExpression"/>
+    <Kind Name="ModuloAssignmentExpression"/>
+    <Kind Name="AndAssignmentExpression"/>
+    <Kind Name="ExclusiveOrAssignmentExpression"/>
+    <Kind Name="OrAssignmentExpression"/>
+    <Kind Name="LeftShiftAssignmentExpression"/>
+    <Kind Name="RightShiftAssignmentExpression"/>
+    <Kind Name="CoalesceAssignmentExpression" />
+    <Field Name="Left" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="EqualsToken"/>
+      <Kind Name="PlusEqualsToken"/>
+      <Kind Name="MinusEqualsToken"/>
+      <Kind Name="AsteriskEqualsToken"/>
+      <Kind Name="SlashEqualsToken"/>
+      <Kind Name="PercentEqualsToken"/>
+      <Kind Name="AmpersandEqualsToken"/>
+      <Kind Name="CaretEqualsToken"/>
+      <Kind Name="BarEqualsToken"/>
+      <Kind Name="LessThanLessThanEqualsToken"/>
+      <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+      <Kind Name="QuestionQuestionEqualsToken" />
+      <PropertyComment>
+        <summary>SyntaxToken representing the operator of the assignment expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Right" Type="ExpressionSyntax">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression on the right of the assignment operator.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents an expression that has an assignment operator.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an AssignmentExpressionSyntax node.</summary>
+    </FactoryComment>
   </Node>
   <Node Name="ConditionalExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ConditionalExpression"/>
@@ -1756,9 +1756,9 @@
   <Node Name="IsPatternExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="IsPatternExpression"/>
     <Field Name="Expression" Type="ExpressionSyntax">
-    <PropertyComment>
-      <summary>ExpressionSyntax node representing the expression on the left of the "is" operator.</summary>
-    </PropertyComment>
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression on the left of the "is" operator.</summary>
+      </PropertyComment>
     </Field>
     <Field Name="IsKeyword" Type="SyntaxToken">
       <Kind Name="IsKeyword"/>
@@ -2264,10 +2264,10 @@
     <Field Name="Variable" Type="ExpressionSyntax">
       <PropertyComment>
         <summary>
-           The variable(s) of the loop. In correct code this is a tuple
-           literal, declaration expression with a tuple designator, or
-           a discard syntax in the form of a simple identifier. In broken
-           code it could be something else.
+          The variable(s) of the loop. In correct code this is a tuple
+          literal, declaration expression with a tuple designator, or
+          a discard syntax in the form of a simple identifier. In broken
+          code it could be something else.
         </summary>
       </PropertyComment>
     </Field>
@@ -4462,7 +4462,7 @@
     <Kind Name="LoadDirectiveTrivia"/>
     <Field Name="HashToken" Type="SyntaxToken" Override="true">
       <Kind Name="HashToken"/>
-      
+
     </Field>
     <Field Name="LoadKeyword" Type="SyntaxToken">
       <Kind Name="LoadKeyword"/>

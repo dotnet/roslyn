@@ -11217,7 +11217,7 @@ tryAgain:
                 if (peek1.Kind != SyntaxKind.CommaToken &&
                     peek1.Kind != SyntaxKind.CloseParenToken &&
                     peek1.Kind != SyntaxKind.EqualsGreaterThanToken &&
-                    peek1.Kind != SyntaxKind.OpenBraceToken && 
+                    peek1.Kind != SyntaxKind.OpenBraceToken &&
                     peek1.Kind != SyntaxKind.ExclamationToken)
                 {
                     return true;
