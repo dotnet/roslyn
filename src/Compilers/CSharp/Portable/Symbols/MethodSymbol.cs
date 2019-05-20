@@ -355,6 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract Symbol AssociatedSymbol { get; }
 
+        public virtual bool IsStaticLocalFunction => false;
+
         /// <summary>
         /// Returns the original virtual or abstract method which a given method symbol overrides,
         /// ignoring any other overriding methods in base classes.

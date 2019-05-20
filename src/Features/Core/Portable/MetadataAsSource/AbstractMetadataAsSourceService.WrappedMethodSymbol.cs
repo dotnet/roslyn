@@ -123,6 +123,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsVararg => _symbol.IsVararg;
 
             public bool IsCheckedBuiltin => _symbol.IsCheckedBuiltin;
+
+            public bool IsStaticLocalFunction => false;
         }
     }
 }

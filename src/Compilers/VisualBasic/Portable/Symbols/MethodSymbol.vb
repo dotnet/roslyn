@@ -1072,6 +1072,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.AssociatedAnonymousDelegate
             End Get
         End Property
+
+        Public ReadOnly Property IsStaticLocalFunction As Boolean Implements IMethodSymbol.IsStaticLocalFunction
+            Get
+                Return False
+            End Get
+        End Property
 #End Region
 
 #Region "IMethodSymbolInternal"

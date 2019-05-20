@@ -252,5 +252,7 @@ namespace Microsoft.CodeAnalysis
         /// anonymous delegate associated with it.
         /// </summary>
         INamedTypeSymbol AssociatedAnonymousDelegate { get; }
+
+        bool IsStaticLocalFunction { get; }
     }
 }

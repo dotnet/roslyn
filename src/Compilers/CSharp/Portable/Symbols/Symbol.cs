@@ -341,8 +341,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract Accessibility DeclaredAccessibility { get; }
 
         /// <summary>
-        /// Returns true if this symbol is "static"; i.e., declared with the <c>static</c> modifier or
-        /// implicitly static.
+        /// Returns true if this symbol is "static"; 
+        /// This is true if any of the following are true: 
+        /// a) the symbol was declared with the <c>static</c> modifier
+        /// b) the symbol is a member which does not require an implicit instance reciever
+        /// c) the symbol is a namespace symbol
         /// </summary>
         public abstract bool IsStatic { get; }
 
