@@ -62,6 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public static ContainedDocument TryGetContainedDocument(DocumentId id)
         {
+            // Liveshare creates their own non-VS workspace which downloads files from the host.
+            // In such a case, a null id can be passed in, so check before attempting to retrieve the document.
             if (id == null)
             {
                 return null;
