@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 IMethodSymbol invokedMethod,
                 (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
                 (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCallerOpt,
-                ImmutableArray<ArgumentInfo<CopyAbstractValue>> argumentValues,
+                ImmutableDictionary<IParameterSymbol, ArgumentInfo<CopyAbstractValue>> argumentValuesMap,
                 IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
                 IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
                 IDictionary<AnalysisEntity, ValueContentAbstractValue> valueContentValuesOpt,
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             {
                 copyValuesOpt = CurrentAnalysisData.CoreAnalysisData;
                 var initialAnalysisData = base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt,
-                    thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt, copyValuesOpt, valueContentValuesOpt,
+                    thisOrMeInstanceForCallerOpt, argumentValuesMap, pointsToValuesOpt, copyValuesOpt, valueContentValuesOpt,
                     isLambdaOrLocalFunction, hasParameterWithDelegateType);
                 AssertValidCopyAnalysisData(initialAnalysisData);
                 return initialAnalysisData;
