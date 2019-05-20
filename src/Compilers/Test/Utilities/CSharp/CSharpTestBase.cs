@@ -52,38 +52,58 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected const string NotNullWhenTrueAttributeDefinition = @"
+        protected const string AllowNullAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Parameter,
-                   AllowMultiple = false)]
-    public class NotNullWhenTrueAttribute : Attribute
+    public sealed class AllowNullAttribute : Attribute
     {
-        public NotNullWhenTrueAttribute() { }
+    }
+}";
+
+        protected const string DisallowNullAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    public sealed class DisallowNullAttribute : Attribute
+    {
+    }
+}";
+
+        protected const string MaybeNullAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    public sealed class MaybeNullAttribute : Attribute
+    {
     }
 }
 ";
 
-        protected const string NotNullWhenFalseAttributeDefinition = @"
+        protected const string MaybeNullWhenAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Parameter,
-                   AllowMultiple = false)]
-    public class NotNullWhenFalseAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class MaybeNullWhenAttribute : Attribute
     {
-        public NotNullWhenFalseAttribute() { }
+        public MaybeNullWhenAttribute(bool when) { }
     }
 }
 ";
 
-        protected const string EnsuresNotNullAttributeDefinition = @"
+        protected const string NotNullAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Parameter,
-                   AllowMultiple = false)]
-    public class EnsuresNotNullAttribute : Attribute
+    public sealed class NotNullAttribute : Attribute
     {
-        public EnsuresNotNullAttribute() { }
+    }
+}
+";
+
+        protected const string NotNullWhenAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public sealed class NotNullWhenAttribute : Attribute
+    {
+        public NotNullWhenAttribute(bool when) { }
     }
 }
 ";

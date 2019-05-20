@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.PooledObjects;
-using static Microsoft.CodeAnalysis.CSharp.Symbols.FlowAnalysisAnnotations;
+using static Microsoft.CodeAnalysis.CSharp.FlowAnalysisAnnotations;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 { "System.Boolean System.String.IsNullOrEmpty(System.String)", Array(default, NotNullWhenFalse) },
                 { "System.Boolean System.String.IsNullOrWhiteSpace(System.String)", Array(default, NotNullWhenFalse) },
-                { "System.Boolean System.String.Contains(System.String)", Array(default, EnsuresNotNull) },
+                { "System.Boolean System.String.Contains(System.String)", Array(default, NotNull) },
                 { "System.Void System.Diagnostics.Debug.Assert(System.Boolean)", Array(default, AssertsTrue) },
                 { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String)", Array(default, AssertsTrue, default) },
                 { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String)", Array(default, AssertsTrue, default, default) },
