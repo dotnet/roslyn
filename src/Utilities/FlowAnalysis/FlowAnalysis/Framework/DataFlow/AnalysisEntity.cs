@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(instanceReferenceOperation != null);
         }
 
-        private AnalysisEntity(InterproceduralCaptureId captureId, ITypeSymbol capturedType)
+        private AnalysisEntity(InterproceduralCaptureId captureId, ITypeSymbol capturedType, PointsToAbstractValue location)
             : this(symbolOpt: null, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntaxOpt: null,
-                  captureIdOpt: captureId, location: PointsToAbstractValue.NoLocation, type: capturedType, parentOpt: null, isThisOrMeInstance: false)
+                  captureIdOpt: captureId, location: location, type: capturedType, parentOpt: null, isThisOrMeInstance: false)
         {
         }
 
@@ -111,13 +111,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         public static AnalysisEntity Create(
-            CaptureId captureId,
+            InterproceduralCaptureId interproceduralCaptureId,
             ITypeSymbol type,
-            ControlFlowGraph controlFlowGraph,
-            bool isLValueFlowCapture)
+            PointsToAbstractValue instanceLocation)
         {
-            var interproceduralCaptureId = new InterproceduralCaptureId(captureId, controlFlowGraph, isLValueFlowCapture);
-            return new AnalysisEntity(interproceduralCaptureId, type);
+            return new AnalysisEntity(interproceduralCaptureId, type, instanceLocation);
         }
 
         public static AnalysisEntity CreateThisOrMeInstance(INamedTypeSymbol typeSymbol, PointsToAbstractValue instanceLocation)
@@ -278,5 +276,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             return false;
         }
+
+        internal bool IsCandidatePredicateEntity()
+            => Type.SpecialType == SpecialType.System_Boolean ||
+               Type.IsNullableOfBoolean() ||
+               Type.Language == LanguageNames.VisualBasic && Type.SpecialType == SpecialType.System_Object;
     }
 }

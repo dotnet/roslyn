@@ -24,15 +24,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     ///     1. An allocation or an object creation operation (<see cref="CreateAllocationLocation(IOperation, ITypeSymbol, PointsToAnalysisContext)"/>).
     ///     2. Location for the implicit 'this' or 'Me' instance being analyzed (<see cref="CreateThisOrMeLocation(INamedTypeSymbol, ImmutableStack{IOperation})"/>).
     ///     3. Location created for certain symbols which do not have a declaration in executable code, i.e. no <see cref="IOperation"/> for declaration (such as parameter symbols, member symbols, etc. - <see cref="CreateSymbolLocation(ISymbol, ImmutableStack{IOperation})"/>/>).
+    ///     4. Location created for flow capture entities, i.e. for <see cref="InterproceduralCaptureId"/> created for <see cref="IFlowCaptureOperation"/> or <see cref="IFlowCaptureReferenceOperation"/>.
+    ///        See <see cref="CreateFlowCaptureLocation(InterproceduralCaptureId, ITypeSymbol, ImmutableStack{IOperation})"/>
     /// </para>
     /// </summary>
     public sealed class AbstractLocation : CacheBasedEquatable<AbstractLocation>
     {
         private readonly bool _isSpecialSingleton;
-        public static readonly AbstractLocation Null = new AbstractLocation(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: null, locationTypeOpt: null, isSpecialSingleton: true);
-        public static readonly AbstractLocation NoLocation = new AbstractLocation(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: null, locationTypeOpt: null, isSpecialSingleton: true);
+        public static readonly AbstractLocation Null = new AbstractLocation(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: null, locationTypeOpt: null, isSpecialSingleton: true);
+        public static readonly AbstractLocation NoLocation = new AbstractLocation(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: null, locationTypeOpt: null, isSpecialSingleton: true);
 
-        private AbstractLocation(IOperation creationOpt, ImmutableStack<IOperation> creationCallStackOpt, AnalysisEntity analysisEntityOpt, ISymbol symbolOpt, ITypeSymbol locationTypeOpt, bool isSpecialSingleton)
+        private AbstractLocation(IOperation creationOpt, ImmutableStack<IOperation> creationCallStackOpt, AnalysisEntity analysisEntityOpt, ISymbol symbolOpt, InterproceduralCaptureId? captureIdOpt, ITypeSymbol locationTypeOpt, bool isSpecialSingleton)
         {
             Debug.Assert(isSpecialSingleton ^ (locationTypeOpt != null));
 
@@ -40,31 +42,35 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             CreationCallStack = creationCallStackOpt ?? ImmutableStack<IOperation>.Empty;
             AnalysisEntityOpt = analysisEntityOpt;
             SymbolOpt = symbolOpt;
+            CaptureIdOpt = captureIdOpt;
             LocationTypeOpt = locationTypeOpt;
             _isSpecialSingleton = isSpecialSingleton;
         }
 
-        private static AbstractLocation Create(IOperation creationOpt, ImmutableStack<IOperation> creationCallStackOpt, AnalysisEntity analysisEntityOpt, ISymbol symbolOpt, ITypeSymbol locationType)
+        private static AbstractLocation Create(IOperation creationOpt, ImmutableStack<IOperation> creationCallStackOpt, AnalysisEntity analysisEntityOpt, ISymbol symbolOpt, InterproceduralCaptureId? captureIdOpt, ITypeSymbol locationType)
         {
-            Debug.Assert(creationOpt != null ^ symbolOpt != null ^ analysisEntityOpt != null);
+            Debug.Assert(creationOpt != null ^ symbolOpt != null ^ analysisEntityOpt != null ^ captureIdOpt != null);
             Debug.Assert(locationType != null);
 
-            return new AbstractLocation(creationOpt, creationCallStackOpt, analysisEntityOpt, symbolOpt, locationType, isSpecialSingleton: false);
+            return new AbstractLocation(creationOpt, creationCallStackOpt, analysisEntityOpt, symbolOpt, captureIdOpt, locationType, isSpecialSingleton: false);
         }
 
         public static AbstractLocation CreateAllocationLocation(IOperation creation, ITypeSymbol locationType, PointsToAnalysisContext analysisContext)
-            => Create(creation, analysisContext.InterproceduralAnalysisDataOpt?.CallStack, analysisEntityOpt: null, symbolOpt: null, locationType: locationType);
+            => Create(creation, analysisContext.InterproceduralAnalysisDataOpt?.CallStack, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: null, locationType: locationType);
         public static AbstractLocation CreateAnalysisEntityDefaultLocation(AnalysisEntity analysisEntity)
-            => Create(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: analysisEntity, symbolOpt: null, locationType: analysisEntity.Type);
+            => Create(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: analysisEntity, symbolOpt: null, captureIdOpt: null, locationType: analysisEntity.Type);
         public static AbstractLocation CreateThisOrMeLocation(INamedTypeSymbol namedTypeSymbol, ImmutableStack<IOperation> creationCallStackOpt)
-            => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: namedTypeSymbol, locationType: namedTypeSymbol);
+            => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: namedTypeSymbol, captureIdOpt: null, locationType: namedTypeSymbol);
         public static AbstractLocation CreateSymbolLocation(ISymbol symbol, ImmutableStack<IOperation> creationCallStackOpt)
-            => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: symbol, locationType: symbol.GetMemerOrLocalOrParameterType());
+            => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: symbol, captureIdOpt: null, locationType: symbol.GetMemerOrLocalOrParameterType());
+        public static AbstractLocation CreateFlowCaptureLocation(InterproceduralCaptureId captureId, ITypeSymbol locationType, ImmutableStack<IOperation> creationCallStackOpt)
+            => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: captureId, locationType: locationType);
 
         public IOperation CreationOpt { get; }
         public ImmutableStack<IOperation> CreationCallStack { get; }
         public AnalysisEntity AnalysisEntityOpt { get; }
         public ISymbol SymbolOpt { get; }
+        public InterproceduralCaptureId? CaptureIdOpt { get; }
         public ITypeSymbol LocationTypeOpt { get; }
         public bool IsNull => ReferenceEquals(this, Null);
         public bool IsNoLocation => ReferenceEquals(this, NoLocation);
@@ -75,6 +81,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             builder.Add(CreationOpt.GetHashCodeOrDefault());
             builder.Add(HashUtilities.Combine(CreationCallStack));
             builder.Add(SymbolOpt.GetHashCodeOrDefault());
+            builder.Add(CaptureIdOpt.GetHashCodeOrDefault());
             builder.Add(AnalysisEntityOpt.GetHashCodeOrDefault());
             builder.Add(LocationTypeOpt.GetHashCodeOrDefault());
             builder.Add(_isSpecialSingleton.GetHashCode());
