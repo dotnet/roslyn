@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 receiver = VisitExpression(ref builder, node.ReceiverOpt);
             }
-            else if (!node.Method.IsStatic)
+            else if (node.Method.RequiresInstanceReciever)
             {
                 // spill the receiver if there were await expressions in the arguments
                 var receiverBuilder = new BoundSpillSequenceBuilder();

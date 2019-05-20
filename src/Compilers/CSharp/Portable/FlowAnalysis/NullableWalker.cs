@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            Debug.Assert(member?.IsStatic != true);
+            Debug.Assert(member?.RequiresInstanceReciever ?? true);
 
             return (object)member != null &&
                 (object)receiver != null &&
@@ -2737,7 +2737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var type = receiverType.Type;
                 var method = node.Method;
-                if (!method.IsStatic &&
+                if (method.RequiresInstanceReciever &&
                     type?.IsNullableType() == true &&
                     method.ContainingType.IsReferenceType)
                 {
@@ -5371,7 +5371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = (receiverOpt != null) ? VisitRvalueWithState(receiverOpt) : default;
 
             SpecialMember? nullableOfTMember = null;
-            if (!member.IsStatic)
+            if (member.RequiresInstanceReciever)
             {
                 member = AsMemberOfType(receiverType.Type, member);
                 nullableOfTMember = GetNullableOfTMember(member);

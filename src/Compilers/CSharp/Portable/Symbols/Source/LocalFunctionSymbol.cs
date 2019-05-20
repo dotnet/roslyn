@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
-                DeclarationModifiers.Static |
                 syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics);
 
             this.CheckUnsafeModifier(_declarationModifiers, _declarationDiagnostics);
@@ -127,6 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
             => _declarationDiagnostics.AddRange(diagnostics);
+
+        public override bool RequiresInstanceReciever => false;
 
         public override bool IsVararg
         {
@@ -285,9 +286,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
             }
         }
-
-        // Replace with IsStatic after fixing https://github.com/dotnet/roslyn/issues/27719.
-        internal bool IsStaticLocalFunction => _syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
 
         internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
         {

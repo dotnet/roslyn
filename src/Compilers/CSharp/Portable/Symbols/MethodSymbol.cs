@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         CodeAnalysis.NullableAnnotation IMethodSymbol.ReceiverNullableAnnotation => ReceiverNullableAnnotation;
 
         protected virtual CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
-            IsStatic ? CodeAnalysis.NullableAnnotation.NotApplicable : CodeAnalysis.NullableAnnotation.NotAnnotated;
+            RequiresInstanceReciever ? CodeAnalysis.NullableAnnotation.NotAnnotated : CodeAnalysis.NullableAnnotation.NotApplicable;
 
         IMethodSymbol IMethodSymbol.ReducedFrom
         {

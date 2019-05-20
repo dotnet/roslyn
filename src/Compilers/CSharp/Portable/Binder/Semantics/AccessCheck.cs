@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                 case SymbolKind.Field:
-                    if (symbol.IsStatic)
+                    if (!symbol.RequiresInstanceReciever)
                     {
                         // static members aren't accessed "through" an "instance" of any type.  So we
                         // null out the "through" instance here.  This ensures that we'll understand

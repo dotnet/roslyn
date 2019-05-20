@@ -347,6 +347,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract bool IsStatic { get; }
 
         /// <summary>
+        /// Returns true if this symbol requires an instance reference as the implicit reciever. This is false if the symbol is static, or a <see cref="LocalFunctionSymbol"/>
+        /// </summary>
+        public virtual bool RequiresInstanceReciever => !IsStatic;
+
+        /// <summary>
         /// Returns true if this symbol is "virtual", has an implementation, and does not override a
         /// base class member; i.e., declared with the <c>virtual</c> modifier. Does not return true for
         /// members declared as abstract or override.
