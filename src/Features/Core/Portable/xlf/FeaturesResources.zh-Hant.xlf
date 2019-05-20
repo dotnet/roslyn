@@ -222,6 +222,11 @@
         <target state="translated">與上一個 '{0}' 陳述式合併</target>
         <note />
       </trans-unit>
+      <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
+        <source>{0} must return a stream that supports read and seek operations.</source>
+        <target state="new">{0} must return a stream that supports read and seek operations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
         <target state="translated">將內容移到命名空間...</target>
@@ -345,6 +350,11 @@
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
         <target state="translated">分割成巢狀 '{0}' 陳述式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="new">Stream must support read and seek operations.</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
