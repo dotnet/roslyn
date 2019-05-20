@@ -3817,7 +3817,6 @@ tryAgain:
 
             TypeSyntax type;
             SyntaxToken name;
-            SyntaxToken exclamation = null;
             if (this.CurrentToken.Kind != SyntaxKind.ArgListKeyword)
             {
                 type = this.ParseType(mode: ParseTypeMode.Parameter);
@@ -3839,10 +3838,7 @@ tryAgain:
                 type = null;
                 name = this.EatToken(SyntaxKind.ArgListKeyword);
             }
-            if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
-            {
-                exclamation = this.EatToken(SyntaxKind.ExclamationToken);
-            }
+            var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationToken ? this.EatToken(SyntaxKind.ExclamationToken) : null;
             EqualsValueClauseSyntax def = null;
             if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
             {
@@ -11039,7 +11035,6 @@ tryAgain:
 
         private LambdaExpressionSyntax ParseLambdaExpression(SyntaxToken asyncToken)
         {
-            SyntaxToken exclamation = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 var paramList = this.ParseLambdaParameterList();
@@ -11052,10 +11047,7 @@ tryAgain:
             else
             {
                 var name = this.ParseIdentifierToken();
-                if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
-                {
-                    exclamation = this.EatToken(SyntaxKind.ExclamationToken);
-                }
+                var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationToken ? this.EatToken(SyntaxKind.ExclamationToken) : null;
                 var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                 arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
 
