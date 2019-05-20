@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -58,8 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             try
             {
-
-                await _rpc.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                // convert to array until the bug is fixed - https://github.com/microsoft/vs-streamjsonrpc/issues/272
+                await _rpc.InvokeWithCancellationAsync(targetName, arguments?.ToArray(), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
@@ -73,7 +74,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             try
             {
-                return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                // convert to array until the bug is fixed - https://github.com/microsoft/vs-streamjsonrpc/issues/272
+                return await _rpc.InvokeWithCancellationAsync<T>(targetName, arguments?.ToArray(), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {

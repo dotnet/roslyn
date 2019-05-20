@@ -99,7 +99,6 @@
       
       <_Dependency Remove="Nerdbank.Streams"/>
       <_Dependency Remove="System.IO.Pipelines"/>
-      <_Dependency Remove="System.ValueTuple"/>
     -->
     <ItemGroup>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.VisualStudio.'))"/>
@@ -115,7 +114,6 @@
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="Nerdbank.Streams"/>
       <_Dependency Remove="System.IO.Pipelines"/>
-      <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
