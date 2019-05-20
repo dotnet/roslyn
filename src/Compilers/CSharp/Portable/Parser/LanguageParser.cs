@@ -9542,19 +9542,22 @@ tryAgain:
             if (precedence <= Precedence.Lambda)
             {
                 if (this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken)
+                {
                     return true;
+                }
                 else if (this.PeekToken(1).Kind == SyntaxKind.ExclamationToken)
                 {
                     if ((this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken) ||
                             (this.PeekToken(2).Kind == SyntaxKind.CommaToken))
+                    {
                         return true;
+                    }
                 }
             }
             if (ScanAsyncLambda(precedence))
             {
                 return true;
             }
-
             return false;
         }
 
