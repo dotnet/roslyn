@@ -176,7 +176,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         public async Task<IList<Diagnostic>> GetDocumentDiagnosticsAsync(Document document = null)
         {
             document = document ?? this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
+#pragma warning disable CS0618 // Type or member is obsolete
             var analyzer = new RenameTrackingDiagnosticAnalyzer();
+#pragma warning restore CS0618 // Type or member is obsolete
             return (await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(analyzer, document,
                 (await document.GetSyntaxRootAsync()).FullSpan)).ToList();
         }
@@ -197,7 +199,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
             // There should be a single rename tracking diagnostic
             Assert.Equal(1, diagnostics.Count);
+#pragma warning disable CS0618 // Type or member is obsolete
             Assert.Equal(RenameTrackingDiagnosticAnalyzer.DiagnosticId, diagnostics[0].Id);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             var actions = new List<CodeAction>();
             var context = new CodeFixContext(document, diagnostics[0], (a, d) => actions.Add(a), CancellationToken.None);

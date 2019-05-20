@@ -144,8 +144,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             var message = string.Format(
                 EditorFeaturesResources.Rename_0_to_1,
+#pragma warning disable CS0618 // Type or member is obsolete
                 diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey],
                 diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey]);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             return new RenameTrackingCodeAction(document, message, refactorNotifyServices, undoHistoryRegistry);
         }

@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
+        [Obsolete("In-process analyzer restrictions are obsolete.")]
         public static bool IsInProcessOnly(this DiagnosticAnalyzer analyzer)
             => analyzer is IInProcessAnalyzer;
 

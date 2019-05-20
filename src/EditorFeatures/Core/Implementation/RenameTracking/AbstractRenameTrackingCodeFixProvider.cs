@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             get { return ImmutableArray.Create(RenameTrackingDiagnosticAnalyzer.DiagnosticId); }
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)

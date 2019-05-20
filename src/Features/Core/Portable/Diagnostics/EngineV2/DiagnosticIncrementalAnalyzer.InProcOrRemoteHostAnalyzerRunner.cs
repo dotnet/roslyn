@@ -65,7 +65,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 //
                 // we have this open file analyzers since some of our built in analyzers such as SimplifyTypeNamesDiagnosticAnalyzer are too
                 // slow to run for whole solution when full solution analysis is on. easily taking more than an hour to run whole solution.
+#pragma warning disable CS0618 // Type or member is obsolete
                 var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => (forcedAnalysis || !a.IsOpenFileOnly(workspace)) && a.IsInProcessOnly()), project, remoteHostClient, cancellationToken);
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 // out of proc analysis will use 2 source of analyzers. one is AnalyzerReference from project (nuget). and the other is host analyzers (vsix) 
                 // that are not part of roslyn solution. these host analyzers must be sync to OOP before hand by the Host. 
@@ -149,7 +151,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analyzerMap = pooledObject.Object;
 
+#pragma warning disable CS0618 // Type or member is obsolete
                     analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.IsInProcessOnly() && (forcedAnalysis || !a.IsOpenFileOnly(solution.Workspace))));
+#pragma warning restore CS0618 // Type or member is obsolete
                     if (analyzerMap.Count == 0)
                     {
                         return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);

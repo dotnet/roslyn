@@ -298,8 +298,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         var textSpan = snapshotSpan.Span.ToTextSpan();
 
                         var builder = ImmutableDictionary.CreateBuilder<string, string>();
+#pragma warning disable CS0618 // Type or member is obsolete
                         builder.Add(RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey, trackingSession.OriginalName);
                         builder.Add(RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey, snapshotSpan.GetText());
+#pragma warning restore CS0618 // Type or member is obsolete
                         var properties = builder.ToImmutable();
 
                         var diagnostic = Diagnostic.Create(diagnosticDescriptor,
