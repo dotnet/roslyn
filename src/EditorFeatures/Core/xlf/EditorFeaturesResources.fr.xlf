@@ -97,6 +97,11 @@
         <target state="translated">Symbole - statique</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="new">The symbol has no base.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Members_Constants">
         <source>User Members - Constants</source>
         <target state="translated">Membres utilisateurs - constantes</target>
@@ -310,6 +315,11 @@
       <trans-unit id="Rename_will_update_0_references_in_1_files">
         <source>Rename will update {0} references in {1} files.</source>
         <target state="translated">Le renommage va entraîner la mise à jour de {0} références dans {1} fichiers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="new">'{0}' bases</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
