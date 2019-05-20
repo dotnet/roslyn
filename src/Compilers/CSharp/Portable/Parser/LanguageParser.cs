@@ -3817,6 +3817,7 @@ tryAgain:
 
             TypeSyntax type;
             SyntaxToken name;
+            SyntaxToken exclamation = null;
             if (this.CurrentToken.Kind != SyntaxKind.ArgListKeyword)
             {
                 type = this.ParseType(mode: ParseTypeMode.Parameter);
@@ -3838,7 +3839,10 @@ tryAgain:
                 type = null;
                 name = this.EatToken(SyntaxKind.ArgListKeyword);
             }
-
+            if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+            {
+                exclamation = this.EatToken(SyntaxKind.ExclamationToken);
+            }
             EqualsValueClauseSyntax def = null;
             if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
             {
@@ -3848,7 +3852,7 @@ tryAgain:
                 def = CheckFeatureAvailability(def, MessageID.IDS_FeatureOptionalParameter);
             }
 
-            return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, name, def);
+            return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, name, exclamation, def);
         }
 
         private static bool IsParameterModifier(SyntaxKind kind)
@@ -9539,11 +9543,17 @@ tryAgain:
 
         private bool IsPossibleLambdaExpression(Precedence precedence)
         {
-            if (precedence <= Precedence.Lambda && this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken)
+            if (precedence <= Precedence.Lambda)
             {
-                return true;
+                if (this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken)
+                    return true;
+                else if (this.PeekToken(1).Kind == SyntaxKind.ExclamationToken)
+                {
+                    if ((this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken) ||
+                            (this.PeekToken(2).Kind == SyntaxKind.CommaToken))
+                        return true;
+                }
             }
-
             if (ScanAsyncLambda(precedence))
             {
                 return true;
@@ -10006,7 +10016,7 @@ tryAgain:
             //  case 1:  ( x ,
             if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken
                 && (!this.IsInQuery || !IsTokenQueryContextualKeyword(this.PeekToken(1)))
-                && this.PeekToken(2).Kind == SyntaxKind.CommaToken)
+                && (this.PeekToken(2).Kind == SyntaxKind.CommaToken || (this.PeekToken(2).Kind == SyntaxKind.ExclamationToken && this.PeekToken(3).Kind == SyntaxKind.CommaToken)))
             {
                 // Make sure it really looks like a lambda, not just a tuple
                 int curTk = 3;
@@ -11029,6 +11039,7 @@ tryAgain:
 
         private LambdaExpressionSyntax ParseLambdaExpression(SyntaxToken asyncToken)
         {
+            SyntaxToken exclamation = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 var paramList = this.ParseLambdaParameterList();
@@ -11041,12 +11052,16 @@ tryAgain:
             else
             {
                 var name = this.ParseIdentifierToken();
+                if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+                {
+                    exclamation = this.EatToken(SyntaxKind.ExclamationToken);
+                }
                 var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                 arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
 
                 var parameter = _syntaxFactory.Parameter(
                     default(SyntaxList<AttributeListSyntax>), default(SyntaxList<SyntaxToken>),
-                    type: null, identifier: name, @default: null);
+                    type: null, identifier: name, exclamation, @default: null);
                 var body = ParseLambdaBody();
 
                 return _syntaxFactory.SimpleLambdaExpression(asyncToken, parameter, arrow, body);
@@ -11170,7 +11185,8 @@ tryAgain:
             }
 
             SyntaxToken paramName = this.ParseIdentifierToken();
-            var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, null);
+            var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationToken ? this.EatToken(SyntaxKind.ExclamationToken) : null;
+            var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, exclamation, null);
             _pool.Free(modifiers);
             return parameter;
         }
@@ -11209,7 +11225,8 @@ tryAgain:
                 if (peek1.Kind != SyntaxKind.CommaToken &&
                     peek1.Kind != SyntaxKind.CloseParenToken &&
                     peek1.Kind != SyntaxKind.EqualsGreaterThanToken &&
-                    peek1.Kind != SyntaxKind.OpenBraceToken)
+                    peek1.Kind != SyntaxKind.OpenBraceToken && 
+                    peek1.Kind != SyntaxKind.ExclamationToken)
                 {
                     return true;
                 }
