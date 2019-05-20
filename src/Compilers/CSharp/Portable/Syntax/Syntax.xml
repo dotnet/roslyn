@@ -4462,6 +4462,7 @@
     <Kind Name="LoadDirectiveTrivia"/>
     <Field Name="HashToken" Type="SyntaxToken" Override="true">
       <Kind Name="HashToken"/>
+
     </Field>
     <Field Name="LoadKeyword" Type="SyntaxToken">
       <Kind Name="LoadKeyword"/>
