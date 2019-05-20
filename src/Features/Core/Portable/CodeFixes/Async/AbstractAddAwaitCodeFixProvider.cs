@@ -11,6 +11,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
     internal abstract partial class AbstractAddAwaitCodeFixProvider : AbstractAsyncCodeFix
     {
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Fix All is not supported by this code fix
+            // https://github.com/dotnet/roslyn/issues/34460
+            return null;
+        }
+
         protected abstract Task<DescriptionAndNode> GetDescriptionAndNodeAsync(
             SyntaxNode root, SyntaxNode oldNode, SemanticModel semanticModel, Diagnostic diagnostic, Document document, CancellationToken cancellationToken);
 

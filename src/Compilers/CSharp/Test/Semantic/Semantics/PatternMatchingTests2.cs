@@ -2317,5 +2317,31 @@ public class C
                 //         return t is "frog"; // 3
                 Diagnostic(ErrorCode.ERR_ConstantPatternVsOpenType, @"""frog""").WithArguments("T", "string", "preview").WithLocation(17, 21));
         }
+
+        [Fact]
+        [WorkItem(34905, "https://github.com/dotnet/roslyn/issues/34905")]
+        public void ConstantPatternVsUnconstrainedTypeParameter06()
+        {
+            var source =
+@"public class C<T>
+{
+    public enum E
+    {
+        V1, V2
+    }
+
+    public void M()
+    {
+        switch (default(E))
+        {
+            case E.V1:
+                break;
+        }
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
+        }
     }
 }

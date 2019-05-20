@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -157,6 +158,7 @@ namespace Roslyn.Test.Utilities
 
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsUnix => !IsWindows;
+        public static bool IsMacOS => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
         public static bool IsDesktop => RuntimeUtilities.IsDesktopRuntime;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
@@ -251,6 +253,12 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => !PathUtilities.IsUnixLikePlatform;
         public override string SkipReason => "Test not supported on Windows";
+    }
+
+    public class WindowsOrLinuxOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => ExecutionConditionUtil.IsMacOS;
+        public override string SkipReason => "Test not supported on macOS";
     }
 
     public class ClrOnly : ExecutionCondition

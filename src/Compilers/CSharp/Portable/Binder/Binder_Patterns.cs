@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             bool hasErrors = IsOperandErrors(node, ref expression, diagnostics);
             TypeSymbol expressionType = expression.Type;
-            if ((object)expressionType == null || expressionType.SpecialType == SpecialType.System_Void)
+            if ((object)expressionType == null || expressionType.IsVoidType())
             {
                 if (!hasErrors)
                 {
@@ -188,7 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (inputType.ContainsTypeParameter())
             {
                 convertedExpression = expression;
-                if (!hasErrors)
+                // If the expression does not have a constant value, an error will be reported in the caller
+                if (!hasErrors && expression.ConstantValue is object)
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     if (expression.ConstantValue == ConstantValue.Null)
@@ -210,8 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var requiredVersion = MessageID.IDS_FeatureRecursivePatterns.RequiredVersion();
                         if (Compilation.LanguageVersion < requiredVersion &&
-                            // A null pattern can be tested against a type that can be assigned null, even in C# 7.3
-                            !(expression.ConstantValue == ConstantValue.Null && inputType.CanBeAssignedNull()))
+                            !this.Conversions.ClassifyConversionFromExpression(expression, inputType, ref useSiteDiagnostics).IsImplicit)
                         {
                             diagnostics.Add(ErrorCode.ERR_ConstantPatternVsOpenType,
                                 expression.Syntax.Location, inputType, expression.Display, new CSharpRequiredLanguageVersion(requiredVersion));

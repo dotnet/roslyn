@@ -293,14 +293,14 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
+        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, int workspaceVersion, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
                     var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, cancellationToken).ConfigureAwait(false);
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }

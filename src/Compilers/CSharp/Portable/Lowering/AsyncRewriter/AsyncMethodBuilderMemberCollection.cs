@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)builderType != null &&
                  !builderType.IsErrorType() &&
-                 builderType.SpecialType != SpecialType.System_Void &&
+                 !builderType.IsVoidType() &&
                  builderType.DeclaredAccessibility == desiredAccessibility)
             {
                 bool isArityOk = isGeneric

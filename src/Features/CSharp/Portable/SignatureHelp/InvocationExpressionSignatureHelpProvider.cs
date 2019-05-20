@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             // if the symbol could be bound, replace that item in the symbol list
             if (symbolInfo.Symbol is IMethodSymbol matchedMethodSymbol && matchedMethodSymbol.IsGenericMethod)
             {
-                methodGroup = methodGroup.SelectAsArray(m => matchedMethodSymbol.OriginalDefinition == m ? matchedMethodSymbol : m);
+                methodGroup = methodGroup.SelectAsArray(m => Equals(matchedMethodSymbol.OriginalDefinition, m) ? matchedMethodSymbol : m);
             }
 
             methodGroup = methodGroup.Sort(

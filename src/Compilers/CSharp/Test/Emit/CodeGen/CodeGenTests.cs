@@ -13237,6 +13237,7 @@ expectedOutput: "-100");
                 hasDeclarationErrors: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
+                entryPointOpt: null,
                 cancellationToken: CancellationToken.None);
 
             // Add diagnostic to MethodBodyCompiler bag, as if

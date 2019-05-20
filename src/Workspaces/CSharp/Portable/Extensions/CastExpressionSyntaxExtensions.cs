@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return conversion1.IsUserDefined
                 && conversion2.IsUserDefined
-                && conversion1.MethodSymbol == conversion2.MethodSymbol;
+                && Equals(conversion1.MethodSymbol, conversion2.MethodSymbol);
         }
 
         private static bool IsInDelegateCreationExpression(ExpressionSyntax expression, SemanticModel semanticModel)

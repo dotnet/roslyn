@@ -434,6 +434,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 protected override BasicBlockAnalysisData AnalyzeLocalFunctionInvocationCore(IMethodSymbol localFunction, CancellationToken cancellationToken)
                 {
                     Debug.Assert(localFunction.IsLocalFunction());
+                    Debug.Assert(localFunction.Equals(localFunction.OriginalDefinition));
 
                     cancellationToken.ThrowIfCancellationRequested();
                     if (!_localFunctionTargetsToAccessingCfgMap.TryGetValue(localFunction, out var accessingCfg))

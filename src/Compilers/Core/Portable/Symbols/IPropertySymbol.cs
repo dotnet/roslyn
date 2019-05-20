@@ -55,6 +55,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ITypeSymbol Type { get; }
 
+        NullableAnnotation NullableAnnotation { get; }
+
         /// <summary>
         /// The parameters of this property. If this property has no parameters, returns
         /// an empty list. Parameters are only present on indexers, or on some properties

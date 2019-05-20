@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string FixIncorrectTokens = nameof(FixIncorrectTokens);
             public const string FixInterpolatedVerbatimString = nameof(FixInterpolatedVerbatimString);
             public const string Formatting = nameof(Formatting);
+            public const string GoToBase = nameof(GoToBase);
             public const string GoToDefinition = nameof(GoToDefinition);
             public const string GoToImplementation = nameof(GoToImplementation);
             public const string GoToAdjacentMember = nameof(GoToAdjacentMember);
@@ -247,6 +248,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Snippets = nameof(Snippets);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
             public const string SuggestionTags = nameof(SuggestionTags);
+            public const string TargetTypedCompletion = nameof(TargetTypedCompletion);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
             public const string TodoComments = nameof(TodoComments);
             public const string TypeInferenceService = nameof(TypeInferenceService);
