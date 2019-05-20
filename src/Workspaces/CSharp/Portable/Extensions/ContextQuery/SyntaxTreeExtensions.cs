@@ -1806,6 +1806,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             while (enclosingSymbol is IMethodSymbol method && (method.MethodKind == MethodKind.LocalFunction || method.MethodKind == MethodKind.AnonymousFunction))
             {
+                if (method.IsStatic)
+                    return false;
+
                 // It is allowed to reference the instance (`this`) within a local function or anonymous function, as long as the containing method allows it
                 enclosingSymbol = enclosingSymbol.ContainingSymbol;
             }
