@@ -44,6 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Dismisses the rename session, completing the rename operation across all files.
         /// </summary>
-        void Commit(bool previewChanges = false);
+        void Commit(bool previewChanges = false, bool changeFileName = false);
     }
 }
