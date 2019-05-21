@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                     var bestMethod = sourceMethod.Symbol != null ? sourceMethod : m;
 
                                     var implementations = await type.FindImplementationsForInterfaceMemberAsync(
-                                        bestMethod.Symbol, solution, cancellationToken).ConfigureAwait(false);
+                                        bestMethod, solution, cancellationToken).ConfigureAwait(false);
                                     foreach (var implementation in implementations)
                                     {
                                         if (implementation.Symbol != null &&
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ImmutableArray<SymbolAndProjectId>.Builder results = null;
                 foreach (var t in allTypes.Convert<INamedTypeSymbol, ITypeSymbol>())
                 {
-                    var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbolAndProjectId.Symbol, solution, cancellationToken).ConfigureAwait(false);
+                    var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbolAndProjectId, solution, cancellationToken).ConfigureAwait(false);
                     foreach (var implementation in implementations)
                     {
                         var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);

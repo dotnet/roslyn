@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsForInterfaceMemberAsync(
             this SymbolAndProjectId<ITypeSymbol> typeSymbolAndProjectId,
-            ISymbol interfaceMember,
+            SymbolAndProjectId interfaceMemberAndProjectId,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // results in C.
 
             var arrBuilder = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+            var interfaceMember = interfaceMemberAndProjectId.Symbol;
+            var interfaceMemberProject = solution.GetProject(interfaceMemberAndProjectId.ProjectId);
 
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
@@ -171,6 +173,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                         null :
                                         await typeSymbolProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
+            var interfaceMemberCompilation = await interfaceMemberProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
             foreach (var constructedInterface in constructedInterfaces)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -180,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         interfaceMember,
                         solution,
                         typeSymbolCompilation,
-                        symbolToMatchCompilation: null,
+                        interfaceMemberCompilation,
                         cancellationToken));
 
                 if (constructedInterfaceMember == null)
