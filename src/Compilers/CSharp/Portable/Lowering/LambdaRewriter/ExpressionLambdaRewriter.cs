@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = node.Method;
                 return ExprFactory(
                     "Call",
-                    method.RequiresInstanceReciever? Visit(node.ReceiverOpt) : _bound.Null(ExpressionType),
+                    method.RequiresInstanceReceiver ? Visit(node.ReceiverOpt) : _bound.Null(ExpressionType),
                     _bound.MethodInfo(method),
                     Expressions(node.Arguments));
             }
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup:
                     {
                         var mg = (BoundMethodGroup)node.Operand;
-                        return DelegateCreation(mg.ReceiverOpt, node.SymbolOpt, node.Type, !node.SymbolOpt.RequiresInstanceReciever && !node.IsExtensionMethod);
+                        return DelegateCreation(mg.ReceiverOpt, node.SymbolOpt, node.Type, !node.SymbolOpt.RequiresInstanceReceiver && !node.IsExtensionMethod);
                     }
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)node.MethodOpt != null)
             {
-                bool staticMember = !node.MethodOpt.RequiresInstanceReciever && !node.IsExtensionMethod;
+                bool staticMember = !node.MethodOpt.RequiresInstanceReceiver && !node.IsExtensionMethod;
                 return DelegateCreation(node.Argument, node.MethodOpt, node.Type, staticMember);
             }
 

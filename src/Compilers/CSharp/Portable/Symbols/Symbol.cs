@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if this symbol requires an instance reference as the implicit reciever. This is false if the symbol is static, or a <see cref="LocalFunctionSymbol"/>
         /// </summary>
-        public virtual bool RequiresInstanceReciever => !IsStatic;
+        public virtual bool RequiresInstanceReceiver => !IsStatic;
 
         /// <summary>
         /// Returns true if this symbol is "virtual", has an implementation, and does not override a

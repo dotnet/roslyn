@@ -1672,7 +1672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // accessor, the result is the same as a member access of the form this.I. This can only
             // happen when K is zero.
 
-            if (!member.RequiresInstanceReciever)
+            if (!member.RequiresInstanceReceiver)
             {
                 return null;
             }
@@ -1737,7 +1737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression TryBindInteractiveReceiver(SyntaxNode syntax, Symbol currentMember, NamedTypeSymbol currentType, NamedTypeSymbol memberDeclaringType)
         {
-            if (currentType.TypeKind == TypeKind.Submission && currentMember.RequiresInstanceReciever)
+            if (currentType.TypeKind == TypeKind.Submission && currentMember.RequiresInstanceReceiver)
             {
                 if (memberDeclaringType.TypeKind == TypeKind.Submission)
                 {
@@ -6650,7 +6650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool? instanceReceiver = IsInstanceReceiver(receiver);
 
-            if (!symbol.RequiresInstanceReciever)
+            if (!symbol.RequiresInstanceReceiver)
             {
                 if (instanceReceiver == true)
                 {

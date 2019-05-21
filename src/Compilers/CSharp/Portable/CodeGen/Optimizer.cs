@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // matches or a bit stronger than EmitReceiverRef
             // if there are any doubts that receiver is a ref type, 
             // assume we will need an address (that will prevent scheduling of receiver).
-            if (node.Method.RequiresInstanceReciever)
+            if (node.Method.RequiresInstanceReceiver)
             {
                 receiver = VisitCallReceiver(receiver);
             }

@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Since we have a concrete member in hand, we can resolve the receiver.
                         var typeOrValue = (BoundTypeOrValueExpression)receiver;
-                        receiver = otherSymbol.RequiresInstanceReciever
+                        receiver = otherSymbol.RequiresInstanceReceiver
                             ? typeOrValue.Data.ValueExpression
                             : null; // no receiver required
                     }
@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static bool RequiresVariableReceiver(BoundExpression receiver, Symbol symbol)
         {
-            return symbol.RequiresInstanceReciever
+            return symbol.RequiresInstanceReceiver
                 && symbol.Kind != SymbolKind.Event
                 && receiver?.Type?.IsValueType == true;
         }
@@ -1114,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //•	the safe-to-escape of all argument expressions(including the receiver)
             //
 
-            if (!symbol.RequiresInstanceReciever)
+            if (!symbol.RequiresInstanceReceiver)
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;
@@ -1221,7 +1221,7 @@ moreArguments:
             //  o no ref or out argument(excluding the receiver and arguments of ref-like types) may have a narrower ref-safe-to-escape than E1; and
             //  o   no argument(including the receiver) may have a narrower safe-to-escape than E1.
 
-            if (!symbol.RequiresInstanceReciever)
+            if (!symbol.RequiresInstanceReceiver)
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;
@@ -1322,7 +1322,7 @@ moreArguments:
             uint scopeOfTheContainingExpression,
             DiagnosticBag diagnostics)
         {
-            if (!symbol.RequiresInstanceReciever)
+            if (!symbol.RequiresInstanceReceiver)
             {
                 // ignore receiver when symbol is static
                 receiverOpt = null;

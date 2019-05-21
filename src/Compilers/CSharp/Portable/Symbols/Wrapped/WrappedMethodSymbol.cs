@@ -110,11 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool RequiresInstanceReciever
+        public override bool RequiresInstanceReceiver
         {
             get
             {
-                return UnderlyingMethod.RequiresInstanceReciever;
+                return UnderlyingMethod.RequiresInstanceReceiver;
             }
         }
 

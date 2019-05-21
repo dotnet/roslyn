@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
             => _declarationDiagnostics.AddRange(diagnostics);
 
-        public override bool RequiresInstanceReciever => false;
+        public override bool RequiresInstanceReceiver => false;
 
         public override bool IsVararg
         {

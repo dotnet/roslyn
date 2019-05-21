@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         // We may need to recompute the Deconstruct method for a deconstruction if
                                         // the receiver type has changed (e.g. its nested nullability).
                                         var method = e.DeconstructMethod;
-                                        int extensionExtra = method.RequiresInstanceReciever ? 0 : 1;
+                                        int extensionExtra = method.RequiresInstanceReceiver ? 0 : 1;
                                         for (int i = 0; i < method.ParameterCount - extensionExtra; i++)
                                         {
                                             var parameterType = method.Parameters[i + extensionExtra].TypeWithAnnotations;
