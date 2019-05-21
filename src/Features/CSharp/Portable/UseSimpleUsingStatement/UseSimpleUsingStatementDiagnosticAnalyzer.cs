@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 

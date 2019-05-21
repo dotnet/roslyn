@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
         public UseExpressionBodyDiagnosticAnalyzer()

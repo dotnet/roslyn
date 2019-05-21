@@ -20,9 +20,6 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
-        public sealed override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         protected sealed override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
 

@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     {
         public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckDiagnosticAnalyzer();
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public CSharpIsAndCastCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeCheckId,
                    new LocalizableResourceString(

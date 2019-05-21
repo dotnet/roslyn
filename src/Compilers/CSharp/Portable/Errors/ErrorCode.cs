@@ -1631,7 +1631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_ThrowPossibleNull = 8597,
         ERR_IllegalSuppression = 8598,
-        WRN_IllegalPPWarningSafeOnly = 8599,
+        // available 8599,
         WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
         WRN_NullReferenceReceiver = 8602,

@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const string s_descriptionSuffix = "_Description";
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
-        public static readonly ImmutableHashSet<string> NullableFlowAnalysisSafetyWarnings;
-        public static readonly ImmutableHashSet<string> NullableFlowAnalysisNonSafetyWarnings;
+        public static readonly ImmutableHashSet<string> NullableFlowAnalysisWarnings;
 
         static ErrorFacts()
         {
@@ -44,12 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_AsOperatorMayReturnNull));
             builder.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
 
-            NullableFlowAnalysisSafetyWarnings = builder.ToImmutable();
-
-            builder.Clear();
             builder.Add(getId(ErrorCode.WRN_ConvertingNullableToNonNullable));
 
-            NullableFlowAnalysisNonSafetyWarnings = builder.ToImmutable();
+            NullableFlowAnalysisWarnings = builder.ToImmutable();
 
             string getId(ErrorCode errorCode)
             {
@@ -365,7 +361,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
-                case ErrorCode.WRN_IllegalPPWarningSafeOnly:
                 case ErrorCode.WRN_ConvertingNullableToNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:

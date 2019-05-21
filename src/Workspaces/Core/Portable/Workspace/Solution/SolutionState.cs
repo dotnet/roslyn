@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis
                 if (this.TryGetCompilation(state.Id, out var compilation))
                 {
                     // if the symbol is the compilation's assembly symbol, we are done
-                    if (compilation.Assembly == assemblySymbol)
+                    if (Equals(compilation.Assembly, assemblySymbol))
                     {
                         return state;
                     }
@@ -533,7 +533,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
-            => projectState.DocumentStates.Values.Concat(projectState.AdditionalDocumentStates.Values);
+            => projectState.DocumentStates.Values
+                   .Concat(projectState.AdditionalDocumentStates.Values)
+                   .Concat(projectState.AnalyzerConfigDocumentStates.Values);
 
         /// <summary>
         /// Create a new solution instance without the project specified.
@@ -1141,7 +1143,7 @@ namespace Microsoft.CodeAnalysis
         {
             return AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions),
-                (project, documents) => (project.AddDocuments(documents), new CompilationTranslationAction.AddDocumentsAction(documents)));
+                (oldProject, documents) => (oldProject.AddDocuments(documents), new CompilationTranslationAction.AddDocumentsAction(documents)));
         }
 
         /// <summary>
@@ -1209,7 +1211,11 @@ namespace Microsoft.CodeAnalysis
             // attached to them, so we'll just replace all syntax trees in that case.
             return AddDocumentsToMultipleProjects(documentInfos,
                 (documentInfo, project) => new AnalyzerConfigDocumentState(documentInfo, _solutionServices),
-                (projectState, documents) => (projectState.AddAnalyzerConfigDocuments(documents), new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(projectState)));
+                (oldProject, documents) =>
+                {
+                    var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
+                    return (newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+                });
         }
 
         public SolutionState RemoveAnalyzerConfigDocument(DocumentId documentId)

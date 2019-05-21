@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TExpressionStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 

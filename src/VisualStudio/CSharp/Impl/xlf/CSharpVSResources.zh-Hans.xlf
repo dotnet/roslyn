@@ -32,6 +32,11 @@
         <target state="translated">设定文档设置的格式(试验)</target>
         <note />
       </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">常规</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">生成事件订阅</target>

@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal enum NullableAnnotation : byte
     {
         /// <summary>
+        /// Type is not annotated - string, int, T (including the case when T is unconstrained).
+        /// </summary>
+        NotAnnotated,
+
+        /// <summary>
         /// The type is not annotated in a context where the nullable feature is not enabled.
         /// Used for interoperation with existing pre-nullable code.
         /// </summary>
         Oblivious,
-
-        /// <summary>
-        /// Type is not annotated - string, int, T (including the case when T is unconstrained).
-        /// </summary>
-        NotAnnotated,
 
         /// <summary>
         /// Type is annotated with '?' - string?, T? where T : class; and for int?, T? where T : struct.

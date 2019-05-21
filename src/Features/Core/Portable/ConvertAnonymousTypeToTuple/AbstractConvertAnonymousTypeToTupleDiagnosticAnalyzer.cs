@@ -25,9 +25,6 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(
                 AnalyzeSyntax,

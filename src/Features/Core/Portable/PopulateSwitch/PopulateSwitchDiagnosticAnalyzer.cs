@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         #region Interface methods
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterOperationAction(AnalyzeOperation, OperationKind.Switch);
 

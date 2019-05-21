@@ -122,6 +122,11 @@
         <target state="translated">불필요한 Using 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_Usings">
+        <source>&amp;Sort Usings</source>
+        <target state="new">&amp;Sort Usings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">접근성 한정자 정렬</target>

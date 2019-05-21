@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeNode,
                 SyntaxKind.IfStatement,
