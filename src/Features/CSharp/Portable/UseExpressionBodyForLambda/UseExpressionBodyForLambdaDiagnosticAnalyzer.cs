@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
     {
         public const string FixesError = nameof(FixesError);
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public UseExpressionBodyForLambdaDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId,
                    UseExpressionBodyTitle)

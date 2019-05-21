@@ -24,6 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
             Return document.WithSyntaxRoot(newRoot)
         End Function
 
+        Public ReadOnly Property SortImportsDisplayStringWithAccelerator As String Implements IOrganizeImportsService.SortImportsDisplayStringWithAccelerator
+            Get
+                Return VBFeaturesResources.Sort_Imports
+            End Get
+        End Property
+
         Public ReadOnly Property SortAndRemoveUnusedImportsDisplayStringWithAccelerator As String Implements IOrganizeImportsService.SortAndRemoveUnusedImportsDisplayStringWithAccelerator
             Get
                 Return VBFeaturesResources.Remove_and_Sort_Imports

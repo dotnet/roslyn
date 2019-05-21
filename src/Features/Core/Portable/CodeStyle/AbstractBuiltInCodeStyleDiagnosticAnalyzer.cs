@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-        public abstract bool OpenFileOnly(Workspace workspace);
+
+        public virtual bool OpenFileOnly(Workspace workspace)
+            => false;
     }
 }

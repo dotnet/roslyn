@@ -166,8 +166,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             }
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         // Our analysis is limited to unused expressions in a code block, hence is unaffected by changes outside the code block.
         // Hence, we can support incremental span based method body analysis.
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
