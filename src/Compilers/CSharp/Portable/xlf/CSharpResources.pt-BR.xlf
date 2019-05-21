@@ -244,7 +244,7 @@
       </trans-unit>
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
-        <target state="translated">O método '{0}' com um bloco iterador deve ser 'async' para retornar '\ {1 \}'</target>
+        <target state="new">Method '{0}' with an iterator block must be 'async' to return '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
@@ -4668,7 +4668,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
-        <target state="needs-review-translation">As declarações de método parcial "{0}" têm restrições de parâmetro de tipo inconsistentes</target>
+        <target state="new">Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
