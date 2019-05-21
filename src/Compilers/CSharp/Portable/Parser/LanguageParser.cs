@@ -9546,7 +9546,13 @@ tryAgain:
                 {
                     return true;
                 }
-                if (token1 == SyntaxKind.ExclamationToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
+                SyntaxKind token2 = this.PeekToken(2).Kind;
+                if (token1 == SyntaxKind.ExclamationToken && token2 == SyntaxKind.EqualsGreaterThanToken)
+                {
+                    return true;
+                }
+                SyntaxKind token3 = this.PeekToken(3).Kind;
+                if (token1 == SyntaxKind.ExclamationToken && token2 == SyntaxKind.CloseParenToken && token3 == SyntaxKind.EqualsGreaterThanToken)
                 {
                     return true;
                 }
@@ -10034,11 +10040,19 @@ tryAgain:
             }
 
             //  case 2:  ( x ) =>
-            if (IsTrueIdentifier(this.PeekToken(1))
-                && this.PeekToken(2).Kind == SyntaxKind.CloseParenToken
-                && this.PeekToken(3).Kind == SyntaxKind.EqualsGreaterThanToken)
+            if (IsTrueIdentifier(this.PeekToken(1)))
             {
-                return true;
+                if (this.PeekToken(2).Kind == SyntaxKind.CloseParenToken
+                && this.PeekToken(3).Kind == SyntaxKind.EqualsGreaterThanToken)
+                {
+                    return true;
+                }
+                if (this.PeekToken(2).Kind == SyntaxKind.ExclamationToken
+                && this.PeekToken(3).Kind == SyntaxKind.CloseParenToken
+                && this.PeekToken(4).Kind == SyntaxKind.EqualsGreaterThanToken)
+                {
+                    return true;
+                }
             }
 
             //  case 3:  ( ) =>
@@ -10066,7 +10080,8 @@ tryAgain:
             // Ensure next token is a variable
             if (next.Kind == SyntaxKind.IdentifierToken)
             {
-                if (!this.IsInQuery || !IsTokenQueryContextualKeyword(next)) {
+                if (!this.IsInQuery || !IsTokenQueryContextualKeyword(next))
+                {
                     // Variable must be directly followed by a comma if not followed by exclamation
                     var afterKind = this.PeekToken(2).Kind;
                     // ( x , [...]
@@ -10164,7 +10179,9 @@ tryAgain:
                             }
 
                             continue;
-
+                        case SyntaxKind.ExclamationToken:
+                            return this.PeekToken(1).Kind == SyntaxKind.CloseParenToken && 
+                                this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken;
                         case SyntaxKind.CloseParenToken:
                             return this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken;
 
