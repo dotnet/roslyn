@@ -4668,7 +4668,7 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
-        <target state="needs-review-translation">Las declaraciones de métodos parciales de '{0}' tienen restricciones de parámetros de tipo incoherentes</target>
+        <target state="new">Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">

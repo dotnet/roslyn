@@ -331,7 +331,7 @@
                                   veya anycpu (varsayılan) olmalıdır.
 -preferreduilang                  Tercih edilen çıkış dilini belirt.
 -nosdkpath                        Standart kitaplık bütünleştirilmiş kodlarında varsayılan SDK yolunu
-								  aramayı devre dışı bırakın.
+                                  aramayı devre dışı bırakın.
 -sdkpath:&lt;path&gt;                   .NET Framework SDK (mscorlib.dll) dizininin
                                   konumu.
 -subsystemversion:&lt;version&gt;       Çıkış PE'nin alt sistem sürümünü belirt.
