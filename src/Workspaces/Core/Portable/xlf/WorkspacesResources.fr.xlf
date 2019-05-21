@@ -631,7 +631,7 @@ L'ancre $ correspond à \n mais ne correspond pas à \r\n (combinaison de caract
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_long">
         <source>The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</source>
-        <target state="translated">Le quantificateur ? recherche une correspondance avec l'élément précédent, zéro ou une fois. Il est équivalent au quantificateur {0,1,}. ? est un quantificateur gourmand dont l'équivalent paresseux est ??.</target>
+        <target state="translated">Le quantificateur ? recherche une correspondance avec l'élément précédent, zéro ou une fois. Il est équivalent au quantificateur {0,1}. ? est un quantificateur gourmand dont l'équivalent paresseux est ??.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_short">
