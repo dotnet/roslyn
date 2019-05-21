@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Diagnostics
 {
     internal class RoslynRemoteDiagnosticsService : IRemoteDiagnosticsService
     {
-        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RoslynLspClientServiceFactory _roslynLSPClientServiceFactory;
 
-        public RoslynRemoteDiagnosticsService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
+        public RoslynRemoteDiagnosticsService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
         {
-            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
 
         public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)

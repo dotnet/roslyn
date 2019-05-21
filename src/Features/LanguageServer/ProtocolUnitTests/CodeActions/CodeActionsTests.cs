@@ -27,13 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 }";
             var (solution, locations) = CreateTestSolution(markup);
             var expected = CreateCommand(CSharpFeaturesResources.Use_implicit_type, locations["caret"].First());
-            var clientCapabilities = new LSP.ClientCapabilities()
-            {
-                Experimental = new JObject
-                {
-                    { "supportsWorkspaceEdits", false }
-                }
-            };
+            var clientCapabilities = CreateClientCapabilitiesWithExperimentalValue("supportsWorkspaceEdits", JToken.FromObject(false));
 
             var results = await RunCodeActionsAsync(solution, locations["caret"].First(), clientCapabilities);
             AssertCodeActionCommandsEqual(expected, results.Single());
@@ -68,6 +62,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 Assert.Equal(expected.CodeActionParams.Range, actual.CodeActionParams.Range);
             }
         }
+
+        private static LSP.ClientCapabilities CreateClientCapabilitiesWithExperimentalValue(string experimentalProperty, JToken value)
+            => new LSP.ClientCapabilities()
+            {
+                Experimental = new JObject
+                {
+                    { experimentalProperty, value }
+                }
+            };
 
         private static LSP.CodeActionParams CreateCodeActionParams(LSP.Location caret)
             => new LSP.CodeActionParams()

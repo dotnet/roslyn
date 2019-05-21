@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
     internal class CSharpLspCodeActionProvider : RoslynCodeActionProvider
     {
         [ImportingConstructor]
-        public CSharpLspCodeActionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
-            : base(roslynLSPClientServiceFactory, diagnosticAnalyzerService)
+        public CSharpLspCodeActionProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+            : base(roslynLspClientServiceFactory, diagnosticAnalyzerService)
         {
         }
     }
@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
     internal class VBLspCodeActionProvider : RoslynCodeActionProvider
     {
         [ImportingConstructor]
-        public VBLspCodeActionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
-            : base(roslynLSPClientServiceFactory, diagnosticAnalyzerService)
+        public VBLspCodeActionProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+            : base(roslynLspClientServiceFactory, diagnosticAnalyzerService)
         {
         }
     }

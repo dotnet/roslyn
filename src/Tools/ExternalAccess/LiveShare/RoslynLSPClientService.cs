@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare
                                 Role = ServiceRole.LocalService,
                                 Features = "LspServices",
                                 CreationPriority = (int)ServiceRole.LocalService + 2000)]
-    internal class RoslynLSPClientServiceFactory : ICollaborationServiceFactory
+    internal class RoslynLspClientServiceFactory : ICollaborationServiceFactory
     {
         private const string RoslynProviderName = "Roslyn";
         private const string AnyProviderName = "any";

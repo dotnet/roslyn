@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
 {
     internal class RoslynCodeActionProvider : CodeRefactoringProvider
     {
-        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RoslynLspClientServiceFactory _roslynLSPClientServiceFactory;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
-        public RoslynCodeActionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+        public RoslynCodeActionProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
-            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _diagnosticAnalyzerService = diagnosticAnalyzerService ?? throw new ArgumentNullException(nameof(diagnosticAnalyzerService));
         }
 

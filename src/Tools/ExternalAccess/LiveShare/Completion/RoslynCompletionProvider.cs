@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
 {
     internal class RoslynCompletionProvider : CommonCompletionProvider
     {
-        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RoslynLspClientServiceFactory _roslynLSPClientServiceFactory;
 
-        public RoslynCompletionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
+        public RoslynCompletionProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
         {
-            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)

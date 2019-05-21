@@ -13,17 +13,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
     internal class CSharpLspGotoDefinitionService : RoslynGotoDefinitionService
     {
         [ImportingConstructor]
-        public CSharpLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, RoslynLSPClientServiceFactory roslynLSPClientServiceFactory,
+        public CSharpLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, RoslynLSPClientServiceFactory roslynLspClientServiceFactory,
             RemoteLanguageServiceWorkspace remoteWorkspace, IThreadingContext threadingContext)
-            : base(streamingPresenter, roslynLSPClientServiceFactory, remoteWorkspace, threadingContext) { }
+            : base(streamingPresenter, roslynLspClientServiceFactory, remoteWorkspace, threadingContext) { }
     }
 
     [ExportLanguageService(typeof(IGoToDefinitionService), StringConstants.VBLspLanguageName), Shared]
     internal class VBLspGotoDefinitionService : RoslynGotoDefinitionService
     {
         [ImportingConstructor]
-        public VBLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, RoslynLSPClientServiceFactory roslynLSPClientServiceFactory,
+        public VBLspGotoDefinitionService(IStreamingFindUsagesPresenter streamingPresenter, RoslynLSPClientServiceFactory roslynLspClientServiceFactory,
             RemoteLanguageServiceWorkspace remoteWorkspace, IThreadingContext threadingContext)
-            : base(streamingPresenter, roslynLSPClientServiceFactory, remoteWorkspace, threadingContext) { }
+            : base(streamingPresenter, roslynLspClientServiceFactory, remoteWorkspace, threadingContext) { }
     }
 }*/

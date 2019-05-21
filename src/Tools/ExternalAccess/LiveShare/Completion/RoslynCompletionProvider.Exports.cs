@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
     internal class CSharpLspCompletionProvider : RoslynCompletionProvider
     {
         [ImportingConstructor]
-        public CSharpLspCompletionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
-            : base(roslynLSPClientServiceFactory)
+        public CSharpLspCompletionProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+            : base(roslynLspClientServiceFactory)
         {
         }
     }
@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
     internal class VBLspCompletionProvider : RoslynCompletionProvider
     {
         [ImportingConstructor]
-        public VBLspCompletionProvider(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
-            : base(roslynLSPClientServiceFactory)
+        public VBLspCompletionProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+            : base(roslynLspClientServiceFactory)
         {
         }
     }

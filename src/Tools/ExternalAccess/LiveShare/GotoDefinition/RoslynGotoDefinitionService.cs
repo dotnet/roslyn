@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
 
         public RoslynGotoDefinitionService(
             IStreamingFindUsagesPresenter streamingPresenter,
-            RoslynLSPClientServiceFactory roslynLSPClientServiceFactory,
+            RoslynLSPClientServiceFactory roslynLspClientServiceFactory,
             RemoteLanguageServiceWorkspace remoteWorkspace,
             IThreadingContext threadingContext)
         {
             _streamingPresenter = streamingPresenter ?? throw new ArgumentNullException(nameof(streamingPresenter));
-            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _remoteWorkspace = remoteWorkspace ?? throw new ArgumentNullException(nameof(remoteWorkspace));
         }
 

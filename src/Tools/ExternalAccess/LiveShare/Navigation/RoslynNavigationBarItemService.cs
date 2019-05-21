@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Navigation
 {
     internal class RoslynNavigationBarItemService : AbstractNavigationBarItemService
     {
-        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RoslynLspClientServiceFactory _roslynLSPClientServiceFactory;
 
-        internal RoslynNavigationBarItemService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
+        internal RoslynNavigationBarItemService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
         {
-            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
 
         public override async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)

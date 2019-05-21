@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Highlights
 {
     internal class RoslynDocumentHighlightsService : IDocumentHighlightsService
     {
-        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RoslynLspClientServiceFactory _roslynLSPClientServiceFactory;
 
-        public RoslynDocumentHighlightsService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
+        public RoslynDocumentHighlightsService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
         {
-            _roslynLSPClientServiceFactory = roslynLSPClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLSPClientServiceFactory));
+            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
 
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)

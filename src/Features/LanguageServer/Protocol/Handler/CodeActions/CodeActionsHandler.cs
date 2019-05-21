@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -49,10 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var clientSupportsWorkspaceEdits = true;
                 if (clientCapabilities?.Experimental is JObject clientCapabilitiesExtensions)
                 {
-                    if (clientCapabilitiesExtensions.TryGetValue("supportsWorkspaceEdits", out var val))
-                    {
-                        clientSupportsWorkspaceEdits = val.ToObject<bool>();
-                    }
+                    clientSupportsWorkspaceEdits = clientCapabilitiesExtensions.SelectToken("supportsWorkspaceEdits")?.Value<bool>() ?? clientSupportsWorkspaceEdits;
                 }
 
                 if (clientSupportsWorkspaceEdits && operations.Length == 1 && operations.First() is ApplyChangesOperation applyChangesOperation)

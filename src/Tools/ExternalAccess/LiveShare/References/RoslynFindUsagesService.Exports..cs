@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
     internal class CSharpLspFindUsagesService : RoslynFindUsagesService
     {
         [ImportingConstructor]
-        public CSharpLspFindUsagesService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
-            : base(roslynLSPClientServiceFactory, remoteLanguageServiceWorkspace)
+        public CSharpLspFindUsagesService(RoslynLSPClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
+            : base(roslynLspClientServiceFactory, remoteLanguageServiceWorkspace)
         {
         }
     }
@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
     internal class VBLspFindUsagesService : RoslynFindUsagesService
     {
         [ImportingConstructor]
-        public VBLspFindUsagesService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
-            : base(roslynLSPClientServiceFactory, remoteLanguageServiceWorkspace)
+        public VBLspFindUsagesService(RoslynLSPClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
+            : base(roslynLspClientServiceFactory, remoteLanguageServiceWorkspace)
         {
         }
     }

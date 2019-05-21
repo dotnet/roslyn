@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Diagnostics
     internal class CSharpLspRemoteDiagnosticsService : RoslynRemoteDiagnosticsService
     {
         [ImportingConstructor]
-        public CSharpLspRemoteDiagnosticsService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
-            : base(roslynLSPClientServiceFactory)
+        public CSharpLspRemoteDiagnosticsService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+            : base(roslynLspClientServiceFactory)
         {
         }
     }
@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Diagnostics
     internal class VBLspRemoteDiagnosticsService : RoslynRemoteDiagnosticsService
     {
         [ImportingConstructor]
-        public VBLspRemoteDiagnosticsService(RoslynLSPClientServiceFactory roslynLSPClientServiceFactory)
-            : base(roslynLSPClientServiceFactory)
+        public VBLspRemoteDiagnosticsService(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
+            : base(roslynLspClientServiceFactory)
         {
         }
     }
