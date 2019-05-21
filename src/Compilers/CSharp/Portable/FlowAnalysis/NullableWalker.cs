@@ -4146,13 +4146,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var invokeParameter = invoke.Parameters[i];
                 var methodParameter = method.Parameters[i + methodOffset];
 
+                var sourceParameter = invokeParameter;
+                var destinationParameter = methodParameter;
+
                 var invokeRefKind = invokeParameter.RefKind;
                 if (invokeRefKind == RefKind.Out)
                 {
-                    (invokeParameter, methodParameter) = (methodParameter, invokeParameter);
+                    // out parameters have inverted variance
+                    (sourceParameter, destinationParameter) = (destinationParameter, sourceParameter);
                 }
 
-                if (IsNullabilityMismatch(invokeParameter.TypeWithAnnotations, methodParameter.TypeWithAnnotations, requireIdentity: invokeRefKind == RefKind.Ref))
+                if (IsNullabilityMismatch(sourceParameter.TypeWithAnnotations, destinationParameter.TypeWithAnnotations, requireIdentity: invokeRefKind == RefKind.Ref))
                 {
                     ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
                         new FormattedSymbol(methodParameter, SymbolDisplayFormat.ShortFormat),
