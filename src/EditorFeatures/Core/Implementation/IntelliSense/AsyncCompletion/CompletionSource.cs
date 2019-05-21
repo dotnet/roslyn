@@ -98,7 +98,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             if (!document.Project.Solution.Workspace.Options.GetOption(CompletionOptions.BlockForCompletionItems, service.Language))
             {
-                _textView.Options.GlobalOptions.SetOptionValue(NonBlockingCompletionEditorOption, true);
+                // The Editor supports the option per textView.
+                // There could be mixed desired behavior per textView and even per same completion session.
+                // The right fix would be to send this information as a result of the method. 
+                // Then, the Editor would choose the right behavior for mixed cases.
+                _textView.Options.SetOptionValue(NonBlockingCompletionEditorOption, true);
             }
 
             // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
