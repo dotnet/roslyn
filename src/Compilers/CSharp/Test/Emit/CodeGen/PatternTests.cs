@@ -2774,23 +2774,38 @@ UIntPtr[][]
         public void CompileTimeRuntimeInstanceofMismatch_02()
         {
             var source =
-@"class Program
+@"using System;
+class Program
 {
     static void Main()
     {
-        object o = null;
+        M(new byte[1]);
+        M(new sbyte[1]);
+    }
+    static void M(object o)
+    {
         switch (o)
         {
             case byte[] _:
+                Console.WriteLine(""byte[]"");
                 break;
             case sbyte[] _: // not subsumed, even though it will never occur due to CLR behavior
+                Console.WriteLine(""sbyte[]"");
                 break;
         }
     }
 }
 ";
+            var expectedOutput =
+@"byte[]
+byte[]
+";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

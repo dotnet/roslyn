@@ -1015,12 +1015,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// arrays of enums are considered to be their underlying type.  We need the dag construction to
         /// recognize this runtime behavior, so we pretend that matching one of them gives no information
         /// on whether the other will be matched.  That isn't quite correct (nothing reasonable we do
-        /// could be), but it comes closest to preserving the existing C#7 behavior without undersirable
+        /// could be), but it comes closest to preserving the existing C#7 behavior without undesirable
         /// side-effects, and permits the code-gen strategy to preserve the dynamic semantic equivalence
         /// of a switch (on the one hand) and a series of if-then-else statements (on the other).
         /// See, for example, https://github.com/dotnet/roslyn/issues/35661
         /// </summary>
-        bool? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(TypeSymbol expressionType, TypeSymbol patternType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
+            TypeSymbol expressionType,
+            TypeSymbol patternType,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             bool? result = Binder.ExpressionOfTypeMatchesPatternType(_conversions, expressionType, patternType, ref useSiteDiagnostics, out Conversion conversion);
             return (!conversion.Exists && isRuntimeSimilar(expressionType, patternType))
@@ -1033,12 +1036,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                        patternType is ArrayTypeSymbol { ElementType: var e2, IsSZArray: var sz2, Rank: var r2 } &&
                        sz1 == sz2 && r1 == r2)
                 {
-                    if (e1 is NamedTypeSymbol { TypeKind: TypeKind.Enum, EnumUnderlyingType: var t1 })
-                        e1 = t1;
-
-                    if (e2 is NamedTypeSymbol { TypeKind: TypeKind.Enum, EnumUnderlyingType: var t2 })
-                        e2 = t2;
-
+                    e1 = e1.EnumUnderlyingType();
+                    e2 = e2.EnumUnderlyingType();
                     switch (e1.SpecialType, e2.SpecialType)
                     {
                         // The following support CLR behavior that is required by
