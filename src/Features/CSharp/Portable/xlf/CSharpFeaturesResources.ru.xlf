@@ -122,6 +122,11 @@
         <target state="translated">Удалить ненужные директивы using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sort_Usings">
+        <source>&amp;Sort Usings</source>
+        <target state="new">&amp;Sort Usings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Сортировать модификаторы доступности</target>

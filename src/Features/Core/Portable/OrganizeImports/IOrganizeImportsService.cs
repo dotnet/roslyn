@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.OrganizeImports
     {
         Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken);
 
+        string SortImportsDisplayStringWithAccelerator { get; }
+
         string SortAndRemoveUnusedImportsDisplayStringWithAccelerator { get; }
     }
 }

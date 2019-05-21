@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (method.PartialDefinitionPart != null)
             {
-                Debug.Assert(method.PartialImplementationPart == null && method.PartialDefinitionPart != method);
+                Debug.Assert(method.PartialImplementationPart == null && !Equals(method.PartialDefinitionPart, method));
                 return ImmutableArray.Create(method, method.PartialDefinitionPart);
             }
             else if (method.PartialImplementationPart != null)
             {
-                Debug.Assert(method.PartialImplementationPart != method);
+                Debug.Assert(!Equals(method.PartialImplementationPart, method));
                 return ImmutableArray.Create(method.PartialImplementationPart, method);
             }
             else

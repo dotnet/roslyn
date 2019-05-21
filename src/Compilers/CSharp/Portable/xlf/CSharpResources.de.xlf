@@ -63,8 +63,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
-        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'</source>
-        <target state="translated">Ungültige Option "{0}" for "/nullable". Zulässig sind nur "disable", "enable", "safeonly", "warnings" oder "safeonlywarnings".</target>
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</source>
+        <target state="needs-review-translation">Ungültige Option "{0}" for "/nullable". Zulässig sind nur "disable", "enable", "safeonly", "warnings" oder "safeonlywarnings".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -278,8 +278,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
-        <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
-        <target state="translated">Erwartet: "enable", "safeonly", "disable" oder "restore"</target>
+        <source>Expected 'enable', 'disable', or 'restore'</source>
+        <target state="needs-review-translation">Erwartet: "enable", "safeonly", "disable" oder "restore"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -533,8 +533,8 @@
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+-nullable:{enable|disable|warnings}
+                              Specify nullable context option enable|disable|warnings.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -589,7 +589,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Visual C#-Compileroptionen
 
                         - AUSGABEDATEIEN -
@@ -807,9 +807,9 @@
         <target state="new">obsolete on property accessor</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">
-        <source>warning action enable or safeonly</source>
-        <target state="translated">Warnaktion: "enable" oder "safeonly"</target>
+      <trans-unit id="IDS_FeaturePragmaWarningEnable">
+        <source>warning action enable</source>
+        <target state="new">warning action enable</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -1355,16 +1355,6 @@
       <trans-unit id="WRN_GivenExpressionNeverMatchesPattern_Title">
         <source>The given expression never matches the provided pattern.</source>
         <target state="translated">Der angegebene Ausdruck stimmt nie mit dem angegebenen Muster überein.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_IllegalPPWarningSafeOnly">
-        <source>Expected nullable</source>
-        <target state="translated">Nullable erwartet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_IllegalPPWarningSafeOnly_Title">
-        <source>Expected nullable after #pragma warning safeonly</source>
-        <target state="translated">Nach "#pragma warning safeonly" Nullable erwartet</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
@@ -4678,7 +4668,7 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
-        <target state="needs-review-translation">Die Deklarationen der partiellen {0}-Methode enthalten inkonsistente Typparametereinschränkungen.</target>
+        <target state="new">Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -5786,13 +5776,13 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable, restore, enable or safeonly</source>
-        <target state="translated">"disable", "restore", "enable" oder "safeonly" erwartet</target>
+        <source>Expected disable, restore or enable</source>
+        <target state="needs-review-translation">"disable", "restore", "enable" oder "safeonly" erwartet</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable, restore, enable or safeonly after #pragma warning</source>
-        <target state="translated">Nach "#pragma warning" wurde "disable", "restore", "enable" oder "safeonly" erwartet</target>
+        <source>Expected disable, restore or enable after #pragma warning</source>
+        <target state="needs-review-translation">Nach "#pragma warning" wurde "disable", "restore", "enable" oder "safeonly" erwartet</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">

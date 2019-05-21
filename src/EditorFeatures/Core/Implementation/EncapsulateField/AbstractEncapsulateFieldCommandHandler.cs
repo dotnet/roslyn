@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                 }
 
                 waitScope.AllowCancellation = false;
+                cancellationToken = waitScope.Context.UserCancellationToken;
 
                 var finalSolution = result.GetSolutionAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 

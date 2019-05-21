@@ -133,9 +133,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public void TestPinnedSolutionInfo()
         {
             var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
-            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, solutionChecksum: checksum), (x, y) =>
+            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, workspaceVersion: 100, solutionChecksum: checksum), (x, y) =>
             {
-                return (x.ScopeId == y.ScopeId && x.FromPrimaryBranch == y.FromPrimaryBranch && x.SolutionChecksum == y.SolutionChecksum) ? 0 : 1;
+                return (x.ScopeId == y.ScopeId &&
+                        x.FromPrimaryBranch == y.FromPrimaryBranch &&
+                        x.WorkspaceVersion == y.WorkspaceVersion &&
+                        x.SolutionChecksum == y.SolutionChecksum) ? 0 : 1;
             });
         }
 

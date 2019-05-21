@@ -1885,6 +1885,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to in Source (attribute).
+        /// </summary>
+        internal static string in_Source_attribute {
+            get {
+                return ResourceManager.GetString("in_Source_attribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to in Suppression File.
         /// </summary>
         internal static string in_Suppression_File {
@@ -2385,6 +2394,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Method_referenced_implicitly {
             get {
                 return ResourceManager.GetString("Method_referenced_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} must return a stream that supports read and seek operations..
+        /// </summary>
+        internal static string MethodMustReturnStreamThatSupportsReadAndSeek {
+            get {
+                return ResourceManager.GetString("MethodMustReturnStreamThatSupportsReadAndSeek", resourceCulture);
             }
         }
         
@@ -3479,6 +3497,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Split_into_nested_0_statements {
             get {
                 return ResourceManager.GetString("Split_into_nested_0_statements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stream must support read and seek operations..
+        /// </summary>
+        internal static string StreamMustSupportReadAndSeek {
+            get {
+                return ResourceManager.GetString("StreamMustSupportReadAndSeek", resourceCulture);
             }
         }
         

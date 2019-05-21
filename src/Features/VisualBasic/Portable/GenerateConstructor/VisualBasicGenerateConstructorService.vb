@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
                 Dim typeNameToReplace = DirectCast(oldToken.Parent, TypeSyntax)
                 Dim newTypeName As TypeSyntax
-                If namedType IsNot state.TypeToGenerateIn Then
+                If Not Equals(namedType, state.TypeToGenerateIn) Then
                     While True
                         Dim parentType = TryCast(typeNameToReplace.Parent, TypeSyntax)
                         If parentType Is Nothing Then
