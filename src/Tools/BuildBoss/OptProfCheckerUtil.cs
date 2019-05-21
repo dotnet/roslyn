@@ -29,11 +29,16 @@ namespace BuildBoss
         {
             try
             {
-                if (!GetOptProfJson(textWriter, out var optProfFile))
+                // check the optprof file exists, and load it if so
+                if (!File.Exists(OptProfFile))
                 {
+                    textWriter.WriteLine($"Couldn't find OptProf file: {OptProfFile}");
                     return false;
                 }
+                var content = File.ReadAllText(OptProfFile);
+                var optProfFile = JObject.Parse(content);
 
+                // validate that each vsix listed in it is valid
                 bool allGood = true;
                 foreach (var product in optProfFile["products"])
                 {
@@ -104,20 +109,6 @@ namespace BuildBoss
                 textWriter.WriteLine($"Failed to read manifest from '{vsixFullPath}'");
                 throw;
             }
-        }
-
-        private bool GetOptProfJson(TextWriter textWriter, out JObject optProfJson)
-        {
-            if (!File.Exists(OptProfFile))
-            {
-                textWriter.WriteLine($"Couldn't find OptProf file: {OptProfFile}");
-                optProfJson = null;
-                return false;
-            }
-
-            var content = File.ReadAllText(OptProfFile);
-            optProfJson = JObject.Parse(content);
-            return true;
         }
     }
 }
