@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupMembersInInterfaceOnly(current, type, name, arity, basesBeingResolved, options, originalBinder, type, diagnose, ref useSiteDiagnostics);
 
-            if (!originalBinder.InCrefButNotParameterOrReturnType && (options & LookupOptions.NoObjectMembersOnInterfaces) == 0)
+            if (!originalBinder.InCrefButNotParameterOrReturnType)
             {
                 var tmp = LookupResult.GetInstance();
                 // NB: we assume use-site-errors on System.Object, if any, have been reported earlier.
@@ -1666,7 +1666,7 @@ symIsHidden:;
             PooledHashSet<NamedTypeSymbol> visited = null;
             // We need a check for SpecialType.System_Void as its base type is
             // ValueType but we don't wish to return any members for void type
-            while ((object)type != null && type.SpecialType != SpecialType.System_Void)
+            while ((object)type != null && !type.IsVoidType())
             {
                 AddMemberLookupSymbolsInfoWithoutInheritance(result, type, options, originalBinder, accessThroughType);
 

@@ -32,6 +32,11 @@
         <target state="translated">Configuración de “Dar formato al documento” (experimento)</target>
         <note />
       </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">General</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Generar suscripción de eventos</target>

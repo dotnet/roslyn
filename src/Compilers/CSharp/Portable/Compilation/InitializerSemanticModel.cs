@@ -258,9 +258,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        protected override BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Conversions conversions, DiagnosticBag diagnostics)
+        protected override BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, conversions, diagnostics);
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics);
         }
     }
 }

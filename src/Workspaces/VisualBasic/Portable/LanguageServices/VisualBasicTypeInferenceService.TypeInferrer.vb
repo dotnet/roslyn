@@ -708,7 +708,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim taskOfT = Me.Compilation.TaskOfTType()
 
                         Return If(
-                            taskOfT IsNot Nothing AndAlso memberMethod.ReturnType.OriginalDefinition Is taskOfT AndAlso typeArguments.Any(),
+                            taskOfT IsNot Nothing AndAlso Equals(memberMethod.ReturnType.OriginalDefinition, taskOfT) AndAlso typeArguments.Any(),
                             CreateResult(typeArguments.First()),
                             SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo))
                     Else

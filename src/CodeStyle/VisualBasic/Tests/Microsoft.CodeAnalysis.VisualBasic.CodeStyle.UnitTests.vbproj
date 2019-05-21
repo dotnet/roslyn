@@ -4,7 +4,6 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net46</TargetFramework>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
 
     <!-- https://github.com/dotnet/roslyn/issues/31412 -->

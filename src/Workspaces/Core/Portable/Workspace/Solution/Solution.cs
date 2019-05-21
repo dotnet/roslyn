@@ -189,6 +189,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets the additional document in this solution with the specified document ID.
+        /// </summary>
+        public AnalyzerConfigDocument GetAnalyzerConfigDocument(DocumentId documentId)
+        {
+            if (documentId != null && this.ContainsAnalyzerConfigDocument(documentId))
+            {
+                return this.GetProject(documentId.ProjectId).GetAnalyzerConfigDocument(documentId);
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Gets the document in this solution with the specified syntax tree.
         /// </summary>
         public Document GetDocument(SyntaxTree syntaxTree)
@@ -776,7 +789,12 @@ namespace Microsoft.CodeAnalysis
 
         public Solution AddAdditionalDocument(DocumentInfo documentInfo)
         {
-            var newState = _state.AddAdditionalDocument(documentInfo);
+            return AddAdditionalDocuments(ImmutableArray.Create(documentInfo));
+        }
+
+        public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            var newState = _state.AddAdditionalDocuments(documentInfos);
             if (newState == _state)
             {
                 return this;
@@ -998,6 +1016,21 @@ namespace Microsoft.CodeAnalysis
         public Solution WithAdditionalDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var newState = _state.WithAdditionalDocumentTextLoader(documentId, loader, mode);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text
+        /// supplied by the text loader.
+        /// </summary>
+        public Solution WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        {
+            var newState = _state.WithAnalyzerConfigDocumentText(documentId, text, mode);
             if (newState == _state)
             {
                 return this;

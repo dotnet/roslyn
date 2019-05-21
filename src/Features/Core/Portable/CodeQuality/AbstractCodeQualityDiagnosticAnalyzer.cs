@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.CodeQuality
         protected abstract void InitializeWorker(AnalysisContext context);
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-        public abstract bool OpenFileOnly(Workspace workspace);
+
+        public bool OpenFileOnly(Workspace workspace)
+            => false;
 
         protected static DiagnosticDescriptor CreateDescriptor(
             string id,

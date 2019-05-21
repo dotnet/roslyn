@@ -95,11 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return VarianceKind.None; }
             }
 
-            internal override void EnsureAllConstraintsAreResolved(bool early)
+            internal override void EnsureAllConstraintsAreResolved()
             {
             }
 
-            internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
+            internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
             {
                 return ImmutableArray<TypeWithAnnotations>.Empty;
             }

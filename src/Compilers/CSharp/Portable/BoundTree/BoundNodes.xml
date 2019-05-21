@@ -591,6 +591,7 @@
   <Node Name="BoundDefaultExpression" Base="BoundExpression">
     <!-- Type is null in the case of a default literal, and non-null for default(T). -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="TargetType" Type="BoundTypeExpression" Null="allow" SkipInVisitor="true"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 
@@ -645,7 +646,20 @@
          Conversion is represented by a single BoundConversion.
          -->
     <Field Name="ConversionGroupOpt" Type="ConversionGroup" Null="allow"/>
-</Node>
+  </Node>
+
+  <!--
+       A special node for emitting the implicit conversion from an array (of T) to System.ReadOnlySpan<T>.
+       Although the conversion has an explicitly declared conversion operator, we want to retain it as something
+       other than a method call after lowering so it can be recognized as a special case and possibly
+       optimized during code generation.
+       -->
+  <Node Name="BoundReadOnlySpanFromArray" Base="BoundExpression">
+    <!-- The type is required to be an instance of the well-known type System.ReadOnlySpan<T> -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Operand" Type="BoundExpression"/>
+    <Field Name="ConversionMethod" Type="MethodSymbol"/>
+  </Node>
 
   <!--
   <Node Name="BoundRefValueOperator" Base="BoundExpression">
@@ -1069,7 +1083,6 @@
   <Node Name="BoundBaseReference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
-    <Field Name="ExplicitBaseReferenceOpt" Type="BoundTypeExpression" Null="allow"/>
   </Node>
 
   <Node Name="BoundLocal" Base="BoundExpression">

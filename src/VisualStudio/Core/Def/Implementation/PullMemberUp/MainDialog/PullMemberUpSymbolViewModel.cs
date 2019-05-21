@@ -12,6 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         private bool _isCheckable;
         private bool _makeAbstract;
         private bool _isMakeAbstractCheckable;
+        private string _tooltipText;
         public string MakeAbstractCheckBoxAutomationText => string.Format(ServicesVSResources.Make_0_abstract, Symbol.Name);
         public string RowSelectionAutomationText => ServicesVSResources.Select_member;
 
@@ -36,6 +37,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         /// Indicates whether this member checkable.
         /// </summary>
         public bool IsCheckable { get => _isCheckable; set => SetProperty(ref _isCheckable, value, nameof(IsCheckable)); }
+
+        /// <summary>
+        /// Tooltip text, also used as HelpText for screen readers. Should be empty
+        /// when no tool tip should be shown
+        /// </summary>
+        public string TooltipText { get => _tooltipText; set => SetProperty(ref _tooltipText, value, nameof(TooltipText)); }
 
         /// <summary>
         /// The content of tooltip.

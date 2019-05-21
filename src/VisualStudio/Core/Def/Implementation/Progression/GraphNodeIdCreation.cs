@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private static async Task<GraphNodeId> GetPartialForNamedTypeAsync(INamedTypeSymbol namedType, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken, bool isInGenericArguments = false)
         {
             // If this is a simple type, then we don't have much to do
-            if (namedType.ContainingType == null && namedType.ConstructedFrom == namedType && namedType.Arity == 0)
+            if (namedType.ContainingType == null && Equals(namedType.ConstructedFrom, namedType) && namedType.Arity == 0)
             {
                 return GraphNodeId.GetPartial(nodeName, namedType.Name);
             }
@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 // because a symbol is not marked as "constructed" when a type is constructed using its own type parameters.
                 // To distinguish this case, we use "isInGenericArguments" flag which we pass either to populate arguments recursively or to populate "ParentType".
 
-                bool hasGenericArguments = (namedType.ConstructedFrom != namedType || isInGenericArguments) && namedType.TypeArguments != null && namedType.TypeArguments.Any();
+                bool hasGenericArguments = (!Equals(namedType.ConstructedFrom, namedType) || isInGenericArguments) && namedType.TypeArguments != null && namedType.TypeArguments.Any();
 
                 if (hasGenericArguments)
                 {
@@ -375,7 +375,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             var underlyingType = ChaseToUnderlyingType(typeSymbol);
-            if (typeSymbol == underlyingType)
+            if (Equals(typeSymbol, underlyingType))
             {
                 // when symbol is for dynamic type
                 return null;
