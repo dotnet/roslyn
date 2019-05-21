@@ -1145,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ignore calls to base members.
                 TypeSymbol.Equals(containingMethod.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything) &&
                 !method.IsEffectivelyReadOnly &&
-                !method.IsStatic)
+                method.RequiresInstanceReciever)
             {
                 Error(diagnostics, ErrorCode.WRN_ImplicitCopyInReadOnlyMember, receiver.Syntax, method, ThisParameterSymbol.SymbolName);
                 return false;
