@@ -22257,6 +22257,46 @@ class Program
         }
 
         [Fact]
+        public void AllowNull_04()
+        {
+            var source0 =
+@"using System.Runtime.CompilerServices;
+public class A
+{
+    public static void F1<T>(T t) where T : class { }
+    public static void F2<T>([AllowNull]T t) where T : class { }
+}";
+            var comp = CreateCompilation(new[] { AllowNullAttributeDefinition, source0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source =
+@"class B : A
+{
+    static void Main()
+    {
+        object x = null; // 1
+        object? y = new object();
+        F1(x); // 2
+        F1(y);
+        F2(x); // 3
+        F2(y);
+    }
+}";
+            comp = CreateCompilation(source, references: new[] { ref0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 20),
+                // (7,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F1<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F1(x); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F1").WithArguments("A.F1<T>(T)", "T", "object?").WithLocation(7, 9),
+                // (9,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F2<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F2(x); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T)", "T", "object?").WithLocation(9, 9));
+        }
+
+        [Fact]
         public void DisallowNull_01()
         {
             var source =
@@ -22381,6 +22421,46 @@ class Program
 }";
             var comp = CreateCompilation(new[] { DisallowNullAttributeDefinition, source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DisallowNull_04()
+        {
+            var source0 =
+@"using System.Runtime.CompilerServices;
+public class A
+{
+    public static void F1<T>(T t) where T : class { }
+    public static void F2<T>([DisallowNull]T t) where T : class { }
+}";
+            var comp = CreateCompilation(new[] { DisallowNullAttributeDefinition, source0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source =
+@"class B : A
+{
+    static void Main()
+    {
+        object x = null; // 1
+        object? y = new object();
+        F1(x); // 2
+        F1(y);
+        F2(x); // 3
+        F2(y);
+    }
+}";
+            comp = CreateCompilation(source, references: new[] { ref0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 20),
+                // (7,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F1<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F1(x); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F1").WithArguments("A.F1<T>(T)", "T", "object?").WithLocation(7, 9),
+                // (9,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F2<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F2(x); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T)", "T", "object?").WithLocation(9, 9));
         }
 
         [Fact]
@@ -22536,6 +22616,52 @@ class Program
         }
 
         [Fact]
+        public void MaybeNull_04()
+        {
+            var source0 =
+@"using System.Runtime.CompilerServices;
+public class A
+{
+    public static T F1<T>(T t) where T : class => t;
+    [return: MaybeNull] public static T F2<T>(T t) where T : class => t;
+}";
+            var comp = CreateCompilation(new[] { MaybeNullAttributeDefinition, source0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source =
+@"class B : A
+{
+    static void Main()
+    {
+        object x = null; // 1
+        object? y = new object();
+        F1(x).ToString(); // 2
+        F1(y).ToString();
+        F2(x).ToString(); // 3
+        F2(y).ToString(); // 4
+    }
+}";
+            comp = CreateCompilation(source, references: new[] { ref0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 20),
+                // (7,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F1<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F1(x).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F1").WithArguments("A.F1<T>(T)", "T", "object?").WithLocation(7, 9),
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1(x).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(x)").WithLocation(7, 9),
+                // (9,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F2<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F2(x).ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T)", "T", "object?").WithLocation(9, 9),
+                // (9,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2(x).ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(x)").WithLocation(9, 9));
+        }
+
+        [Fact]
         public void NotNull_01()
         {
             var source =
@@ -22685,6 +22811,52 @@ class Program
                 // (9,13): warning CS8629: Nullable value type may be null.
                 //         _ = F2().Value;
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "F2()").WithLocation(9, 13));
+        }
+
+        [Fact]
+        public void NotNull_04()
+        {
+            var source0 =
+@"using System.Runtime.CompilerServices;
+public class A
+{
+    public static T F1<T>(T t) where T : class => t;
+    [return: NotNull] public static T F2<T>(T t) where T : class => t;
+}";
+            var comp = CreateCompilation(new[] { NotNullAttributeDefinition, source0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+
+            var source =
+@"class B : A
+{
+    static void Main()
+    {
+        object x = null; // 1
+        object? y = new object();
+        F1(x).ToString(); // 2
+        F1(y).ToString();
+        F2(x).ToString();
+        F2(y).ToString();
+    }
+}";
+            comp = CreateCompilation(source, references: new[] { ref0 }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object x = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(5, 20),
+                // (7,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F1<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F1(x).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F1").WithArguments("A.F1<T>(T)", "T", "object?").WithLocation(7, 9),
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1(x).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(x)").WithLocation(7, 9),
+                // (9,9): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'A.F2<T>(T)'. Nullability of type argument 'object?' doesn't match 'class' constraint.
+                //         F2(x).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("A.F2<T>(T)", "T", "object?").WithLocation(9, 9),
+                // (9,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2(x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(x)").WithLocation(9, 9));
         }
 
         [Fact]
