@@ -3,8 +3,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                if (!DisposeAnalysisHelper.TryGetOrCreate(compilationContext.Compilation, out var disposeAnalysisHelper))
+                if (!DisposeAnalysisHelper.TryCreate(compilationContext.Compilation, out var disposeAnalysisHelper))
                 {
                     return;
                 }
@@ -67,12 +67,13 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 _fieldDisposeValueMap = new ConcurrentDictionary<IFieldSymbol, bool>();
             }
 
+            [MethodImpl(MethodImplOptions.NoInlining)]
             public static void OnSymbolStart(SymbolStartAnalysisContext symbolStartContext, DisposeAnalysisHelper disposeAnalysisHelper)
             {
                 // We only want to analyze types which are disposable (implement System.IDisposable directly or indirectly)
                 // and have at least one disposable field.
                 var namedType = (INamedTypeSymbol)symbolStartContext.Symbol;
-                if (!namedType.IsDisposable(disposeAnalysisHelper.IDisposable))
+                if (!namedType.IsDisposable(disposeAnalysisHelper.IDisposableType))
                 {
                     return;
                 }
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             {
                 Debug.Assert(_disposableFields.Contains(field));
                 Debug.Assert(!field.IsStatic);
-                Debug.Assert(field.Type.IsDisposable(_disposeAnalysisHelper.IDisposable));
+                Debug.Assert(field.Type.IsDisposable(_disposeAnalysisHelper.IDisposableType));
 
                 // Update the dispose value for the field.
                 // Update value factory delegate ensures that fields for which we have
@@ -124,6 +125,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 }
             }
 
+            [MethodImpl(MethodImplOptions.NoInlining)]
             private void OnOperationBlockStart(OperationBlockStartAnalysisContext operationBlockStartContext)
             {
                 switch (operationBlockStartContext.OwningSymbol)
@@ -152,8 +154,11 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 }
             }
 
+            [MethodImpl(MethodImplOptions.NoInlining)]
             private void OnMethodOperationBlockStart(OperationBlockStartAnalysisContext operationBlockStartContext, IMethodSymbol containingMethod)
             {
+                // Shared PointsTo dataflow analysis result for all the callbacks to AnalyzeFieldReference
+                // for this method's executable code.
                 PointsToAnalysisResult lazyPointsToAnalysisResult = null;
 
                 // If we have any potential disposable object creation descendant within the operation blocks,
@@ -164,7 +169,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 }
 
                 // If this is a Dispose method, then analyze dispose invocations for fields within this method.
-                if (containingMethod.GetDisposeMethodKind(_disposeAnalysisHelper.IDisposable, _disposeAnalysisHelper.Task) != DisposeMethodKind.None)
+                if (_disposeAnalysisHelper.IsAnyDisposeMethod(containingMethod))
                 {
                     AnalyzeDisposeMethod();
                 }
@@ -197,9 +202,10 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                     {
                         if (lazyPointsToAnalysisResult == null)
                         {
-                            if (_disposeAnalysisHelper.TryGetOrComputeResult(operationBlockStartContext.OperationBlocks,
-                                containingMethod, operationBlockStartContext.Options, s_disposableFieldsShouldBeDisposedRule, trackInstanceFields: false,
-                                trackExceptionPaths: false, operationBlockStartContext.CancellationToken,
+                            if (_disposeAnalysisHelper.TryGetOrComputeResult(
+                                operationBlockStartContext, containingMethod,
+                                s_disposableFieldsShouldBeDisposedRule,
+                                trackInstanceFields: false,
                                 out _, out var pointsToAnalysisResult) &&
                                 pointsToAnalysisResult != null)
                             {
@@ -222,9 +228,10 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 void AnalyzeDisposeMethod()
                 {
                     // Perform dataflow analysis to compute dispose value of disposable fields at the end of dispose method.
-                    if (_disposeAnalysisHelper.TryGetOrComputeResult(operationBlockStartContext.OperationBlocks, containingMethod,
-                        operationBlockStartContext.Options, s_disposableFieldsShouldBeDisposedRule, trackInstanceFields: true, trackExceptionPaths: false, cancellationToken: operationBlockStartContext.CancellationToken,
-                        disposeAnalysisResult: out var disposeAnalysisResult, pointsToAnalysisResult: out var pointsToAnalysisResult))
+                    if (_disposeAnalysisHelper.TryGetOrComputeResult(operationBlockStartContext, containingMethod,
+                        s_disposableFieldsShouldBeDisposedRule, trackInstanceFields: true,
+                        disposeAnalysisResult: out var disposeAnalysisResult,
+                        pointsToAnalysisResult: out var pointsToAnalysisResult))
                     {
                         BasicBlock exitBlock = disposeAnalysisResult.ControlFlowGraph.GetExit();
                         foreach (var fieldWithPointsToValue in disposeAnalysisResult.TrackedInstanceFieldPointsToMap)
@@ -232,7 +239,11 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                             IFieldSymbol field = fieldWithPointsToValue.Key;
                             PointsToAbstractValue pointsToValue = fieldWithPointsToValue.Value;
 
-                            Debug.Assert(field.Type.IsDisposable(_disposeAnalysisHelper.IDisposable));
+                            if (!_disposableFields.Contains(field))
+                            {
+                                continue;
+                            }
+
                             ImmutableDictionary<AbstractLocation, DisposeAbstractValue> disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
                             var disposed = false;
                             foreach (var location in pointsToValue.Locations)

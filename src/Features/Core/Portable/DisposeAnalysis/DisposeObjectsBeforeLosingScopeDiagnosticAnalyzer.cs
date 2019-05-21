@@ -3,16 +3,14 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeQuality;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.DisposeAnalysis
@@ -48,7 +46,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                if (!DisposeAnalysisHelper.TryGetOrCreate(compilationContext.Compilation, out DisposeAnalysisHelper disposeAnalysisHelper))
+                if (!DisposeAnalysisHelper.TryCreate(compilationContext.Compilation, out DisposeAnalysisHelper disposeAnalysisHelper))
                 {
                     return;
                 }
@@ -61,6 +59,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             });
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void AnalyzeOperationBlock(
             OperationBlockAnalysisContext operationBlockContext,
             DisposeAnalysisHelper disposeAnalysisHelper,
@@ -73,6 +72,16 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 return;
             }
 
+            PerformFlowAnalysisOnOperationBlock(operationBlockContext, disposeAnalysisHelper, reportedLocations, containingMethod);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void PerformFlowAnalysisOnOperationBlock(
+            OperationBlockAnalysisContext operationBlockContext,
+            DisposeAnalysisHelper disposeAnalysisHelper,
+            ConcurrentDictionary<Location, bool> reportedLocations,
+            IMethodSymbol containingMethod)
+        {
             // We can skip interprocedural analysis for certain invocations.
             var interproceduralAnalysisPredicateOpt = new InterproceduralAnalysisPredicate(
                 skipAnalysisForInvokedMethodPredicateOpt: SkipInterproceduralAnalysis,
@@ -80,10 +89,10 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 skipAnalysisForInvokedContextPredicateOpt: null);
 
             // Compute dispose dataflow analysis result for the operation block.
-            if (disposeAnalysisHelper.TryGetOrComputeResult(operationBlockContext.OperationBlocks, containingMethod,
-                operationBlockContext.Options, s_disposeObjectsBeforeLosingScopeRule, trackInstanceFields: false, trackExceptionPaths: false,
-                operationBlockContext.CancellationToken, out var disposeAnalysisResult, out var pointsToAnalysisResult,
-                interproceduralAnalysisPredicateOpt, defaultDisposeOwnershipTransferAtConstructor: true))
+            if (disposeAnalysisHelper.TryGetOrComputeResult(operationBlockContext, containingMethod,
+                s_disposeObjectsBeforeLosingScopeRule, trackInstanceFields: false,
+                out var disposeAnalysisResult, out var pointsToAnalysisResult,
+                interproceduralAnalysisPredicateOpt))
             {
                 var notDisposedDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
                 var mayBeNotDisposedDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
@@ -140,60 +149,60 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
                 bool CanBeDisposable(ITypeSymbol type)
                     => type.SpecialType == SpecialType.System_Object ||
-                        type.IsDisposable(disposeAnalysisHelper.IDisposable) ||
+                        type.IsDisposable(disposeAnalysisHelper.IDisposableType) ||
                         type.TypeKind == TypeKind.Delegate;
             }
-        }
 
-        private static void ComputeDiagnostics(
-            ImmutableDictionary<AbstractLocation, DisposeAbstractValue> disposeData,
-            ArrayBuilder<Diagnostic> notDisposedDiagnostics,
-            ArrayBuilder<Diagnostic> mayBeNotDisposedDiagnostics,
-            DisposeAnalysisResult disposeAnalysisResult,
-            PointsToAnalysisResult pointsToAnalysisResult)
-        {
-            foreach (var kvp in disposeData)
+            void ComputeDiagnostics(
+                ImmutableDictionary<AbstractLocation, DisposeAbstractValue> disposeData,
+                ArrayBuilder<Diagnostic> notDisposedDiagnostics,
+                ArrayBuilder<Diagnostic> mayBeNotDisposedDiagnostics,
+                DisposeAnalysisResult disposeAnalysisResult,
+                PointsToAnalysisResult pointsToAnalysisResult)
             {
-                AbstractLocation location = kvp.Key;
-                DisposeAbstractValue disposeValue = kvp.Value;
-
-                // Ignore non-disposable locations and locations without a Creation operation.
-                if (disposeValue.Kind == DisposeAbstractValueKind.NotDisposable ||
-                    location.CreationOpt == null)
+                foreach (var kvp in disposeData)
                 {
-                    continue;
-                }
+                    AbstractLocation location = kvp.Key;
+                    DisposeAbstractValue disposeValue = kvp.Value;
 
-                // Check if the disposable creation is definitely not disposed or may be not disposed.
-                var isNotDisposed = disposeValue.Kind == DisposeAbstractValueKind.NotDisposed ||
-                    (disposeValue.DisposingOrEscapingOperations.Count > 0 &&
-                     disposeValue.DisposingOrEscapingOperations.All(d => d.IsInsideCatchRegion(disposeAnalysisResult.ControlFlowGraph)));
-                var isMayBeNotDisposed = !isNotDisposed &&
-                    (disposeValue.Kind == DisposeAbstractValueKind.MaybeDisposed || disposeValue.Kind == DisposeAbstractValueKind.NotDisposedOrEscaped);
-
-                if (isNotDisposed || isMayBeNotDisposed)
-                {
-                    var syntax = location.TryGetNodeToReportDiagnostic(pointsToAnalysisResult);
-                    if (syntax == null)
+                    // Ignore non-disposable locations and locations without a Creation operation.
+                    if (disposeValue.Kind == DisposeAbstractValueKind.NotDisposable ||
+                        location.CreationOpt == null)
                     {
                         continue;
                     }
 
-                    var rule = isNotDisposed ? s_disposeObjectsBeforeLosingScopeRule : s_useRecommendedDisposePatternRule;
-                    var diagnostic = Diagnostic.Create(
-                        rule,
-                        syntax.GetLocation(),
-                        additionalLocations: null,
-                        properties: null,
-                        syntax.ToString());
+                    // Check if the disposable creation is definitely not disposed or may be not disposed.
+                    var isNotDisposed = disposeValue.Kind == DisposeAbstractValueKind.NotDisposed ||
+                        (disposeValue.DisposingOrEscapingOperations.Count > 0 &&
+                         disposeValue.DisposingOrEscapingOperations.All(d => d.IsInsideCatchRegion(disposeAnalysisResult.ControlFlowGraph)));
+                    var isMayBeNotDisposed = !isNotDisposed &&
+                        (disposeValue.Kind == DisposeAbstractValueKind.MaybeDisposed || disposeValue.Kind == DisposeAbstractValueKind.NotDisposedOrEscaped);
 
-                    if (isNotDisposed)
+                    if (isNotDisposed || isMayBeNotDisposed)
                     {
-                        notDisposedDiagnostics.Add(diagnostic);
-                    }
-                    else
-                    {
-                        mayBeNotDisposedDiagnostics.Add(diagnostic);
+                        var syntax = location.TryGetNodeToReportDiagnostic(pointsToAnalysisResult);
+                        if (syntax == null)
+                        {
+                            continue;
+                        }
+
+                        var rule = isNotDisposed ? s_disposeObjectsBeforeLosingScopeRule : s_useRecommendedDisposePatternRule;
+                        var diagnostic = Diagnostic.Create(
+                            rule,
+                            syntax.GetLocation(),
+                            additionalLocations: null,
+                            properties: null,
+                            syntax.ToString());
+
+                        if (isNotDisposed)
+                        {
+                            notDisposedDiagnostics.Add(diagnostic);
+                        }
+                        else
+                        {
+                            mayBeNotDisposedDiagnostics.Add(diagnostic);
+                        }
                     }
                 }
             }
