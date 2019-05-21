@@ -176,6 +176,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return initialState;
         }
 
+        protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
+        {
+            CheckpointWalker(node);
+            SetState(UnreachableState());
+            foreach (var label in node.SwitchLabels)
+            {
+                CheckpointWalker(label);
+                VisitLabel(label.Label, node);
+            }
+
+            VisitStatementList(node);
+        }
+
         private PooledDictionary<LabelSymbol, (LocalState state, bool believedReachable)>
             LearnFromDecisionDag(
             SyntaxNode node,
@@ -493,7 +506,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var arm in node.SwitchArms)
             {
                 SetState(!arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState());
+                // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the checkpoint?
+                CheckpointWalker(arm);
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
+                CheckpointWalkerThroughConversionGroup(arm.Value as BoundConversion, expression);
                 expressions.Add(expression);
                 conversions.Add(conversion);
                 var armType = VisitRvalueWithState(expression);

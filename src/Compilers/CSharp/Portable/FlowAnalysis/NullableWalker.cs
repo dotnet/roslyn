@@ -54,56 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Represents the result of visiting an expression.
-        /// Contains a result type which tells us whether the expression may be null,
-        /// and an l-value type which tells us whether we can assign null to the expression.
-        /// </summary>
-        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        private readonly struct VisitResult
-        {
-            public readonly TypeWithState RValueType;
-            public readonly TypeWithAnnotations LValueType;
-
-            public VisitResult(TypeWithState rValueType, TypeWithAnnotations lValueType)
-            {
-                RValueType = rValueType;
-                LValueType = lValueType;
-                // https://github.com/dotnet/roslyn/issues/34993: Doesn't hold true for Tuple_Assignment_10. See if we can make it hold true
-                //Debug.Assert((RValueType.Type is null && LValueType.TypeSymbol is null) ||
-                //             RValueType.Type.Equals(LValueType.TypeSymbol, TypeCompareKind.ConsiderEverything | TypeCompareKind.AllIgnoreOptions));
-            }
-
-            public VisitResult(TypeSymbol type, NullableAnnotation annotation, NullableFlowState state)
-            {
-                RValueType = TypeWithState.Create(type, state);
-                LValueType = TypeWithAnnotations.Create(type, annotation);
-                Debug.Assert(RValueType.Type.Equals(LValueType.Type, TypeCompareKind.ConsiderEverything));
-            }
-
-            private string GetDebuggerDisplay() => $"{{LValue: {LValueType.GetDebuggerDisplay()}, RValue: {RValueType.GetDebuggerDisplay()}}}";
-        }
-
-        /// <summary>
-        /// Represents the result of visiting an argument expression.
-        /// In addition to storing the <see cref="VisitResult"/>, also stores the <see cref="LocalState"/>
-        /// for reanalyzing a lambda.
-        /// </summary>
-        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        private readonly struct VisitArgumentResult
-        {
-            public readonly VisitResult VisitResult;
-            public readonly Optional<LocalState> StateForLambda;
-            public TypeWithState RValueType => VisitResult.RValueType;
-            public TypeWithAnnotations LValueType => VisitResult.LValueType;
-
-            public VisitArgumentResult(VisitResult visitResult, Optional<LocalState> stateForLambda)
-            {
-                VisitResult = visitResult;
-                StateForLambda = stateForLambda;
-            }
-        }
-
-        /// <summary>
         /// The inferred type at the point of declaration of var locals and parameters.
         /// </summary>
         private readonly PooledDictionary<Symbol, TypeWithAnnotations> _variableTypes = PooledDictionary<Symbol, TypeWithAnnotations>.GetInstance();
@@ -146,6 +96,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// compiler.
         /// </summary>
         private readonly Dictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _analyzedNullabilityMapOpt;
+
+        /// <summary>
+        /// Contains the map of the NullableWalker's state at every BoundNode that's analyzed, to allow the speculative semantic
+        /// model to restore the final stable state for a specific location in code and then run the walker over a speculative
+        /// expression or statement.
+        /// </summary>
+        private readonly Dictionary<BoundNode, Checkpoint> _checkpointMapOpt;
 
         // https://github.com/dotnet/roslyn/issues/35043: remove this when all expression are supported
         private bool _disableNullabilityAnalysis;
@@ -282,6 +239,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void CheckpointWalker(BoundNode node)
+        {
+            Debug.Assert(!IsConditionalState);
+            if (_checkpointMapOpt != null && node != null)
+            {
+                _checkpointMapOpt[node] = Checkpoint.CheckpointWalker(this);
+            }
+        }
+
         /// <summary>
         /// Placeholder locals, e.g. for objects being constructed.
         /// </summary>
@@ -317,7 +283,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversions conversions,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
             VariableState initialState,
-            Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt)
+            Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt,
+            Dictionary<BoundNode, Checkpoint> checkpointMapOpt)
             // Members of variables are tracked up to a fixed depth, to avoid cycles. The
             // maxSlotDepth value is arbitrary but large enough to allow most scenarios.
             : base(compilation, symbol, node, EmptyStructTypeCache.CreatePrecise(), trackUnassignments: true, maxSlotDepth: 5)
@@ -328,6 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodSignatureOpt = methodSignatureOpt;
             _returnTypesOpt = returnTypesOpt;
             _analyzedNullabilityMapOpt = analyzedNullabilityMapOpt;
+            _checkpointMapOpt = checkpointMapOpt;
 
             if (initialState != null)
             {
@@ -382,6 +350,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
             }
 
+            // We need to do a checkpoint even of the first node, because we want to have the state of the initial parameters.
+            CheckpointWalker(methodMainNode);
+
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
             return pendingReturns;
         }
@@ -408,7 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodSignatureOpt: method,
                 returnTypes: null,
                 initialState: null,
-                analyzedNullabilityMapOpt: null);
+                analyzedNullabilityMapOpt: null,
+                checkpointMapOpt: null);
         }
 
         internal static BoundNode AnalyzeAndRewrite(
@@ -416,7 +388,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbol,
             BoundNode node,
             Binder binder,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            Dictionary<BoundNode, Checkpoint> checkpointMapOpt)
         {
             var analyzedNullabilities = PooledDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.GetInstance();
             var methodSymbol = symbol as MethodSymbol;
@@ -431,7 +404,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodSignatureOpt: methodSymbol,
                 returnTypes: null,
                 initialState: null,
-                analyzedNullabilityMapOpt: analyzedNullabilities);
+                analyzedNullabilityMapOpt: analyzedNullabilities,
+                checkpointMapOpt);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutableDictionaryAndFree();
 
@@ -439,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
             if (compilation.NullableAnalysisEnabled)
             {
-                DebugVerifier.Verify(analyzedNullabilitiesMap, node);
+                DebugVerifier.Verify(analyzedNullabilitiesMap, checkpointMapOpt, node);
             }
 #endif
             return new NullabilityRewriter(analyzedNullabilitiesMap).Visit(node);
@@ -467,7 +441,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodSignatureOpt: null,
                 returnTypes: null,
                 initialState: null,
-                analyzedNullabilityMapOpt: null);
+                analyzedNullabilityMapOpt: null,
+                checkpointMapOpt: null);
         }
 
         internal static void Analyze(
@@ -478,7 +453,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol delegateInvokeMethod,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
             VariableState initialState,
-            Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt)
+            Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt,
+            Dictionary<BoundNode, Checkpoint> checkpointMapOpt)
         {
             Analyze(
                 compilation,
@@ -491,7 +467,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodSignatureOpt: delegateInvokeMethod,
                 returnTypes,
                 initialState,
-                analyzedNullabilityMapOpt);
+                analyzedNullabilityMapOpt,
+                checkpointMapOpt);
         }
 
         private static void Analyze(
@@ -505,7 +482,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol methodSignatureOpt,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
             VariableState initialState,
-            Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt)
+            Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt,
+            Dictionary<BoundNode, Checkpoint> checkpointMapOpt)
         {
             Debug.Assert(diagnostics != null);
             var walker = new NullableWalker(
@@ -518,7 +496,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversions,
                 returnTypes,
                 initialState,
-                analyzedNullabilityMapOpt);
+                analyzedNullabilityMapOpt,
+                checkpointMapOpt);
 
             try
             {
@@ -1470,6 +1449,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
+        public override BoundNode Visit(BoundNode node)
+        {
+            CheckpointWalker(node);
+            return base.Visit(node);
+        }
+
         protected override void VisitStatement(BoundStatement statement)
         {
             SetInvalidResult();
@@ -1562,6 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
         {
+            CheckpointWalker(node);
             switch (node.Kind)
             {
                 case BoundKind.ObjectInitializerExpression:
@@ -1616,12 +1602,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitObjectElementInitializer(int containingSlot, BoundAssignmentOperator node)
         {
+            CheckpointWalker(node);
             var left = node.Left;
             switch (left.Kind)
             {
                 case BoundKind.ObjectInitializerMember:
                     {
                         var objectInitializer = (BoundObjectInitializerMember)left;
+                        CheckpointWalker(left);
                         var symbol = objectInitializer.MemberSymbol;
                         if (!objectInitializer.Arguments.IsDefaultOrEmpty)
                         {
@@ -1755,6 +1743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var currentDeclaration = getDeclaration(node, property, ref currentDeclarationIndex);
                     if (!(currentDeclaration is null))
                     {
+                        CheckpointWalker(currentDeclaration);
                         SetAnalyzedNullability(currentDeclaration, new VisitResult(argumentType, property.TypeWithAnnotations));
                     }
                 }
@@ -1798,6 +1787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ArrayTypeSymbol VisitArrayInitializer(BoundArrayCreation node)
         {
+            CheckpointWalker(node.InitializerOpt);
             BoundArrayInitialization initialization = node.InitializerOpt;
             var expressions = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
             GetArrayElements(initialization, expressions);
@@ -1827,6 +1817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (BoundExpression expressionNoConversion, Conversion conversion) = RemoveConversion(expression, includeExplicitConversions: false);
                     expressionsNoConversions.Add(expressionNoConversion);
                     conversions.Add(conversion);
+                    CheckpointWalkerThroughConversionGroup(expression as BoundConversion, expressionNoConversion);
                     var resultType = VisitRvalueWithState(expressionNoConversion);
                     resultTypes.Add(resultType);
                     placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressionNoConversion, resultType.ToTypeWithAnnotations()));
@@ -1900,7 +1891,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             conversions: conversions,
                                             returnTypesOpt: null,
                                             initialState: null,
-                                            analyzedNullabilityMapOpt: null);
+                                            analyzedNullabilityMapOpt: null,
+                                            checkpointMapOpt: null);
 
             int n = returns.Count;
             var resultTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
@@ -2632,6 +2624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression operandNoConversion;
                 (operandNoConversion, conversion) = RemoveConversion(operand, includeExplicitConversions: false);
+                CheckpointWalkerThroughConversionGroup(operand as BoundConversion, operandNoConversion);
                 Visit(operandNoConversion);
                 return (operandNoConversion, conversion, ResultType);
             }
@@ -3295,7 +3288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) RemoveArgumentConversions(
+        private (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) RemoveArgumentConversions(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt)
         {
@@ -3317,6 +3310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (argument, conversion) = RemoveConversion(argument, includeExplicitConversions: false);
                         if (argument != before)
                         {
+                            CheckpointWalkerThroughConversionGroup(before as BoundConversion, argument);
                             includedConversion = true;
                         }
                     }
@@ -3820,6 +3814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetType.HasType);
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
+            CheckpointWalkerThroughConversionGroup(node as BoundConversion, operand);
             TypeWithState operandType = VisitRvalueWithState(operand);
             SetResultType(node,
                 VisitConversion(
@@ -3853,6 +3848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
+            CheckpointWalkerThroughConversionGroup(expr as BoundConversion, operand);
             var operandType = VisitRvalueWithState(operand);
             // If an explicit conversion was used in place of an implicit conversion, the explicit
             // conversion was created by initial binding after reporting "error CS0266:
@@ -4682,6 +4678,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return operandType;
         }
 
+        private void CheckpointWalkerThroughConversionGroup(BoundConversion conversionOpt, BoundExpression convertedNode)
+        {
+            var conversionGroup = conversionOpt?.ConversionGroupOpt;
+            while (conversionOpt != null && conversionOpt != convertedNode)
+            {
+                Debug.Assert(conversionOpt.ConversionGroupOpt == conversionGroup);
+                CheckpointWalker(conversionOpt);
+                conversionOpt = conversionOpt.Operand as BoundConversion;
+            }
+        }
+
         private void TrackAnalyzedNullabilityThroughConversionGroup(TypeWithState resultType, BoundConversion conversionOpt, BoundExpression convertedNode)
         {
             var visitResult = new VisitResult(resultType, resultType.ToTypeWithAnnotations());
@@ -4918,7 +4925,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 delegateTypeOpt?.DelegateInvokeMethod,
                 returnTypes: null,
                 initialState: initialState ?? GetVariableState(State.Clone()),
-                _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt);
+                _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt,
+                _checkpointMapOpt);
         }
 
         public override BoundNode VisitUnboundLambda(UnboundLambda node)
@@ -4946,7 +4954,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         methodSignatureOpt: null,
                         returnTypes: null,
                         initialState: GetVariableState(this.TopState()),
-                        analyzedNullabilityMapOpt: _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt);
+                        analyzedNullabilityMapOpt: _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt,
+                        _checkpointMapOpt);
             }
             SetInvalidResult();
             return null;
@@ -5671,6 +5680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var (expr, conversion) = RemoveConversion(node.Expression, includeExplicitConversions: false);
+            CheckpointWalkerThroughConversionGroup(node.Expression as BoundConversion, expr);
 
             // There are 7 ways that a foreach can be created:
             //    1. The collection type is an array type. For this, initial binding will generate an implicit reference conversion to
@@ -6637,6 +6647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitCatchBlock(BoundCatchBlock node, ref LocalState finallyState)
         {
+            CheckpointWalker(node);
             if (node.Locals.Length > 0)
             {
                 LocalSymbol local = node.Locals[0];

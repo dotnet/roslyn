@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1625,7 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
 #if DEBUG
                 var diagnostics = new DiagnosticBag();
-                _ = RewriteNullableBoundNodes(boundOuterExpression, incrementalBinder, diagnostics);
+                _ = RewriteNullableBoundNodesWithCheckpoints(boundOuterExpression, incrementalBinder, diagnostics, checkpointMap: null);
 #endif
 
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
@@ -1850,7 +1851,8 @@ done:
             // part.
             var binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
             var boundRoot = Bind(binder, bindableRoot, diagnostics);
-            boundRoot = RewriteNullableBoundNodes(boundRoot, binder, diagnostics);
+            var checkpointMap = PooledDictionary<BoundNode, NullableWalker.Checkpoint>.GetInstance();
+            boundRoot = RewriteNullableBoundNodesWithCheckpoints(boundRoot, binder, diagnostics, checkpointMap);
 
             if (Compilation.NullableAnalysisEnabled && !IsSpeculativeSemanticModel)
             {
@@ -1858,7 +1860,7 @@ done:
             }
         }
 
-        protected abstract BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics);
+        protected abstract BoundNode RewriteNullableBoundNodesWithCheckpoints(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, Dictionary<BoundNode, NullableWalker.Checkpoint> checkpointMap);
 
         /// <summary>
         /// Get all bounds nodes associated with a node, ordered from highest to lowest in the bound tree.
