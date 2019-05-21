@@ -9547,8 +9547,7 @@ tryAgain:
                 }
                 else if (this.PeekToken(1).Kind == SyntaxKind.ExclamationToken)
                 {
-                    if ((this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken) ||
-                            (this.PeekToken(2).Kind == SyntaxKind.CommaToken))
+                    if ((this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken))
                     {
                         return true;
                     }
