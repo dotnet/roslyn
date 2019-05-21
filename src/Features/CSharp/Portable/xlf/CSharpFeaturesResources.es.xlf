@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
         <source>Allow unsafe code in this project</source>
-        <target state="new">Allow unsafe code in this project</target>
+        <target state="translated">Permitir código no seguro en este proyecto</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
-        <target state="new">Fix return type</target>
+        <target state="translated">Corregir tipo de valor devuelto</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Make_ref_struct">
         <source>Make 'ref struct'</source>
-        <target state="new">Make 'ref struct'</target>
+        <target state="translated">Convertir "ref struct"</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
-        <target state="new">Unseal class '{0}'</target>
+        <target state="translated">Quitar el sello de la clase "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
@@ -394,7 +394,7 @@
       </trans-unit>
       <trans-unit id="fixed_statement">
         <source>fixed statement</source>
-        <target state="translated">instrucción fija</target>
+        <target state="translated">instrucción fixed</target>
         <note>{Locked="fixed"} "fixed" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_statement">
@@ -414,12 +414,12 @@
       </trans-unit>
       <trans-unit id="checked_statement">
         <source>checked statement</source>
-        <target state="translated">instrucción comprobada</target>
+        <target state="translated">instrucción checked</target>
         <note>{Locked="checked"} "checked" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="unchecked_statement">
         <source>unchecked statement</source>
-        <target state="translated">instrucción sin activar</target>
+        <target state="translated">instrucción unchecked</target>
         <note>{Locked="unchecked"} "unchecked" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_statement">
@@ -489,7 +489,7 @@
       </trans-unit>
       <trans-unit id="is_pattern">
         <source>is pattern</source>
-        <target state="translated">patrón</target>
+        <target state="translated">patrón is</target>
         <note>{Locked="is"} "is" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="deconstruction">

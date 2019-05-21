@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../ServicesVSResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../ServicesVSResources.resx">
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="new">A new namespace will be created</target>
+        <target state="translated">将创建一个新的命名空间</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Allow_colon">
         <source>Allow:</source>
-        <target state="translated">Allow:</target>
+        <target state="translated">允许:</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="new">Enable nullable reference analysis IDE features</target>
+        <target state="translated">启用可为 null 的引用分析 IDE 功能</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -144,12 +144,12 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="new">Move to Namespace</target>
+        <target state="translated">移动到命名空间</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="new">Namespace</target>
+        <target state="translated">命名空间</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
-        <target state="translated">首选简单的 “using” 语句</target>
+        <target state="translated">首选简单的 "using" 语句</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
@@ -284,12 +284,12 @@
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="new">Target Namespace:</target>
+        <target state="translated">目标命名空间:</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="new">This is an invalid namespace</target>
+        <target state="translated">这是一个无效的命名空间</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
-        <target state="translated">此工作区不支持更新 Visual Basic 完成选项。</target>
+        <target state="translated">此工作区不支持更新 Visual Basic 编译选项。</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -609,7 +609,7 @@
       </trans-unit>
       <trans-unit id="The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace">
         <source>The given DocumentId did not come from the Visual Studio workspace.</source>
-        <target state="translated">给定的文档 ID 并非来自 Visual Studio 工作区。</target>
+        <target state="translated">给定的 DocumentId 并非来自 Visual Studio 工作区。</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_colon_0_1_Use_the_dropdown_to_view_and_switch_to_other_projects_this_file_may_belong_to">

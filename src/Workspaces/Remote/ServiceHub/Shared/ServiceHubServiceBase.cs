@@ -76,6 +76,8 @@ namespace Microsoft.CodeAnalysis.Remote
             this.GetType().GetField("Rpc", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(this, _rpc);
         }
 
+        protected event EventHandler Disconnected;
+
         protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
 
         protected RoslynServices RoslynServices
@@ -96,6 +98,11 @@ namespace Microsoft.CodeAnalysis.Remote
         protected void StartService()
         {
             _rpc.StartListening();
+        }
+
+        protected Task<TResult> InvokeAsync<TResult>(string targetName, CancellationToken cancellationToken)
+        {
+            return InvokeAsync<TResult>(targetName, SpecializedCollections.EmptyReadOnlyList<object>(), cancellationToken);
         }
 
         protected Task<TResult> InvokeAsync<TResult>(
@@ -171,11 +178,6 @@ namespace Microsoft.CodeAnalysis.Remote
             Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
         }
 
-        protected virtual void OnDisconnected(JsonRpcDisconnectedEventArgs e)
-        {
-            // do nothing
-        }
-
         protected void Log(TraceEventType errorType, string message)
         {
             Logger.TraceEvent(errorType, 0, $"{DebugInstanceString} : " + message);
@@ -186,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // raise cancellation
             _shutdownCancellationSource.Cancel();
 
-            OnDisconnected(e);
+            Disconnected?.Invoke(this, EventArgs.Empty);
 
             if (e.Reason != DisconnectedReason.Disposed)
             {

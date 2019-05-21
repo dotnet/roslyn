@@ -118,7 +118,7 @@ class C
                     workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>());
                 var textView = doc.GetTextView();
                 var textBuffer = doc.GetTextBuffer();
-                commandHandler.ExecuteCommand(textView, textBuffer, CommentUncommentSelectionCommandHandler.Operation.Uncomment, TestCommandExecutionContext.Create());
+                commandHandler.ExecuteCommand(textView, textBuffer, Operation.Uncomment, TestCommandExecutionContext.Create());
 
                 Assert.Equal(expected, doc.TextBuffer.CurrentSnapshot.GetText());
             }

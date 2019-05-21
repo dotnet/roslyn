@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddFileBanner
         End Function
 
         Protected Overrides Function CreateTrivia(trivia As SyntaxTrivia, text As String) As SyntaxTrivia
-            Return If(trivia.Kind() = SyntaxKind.CommentTrivia,
+            Return If(trivia.Kind() = SyntaxKind.CommentTrivia OrElse trivia.Kind() = SyntaxKind.DocumentationCommentTrivia,
                       SyntaxFactory.CommentTrivia(text),
                       trivia)
         End Function
