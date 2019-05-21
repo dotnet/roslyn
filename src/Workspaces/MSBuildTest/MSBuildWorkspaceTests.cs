@@ -3628,6 +3628,46 @@ class C { }";
             }
         }
 
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestEditorConfigDiscovery()
+        {
+            var files = GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithDiscoverEditorConfigFiles)
+                .WithFile(".editorconfig", "root = true");
+
+            CreateFiles(files);
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var projectFullPath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+                var project = await workspace.OpenProjectAsync(projectFullPath);
+                var analyzerConfigDocument = Assert.Single(project.AnalyzerConfigDocuments);
+                Assert.Equal(".editorconfig", analyzerConfigDocument.Name);
+                var text = await analyzerConfigDocument.GetTextAsync();
+                Assert.Equal("root = true", text.ToString());
+            }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestEditorConfigDiscoveryDisabled()
+        {
+            var files = GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithDiscoverEditorConfigFiles)
+                .ReplaceFileElement(@"CSharpProject\CSharpProject.csproj", "DiscoverEditorConfigFiles", "false")
+                .WithFile(".editorconfig", "root = true");
+
+            CreateFiles(files);
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var projectFullPath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+                var project = await workspace.OpenProjectAsync(projectFullPath);
+                Assert.Empty(project.AnalyzerConfigDocuments);
+            }
+        }
+
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
         {
             public void AddDependencyLocation(string fullPath)
