@@ -68,6 +68,8 @@
     <Rule Id="CA2234" Action="None" />
     <Rule Id="CA5350" Action="None" /> <!-- in some cases we must use legacy cryptographic hashes, so disable for now -->
     <Rule Id="CA5351" Action="None" /> <!-- in some cases we must use legacy cryptographic hashes, so disable for now -->
+    <Rule Id="CA5384" Action="None" /> <!-- Analyzer 'Microsoft.NetCore.Analyzers.Security.DoNotUseDSA' threw an exception of type 'System.NullReferenceException' -->
+    <Rule Id="CA5385" Action="None" /> <!-- Analyzer 'Microsoft.NetCore.Analyzers.Security.UseRSAWithSufficientKeySize' threw an exception of type 'System.NullReferenceException' -->
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CodeStyle" RuleNamespace="Microsoft.CodeAnalysis.CodeStyle">
     <Rule Id="IDE0055" Action="Warning" />
