@@ -10064,18 +10064,20 @@ tryAgain:
         private bool IsParenVarCommaSyntax()
         {
             var next = this.PeekToken(1);
-            var afterKind = this.PeekToken(2).Kind;
 
             // Ensure next token is a variable
             if (next.Kind == SyntaxKind.IdentifierToken)
             {
-                if ((!this.IsInQuery || !IsTokenQueryContextualKeyword(next))) {
-                    // Variable must be directly followed by a comma if not followed by postfix
+                if (!this.IsInQuery || !IsTokenQueryContextualKeyword(next)) {
+                    // Variable must be directly followed by a comma if not followed by exclamation
+                    var afterKind = this.PeekToken(2).Kind;
+                    // ( x , [...]
                     if (afterKind == SyntaxKind.CommaToken)
                     {
                         return true;
                     }
-                    else if ((afterKind == SyntaxKind.ExclamationToken && this.PeekToken(3).Kind == SyntaxKind.CommaToken))
+                    // ( x! , [...]
+                    if (afterKind == SyntaxKind.ExclamationToken && this.PeekToken(3).Kind == SyntaxKind.CommaToken)
                     {
                         return true;
                     }
