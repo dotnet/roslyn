@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)

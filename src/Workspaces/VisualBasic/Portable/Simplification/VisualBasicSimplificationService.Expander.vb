@@ -653,7 +653,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                             replaceNode:=False)
                     Else
                         Dim left As ExpressionSyntax
-                        If _semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken) IsNot symbol.ContainingType Then
+                        If Not Equals(_semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken), symbol.ContainingType) Then
                             left = SyntaxFactory.MyBaseExpression()
                         Else
                             left = SyntaxFactory.MeExpression()

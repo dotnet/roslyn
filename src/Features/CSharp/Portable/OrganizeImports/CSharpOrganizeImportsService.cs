@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
             return document.WithSyntaxRoot(newRoot);
         }
 
+        public string SortImportsDisplayStringWithAccelerator =>
+            CSharpFeaturesResources.Sort_Usings;
+
         public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator =>
             CSharpFeaturesResources.Remove_and_Sort_Usings;
     }
