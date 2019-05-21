@@ -9541,16 +9541,14 @@ tryAgain:
         {
             if (precedence <= Precedence.Lambda)
             {
-                if (this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken)
+                SyntaxKind token1 = this.PeekToken(1).Kind;
+                if (token1 == SyntaxKind.EqualsGreaterThanToken)
                 {
                     return true;
                 }
-                else if (this.PeekToken(1).Kind == SyntaxKind.ExclamationToken)
+                if (token1 == SyntaxKind.ExclamationToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
                 {
-                    if ((this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
             if (ScanAsyncLambda(precedence))
