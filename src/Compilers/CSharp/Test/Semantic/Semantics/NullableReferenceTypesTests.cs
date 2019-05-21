@@ -90260,6 +90260,159 @@ class Program
         }
 
         [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_34()
+        {
+            var source =
+@"class Program
+{
+    static void F(object? x, object y)
+    {
+        if (x == null) return;
+        y = null; // 1
+        var t = (new[] { x }, y);
+        var (ax, ay) = t;
+        ax[0].ToString();
+        ay.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13),
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         ay.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_35()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+class Program
+{
+    static List<T> MakeList<T>(T a)
+    {
+        throw null!;
+    }
+
+
+    static void F(object? x, object y)
+    {
+        if (x == null) return;
+        y = null; // 1
+        var t = (new[] { x }, MakeList(y));
+        var (ax, ay) = t;
+        ax[0].ToString();
+        ay[0].ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(14, 13),
+                // (18,9): warning CS8602: Dereference of a possibly null reference.
+                //         ay[0].ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay[0]").WithLocation(18, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_36()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+class Program
+{
+    static List<T> MakeList<T>(T a) where T : object
+    {
+        throw null!;
+    }
+
+    static void F(object? x, object y)
+    {
+        if (x == null) return;
+        y = null; // 1
+        var t = (new[] { x }, MakeList(y)); // 2
+        var (ax, ay) = t;
+        ax[0].ToString();
+        ay[0].ToString(); // 3
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 13),
+                // (14,31): warning CS8631: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'Program.MakeList<T>(T)'. Nullability of type argument 'object?' doesn't match constraint type 'object'.
+                //         var t = (new[] { x }, MakeList(y)); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "MakeList").WithArguments("Program.MakeList<T>(T)", "object", "T", "object?").WithLocation(14, 31),
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                //         ay[0].ToString(); 
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay[0]").WithLocation(17, 9)
+                );
+        }
+
+
+        [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_37()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+class Program
+{
+    static List<T> MakeList<T>(T a)
+    {
+        throw null!;
+    }
+
+    static void F(object? x, object y)
+    {
+        if (x == null) return;
+        y = null; // 1
+        var ylist = MakeList(y);
+        var ylist2 = MakeList(ylist); 
+        var ylist3 = MakeList(ylist2);
+        ylist3 = null; // 2
+        var t = (new[] { x }, MakeList(ylist3));
+        var (ax, ay) = t;
+        ax[0].ToString();
+        ay[0].ToString(); // 3
+        var ay0 = ay[0];    
+        if (ay0 == null) return;
+        ay0[0].ToString(); 
+        ay0[0][0].ToString(); 
+        ay0[0][0][0].ToString(); // 4
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 13),
+                // (17,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         ylist3 = null; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(17, 18),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         ay[0].ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay[0]").WithLocation(21, 9),
+                // (26,9): warning CS8602: Dereference of a possibly null reference.
+                //         ay0[0][0][0].ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay0[0][0][0]").WithLocation(26, 9)
+                );
+        }
+
+        [Fact]
         public void Deconstruction_ExtensionMethod_01()
         {
             var source =

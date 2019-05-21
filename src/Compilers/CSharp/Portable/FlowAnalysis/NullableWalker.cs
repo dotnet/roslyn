@@ -4901,11 +4901,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         var targetType = variable.Type;
-                        if (variable.Expression.ExpressionSymbol is SourceLocalSymbol local && local.IsVar)
+                        if (variable.Expression.ExpressionSymbol is SourceLocalSymbol local && local.IsVar && rightPart is BoundFieldAccess rightField)
                         {
                             // re-infer the left hand var type from the right hand side
-                            targetType = TypeWithAnnotations.Create(rightPart.Type);
-                            _variableTypes[local] = targetType;
+                            _variableTypes[local] = rightField.FieldSymbol.TypeWithAnnotations;
                         }
                         TypeWithState operandType;
                         TypeWithState valueType;
@@ -5029,7 +5028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            if (expr.Type is TupleTypeSymbol tupleType)
+            if (expr.Type.IsTupleType)
             {
                 // https://github.com/dotnet/roslyn/issues/33011: Should include conversion.UnderlyingConversions[i].
                 // For instance, Boxing conversions (see Deconstruction_ImplicitBoxingConversion_02) and
