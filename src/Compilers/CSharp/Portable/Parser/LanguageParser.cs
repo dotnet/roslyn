@@ -10013,9 +10013,7 @@ tryAgain:
             }
 
             //  case 1:  ( x ,
-            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken
-                && (!this.IsInQuery || !IsTokenQueryContextualKeyword(this.PeekToken(1)))
-                && (this.PeekToken(2).Kind == SyntaxKind.CommaToken || (this.PeekToken(2).Kind == SyntaxKind.ExclamationToken && this.PeekToken(3).Kind == SyntaxKind.CommaToken)))
+            if (IsParenVarCommaSyntax())
             {
                 // Make sure it really looks like a lambda, not just a tuple
                 int curTk = 3;
@@ -10061,6 +10059,29 @@ tryAgain:
                 return true;
             }
 
+            return false;
+        }
+
+        private bool IsParenVarCommaSyntax()
+        {
+            var next = this.PeekToken(1);
+            var afterKind = this.PeekToken(2).Kind;
+
+            // Ensure next token is a variable
+            if (next.Kind == SyntaxKind.IdentifierToken)
+            {
+                if ((!this.IsInQuery || !IsTokenQueryContextualKeyword(next))) {
+                    // Variable must be directly followed by a comma if not followed by postfix
+                    if (afterKind == SyntaxKind.CommaToken)
+                    {
+                        return true;
+                    }
+                    else if ((afterKind == SyntaxKind.ExclamationToken && this.PeekToken(3).Kind == SyntaxKind.CommaToken))
+                    {
+                        return true;
+                    }
+                }
+            }
             return false;
         }
 
