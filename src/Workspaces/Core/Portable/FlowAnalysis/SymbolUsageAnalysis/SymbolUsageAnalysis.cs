@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             BasicBlockAnalysisData AnalyzeLocalFunction(IMethodSymbol localFunction)
             {
                 var localFunctionOperation = rootOperation.Descendants()
-                    .FirstOrDefault(o => (o as ILocalFunctionOperation)?.Symbol == localFunction);
+                    .FirstOrDefault(o => Equals((o as ILocalFunctionOperation)?.Symbol, localFunction));
 
                 // Can likely be null for broken code.
                 if (localFunctionOperation != null)

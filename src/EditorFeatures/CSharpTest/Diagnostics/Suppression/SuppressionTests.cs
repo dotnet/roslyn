@@ -1545,6 +1545,304 @@ class Class { }
             }
         }
 
+        public abstract class CSharpLocalSuppressMessageSuppressionTests : CSharpSuppressionTests
+        {
+            protected sealed override int CodeActionIndex
+            {
+                get { return 2; }
+            }
+
+            public class UserInfoDiagnosticSuppressionTests : CSharpLocalSuppressMessageSuppressionTests
+            {
+                private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
+                {
+                    private DiagnosticDescriptor _descriptor =
+                        new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            return ImmutableArray.Create(_descriptor);
+                        }
+                    }
+
+                    public override void Initialize(AnalysisContext context)
+                    {
+                        context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration, SyntaxKind.NamespaceDeclaration, SyntaxKind.MethodDeclaration);
+                    }
+
+                    public void AnalyzeNode(SyntaxNodeAnalysisContext context)
+                    {
+                        switch (context.Node.Kind())
+                        {
+                            case SyntaxKind.ClassDeclaration:
+                                var classDecl = (ClassDeclarationSyntax)context.Node;
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()));
+                                break;
+
+                            case SyntaxKind.NamespaceDeclaration:
+                                var ns = (NamespaceDeclarationSyntax)context.Node;
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, ns.Name.GetLocation()));
+                                break;
+
+                            case SyntaxKind.MethodDeclaration:
+                                var method = (MethodDeclarationSyntax)context.Node;
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, method.Identifier.GetLocation()));
+                                break;
+                        }
+                    }
+                }
+
+                internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                {
+                    return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                        new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnSimpleType()
+                {
+                    var initial = @"
+using System;
+
+// Some trivia
+/* More Trivia */ [|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}";
+                    var expected = $@"
+using System;
+
+// Some trivia
+/* More Trivia */
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+class Class
+{{
+    int Method()
+    {{
+        int x = 0;
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("class Class", "[|class Class|]");
+                    await TestMissingAsync(expected);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnSimpleType2()
+                {
+                    // Type already has attributes.
+                    var initial = @"
+using System;
+
+// Some trivia
+/* More Trivia */
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
+[|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}";
+                    var expected = $@"
+using System;
+
+// Some trivia
+/* More Trivia */
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+class Class
+{{
+    int Method()
+    {{
+        int x = 0;
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("class Class", "[|class Class|]");
+                    await TestMissingAsync(expected);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnSimpleType3()
+                {
+                    // Type already has attributes with trailing trivia.
+                    var initial = @"
+using System;
+
+// Some trivia
+/* More Trivia */
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
+/* Some More Trivia */
+[|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}";
+                    var expected = $@"
+using System;
+
+// Some trivia
+/* More Trivia */
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+/* Some More Trivia */
+class Class
+{{
+    int Method()
+    {{
+        int x = 0;
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("class Class", "[|class Class|]");
+                    await TestMissingAsync(expected);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnTypeInsideNamespace()
+                {
+                    var initial = @"
+using System;
+
+namespace N1
+{
+    namespace N2
+    {
+        [|class Class|]
+        {
+            int Method()
+            {
+                int x = 0;
+            }
+        }
+    }
+}";
+                    var expected = $@"
+using System;
+
+namespace N1
+{{
+    namespace N2
+    {{
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+        class Class
+        {{
+            int Method()
+            {{
+                int x = 0;
+            }}
+        }}
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("class Class", "[|class Class|]");
+                    await TestMissingAsync(expected);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnNestedType()
+                {
+                    var initial = @"
+using System;
+
+namespace N
+{
+    class Generic<T>
+    {
+        [|class Class|]
+        {
+            int Method()
+            {
+                int x = 0;
+            }
+        }
+    }
+}";
+                    var expected = $@"
+using System;
+
+namespace N
+{{
+    class Generic<T>
+    {{
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+        class Class
+        {{
+            int Method()
+            {{
+                int x = 0;
+            }}
+        }}
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("class Class", "[|class Class|]");
+                    await TestMissingAsync(expected);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestSuppressionOnMethod()
+                {
+                    var initial = @"
+using System;
+
+namespace N
+{
+    class Generic<T>
+    {
+        class Class
+        {
+            [|int Method()|]
+            {
+                int x = 0;
+            }
+        }
+    }
+}";
+                    var expected = $@"
+using System;
+
+namespace N
+{{
+    class Generic<T>
+    {{
+        class Class
+        {{
+            [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+            int Method()
+            {{
+                int x = 0;
+            }}
+        }}
+    }}
+}}";
+                    await TestAsync(initial, expected);
+
+                    // Also verify that the added attribute does indeed suppress the diagnostic.
+                    expected = expected.Replace("int Method()", "[|int Method()|]");
+                    await TestMissingAsync(expected);
+                }
+            }
+        }
+
         #endregion
 
         #region NoLocation Diagnostics tests

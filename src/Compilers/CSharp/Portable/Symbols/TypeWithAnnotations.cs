@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -551,15 +550,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (NullableAnnotation.IsOblivious() || typeSymbol.IsValueType)
             {
-                flag = (byte)NullableAnnotation.Oblivious;
+                flag = NullableAnnotationExtensions.ObliviousAttributeValue;
             }
             else if (NullableAnnotation.IsAnnotated())
             {
-                flag = (byte)NullableAnnotation.Annotated;
+                flag = NullableAnnotationExtensions.AnnotatedAttributeValue;
             }
             else
             {
-                flag = (byte)NullableAnnotation.NotAnnotated;
+                flag = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
             }
 
             transforms.Add(flag);
@@ -597,17 +596,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = result.WithTypeAndModifiers(newTypeSymbol, result.CustomModifiers);
             }
 
-            switch ((NullableAnnotation)transformFlag)
+            switch (transformFlag)
             {
-                case NullableAnnotation.Annotated:
+                case NullableAnnotationExtensions.AnnotatedAttributeValue:
                     result = result.AsNullableReferenceType();
                     break;
 
-                case NullableAnnotation.NotAnnotated:
+                case NullableAnnotationExtensions.NotAnnotatedAttributeValue:
                     result = result.AsNotNullableReferenceType();
                     break;
 
-                case NullableAnnotation.Oblivious:
+                case NullableAnnotationExtensions.ObliviousAttributeValue:
                     if (result.NullableAnnotation != NullableAnnotation.Oblivious &&
                         !(result.NullableAnnotation.IsAnnotated() && oldTypeSymbol.IsNullableType())) // Preserve nullable annotation on Nullable<T>.
                     {

@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 

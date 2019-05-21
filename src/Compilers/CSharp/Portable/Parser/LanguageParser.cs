@@ -411,11 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.ParseNamespaceBody(ref openBrace, ref body, ref initialBadNodes, SyntaxKind.NamespaceDeclaration);
 
                 var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-                SyntaxToken semicolon = null;
-                if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                {
-                    semicolon = this.EatToken();
-                }
+                var semicolon = this.TryEatToken(SyntaxKind.SemicolonToken);
 
                 Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to open brace...
                 return _syntaxFactory.NamespaceDeclaration(namespaceToken, name, openBrace, body.Externs, body.Usings, body.Members, closeBrace, semicolon);
@@ -808,12 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.UsingKeyword);
 
             var usingToken = this.EatToken(SyntaxKind.UsingKeyword);
-
-            var staticToken = default(SyntaxToken);
-            if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
-            {
-                staticToken = this.EatToken(SyntaxKind.StaticKeyword);
-            }
+            var staticToken = this.TryEatToken(SyntaxKind.StaticKeyword);
 
             var alias = this.IsNamedAssignment() ? ParseNameEquals() : null;
 
@@ -1587,12 +1578,7 @@ tryAgain:
                     closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
                 }
 
-                SyntaxToken semicolon = null;
-                if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                {
-                    semicolon = this.EatToken();
-                }
-
+                var semicolon = TryEatToken(SyntaxKind.SemicolonToken);
                 switch (classOrStructOrInterface.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
@@ -1911,11 +1897,7 @@ tryAgain:
                     return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint, structToken, questionToken);
                 case SyntaxKind.ClassKeyword:
                     var classToken = this.EatToken();
-
-                    if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
-                    {
-                        questionToken = this.EatToken();
-                    }
+                    questionToken = this.TryEatToken(SyntaxKind.QuestionToken);
 
                     return _syntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, classToken, questionToken);
                 default:
@@ -4730,12 +4712,7 @@ tryAgain:
             }
 
             var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-
-            SyntaxToken semicolon = null;
-            if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-            {
-                semicolon = this.EatToken();
-            }
+            var semicolon = TryEatToken(SyntaxKind.SemicolonToken);
 
             return _syntaxFactory.EnumDeclaration(
                 attributes,
@@ -7974,7 +7951,7 @@ tryAgain:
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.YieldKeyword);
 
             var yieldToken = ConvertToKeyword(this.EatToken());
-            SyntaxToken returnOrBreak = null;
+            SyntaxToken returnOrBreak;
             ExpressionSyntax arg = null;
             SyntaxKind kind;
 
@@ -8301,7 +8278,7 @@ tryAgain:
         /// </summary>
         private StatementSyntax ParseLocalDeclarationStatement(SyntaxToken awaitKeywordOpt = default)
         {
-            var usingKeyword = this.CurrentToken.Kind == SyntaxKind.UsingKeyword ? this.EatToken() : null;
+            var usingKeyword = TryEatToken(SyntaxKind.UsingKeyword);
             if (usingKeyword != null)
             {
                 usingKeyword = CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations);

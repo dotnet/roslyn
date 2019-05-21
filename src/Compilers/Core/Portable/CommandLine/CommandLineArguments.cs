@@ -292,6 +292,51 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        /// <summary>
+        /// Returns a full path of the file that the compiler will generate the assembly to if compilation succeeds.
+        /// </summary>
+        /// <remarks>
+        /// The method takes <paramref name="outputFileName"/> rather than using the value of <see cref="OutputFileName"/> 
+        /// since the latter might be unspecified, in which case actual output path can't be determined for C# command line
+        /// without creating a compilation and finding an entry point. VB does not allow <see cref="OutputFileName"/> to 
+        /// be unspecified.
+        /// </remarks>
+        public string GetOutputFilePath(string outputFileName)
+        {
+            if (outputFileName == null)
+            {
+                throw new ArgumentNullException(nameof(outputFileName));
+            }
+
+            return Path.Combine(OutputDirectory, outputFileName);
+        }
+
+        /// <summary>
+        /// Returns a full path of the PDB file that the compiler will generate the debug symbols to 
+        /// if <see cref="EmitPdbFile"/> is true and the compilation succeeds.
+        /// </summary>
+        /// <remarks>
+        /// The method takes <paramref name="outputFileName"/> rather than using the value of <see cref="OutputFileName"/> 
+        /// since the latter might be unspecified, in which case actual output path can't be determined for C# command line
+        /// without creating a compilation and finding an entry point. VB does not allow <see cref="OutputFileName"/> to 
+        /// be unspecified.
+        /// </remarks>
+        public string GetPdbFilePath(string outputFileName)
+        {
+            if (outputFileName == null)
+            {
+                throw new ArgumentNullException(nameof(outputFileName));
+            }
+
+            return PdbPath ?? Path.Combine(OutputDirectory, Path.ChangeExtension(outputFileName, ".pdb"));
+        }
+
+        /// <summary>
+        /// Returns true if the PDB is generated to a PDB file, as opposed to embedded to the output binary and not generated at all.
+        /// </summary>
+        public bool EmitPdbFile
+            => EmitPdb && EmitOptions.DebugInformationFormat != DebugInformationFormat.Embedded;
+
         #region Metadata References
 
         /// <summary>

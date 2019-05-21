@@ -18,6 +18,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             public async override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
             {
+                // currently there's no FixAll support for local suppression, just bail out
+                if (NestedSuppressionCodeAction.IsEquivalenceKeyForLocalSuppression(fixAllContext.CodeActionEquivalenceKey))
+                {
+                    return null;
+                }
+
                 var batchFixer = WellKnownFixAllProviders.BatchFixer;
                 var suppressionFixer = (AbstractSuppressionCodeFixProvider)((WrapperCodeFixProvider)fixAllContext.CodeFixProvider).SuppressionFixProvider;
                 var isGlobalSuppression = NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey);

@@ -108,7 +108,7 @@ $$");
         [Fact]
         public async Task TestAfterPragmaWarningSafeOnly()
         {
-            await VerifyKeywordAsync(@"#pragma warning safeonly $$");
+            await VerifyAbsenceAsync(@"#pragma warning safeonly $$");
         }
 
         [Fact]
