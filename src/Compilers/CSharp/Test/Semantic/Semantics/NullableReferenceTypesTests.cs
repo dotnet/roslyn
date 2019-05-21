@@ -96627,5 +96627,489 @@ class Program
                 // [A(default(string).F)]
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "default(string).F").WithArguments("string? E.F<string?>(string? t)", "D<string>").WithLocation(10, 4));
         }
+
+        [Fact]
+        [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
+        public void Operator_01()
+        {
+            var source =
+@"class C<T>
+{
+    public static C<T> operator &(C<T> a, C<T> b) => a;
+}
+class Program
+{
+    static void M(C<string> a, string s)
+    {
+        var b = Create(s);
+        _ = a & b;
+    }
+    static C<T> Create<T>(T t) => new C<T>();
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        // C<T~> operator op(C<T~>, C<T~>)
+        [Fact]
+        [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
+        public void Operator_02()
+        {
+            var source =
+@"#nullable disable
+class C<T>
+{
+    public static C<T> operator +(C<T> a, C<T> b) => a;
+}
+class Program
+{
+    static void M1<T>(
+#nullable disable
+        C<T> a,
+#nullable enable
+        C<T> b)
+    {
+        _ = a + a;
+        _ = a + b;
+        _ = b + a;
+        _ = b + b;
+    }
+    static void M2<T>(
+#nullable disable
+        C<T> c,
+#nullable enable
+        C<T> d)
+        where T : class?
+    {
+        _ = c + c;
+        _ = c + d;
+        _ = d + c;
+        _ = d + d;
+    }
+    static void M3<T>(
+#nullable disable
+        C<T> x,
+#nullable enable
+        C<T> y,
+        C<T?> z)
+        where T : class
+    {
+        _ = x + x;
+        _ = x + y;
+        _ = x + z;
+        _ = y + x;
+        _ = y + y;
+        _ = y + z;
+        _ = z + x;
+        _ = z + y;
+        _ = z + z;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (44,17): warning CS8620: Argument of type 'C<T?>' cannot be used for parameter 'b' of type 'C<T>' in 'C<T> C<T>.operator +(C<T> a, C<T> b)' due to differences in the nullability of reference types.
+                //         _ = y + z;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C<T?>", "C<T>", "b", "C<T> C<T>.operator +(C<T> a, C<T> b)").WithLocation(44, 17),
+                // (46,17): warning CS8620: Argument of type 'C<T>' cannot be used for parameter 'b' of type 'C<T?>' in 'C<T?> C<T?>.operator +(C<T?> a, C<T?> b)' due to differences in the nullability of reference types.
+                //         _ = z + y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C<T>", "C<T?>", "b", "C<T?> C<T?>.operator +(C<T?> a, C<T?> b)").WithLocation(46, 17));
+        }
+
+        // C<T> operator op(C<T>, C<T>)
+        [Fact]
+        [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
+        public void Operator_03()
+        {
+            var source =
+@"#nullable enable
+class C<T>
+{
+    public static C<T> operator -(C<T> a, C<T> b) => a;
+}
+class Program
+{
+    static void M1<T>(
+#nullable disable
+        C<T> a,
+#nullable enable
+        C<T> b)
+    {
+        _ = a - a;
+        _ = a - b;
+        _ = b - a;
+        _ = b - b;
+    }
+    static void M2<T>(
+#nullable disable
+        C<T> c,
+#nullable enable
+        C<T> d)
+        where T : class?
+    {
+        _ = c - c;
+        _ = c - d;
+        _ = d - c;
+        _ = d - d;
+    }
+    static void M3<T>(
+#nullable disable
+        C<T> x,
+#nullable enable
+        C<T> y,
+        C<T?> z)
+        where T : class
+    {
+        _ = x - x;
+        _ = x - y;
+        _ = x - z;
+        _ = y - x;
+        _ = y - y;
+        _ = y - z;
+        _ = z - x;
+        _ = z - y;
+        _ = z - z;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (44,17): warning CS8620: Argument of type 'C<T?>' cannot be used for parameter 'b' of type 'C<T>' in 'C<T> C<T>.operator -(C<T> a, C<T> b)' due to differences in the nullability of reference types.
+                //         _ = y - z;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C<T?>", "C<T>", "b", "C<T> C<T>.operator -(C<T> a, C<T> b)").WithLocation(44, 17),
+                // (46,17): warning CS8620: Argument of type 'C<T>' cannot be used for parameter 'b' of type 'C<T?>' in 'C<T?> C<T?>.operator -(C<T?> a, C<T?> b)' due to differences in the nullability of reference types.
+                //         _ = z - y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C<T>", "C<T?>", "b", "C<T?> C<T?>.operator -(C<T?> a, C<T?> b)").WithLocation(46, 17));
+        }
+
+        // C<T~> operator op(C<T~>, C<T>)
+        [Fact]
+        [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
+        public void Operator_04()
+        {
+            var source =
+@"class C<T>
+{
+#nullable disable
+    public static C<T> operator *(
+        C<T> a,
+#nullable enable
+        C<T> b) => a;
+}
+class Program
+{
+    static void M1<T>(
+#nullable disable
+        C<T> a,
+#nullable enable
+        C<T> b)
+    {
+        _ = a * a;
+        _ = a * b;
+        _ = b * a;
+        _ = b * b;
+    }
+    static void M2<T>(
+#nullable disable
+        C<T> c,
+#nullable enable
+        C<T> d)
+        where T : class?
+    {
+        _ = c * c;
+        _ = c * d;
+        _ = d * c;
+        _ = d * d;
+    }
+    static void M3<T>(
+#nullable disable
+        C<T> x,
+#nullable enable
+        C<T> y,
+        C<T?> z)
+        where T : class
+    {
+        _ = x * x;
+        _ = x * y;
+        _ = x * z;
+        _ = y * x;
+        _ = y * y;
+        _ = y * z;
+        _ = z * x;
+        _ = z * y;
+        _ = z * z;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (47,17): warning CS8620: Argument of type 'C<T?>' cannot be used for parameter 'b' of type 'C<T>' in 'C<T> C<T>.operator *(C<T> a, C<T> b)' due to differences in the nullability of reference types.
+                //         _ = y * z;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C<T?>", "C<T>", "b", "C<T> C<T>.operator *(C<T> a, C<T> b)").WithLocation(47, 17),
+                // (49,17): warning CS8620: Argument of type 'C<T>' cannot be used for parameter 'b' of type 'C<T?>' in 'C<T?> C<T?>.operator *(C<T?> a, C<T?> b)' due to differences in the nullability of reference types.
+                //         _ = z * y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C<T>", "C<T?>", "b", "C<T?> C<T?>.operator *(C<T?> a, C<T?> b)").WithLocation(49, 17));
+        }
+
+        // C<T~> operator op(C<T~>, C<T~>) where T : class?
+        [Fact]
+        [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
+        public void Operator_05()
+        {
+            var source =
+@"#nullable enable
+class C<T> where T : class?
+{
+#nullable disable
+    public static C<T> operator +(C<T> a, C<T> b) => a;
+}
+class Program
+{
+    static void M1<T>(
+#nullable disable
+        C<T> a,
+#nullable enable
+        C<T> b)
+        where T : class?
+    {
+        _ = a + a;
+        _ = a + b;
+        _ = b + a;
+        _ = b + b;
+    }
+    static void M2<T>(
+#nullable disable
+        C<T> x,
+#nullable enable
+        C<T> y,
+        C<T?> z)
+        where T : class
+    {
+        _ = x + x;
+        _ = x + y;
+        _ = x + z;
+        _ = y + x;
+        _ = y + y;
+        _ = y + z;
+        _ = z + x;
+        _ = z + y;
+        _ = z + z;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (34,17): warning CS8620: Argument of type 'C<T?>' cannot be used for parameter 'b' of type 'C<T>' in 'C<T> C<T>.operator +(C<T> a, C<T> b)' due to differences in the nullability of reference types.
+                //         _ = y + z;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C<T?>", "C<T>", "b", "C<T> C<T>.operator +(C<T> a, C<T> b)").WithLocation(34, 17),
+                // (36,17): warning CS8620: Argument of type 'C<T>' cannot be used for parameter 'b' of type 'C<T?>' in 'C<T?> C<T?>.operator +(C<T?> a, C<T?> b)' due to differences in the nullability of reference types.
+                //         _ = z + y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C<T>", "C<T?>", "b", "C<T?> C<T?>.operator +(C<T?> a, C<T?> b)").WithLocation(36, 17));
+        }
+
+        // C<T!> operator op(C<T!>, C<T!>) where T : class?
+        [Fact]
+        [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
+        public void Operator_06()
+        {
+            var source =
+@"#nullable enable
+class C<T> where T : class?
+{
+    public static C<T> operator -(C<T> a, C<T> b) => a;
+}
+class Program
+{
+    static void M1<T>(
+#nullable disable
+        C<T> a,
+#nullable enable
+        C<T> b)
+        where T : class?
+    {
+        _ = a - a;
+        _ = a - b;
+        _ = b - a;
+        _ = b - b;
+    }
+    static void M2<T>(
+#nullable disable
+        C<T> x,
+#nullable enable
+        C<T> y,
+        C<T?> z)
+        where T : class
+    {
+        _ = x - x;
+        _ = x - y;
+        _ = x - z;
+        _ = y - x;
+        _ = y - y;
+        _ = y - z;
+        _ = z - x;
+        _ = z - y;
+        _ = z - z;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (33,17): warning CS8620: Argument of type 'C<T?>' cannot be used for parameter 'b' of type 'C<T>' in 'C<T> C<T>.operator -(C<T> a, C<T> b)' due to differences in the nullability of reference types.
+                //         _ = y - z;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C<T?>", "C<T>", "b", "C<T> C<T>.operator -(C<T> a, C<T> b)").WithLocation(33, 17),
+                // (35,17): warning CS8620: Argument of type 'C<T>' cannot be used for parameter 'b' of type 'C<T?>' in 'C<T?> C<T?>.operator -(C<T?> a, C<T?> b)' due to differences in the nullability of reference types.
+                //         _ = z - y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C<T>", "C<T?>", "b", "C<T?> C<T?>.operator -(C<T?> a, C<T?> b)").WithLocation(35, 17));
+        }
+
+        // C<T~> operator op(C<T!>, C<T~>) where T : class?
+        [Fact]
+        [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
+        public void Operator_07()
+        {
+            var source =
+@"#nullable enable
+class C<T> where T : class?
+{
+#nullable disable
+    public static C<T> operator *(
+#nullable enable
+        C<T> a,
+#nullable disable
+        C<T> b) => a;
+}
+class Program
+{
+    static void M1<T>(
+#nullable disable
+        C<T> a,
+#nullable enable
+        C<T> b)
+        where T : class?
+    {
+        _ = a * a;
+        _ = a * b;
+        _ = b * a;
+        _ = b * b;
+    }
+    static void M2<T>(
+#nullable disable
+        C<T> x,
+#nullable enable
+        C<T> y,
+        C<T?> z)
+        where T : class
+    {
+        _ = x * x;
+        _ = x * y;
+        _ = x * z;
+        _ = y * x;
+        _ = y * y;
+        _ = y * z;
+        _ = z * x;
+        _ = z * y;
+        _ = z * z;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (38,17): warning CS8620: Argument of type 'C<T?>' cannot be used for parameter 'b' of type 'C<T>' in 'C<T> C<T>.operator *(C<T> a, C<T> b)' due to differences in the nullability of reference types.
+                //         _ = y * z;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C<T?>", "C<T>", "b", "C<T> C<T>.operator *(C<T> a, C<T> b)").WithLocation(38, 17),
+                // (40,17): warning CS8620: Argument of type 'C<T>' cannot be used for parameter 'b' of type 'C<T?>' in 'C<T?> C<T?>.operator *(C<T?> a, C<T?> b)' due to differences in the nullability of reference types.
+                //         _ = z * y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C<T>", "C<T?>", "b", "C<T?> C<T?>.operator *(C<T?> a, C<T?> b)").WithLocation(40, 17));
+        }
+
+        // C<T~> operator op(C<T~>, C<T~>) where T : class
+        [Fact]
+        [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
+        public void Operator_08()
+        {
+            var source =
+@"#nullable enable
+class C<T> where T : class
+{
+#nullable disable
+    public static C<T> operator /(C<T> a, C<T> b) => a;
+}
+class Program
+{
+    static void M<T>(
+#nullable disable
+        C<T> x,
+#nullable enable
+        C<T> y)
+        where T : class
+    {
+        _ = x / x;
+        _ = x / y;
+        _ = y / x;
+        _ = y / y;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        // C<T!> operator op(C<T!>, C<T!>) where T : class
+        [Fact]
+        [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
+        public void Operator_09()
+        {
+            var source =
+@"#nullable enable
+class C<T> where T : class
+{
+    public static C<T> operator &(C<T> a, C<T> b) => a;
+}
+class Program
+{
+    static void M<T>(
+#nullable disable
+        C<T> x,
+#nullable enable
+        C<T> y)
+        where T : class
+    {
+        _ = x & x;
+        _ = x & y;
+        _ = y & x;
+        _ = y & y;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        // C<T~> operator op(C<T!>, C<T~>) where T : class
+        [Fact]
+        [WorkItem(35057, "https://github.com/dotnet/roslyn/issues/35057")]
+        public void Operator_10()
+        {
+            var source =
+@"#nullable enable
+class C<T> where T : class
+{
+#nullable disable
+    public static C<T> operator |(
+#nullable enable
+        C<T> a,
+#nullable disable
+        C<T> b) => a;
+}
+class Program
+{
+    static void M<T>(
+#nullable disable
+        C<T> x,
+#nullable enable
+        C<T> y)
+        where T : class
+    {
+        _ = x | x;
+        _ = x | y;
+        _ = y | x;
+        _ = y | y;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
     }
 }
