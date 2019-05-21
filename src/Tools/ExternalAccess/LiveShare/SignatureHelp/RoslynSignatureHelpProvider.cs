@@ -16,11 +16,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     class RoslynSignatureHelpProvider : ISignatureHelpProvider
     {
-        private readonly RoslynLspClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
 
         public RoslynSignatureHelpProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
         {
-            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
+            _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
         public bool IsTriggerCharacter(char ch)
         {
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return null;
             }
 
-            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return null;

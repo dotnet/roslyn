@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
     internal class RoslynGotoDefinitionService : IGoToDefinitionService
     {
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
-        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RoslynLSPClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteWorkspace;
         private readonly IThreadingContext _threadingContext;
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
             IThreadingContext threadingContext)
         {
             _streamingPresenter = streamingPresenter ?? throw new ArgumentNullException(nameof(streamingPresenter));
-            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
+            _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _remoteWorkspace = remoteWorkspace ?? throw new ArgumentNullException(nameof(remoteWorkspace));
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.GotoDefinition
 
         private async TPL.Task<ImmutableArray<DefinitionItem>> GetDefinitionItemsAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return ImmutableArray<DefinitionItem>.Empty;

@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
 {
     internal class RoslynCompletionProvider : CommonCompletionProvider
     {
-        private readonly RoslynLspClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
 
         public RoslynCompletionProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)
         {
-            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
+            _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
                 return;
             }
 
-            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Completion
 
         protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);

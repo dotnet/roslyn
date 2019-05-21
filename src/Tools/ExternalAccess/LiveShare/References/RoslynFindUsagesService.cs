@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
 {
     internal class RoslynFindUsagesService : IFindUsagesService
     {
-        private readonly RoslynLSPClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RoslynLSPClientServiceFactory _roslynLspClientServiceFactory;
         private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
 
         public RoslynFindUsagesService(RoslynLSPClientServiceFactory roslynLspClientServiceFactory, RemoteLanguageServiceWorkspace remoteLanguageServiceWorkspace)
         {
-            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
+            _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace ?? throw new ArgumentNullException(nameof(remoteLanguageServiceWorkspace));
         }
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
         {
             var text = await document.GetTextAsync().ConfigureAwait(false);
 
-            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return;
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.References
         {
             var text = await document.GetTextAsync().ConfigureAwait(false);
 
-            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return;

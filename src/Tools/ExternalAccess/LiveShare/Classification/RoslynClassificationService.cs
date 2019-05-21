@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
 {
     internal class RoslynClassificationService : ISyntaxClassificationService
     {
-        private readonly RoslynLspClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly ISyntaxClassificationService _originalService;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IThreadingContext _threadingContext;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
         public RoslynClassificationService(RoslynLspClientServiceFactory roslynLspClientServiceFactory, ISyntaxClassificationService originalService,
             ClassificationTypeMap classificationTypeMap, IThreadingContext threadingContext)
         {
-            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
+            _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _originalService = originalService ?? throw new ArgumentNullException(nameof(originalService));
             _classificationTypeMap = classificationTypeMap ?? throw new ArgumentNullException(nameof(classificationTypeMap));
             _threadingContext = threadingContext;
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Classification
 
         private async Task AddRemoteSemanticClassificationsAsync(SourceText text, string filePath, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return;

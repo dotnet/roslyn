@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects
     {
         private const string SystemUriSchemeExternal = "vslsexternal";
 
-        private readonly RoslynLspClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
         //private readonly IVsRemoteWorkspaceManager _remoteWorkspaceManager;
 
         [ImportingConstructor]
         public RoslynRemoteProjectInfoProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory)//, IVsRemoteWorkspaceManager remoteWorkspaceManager)
         {
-            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
+            _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             //_remoteWorkspaceManager = remoteWorkspaceManager ?? throw new ArgumentNullException(nameof(remoteWorkspaceManager));
         }
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.Projects
                 return ImmutableArray<ProjectInfo>.Empty;
             }*/
 
-            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return ImmutableArray<ProjectInfo>.Empty;

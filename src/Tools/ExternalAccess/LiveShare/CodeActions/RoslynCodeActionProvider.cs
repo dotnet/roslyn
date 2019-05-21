@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
 {
     internal class RoslynCodeActionProvider : CodeRefactoringProvider
     {
-        private readonly RoslynLspClientServiceFactory _roslynLSPClientServiceFactory;
+        private readonly RoslynLspClientServiceFactory _roslynLspClientServiceFactory;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
         public RoslynCodeActionProvider(RoslynLspClientServiceFactory roslynLspClientServiceFactory, IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
-            _roslynLSPClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
+            _roslynLspClientServiceFactory = roslynLspClientServiceFactory ?? throw new ArgumentNullException(nameof(roslynLspClientServiceFactory));
             _diagnosticAnalyzerService = diagnosticAnalyzerService ?? throw new ArgumentNullException(nameof(diagnosticAnalyzerService));
         }
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LiveShare.CodeActions
                 return;
             }
 
-            var lspClient = _roslynLSPClientServiceFactory.ActiveLanguageServerClient;
+            var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
             if (lspClient == null)
             {
                 return;
