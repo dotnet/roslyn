@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             var data = RoslynClipboard.GetDataObject();
             Debug.Assert(data != null);
 
-            bool dataHasLineCutCopyTag = false;
-            bool dataHasBoxCutCopyTag = false;
+            var dataHasLineCutCopyTag = false;
+            var dataHasBoxCutCopyTag = false;
 
             dataHasLineCutCopyTag = data.GetDataPresent(ClipboardLineBasedCutCopyTag);
             dataHasBoxCutCopyTag = data.GetDataPresent(BoxSelectionCutCopyTag);
@@ -140,9 +140,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private static bool HasNonWhiteSpaceCharacter(ITextSnapshotLine line)
         {
             var snapshot = line.Snapshot;
-            int start = line.Start.Position;
-            int count = line.Length;
-            for (int i = 0; i < count; i++)
+            var start = line.Start.Position;
+            var count = line.Length;
+            for (var i = 0; i < count; i++)
             {
                 if (!char.IsWhiteSpace(snapshot[start + i]))
                 {

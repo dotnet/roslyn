@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 public bool TryGetValue(string key, out string value)
                 {
-                    if (_underlyingDictionary.TryGetValue(key, out object objectValue))
+                    if (_underlyingDictionary.TryGetValue(key, out var objectValue))
                     {
                         value = objectValue?.ToString();
                         return true;

@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (_rootDependencyObject != null && _rootInputElement != null)
             {
-                foreach (string accessKey in _renameAccessKeys)
+                foreach (var accessKey in _renameAccessKeys)
                 {
                     AccessKeyManager.Register(accessKey, _rootInputElement);
                 }
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnAccessKeyPressed(object sender, AccessKeyPressedEventArgs args)
         {
-            foreach (string accessKey in _renameAccessKeys)
+            foreach (var accessKey in _renameAccessKeys)
             {
                 if (string.Compare(accessKey, args.Key, StringComparison.OrdinalIgnoreCase) == 0)
                 {
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (_rootInputElement != null)
             {
-                foreach (string registeredKey in _renameAccessKeys)
+                foreach (var registeredKey in _renameAccessKeys)
                 {
                     AccessKeyManager.Unregister(registeredKey, _rootInputElement);
                 }
