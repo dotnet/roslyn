@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
         public const string CS0168 = nameof(CS0168);
         public const string CS0219 = nameof(CS0219);
 
+        [ImportingConstructor]
+        public CSharpRemoveUnusedVariableCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS0168, CS0219);
 

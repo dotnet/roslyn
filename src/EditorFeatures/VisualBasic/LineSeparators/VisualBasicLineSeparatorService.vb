@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
     Friend Class VisualBasicLineSeparatorService
         Implements ILineSeparatorService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         ''' <summary>Node types that are interesting for line separation.</summary>
         Private Function IsSeparableBlock(nodeOrToken As SyntaxNodeOrToken) As Boolean
             If nodeOrToken.IsToken Then

@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
     [ExportLanguageService(typeof(AbstractEncapsulateFieldService), LanguageNames.CSharp), Shared]
     internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
     {
+        [ImportingConstructor]
+        public CSharpEncapsulateFieldService()
+        {
+        }
+
         protected async override Task<SyntaxNode> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

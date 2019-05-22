@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
     [ExportWorkspaceService(typeof(IPersistentStorageService), "Test"), Shared]
     public class TestPersistenceService : IPersistentStorageService2
     {
+        [ImportingConstructor]
+        public TestPersistenceService()
+        {
+        }
+
         public IPersistentStorage GetStorage(Solution solution)
             => NoOpPersistentStorage.Instance;
 

@@ -21,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), ServiceLayer.Host), Shared]
     internal sealed class VisualStudioFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
         public VisualStudioFormattingRuleFactoryServiceFactory()
         {
         }

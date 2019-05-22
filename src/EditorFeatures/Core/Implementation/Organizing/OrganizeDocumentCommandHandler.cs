@@ -30,6 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         VSCommanding.ICommandHandler<SortImportsCommandArgs>,
         VSCommanding.ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
     {
+        [ImportingConstructor]
+        public OrganizeDocumentCommandHandler()
+        {
+        }
+
         public string DisplayName => EditorFeaturesResources.Organize_Document;
 
         public VSCommanding.CommandState GetCommandState(OrganizeDocumentCommandArgs args)

@@ -760,6 +760,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             public const string TestLanguage = nameof(TestLanguage);
 
+            [ImportingConstructor]
+            public NullLanguageService()
+            {
+            }
+
             // do nothing
         }
 

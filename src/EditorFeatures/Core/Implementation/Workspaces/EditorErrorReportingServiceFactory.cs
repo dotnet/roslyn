@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     {
         private readonly IErrorReportingService _singleton = new EditorErrorReportingService();
 
+        [ImportingConstructor]
+        public EditorErrorReportingServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return _singleton;

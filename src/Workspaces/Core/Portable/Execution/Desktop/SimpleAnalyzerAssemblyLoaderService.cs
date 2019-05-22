@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Host
     {
         private readonly DesktopAnalyzerAssemblyLoader _loader = new DesktopAnalyzerAssemblyLoader();
 
+        [ImportingConstructor]
+        public SimpleAnalyzerAssemblyLoaderService()
+        {
+        }
+
         public IAnalyzerAssemblyLoader GetLoader()
         {
             return _loader;

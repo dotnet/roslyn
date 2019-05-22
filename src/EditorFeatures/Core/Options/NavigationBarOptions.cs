@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     [ExportOptionProvider, Shared]
     internal class NavigationBarOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public NavigationBarOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             NavigationBarOptions.ShowNavigationBar);
     }

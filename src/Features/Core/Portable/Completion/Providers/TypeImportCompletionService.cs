@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private readonly ConcurrentDictionary<ProjectId, ReferenceCacheEntry> _projectItemsCache
             = new ConcurrentDictionary<ProjectId, ReferenceCacheEntry>();
 
+        [ImportingConstructor]
+        public TypeImportCompletionService()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var workspace = workspaceServices.Workspace;
