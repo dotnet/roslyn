@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal sealed class RenameTrackingDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal sealed class RenameTrackingDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer, IInProcessAnalyzer
     {
         public const string DiagnosticId = "RenameTracking";
         public static DiagnosticDescriptor DiagnosticDescriptor = new DiagnosticDescriptor(
@@ -26,8 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         public bool OpenFileOnly(Workspace workspace)
             => true;
 
+#pragma warning disable RS1026 // Enable concurrent execution
         public override void Initialize(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+#pragma warning restore RS1026 // Enable concurrent execution
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+
+            context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+        }
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {

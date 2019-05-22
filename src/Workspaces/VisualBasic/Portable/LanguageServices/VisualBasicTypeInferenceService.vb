@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class VisualBasicTypeInferenceService
         Inherits AbstractTypeInferenceService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function CreateTypeInferrer(semanticModel As SemanticModel, cancellationToken As CancellationToken) As AbstractTypeInferrer
             Return New TypeInferrer(semanticModel, cancellationToken)
         End Function

@@ -21852,119 +21852,6 @@ static class C
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).P").WithArguments("T6").WithLocation(28, 9));
             CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
                 );
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.SafeOnlyWarnings)).VerifyDiagnostics(
-                // (20,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(object).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(object)").WithLocation(20, 9),
-                // (21,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T1).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T1)").WithLocation(21, 9),
-                // (22,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T2).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(22, 9),
-                // (24,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T4).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T4)").WithLocation(24, 9),
-                // (25,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T5).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T5)").WithLocation(25, 9),
-                // (26,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T6).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T6)").WithLocation(26, 9),
-                // (27,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T7).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T7)").WithLocation(27, 9),
-                // (28,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T6).P = null;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T6)").WithLocation(28, 9),
-                // (29,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T7).P = null;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T7)").WithLocation(29, 9));
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.SafeOnly)).VerifyDiagnostics(
-                // (3,21): warning CS8618: Non-nullable property 'P' is uninitialized.
-                //     internal object P { get; set; }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P").WithArguments("property", "P").WithLocation(3, 21),
-                // (20,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(object).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(object)").WithLocation(20, 9),
-                // (21,9): warning CS8653: A default expression introduces a null value when 'T1' is a non-nullable reference type.
-                //         default(T1).GetHashCode();
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T1)").WithArguments("T1").WithLocation(21, 9),
-                // (21,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T1).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T1)").WithLocation(21, 9),
-                // (22,9): warning CS8653: A default expression introduces a null value when 'T2' is a non-nullable reference type.
-                //         default(T2).GetHashCode();
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T2)").WithArguments("T2").WithLocation(22, 9),
-                // (22,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T2).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(22, 9),
-                // (24,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T4).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T4)").WithLocation(24, 9),
-                // (25,9): warning CS8653: A default expression introduces a null value when 'T5' is a non-nullable reference type.
-                //         default(T5).GetHashCode();
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T5)").WithArguments("T5").WithLocation(25, 9),
-                // (25,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T5).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T5)").WithLocation(25, 9),
-                // (26,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T6).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T6)").WithLocation(26, 9),
-                // (27,9): warning CS8653: A default expression introduces a null value when 'T7' is a non-nullable reference type.
-                //         default(T7).GetHashCode();
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T7)").WithArguments("T7").WithLocation(27, 9),
-                // (27,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T7).GetHashCode();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T7)").WithLocation(27, 9),
-                // (28,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T6).P = null;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T6)").WithLocation(28, 9),
-                // (28,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         default(T6).P = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(28, 25),
-                // (29,9): warning CS8653: A default expression introduces a null value when 'T7' is a non-nullable reference type.
-                //         default(T7).P = null;
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T7)").WithArguments("T7").WithLocation(29, 9),
-                // (29,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T7).P = null;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T7)").WithLocation(29, 9),
-                // (29,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         default(T7).P = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(29, 25),
-                // (31,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         default(object).E();
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(object)").WithLocation(31, 9),
-                // (32,9): warning CS8653: A default expression introduces a null value when 'T1' is a non-nullable reference type.
-                //         default(T1).E();
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T1)").WithArguments("T1").WithLocation(32, 9),
-                // (32,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.E(object o)'.
-                //         default(T1).E();
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "default(T1)").WithArguments("o", "void C.E(object o)").WithLocation(32, 9),
-                // (33,9): warning CS8653: A default expression introduces a null value when 'T2' is a non-nullable reference type.
-                //         default(T2).E();
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T2)").WithArguments("T2").WithLocation(33, 9),
-                // (33,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.E(object o)'.
-                //         default(T2).E();
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "default(T2)").WithArguments("o", "void C.E(object o)").WithLocation(33, 9),
-                // (35,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         default(T4).E();
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T4)").WithLocation(35, 9),
-                // (36,9): warning CS8653: A default expression introduces a null value when 'T5' is a non-nullable reference type.
-                //         default(T5).E();
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T5)").WithArguments("T5").WithLocation(36, 9),
-                // (36,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.E(object o)'.
-                //         default(T5).E();
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "default(T5)").WithArguments("o", "void C.E(object o)").WithLocation(36, 9),
-                // (37,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         default(T6).E(); // Dev10 (incorrectly) reports CS1720
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T6)").WithLocation(37, 9),
-                // (38,9): warning CS8653: A default expression introduces a null value when 'T7' is a non-nullable reference type.
-                //         default(T7).E();
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T7)").WithArguments("T7").WithLocation(38, 9),
-                // (38,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.E(object o)'.
-                //         default(T7).E();
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "default(T7)").WithArguments("o", "void C.E(object o)").WithLocation(38, 9));
         }
 
         [Fact]
@@ -22038,46 +21925,6 @@ class C
                 // (37,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         default(T3)[1] = o;
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T3)[1]").WithLocation(37, 9));
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithNullableContextOptions(NullableContextOptions.SafeOnlyWarnings)).VerifyDiagnostics(
-                // (23,13): warning CS8602: Dereference of a possibly null reference.
-                //         o = default(A)[0];
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(A)").WithLocation(23, 13),
-                // (25,13): warning CS8602: Dereference of a possibly null reference.
-                //         o = default(I)[0];
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(I)").WithLocation(25, 13),
-                // (26,13): warning CS8602: Dereference of a possibly null reference.
-                //         o = default(object[])[0];
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(object[])").WithLocation(26, 13),
-                // (27,13): warning CS8602: Dereference of a possibly null reference.
-                //         o = default(T1)[0];
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T1)").WithLocation(27, 13),
-                // (28,13): warning CS8602: Dereference of a possibly null reference.
-                //         o = default(T2)[0];
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(28, 13),
-                // (30,13): warning CS8602: Dereference of a possibly null reference.
-                //         o = default(T4)[0];
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T4)").WithLocation(30, 13),
-                // (32,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(A)[1] = o;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(A)").WithLocation(32, 9),
-                // (33,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(I)[1] = o;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(I)").WithLocation(33, 9),
-                // (34,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(object[])[1] = o;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(object[])").WithLocation(34, 9),
-                // (35,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T1)[1] = o;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T1)").WithLocation(35, 9),
-                // (36,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T2)[1] = o;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T2)").WithLocation(36, 9),
-                // (37,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         default(T3)[1] = o;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T3)[1]").WithLocation(37, 9),
-                // (38,9): warning CS8602: Dereference of a possibly null reference.
-                //         default(T4)[1] = o;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T4)").WithLocation(38, 9));
         }
 
         [Fact]
@@ -22104,11 +21951,6 @@ class C
                 // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
             CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }).VerifyDiagnostics();
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithNullableContextOptions(NullableContextOptions.SafeOnlyWarnings)).VerifyDiagnostics();
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }, options: TestOptions.ReleaseExe.WithNullableContextOptions(NullableContextOptions.SafeOnly)).VerifyDiagnostics(
-                // (5,34): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         System.Console.WriteLine(default(string).IsNull());
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(5, 34));
         }
 
         [Fact]

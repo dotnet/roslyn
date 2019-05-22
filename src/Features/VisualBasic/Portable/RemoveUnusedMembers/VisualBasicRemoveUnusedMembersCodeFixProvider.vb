@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
     Friend Class VisualBasicRemoveUnusedMembersCodeFixProvider
         Inherits AbstractRemoveUnusedMembersCodeFixProvider(Of FieldDeclarationSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         ''' <summary>
         ''' This method adjusts the <paramref name="declarators"/> to remove based on whether or not all variable declarators
         ''' within a field declaration should be removed,

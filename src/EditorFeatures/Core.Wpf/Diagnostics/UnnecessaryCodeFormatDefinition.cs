@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Diagnostics
     [UserVisible(false)]
     internal sealed class UnnecessaryCodeFormatDefinition : ClassificationFormatDefinition
     {
+        [ImportingConstructor]
         private UnnecessaryCodeFormatDefinition()
         {
             this.DisplayName = EditorFeaturesResources.Unnecessary_Code;

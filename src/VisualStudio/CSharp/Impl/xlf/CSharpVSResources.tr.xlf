@@ -32,6 +32,11 @@
         <target state="translated">Belge Biçimlendirme Ayarları (Deneme)</target>
         <note />
       </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">Genel</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Olay Aboneliği Oluştur</target>

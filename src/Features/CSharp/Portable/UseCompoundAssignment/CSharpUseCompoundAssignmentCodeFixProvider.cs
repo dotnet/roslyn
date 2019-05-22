@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
     internal class CSharpUseCompoundAssignmentCodeFixProvider
         : AbstractUseCompoundAssignmentCodeFixProvider<SyntaxKind, AssignmentExpressionSyntax, ExpressionSyntax>
     {
+        [ImportingConstructor]
         public CSharpUseCompoundAssignmentCodeFixProvider()
             : base(Utilities.Kinds)
         {

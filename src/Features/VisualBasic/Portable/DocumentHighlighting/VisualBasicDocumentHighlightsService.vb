@@ -9,5 +9,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentHighlighting
     Friend Class VisualBasicDocumentHighlightsService
         Inherits AbstractDocumentHighlightsService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

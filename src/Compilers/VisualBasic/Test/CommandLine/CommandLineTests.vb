@@ -512,7 +512,7 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
-            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\d\w]+)?", "version A.B.C-d")
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\d\w]+)*", "version A.B.C-d")
             patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
 Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)
@@ -553,7 +553,7 @@ End Class
             Dim exitCode = cmd.Run(output, Nothing)
 
             Assert.Equal(0, exitCode)
-            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\w\d]+)?", "version A.B.C-d")
+            Dim patched As String = Regex.Replace(output.ToString().Trim(), "version \d+\.\d+\.\d+(-[\w\d]+)*", "version A.B.C-d")
             patched = ReplaceCommitHash(patched)
             Assert.Equal(<text>
 Microsoft (R) Visual Basic Compiler version A.B.C-d (HASH)

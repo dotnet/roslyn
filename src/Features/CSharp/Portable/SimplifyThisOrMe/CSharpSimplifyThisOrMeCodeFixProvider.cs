@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
     internal partial class CSharpSimplifyThisOrMeCodeFixProvider
         : AbstractSimplifyThisOrMeCodeFixProvider<MemberAccessExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpSimplifyThisOrMeCodeFixProvider()
+        {
+        }
+
         protected override string GetTitle()
             => CSharpFeaturesResources.Remove_this_qualification;
 

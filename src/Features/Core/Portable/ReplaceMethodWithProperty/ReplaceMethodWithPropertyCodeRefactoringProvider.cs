@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
     {
         private const string GetPrefix = "Get";
 
+        [ImportingConstructor]
+        public ReplaceMethodWithPropertyCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
