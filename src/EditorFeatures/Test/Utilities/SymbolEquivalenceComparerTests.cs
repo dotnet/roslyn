@@ -1363,9 +1363,9 @@ End Class
         {
             var references = new[] { TestReferences.NetFx.v4_0_30319.mscorlib };
 
-            string source = "public class T {}";
-            string sourceV1 = "[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")] public class T {}";
-            string sourceV2 = "[assembly: System.Reflection.AssemblyVersion(\"2.0.0.0\")] public class T {}";
+            var source = "public class T {}";
+            var sourceV1 = "[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")] public class T {}";
+            var sourceV2 = "[assembly: System.Reflection.AssemblyVersion(\"2.0.0.0\")] public class T {}";
 
             var a1 = CS.CSharpCompilation.Create("a", new[] { CS.SyntaxFactory.ParseSyntaxTree(source) }, references, CSharpDllOptions);
             var a2 = CS.CSharpCompilation.Create("a", new[] { CS.SyntaxFactory.ParseSyntaxTree(source) }, references, CSharpDllOptions);
@@ -1460,7 +1460,7 @@ End Class
             MetadataReference r1, r2;
             using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
             {
-                byte[] bytes = File.ReadAllBytes(tempAssembly.Path);
+                var bytes = File.ReadAllBytes(tempAssembly.Path);
                 r1 = MetadataReference.CreateFromImage(bytes);
                 r2 = MetadataReference.CreateFromImage(bytes);
             }

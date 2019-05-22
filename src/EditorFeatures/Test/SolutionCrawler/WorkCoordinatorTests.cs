@@ -862,8 +862,8 @@ End Class";
                 Assert.False(reporter.InProgress);
 
                 // set up events
-                bool started = false;
-                bool stopped = false;
+                var started = false;
+                var stopped = false;
 
                 reporter.ProgressChanged += (o, s) =>
                 {

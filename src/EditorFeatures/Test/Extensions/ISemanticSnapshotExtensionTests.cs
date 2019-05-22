@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                     }
                 }"))
             {
-                int position = workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value;
+                var position = workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value;
                 var snapshot = workspace.Documents.Single().TextBuffer.CurrentSnapshot;
 
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id);

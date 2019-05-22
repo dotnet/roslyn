@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
                 // We're going to add two projects that both consume the same file
                 const string FilePath = "Z:\\Foo.cs";
                 var documentIds = new List<DocumentId>();
-                for (int i = 0; i < 2; i++)
+                for (var i = 0; i < 2; i++)
                 {
                     var projectId = workspace.AddProject($"Project{i}", LanguageNames.CSharp).Id;
                     var documentId = DocumentId.CreateNewId(projectId);

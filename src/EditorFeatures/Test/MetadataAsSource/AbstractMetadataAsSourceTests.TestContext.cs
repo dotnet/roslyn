@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 bool includeXmlDocComments, string sourceWithSymbolReference,
                 string languageVersion, string metadataLanguageVersion)
             {
-                string languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
+                var languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
 
                 var xmlString = string.Concat(@"
 <Workspace>

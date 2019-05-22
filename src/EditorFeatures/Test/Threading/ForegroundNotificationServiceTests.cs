@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
             var asyncToken = EmptyAsyncToken.Instance;
 
-            int startMilliseconds = Environment.TickCount;
+            var startMilliseconds = Environment.TickCount;
             int? elapsedMilliseconds = null;
 
             Service.RegisterNotification(() =>
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
                     Service.RegisterNotification(() =>
                     {
-                        for (int j = 0; j < 100; j++)
+                        for (var j = 0; j < 100; j++)
                         {
                             count++;
                         }

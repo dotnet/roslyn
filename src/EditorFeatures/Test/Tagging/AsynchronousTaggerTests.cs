@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 var snapshot = textBuffer.CurrentSnapshot;
                 var tagger = taggerProvider.CreateTagger<TestTag>(textBuffer);
 
-                using (IDisposable disposable = (IDisposable)tagger)
+                using (var disposable = (IDisposable)tagger)
                 {
                     var spans = Enumerable.Range(0, 101).Select(i => new Span(i * 4, 1));
                     var snapshotSpans = new NormalizedSnapshotSpanCollection(snapshot, spans);

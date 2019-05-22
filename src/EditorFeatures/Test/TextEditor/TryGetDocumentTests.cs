@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
                 buffer.Insert(startPosition + 1, " ");
                 buffer.Insert(startPosition + 2, "}");
 
-                Document newDocument = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
+                var newDocument = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
                 Assert.NotNull(newDocument);
 
                 var expected = @"class C
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
                 // different buffer snapshot should never return same roslyn text snapshot
                 Assert.NotSame(text, newText);
 
-                Document newDocument = newText.GetRelatedDocumentsWithChanges().First();
+                var newDocument = newText.GetRelatedDocumentsWithChanges().First();
 
                 // different text snapshot never gives back same roslyn snapshot
                 Assert.NotSame(document, newDocument);

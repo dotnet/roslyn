@@ -976,7 +976,7 @@ End Enum";
         public void RenameTrackingDoesNotThrowAggregateException()
         {
             var waitForResult = false;
-            Task<RenameTrackingTaggerProvider.TriggerIdentifierKind> notRenamable = Task.FromResult(RenameTrackingTaggerProvider.TriggerIdentifierKind.NotRenamable);
+            var notRenamable = Task.FromResult(RenameTrackingTaggerProvider.TriggerIdentifierKind.NotRenamable);
             Assert.False(RenameTrackingTaggerProvider.IsRenamableIdentifier(notRenamable, waitForResult, CancellationToken.None));
 
             var source = new TaskCompletionSource<RenameTrackingTaggerProvider.TriggerIdentifierKind>();

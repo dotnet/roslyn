@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var setParameterSymbols = getParameterSymbols == null
                     ? default
                     : getParameterSymbols.Add(Parameter(type, "value")(context.SemanticModel));
-                IMethodSymbol getAccessor = CodeGenerationSymbolFactory.CreateMethodSymbol(
+                var getAccessor = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes: default,
                     defaultAccessibility,
                     new Editing.DeclarationModifiers(isAbstract: getStatements == null),
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     typeParameters: default,
                     getParameterSymbols,
                     statements: context.ParseStatements(getStatements));
-                IMethodSymbol setAccessor = CodeGenerationSymbolFactory.CreateMethodSymbol(
+                var setAccessor = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     attributes: default,
                     setterAccessibility,
                     new Editing.DeclarationModifiers(isAbstract: setStatements == null),
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             {
                 var attributeType = (INamedTypeSymbol)GetTypeSymbol(attributeClass)(context.SemanticModel);
                 var taggedNode = context.GetDestinationNode();
-                ISymbol attributeTarget = context.SemanticModel.GetDeclaredSymbol(taggedNode);
+                var attributeTarget = context.SemanticModel.GetDeclaredSymbol(taggedNode);
                 var attribute = attributeTarget.GetAttributes().Single(attr => Equals(attr.AttributeClass, attributeType));
                 var declarationNode = taggedNode.FirstAncestorOrSelf<T>();
                 var newNode = CodeGenerator.RemoveAttribute(declarationNode, context.Document.Project.Solution.Workspace, attribute)
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 {
                     var retainedMembers = context.GetAnnotatedDeclaredSymbols(retainedMembersKey, context.SemanticModel);
                     var newMembersToAdd = GetSymbols(getNewMembers, context);
-                    List<ISymbol> allMembers = new List<ISymbol>();
+                    var allMembers = new List<ISymbol>();
                     if (declareNewMembersAtTop.HasValue && declareNewMembersAtTop.Value)
                     {
                         allMembers.AddRange(newMembersToAdd);
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         {
             using (var context = await TestContext.CreateAsync(initial, expected, forceLanguage))
             {
-                TextSpan destSpan = new TextSpan();
+                var destSpan = new TextSpan();
                 MarkupTestFile.GetSpan(symbolSource.NormalizeLineEndings(), out symbolSource, out destSpan);
 
                 var projectId = ProjectId.CreateNewId();

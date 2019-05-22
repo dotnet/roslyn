@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigStorageLocation
                 writer.WriteLine("root = true");
                 writer.WriteLine("[*.cs]");
 
-                for (int i = 0; i < 100; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     var key = Guid.NewGuid().ToString();
                     expectedKeysInOrder.Add(key);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigStorageLocation
             var optionKey = new OptionKey(option);
 
             // Fetch the underlying option order with a "option" that returns the keys
-            provider.GetOptionsForDocumentAsync(document, CancellationToken.None).Result.TryGetDocumentOption(optionKey, workspace.Options, out object actualKeysInOrderObject);
+            provider.GetOptionsForDocumentAsync(document, CancellationToken.None).Result.TryGetDocumentOption(optionKey, workspace.Options, out var actualKeysInOrderObject);
 
             var actualKeysInOrder = Assert.IsAssignableFrom<IEnumerable<string>>(actualKeysInOrderObject);
 
