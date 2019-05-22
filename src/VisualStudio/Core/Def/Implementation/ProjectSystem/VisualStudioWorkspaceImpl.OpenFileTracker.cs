@@ -115,12 +115,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // hold onto as a field
                 var runningDocumentTable = ((IVsRunningDocumentTable)_runningDocumentTable);
                 ErrorHandler.ThrowOnFailure(runningDocumentTable.GetRunningDocumentsEnum(out var enumRunningDocuments));
-                uint[] cookies = new uint[16];
+                var cookies = new uint[16];
 
                 while (ErrorHandler.Succeeded(enumRunningDocuments.Next((uint)cookies.Length, cookies, out var cookiesFetched))
                        && cookiesFetched > 0)
                 {
-                    for (int cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
+                    for (var cookieIndex = 0; cookieIndex < cookiesFetched; cookieIndex++)
                     {
                         var cookie = cookies[cookieIndex];
 
@@ -248,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
-                if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out object contextProjectNameObject)))
+                if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject)))
                 {
                     WatchHierarchy(hierarchy);
 
@@ -383,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _foregroundAffinitization.ThisCanBeCalledOnAnyThread();
 
-                bool shouldStartTask = false;
+                var shouldStartTask = false;
 
                 lock (_gate)
                 {

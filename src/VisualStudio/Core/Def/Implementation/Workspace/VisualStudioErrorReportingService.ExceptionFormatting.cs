@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private static string GetStackForAggregateException(Exception exception, AggregateException aggregate)
         {
             var text = GetStackForException(exception, includeMessageOnly: true);
-            for (int i = 0; i < aggregate.InnerExceptions.Count; i++)
+            for (var i = 0; i < aggregate.InnerExceptions.Count; i++)
             {
                 text = string.Format("{0}{1}---> (Inner Exception #{2}) {3}{4}{5}", text,
                     Environment.NewLine, i, GetFormattedExceptionStack(aggregate.InnerExceptions[i]), "<---", Environment.NewLine);

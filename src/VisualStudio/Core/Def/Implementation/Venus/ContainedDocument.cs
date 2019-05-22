@@ -1078,7 +1078,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private bool CheckCode(ITextSnapshot snapshot, int position, string tag)
         {
-            int i = position - 1;
+            var i = position - 1;
             if (i < 0)
             {
                 return false;

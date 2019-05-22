@@ -297,7 +297,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <returns>true if we were previously tracking it.</returns>
         private bool TryUntrackClosingDocument(uint docCookie, string moniker)
         {
-            bool unregisteredRegistration = false;
+            var unregisteredRegistration = false;
             // Remove our registration changing handler before we call DetachFromDocument. Otherwise, calling DetachFromDocument
             // causes us to set the workspace to null, which we then respond to as an indication that we should
             // attach again.
@@ -405,7 +405,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // The assembly name must be unique for each collection of loose files. Since the name doesn't matter
             // a random GUID can be used.
-            string assemblyName = Guid.NewGuid().ToString("N");
+            var assemblyName = Guid.NewGuid().ToString("N");
 
             var projectInfo = ProjectInfo.Create(
                 projectId,
