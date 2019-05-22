@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
         // error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS0127", "CS1997", "CS0201");
 
+        [ImportingConstructor]
         public CSharpFixReturnTypeCodeFixProvider()
             : base(supportsFixAll: false)
         {

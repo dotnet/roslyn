@@ -53,6 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
             End Function
         End Class
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(New ArgumentAnalyzer(), attributeArgumentAnalyzer:=Nothing)
         End Sub
