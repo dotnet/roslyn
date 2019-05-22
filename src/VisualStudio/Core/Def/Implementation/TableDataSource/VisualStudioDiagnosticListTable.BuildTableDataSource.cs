@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntriesSource(object data)
             {
-                return new TableEntriesSource(this, _workspace);
+                return new TableEntriesSource(this);
             }
 
             public override ImmutableArray<TableItem<DiagnosticData>> Deduplicate(IEnumerable<IList<TableItem<DiagnosticData>>> groupedItems)
@@ -102,12 +102,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private class TableEntriesSource : DiagnosticTableEntriesSource
             {
                 private readonly BuildTableDataSource _source;
-                private readonly Workspace _workspace;
 
-                public TableEntriesSource(BuildTableDataSource source, Workspace workspace)
+                public TableEntriesSource(BuildTableDataSource source)
                 {
                     _source = source;
-                    _workspace = workspace;
                 }
 
                 public override object Key => _source._key;

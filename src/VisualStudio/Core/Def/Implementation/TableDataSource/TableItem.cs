@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
@@ -15,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly Func<T, int> _keyGenerator;
 
         private int? _deduplicationKey;
-        private SharedInfoCache _cache;
+        private readonly SharedInfoCache _cache;
 
         public readonly T Primary;
 
@@ -78,37 +80,67 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             get
             {
-                return Extensions.GetDocumentId(Primary);
+                // item must be either one of diagnostic data and todo item
+                if (Primary is DiagnosticData diagnostic)
+                {
+                    return diagnostic.DocumentId;
+                }
+
+                var todo = Primary as TodoItem;
+                Contract.ThrowIfNull(todo);
+
+                return todo.DocumentId;
             }
         }
 
-        private Microsoft.CodeAnalysis.Workspace Workspace
+        private Workspace GetWorkspace()
         {
-            get
+            // item must be either one of diagnostic data and todo item
+            if (Primary is DiagnosticData diagnostic)
             {
-                return Extensions.GetWorkspace(Primary);
+                return diagnostic.Workspace;
             }
+
+            var todo = Primary as TodoItem;
+            Contract.ThrowIfNull(todo);
+
+            return todo.Workspace;
+        }
+
+        private ProjectId GetProjectId()
+        {
+            // item must be either one of diagnostic data and todo item
+            if (Primary is DiagnosticData diagnostic)
+            {
+                return diagnostic.ProjectId;
+            }
+
+            var todo = Primary as TodoItem;
+            Contract.ThrowIfNull(todo);
+
+            return todo.DocumentId.ProjectId;
         }
 
         public string ProjectName
         {
             get
             {
-                var projectId = Extensions.GetProjectId(Primary);
+                var projectId = GetProjectId();
                 if (projectId == null)
                 {
                     // this item doesn't have project at the first place
                     return null;
                 }
 
+                var solution = GetWorkspace().CurrentSolution;
                 if (_cache == null)
                 {
                     // return single project name
-                    return Workspace.GetProjectName(projectId) ?? ServicesVSResources.Unknown2;
+                    return solution.GetProjectName(projectId) ?? ServicesVSResources.Unknown2;
                 }
 
                 // return joined project names
-                return _cache.GetProjectName(Workspace) ?? ServicesVSResources.Unknown2;
+                return _cache.GetProjectName(solution) ?? ServicesVSResources.Unknown2;
             }
         }
 
@@ -122,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return Array.Empty<string>();
                 }
 
-                return _cache.GetProjectNames(Workspace);
+                return _cache.GetProjectNames(GetWorkspace().CurrentSolution);
             }
         }
 
@@ -130,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             get
             {
-                var projectId = Extensions.GetProjectId(Primary);
+                var projectId = GetProjectId();
                 if (projectId == null)
                 {
                     return Guid.Empty;
@@ -138,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 if (_cache == null)
                 {
-                    return Workspace.GetProjectGuid(projectId);
+                    return GetWorkspace().GetProjectGuid(projectId);
                 }
 
                 // if this is aggregated element, there is no projectguid
@@ -156,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return Array.Empty<Guid>();
                 }
 
-                return _cache.GetProjectGuids(Workspace);
+                return _cache.GetProjectGuids(GetWorkspace());
             }
         }
 

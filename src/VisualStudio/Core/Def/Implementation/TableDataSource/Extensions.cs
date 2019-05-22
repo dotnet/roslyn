@@ -120,9 +120,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return snapshot.CreateTrackingPoint(textLine.Start + adjustedColumn, PointTrackingMode.Positive);
         }
 
-        public static string GetProjectName(this Workspace workspace, ImmutableArray<ProjectId> projectIds)
+        public static string GetProjectName(this Solution solution, ImmutableArray<ProjectId> projectIds)
         {
-            var projectNames = GetProjectNames(workspace, projectIds);
+            var projectNames = GetProjectNames(solution, projectIds);
             if (projectNames.Length == 0)
             {
                 return null;
@@ -131,14 +131,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return string.Join(", ", projectNames.OrderBy(StringComparer.CurrentCulture));
         }
 
-        public static string GetProjectName(this Workspace workspace, ProjectId projectId)
+        public static string GetProjectName(this Solution solution, ProjectId projectId)
         {
             if (projectId == null)
             {
                 return null;
             }
 
-            var project = workspace.CurrentSolution.GetProject(projectId);
+            var project = solution.GetProject(projectId);
             if (project == null)
             {
                 return null;
@@ -147,9 +147,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return project.Name;
         }
 
-        public static string[] GetProjectNames(this Workspace workspace, ImmutableArray<ProjectId> projectIds)
+        public static string[] GetProjectNames(this Solution solution, ImmutableArray<ProjectId> projectIds)
         {
-            return projectIds.Select(p => GetProjectName(workspace, p)).WhereNotNull().Distinct().ToArray();
+            return projectIds.Select(p => GetProjectName(solution, p)).WhereNotNull().Distinct().ToArray();
         }
 
         public static Guid GetProjectGuid(this Workspace workspace, ProjectId projectId)
@@ -166,48 +166,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static Guid[] GetProjectGuids(this Workspace workspace, ImmutableArray<ProjectId> projectIds)
         {
             return projectIds.Select(p => GetProjectGuid(workspace, p)).Where(g => g != Guid.Empty).Distinct().ToArray();
-        }
-
-        public static DocumentId GetDocumentId<T>(T item)
-        {
-            // item must be either one of diagnostic data and todo item
-            if (item is DiagnosticData diagnostic)
-            {
-                return diagnostic.DocumentId;
-            }
-
-            var todo = item as TodoItem;
-            Contract.ThrowIfNull(todo);
-
-            return todo.DocumentId;
-        }
-
-        public static ProjectId GetProjectId<T>(T item)
-        {
-            // item must be either one of diagnostic data and todo item
-            if (item is DiagnosticData diagnostic)
-            {
-                return diagnostic.ProjectId;
-            }
-
-            var todo = item as TodoItem;
-            Contract.ThrowIfNull(todo);
-
-            return todo.DocumentId.ProjectId;
-        }
-
-        public static Workspace GetWorkspace<T>(T item)
-        {
-            // item must be either one of diagnostic data and todo item
-            if (item is DiagnosticData diagnostic)
-            {
-                return diagnostic.Workspace;
-            }
-
-            var todo = item as TodoItem;
-            Contract.ThrowIfNull(todo);
-
-            return todo.Workspace;
         }
     }
 }
