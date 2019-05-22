@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.PooledObjects;
-using static Microsoft.CodeAnalysis.CSharp.FlowAnalysisAnnotations;
+using static Microsoft.CodeAnalysis.CSharp.Symbols.FlowAnalysisAnnotations;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {

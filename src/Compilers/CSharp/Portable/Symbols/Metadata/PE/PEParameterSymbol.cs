@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             public bool SetFlowAnalysisAnnotations(FlowAnalysisAnnotations value)
             {
-                int bitsToSet = (1 << FlowAnalysisAnnotationsCompletionBit) | (((int)value & FlowAnalysisAnnotationsMask) << FlowAnalysisAnnotationsOffset);
+                int bitsToSet = FlowAnalysisAnnotationsCompletionBit | (((int)value & FlowAnalysisAnnotationsMask) << FlowAnalysisAnnotationsOffset);
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
 
@@ -128,7 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 int theBits = _bits; // Read this.bits once to ensure the consistency of the value and completion flags.
                 value = (FlowAnalysisAnnotations)((theBits >> FlowAnalysisAnnotationsOffset) & FlowAnalysisAnnotationsMask);
-                return (theBits & FlowAnalysisAnnotationsCompletionBit) != 0;
+                var result = (theBits & FlowAnalysisAnnotationsCompletionBit) != 0;
+                Debug.Assert(value == 0 || result);
+                return result;
             }
         }
 

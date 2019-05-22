@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     [Flags]
     internal enum FlowAnalysisAnnotations

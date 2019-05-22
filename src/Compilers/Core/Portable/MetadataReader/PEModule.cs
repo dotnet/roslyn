@@ -1082,6 +1082,9 @@ namespace Microsoft.CodeAnalysis
 
         internal bool HasMaybeNullWhenOrNotNullWhenAttribute(EntityHandle token, AttributeDescription description, out bool when)
         {
+            Debug.Assert(description.Namespace == "System.Runtime.CompilerServices");
+            Debug.Assert(description.Name == "MaybeNullWhenAttribute" || description.Name == "NotNullWhenAttribute");
+
             AttributeInfo info = FindTargetAttribute(token, description);
             if (info.HasValue &&
                 // MaybeNullWhen(bool), NotNullWhen(bool)

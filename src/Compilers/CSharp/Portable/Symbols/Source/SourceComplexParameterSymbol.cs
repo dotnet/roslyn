@@ -715,7 +715,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (arguments.Length == 1)
             {
                 var arg = arguments[0];
-                return arg.DecodeValue<bool>(SpecialType.System_Boolean);
+                if (arg.Type.SpecialType == SpecialType.System_Boolean)
+                {
+                    return arg.DecodeValue<bool>(SpecialType.System_Boolean);
+                }
             }
             return null;
         }
