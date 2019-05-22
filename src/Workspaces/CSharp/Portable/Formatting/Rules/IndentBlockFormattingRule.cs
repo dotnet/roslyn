@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             nextOperation.Invoke();
 
-            AddAlignmentBlockOperation(list, node, optionSet);
+            AddAlignmentBlockOperation(list, node);
 
             AddBlockIndentationOperation(list, node, optionSet);
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
+        private void AddAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
             switch (node)
             {
