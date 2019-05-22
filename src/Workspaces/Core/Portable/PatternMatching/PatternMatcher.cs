@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             CultureInfo culture,
             bool allowFuzzyMatching = false)
         {
-            culture = culture ?? CultureInfo.CurrentCulture;
+            culture ??= CultureInfo.CurrentCulture;
 
             _compareInfo = culture.CompareInfo;
             _textInfo = culture.TextInfo;
@@ -534,12 +534,12 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     matchSpans.Add(new TextSpan(candidateHump.Start, patternChunkCharacterSpan.Length));
                     gotOneMatchThisCandidate = true;
 
-                    firstMatch = firstMatch ?? currentCandidateHump;
+                    firstMatch ??= currentCandidateHump;
 
                     // If we were contiguous, then keep that value.  If we weren't, then keep that
                     // value.  If we don't know, then set the value to 'true' as an initial match is
                     // obviously contiguous.
-                    contiguous = contiguous ?? true;
+                    contiguous ??= true;
 
                     candidateHump = new TextSpan(candidateHump.Start + patternChunkCharacterSpan.Length, candidateHump.Length - patternChunkCharacterSpan.Length);
                 }

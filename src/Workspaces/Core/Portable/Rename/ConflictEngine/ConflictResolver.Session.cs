@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             var hasConflict = _renameAnnotations.HasAnnotation(tokenOrNode, RenameInvalidIdentifierAnnotation.Instance);
                             if (!hasConflict)
                             {
-                                newDocumentSemanticModel = newDocumentSemanticModel ?? await newDocument.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
+                                newDocumentSemanticModel ??= await newDocument.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                                 newReferencedSymbols = GetSymbolsInNewSolution(newDocument, newDocumentSemanticModel, conflictAnnotation, tokenOrNode);
 
                                 // The semantic correctness, after rename, for each token of interest in the

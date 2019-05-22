@@ -15,7 +15,7 @@ namespace Roslyn.Utilities
         {
             if (value == null)
             {
-                message = message ?? "Unexpected Null";
+                message ??= "Unexpected Null";
                 Fail(message);
             }
         }
@@ -28,7 +28,7 @@ namespace Roslyn.Utilities
         {
             if (!condition)
             {
-                message = message ?? "Unexpected false";
+                message ??= "Unexpected false";
                 Fail(message);
             }
         }
@@ -41,7 +41,7 @@ namespace Roslyn.Utilities
         {
             if (condition)
             {
-                message = message ?? "Unexpected true";
+                message ??= "Unexpected true";
                 Fail(message);
             }
         }

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                     return document;
                 }
 
-                optionSet = optionSet ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                optionSet ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 

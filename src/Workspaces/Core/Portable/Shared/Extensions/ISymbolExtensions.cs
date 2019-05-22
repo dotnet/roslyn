@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             attributes = attributes.IsDefault ? symbol.GetAttributes() : attributes;
-            hideModuleNameAttribute = hideModuleNameAttribute ?? compilation.HideModuleNameAttribute();
+            hideModuleNameAttribute ??= compilation.HideModuleNameAttribute();
             foreach (var attribute in attributes)
             {
                 if (Equals(attribute.AttributeClass, hideModuleNameAttribute))
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static bool IsBrowsingProhibitedByEditorBrowsableAttribute(
             ISymbol symbol, ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, Compilation compilation, IMethodSymbol constructor)
         {
-            constructor = constructor ?? EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
+            constructor ??= EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
             if (constructor == null)
             {
                 return false;

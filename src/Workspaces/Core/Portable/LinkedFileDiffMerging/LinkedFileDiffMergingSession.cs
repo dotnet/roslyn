@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
 
             if (unmergedChanges.Any())
             {
-                mergeConflictHandler = mergeConflictHandler ?? _oldSolution.GetDocument(linkedDocumentGroup.First()).GetLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
+                mergeConflictHandler ??= _oldSolution.GetDocument(linkedDocumentGroup.First()).GetLanguageService<ILinkedFileMergeConflictCommentAdditionService>();
                 var mergeConflictTextEdits = mergeConflictHandler.CreateEdits(originalSourceText, unmergedChanges);
 
                 allChanges = MergeChangesWithMergeFailComments(appliedChanges, mergeConflictTextEdits, mergeConflictResolutionSpan, groupSessionInfo);

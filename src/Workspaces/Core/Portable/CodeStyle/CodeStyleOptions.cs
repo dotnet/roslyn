@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 if (value == "never")
                 {
                     // If they provide 'never', they don't need a notification level.
-                    notificationOpt = notificationOpt ?? NotificationOption.Silent;
+                    notificationOpt ??= NotificationOption.Silent;
                 }
 
                 if (notificationOpt != null)

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
                         var bytesRead = await stream.ReadAsync(chunk, chunkOffset, count, cancellationToken).ConfigureAwait(false);
                         if (bytesRead > 0)
                         {
-                            count = count - bytesRead;
+                            count -= bytesRead;
                             chunkOffset += bytesRead;
                         }
                         else

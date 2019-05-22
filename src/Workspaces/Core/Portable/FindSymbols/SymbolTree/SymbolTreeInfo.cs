@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var node in FindNodeIndices(name, comparer))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                assemblySymbol = assemblySymbol ?? await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
                 Bind(node, assemblySymbol.GlobalNamespace, results, cancellationToken);
             }

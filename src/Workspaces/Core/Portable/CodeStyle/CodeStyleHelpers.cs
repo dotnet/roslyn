@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     // 'true' must always be provided with a notification option.
                     if (isEnabled == false)
                     {
-                        notificationOpt = notificationOpt ?? NotificationOption.Silent;
+                        notificationOpt ??= NotificationOption.Silent;
                         option = new CodeStyleOption<bool>(false, notificationOpt);
                         return true;
                     }
