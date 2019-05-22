@@ -15,6 +15,7 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 {
     [ExportSuppressionFixProvider(PredefinedCodeFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.Suppression)]
     internal sealed partial class ConfigureSeverityLevelCodeFixProvider : ISuppressionOrConfigurationFixProvider
     {
         public bool IsFixableDiagnostic(Diagnostic diagnostic)
