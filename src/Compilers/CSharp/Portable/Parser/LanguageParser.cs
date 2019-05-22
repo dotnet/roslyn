@@ -10014,9 +10014,8 @@ tryAgain:
             {
                 return false;
             }
-
             //  case 1:  ( x ,
-            if (IsParenVarCommaSyntax())
+            if (isParenVarCommaSyntax())
             {
                 // Make sure it really looks like a lambda, not just a tuple
                 int curTk = 3;
@@ -10080,32 +10079,32 @@ tryAgain:
             }
 
             return false;
-        }
 
-        private bool IsParenVarCommaSyntax()
-        {
-            var next = this.PeekToken(1);
-
-            // Ensure next token is a variable
-            if (next.Kind == SyntaxKind.IdentifierToken)
+            bool isParenVarCommaSyntax()
             {
-                if (!this.IsInQuery || !IsTokenQueryContextualKeyword(next))
+                var next = this.PeekToken(1);
+
+                // Ensure next token is a variable
+                if (next.Kind == SyntaxKind.IdentifierToken)
                 {
-                    // Variable must be directly followed by a comma if not followed by exclamation
-                    var afterKind = this.PeekToken(2).Kind;
-                    // ( x , [...]
-                    if (afterKind == SyntaxKind.CommaToken)
+                    if (!this.IsInQuery || !IsTokenQueryContextualKeyword(next))
                     {
-                        return true;
-                    }
-                    // ( x! , [...]
-                    if (afterKind == SyntaxKind.ExclamationToken && this.PeekToken(3).Kind == SyntaxKind.CommaToken)
-                    {
-                        return true;
+                        // Variable must be directly followed by a comma if not followed by exclamation
+                        var afterKind = this.PeekToken(2).Kind;
+                        // ( x , [...]
+                        if (afterKind == SyntaxKind.CommaToken)
+                        {
+                            return true;
+                        }
+                        // ( x! , [...]
+                        if (afterKind == SyntaxKind.ExclamationToken && this.PeekToken(3).Kind == SyntaxKind.CommaToken)
+                        {
+                            return true;
+                        }
                     }
                 }
+                return false;
             }
-            return false;
         }
 
         private bool ScanExplicitlyTypedLambda(Precedence precedence)
