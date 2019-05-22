@@ -345,6 +345,8 @@ function TestUsingOptimizedRunner() {
     $env:ROSLYN_TEST_LEGACY_COMPLETION = "true"
   }
 
+  $secondaryLogDir = Join-Path (Join-Path $ArtifactsDir "log2") $configuration
+  Create-Directory $secondaryLogDir
   $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
   $binDir = Join-Path $ArtifactsDir "bin" 
   $runTests = GetProjectOutputBinary "RunTests.exe"
@@ -358,6 +360,7 @@ function TestUsingOptimizedRunner() {
   $args = "`"$xunitDir`""
   $args += " `"-out:$testResultsDir`""
   $args += " `"-logs:$LogDir`""
+  $args += " `"-secondaryLogs:$secondaryLogDir`""
   $args += " -nocache"
   $args += " -tfm:net472"
 

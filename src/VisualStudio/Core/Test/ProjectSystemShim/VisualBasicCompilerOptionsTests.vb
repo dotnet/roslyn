@@ -259,6 +259,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 outputs = CType(environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id), CompilationOutputFilesWithImplicitPdbPath)
                 Assert.Equal("C:\NewFolder3\test3.dll", outputs.AssemblyFilePath)
+
+                ' Relative path - set by VBIntelliProj in VB Web App project
+                compilerOptions = CreateMinimalCompilerOptions(project)
+                compilerOptions.wszOutputPath = "\"
+                compilerOptions.wszExeName = "test3.dll"
+                project.SetCompilerOptions(compilerOptions)
+                Assert.Equal(Nothing, project.GetOutputFileName())
+                outputs = CType(environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id), CompilationOutputFilesWithImplicitPdbPath)
+                Assert.Equal(Nothing, outputs.AssemblyFilePath)
             End Using
         End Sub
     End Class

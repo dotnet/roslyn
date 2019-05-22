@@ -6,7 +6,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests</RootNamespace>
     <NoStdLib>true</NoStdLib>
     <TargetFrameworks>net472;netcoreapp3.0</TargetFrameworks>
-    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../VSPackage.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../VSPackage.resx">
     <body>
       <trans-unit id="101">
         <source>C#</source>
@@ -82,15 +82,15 @@ Use enhanced colors;</source>
         <target state="translated">顯示已關閉檔案的診斷;
 為規則運算式標示色彩; 
 醒目提示游標下的相關元件; 
-報告無效的規則運算式;
+回報無效的規則運算式;
 啟用完整解決方案分析;
 在外部處理序中執行編輯器功能分析;
-啟用瀏覽以反向組譯來源;
-使用指示詞;
-排序 using 時先排列系統指示詞;
+允許瀏覽到反向組譯的來源;
+Using 指示詞;
+排序 using 時先放置系統指示詞;
 分隔 using 指示詞群組;
-針對參考組件中的類型建議 using;
-針對 NuGet 套件中的類型建議 using;
+為參考組件中的類型建議 using;
+為 NuGet 套件中的類型建議 using;
 醒目提示;
 醒目提示游標下的符號參考;
 醒目提示游標下的相關關鍵字;
@@ -103,7 +103,7 @@ Use enhanced colors;</source>
 在摺疊到定義時摺疊區域;
 淡化;
 淡化未使用的 using;
-淡化無法連線的程式碼;
+淡化無法執行到的程式碼;
 區塊結構輔助線;
 顯示宣告層級建構的輔助線;
 顯示程式碼層級建構的輔助線;
@@ -112,16 +112,18 @@ Use enhanced colors;</source>
 在撰寫 /* */ 註解時，於新行開頭插入 *;
 顯示重新命名追蹤的預覽;
 在按 Enter 鍵時分割字串常值;
-報告 string.Format 呼叫中的無效預留位置;
+回報 string.Format 呼叫中的無效預留位置;
 擷取方法;
 不要在自訂結構上放置 ref 或 out;
-實作 Interface 或 Abstract 類別;
-在插入屬性、事件和方法時，放置它們;
-具有其他同種類的成員;
+實作介面或抽象類別;
+在插入屬性、事件和方法時，予以放置;
+並隨同其他同種類的成員;
 在結尾;
 在產生屬性時;
 建議使用擲回屬性;
 建議使用自動屬性;
+regex;
+規則運算式;
 使用增強色彩;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
@@ -374,12 +376,12 @@ Show name suggestions;</source>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">空白的 C# 指令碼檔。</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Visual C# 指令碼</target>
         <note />
       </trans-unit>
     </body>

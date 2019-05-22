@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     {
                         var conflictingMethod = conflictingSymbol as IMethodSymbol;
                         var renamedMethod = renamedMember as IMethodSymbol;
-                        if (!(conflictingMethod.PartialDefinitionPart != null && conflictingMethod.PartialDefinitionPart == renamedMethod) &&
-                            !(conflictingMethod.PartialImplementationPart != null && conflictingMethod.PartialImplementationPart == renamedMethod))
+                        if (!(conflictingMethod.PartialDefinitionPart != null && Equals(conflictingMethod.PartialDefinitionPart, renamedMethod)) &&
+                            !(conflictingMethod.PartialImplementationPart != null && Equals(conflictingMethod.PartialImplementationPart, renamedMethod)))
                         {
                             builder.AddRange(conflictingSymbol.Locations);
                         }

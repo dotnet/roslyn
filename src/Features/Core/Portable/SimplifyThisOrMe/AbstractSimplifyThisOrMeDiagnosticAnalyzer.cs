@@ -37,9 +37,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         protected abstract string GetLanguageName();
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
 
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         protected abstract bool CanSimplifyTypeNameExpression(
             SemanticModel model, TMemberAccessExpressionSyntax memberAccess, OptionSet optionSet, out TextSpan issueSpan, CancellationToken cancellationToken);
 

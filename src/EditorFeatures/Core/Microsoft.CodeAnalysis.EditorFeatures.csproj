@@ -52,7 +52,6 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" WorkItem="https://github.com/dotnet/roslyn/issues/35091" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
     <!-- BEGIN MONODEVELOP
@@ -87,8 +86,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
     <!-- Eventually a bunch of these unit tests should move into Roslyn.Services.Implementation.UnitTests
          and this should be removed. -->
-    <InternalsVisibleTo Include="RoslynETAHost" WorkItem="https://github.com/dotnet/roslyn/issues/35072" />
-    <InternalsVisibleTo Include="RoslynTaoActions" WorkItem="https://github.com/dotnet/roslyn/issues/35072" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Microsoft.Test.Apex.VisualStudio" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
@@ -111,9 +108,6 @@
       <DependentUpon>EditorFeaturesResources.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Update="Shared\Extensions\ITextViewExtensions.AutoClosingViewProperty.cs">
-      <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
