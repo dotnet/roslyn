@@ -197,15 +197,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 {
                     var analyzerId = analyzerIdIndex[index];
 
-                    // if result performance is lower than our threshold, don't need to calcuate
+                    // if result performance is lower than our threshold, don't need to calculate
                     // LOF value for the analyzer
-                    var rawData = rawPerformanceData[analyzerId];
-                    if (rawData.average <= _averageThreshold && rawData.stddev <= _stddevThreshold)
+                    var (average, stddev) = rawPerformanceData[analyzerId];
+                    if (average <= _averageThreshold && stddev <= _stddevThreshold)
                     {
                         continue;
                     }
 
-                    // possible bad analyzer, calcuate LOF
+                    // possible bad analyzer, calculate LOF
                     var lof_value = TryGetLocalOutlierFactor(allDistances, kNeighborIndices, kDistances, index);
                     if (!lof_value.HasValue)
                     {
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                     }
 
                     // report found possible bad analyzers
-                    _badAnalyzers.Add(new ExpensiveAnalyzerInfo(_owner.AllowTelemetry(analyzerId), analyzerId, lof_value.Value, rawData.average, rawData.stddev));
+                    _badAnalyzers.Add(new ExpensiveAnalyzerInfo(_owner.AllowTelemetry(analyzerId), analyzerId, lof_value.Value, average, stddev));
                 }
 
                 _badAnalyzers.Sort(this);
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return kDistances;
             }
 
-            private List<List<double>> GetAllDistances(List<(double normaliedAverage, double normalizedStddev)> normalizedMap)
+            private List<List<double>> GetAllDistances(List<(double normalizedAverage, double normalizedStddev)> normalizedMap)
             {
                 var analyzerCount = normalizedMap.Count;
                 var allDistances = GetPooledListAndSetCapacity<List<double>>(analyzerCount);
@@ -340,13 +340,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 for (var rowIndex = 0; rowIndex < analyzerCount; rowIndex++)
                 {
                     var rowDistances = GetPooledListAndSetCapacity<double>(analyzerCount);
-                    var rowAnalyzer = normalizedMap[rowIndex];
+                    var (normaliedAverage, normalizedStddev) = normalizedMap[rowIndex];
 
                     for (var colIndex = 0; colIndex < analyzerCount; colIndex++)
                     {
                         var colAnalyzer = normalizedMap[colIndex];
-                        var distance = Math.Sqrt(Math.Pow(colAnalyzer.normaliedAverage - rowAnalyzer.normaliedAverage, 2) +
-                                                 Math.Pow(colAnalyzer.normalizedStddev - rowAnalyzer.normalizedStddev, 2));
+                        var distance = Math.Sqrt(Math.Pow(colAnalyzer.normalizedAverage - normaliedAverage, 2) +
+                                                 Math.Pow(colAnalyzer.normalizedStddev - normalizedStddev, 2));
 
                         rowDistances[colIndex] = distance;
                     }
@@ -378,9 +378,9 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
                 for (var index = 0; index < analyzerCount; index++)
                 {
-                    var value = rawPerformanceData[analyzerIdIndex[index]];
-                    var normalizedAverage = (value.average - averageMin) / averageDelta;
-                    var normalizedStddev = (value.stddev - stddevMin) / stddevDelta;
+                    var (average, stddev) = rawPerformanceData[analyzerIdIndex[index]];
+                    var normalizedAverage = (average - averageMin) / averageDelta;
+                    var normalizedStddev = (stddev - stddevMin) / stddevDelta;
 
                     normalizedMap[index] = (normalizedAverage, normalizedStddev);
                 }
