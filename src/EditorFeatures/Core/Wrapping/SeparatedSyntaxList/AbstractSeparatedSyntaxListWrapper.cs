@@ -2,10 +2,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 {
+    using Microsoft.CodeAnalysis.Indentation;
+
     /// <summary>
     /// Base type for all wrappers that involve wrapping a comma-separated list of items.
     /// </summary>
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
         protected abstract string Wrap_every_item { get; }
 
-        protected AbstractSeparatedSyntaxListWrapper(Indentation.IIndentationService indentationService)
+        protected AbstractSeparatedSyntaxListWrapper(IIndentationService indentationService)
             : base(indentationService)
         {
         }

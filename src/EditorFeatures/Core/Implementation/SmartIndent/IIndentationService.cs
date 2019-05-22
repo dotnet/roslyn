@@ -43,12 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor
             => new Indentation.IndentationResult(result.BasePosition, result.Offset);
     }
 
+    // Removal of this interface tracked with https://github.com/dotnet/roslyn/issues/35872
     [Obsolete("Use Microsoft.CodeAnalysis.Indentation.IIndentationService instead.")]
     internal interface IIndentationService : ILanguageService
     {
         Task<IndentationResult?> GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
     }
 
+    // Removal of this interface tracked with https://github.com/dotnet/roslyn/issues/35872
     [Obsolete("Use Microsoft.CodeAnalysis.Indentation.IIndentationService instead.")]
     internal interface ISynchronousIndentationService : ILanguageService
     {

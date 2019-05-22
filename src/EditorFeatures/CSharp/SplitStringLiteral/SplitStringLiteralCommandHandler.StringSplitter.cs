@@ -9,6 +9,8 @@ using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
+    using Microsoft.CodeAnalysis.Indentation;
+
     internal partial class SplitStringLiteralCommandHandler
     {
         private abstract class StringSplitter
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             {
                 var newDocument = Document.WithSyntaxRoot(newRoot);
 
-                var indentationService = newDocument.GetLanguageService<Indentation.IIndentationService>();
+                var indentationService = newDocument.GetLanguageService<IIndentationService>();
                 var originalLineNumber = SourceText.Lines.GetLineFromPosition(CursorPosition).LineNumber;
 
                 var desiredIndentation = indentationService.GetIndentation(

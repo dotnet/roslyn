@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     internal class UseCoalesceExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseCoalesceExpressionCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionDiagnosticId);
 

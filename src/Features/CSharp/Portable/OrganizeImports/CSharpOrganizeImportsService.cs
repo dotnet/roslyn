@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
     [ExportLanguageService(typeof(IOrganizeImportsService), LanguageNames.CSharp), Shared]
     internal partial class CSharpOrganizeImportsService : IOrganizeImportsService
     {
+        [ImportingConstructor]
+        public CSharpOrganizeImportsService()
+        {
+        }
+
         public async Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

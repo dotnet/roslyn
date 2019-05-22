@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddMissingReference
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(CS0012);
 
+        [ImportingConstructor]
         public CSharpAddMissingReferenceCodeFixProvider()
         {
         }

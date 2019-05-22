@@ -9,5 +9,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
     <ExtensionOrder(After:=PredefinedCodeRefactoringProviderNames.InvertLogical, Before:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     Friend NotInheritable Class VisualBasicSplitIntoConsecutiveIfStatementsCodeRefactoringProvider
         Inherits AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

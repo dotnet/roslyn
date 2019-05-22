@@ -16,6 +16,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 {
+    using Microsoft.CodeAnalysis.Indentation;
+
     public abstract class CoreFormatterTestsBase
     {
         internal abstract string GetLanguageName();

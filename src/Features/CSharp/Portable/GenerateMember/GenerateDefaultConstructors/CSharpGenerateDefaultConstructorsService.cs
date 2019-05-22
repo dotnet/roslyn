@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
     [ExportLanguageService(typeof(IGenerateDefaultConstructorsService), LanguageNames.CSharp), Shared]
     internal class CSharpGenerateDefaultConstructorsService : AbstractGenerateDefaultConstructorsService<CSharpGenerateDefaultConstructorsService>
     {
+        [ImportingConstructor]
+        public CSharpGenerateDefaultConstructorsService()
+        {
+        }
+
         protected override bool TryInitializeState(
             SemanticDocument semanticDocument, TextSpan textSpan, CancellationToken cancellationToken,
             out INamedTypeSymbol classType)

@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private static readonly AbstractFormattingRule s_instance = new FormattingRule();
 
+        [ImportingConstructor]
+        public CSharpIndentationService()
+        {
+        }
+
         protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule()
         {
             return s_instance;

@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
     Partial Friend Class VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider
         Inherits AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider(Of InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, LiteralExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetInterpolatedString(text As String) As SyntaxNode
             Return TryCast(SyntaxFactory.ParseExpression("$" + text), InterpolatedStringExpressionSyntax)
         End Function

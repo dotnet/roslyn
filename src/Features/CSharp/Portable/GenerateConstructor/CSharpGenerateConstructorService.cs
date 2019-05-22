@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
     {
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
+        [ImportingConstructor]
+        public CSharpGenerateConstructorService()
+        {
+        }
+
         protected override bool IsSimpleNameGeneration(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
             => node is SimpleNameSyntax;
 

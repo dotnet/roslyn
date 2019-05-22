@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 new SyntaxTokenClassifier(),
                 new UsingDirectiveSyntaxClassifier());
 
+        [ImportingConstructor]
+        public CSharpSyntaxClassificationService()
+        {
+        }
+
         public override ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
             => s_defaultSyntaxClassifiers;
 

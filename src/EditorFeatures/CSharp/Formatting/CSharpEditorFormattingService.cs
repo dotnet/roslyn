@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         // All the characters that might potentially trigger formatting when typed
         private readonly char[] _supportedChars = ";{}#nte:)".ToCharArray();
 
+        [ImportingConstructor]
         public CSharpEditorFormattingService()
         {
         }
