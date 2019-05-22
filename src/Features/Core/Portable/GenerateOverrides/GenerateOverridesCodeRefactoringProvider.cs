@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
     {
         private readonly IPickMembersService _pickMembersService_forTestingPurposes;
 
+        [ImportingConstructor]
         public GenerateOverridesCodeRefactoringProvider() : this(null)
         {
         }

@@ -451,6 +451,8 @@ namespace Microsoft.CodeAnalysis
         System_Range__StartAt,
         System_Range__EndAt,
         System_Range__get_All,
+        System_Range__get_Start,
+        System_Range__get_End,
 
         System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
 
@@ -488,6 +490,11 @@ namespace Microsoft.CodeAnalysis
         System_InvalidOperationException__ctor,
         System_Runtime_CompilerServices_SwitchExpressionException__ctor,
         System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
+
+        System_Threading_CancellationToken__Equals,
+        System_Threading_CancellationTokenSource__CreateLinkedTokenSource,
+        System_Threading_CancellationTokenSource__Token,
+        System_Threading_CancellationTokenSource__Dispose,
 
         Count
 

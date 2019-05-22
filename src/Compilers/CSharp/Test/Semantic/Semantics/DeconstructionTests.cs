@@ -4185,12 +4185,12 @@ class Program
 
             var x1 = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("x1", x1.Name);
-            Assert.Equal("System.Int32", ((LocalSymbol)x1).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((LocalSymbol)x1).TypeWithAnnotations.ToTestDisplayString());
             Assert.Same(x1, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x1").Single()).Symbol);
 
             var x2 = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("x2", x2.Name);
-            Assert.Equal("System.Int32", ((LocalSymbol)x2).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((LocalSymbol)x2).TypeWithAnnotations.ToTestDisplayString());
             Assert.Same(x2, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x2").Single()).Symbol);
         }
 
@@ -6027,10 +6027,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 17),
                 // (5,31): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (int x, void y) = (1, Main());
-                Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 31),
-                // (5,17): error CS0029: Cannot implicitly convert type 'void' to 'void'
-                //         (int x, void y) = (1, Main());
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "void y").WithArguments("void", "void").WithLocation(5, 17)
+                Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 31)
                 );
             var main = comp.GetMember<MethodSymbol>("C.Main");
             var tree = comp.SyntaxTrees[0];
@@ -6113,10 +6110,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(5, 17),
                 // (5,31): error CS0029: Cannot implicitly convert type 'int' to 'void'
                 //         (int x, void y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "void").WithLocation(5, 31),
-                // (5,17): error CS0029: Cannot implicitly convert type 'void' to 'void'
-                //         (int x, void y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "void y").WithArguments("void", "void").WithLocation(5, 17)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "void").WithLocation(5, 31)
                 );
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);

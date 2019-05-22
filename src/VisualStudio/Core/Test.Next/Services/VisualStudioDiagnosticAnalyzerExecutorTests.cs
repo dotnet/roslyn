@@ -189,8 +189,11 @@ End Class";
                         analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                         new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
 
+                // no result for open file only analyzer unless forced
                 var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
+                Assert.Empty(result.AnalysisResult);
 
+                result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: true, cancellationToken: CancellationToken.None);
                 var analyzerResult = result.AnalysisResult[analyzerDriver.Analyzers[0]];
 
                 // check result

@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Otherwise, nothing special here.
             Debug.Assert((object)method != null);
-            Debug.Assert(TypeSymbol.Equals(method.ReturnType.TypeSymbol, type, TypeCompareKind.ConsiderEverything2));
+            Debug.Assert(TypeSymbol.Equals(method.ReturnType, type, TypeCompareKind.ConsiderEverything2));
             return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
         }
 
@@ -1159,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftAlwaysNull && rightAlwaysNull)
             {
                 // default(R?)
-                return new BoundDefaultExpression(syntax, null, type);
+                return new BoundDefaultExpression(syntax, type);
             }
 
             // Optimization #2: If both sides are non-null then we can again eliminate the lifting entirely.
@@ -1232,14 +1232,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (sideEffect.ConstantValue != null)
             {
-                return new BoundDefaultExpression(syntax, null, type);
+                return new BoundDefaultExpression(syntax, type);
             }
 
             return new BoundSequence(
                 syntax: syntax,
                 locals: ImmutableArray<LocalSymbol>.Empty,
                 sideEffects: ImmutableArray.Create<BoundExpression>(sideEffect),
-                value: new BoundDefaultExpression(syntax, null, type),
+                value: new BoundDefaultExpression(syntax, type),
                 type: type);
         }
 
@@ -1304,7 +1304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = MakeLiftedBinaryOperatorConsequence(syntax, kind, callX_GetValueOrDefault, callY_GetValueOrDefault, type, method);
 
             // default(R?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, null, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, type);
 
             // tempX.HasValue & tempY.HasValue ? 
             //          new R?(tempX.GetValueOrDefault() OP tempY.GetValueOrDefault()) : 
@@ -1326,12 +1326,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: type);
         }
 
-        private BoundExpression CaptureExpressionInTempIfNeeded(BoundExpression operand, ArrayBuilder<BoundExpression> sideeffects, ArrayBuilder<LocalSymbol> locals)
+        private BoundExpression CaptureExpressionInTempIfNeeded(
+            BoundExpression operand,
+            ArrayBuilder<BoundExpression> sideeffects,
+            ArrayBuilder<LocalSymbol> locals,
+            SynthesizedLocalKind kind = SynthesizedLocalKind.LoweringTemp)
         {
             if (CanChangeValueBetweenReads(operand))
             {
                 BoundAssignmentOperator tempAssignment;
-                var tempAccess = _factory.StoreToTemp(operand, out tempAssignment);
+                var tempAccess = _factory.StoreToTemp(operand, out tempAssignment, kind: kind);
                 sideeffects.Add(tempAssignment);
                 locals.Add(tempAccess.LocalSymbol);
                 operand = tempAccess;
@@ -1482,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol nullableBoolType = nullableType.Construct(boolType);
             if (value == null)
             {
-                return new BoundDefaultExpression(syntax, null, nullableBoolType);
+                return new BoundDefaultExpression(syntax, nullableBoolType);
             }
 
             return new BoundObjectCreationExpression(
@@ -1526,7 +1530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression alwaysNull = leftAlwaysNull ? left : right;
             BoundExpression notAlwaysNull = leftAlwaysNull ? right : left;
             BoundExpression neverNull = NullableAlwaysHasValue(notAlwaysNull);
-            BoundExpression nullBool = new BoundDefaultExpression(syntax, null, alwaysNull.Type);
+            BoundExpression nullBool = new BoundDefaultExpression(syntax, alwaysNull.Type);
 
             if (neverNull != null)
             {
@@ -1863,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)method != null);
             BoundExpression call = _inExpressionLambda
-                ? new BoundBinaryOperator(syntax, operatorKind, null, method, default(LookupResultKind), loweredLeft, loweredRight, method.ReturnType.TypeSymbol)
+                ? new BoundBinaryOperator(syntax, operatorKind, null, method, default(LookupResultKind), loweredLeft, loweredRight, method.ReturnType)
                 : (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
             BoundExpression result = method.ReturnType.SpecialType == SpecialType.System_Delegate ?
                 MakeConversionNode(syntax, call, Conversion.ExplicitReference, type, @checked: false) :
@@ -1912,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Don't even call this method if the expression cannot be nullable.
             Debug.Assert(
                 (object)exprType == null ||
-                exprType.IsNullableType() ||
+                exprType.IsNullableTypeOrTypeParameter() ||
                 !exprType.IsValueType ||
                 exprType.IsPointerType());
 
@@ -2068,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression MakeSizeOfMultiplication(BoundExpression numericOperand, PointerTypeSymbol pointerType, bool isChecked)
         {
-            var sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType.TypeSymbol);
+            var sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType);
             Debug.Assert(sizeOfExpression.Type.SpecialType == SpecialType.System_Int32);
 
             // Common case: adding or subtracting one  (e.g. for ++)
@@ -2220,7 +2224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(returnType.SpecialType == SpecialType.System_Int64);
 
             PointerTypeSymbol pointerType = (PointerTypeSymbol)loweredLeft.Type;
-            var sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType.TypeSymbol);
+            var sizeOfExpression = _factory.Sizeof(pointerType.PointedAtType);
 
             // NOTE: to match dev10, the result of the subtraction is treated as an IntPtr
             // and then the result of the division is converted to long.

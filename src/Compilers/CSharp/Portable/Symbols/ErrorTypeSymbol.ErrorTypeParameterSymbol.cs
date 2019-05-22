@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -71,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            internal override bool? IsNotNullableIfReferenceType => null;
+
             public override bool HasValueTypeConstraint
             {
                 get
@@ -127,13 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override void EnsureAllConstraintsAreResolved(bool early)
+            internal override void EnsureAllConstraintsAreResolved()
             {
             }
 
-            internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
+            internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
             {
-                return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+                return ImmutableArray<TypeWithAnnotations>.Empty;
             }
 
             internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
@@ -156,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Hash.Combine(_container.GetHashCode(), _ordinal);
             }
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -166,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var other = t2 as ErrorTypeParameterSymbol;
                 return (object)other != null &&
                     other._ordinal == _ordinal &&
-                    other.ContainingType.Equals(this.ContainingType, comparison);
+                    other.ContainingType.Equals(this.ContainingType, comparison, isValueTypeOverrideOpt);
             }
         }
     }

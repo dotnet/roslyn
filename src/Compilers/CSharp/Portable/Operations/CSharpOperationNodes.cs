@@ -1411,6 +1411,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return null;
         }
+
+        protected override ImmutableArray<IOperation> CreateIgnoredDimensions()
+        {
+            return _operationFactory.CreateIgnoredDimensions(_localDeclaration, Syntax);
+        }
     }
 
     internal sealed class CSharpLazyWhileLoopOperation : LazyWhileLoopOperation
@@ -1802,24 +1807,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IObjectOrCollectionInitializerOperation CreateInitializer()
         {
             return (IObjectOrCollectionInitializerOperation)_operationFactory.Create(_initializer);
-        }
-    }
-
-    internal sealed class CSharpLazyFromEndIndexOperation : LazyFromEndIndexOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _operand;
-
-        internal CSharpLazyFromEndIndexOperation(CSharpOperationFactory operationFactory, BoundNode operand, bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
-            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _operand = operand;
-        }
-
-        protected override IOperation CreateOperand()
-        {
-            return _operationFactory.Create(_operand);
         }
     }
 

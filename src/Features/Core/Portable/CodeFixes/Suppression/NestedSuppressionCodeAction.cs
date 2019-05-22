@@ -26,5 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             equivalenceKey.StartsWith(FeaturesResources.in_Source);
         public static bool IsEquivalenceKeyForRemoveSuppression(string equivalenceKey) =>
             equivalenceKey.StartsWith(FeaturesResources.Remove_Suppression);
+        public static bool IsEquivalenceKeyForLocalSuppression(string equivalenceKey) =>
+            equivalenceKey.StartsWith(FeaturesResources.in_Source_attribute);
     }
 }

@@ -15,24 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static readonly TypeParameterBounds Unset = new TypeParameterBounds();
 
-        // https://github.com/dotnet/roslyn/issues/30061: Add static Create methods and have Create
-        // return an EarlyEmpty singleton instance for the common case of no constraint types.
-
-        /// <summary>
-        /// Creates an "early" bound instance that has constraint types set
-        /// but no other fields.
-        /// </summary>
-        public TypeParameterBounds(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes)
-        {
-            Debug.Assert(!constraintTypes.IsDefault);
-            this.ConstraintTypes = constraintTypes;
-        }
-
         /// <summary>
         /// Creates a "late" bound instance with all fields set.
         /// </summary>
         public TypeParameterBounds(
-            ImmutableArray<TypeSymbolWithAnnotations> constraintTypes,
+            ImmutableArray<TypeWithAnnotations> constraintTypes,
             ImmutableArray<NamedTypeSymbol> interfaces,
             NamedTypeSymbol effectiveBaseClass,
             TypeSymbol deducedBaseType)
@@ -53,17 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If true, only ConstraintTypes has been set, as a result of binding syntax.
-        /// Bounds have not been calculated, and ConstraintTypes may still
-        /// contain invalid types or duplicates.
-        /// </summary>
-        public bool IsEarly => EffectiveBaseClass is null;
-
-        /// <summary>
         /// The type parameters, classes, and interfaces explicitly declared as
         /// constraint types on the containing type parameter, with cycles removed.
         /// </summary>
-        public readonly ImmutableArray<TypeSymbolWithAnnotations> ConstraintTypes;
+        public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
 
         /// <summary>
         /// The set of interfaces explicitly declared on the containing type
@@ -98,17 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal static class TypeParameterBoundsExtensions
     {
-        internal static bool IsSet(this TypeParameterBounds boundsOpt, bool early)
+        internal static bool IsSet(this TypeParameterBounds boundsOpt)
         {
-            if (boundsOpt == TypeParameterBounds.Unset)
-            {
-                return false;
-            }
-            if (boundsOpt == null)
-            {
-                return true;
-            }
-            return early || !boundsOpt.IsEarly;
+            return boundsOpt != TypeParameterBounds.Unset;
         }
     }
 }

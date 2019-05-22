@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return results.ToImmutableAndFree();
         }
 
-        private static bool IsOverride(
+        internal static bool IsOverride(
             Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
         {
             for (var current = member; current != null; current = current.OverriddenMember())
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var symbol = symbolAndProjectId.Symbol;
             if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                var implementingTypes = await DependentTypeFinder.FindTransitivelyImplementingTypesAsync(namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
+                var implementingTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresAndClassesAsync(namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
                 return implementingTypes.Select(s => (SymbolAndProjectId)s)
                                         .Where(IsAccessible)
                                         .ToImmutableArray();
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else if (symbol.IsImplementableMember())
             {
                 var containingType = symbol.ContainingType.OriginalDefinition;
-                var allTypes = await DependentTypeFinder.FindTransitivelyImplementingTypesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
+                var allTypes = await DependentTypeFinder.FindTransitivelyImplementingStructuresClassesAndInterfacesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
 
                 ImmutableArray<SymbolAndProjectId>.Builder results = null;
                 foreach (var t in allTypes.Convert<INamedTypeSymbol, ITypeSymbol>())
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         // Resolve forwarded type and verify that the types from different assembly are indeed equivalent.
                         var forwardedType = referencedAssembly.ResolveForwardedType(fullyQualifiedTypeName);
-                        if (forwardedType == expectedForwardedType)
+                        if (Equals(forwardedType, expectedForwardedType))
                         {
                             verifiedKeys.Add(kvp.Key);
                             verifiedCount++;

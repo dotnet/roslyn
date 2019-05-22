@@ -13,24 +13,46 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            // visit switch header
-            VisitRvalue(node.Expression);
+            // dispatch to the switch sections
+            var initialState = VisitSwitchStatementDispatch(node);
 
-            // visit switch block
-            VisitSwitchBlock(node);
+            // visit switch sections
+            var afterSwitchState = UnreachableState();
+            var switchSections = node.SwitchSections;
+            var iLastSection = (switchSections.Length - 1);
+            for (var iSection = 0; iSection <= iLastSection; iSection++)
+            {
+                VisitSwitchSection(switchSections[iSection], iSection == iLastSection);
+                // Even though it is illegal for the end of a switch section to be reachable, in erroneous
+                // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
+                Join(ref afterSwitchState, ref this.State);
+            }
+
+            if (node.DecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
+                (node.DefaultLabel == null && node.Expression.ConstantValue == null && IsTraditionalSwitch(node)))
+            {
+                Join(ref afterSwitchState, ref initialState);
+            }
+
+            ResolveBreaks(afterSwitchState, node.BreakLabel);
 
             return null;
         }
 
-        private void VisitSwitchBlock(BoundSwitchStatement node)
+        protected virtual TLocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
-            var initialState = State.Clone();
+            // visit switch header
+            VisitRvalue(node.Expression);
+
+            TLocalState initialState = this.State.Clone();
+
             var reachableLabels = node.DecisionDag.ReachableLabels;
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
                 {
-                    if (reachableLabels.Contains(label.Label) || label.HasErrors)
+                    if (reachableLabels.Contains(label.Label) || label.HasErrors ||
+                        label == node.DefaultLabel && node.Expression.ConstantValue == null && IsTraditionalSwitch(node))
                     {
                         SetState(initialState.Clone());
                     }
@@ -51,24 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // visit switch sections
-            var afterSwitchState = UnreachableState();
-            var switchSections = node.SwitchSections;
-            var iLastSection = (switchSections.Length - 1);
-            for (var iSection = 0; iSection <= iLastSection; iSection++)
-            {
-                VisitSwitchSection(switchSections[iSection], iSection == iLastSection);
-                // Even though it is illegal for the end of a switch section to be reachable, in erroneous
-                // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
-                Join(ref afterSwitchState, ref this.State);
-            }
-
-            if (reachableLabels.Contains(node.BreakLabel) || node.DefaultLabel == null && IsTraditionalSwitch(node))
-            {
-                Join(ref afterSwitchState, ref initialState);
-            }
-
-            ResolveBreaks(afterSwitchState, node.BreakLabel);
+            return initialState;
         }
 
         /// <summary>
@@ -84,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If we are in a recent enough language version, we treat the switch as a fully pattern-based switch
             // for the purposes of flow analysis.
-            if (((CSharpParseOptions)node.Syntax.SyntaxTree.Options).LanguageVersion >= MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+            if (compilation.LanguageVersion >= MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
             {
                 return false;
             }

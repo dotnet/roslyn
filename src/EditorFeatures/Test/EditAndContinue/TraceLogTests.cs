@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 "c",
                 "d <null> <null>",
                 "e"
-            }, log.GetEntries().Select(e => e.ToString()));
+            }, log.GetTestAccessor().Entries.Select(e => e.ToString()));
         }
     }
 }

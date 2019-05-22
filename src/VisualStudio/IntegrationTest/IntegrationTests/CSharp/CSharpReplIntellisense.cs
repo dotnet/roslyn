@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
@@ -15,12 +16,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public CSharpReplIntellisense(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
             : base(instanceFactory, testOutputHelper)
         {
-        }
-
-        public override async Task InitializeAsync()
-        {
-            await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
         }
 
         [WpfFact]
@@ -70,14 +65,14 @@ Del<C, System");
         [WpfFact]
         public void VerifyNoCrashOnEnter()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
             VisualStudio.SendKeys.Send("#help", VirtualKey.Enter, VirtualKey.Enter);
         }
 
         [WpfFact]
         public void VerifyCorrectIntellisenseSelectionOnEnter()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
             VisualStudio.SendKeys.Send("TimeSpan.FromMin");
             VisualStudio.SendKeys.Send(VirtualKey.Enter, "(0d)", VirtualKey.Enter);
             VisualStudio.InteractiveWindow.WaitForReplOutput("[00:00:00]");

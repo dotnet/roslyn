@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     [ExportLanguageServiceFactory(typeof(CompletionService), LanguageNames.CSharp), Shared]
     internal class CSharpCompletionServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpCompletionServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);
@@ -49,7 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new DeclarationNameCompletionProvider(),
                 new InternalsVisibleToCompletionProvider(),
                 new PropertySubpatternCompletionProvider(),
-                new EmbeddedLanguageCompletionProvider(CSharpEmbeddedLanguageFeaturesProvider.Instance));
+                new EmbeddedLanguageCompletionProvider(CSharpEmbeddedLanguageFeaturesProvider.Instance),
+                new TypeImportCompletionProvider());
 
         private readonly Workspace _workspace;
 

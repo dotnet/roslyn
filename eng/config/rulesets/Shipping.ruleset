@@ -154,7 +154,6 @@
     <Rule Id="xUnit2015" Action="None" /> <!-- "do not use typeof() expression to check the exception type. " is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2017" Action="None" /> <!-- "do not use Contains() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2018" Action="None" /> <!-- "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now -->
-collection.
   </Rules>
   <Rules AnalyzerId="Microsoft.VisualStudio.SDK.Analyzers" RuleNamespace="Microsoft.VisualStudio.SDK.Analyzers">
     <!-- https://github.com/Microsoft/VSSDK-Analyzers/blob/master/doc/index.md -->
@@ -163,6 +162,7 @@ collection.
   </Rules>
   <Rules AnalyzerId="Microsoft.VisualStudio.Threading.Analyzers" RuleNamespace="Microsoft.VisualStudio.Threading.Analyzers">
     <Rule Id="VSTHRD002" Action="None" /> <!-- Avoid problematic synchronous waits -->
+    <Rule Id="VSTHRD003" Action="None" /> <!-- Avoid awaiting foreign Tasks https://github.com/dotnet/roslyn/issues/34331 -->
     <Rule Id="VSTHRD103" Action="None" /> <!-- Call async methods when in an async method -->
     <Rule Id="VSTHRD010" Action="None" /> <!-- Invoke single-threaded types on Main thread https://github.com/dotnet/roslyn/issues/29275 -->
     <Rule Id="VSTHRD110" Action="None" /> <!-- Observe result of async calls -->

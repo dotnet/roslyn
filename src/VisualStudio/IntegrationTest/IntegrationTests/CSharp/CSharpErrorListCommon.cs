@@ -89,13 +89,12 @@ class C
         public virtual void ErrorsDuringMethodBodyEditing()
         {
             VisualStudio.Editor.SetText(@"
-using System;
-
 class Program2
 {
     static void Main(string[] args)
     {
-        Func<int, int> a = aa => 7;
+        int aa = 7;
+        int a = aa;
     }
 }
 ");
@@ -111,11 +110,11 @@ class Program2
             expectedContents = new[] {
                 new ErrorListItem(
                     severity: "Error",
-                    description: "A local or parameter named 'aa' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter",
+                    description: "A local variable or function named 'aa' is already defined in this scope",
                     project: "TestProj.csproj",
                     fileName: "Class1.cs",
-                    line: 8,
-                    column: 29)
+                    line: 7,
+                    column: 13)
             };
             actualContents = VisualStudio.ErrorList.GetErrorListContents();
             Assert.Equal(expectedContents, actualContents);

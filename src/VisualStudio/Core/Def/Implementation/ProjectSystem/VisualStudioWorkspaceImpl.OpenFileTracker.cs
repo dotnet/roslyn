@@ -42,7 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// </summary>
             private readonly object _gate = new object();
             private HashSet<string> _fileNamesToCheckForOpenDocuments;
-            private bool _justEnumerateTheEntireRunningDocumentTable;
+
+            /// <summary>
+            /// Tracks whether we have decided to just scan the entire running document table for files that might already be in the workspace rather than checking
+            /// each file one-by-one. This starts out at true, because we are created asynchronously, and files might have already been added to the workspace
+            /// that we never got a call to <see cref="QueueCheckForFilesBeingOpen(ImmutableArray{string})"/> for.
+            /// </summary>
+            private bool _justEnumerateTheEntireRunningDocumentTable = true;
 
             private bool _taskPending;
 
@@ -101,22 +107,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // hold onto as a field
                 var runningDocumentTable = ((IVsRunningDocumentTable)_runningDocumentTable);
                 runningDocumentTable.AdviseRunningDocTableEvents(new RunningDocumentTableEventSink(this), out var docTableEventsCookie);
-            }
-
-            public void CheckForOpenDocumentsByEnumeratingTheRunningDocumentTable()
-            {
-                _foregroundAffinitization.AssertIsForeground();
-
-                lock (_gate)
-                {
-                    // Since we're scanning the full RDT, we can skip any explicit names we already have queued
-                    ClearPendingFilesForBeingOpen_NoLock();
-                }
-
-                foreach (var cookie in GetInitializedRunningDocumentTableCookies())
-                {
-                    TryOpeningDocumentsForNewCookie(cookie);
-                }
             }
 
             private IEnumerable<uint> GetInitializedRunningDocumentTableCookies()
@@ -195,10 +185,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                     {
                                         w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
                                     }
+                                    else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                                    {
+                                        w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                                    }
                                     else
                                     {
-                                        Debug.Assert(w.CurrentSolution.ContainsAdditionalDocument(documentId));
-                                        w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                                        // TODO: implement the ability for analyze config documents to be opened against
+                                        // a live text editor. This is tracked by
+                                        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/750120
+                                        Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
                                     }
                                 }
                             }
@@ -364,10 +360,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             {
                                 w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
                             }
+                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                            {
+                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                            }
                             else
                             {
-                                Debug.Assert(w.CurrentSolution.ContainsAdditionalDocument(documentId));
-                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                // TODO: implement the ability for analyze config documents to be opened against
+                                // a live text editor. This is tracked by
+                                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/750120
+                                Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
                             }
                         }
                     }
@@ -377,7 +379,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <summary>
             /// Queues a new task to check for files being open for these file names.
             /// </summary>
-            public void CheckForFilesBeingOpen(ImmutableArray<string> newFileNames)
+            public void QueueCheckForFilesBeingOpen(ImmutableArray<string> newFileNames)
             {
                 _foregroundAffinitization.ThisCanBeCalledOnAnyThread();
 
@@ -419,22 +421,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (shouldStartTask)
                 {
-                    var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(CheckForFilesBeingOpen));
+                    var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(QueueCheckForFilesBeingOpen));
 
                     Task.Run(async () =>
                     {
                         await _foregroundAffinitization.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                        CheckForFilesBeingOpenOnUIThread();
+                        ProcessQueuedWorkOnUIThread();
                     }).CompletesAsyncOperation(asyncToken);
                 }
             }
 
-            private void CheckForFilesBeingOpenOnUIThread()
+            public void ProcessQueuedWorkOnUIThread()
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                // Just pulling off the values from the shared state to the local funtion...
+                // Just pulling off the values from the shared state to the local function.
                 HashSet<string> fileNamesToCheckForOpenDocuments;
                 bool justEnumerateTheEntireRunningDocumentTable;
                 lock (_gate)
@@ -442,14 +444,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     fileNamesToCheckForOpenDocuments = _fileNamesToCheckForOpenDocuments;
                     justEnumerateTheEntireRunningDocumentTable = _justEnumerateTheEntireRunningDocumentTable;
 
-                    ClearPendingFilesForBeingOpen_NoLock();
+                    _fileNamesToCheckForOpenDocuments = null;
+                    _justEnumerateTheEntireRunningDocumentTable = false;
+
+                    _taskPending = false;
                 }
 
                 if (justEnumerateTheEntireRunningDocumentTable)
                 {
-                    CheckForOpenDocumentsByEnumeratingTheRunningDocumentTable();
+                    foreach (var cookie in GetInitializedRunningDocumentTableCookies())
+                    {
+                        TryOpeningDocumentsForNewCookie(cookie);
+                    }
                 }
-                else
+                else if (fileNamesToCheckForOpenDocuments != null)
                 {
                     foreach (var filename in fileNamesToCheckForOpenDocuments)
                     {
@@ -460,14 +468,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         }
                     }
                 }
-            }
-
-            private void ClearPendingFilesForBeingOpen_NoLock()
-            {
-                _fileNamesToCheckForOpenDocuments = null;
-                _justEnumerateTheEntireRunningDocumentTable = false;
-
-                _taskPending = false;
             }
 
             private class RunningDocumentTableEventSink : IVsRunningDocTableEvents3

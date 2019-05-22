@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
     [ExportLanguageService(typeof(IAnonymousTypeDisplayService), LanguageNames.CSharp), Shared]
     internal class CSharpAnonymousTypeDisplayService : AbstractAnonymousTypeDisplayService
     {
+        [ImportingConstructor]
+        public CSharpAnonymousTypeDisplayService()
+        {
+        }
+
         public override IEnumerable<SymbolDisplayPart> GetAnonymousTypeParts(
             INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position, ISymbolDisplayService displayService)
         {

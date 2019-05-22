@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous
     {
         private const string CS1998 = nameof(CS1998); // This async method lacks 'await' operators and will run synchronously.
 
+        [ImportingConstructor]
+        public CSharpMakeMethodSynchronousCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS1998);
 
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)

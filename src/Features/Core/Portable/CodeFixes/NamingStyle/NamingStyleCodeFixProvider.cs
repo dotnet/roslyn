@@ -21,12 +21,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeFixProviderNames.ApplyNamingStyle), Shared]
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal class NamingStyleCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
+        [ImportingConstructor]
+        public NamingStyleCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId);
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            // Currently Fix All is not supported for naming style violations.
+            return null;
+        }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

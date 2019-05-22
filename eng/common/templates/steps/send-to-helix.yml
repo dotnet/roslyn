@@ -1,8 +1,9 @@
+# Please remember to update the documentation if you make changes to these parameters!
 parameters:
   HelixSource: 'pr/default'              # required -- sources must start with pr/, official/, prodcon/, or agent/
   HelixType: 'tests/default/'            # required -- Helix telemetry which identifies what type of data this is; should include "test" for clarity and must end in '/'
   HelixBuild: $(Build.BuildNumber)       # required -- the build number Helix will use to identify this -- automatically set to the AzDO build number
-  HelixTargetQueues: ''                  # required -- semicolon delimited list of Helix queues to test on; see https://helix.dot.net/api/2018-03-14/info/queues for a list of queues
+  HelixTargetQueues: ''                  # required -- semicolon delimited list of Helix queues to test on; see https://helix.dot.net/ for a list of queues
   HelixAccessToken: ''                   # required -- access token to make Helix API requests; should be provided by the appropriate variable group
   HelixPreCommands: ''                   # optional -- commands to run before Helix work item execution
   HelixPostCommands: ''                  # optional -- commands to run after Helix work item execution
@@ -11,6 +12,7 @@ parameters:
   WorkItemTimeout: ''                    # optional -- a timeout in seconds for the work item command; requires WorkItemDirectory; incompatible with XUnitProjects
   CorrelationPayloadDirectory: ''        # optional -- a directory to zip up and send to Helix as a correlation payload
   XUnitProjects: ''                      # optional -- semicolon delimited list of XUnitProjects to parse and send to Helix; requires XUnitRuntimeTargetFramework, XUnitPublishTargetFramework, XUnitRunnerVersion, and IncludeDotNetCli=true
+  XUnitWorkItemTimeout: ''               # optional -- the workitem timeout in seconds for all workitems created from the xUnit projects specified by XUnitProjects
   XUnitPublishTargetFramework: ''        # optional -- framework to use to publish your xUnit projects
   XUnitRuntimeTargetFramework: ''        # optional -- framework to use for the xUnit console runner
   XUnitRunnerVersion: ''                 # optional -- version of the xUnit nuget package you wish to use on Helix; required for XUnitProjects
@@ -21,7 +23,7 @@ parameters:
   WaitForWorkItemCompletion: true        # optional -- true will make the task wait until work items have been completed and fail the build if work items fail. False is "fire and forget."
   IsExternal: false                      # [DEPRECATED] -- doesn't do anything, jobs are external if HelixAccessToken is empty and Creator is set
   Creator: ''                            # optional -- if the build is external, use this to specify who is sending the job
-  DisplayNamePrefix: 'Send job to Helix' # optional -- rename the beginning of the displayName of the steps in AzDO 
+  DisplayNamePrefix: 'Run Tests'         # optional -- rename the beginning of the displayName of the steps in AzDO 
   condition: succeeded()                 # optional -- condition for step to execute; defaults to succeeded()
   continueOnError: false                 # optional -- determines whether to continue the build if the step errors; defaults to false
 
@@ -42,6 +44,7 @@ steps:
       WorkItemTimeout: ${{ parameters.WorkItemTimeout }}
       CorrelationPayloadDirectory: ${{ parameters.CorrelationPayloadDirectory }}
       XUnitProjects: ${{ parameters.XUnitProjects }}
+      XUnitWorkItemTimeout: ${{ parameters.XUnitWorkItemTimeout }}
       XUnitPublishTargetFramework: ${{ parameters.XUnitPublishTargetFramework }}
       XUnitRuntimeTargetFramework: ${{ parameters.XUnitRuntimeTargetFramework }}
       XUnitRunnerVersion: ${{ parameters.XUnitRunnerVersion }}
@@ -70,6 +73,7 @@ steps:
       WorkItemTimeout: ${{ parameters.WorkItemTimeout }}
       CorrelationPayloadDirectory: ${{ parameters.CorrelationPayloadDirectory }}
       XUnitProjects: ${{ parameters.XUnitProjects }}
+      XUnitWorkItemTimeout: ${{ parameters.XUnitWorkItemTimeout }}
       XUnitPublishTargetFramework: ${{ parameters.XUnitPublishTargetFramework }}
       XUnitRuntimeTargetFramework: ${{ parameters.XUnitRuntimeTargetFramework }}
       XUnitRunnerVersion: ${{ parameters.XUnitRunnerVersion }}

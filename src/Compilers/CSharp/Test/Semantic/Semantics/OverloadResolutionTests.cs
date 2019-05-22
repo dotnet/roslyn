@@ -598,27 +598,27 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type.TypeSymbol;
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task", normalized.ToTestDisplayString());
 
-            type = compilation.GetMember<FieldSymbol>("C.F1").Type.TypeSymbol;
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<T>", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<T>", normalized.ToTestDisplayString());
 
-            type = compilation.GetMember<FieldSymbol>("C.F2").Type.TypeSymbol;
+            type = compilation.GetMember<FieldSymbol>("C.F2").Type;
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("C<MyTask, MyTask[]>[,]", type.ToTestDisplayString());
             Assert.Equal("C<System.Threading.Tasks.Task, System.Threading.Tasks.Task[]>[,]", normalized.ToTestDisplayString());
 
-            type = compilation.GetMember<FieldSymbol>("C.F3").Type.TypeSymbol;
+            type = compilation.GetMember<FieldSymbol>("C.F3").Type;
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("A<MyTask<MyTask>>.B<C<System.Int32, MyTask>>", type.ToTestDisplayString());
             Assert.Equal("A<System.Threading.Tasks.Task<System.Threading.Tasks.Task>>.B<C<System.Int32, System.Threading.Tasks.Task>>", normalized.ToTestDisplayString());
 
-            type = compilation.GetMember<FieldSymbol>("C.F4").Type.TypeSymbol;
+            type = compilation.GetMember<FieldSymbol>("C.F4").Type;
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("System.Int32*", type.ToTestDisplayString());
             Assert.Equal("System.Int32*", normalized.ToTestDisplayString());
@@ -678,24 +678,24 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type.TypeSymbol;
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<(MyTask, T)>", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<(System.Threading.Tasks.Task, T)>", normalized.ToTestDisplayString());
 
-            type = compilation.GetMember<FieldSymbol>("C.F1").Type.TypeSymbol;
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("((MyTask a, T b) c, MyTask<(U, MyTask<T>)[]> d)", type.ToTestDisplayString());
             Assert.Equal("((System.Threading.Tasks.Task a, T b) c, System.Threading.Tasks.Task<(U, System.Threading.Tasks.Task<T>)[]> d)", normalized.ToTestDisplayString());
 
             // No changes.
-            type = compilation.GetMember<FieldSymbol>("C.F2").Type.TypeSymbol;
+            type = compilation.GetMember<FieldSymbol>("C.F2").Type;
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("System.Threading.Tasks.Task<(System.Threading.Tasks.Task, System.Object)[]>", type.ToTestDisplayString());
             Assert.Same(type, normalized);
 
             // Nested System.ValueTuple<>.
-            type = compilation.GetMember<FieldSymbol>("C.F3").Type.TypeSymbol;
+            type = compilation.GetMember<FieldSymbol>("C.F3").Type;
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("(MyTask, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.UInt64, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, MyTask<T>)", type.ToTestDisplayString());
             Assert.Equal("(System.Threading.Tasks.Task, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.UInt64, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.Threading.Tasks.Task<T>)", normalized.ToTestDisplayString());
@@ -762,7 +762,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type.TypeSymbol;
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<MyTask modopt(MyTask<System.Object>)>", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<System.Threading.Tasks.Task modopt(MyTask<System.Object>)>", normalized.ToTestDisplayString());
@@ -795,7 +795,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 //     static C<MyTask<int>>* F0;
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "C<MyTask<int>>*").WithArguments("C<MyTask<int>>").WithLocation(6, 12));
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type.TypeSymbol;
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("C<MyTask<System.Int32>>*", type.ToTestDisplayString());
             Assert.Equal("C<System.Threading.Tasks.Task<System.Int32>>*", normalized.ToTestDisplayString());
@@ -833,7 +833,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type.TypeSymbol;
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask modopt(MyTask) *[]", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task modopt(MyTask) *[]", normalized.ToTestDisplayString());
@@ -876,13 +876,13 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 //     static A<int, MyTask> F0;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<int, MyTask>").WithArguments("A<,>").WithLocation(6, 12));
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type.TypeSymbol;
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             Assert.Equal(TypeKind.Error, type.TypeKind);
             var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("A<System.Int32, MyTask>", type.ToTestDisplayString());
             Assert.Equal("A<System.Int32, System.Threading.Tasks.Task>", normalized.ToTestDisplayString());
 
-            type = compilation.GetMember<FieldSymbol>("C.F1").Type.TypeSymbol;
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
             Assert.Equal(TypeKind.Error, ((NamedTypeSymbol)type).TypeArguments()[0].TypeKind);
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<B>", type.ToTestDisplayString());
@@ -924,17 +924,17 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type.TypeSymbol;
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("C<T, U>.MyTask<U>", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<U>", normalized.ToTestDisplayString());
 
-            type = compilation.GetMember<FieldSymbol>("C.F1").Type.TypeSymbol;
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("C<U, C<T, U>.MyTask>.MyTask", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task", normalized.ToTestDisplayString());
 
-            type = compilation.GetMember<FieldSymbol>("C.F2").Type.TypeSymbol;
+            type = compilation.GetMember<FieldSymbol>("C.F2").Type;
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("C<T, C<T, U>.MyTask<U>>.Inner", type.ToTestDisplayString());
             Assert.Equal("C<T, System.Threading.Tasks.Task<U>>.Inner", normalized.ToTestDisplayString());
@@ -977,12 +977,12 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type.TypeSymbol;
+            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<MyTask.A>", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<MyTask.A>", normalized.ToTestDisplayString());
 
-            type = compilation.GetMember<FieldSymbol>("C.F1").Type.TypeSymbol;
+            type = compilation.GetMember<FieldSymbol>("C.F1").Type;
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<MyTask<System.Object>>.B", type.ToTestDisplayString());
             Assert.Equal("MyTask<System.Threading.Tasks.Task<System.Object>>.B", normalized.ToTestDisplayString());
@@ -1021,7 +1021,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
             var compilation = CreateEmptyCompilation(source, references: new[] { MscorlibRef_v20 });
             compilation.VerifyDiagnostics();
-            var type = compilation.GetMember<FieldSymbol>("C.F").Type.TypeSymbol;
+            var type = compilation.GetMember<FieldSymbol>("C.F").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<MyTask>", type.ToTestDisplayString());
             Assert.Equal("MyTask<MyTask>", normalized.ToTestDisplayString());
@@ -1905,8 +1905,8 @@ class Base4<U, V> : Base3<U, V>
 }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(a, b)").WithArguments("Base<A, B>.Method(A, B)"),
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(x, y)").WithArguments("Base3<U, V>.Method(U, V)"),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("Base<A, B>.Method(A, B)"),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("Base3<U, V>.Method(U, V)"),
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Property").WithArguments("Base3<U, V>.Property"));
         }
 
@@ -1979,7 +1979,7 @@ namespace B
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method(x)").WithArguments("A.Base2<long>.Method(long)"));
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base.Method").WithArguments("A.Base2<long>.Method(long)"));
         }
 
         [Fact]
@@ -7163,7 +7163,7 @@ public class Derived : Base
             var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
             var methodSymbol = (MethodSymbol)model.GetSymbolInfo(callSyntax).Symbol;
 
-            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArguments.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArgumentsWithAnnotations.Single().SpecialType);
         }
 
         [Fact]

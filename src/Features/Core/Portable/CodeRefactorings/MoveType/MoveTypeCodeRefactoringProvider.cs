@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         Name = PredefinedCodeRefactoringProviderNames.MoveTypeToFile), Shared]
     internal class MoveTypeCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public MoveTypeCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;

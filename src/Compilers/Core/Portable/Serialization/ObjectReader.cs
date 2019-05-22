@@ -443,12 +443,15 @@ namespace Roslyn.Utilities
 
         private bool[] ReadBooleanArrayElements(bool[] array)
         {
+            // Confirm the type to be read below is ulong
+            Debug.Assert(BitVector.BitsPerWord == 64);
+
             var wordLength = BitVector.WordsRequired(array.Length);
 
             var count = 0;
             for (var i = 0; i < wordLength; i++)
             {
-                var word = _reader.ReadUInt32();
+                var word = _reader.ReadUInt64();
 
                 for (var p = 0; p < BitVector.BitsPerWord; p++)
                 {

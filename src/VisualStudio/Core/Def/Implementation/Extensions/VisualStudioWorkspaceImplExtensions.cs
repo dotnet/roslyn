@@ -65,27 +65,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
             return false;
         }
 
-        public static bool TryGetImageListAndIndex(this VisualStudioWorkspaceImpl workspace, IVsImageService2 imageService, ProjectId id, out IntPtr imageList, out int index)
-        {
-            var result = TryGetImageListAndIndex(workspace, imageService, id, out imageList, out ushort ushortIndex);
-
-            index = ushortIndex;
-            return result;
-        }
-
-        public static bool TryGetImageListAndIndex(this VisualStudioWorkspaceImpl workspace, IVsImageService2 imageService, ProjectId id, out IntPtr imageList, out ushort index)
-        {
-            var hierarchy = workspace.GetHierarchy(id);
-            if (hierarchy != null)
-            {
-                return TryGetImageListAndIndex(hierarchy, imageService, VSConstants.VSITEMID_ROOT, out imageList, out index);
-            }
-
-            imageList = default;
-            index = 0;
-            return false;
-        }
-
         public static bool TryGetImageListAndIndex(this VisualStudioWorkspaceImpl workspace, IVsImageService2 imageService, DocumentId id, out IntPtr imageList, out ushort index)
         {
             var hierarchy = workspace.GetHierarchy(id.ProjectId);

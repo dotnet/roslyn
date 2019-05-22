@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
-        <target state="translated">Convert to method</target>
+        <target state="translated">Yönteme dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -120,6 +120,11 @@
       <trans-unit id="Remove_Unnecessary_Usings">
         <source>Remove Unnecessary Usings</source>
         <target state="translated">Gereksiz Kullanımları Kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Usings">
+        <source>&amp;Sort Usings</source>
+        <target state="new">&amp;Sort Usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
@@ -279,7 +284,7 @@
       </trans-unit>
       <trans-unit id="deprecated">
         <source>deprecated</source>
-        <target state="translated">deprecated</target>
+        <target state="translated">kullanım dışı</target>
         <note />
       </trans-unit>
       <trans-unit id="extension">
@@ -294,7 +299,7 @@
       </trans-unit>
       <trans-unit id="awaitable_extension">
         <source>awaitable, extension</source>
-        <target state="translated">awaitable, extension</target>
+        <target state="translated">awaitable, uzantı</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_Usings">
@@ -744,17 +749,17 @@
       </trans-unit>
       <trans-unit id="Add_Obsolete">
         <source>Add [Obsolete]</source>
-        <target state="new">Add [Obsolete]</target>
+        <target state="translated">Ekle [Eski]</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_0">
         <source>Use '{0}'</source>
-        <target state="new">Use '{0}'</target>
+        <target state="translated">'{0}' kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
-        <target state="new">Introduce 'using' statement</target>
+        <target state="translated">'using' deyimi ekle</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>

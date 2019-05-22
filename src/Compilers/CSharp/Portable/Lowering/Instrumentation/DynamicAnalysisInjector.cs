@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodBody = methodBody;
             _spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
             TypeSymbol payloadElementType = methodBodyFactory.SpecialType(SpecialType.System_Boolean);
-            _payloadType = ArrayTypeSymbol.CreateCSharpArray(methodBodyFactory.Compilation.Assembly, TypeSymbolWithAnnotations.Create(payloadElementType));
+            _payloadType = ArrayTypeSymbol.CreateCSharpArray(methodBodyFactory.Compilation.Assembly, TypeWithAnnotations.Create(payloadElementType));
             _diagnostics = diagnostics;
             _debugDocumentProvider = debugDocumentProvider;
             _methodBodyFactory = methodBodyFactory;
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 const int analysisKind = 0;
 
                 ArrayTypeSymbol modulePayloadType =
-                    ArrayTypeSymbol.CreateCSharpArray(_methodBodyFactory.Compilation.Assembly, TypeSymbolWithAnnotations.Create(_payloadType));
+                    ArrayTypeSymbol.CreateCSharpArray(_methodBodyFactory.Compilation.Assembly, TypeWithAnnotations.Create(_payloadType));
 
                 // Synthesize the initialization of the instrumentation payload array, using concurrency-safe code:
                 //

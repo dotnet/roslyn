@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="new">Discard</target>
+        <target state="translated">폐기</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -32,15 +32,30 @@
         <target state="translated">문서 서식 설정(실험)</target>
         <note />
       </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">일반</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
-        <target state="new">Generate Event Subscription</target>
+        <target state="translated">이벤트 구독 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">관계 연산자:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Inside_namespace">
+        <source>Inside namespace</source>
+        <target state="new">Inside namespace</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="new">Outside namespace</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
@@ -52,14 +67,29 @@
         <target state="translated">참조 같음 검사에 대해 'is null' 선호</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Preferred_using_directive_placement">
+        <source>Preferred 'using' directive placement</source>
+        <target state="new">Preferred 'using' directive placement</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">불필요한 Using 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="new">Show items from unimported namespaces (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
         <target state="translated">Using 정렬</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
+        <source>Suggest usings for types in .NET Framework assemblies</source>
+        <target state="new">Suggest usings for types in .NET Framework assemblies</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -379,7 +409,7 @@
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
-        <target state="new">Unused local</target>
+        <target state="translated">사용하지 않는 로컬</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
@@ -517,11 +547,6 @@
         <target state="translated">속성, 인덱서 및 이벤트의 여는 중괄호를 새 줄에 배치합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_reference_assemblies">
-        <source>Suggest usings for types in _reference assemblies</source>
-        <target state="translated">참조 어셈블리의 형식에 대한 using 제안(_R)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">NuGet 패키지의 형식에 대한 using 제안(_N)</target>
@@ -544,7 +569,7 @@
       </trans-unit>
       <trans-unit id="When_on_multiple_lines">
         <source>When on multiple lines</source>
-        <target state="new">When on multiple lines</target>
+        <target state="translated">여러 줄일 때</target>
         <note />
       </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
@@ -591,6 +616,11 @@
         <source>'this.' preferences:</source>
         <target state="translated">'this.' 기본 설정:</target>
         <note />
+      </trans-unit>
+      <trans-unit id="using_preferences_colon">
+        <source>'using' preferences:</source>
+        <target state="new">'using' preferences:</target>
+        <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="var_preferences_colon">
         <source>'var' preferences:</source>

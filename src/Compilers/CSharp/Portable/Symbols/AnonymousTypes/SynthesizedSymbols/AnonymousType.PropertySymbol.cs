@@ -15,39 +15,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class AnonymousTypePropertySymbol : PropertySymbol
         {
             private readonly NamedTypeSymbol _containingType;
-            private readonly TypeSymbolWithAnnotations _type;
+            private readonly TypeWithAnnotations _typeWithAnnotations;
             private readonly string _name;
             private readonly int _index;
             private readonly ImmutableArray<Location> _locations;
             private readonly AnonymousTypePropertyGetAccessorSymbol _getMethod;
             private readonly FieldSymbol _backingField;
 
-            internal AnonymousTypePropertySymbol(AnonymousTypeTemplateSymbol container, AnonymousTypeField field, TypeSymbolWithAnnotations fieldType, int index) :
-                this(container, field, fieldType, index, ImmutableArray<Location>.Empty, includeBackingField: true)
+            internal AnonymousTypePropertySymbol(AnonymousTypeTemplateSymbol container, AnonymousTypeField field, TypeWithAnnotations fieldTypeWithAnnotations, int index) :
+                this(container, field, fieldTypeWithAnnotations, index, ImmutableArray<Location>.Empty, includeBackingField: true)
             {
             }
 
             internal AnonymousTypePropertySymbol(AnonymousTypePublicSymbol container, AnonymousTypeField field, int index) :
-                this(container, field, field.Type, index, ImmutableArray.Create<Location>(field.Location), includeBackingField: false)
+                this(container, field, field.TypeWithAnnotations, index, ImmutableArray.Create<Location>(field.Location), includeBackingField: false)
             {
             }
 
             private AnonymousTypePropertySymbol(
                 NamedTypeSymbol container,
                 AnonymousTypeField field,
-                TypeSymbolWithAnnotations fieldType,
+                TypeWithAnnotations fieldTypeWithAnnotations,
                 int index,
                 ImmutableArray<Location> locations,
                 bool includeBackingField)
             {
                 Debug.Assert((object)container != null);
                 Debug.Assert((object)field != null);
-                Debug.Assert(fieldType.HasType);
+                Debug.Assert(fieldTypeWithAnnotations.HasType);
                 Debug.Assert(index >= 0);
                 Debug.Assert(!locations.IsDefault);
 
                 _containingType = container;
-                _type = fieldType;
+                _typeWithAnnotations = fieldTypeWithAnnotations;
                 _name = field.Name;
                 _index = index;
                 _locations = locations;
@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return RefKind.None; }
             }
 
-            public override TypeSymbolWithAnnotations Type
+            public override TypeWithAnnotations TypeWithAnnotations
             {
-                get { return _type; }
+                get { return _typeWithAnnotations; }
             }
 
             public override string Name

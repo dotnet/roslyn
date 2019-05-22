@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var operation = nextOperation.Invoke();
 
             // } else in the if else context
-            if (previousToken.IsKind(SyntaxKind.CloseBraceToken) && currentToken.IsKind(SyntaxKind.ElseKeyword))
+            if (previousToken.IsKind(SyntaxKind.CloseBraceToken)
+                && currentToken.IsKind(SyntaxKind.ElseKeyword)
+                && previousToken.Parent.Parent == currentToken.Parent.Parent)
             {
                 if (!optionSet.GetOption(CSharpFormattingOptions.NewLineForElse))
                 {
@@ -206,7 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // } else in the if else context
             if (previousToken.IsKind(SyntaxKind.CloseBraceToken) && currentToken.IsKind(SyntaxKind.ElseKeyword))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLineForElse))
+                if (optionSet.GetOption(CSharpFormattingOptions.NewLineForElse)
+                    || previousToken.Parent.Parent != currentToken.Parent.Parent)
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }

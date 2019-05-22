@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var methodArgumentStartIndex = typeParameters.Length - methodArity;
             var typeMap = new TypeMap(
                 ImmutableArray.Create(typeParameters, 0, methodArgumentStartIndex),
-                ImmutableArray.CreateRange(typeArguments, 0, methodArgumentStartIndex, t => TypeSymbolWithAnnotations.Create(t)));
+                ImmutableArray.CreateRange(typeArguments, 0, methodArgumentStartIndex, t => TypeWithAnnotations.Create(t)));
             var substitutedType = typeMap.SubstituteNamedType(method.ContainingType);
             method = method.AsMember(substitutedType);
             if (methodArity > 0)

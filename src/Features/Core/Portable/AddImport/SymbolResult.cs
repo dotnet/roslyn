@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private struct SearchResult
+        private readonly struct SearchResult
         {
             public readonly IReadOnlyList<string> NameParts;
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
         }
 
-        private struct SymbolResult<T> where T : ISymbol
+        private readonly struct SymbolResult<T> where T : ISymbol
         {
             // The symbol that matched the string being searched for.
             public readonly T Symbol;

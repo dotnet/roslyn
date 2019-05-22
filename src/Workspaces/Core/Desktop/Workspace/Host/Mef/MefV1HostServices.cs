@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// <summary>
         /// This delegate allows test code to override the behavior of <see cref="Create(IEnumerable{Assembly})"/>.
         /// </summary>
-        /// <seealso cref="HookServiceCreation"/>
+        /// <seealso cref="TestAccessor.HookServiceCreation"/>
         private static CreationHook s_CreationHook;
 
         // the export provider for the MEF composition
@@ -63,14 +63,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         /// <summary>
-        /// For test use only. Injects replacement behavior for the <see cref="Create(IEnumerable{Assembly})"/> method.
-        /// </summary>
-        internal static void HookServiceCreation(CreationHook hook)
-        {
-            s_CreationHook = hook;
-        }
-
-        /// <summary>
         /// Creates a new <see cref="HostWorkspaceServices"/> associated with the specified workspace.
         /// </summary>
         protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
@@ -110,6 +102,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             return (IEnumerable<Lazy<TExtension>>)exports;
         }
 
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
         private struct ExportKey : IEquatable<ExportKey>
         {
             internal readonly string ExtensionTypeName;
@@ -137,6 +132,25 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             public override int GetHashCode()
             {
                 return Hash.Combine(this.MetadataTypeName.GetHashCode(), this.ExtensionTypeName.GetHashCode());
+            }
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly MefV1HostServices _mefV1HostServices;
+
+            public TestAccessor(MefV1HostServices mefV1HostServices)
+            {
+                _mefV1HostServices = mefV1HostServices;
+            }
+
+            /// <summary>
+            /// Injects replacement behavior for the <see cref="Create(IEnumerable{Assembly})"/> method.
+            /// </summary>
+            /// <param name="hook"></param>
+            internal static void HookServiceCreation(CreationHook hook)
+            {
+                s_CreationHook = hook;
             }
         }
     }

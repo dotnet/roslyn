@@ -222,10 +222,12 @@ class C
 
             // Undo puts them back
             VisualStudio.Editor.Undo();
+            // Incorrect assertion: https://github.com/dotnet/roslyn/issues/33672
             VisualStudio.Editor.Verify.CurrentLineText("var v = $@\"\"$$", assertCaretPosition: true);
 
             // First, the FixInterpolatedVerbatimString action is undone (@$ reordering)
             VisualStudio.Editor.Undo();
+            // Incorrect assertion: https://github.com/dotnet/roslyn/issues/33672
             VisualStudio.Editor.Verify.CurrentLineText("var v = @$\"\"$$", assertCaretPosition: true);
 
             // Then the automatic quote completion is undone

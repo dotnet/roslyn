@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         private delegate TExpressionSyntax GetWriteValue(ReferenceReplacer replacer, SyntaxNode parent);
 
-        private struct ReferenceReplacer
+        private readonly struct ReferenceReplacer
         {
             private readonly AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TCrefSyntax, TStatementSyntax> _service;
             private readonly SemanticModel _semanticModel;
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 return token;
             }
 
-            private struct ReplaceParentArgs
+            private readonly struct ReplaceParentArgs
             {
                 public readonly ReferenceReplacer Replacer;
                 public readonly GetWriteValue GetWriteValue;

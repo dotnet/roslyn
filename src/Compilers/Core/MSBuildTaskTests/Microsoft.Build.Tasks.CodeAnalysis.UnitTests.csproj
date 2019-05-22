@@ -6,7 +6,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net472</TargetFramework>
-    <RoslynProjectType>UnitTest</RoslynProjectType>
 
     <!-- Multiple test failures -->
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>

@@ -2125,6 +2125,40 @@ else
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(33458, "https://github.com/dotnet/roslyn/issues/33458")]
+        public async Task NoNewLineForElseChecksBraceOwner()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { NewLineForElse, false },
+                { NewLinesForBracesInControlBlocks, false },
+            };
+
+            await AssertFormatAsync(@"class Class
+{
+    void Method()
+    {
+        if (true)
+            for (int i = 0; i < 10; i++) {
+                Method();
+            }
+        else
+            return;
+    }
+}", @"class Class
+{
+    void Method()
+    {
+        if (true)
+            for (int i = 0; i < 10; i++) {
+                Method();
+            } else
+            return;
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NewLineForExpressionDefault()
         {
             await AssertFormatAsync(@"class f00
@@ -5478,6 +5512,36 @@ _ = this switch
             await AssertFormatAsync(expectedCode, code);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(33839, "https://github.com/dotnet/roslyn/issues/33839")]
+        public async Task FormatSwitchExpression_ExpressionBody()
+        {
+            var code = @"
+public class Test
+{
+    public object Method(int i)
+        => i switch
+{
+1 => 'a',
+2 => 'b',
+_ => null,
+};
+}";
+            var expectedCode = @"
+public class Test
+{
+    public object Method(int i)
+        => i switch
+        {
+            1 => 'a',
+            2 => 'b',
+            _ => null,
+        };
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchWithPropertyPattern()
@@ -5722,6 +5786,74 @@ using (null)
 {
     void M()
     {
+        using (null)
+        using (null)
+        {
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoIndentForNestedUsingWithoutBraces2()
+        {
+            var code = @"class C
+{
+    void M()
+    {
+        using (null)
+            using (null)
+            using (null)
+            {
+            }
+    }
+}
+";
+
+            var expected = @"class C
+{
+    void M()
+    {
+        using (null)
+        using (null)
+        using (null)
+        {
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        [WorkItem(530580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530580")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoIndentForNestedUsingWithoutBraces3()
+        {
+            var code = @"class C
+{
+    void M()
+    {
+        using (null)
+            using (null)
+            using (null)
+        {
+        }
+    }
+}
+";
+
+            var expected = @"class C
+{
+    void M()
+    {
+        using (null)
         using (null)
         using (null)
         {
@@ -9003,6 +9135,83 @@ public class Test
         );
     }
 }");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31571, "https://github.com/dotnet/roslyn/issues/31571")]
+        [WorkItem(33910, "https://github.com/dotnet/roslyn/issues/33910")]
+        [CombinatorialData]
+        public async Task ConversionOperator_CorrectlySpaceArgumentList(
+            [CombinatorialValues("implicit", "explicit")] string operatorType,
+            [CombinatorialValues("string", "string[]", "System.Action<int>", "int?", "int*", "(int, int)")] string targetType,
+            bool spacingAfterMethodDeclarationName)
+        {
+            var expectedSpacing = spacingAfterMethodDeclarationName ? " " : "";
+            var initialSpacing = spacingAfterMethodDeclarationName ? "" : " ";
+            var changedOptionSet = new Dictionary<OptionKey, object> { { SpacingAfterMethodDeclarationName, spacingAfterMethodDeclarationName } };
+            await AssertFormatAsync(
+                $@"
+public unsafe class Test
+{{
+    public static {operatorType} operator {targetType}{expectedSpacing}() => throw null;
+}}",
+                $@"
+public unsafe class Test
+{{
+    public static {operatorType} operator {targetType}{initialSpacing}() => throw null;
+}}",
+                changedOptionSet: changedOptionSet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
+        public async Task SpaceAroundDeclaration()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true);
+            await AssertFormatAsync(
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}",
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31868, "https://github.com/dotnet/roslyn/issues/31868")]
+        public async Task SpaceAroundDeclarationAndPreserveSingleLine()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, true);
+            changingOptions.Add(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false);
+            await AssertFormatAsync(
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}",
+                @"
+class Program
+{
+    public void FixMyType()
+    {
+        var    myint    =    0;
+    }
+}", changedOptionSet: changingOptions);
         }
     }
 }

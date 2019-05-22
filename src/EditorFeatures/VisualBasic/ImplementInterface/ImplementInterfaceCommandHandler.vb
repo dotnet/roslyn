@@ -5,6 +5,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 Imports Microsoft.CodeAnalysis.ImplementInterface
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
@@ -15,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
     <Name("ImplementInterfaceCommandHandler")>
     <Order(Before:=PredefinedCommandHandlerNames.EndConstruct)>
     <Order(After:=PredefinedCommandHandlerNames.Completion)>
+    <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class ImplementInterfaceCommandHandler
         Inherits AbstractImplementAbstractClassOrInterfaceCommandHandler
 

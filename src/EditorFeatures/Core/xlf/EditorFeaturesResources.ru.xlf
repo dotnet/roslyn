@@ -29,13 +29,18 @@
       </trans-unit>
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
         <source>Do you still want to proceed? This may produce broken code.</source>
-        <target state="new">Do you still want to proceed? This may produce broken code.</target>
+        <target state="translated">Вы действительно хотите продолжить? Это может привести к появлению нерабочего кода.</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_method_encountered_the_following_issues">
         <source>Extract method encountered the following issues:</source>
-        <target state="new">Extract method encountered the following issues:</target>
+        <target state="translated">При работе метода извлечения возникли следующие ошибки:</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Filter_image_element">
+        <source>Filter</source>
+        <target state="translated">Фильтр</target>
+        <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
@@ -44,22 +49,27 @@
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
         <source>Invalid assembly name</source>
-        <target state="new">Invalid assembly name</target>
+        <target state="translated">Недопустимое имя сборки</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_characters_in_assembly_name">
         <source>Invalid characters in assembly name</source>
-        <target state="new">Invalid characters in assembly name</target>
+        <target state="translated">Недопустимые символы в имени сборки</target>
         <note />
       </trans-unit>
       <trans-unit id="Keyword_Control">
         <source>Keyword - Control</source>
-        <target state="new">Keyword - Control</target>
+        <target state="translated">Ключевое слово — управление</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
+        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
+        <target state="new">Operation is not ready for "{0}" yet. See bottom left corner for more details.</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
-        <target state="new">Operator - Overloaded</target>
+        <target state="translated">Оператор — перегружен</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste_Tracking">
@@ -79,67 +89,72 @@
       </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
-        <target state="translated">String - Escape Character</target>
+        <target state="translated">Строка — escape-символ</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_Static">
         <source>Symbol - Static</source>
-        <target state="new">Symbol - Static</target>
+        <target state="translated">Символ — статический</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="new">The symbol has no base.</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
         <source>User Members - Constants</source>
-        <target state="new">User Members - Constants</target>
+        <target state="translated">Участники-пользователи — константы</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Enum_Members">
         <source>User Members - Enum Members</source>
-        <target state="new">User Members - Enum Members</target>
+        <target state="translated">Участники-пользователи — элементы перечисления</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Events">
         <source>User Members - Events</source>
-        <target state="new">User Members - Events</target>
+        <target state="translated">Пользователи-участники — события</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Extension_Methods">
         <source>User Members - Extension Methods</source>
-        <target state="new">User Members - Extension Methods</target>
+        <target state="translated">Участники-пользователи — методы расширения</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Fields">
         <source>User Members - Fields</source>
-        <target state="new">User Members - Fields</target>
+        <target state="translated">Участники-пользователи — поля</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Labels">
         <source>User Members - Labels</source>
-        <target state="new">User Members - Labels</target>
+        <target state="translated">Участники-пользователи — метки</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Locals">
         <source>User Members - Locals</source>
-        <target state="new">User Members - Locals</target>
+        <target state="translated">Участники-пользователи — локальные</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Methods">
         <source>User Members - Methods</source>
-        <target state="new">User Members - Methods</target>
+        <target state="translated">Участники-пользователи — методы</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Namespaces">
         <source>User Members - Namespaces</source>
-        <target state="new">User Members - Namespaces</target>
+        <target state="translated">Участники-пользователи — пространства имен</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Parameters">
         <source>User Members - Parameters</source>
-        <target state="new">User Members - Parameters</target>
+        <target state="translated">Участники-пользователи — параметры</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Properties">
         <source>User Members - Properties</source>
-        <target state="new">User Members - Properties</target>
+        <target state="translated">Участники-пользователи — свойства</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Classes">
@@ -176,6 +191,11 @@
         <source>String - Verbatim</source>
         <target state="translated">Строка — Verbatim</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Warning_image_element">
+        <source>Warning</source>
+        <target state="translated">Предупреждение</target>
+        <note>Caption/tooltip for "Warning" image element displayed in completion popup.</note>
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Attribute_Name">
         <source>XML Doc Comments - Attribute Name</source>
@@ -295,6 +315,11 @@
       <trans-unit id="Rename_will_update_0_references_in_1_files">
         <source>Rename will update {0} references in {1} files.</source>
         <target state="translated">При переименовании будут обновлены ссылки в количестве {0} шт. в следующем числе файлов: {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="new">'{0}' bases</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">

@@ -52,28 +52,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (!this.SuppressDynamicAttribute &&
-                this.Type.TypeSymbol.ContainsDynamic() &&
+                this.Type.ContainsDynamic() &&
                 compilation.HasDynamicEmitAttributes() &&
                 compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type.TypeSymbol, this.Type.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.TypeWithAnnotations.CustomModifiers.Length));
             }
 
-            if (Type.TypeSymbol.ContainsTupleNames() &&
+            if (TypeWithAnnotations.Type.ContainsTupleNames() &&
                 compilation.HasTupleNamesAttributes &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(Type.TypeSymbol));
+                    compilation.SynthesizeTupleNamesAttribute(Type));
             }
 
-            if (Type.NeedsNullableAttribute())
+            if (TypeWithAnnotations.NeedsNullableAttribute())
             {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, this.Type));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, this.TypeWithAnnotations));
             }
         }
 
-        internal abstract override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
+        internal abstract override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
 
         public override string Name
         {

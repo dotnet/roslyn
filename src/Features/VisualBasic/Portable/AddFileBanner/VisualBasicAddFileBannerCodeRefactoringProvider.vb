@@ -10,12 +10,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddFileBanner
     Friend Class VisualBasicAddFileBannerCodeRefactoringProvider
         Inherits AbstractAddFileBannerCodeRefactoringProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsCommentStartCharacter(ch As Char) As Boolean
             Return ch = "'"c
         End Function
 
         Protected Overrides Function CreateTrivia(trivia As SyntaxTrivia, text As String) As SyntaxTrivia
-            Return If(trivia.Kind() = SyntaxKind.CommentTrivia OrElse trivia.Kind() = SyntaxKind.DocumentationCommentTrivia,
+            Return If(trivia.Kind() = SyntaxKind.CommentTrivia,
                       SyntaxFactory.CommentTrivia(text),
                       trivia)
         End Function

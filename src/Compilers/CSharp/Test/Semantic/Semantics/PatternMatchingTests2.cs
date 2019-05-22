@@ -627,7 +627,7 @@ public class Point
                 var model = compilation.GetSemanticModel(tree);
                 var symbol = model.GetDeclaredSymbol(designation);
                 Assert.Equal(SymbolKind.Local, symbol.Kind);
-                Assert.Equal("int", ((LocalSymbol)symbol).Type.ToDisplayString());
+                Assert.Equal("int", ((LocalSymbol)symbol).TypeWithAnnotations.ToDisplayString());
             }
             foreach (var ident in tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>())
             {
@@ -2279,6 +2279,69 @@ public class C
             Assert.Equal("System.Object", ti.Type.ToTestDisplayString());
             Assert.Equal("Q7", ti.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, ti.ConvertedType.TypeKind);
+        }
+
+        [Fact]
+        [WorkItem(34678, "https://github.com/dotnet/roslyn/issues/34678")]
+        public void ConstantPatternVsUnconstrainedTypeParameter05()
+        {
+            var source =
+@"class C<T>
+{
+    static bool Test1(T t)
+    {
+        return t is null; // 1
+    }
+    static bool Test2(C<T> t)
+    {
+        return t is null; // ok
+    }
+    static bool Test3(T t)
+    {
+        return t is 1; // 2
+    }
+    static bool Test4(T t)
+    {
+        return t is ""frog""; // 3
+    }
+}";
+            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (5,21): error CS8511: An expression of type 'T' cannot be handled by a pattern of type '<null>'. Please use language version 'preview' or greater to match an open type with a constant pattern.
+                //         return t is null; // 1
+                Diagnostic(ErrorCode.ERR_ConstantPatternVsOpenType, "null").WithArguments("T", "<null>", "preview").WithLocation(5, 21),
+                // (13,21): error CS8511: An expression of type 'T' cannot be handled by a pattern of type 'int'. Please use language version 'preview' or greater to match an open type with a constant pattern.
+                //         return t is 1; // 2
+                Diagnostic(ErrorCode.ERR_ConstantPatternVsOpenType, "1").WithArguments("T", "int", "preview").WithLocation(13, 21),
+                // (17,21): error CS8511: An expression of type 'T' cannot be handled by a pattern of type 'string'. Please use language version 'preview' or greater to match an open type with a constant pattern.
+                //         return t is "frog"; // 3
+                Diagnostic(ErrorCode.ERR_ConstantPatternVsOpenType, @"""frog""").WithArguments("T", "string", "preview").WithLocation(17, 21));
+        }
+
+        [Fact]
+        [WorkItem(34905, "https://github.com/dotnet/roslyn/issues/34905")]
+        public void ConstantPatternVsUnconstrainedTypeParameter06()
+        {
+            var source =
+@"public class C<T>
+{
+    public enum E
+    {
+        V1, V2
+    }
+
+    public void M()
+    {
+        switch (default(E))
+        {
+            case E.V1:
+                break;
+        }
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
         }
     }
 }

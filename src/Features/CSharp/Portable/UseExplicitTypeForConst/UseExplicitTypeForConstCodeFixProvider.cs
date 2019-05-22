@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExplicitTypeForConst
     {
         private const string CS0822 = nameof(CS0822); // Implicitly-typed variables cannot be constant
 
+        [ImportingConstructor]
+        public UseExplicitTypeForConstCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS0822);
 
         public override FixAllProvider GetFixAllProvider()

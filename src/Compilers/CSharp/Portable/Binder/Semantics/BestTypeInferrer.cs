@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class BestTypeInferrer
     {
-        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeSymbolWithAnnotations> types)
+        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithAnnotations> types)
         {
-            NullableAnnotation result = NullableAnnotation.NotAnnotated;
+            var result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
             {
                 Debug.Assert(type.HasType);
@@ -24,15 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithState> types)
+        public static NullableFlowState GetNullableState(ArrayBuilder<TypeWithState> types)
         {
-            ArrayBuilder<TypeSymbolWithAnnotations> builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            NullableFlowState result = NullableFlowState.NotNull;
             foreach (var type in types)
             {
-                builder.Add(type.ToTypeSymbolWithAnnotations());
+                result = result.Join(type.State);
             }
-            var result = GetNullableAnnotation(builder);
-            builder.Free();
+
             return result;
         }
 
@@ -252,10 +251,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     return MethodTypeInferrer.Merge(
-                        TypeSymbolWithAnnotations.Create(type1),
-                        TypeSymbolWithAnnotations.Create(type2),
+                        TypeWithAnnotations.Create(type1),
+                        TypeWithAnnotations.Create(type2),
                         VarianceKind.Out,
-                        conversions).TypeSymbol;
+                        conversions).Type;
                 }
 
                 return null;

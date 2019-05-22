@@ -548,6 +548,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void TestNameofIndexerName()
         {
             var source = @"

@@ -14,7 +14,8 @@
           DependsOnTargets="ResolveAssemblyReferences"
           Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <ItemGroup>
-      <SuggestedBindingRedirects Include="@(ReferencePath->'%(FusionName)')" MaxVersion="%(ReferencePath.Version)" KeepMetadata="-none-" Condition="'%(ReferencePath.FrameworkFile)' != 'true'" />
+      <!-- Note: ReferencePath.Version can be missing for design time builds prior to the first full build. -->
+      <SuggestedBindingRedirects Include="@(ReferencePath->'%(FusionName)')" MaxVersion="%(ReferencePath.Version)" KeepMetadata="-none-" Condition="'%(ReferencePath.FrameworkFile)' != 'true' and '%(ReferencePath.Version)' != ''" />
     </ItemGroup>
   </Target>
 </Project>

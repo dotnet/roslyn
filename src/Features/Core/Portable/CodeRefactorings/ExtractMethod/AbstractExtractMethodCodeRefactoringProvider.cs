@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
         Name = PredefinedCodeRefactoringProviderNames.ExtractMethod), Shared]
     internal class ExtractMethodCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public ExtractMethodCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             // Don't bother if there isn't a selection

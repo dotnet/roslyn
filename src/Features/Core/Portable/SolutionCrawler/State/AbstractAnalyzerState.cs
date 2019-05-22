@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
             }
         }
 
-        protected struct CacheEntry
+        protected readonly struct CacheEntry
         {
             public readonly TData Data;
             public readonly int Count;

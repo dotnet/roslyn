@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.VisualStudio.Text
@@ -20,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         ReadOnly Property TextView As ITextView
 
-        Function GetCompletionCommandHandler() As CompletionCommandHandler
+        Sub SendDeleteToSpecificViewAndBuffer(view As IWpfTextView, buffer As ITextBuffer)
 
         Function GetExportedValue(Of T)() As T
 
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Function GetCompletionItemFilters() As ImmutableArray(Of CompletionItemFilter)
 
-        Function GetSuggestionModeItem() As CompletionItem
+        Function HasSuggestedItem() As Boolean
 
         Function IsSoftSelected() As Boolean
 
@@ -103,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Function AssertNoCompletionSession(Optional block As Boolean = True) As Task
 
-        Function AssertCompletionSession() As Task
+        Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
 
         Function AssertLineTextAroundCaret(expectedTextBeforeCaret As String, expectedTextAfterCaret As String) As Task
 
@@ -114,12 +113,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Sub AssertItemsInOrder(expectedOrder As String())
 
         Function GetLineTextFromCaretPosition() As String
+
+        Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
+
+        Sub SelectAndMoveCaret(offset As Integer)
 #End Region
 
 #Region "Signature Help and Completion Operations"
 
         Sub SendBackspace()
-
 
         Sub SendDelete()
 
@@ -134,8 +136,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Function SignatureHelpItemsContainsAll(displayText As String()) As Boolean
 
-        Function SignatureHelpItemsContainsAny(displayText As String()) As Boolean
-
         Function AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
                                Optional documentation As String = Nothing,
                                Optional selectedParameter As String = Nothing) As Task
@@ -146,12 +146,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Function AssertSelectedCompletionItem(
                                Optional displayText As String = Nothing,
+                               Optional displayTextSuffix As String = Nothing,
                                Optional description As String = Nothing,
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
-                               Optional displayTextSuffix As String = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing,
-                               Optional inlineDescription As String = Nothing) As Task
+                               Optional inlineDescription As String = Nothing,
+                               Optional projectionsView As ITextView = Nothing) As Task
 #End Region
     End Interface
 End Namespace

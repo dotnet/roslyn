@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void VerifyCompilationRelaxationsAttribute(CSharpAttributeData attribute, bool isSynthesized)
         {
             Assert.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute", attribute.AttributeClass.ToTestDisplayString());
-            Assert.Equal("System.Int32", attribute.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", attribute.AttributeConstructor.Parameters.Single().TypeWithAnnotations.ToTestDisplayString());
             Assert.Empty(attribute.CommonNamedArguments);
 
             int expectedArgValue = isSynthesized ? (int)CompilationRelaxations.NoStringInterning : 0;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void VerifyDebuggableAttribute(CSharpAttributeData attribute, OptimizationLevel optimizations, bool isSynthesized)
         {
             Assert.Equal("System.Diagnostics.DebuggableAttribute", attribute.AttributeClass.ToTestDisplayString());
-            Assert.Equal("System.Diagnostics.DebuggableAttribute.DebuggingModes", attribute.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+            Assert.Equal("System.Diagnostics.DebuggableAttribute.DebuggingModes", attribute.AttributeConstructor.Parameters.Single().TypeWithAnnotations.ToTestDisplayString());
             Assert.Empty(attribute.CommonNamedArguments);
 
             Assert.Equal(1, attribute.CommonConstructorArguments.Length);

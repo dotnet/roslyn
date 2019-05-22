@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// <summary>
         /// This delegate allows test code to override the behavior of <see cref="Create(IEnumerable{Assembly})"/>.
         /// </summary>
-        /// <seealso cref="HookServiceCreation"/>
+        /// <seealso cref="TestAccessor.HookServiceCreation"/>
         private static CreationHook s_CreationHook;
 
         private readonly CompositionContext _compositionContext;
@@ -82,17 +82,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         #region Defaults
-
-        /// <summary>
-        /// For test use only. Injects replacement behavior for the <see cref="Create(IEnumerable{Assembly})"/> method.
-        /// </summary>
-        internal static void HookServiceCreation(CreationHook hook)
-        {
-            s_CreationHook = hook;
-
-            // The existing host, if any, is not retained past this call.
-            s_defaultHost = null;
-        }
 
         private static MefHostServices s_defaultHost;
         public static MefHostServices DefaultHost
@@ -181,5 +170,19 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         #endregion
+
+        internal readonly struct TestAccessor
+        {
+            /// <summary>
+            /// Injects replacement behavior for the <see cref="Create(IEnumerable{Assembly})"/> method.
+            /// </summary>
+            internal static void HookServiceCreation(CreationHook hook)
+            {
+                s_CreationHook = hook;
+
+                // The existing host, if any, is not retained past this call.
+                s_defaultHost = null;
+            }
+        }
     }
 }

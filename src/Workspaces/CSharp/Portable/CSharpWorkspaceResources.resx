@@ -168,4 +168,8 @@
   <data name="Wrapping_preferences" xml:space="preserve">
     <value>Wrapping preferences</value>
   </data>
+  <data name="using_directive_preferences" xml:space="preserve">
+    <value>'using' directive preferences</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>

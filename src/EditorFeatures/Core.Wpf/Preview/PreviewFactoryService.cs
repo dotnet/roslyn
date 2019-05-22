@@ -396,13 +396,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 var conflictNodes = newRoot.GetAnnotatedNodesAndTokens(ConflictAnnotation.Kind);
                 var conflictSpans = conflictNodes.Select(n => n.Span.ToSpan()).ToList();
                 var conflictDescriptions = conflictNodes.SelectMany(n => n.GetAnnotations(ConflictAnnotation.Kind))
-                                                        .Select(a => ConflictAnnotation.GetDescription(a))
+                                                        .Select(a => $"❌ {ConflictAnnotation.GetDescription(a)}")
                                                         .Distinct();
 
                 var warningNodes = newRoot.GetAnnotatedNodesAndTokens(WarningAnnotation.Kind);
                 var warningSpans = warningNodes.Select(n => n.Span.ToSpan()).ToList();
                 var warningDescriptions = warningNodes.SelectMany(n => n.GetAnnotations(WarningAnnotation.Kind))
-                                                        .Select(a => WarningAnnotation.GetDescription(a))
+                                                        .Select(a => $"⚠ {WarningAnnotation.GetDescription(a)}")
                                                         .Distinct();
 
                 var suppressDiagnosticsNodes = newRoot.GetAnnotatedNodesAndTokens(SuppressDiagnosticsAnnotation.Kind);

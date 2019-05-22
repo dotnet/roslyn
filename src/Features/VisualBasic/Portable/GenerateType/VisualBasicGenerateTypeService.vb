@@ -25,6 +25,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides ReadOnly Property DefaultFileExtension As String
             Get
                 Return ".vb"

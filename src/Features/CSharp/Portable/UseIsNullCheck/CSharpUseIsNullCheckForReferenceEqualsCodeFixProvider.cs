@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider : AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider()
+        {
+        }
+
         protected override string GetIsNullTitle()
             => CSharpFeaturesResources.Use_is_null_check;
 

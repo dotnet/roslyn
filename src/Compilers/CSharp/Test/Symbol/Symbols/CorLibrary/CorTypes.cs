@@ -35,16 +35,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             var p = noMsCorLibRef.GlobalNamespace.GetTypeMembers("I1").Single().
                 GetMembers("M1").OfType<MethodSymbol>().Single().
-                Parameters[0].Type;
+                Parameters[0].TypeWithAnnotations;
 
-            Assert.Equal(TypeKind.Error, p.TypeKind);
+            Assert.Equal(TypeKind.Error, p.Type.TypeKind);
             Assert.Equal(SpecialType.System_Int32, p.SpecialType);
         }
 
         [Fact]
         public void PresentCorLib()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.NetStandard30.SystemRuntimeRef });
 
             MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17626.mscorlib.AsImmutableOrNull()) });
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(TestResources.NetFX.netstandard30.System_Runtime.AsImmutableOrNull()) });
 
             msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);

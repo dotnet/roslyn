@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember
     internal partial class CSharpGenerateEnumMemberService :
         AbstractGenerateEnumMemberService<CSharpGenerateEnumMemberService, SimpleNameSyntax, ExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpGenerateEnumMemberService()
+        {
+        }
+
         protected override bool IsIdentifierNameGeneration(SyntaxNode node)
         {
             return node is IdentifierNameSyntax;

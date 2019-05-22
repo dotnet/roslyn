@@ -17,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
             ImportsStatementSyntax,
             ImportsStatementSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetGlobalImports(compilation As Compilation) As ImmutableArray(Of SyntaxNode)
             Dim generator = VisualBasicSyntaxGenerator.Instance
             Dim result = ArrayBuilder(Of SyntaxNode).GetInstance()

@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         private const string CS0737 = nameof(CS0737); // 'Class' does not implement interface member 'IInterface.M()'. 'Class.M()' cannot implement an interface member because it is not public.
         private const string CS0738 = nameof(CS0738); // 'C' does not implement interface member 'I.Method1()'. 'B.Method1()' cannot implement 'I.Method1()' because it does not have the matching return type of 'void'.
 
+        [ImportingConstructor]
+        public CSharpImplementInterfaceCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(CS0535, CS0737, CS0738);
 

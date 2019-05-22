@@ -19,6 +19,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     Partial Friend Class VisualBasicBreakpointResolutionService
         Implements IBreakpointResolutionService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Friend Shared Async Function GetBreakpointAsync(document As Document, position As Integer, length As Integer, cancellationToken As CancellationToken) As Task(Of BreakpointResolutionResult)
             Try
                 Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)

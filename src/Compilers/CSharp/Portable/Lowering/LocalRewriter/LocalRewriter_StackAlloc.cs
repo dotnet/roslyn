@@ -44,9 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var spanType = (NamedTypeSymbol)stackAllocNode.Type;
                 var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                var countTemp = CaptureExpressionInTempIfNeeded(rewrittenCount, sideEffects, locals);
+                var countTemp = CaptureExpressionInTempIfNeeded(rewrittenCount, sideEffects, locals, SynthesizedLocalKind.Spill);
                 var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
-                stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, spanType);
+                stackAllocNode = new BoundConvertedStackAllocExpression(
+                    stackAllocNode.Syntax, elementType, stackSize, initializerOpt, _compilation.CreatePointerTypeSymbol(elementType));
 
                 BoundExpression constructorCall;
                 if (TryGetWellKnownTypeMember(stackAllocNode.Syntax, WellKnownMember.System_Span_T__ctor, out MethodSymbol spanConstructor))
@@ -63,7 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: ErrorTypeSymbol.UnknownResultType);
                 }
 
-                return new BoundSequence(
+                _needsSpilling = true;
+                return new BoundSpillSequence(
                     syntax: stackAllocNode.Syntax,
                     locals: locals.ToImmutableAndFree(),
                     sideEffects: sideEffects.ToImmutableAndFree(),

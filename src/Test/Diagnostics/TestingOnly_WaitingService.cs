@@ -23,21 +23,27 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
 
         public void WaitForAsyncOperations(string featureName, bool waitForWorkspaceFirst = true)
         {
+            WaitForAsyncOperations(TimeSpan.FromMilliseconds(-1), featureName, waitForWorkspaceFirst);
+        }
+
+        public void WaitForAsyncOperations(TimeSpan timeout, string featureName, bool waitForWorkspaceFirst = true)
+        {
             var workspaceWaiter = _provider.GetWaiter(FeatureAttribute.Workspace);
             var featureWaiter = _provider.GetWaiter(featureName);
             Contract.ThrowIfNull(featureWaiter);
+
+            using var cancellationTokenSource = new CancellationTokenSource(timeout);
 
             // wait for each of the features specified in the featuresToWaitFor string
             if (waitForWorkspaceFirst)
             {
                 // at least wait for the workspace to finish processing everything.
-                var task = workspaceWaiter.CreateWaitTask();
-                task.Wait();
+                var task = workspaceWaiter.CreateExpeditedWaitTask();
+                task.Wait(cancellationTokenSource.Token);
             }
 
-            var waitTask = featureWaiter.CreateWaitTask();
-
-            WaitForTask(waitTask, CancellationToken.None);
+            var waitTask = featureWaiter.CreateExpeditedWaitTask();
+            WaitForTask(waitTask, cancellationTokenSource.Token);
 
             // Debugging trick: don't let the listeners collection get optimized away during execution.
             // This means if the process is killed during integration tests and the test was waiting, you can

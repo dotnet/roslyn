@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             public void Visit(RegexPosixPropertyNode node)
             {
-                // The .net parser just interprets the [ of the node, and skips the rest. So
+                // The .NET parser just interprets the [ of the node, and skips the rest. So
                 // classify the end part as a comment.
                 Result.Add(new ClassifiedSpan(node.TextToken.VirtualChars[0].Span, ClassificationTypeNames.RegexText));
                 Result.Add(new ClassifiedSpan(

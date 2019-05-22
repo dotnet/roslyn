@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
@@ -74,6 +76,7 @@ namespace BuildBoss
                 allGood &= CheckDesktop(textWriter, filter(isDesktop: true));
                 allGood &= CheckCoreClr(textWriter, filter(isDesktop: false));
                 allGood &= CheckCombined(textWriter, packageAssets);
+                allGood &= CheckExternalApis(textWriter);
                 return allGood;
 
                 IEnumerable<string> filter(bool isDesktop) => packageAssets.Where(x => x.IsDesktop == isDesktop).Select(x => x.FileRelativeName);
@@ -103,10 +106,6 @@ namespace BuildBoss
                         string.Empty,
                         assetRelativeNames);
 
-            allGood &= VerifyVsix(
-                        textWriter,
-                        FindVsix("Roslyn.Compilers.Extension"),
-                        assetRelativeNames.Concat(new[] { "Roslyn.Compilers.Extension.dll" }));
             return allGood;
         }
 
@@ -144,6 +143,81 @@ namespace BuildBoss
                     list);
         }
 
+        /// <summary>
+        /// Verifies the VS.ExternalAPIs.Roslyn package is self consistent. Need to ensure that we insert all of the project dependencies
+        /// that we build into the package. If we miss a dependency then the VS insertion will fail. Big refactorings can often forget to
+        /// properly update this package.
+        /// </summary>
+        /// <param name="textWriter"></param>
+        /// <returns></returns>
+        private bool CheckExternalApis(TextWriter textWriter)
+        {
+            var packageFilePath = FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.ExternalAPIs.Roslyn");
+            var allGood = true;
+
+            // This tracks the packages which are included in separate packages. Hence they don't need to
+            // be included here.
+            var excludedNameSet = new HashSet<string>(PathComparer)
+            {
+                "Microsoft.CodeAnalysis.Elfie"
+            };
+
+            textWriter.WriteLine("Verifying contents of VS.ExternalAPIs.Roslyn");
+            textWriter.WriteLine("\tRoot Folder");
+            verifyFolder("");
+            textWriter.WriteLine("\tRemote Debugger net20");
+            verifyFolder(@"RemoteDebugger\net20");
+            textWriter.WriteLine("\tRemote Debugger net50");
+            verifyFolder(@"RemoteDebugger\net45");
+            return allGood;
+
+            void verifyFolder(string folderRelativeName)
+            {
+                var foundDllNameSet = new HashSet<string>(PathComparer);
+                var neededDllNameSet = new HashSet<string>(PathComparer);
+                foreach (var part in GetPartsInFolder(packageFilePath, folderRelativeName))
+                {
+                    var name = part.GetName();
+                    if (Path.GetExtension(name) != ".dll")
+                    {
+                        continue;
+                    }
+
+                    foundDllNameSet.Add(Path.GetFileNameWithoutExtension(name));
+                    using var peReader = new PEReader(part.GetStream(FileMode.Open, FileAccess.Read));
+                    var metadataReader = peReader.GetMetadataReader();
+                    foreach (var handle in metadataReader.AssemblyReferences)
+                    {
+                        var assemblyReference = metadataReader.GetAssemblyReference(handle);
+                        var assemblyName = metadataReader.GetString(assemblyReference.Name);
+                        neededDllNameSet.Add(assemblyName);
+                    }
+                }
+
+                if (foundDllNameSet.Count == 0)
+                {
+                    allGood = false;
+                    textWriter.WriteLine($"\t\tFound zero DLLs in {folderRelativeName}");
+                    return;
+                }
+
+                // As a simplification we only validate the assembly names that begin with Microsoft.CodeAnalysis. This is a good 
+                // hueristic for finding assemblies that we build. Can be expanded in the future if we find more assemblies that
+                // are worth validating here.
+                var neededDllNames = neededDllNameSet
+                    .Where(x => x.StartsWith("Microsoft.CodeAnalysis"))
+                    .OrderBy(x => x, PathComparer);
+                foreach (var name in neededDllNames)
+                {
+                    if (!foundDllNameSet.Contains(name) && !excludedNameSet.Contains(name))
+                    {
+                        textWriter.WriteLine($"\t\tMissing dependency {name}");
+                        allGood = false;
+                    }
+                }
+            }
+        }
+
         private bool GetPackageAssets(TextWriter textWriter, List<PackageAsset> packageAssets)
         {
             var allGood = true;
@@ -172,6 +246,7 @@ namespace BuildBoss
             // root as well. That copy is unnecessary.
             coreClrAssets.RemoveAll(asset =>
                 PathComparer.Equals("Microsoft.DiaSymReader.Native.amd64.dll", asset.FileRelativeName) ||
+                PathComparer.Equals("Microsoft.DiaSymReader.Native.arm.dll", asset.FileRelativeName) ||
                 PathComparer.Equals("Microsoft.DiaSymReader.Native.x86.dll", asset.FileRelativeName));
 
             // Move all of the assets into bincore as that is where the non-MSBuild task assets will go
@@ -296,40 +371,6 @@ namespace BuildBoss
             string folderRelativePath,
             IEnumerable<string> dllFileNames)
         {
-            Debug.Assert(string.IsNullOrEmpty(folderRelativePath) || folderRelativePath[0] != '\\');
-
-            // Get all of the assets parts that are in the specified folder. Will exclude items that
-            // are in any child folder
-            IEnumerable<string> getPartsInFolder()
-            {
-                using (var package = Package.Open(packageFilePath, FileMode.Open, FileAccess.Read))
-                {
-                    foreach (var part in package.GetParts())
-                    {
-                        var relativeName = part.Uri.ToString().Replace('/', '\\');
-                        if (string.IsNullOrEmpty(relativeName))
-                        {
-                            continue;
-                        }
-
-                        if (relativeName[0] == '\\')
-                        {
-                            relativeName = relativeName.Substring(1);
-                        }
-
-                        if (!relativeName.StartsWith(folderRelativePath, PathComparison))
-                        {
-                            continue;
-                        }
-
-                        if (IsTrackedAsset(relativeName))
-                        {
-                            yield return relativeName;
-                        }
-                    }
-                }
-            }
-
             var map = dllFileNames
                 .ToDictionary(
                     keySelector: x => Path.Combine(folderRelativePath, x),
@@ -339,8 +380,14 @@ namespace BuildBoss
             var packageFileName = Path.GetFileName(packageFilePath);
 
             textWriter.WriteLine($"Verifying {packageFileName}");
-            foreach (var relativeName in getPartsInFolder())
+            foreach (var part in GetPartsInFolder(packageFilePath, folderRelativePath))
             {
+                var relativeName = part.GetRelativeName();
+                if (!IsTrackedAsset(relativeName))
+                {
+                    continue;
+                }
+
                 var name = Path.GetFileName(relativeName);
                 if (map.TryGetValue(relativeName, out var isFound))
                 {
@@ -368,6 +415,33 @@ namespace BuildBoss
             }
 
             return allGood;
+        }
+
+        /// <summary>
+        /// Get all of the parts in the specified folder. Will exclude all items in child folders.
+        /// </summary>
+        private static IEnumerable<PackagePart> GetPartsInFolder(string packageFilePath, string folderRelativePath)
+        {
+            Debug.Assert(string.IsNullOrEmpty(folderRelativePath) || folderRelativePath[0] != '\\');
+
+            using (var package = Package.Open(packageFilePath, FileMode.Open, FileAccess.Read))
+            {
+                foreach (var part in package.GetParts())
+                {
+                    var relativeName = part.GetRelativeName();
+                    if (string.IsNullOrEmpty(relativeName))
+                    {
+                        continue;
+                    }
+
+                    if (!relativeName.StartsWith(folderRelativePath, PathComparison))
+                    {
+                        continue;
+                    }
+
+                    yield return part;
+                }
+            }
         }
 
         private string FindNuGetPackage(string directory, string partialName)

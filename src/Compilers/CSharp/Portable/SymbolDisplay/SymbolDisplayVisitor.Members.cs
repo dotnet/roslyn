@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitTypeSymbolWithAnnotations(fieldSymbol.Type);
+                VisitTypeWithAnnotations(fieldSymbol.TypeWithAnnotations);
             }
         }
 
@@ -77,10 +77,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static bool ShouldPropertyDisplayReadOnly(IPropertySymbol property)
+        {
+            if (property.ContainingType?.IsReadOnly == true)
+            {
+                return false;
+            }
+
+            // If at least one accessor is present and all present accessors are readonly, the property should be marked readonly.
+
+            var getMethod = property.GetMethod;
+            if (getMethod is object && !ShouldMethodDisplayReadOnly(getMethod, property))
+            {
+                return false;
+            }
+
+            var setMethod = property.SetMethod;
+            if (setMethod is object && !ShouldMethodDisplayReadOnly(setMethod, property))
+            {
+                return false;
+            }
+
+            return getMethod is object || setMethod is object;
+        }
+
+        private static bool ShouldMethodDisplayReadOnly(IMethodSymbol method, IPropertySymbol propertyOpt = null)
+        {
+            if (method.ContainingType?.IsReadOnly == true)
+            {
+                return false;
+            }
+
+            if (method is SourcePropertyAccessorSymbol sourceAccessor && propertyOpt is SourcePropertySymbol sourceProperty)
+            {
+                // only display if the accessor is explicitly readonly
+                return sourceAccessor.LocalDeclaredReadOnly || sourceProperty.HasReadOnlyModifier;
+            }
+            else if (method is MethodSymbol m)
+            {
+                return m.IsDeclaredReadOnly;
+            }
+
+            return false;
+        }
+
         public override void VisitProperty(IPropertySymbol symbol)
         {
             AddAccessibilityIfRequired(symbol);
             AddMemberModifiersIfRequired(symbol);
+
+            if (ShouldPropertyDisplayReadOnly(symbol))
+            {
+                AddReadOnlyIfRequired();
+            }
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
             {
@@ -102,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    VisitTypeSymbolWithAnnotations(propertySymbol.Type);
+                    VisitTypeWithAnnotations(propertySymbol.TypeWithAnnotations);
                 }
 
                 AddSpace();
@@ -168,6 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddAccessibilityIfRequired(symbol);
             AddMemberModifiersIfRequired(symbol);
 
+            var accessor = symbol.AddMethod ?? symbol.RemoveMethod;
+            if (accessor is object && ShouldMethodDisplayReadOnly(accessor))
+            {
+                AddReadOnlyIfRequired();
+            }
+
             if (format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeMemberKeyword))
             {
                 AddKeyword(SyntaxKind.EventKeyword);
@@ -184,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    VisitTypeSymbolWithAnnotations(eventSymbol.Type);
+                    VisitTypeWithAnnotations(eventSymbol.TypeWithAnnotations);
                 }
 
                 AddSpace();
@@ -256,6 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddAccessibilityIfRequired(symbol);
                 AddMemberModifiersIfRequired(symbol);
+
+                if (ShouldMethodDisplayReadOnly(symbol))
+                {
+                    AddReadOnlyIfRequired();
+                }
 
                 if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
                 {
@@ -520,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitTypeSymbolWithAnnotations(methodSymbol.ReturnType);
+                VisitTypeWithAnnotations(methodSymbol.ReturnTypeWithAnnotations);
             }
         }
 
@@ -576,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameter = symbol as ParameterSymbol;
                 if ((object)parameter != null)
                 {
-                    VisitTypeSymbolWithAnnotations(parameter.Type);
+                    VisitTypeWithAnnotations(parameter.TypeWithAnnotations);
                 }
                 else
                 {
@@ -753,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddAccessor(ISymbol property, IMethodSymbol method, SyntaxKind keyword)
+        private void AddAccessor(IPropertySymbol property, IMethodSymbol method, SyntaxKind keyword)
         {
             if (method != null)
             {
@@ -761,6 +821,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (method.DeclaredAccessibility != property.DeclaredAccessibility)
                 {
                     AddAccessibility(method);
+                }
+
+                if (!ShouldPropertyDisplayReadOnly(property) && ShouldMethodDisplayReadOnly(method, property))
+                {
+                    AddReadOnlyIfRequired();
                 }
 
                 AddKeyword(keyword);
@@ -824,6 +889,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddKeyword(SyntaxKind.RefKeyword);
                 AddSpace();
+                AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                AddSpace();
+            }
+        }
+
+        private void AddReadOnlyIfRequired()
+        {
+            // 'readonly' in this context is effectively a 'ref' modifier
+            // because it affects whether the 'this' parameter is 'ref' or 'in'.
+            if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
+            {
                 AddKeyword(SyntaxKind.ReadOnlyKeyword);
                 AddSpace();
             }
