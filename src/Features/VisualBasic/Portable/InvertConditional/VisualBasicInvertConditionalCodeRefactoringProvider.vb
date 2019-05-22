@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertConditional
     Friend Class VisualBasicInvertConditionalCodeRefactoringProvider
         Inherits AbstractInvertConditionalCodeRefactoringProvider(Of TernaryConditionalExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function ShouldOffer(
             conditional As TernaryConditionalExpressionSyntax, position As Integer) As Boolean
 

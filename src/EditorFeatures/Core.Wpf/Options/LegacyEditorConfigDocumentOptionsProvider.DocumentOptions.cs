@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -40,10 +41,10 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 // Dictionary<string, object> from the old system.
                 // 
                 // We cache this with a conditional weak table so we're able to maintain the assumptions in EditorConfigNamingStyleParser
-                // that the instance doesn't regularly change and thus can be used for further caching
+                // that the instance doesn't regularly change and thus can be used for further caching.
                 var allRawConventions = s_convertedDictionaryCache.GetValue(
                     _codingConventionSnapshot.AllRawConventions,
-                    d => ImmutableDictionary.CreateRange(d.Select(c => KeyValuePairUtil.Create(c.Key, c.Value.ToString()))));
+                    d => new StringConvertingDictionary(d));
 
                 try
                 {
@@ -55,6 +56,57 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     _errorLogger?.LogException(this, ex);
                     value = null;
                     return false;
+                }
+            }
+
+            /// <summary>
+            /// A class that implements <see cref="IReadOnlyDictionary{String, String}" /> atop a <see cref="IReadOnlyDictionary{String, Object}" />
+            /// where we just convert the values to strings with ToString(). Ordering of the underlying dictionary is preserved, so that way
+            /// code that relies on the underlying ordering of the underlying dictionary isn't affected.
+            /// </summary>
+            private class StringConvertingDictionary : IReadOnlyDictionary<string, string>
+            {
+                private readonly IReadOnlyDictionary<string, object> _underlyingDictionary;
+
+                public StringConvertingDictionary(IReadOnlyDictionary<string, object> underlyingDictionary)
+                {
+                    _underlyingDictionary = underlyingDictionary ?? throw new ArgumentNullException(nameof(underlyingDictionary));
+                }
+
+                public string this[string key] => _underlyingDictionary[key]?.ToString();
+
+                public IEnumerable<string> Keys => _underlyingDictionary.Keys;
+                public IEnumerable<string> Values => _underlyingDictionary.Values.Select(s => s?.ToString());
+
+                public int Count => _underlyingDictionary.Count;
+
+                public bool ContainsKey(string key) => _underlyingDictionary.ContainsKey(key);
+
+                public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+                {
+                    foreach (var pair in _underlyingDictionary)
+                    {
+                        yield return new KeyValuePair<string, string>(pair.Key, pair.Value?.ToString());
+                    }
+                }
+
+                public bool TryGetValue(string key, out string value)
+                {
+                    if (_underlyingDictionary.TryGetValue(key, out object objectValue))
+                    {
+                        value = objectValue?.ToString();
+                        return true;
+                    }
+                    else
+                    {
+                        value = null;
+                        return false;
+                    }
+                }
+
+                IEnumerator IEnumerable.GetEnumerator()
+                {
+                    return GetEnumerator();
                 }
             }
         }

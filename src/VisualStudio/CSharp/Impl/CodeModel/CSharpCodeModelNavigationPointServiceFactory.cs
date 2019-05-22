@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -16,6 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     [ExportLanguageServiceFactory(typeof(ICodeModelNavigationPointService), LanguageNames.CSharp), Shared]
     internal partial class CSharpCodeModelNavigationPointServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpCodeModelNavigationPointServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
         {
             // This interface is implemented by the ICodeModelService as well, so just grab the other one and return it

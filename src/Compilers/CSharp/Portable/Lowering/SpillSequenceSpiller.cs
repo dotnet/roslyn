@@ -630,6 +630,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateExpression(builder, node.Update(initializers));
         }
 
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression count = VisitExpression(ref builder, node.Count);
+            var initializerOpt = (BoundArrayInitialization)VisitExpression(ref builder, node.InitializerOpt);
+            return UpdateExpression(builder, node.Update(node.ElementType, count, initializerOpt, node.Type));
+        }
+
         public override BoundNode VisitArrayLength(BoundArrayLength node)
         {
             BoundSpillSequenceBuilder builder = null;

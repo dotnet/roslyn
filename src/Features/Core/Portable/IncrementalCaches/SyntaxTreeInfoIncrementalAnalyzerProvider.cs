@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     [ExportIncrementalAnalyzerProvider(nameof(SyntaxTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host, WorkspaceKind.RemoteWorkspace }), Shared]
     internal class SyntaxTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
+        [ImportingConstructor]
+        public SyntaxTreeInfoIncrementalAnalyzerProvider()
+        {
+        }
+
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
             return new IncrementalAnalyzer();

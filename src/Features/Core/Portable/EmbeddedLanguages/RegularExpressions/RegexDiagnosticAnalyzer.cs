@@ -30,9 +30,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSemanticModelAction(Analyze);
 

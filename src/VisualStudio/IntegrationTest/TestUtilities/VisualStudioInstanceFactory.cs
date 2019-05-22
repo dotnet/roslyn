@@ -11,6 +11,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Setup.Configuration;
+using Microsoft.Win32;
 using RunTests;
 using Process = System.Diagnostics.Process;
 
@@ -331,6 +332,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var usingAsyncCompletion = LegacyCompletionCondition.Instance.ShouldSkip;
                 var useAsyncCompletionSetting = usingAsyncCompletion ? 1 : -1;
                 Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\WindowManagement\\Options\" UseAsyncCompletion string \"1*System.Int32*{useAsyncCompletionSetting}\"").WaitForExit();
+
+                var disabledFlights = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", Array.Empty<string>()) as string[] ?? Array.Empty<string>();
+                if (usingAsyncCompletion)
+                {
+                    disabledFlights = disabledFlights.Where(flight => !string.Equals(flight, "completionapi", StringComparison.OrdinalIgnoreCase)).ToArray();
+                }
+                else if (!disabledFlights.Contains("completionapi", StringComparer.OrdinalIgnoreCase))
+                {
+                    disabledFlights = disabledFlights.Concat(new[] { "completionapi" }).ToArray();
+                }
+
+                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", disabledFlights, RegistryValueKind.MultiString);
 
                 // Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
                 // custom handler or fail silently and continue testing.

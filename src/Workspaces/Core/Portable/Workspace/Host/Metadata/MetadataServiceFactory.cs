@@ -8,6 +8,11 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceServiceFactory(typeof(IMetadataService), ServiceLayer.Default), Shared]
     internal sealed class MetadataServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public MetadataServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service(workspaceServices.GetService<IDocumentationProviderService>());

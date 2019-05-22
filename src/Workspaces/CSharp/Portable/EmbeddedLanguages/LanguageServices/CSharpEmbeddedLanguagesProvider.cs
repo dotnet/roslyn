@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices
             CSharpVirtualCharService.Instance);
         public static IEmbeddedLanguagesProvider Instance = new CSharpEmbeddedLanguagesProvider();
 
+        [ImportingConstructor]
         public CSharpEmbeddedLanguagesProvider() : base(Info)
         {
         }

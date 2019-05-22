@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
                 var includeStatic = throughSymbol is INamedTypeSymbol ||
                     (throughExpression.IsKind(SyntaxKind.IdentifierName) &&
-                    semanticModel.LookupNamespacesAndTypes(throughExpression.SpanStart, name: throughSymbol.Name).Any(t => t.GetSymbolType() == throughType));
+                    semanticModel.LookupNamespacesAndTypes(throughExpression.SpanStart, name: throughSymbol.Name).Any(t => Equals(t.GetSymbolType(), throughType)));
 
                 Contract.ThrowIfFalse(includeInstance || includeStatic);
                 methodGroup = methodGroup.Where(m => (m.IsStatic && includeStatic) || (!m.IsStatic && includeInstance));
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             foreach (var m in methodSet)
             {
-                if (m != method)
+                if (!Equals(m, method))
                 {
                     if (IsHiddenBy(method, m))
                     {

@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         private Lazy<INavigateToPreviewService> _singleton =
             new Lazy<INavigateToPreviewService>(() => new DefaultNavigateToPreviewService());
 
+        [ImportingConstructor]
+        public DefaultNavigateToPreviewServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return _singleton.Value;

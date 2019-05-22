@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchProgressService)), Shared]
     internal class DefaultSymbolSearchProgressService : ISymbolSearchProgressService
     {
+        [ImportingConstructor]
+        public DefaultSymbolSearchProgressService()
+        {
+        }
+
         public Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken) => Task.CompletedTask;
         public Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellationToken) => Task.CompletedTask;
         public Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken) => Task.CompletedTask;

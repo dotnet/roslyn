@@ -12,6 +12,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
     [ExportLanguageService(typeof(IParseOptionsChangingService), LanguageNames.CSharp), Shared]
     internal class CSharpParseOptionsChangingService : IParseOptionsChangingService
     {
+        [ImportingConstructor]
+        public CSharpParseOptionsChangingService()
+        {
+        }
+
         public bool CanApplyChange(ParseOptions oldOptions, ParseOptions newOptions)
         {
             var oldCSharpOptions = (CSharpParseOptions)oldOptions;

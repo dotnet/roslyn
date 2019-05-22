@@ -1322,6 +1322,11 @@ moreArguments:
             uint scopeOfTheContainingExpression,
             DiagnosticBag diagnostics)
         {
+            // SPEC:
+            // In a method invocation, the following constraints apply:
+            // - If there is a ref or out argument of a ref struct type (including the receiver), with safe-to-escape E1, then
+            // - no argument (including the receiver) may have a narrower safe-to-escape than E1.
+
             if (symbol.IsStatic)
             {
                 // ignore receiver when symbol is static
@@ -1333,7 +1338,7 @@ moreArguments:
 
             // collect all writeable ref-like arguments, including receiver
             var receiverType = receiverOpt?.Type;
-            if (receiverType?.IsRefLikeType == true && receiverType?.IsReadOnly == false)
+            if (receiverType?.IsRefLikeType == true && !isReceiverRefReadOnly(symbol))
             {
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
             }
@@ -1432,6 +1437,17 @@ moreArguments:
             }
 
             return true;
+
+            static bool isReceiverRefReadOnly(Symbol methodOrPropertySymbol) => methodOrPropertySymbol switch
+            {
+                MethodSymbol m => m.IsEffectivelyReadOnly,
+                // TODO: val escape checks should be skipped for property accesses when
+                // we can determine the only accessors being called are readonly.
+                // For now we are pessimistic and check escape if any accessor is non-readonly.
+                // Tracking in https://github.com/dotnet/roslyn/issues/35606
+                PropertySymbol p => p.GetMethod?.IsEffectivelyReadOnly != false && p.SetMethod?.IsEffectivelyReadOnly != false,
+                _ => throw ExceptionUtilities.UnexpectedValue(methodOrPropertySymbol)
+            };
         }
 
         /// <summary>
