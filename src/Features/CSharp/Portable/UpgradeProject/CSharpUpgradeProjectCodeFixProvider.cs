@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUpgradeProjectCodeFixProvider : AbstractUpgradeProjectCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUpgradeProjectCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
             new[]
             {

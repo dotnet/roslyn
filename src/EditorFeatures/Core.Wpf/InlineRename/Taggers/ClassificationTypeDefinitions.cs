@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         [UserVisible(true)]
         private class InlineRenameFieldFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private InlineRenameFieldFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Inline_Rename_Field_Text;

@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
     internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<IfStatementSyntax, StatementSyntax, StatementSyntax>
     {
+        [ImportingConstructor]
+        public CSharpInvertIfCodeRefactoringProvider()
+        {
+        }
+
         protected override string GetTitle()
             => CSharpFeaturesResources.Invert_if;
 

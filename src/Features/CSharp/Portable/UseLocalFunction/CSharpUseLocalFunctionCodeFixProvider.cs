@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     {
         private static readonly TypeSyntax s_objectType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
 
+        [ImportingConstructor]
+        public CSharpUseLocalFunctionCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseLocalFunctionDiagnosticId);
 

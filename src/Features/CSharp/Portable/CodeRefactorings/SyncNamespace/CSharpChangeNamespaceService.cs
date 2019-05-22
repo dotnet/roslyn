@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
     internal sealed class CSharpChangeNamespaceService :
         AbstractChangeNamespaceService<NamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public CSharpChangeNamespaceService()
+        {
+        }
+
         protected override async Task<ImmutableArray<(DocumentId, SyntaxNode)>> GetValidContainersFromAllLinkedDocumentsAsync(
             Document document,
             SyntaxNode container,

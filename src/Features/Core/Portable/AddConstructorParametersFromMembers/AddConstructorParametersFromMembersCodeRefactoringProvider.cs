@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     Before = PredefinedCodeRefactoringProviderNames.GenerateOverrides)]
     internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public AddConstructorParametersFromMembersCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;

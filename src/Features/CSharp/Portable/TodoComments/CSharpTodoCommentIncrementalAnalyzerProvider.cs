@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
     [ExportLanguageServiceFactory(typeof(ITodoCommentService), LanguageNames.CSharp), Shared]
     internal class CSharpTodoCommentServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpTodoCommentServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             => new CSharpTodoCommentService(languageServices.WorkspaceServices.Workspace);
     }

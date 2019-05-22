@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpAsAndNullCheckCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineAsTypeCheckId);
 

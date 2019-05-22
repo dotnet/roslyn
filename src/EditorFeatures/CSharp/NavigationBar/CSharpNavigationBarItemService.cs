@@ -38,6 +38,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
                                   SymbolDisplayParameterOptions.IncludeParamsRefOut,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
 
+        [ImportingConstructor]
+        public CSharpNavigationBarItemService()
+        {
+        }
+
         public override async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
             var typesInFile = await GetTypesInFileAsync(document, cancellationToken).ConfigureAwait(false);

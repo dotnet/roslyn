@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
     {
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
+        [ImportingConstructor]
+        public CSharpGenerateTypeService()
+        {
+        }
+
         protected override string DefaultFileExtension => ".cs";
 
         protected override ExpressionSyntax GetLeftSideOfDot(SimpleNameSyntax simpleName)

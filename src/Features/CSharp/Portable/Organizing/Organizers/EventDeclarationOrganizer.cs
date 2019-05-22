@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
     [ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
     internal class EventDeclarationOrganizer : AbstractSyntaxNodeOrganizer<EventDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public EventDeclarationOrganizer()
+        {
+        }
+
         protected override EventDeclarationSyntax Organize(
             EventDeclarationSyntax syntax,
             CancellationToken cancellationToken)

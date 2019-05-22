@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
     [ExportLanguageService(typeof(IAddImportFeatureService), LanguageNames.CSharp), Shared]
     internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<SimpleNameSyntax>
     {
+        [ImportingConstructor]
+        public CSharpAddImportFeatureService()
+        {
+        }
+
         protected override bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)

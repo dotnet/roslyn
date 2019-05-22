@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.Completion
     [ExportWorkspaceServiceFactory(typeof(ICompletionHelperService)), Shared]
     internal class CompletionHelperServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public CompletionHelperServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service(workspaceServices.Workspace);

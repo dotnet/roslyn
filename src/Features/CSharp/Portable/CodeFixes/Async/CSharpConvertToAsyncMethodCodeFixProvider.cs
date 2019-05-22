@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         /// </summary>
         private const string CS4008 = nameof(CS4008);
 
+        [ImportingConstructor]
+        public CSharpConvertToAsyncMethodCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(CS4008); }

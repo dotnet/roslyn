@@ -22,6 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
     [ExportLanguageService(typeof(IEditAndContinueAnalyzer), LanguageNames.CSharp), Shared]
     internal sealed class CSharpEditAndContinueAnalyzer : AbstractEditAndContinueAnalyzer
     {
+        [ImportingConstructor]
+        public CSharpEditAndContinueAnalyzer()
+        {
+        }
         #region Syntax Analysis
 
         private enum ConstructorPart

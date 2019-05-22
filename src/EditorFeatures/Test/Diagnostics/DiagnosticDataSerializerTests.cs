@@ -208,6 +208,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), "DiagnosticDataSerializerTest"), Shared]
         public class PersistentStorageServiceFactory : IWorkspaceServiceFactory
         {
+            [ImportingConstructor]
+            public PersistentStorageServiceFactory()
+            {
+            }
+
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             {
                 return new Service();

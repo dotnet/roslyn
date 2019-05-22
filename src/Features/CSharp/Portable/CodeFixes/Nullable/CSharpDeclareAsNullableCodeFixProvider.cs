@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.DeclareAsNullable), Shared]
     internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpDeclareAsNullableCodeFixProvider()
+        {
+        }
+
         // warning CS8603: Possible null reference return.
         // warning CS8600: Converting null literal or possible null value to non-nullable type.
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8603", "CS8600");

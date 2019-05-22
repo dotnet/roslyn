@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
     {
         private const string CS8129 = nameof(CS8129); // No suitable Deconstruct instance or extension method was found...
 
+        [ImportingConstructor]
+        public GenerateDeconstructMethodCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS8129);
 
         public override FixAllProvider GetFixAllProvider()

@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
     internal partial class RemoveUnnecessaryCastCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public RemoveUnnecessaryCastCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId);
 

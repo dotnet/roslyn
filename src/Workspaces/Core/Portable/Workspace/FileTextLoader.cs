@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis
     [ExportOptionProvider, Shared]
     internal class FileTextLoaderOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public FileTextLoaderOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             FileTextLoaderOptions.FileLengthThreshold);
     }

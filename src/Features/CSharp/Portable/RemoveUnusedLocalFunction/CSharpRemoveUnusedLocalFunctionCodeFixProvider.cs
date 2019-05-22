@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
     {
         private const string CS8321 = nameof(CS8321); // The local function 'X' is declared but never used
 
+        [ImportingConstructor]
+        public CSharpRemoveUnusedLocalFunctionCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS8321);
 

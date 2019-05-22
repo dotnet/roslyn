@@ -11,5 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ChangeSignature
     <Name(PredefinedCommandHandlerNames.ChangeSignature)>
     Friend Class VisualBasicChangeSignatureCommandHandler
         Inherits AbstractChangeSignatureCommandHandler
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

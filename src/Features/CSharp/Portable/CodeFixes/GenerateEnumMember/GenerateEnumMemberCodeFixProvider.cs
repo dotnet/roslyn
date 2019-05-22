@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember
     {
         private const string CS0117 = nameof(CS0117); // error CS0117: 'Color' does not contain a definition for 'Red'
 
+        [ImportingConstructor]
+        public GenerateEnumMemberCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(CS0117); }

@@ -35,6 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         /// </summary>
         private const string CS0029 = nameof(CS0029);
 
+        [ImportingConstructor]
+        public CSharpAddAwaitCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0029, CS4014, CS4016);
 
         protected override async Task<DescriptionAndNode> GetDescriptionAndNodeAsync(

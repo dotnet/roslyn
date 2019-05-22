@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             TypeSyntax,
             VariableDeclaratorSyntax>
     {
+        [ImportingConstructor]
+        public CSharpConvertForToForEachCodeRefactoringProvider()
+        {
+        }
+
         protected override string GetTitle()
             => CSharpFeaturesResources.Convert_to_foreach;
 

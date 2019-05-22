@@ -20,6 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [ExportLanguageService(typeof(IHelpContextService), LanguageNames.CSharp), Shared]
     internal class CSharpHelpContextService : AbstractHelpContextService
     {
+        [ImportingConstructor]
+        public CSharpHelpContextService()
+        {
+        }
+
         public override string Language
         {
             get

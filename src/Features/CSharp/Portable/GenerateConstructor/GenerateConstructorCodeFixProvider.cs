@@ -50,6 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.FullyQualify)]
     internal class GenerateConstructorCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
+        [ImportingConstructor]
+        public GenerateConstructorCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds => GenerateConstructorDiagnosticIds.AllDiagnosticIds;
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(

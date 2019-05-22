@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider("GenericNameSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
+        [ImportingConstructor]
+        public GenericNameSignatureHelpProvider()
+        {
+        }
+
         public override bool IsTriggerCharacter(char ch)
         {
             return ch == '<' || ch == ',';

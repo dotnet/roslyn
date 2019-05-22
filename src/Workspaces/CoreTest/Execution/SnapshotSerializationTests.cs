@@ -708,6 +708,11 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         {
             public const string TestLanguage = nameof(TestLanguage);
 
+            [ImportingConstructor]
+            public NullLanguageService()
+            {
+            }
+
             // do nothing
         }
 

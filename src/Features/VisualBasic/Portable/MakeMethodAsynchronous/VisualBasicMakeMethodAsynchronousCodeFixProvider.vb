@@ -21,6 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
         Private Shared ReadOnly s_asyncToken As SyntaxToken = SyntaxFactory.Token(SyntaxKind.AsyncKeyword)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return s_diagnosticIds

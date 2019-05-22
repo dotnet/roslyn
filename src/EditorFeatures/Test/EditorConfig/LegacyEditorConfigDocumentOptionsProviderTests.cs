@@ -71,6 +71,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigStorageLocation
         [Shared]
         private class MockFileWatcher : IFileWatcher
         {
+            [ImportingConstructor]
+            public MockFileWatcher()
+            {
+            }
+
 #pragma warning disable CS0067 // the event is unused
 
             public event ConventionsFileChangedAsyncEventHandler ConventionFileChanged;

@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         Name = PredefinedCodeFixProviderNames.PreferFrameworkType), Shared]
     internal class PreferFrameworkTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public PreferFrameworkTypeCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
             IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
 

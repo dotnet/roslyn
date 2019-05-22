@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
     [ExportLanguageService(typeof(IReplaceMethodWithPropertyService), LanguageNames.CSharp), Shared]
     internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWithPropertyService, IReplaceMethodWithPropertyService
     {
+        [ImportingConstructor]
+        public CSharpReplaceMethodWithPropertyService()
+        {
+        }
+
         public SyntaxNode GetMethodDeclaration(SyntaxToken token)
         {
             var containingMethod = token.Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();

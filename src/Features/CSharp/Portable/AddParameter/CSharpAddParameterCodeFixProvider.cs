@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
             CS1501, CS1503, CS1660, CS1729, CS1739,
             IDEDiagnosticIds.UnboundConstructorId);
 
+        [ImportingConstructor]
+        public CSharpAddParameterCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => AddParameterFixableDiagnosticIds;
 

@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider("AttributeSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
+        [ImportingConstructor]
+        public AttributeSignatureHelpProvider()
+        {
+        }
+
         public override bool IsTriggerCharacter(char ch)
         {
             return ch == '(' || ch == ',';

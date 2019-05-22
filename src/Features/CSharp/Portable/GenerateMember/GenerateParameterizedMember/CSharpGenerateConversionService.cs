@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
     internal partial class CSharpGenerateConversionService :
         AbstractGenerateConversionService<CSharpGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpGenerateConversionService()
+        {
+        }
+
         protected override bool IsImplicitConversionGeneration(SyntaxNode node)
         {
             return node is ExpressionSyntax &&

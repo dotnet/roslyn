@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         private static readonly SyntaxToken s_asyncToken = SyntaxFactory.Token(SyntaxKind.AsyncKeyword);
 
+        [ImportingConstructor]
+        public CSharpMakeMethodAsynchronousCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS4032, CS4033, CS4034);
 

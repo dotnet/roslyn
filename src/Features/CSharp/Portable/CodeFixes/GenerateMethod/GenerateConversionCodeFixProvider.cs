@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
         private const string CS0029 = nameof(CS0029); // error CS0029: Cannot implicitly convert type 'type' to 'type'
         private const string CS0030 = nameof(CS0030); // error CS0030: Cannot convert type 'type' to 'type'
 
+        [ImportingConstructor]
+        public GenerateConversionCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(CS0029, CS0030); }

@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
     Friend Class VisualBasicRemoveUnnecessaryImportsCodeFixProvider
         Inherits AbstractRemoveUnnecessaryImportsCodeFixProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetTitle() As String
             Return VBFeaturesResources.Remove_Unnecessary_Imports
         End Function

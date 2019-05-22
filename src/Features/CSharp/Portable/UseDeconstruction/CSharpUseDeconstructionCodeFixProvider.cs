@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseDeconstructionCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseDeconstructionDiagnosticId);
 

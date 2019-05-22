@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
     internal class CSharpMoveToNamespaceService :
         AbstractMoveToNamespaceService<NamespaceDeclarationSyntax, TypeDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public CSharpMoveToNamespaceService()
+        {
+        }
+
         protected override string GetNamespaceName(NamespaceDeclarationSyntax namespaceSyntax)
             => namespaceSyntax.Name.ToString();
 

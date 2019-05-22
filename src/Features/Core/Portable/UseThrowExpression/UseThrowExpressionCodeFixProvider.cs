@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         Name = PredefinedCodeFixProviderNames.UseThrowExpression), Shared]
     internal partial class UseThrowExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public UseThrowExpressionCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseThrowExpressionDiagnosticId);
 
