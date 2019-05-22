@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -35,14 +36,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
-            this.TryApply(workspace, new ProgressTracker(), cancellationToken);
+            var applied = TryApply(workspace, new ProgressTracker(), cancellationToken);
+            Contract.ThrowIfFalse(applied, "Failed to apply a code action.");
         }
 
         internal override bool TryApply(
             Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            workspace.TryApplyChanges(ChangedSolution, progressTracker);
-            return true;
+            return workspace.TryApplyChanges(ChangedSolution, progressTracker);
         }
     }
 }

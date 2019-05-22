@@ -262,7 +262,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     seenApplyChanges = true;
                 }
 
-                operation.TryApply(workspace, progressTracker, cancellationToken);
+                var applied = operation.TryApply(workspace, progressTracker, cancellationToken);
+                Contract.ThrowIfFalse(applied, "Failed to apply a code action.");
             }
         }
 
