@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -24,6 +23,10 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
 {
+    // Place this using inside the containing namespace so it takes precedence over
+    // the older Editor version with the same name.
+    using Microsoft.CodeAnalysis.Indentation;
+
     internal abstract class AbstractSmartTokenFormatterCommandHandler :
         IChainedCommandHandler<ReturnKeyCommandArgs>
     {
@@ -140,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
                 return;
             }
 
-            var indentationService = document.GetLanguageService<CodeAnalysis.Indentation.IIndentationService>();
+            var indentationService = document.GetLanguageService<IIndentationService>();
             var indentation = indentationService.GetDesiredIndentation(document,
                 currentPosition.GetContainingLine().LineNumber, cancellationToken);
 
