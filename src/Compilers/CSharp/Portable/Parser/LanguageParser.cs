@@ -10048,8 +10048,8 @@ tryAgain:
                     return true;
                 }
                 if (this.PeekToken(2).Kind == SyntaxKind.ExclamationToken
-                && this.PeekToken(3).Kind == SyntaxKind.CloseParenToken
-                && this.PeekToken(4).Kind == SyntaxKind.EqualsGreaterThanToken)
+                    && this.PeekToken(3).Kind == SyntaxKind.CloseParenToken
+                    && this.PeekToken(4).Kind == SyntaxKind.EqualsGreaterThanToken)
                 {
                     return true;
                 }
