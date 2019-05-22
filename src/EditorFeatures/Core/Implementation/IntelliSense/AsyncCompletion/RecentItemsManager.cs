@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// <summary>
         /// Guard for <see cref="RecentItems"/>
         /// </summary>
-        private object _mruUpdateLock = new object();
+        private readonly object _mruUpdateLock = new object();
 
         public ImmutableArray<string> RecentItems { get; private set; } = ImmutableArray<string>.Empty;
 
