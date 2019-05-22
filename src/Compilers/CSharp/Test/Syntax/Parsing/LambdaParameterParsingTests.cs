@@ -950,6 +950,80 @@ class C {
         }
 
         [Fact]
+        public void TestManyNullCheckedTypedParams()
+        {
+            UsingDeclaration("Func<int, int, int> func1 = (int x!, int y!) => x;");
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.GenericName);
+                    N(SyntaxKind.IdentifierToken, "Func");
+                    N(SyntaxKind.TypeArgumentList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "func1");
+                }
+                N(SyntaxKind.EqualsValueClause);
+                {
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.ExclamationToken);
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "y");
+                                N(SyntaxKind.ExclamationToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
         public void TestNullCheckedNoParams()
         {
             UsingDeclaration("Func<int> func1 = (!) => 42;", expectedErrors:
