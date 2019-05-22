@@ -78,6 +78,7 @@
     <MicrosoftNuGetBuildTasksVersion>0.1.0</MicrosoftNuGetBuildTasksVersion>
     <MicrosoftPortableTargetsVersion>0.1.2-dev</MicrosoftPortableTargetsVersion>
     <MicrosoftServiceHubClientVersion>1.3.23</MicrosoftServiceHubClientVersion>
+    <MicrosoftSourceLinkVersion>1.0.0-beta2-19270-01</MicrosoftSourceLinkVersion>
     <MicrosoftTplDataflowVersion>4.5.24</MicrosoftTplDataflowVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
