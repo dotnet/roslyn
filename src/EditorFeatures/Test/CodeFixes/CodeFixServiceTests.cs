@@ -34,30 +34,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var code = @"
     a
 ";
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetService<IErrorLoggerService>()));
-                var fixService = new CodeFixService(
-                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                    diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetService<IErrorLoggerService>()));
+            var fixService = new CodeFixService(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
 
-                var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
+            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
 
-                // register diagnostic engine to solution crawler
-                var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
+            // register diagnostic engine to solution crawler
+            var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
 
-                var reference = new MockAnalyzerReference();
-                var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
-                var document = project.Documents.Single();
-                var unused = await fixService.GetMostSevereFixableDiagnosticAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
+            var reference = new MockAnalyzerReference();
+            var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
+            var document = project.Documents.Single();
+            var unused = await fixService.GetMostSevereFixableDiagnosticAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
 
-                var fixer1 = fixers.Single().Value as MockFixer;
-                var fixer2 = reference.Fixer as MockFixer;
+            var fixer1 = fixers.Single().Value as MockFixer;
+            var fixer2 = reference.Fixer as MockFixer;
 
-                // check to make sure both of them are called.
-                Assert.True(fixer1.Called);
-                Assert.True(fixer2.Called);
-            }
+            // check to make sure both of them are called.
+            Assert.True(fixer1.Called);
+            Assert.True(fixer2.Called);
         }
 
         [Fact]
@@ -97,43 +95,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         private async Task GetDefaultFixesAsync(CodeFixProvider codefix)
         {
             var tuple = ServiceSetup(codefix);
-            using (var workspace = tuple.Item1)
-            {
-                GetDocumentAndExtensionManager(tuple.Item2, workspace, out var document, out var extensionManager);
-                var fixes = await tuple.Item3.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None);
-                Assert.True(((TestErrorLogger)tuple.Item4).Messages.Count == 1);
-                Assert.True(((TestErrorLogger)tuple.Item4).Messages.TryGetValue(codefix.GetType().Name, out var message));
-            }
+            using var workspace = tuple.Item1;
+            GetDocumentAndExtensionManager(tuple.Item2, workspace, out var document, out var extensionManager);
+            var fixes = await tuple.Item3.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None);
+            Assert.True(((TestErrorLogger)tuple.Item4).Messages.Count == 1);
+            Assert.True(((TestErrorLogger)tuple.Item4).Messages.TryGetValue(codefix.GetType().Name, out var message));
         }
 
         private async Task GetAddedFixesAsync(CodeFixProvider codefix)
         {
             var tuple = ServiceSetup(codefix);
-            using (var workspace = tuple.Item1)
-            {
-                GetDocumentAndExtensionManager(tuple.Item2, workspace, out var document, out var extensionManager);
-                var incrementalAnalyzer = (IIncrementalAnalyzerProvider)tuple.Item2;
-                var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
-                var reference = new MockAnalyzerReference(codefix);
-                var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
-                document = project.Documents.Single();
-                var fixes = await tuple.Item3.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None);
+            using var workspace = tuple.Item1;
+            GetDocumentAndExtensionManager(tuple.Item2, workspace, out var document, out var extensionManager);
+            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)tuple.Item2;
+            var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
+            var reference = new MockAnalyzerReference(codefix);
+            var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
+            document = project.Documents.Single();
+            var fixes = await tuple.Item3.GetFixesAsync(document, TextSpan.FromBounds(0, 0), includeSuppressionFixes: true, cancellationToken: CancellationToken.None);
 
-                Assert.True(extensionManager.IsDisabled(codefix));
-                Assert.False(extensionManager.IsIgnored(codefix));
-            }
+            Assert.True(extensionManager.IsDisabled(codefix));
+            Assert.False(extensionManager.IsIgnored(codefix));
         }
 
         private async Task GetFirstDiagnosticWithFixAsync(CodeFixProvider codefix)
         {
             var tuple = ServiceSetup(codefix);
-            using (var workspace = tuple.Item1)
-            {
-                GetDocumentAndExtensionManager(tuple.Item2, workspace, out var document, out var extensionManager);
-                var unused = await tuple.Item3.GetMostSevereFixableDiagnosticAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
-                Assert.True(extensionManager.IsDisabled(codefix));
-                Assert.False(extensionManager.IsIgnored(codefix));
-            }
+            using var workspace = tuple.Item1;
+            GetDocumentAndExtensionManager(tuple.Item2, workspace, out var document, out var extensionManager);
+            var unused = await tuple.Item3.GetMostSevereFixableDiagnosticAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
+            Assert.True(extensionManager.IsDisabled(codefix));
+            Assert.False(extensionManager.IsIgnored(codefix));
         }
 
         private static Tuple<TestWorkspace, TestDiagnosticAnalyzerService, CodeFixService, IErrorLoggerService> ServiceSetup(CodeFixProvider codefix)

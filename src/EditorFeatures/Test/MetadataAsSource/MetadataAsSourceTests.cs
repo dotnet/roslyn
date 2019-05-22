@@ -624,13 +624,11 @@ End Class");
         {
             var namespaceSymbol = CodeGenerationSymbolFactory.CreateNamespaceSymbol("Outerspace");
 
-            using (var context = TestContext.Create())
-            {
-                await Assert.ThrowsAsync<ArgumentException>(async () =>
-                {
-                    await context.GenerateSourceAsync(namespaceSymbol);
-                });
-            }
+            using var context = TestContext.Create();
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+{
+    await context.GenerateSourceAsync(namespaceSymbol);
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -638,81 +636,69 @@ End Class");
         {
             var metadataSource = "public class C { public bool Is; }";
 
-            using (var context = TestContext.Create(LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource)))
-            {
-                var a = await context.GenerateSourceAsync("C");
-                var b = await context.GenerateSourceAsync("C.Is");
-                context.VerifyDocumentReused(a, b);
-            }
+            using var context = TestContext.Create(LanguageNames.CSharp, SpecializedCollections.SingletonEnumerable(metadataSource));
+            var a = await context.GenerateSourceAsync("C");
+            var b = await context.GenerateSourceAsync("C.Is");
+            context.VerifyDocumentReused(a, b);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestReuseRepeatGeneration()
         {
-            using (var context = TestContext.Create())
-            {
-                var a = await context.GenerateSourceAsync();
-                var b = await context.GenerateSourceAsync();
-                context.VerifyDocumentReused(a, b);
-            }
+            using var context = TestContext.Create();
+            var a = await context.GenerateSourceAsync();
+            var b = await context.GenerateSourceAsync();
+            context.VerifyDocumentReused(a, b);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestWorkspaceContextHasReasonableProjectName()
         {
-            using (var context = TestContext.Create())
-            {
-                var compilation = await context.DefaultProject.GetCompilationAsync();
-                var result = await context.GenerateSourceAsync(compilation.ObjectType);
-                var openedDocument = context.GetDocument(result);
+            using var context = TestContext.Create();
+            var compilation = await context.DefaultProject.GetCompilationAsync();
+            var result = await context.GenerateSourceAsync(compilation.ObjectType);
+            var openedDocument = context.GetDocument(result);
 
-                Assert.Equal(openedDocument.Project.AssemblyName, "mscorlib");
-                Assert.Equal(openedDocument.Project.Name, "mscorlib");
-            }
+            Assert.Equal(openedDocument.Project.AssemblyName, "mscorlib");
+            Assert.Equal(openedDocument.Project.Name, "mscorlib");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestReuseGenerateFromDifferentProject()
         {
-            using (var context = TestContext.Create())
-            {
-                var projectId = ProjectId.CreateNewId();
-                var project = context.CurrentSolution.AddProject(projectId, "ProjectB", "ProjectB", LanguageNames.CSharp).GetProject(projectId)
-                    .WithMetadataReferences(context.DefaultProject.MetadataReferences)
-                    .WithCompilationOptions(new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            using var context = TestContext.Create();
+            var projectId = ProjectId.CreateNewId();
+            var project = context.CurrentSolution.AddProject(projectId, "ProjectB", "ProjectB", LanguageNames.CSharp).GetProject(projectId)
+                .WithMetadataReferences(context.DefaultProject.MetadataReferences)
+                .WithCompilationOptions(new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-                var a = await context.GenerateSourceAsync(project: context.DefaultProject);
-                var b = await context.GenerateSourceAsync(project: project);
-                context.VerifyDocumentReused(a, b);
-            }
+            var a = await context.GenerateSourceAsync(project: context.DefaultProject);
+            var b = await context.GenerateSourceAsync(project: project);
+            context.VerifyDocumentReused(a, b);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestNotReusedGeneratingForDifferentLanguage()
         {
-            using (var context = TestContext.Create(LanguageNames.CSharp))
-            {
-                var projectId = ProjectId.CreateNewId();
-                var project = context.CurrentSolution.AddProject(projectId, "ProjectB", "ProjectB", LanguageNames.VisualBasic).GetProject(projectId)
-                    .WithMetadataReferences(context.DefaultProject.MetadataReferences)
-                    .WithCompilationOptions(new VB.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            using var context = TestContext.Create(LanguageNames.CSharp);
+            var projectId = ProjectId.CreateNewId();
+            var project = context.CurrentSolution.AddProject(projectId, "ProjectB", "ProjectB", LanguageNames.VisualBasic).GetProject(projectId)
+                .WithMetadataReferences(context.DefaultProject.MetadataReferences)
+                .WithCompilationOptions(new VB.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-                var a = await context.GenerateSourceAsync(project: context.DefaultProject);
-                var b = await context.GenerateSourceAsync(project: project);
-                context.VerifyDocumentNotReused(a, b);
-            }
+            var a = await context.GenerateSourceAsync(project: context.DefaultProject);
+            var b = await context.GenerateSourceAsync(project: project);
+            context.VerifyDocumentNotReused(a, b);
         }
 
         [WorkItem(546311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546311")]
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task FormatMetadataAsSource()
         {
-            using (var context = TestContext.Create(LanguageNames.CSharp))
-            {
-                var file = await context.GenerateSourceAsync("System.Console", project: context.DefaultProject);
-                var document = context.GetDocument(file);
-                await Formatter.FormatAsync(document);
-            }
+            using var context = TestContext.Create(LanguageNames.CSharp);
+            var file = await context.GenerateSourceAsync("System.Console", project: context.DefaultProject);
+            var document = context.GetDocument(file);
+            await Formatter.FormatAsync(document);
         }
 
         [WorkItem(530829, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
@@ -1167,16 +1153,14 @@ public static class ObjectExtensions
     public static void [|M|](this object o, int x);
 }}";
 
-            using (var context = TestContext.Create(
+            using var context = TestContext.Create(
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                sourceWithSymbolReference: sourceWithSymbolReference))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                context.VerifyResult(metadataAsSourceFile, expected);
-            }
+                sourceWithSymbolReference: sourceWithSymbolReference);
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [WorkItem(897006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
@@ -1212,16 +1196,14 @@ Namespace NS
     End Module
 End Namespace";
 
-            using (var context = TestContext.Create(
+            using var context = TestContext.Create(
                 LanguageNames.VisualBasic,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                sourceWithSymbolReference: sourceWithSymbolReference))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                context.VerifyResult(metadataAsSourceFile, expected);
-            }
+                sourceWithSymbolReference: sourceWithSymbolReference);
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -1426,17 +1408,15 @@ public class [|TestType|]<T> where T : unmanaged
     public TestType();
 }}";
 
-            using (var context = TestContext.Create(
+            using var context = TestContext.Create(
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
                 languageVersion: "CSharp7_3",
-                sourceWithSymbolReference: sourceWithSymbolReference))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                context.VerifyResult(metadataAsSourceFile, expected);
-            }
+                sourceWithSymbolReference: sourceWithSymbolReference);
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -1468,17 +1448,15 @@ public class TestType
     public void [|M|]<T>() where T : unmanaged;
 }}";
 
-            using (var context = TestContext.Create(
+            using var context = TestContext.Create(
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
                 languageVersion: "CSharp7_3",
-                sourceWithSymbolReference: sourceWithSymbolReference))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                context.VerifyResult(metadataAsSourceFile, expected);
-            }
+                sourceWithSymbolReference: sourceWithSymbolReference);
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -1499,17 +1477,15 @@ class C
 
 public delegate void [|D|]<T>() where T : unmanaged;";
 
-            using (var context = TestContext.Create(
+            using var context = TestContext.Create(
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
                 languageVersion: "CSharp7_3",
-                sourceWithSymbolReference: sourceWithSymbolReference))
-            {
-                var navigationSymbol = await context.GetNavigationSymbolAsync();
-                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-                context.VerifyResult(metadataAsSourceFile, expected);
-            }
+                sourceWithSymbolReference: sourceWithSymbolReference);
+            var navigationSymbol = await context.GetNavigationSymbolAsync();
+            var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+            context.VerifyResult(metadataAsSourceFile, expected);
         }
 
         [WorkItem(29786, "https://github.com/dotnet/roslyn/issues/29786")]

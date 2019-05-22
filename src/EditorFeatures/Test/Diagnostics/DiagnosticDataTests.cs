@@ -99,21 +99,19 @@ namespace B
 
         private static async Task VerifyTextSpanAsync(string code, int startLine, int startColumn, int endLine, int endColumn, TextSpan span)
         {
-            using (var workspace = new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic))
-            {
-                var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", code);
+            using var workspace = new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
+            var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", code);
 
-                var data = new DiagnosticData(
-                    "test1", "Test", "test1 message", "test1 message format",
-                    DiagnosticSeverity.Info, false, 1,
-                    workspace, document.Project.Id, new DiagnosticDataLocation(document.Id,
-                        null, "originalFile1", startLine, startColumn, endLine, endColumn));
+            var data = new DiagnosticData(
+                "test1", "Test", "test1 message", "test1 message format",
+                DiagnosticSeverity.Info, false, 1,
+                workspace, document.Project.Id, new DiagnosticDataLocation(document.Id,
+                    null, "originalFile1", startLine, startColumn, endLine, endColumn));
 
-                var text = await document.GetTextAsync();
-                var actual = data.GetExistingOrCalculatedTextSpan(text);
+            var text = await document.GetTextAsync();
+            var actual = data.GetExistingOrCalculatedTextSpan(text);
 
-                Assert.Equal(span, actual);
-            }
+            Assert.Equal(span, actual);
         }
     }
 }
