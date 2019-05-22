@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             {
                 if (switchStatement.Sections.Any(section => IsDefaultSwitchLabel(section.Labels[0])))
                 {
-                    // Throw can be overriden by other section bodies, therefore it has no effect on the result.
+                    // Throw can be overridden by other section bodies, therefore it has no effect on the result.
                     return SyntaxKind.ThrowStatement;
                 }
 
