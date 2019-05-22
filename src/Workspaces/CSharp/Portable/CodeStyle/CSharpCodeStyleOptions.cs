@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferSwitchExpression),
             defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_switch_expression"),
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_prefer_switch_expression"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferSwitchExpression)}")});
 
         public static readonly Option<CodeStyleOption<bool>> PreferPatternMatchingOverAsWithNullCheck = CreateOption(
