@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return false;
             }
 
-            for (int i = 0; i < method.Parameters.Length; i++)
+            for (var i = 0; i < method.Parameters.Length; i++)
             {
                 if (!invoke.Parameters[i].Type.InheritsFromOrEquals(method.Parameters[i].Type))
                 {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.TypeParameters, newNames, typeGenerator);
 
             var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
-            for (int i = 0; i < method.TypeParameters.Length; i++)
+            for (var i = 0; i < method.TypeParameters.Length; i++)
             {
                 mapping[method.TypeParameters[i]] = updatedTypeParameters[i];
             }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // parameter.  The second updates the constraints to point at this new type parameter.
             var newTypeParameters = new List<CodeGenerationTypeParameterSymbol>();
             var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
-            for (int i = 0; i < typeParameters.Length; i++)
+            for (var i = 0; i < typeParameters.Length; i++)
             {
                 var typeParameter = typeParameters[i];
 

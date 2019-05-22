@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private static bool ContainsUpperCaseLetter(string pattern)
         {
             // Expansion of "foreach(char ch in pattern)" to avoid a CharEnumerator allocation
-            for (int i = 0; i < pattern.Length; i++)
+            for (var i = 0; i < pattern.Length; i++)
             {
                 if (char.IsUpper(pattern[i]))
                 {
@@ -249,9 +249,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private static bool ContainsSpaceOrAsterisk(string text)
         {
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
-                char ch = text[i];
+                var ch = text[i];
                 if (ch == ' ' || ch == '*')
                 {
                     return true;
@@ -469,8 +469,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             // We'll have 3 pattern parts Si/U/I against two candidate parts Simple/UI.  However, U
             // and I will both match in UI. 
 
-            int currentCandidateHump = 0;
-            int currentPatternHump = 0;
+            var currentCandidateHump = 0;
+            var currentPatternHump = 0;
             int? firstMatch = null;
             bool? contiguous = null;
 
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
 
                 var candidateHump = candidateHumps[currentCandidateHump];
-                bool gotOneMatchThisCandidate = false;
+                var gotOneMatchThisCandidate = false;
 
                 // Consider the case of matching SiUI against SimpleUIElement. The candidate parts
                 // will be Simple/UI/Element, and the pattern parts will be Si/U/I.  We'll match 'Si'

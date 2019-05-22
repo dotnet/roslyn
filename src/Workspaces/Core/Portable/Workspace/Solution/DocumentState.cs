@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis
             SyntaxNode newRoot, VersionStamp textVersion, VersionStamp treeVersion, Encoding encoding,
             DocumentInfo.DocumentAttributes attributes, ParseOptions options, ISyntaxTreeFactoryService factory, PreservationMode mode, SolutionServices solutionServices)
         {
-            string filePath = attributes.FilePath;
+            var filePath = attributes.FilePath;
             SyntaxTree tree = null;
             ValueSource<TextAndVersion> lazyTextAndVersion = null;
 

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
-            if (_stringToIdMap.TryGetValue(value, out int existingId))
+            if (_stringToIdMap.TryGetValue(value, out var existingId))
             {
                 return existingId;
             }
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 throw new InvalidOperationException("Must call this while connection has transaction open");
             }
 
-            int id = -1;
+            var id = -1;
 
             using (var resettableStatement = connection.GetResettableStatement(
                 $@"insert into ""{StringInfoTableName}""(""{DataColumnName}"") values (?)"))

@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // and more specific in at least one.
 
             bool? result = null;
-            for (int i = 0; i < t1.Count; ++i)
+            for (var i = 0; i < t1.Count; ++i)
             {
                 var r = t1[i].IsMoreSpecificThan(t2[i]);
                 if (r == null)

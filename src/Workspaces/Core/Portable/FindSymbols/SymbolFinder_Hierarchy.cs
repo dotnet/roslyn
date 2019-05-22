@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var verifiedKeys = new HashSet<INamedTypeSymbol>();
             var count = equivalentTypesWithDifferingAssemblies.Count;
-            int verifiedCount = 0;
+            var verifiedCount = 0;
 
             // First check forwarded types in searchSymbolCompilation.
             if (searchSymbolCompilation != null || TryGetCompilation(searchSymbol, solution, out searchSymbolCompilation, cancellationToken))
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 referencedAssemblies.Add(assembly.Name, assembly);
             }
 
-            int verifiedCount = 0;
+            var verifiedCount = 0;
             foreach (var kvp in equivalentTypesWithDifferingAssemblies)
             {
                 if (!verifiedKeys.Contains(kvp.Key))

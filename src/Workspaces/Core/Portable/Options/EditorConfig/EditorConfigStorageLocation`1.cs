@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         public bool TryGetOption(object underlyingOption, IReadOnlyDictionary<string, string> rawOptions, Type type, out object result)
         {
-            if (rawOptions.TryGetValue(KeyName, out string value))
+            if (rawOptions.TryGetValue(KeyName, out var value))
             {
                 var ret = TryGetOption(value, type, out var typedResult);
                 result = typedResult;

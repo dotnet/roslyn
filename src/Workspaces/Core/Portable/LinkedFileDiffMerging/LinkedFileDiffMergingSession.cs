@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
 
         internal async Task<LinkedFileMergeSessionResult> MergeDiffsAsync(IMergeConflictHandler mergeConflictHandler, CancellationToken cancellationToken)
         {
-            LinkedFileDiffMergingSessionInfo sessionInfo = new LinkedFileDiffMergingSessionInfo();
+            var sessionInfo = new LinkedFileDiffMergingSessionInfo();
 
             var linkedDocumentGroupsWithChanges = _solutionChanges
                 .GetProjectChanges()
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis
             var unmergedDocumentChanges = new List<TextChange>();
             var successfullyMergedChanges = ArrayBuilder<TextChange>.GetInstance();
 
-            int cumulativeChangeIndex = 0;
+            var cumulativeChangeIndex = 0;
 
             var textchanges = await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
             foreach (var change in textchanges)

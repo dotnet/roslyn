@@ -151,12 +151,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             var mergedList = new List<IndentBlockOperation>(count);
 
             // initial operations are already sorted, just add, no need to filter
-            for (int i = 1; i < _initialIndentBlockOperations.Count; i++)
+            for (var i = 1; i < _initialIndentBlockOperations.Count; i++)
             {
                 mergedList.Add(_initialIndentBlockOperations[i]);
             }
 
-            for (int i = 0; i < operations.Count; i++)
+            for (var i = 0; i < operations.Count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

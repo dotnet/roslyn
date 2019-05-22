@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return false;
             }
 
-            for (int i = 1; i < name.Length; i++)
+            for (var i = 1; i < name.Length; i++)
             {
                 if (!syntaxFacts.IsIdentifierPartCharacter(name[i]))
                 {

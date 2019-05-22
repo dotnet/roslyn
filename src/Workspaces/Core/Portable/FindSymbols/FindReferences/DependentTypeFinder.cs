@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var order = new Dictionary<ProjectId, int>(capacity: solution.ProjectIds.Count);
 
-            int index = 0;
+            var index = 0;
 
             var dependencyGraph = solution.GetProjectDependencyGraph();
             foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects())

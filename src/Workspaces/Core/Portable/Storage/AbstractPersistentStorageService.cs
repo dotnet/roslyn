@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     return NoOpPersistentStorage.Instance;
                 }
 
-                string workingFolder = _locationService.TryGetStorageLocation(solution.Id);
+                var workingFolder = _locationService.TryGetStorageLocation(solution.Id);
 
                 if (workingFolder == null)
                 {

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static bool TryParseStringEditorConfigCodeStyleOption(string arg, out CodeStyleOption<string> option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
-                    arg, out string value, out NotificationOption notificationOpt))
+                    arg, out var value, out var notificationOpt))
             {
                 option = new CodeStyleOption<string>(value, notificationOpt ?? NotificationOption.Silent);
                 return true;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static bool TryParseBoolEditorConfigCodeStyleOption(string arg, out CodeStyleOption<bool> option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
-                    arg, out string value, out NotificationOption notificationOpt))
+                    arg, out var value, out var notificationOpt))
             {
                 // First value has to be true or false.  Anything else is unsupported.
                 if (bool.TryParse(value, out var isEnabled))

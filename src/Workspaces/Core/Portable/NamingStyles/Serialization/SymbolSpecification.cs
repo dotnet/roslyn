@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return new DeclarationModifiers();
             }
 
-            DeclarationModifiers result = new DeclarationModifiers();
+            var result = new DeclarationModifiers();
             foreach (var modifier in requiredModifierList)
             {
                 switch (modifier.ModifierKindWrapper)

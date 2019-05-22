@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static DocumentationComment GetDocumentationComment(this ISymbol symbol, CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
-            string xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            var xmlText = symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
             return string.IsNullOrEmpty(xmlText) ? DocumentationComment.Empty : DocumentationComment.FromXmlFragment(xmlText);
         }
 
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static bool IsAwaitableNonDynamic(this ISymbol symbol, SemanticModel semanticModel, int position)
         {
-            IMethodSymbol methodSymbol = symbol as IMethodSymbol;
+            var methodSymbol = symbol as IMethodSymbol;
             ITypeSymbol typeSymbol = null;
 
             if (methodSymbol == null)
