@@ -1451,43 +1451,41 @@ public class C : A {
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), ServiceLayer.Host);
             workspace.Options = workspace.Options.WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength);
 
-            using (var root = new TempRoot())
+            using var root = new TempRoot();
+            var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
+
+            var loader = new FileTextLoader(file.Path, Encoding.UTF8);
+            var textLength = FileUtilities.GetFileLength(file.Path);
+
+            var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, maxLength);
+            var exceptionThrown = false;
+
+            try
             {
-                var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
-
-                var loader = new FileTextLoader(file.Path, Encoding.UTF8);
-                var textLength = FileUtilities.GetFileLength(file.Path);
-
-                var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, maxLength);
-                var exceptionThrown = false;
-
-                try
-                {
-                    // test async one
-                    var unused = await loader.LoadTextAndVersionAsync(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
-                }
-                catch (InvalidDataException ex)
-                {
-                    exceptionThrown = true;
-                    Assert.Equal(expected, ex.Message);
-                }
-
-                Assert.True(exceptionThrown);
-
-                exceptionThrown = false;
-                try
-                {
-                    // test sync one
-                    var unused = loader.LoadTextAndVersionSynchronously(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
-                }
-                catch (InvalidDataException ex)
-                {
-                    exceptionThrown = true;
-                    Assert.Equal(expected, ex.Message);
-                }
-
-                Assert.True(exceptionThrown);
+                // test async one
+                var unused = await loader.LoadTextAndVersionAsync(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
             }
+            catch (InvalidDataException ex)
+            {
+                exceptionThrown = true;
+                Assert.Equal(expected, ex.Message);
+            }
+
+            Assert.True(exceptionThrown);
+
+            exceptionThrown = false;
+            try
+            {
+                // test sync one
+                var unused = loader.LoadTextAndVersionSynchronously(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
+            }
+            catch (InvalidDataException ex)
+            {
+                exceptionThrown = true;
+                Assert.Equal(expected, ex.Message);
+            }
+
+            Assert.True(exceptionThrown);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
