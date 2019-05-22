@@ -2515,7 +2515,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 else if ((kind & (EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract | EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)) != 0)
                 {
                     // Switch these flags off
-                    kind = kind & ~(EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract | EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual);
+                    kind &= ~(EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract | EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual);
                 }
             }
 
