@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '!':
                     TextWindow.AdvanceChar();
-                    if (TextWindow.PeekChar() == '=')
+                    if (TextWindow.PeekChar() == '=' && TextWindow.PeekChar(1) != '>')
                     {
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.ExclamationEqualsToken;
@@ -2850,6 +2850,11 @@ top:
                     {
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.EqualsEqualsToken;
+                    }
+                    if (TextWindow.PeekChar() == '>')
+                    {
+                        TextWindow.AdvanceChar();
+                        info.Kind = SyntaxKind.EqualsGreaterThanToken;
                     }
                     else
                     {

@@ -768,7 +768,57 @@ class C {
         }
 
         [Fact]
-        public void TestNullCheckedTypedSingleParen()
+        public void TestNullCheckedSingleParamNoSpaces()
+        {
+            UsingDeclaration("Func<int, int> func1 = x!=>x;");
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.GenericName);
+                    N(SyntaxKind.IdentifierToken, "Func");
+                    N(SyntaxKind.TypeArgumentList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "func1");
+                }
+                N(SyntaxKind.EqualsValueClause);
+                {
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.SimpleLambdaExpression);
+                    {
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.ExclamationToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedTypedSingleParamInParen()
         {
             UsingDeclaration("Func<int, int> func1 = (int x!) => x;");
             N(SyntaxKind.FieldDeclaration);
@@ -819,6 +869,177 @@ class C {
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedTypedManyParams()
+        {
+            UsingDeclaration("Func<int, int, int> func1 = (int x!, int y) => x;");
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.GenericName);
+                    N(SyntaxKind.IdentifierToken, "Func");
+                    N(SyntaxKind.TypeArgumentList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "func1");
+                }
+                N(SyntaxKind.EqualsValueClause);
+                {
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.ExclamationToken);
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedNoParams()
+        {
+            UsingDeclaration("Func<int> func1 = (!) => 42;", expectedErrors:
+                // (1,20): error CS1001: Identifier expected
+                // Func<int> func1 = (!) => 42;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 20));
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.GenericName);
+                    N(SyntaxKind.IdentifierToken, "Func");
+                    N(SyntaxKind.TypeArgumentList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "func1");
+                }
+                N(SyntaxKind.EqualsValueClause);
+                {
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedDiscard()
+        {
+            UsingDeclaration("Func<int> func1 = (_!) => 42;");
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.GenericName);
+                    N(SyntaxKind.IdentifierToken, "Func");
+                    N(SyntaxKind.TypeArgumentList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "func1");
+                }
+                N(SyntaxKind.EqualsValueClause);
+                {
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierToken, "_");
+                                N(SyntaxKind.ExclamationToken);
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken);
                         }
                     }
                 }

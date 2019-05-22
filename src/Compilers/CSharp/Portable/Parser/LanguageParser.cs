@@ -10070,6 +10070,15 @@ tryAgain:
                 return true;
             }
 
+            // Case 5: ( ! ) 
+            // As with case four, this is not legal but will be caught later, as it is a variation on case 3 and should be treated
+            // similarly.
+            if (this.PeekToken(1).Kind == SyntaxKind.ExclamationToken
+                && this.PeekToken(2).Kind == SyntaxKind.CloseParenToken)
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -10180,8 +10189,12 @@ tryAgain:
 
                             continue;
                         case SyntaxKind.ExclamationToken:
-                            return this.PeekToken(1).Kind == SyntaxKind.CloseParenToken && 
-                                this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken;
+                            SyntaxKind t1k = this.PeekToken(1).Kind;
+                            if (t1k == SyntaxKind.CommaToken)
+                                return true;
+                            if (t1k == SyntaxKind.CloseParenToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
+                                return true;
+                            return false;
                         case SyntaxKind.CloseParenToken:
                             return this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken;
 
