@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         // caches token information within given formatting span to improve perf
         private readonly ImmutableArray<SyntaxToken> _tokens;
-        // caches token index in the stream, based on their Position
-        private readonly Dictionary<int, int> _positionToIndexCache;
 
         // caches original trivia info to improve perf
         private readonly TriviaData[] _cachedOriginalTriviaInfo;
@@ -60,11 +58,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // use some heuristics to get initial size of list rather than blindly start from default size == 4
                 int sizeOfList = spanToFormat.Length / MagicTextLengthToTokensRatio;
                 _tokens = _treeData.GetApplicableTokens(spanToFormat).ToImmutableArrayOrEmpty();
-                _positionToIndexCache = new Dictionary<int, int>(_tokens.Length);
-                for (int i = _tokens.Length - 1; i >= 0; i--)
-                {
-                    _positionToIndexCache[_tokens[i].FullSpan.Start] = i;
-                }
+                this.AverageTokenLength = Math.Max(1, (_tokens[_tokens.Length - 1].Position - _tokens[0].Position) * 1.0f / _tokens.Length);
 
                 Debug.Assert(this.TokenCount > 0);
 
@@ -508,24 +502,35 @@ namespace Microsoft.CodeAnalysis.Formatting
             return this.GetTriviaData(tokenData1, tokenData2).SecondTokenIsFirstTokenOnLine;
         }
 
-        private int GetTokenIndexInStream(SyntaxToken token)
+        /// <summary>
+        /// An approximation for the length of a token in this stream
+        /// </summary>
+        float AverageTokenLength { get; }
+        /// <summary>
+        /// Gets approximated index bounds for a token with specified position, which will definitely contain
+        /// the token, if it is present in the stream.
+        /// </summary>
+        private void GetTokenIndexBounds(int position, out int lowerBound, out int upperBound)
         {
-            var span = token.FullSpan;
-            if (_positionToIndexCache.TryGetValue(span.Start, out int tokenIndex))
-            {
-                while (tokenIndex < _tokens.Length)
-                {
-                    var matchSpan = _tokens[tokenIndex].FullSpan;
-                    if (matchSpan.Start != span.Start)
-                        return -1;
-                    if (matchSpan.End == matchSpan.End)
-                        return tokenIndex;
+            float avgLength = this.AverageTokenLength;
+            Debug.Assert(avgLength > 0);
+            lowerBound = upperBound = Bounded((int)((position - _tokens[0].Position) / avgLength), min: 0, max: _tokens.Length - 1);
 
-                    tokenIndex++;
-                }
+            while (_tokens[lowerBound].Position >= position && lowerBound > 0)
+            {
+                lowerBound = Math.Max(0, lowerBound - Math.Max(1, (int)((_tokens[lowerBound].Position - position) / avgLength)));
             }
 
-            tokenIndex = _tokens.BinarySearch(token, TokenOrderComparer.Instance);
+            while (_tokens[upperBound].Position <= position && upperBound < _tokens.Length - 1)
+            {
+                upperBound = Math.Min(_tokens.Length - 1, upperBound + Math.Max(1, (int)((position - _tokens[upperBound].Position) / avgLength)));
+            }
+        }
+        private static int Bounded(int value, int min, int max) => Math.Min(max, Math.Max(value, min));
+        private int GetTokenIndexInStream(SyntaxToken token)
+        {
+            GetTokenIndexBounds(token.Position, out int lowerBound, out int upperBound);
+            var tokenIndex = _tokens.BinarySearch(lowerBound, length: upperBound - lowerBound + 1, token, TokenOrderComparer.Instance);
             if (tokenIndex < 0)
             {
                 return -1;

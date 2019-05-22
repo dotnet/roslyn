@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
 
         internal int Index { get; }
 
-        internal int Position { get; }
+        public int Position { get; }
 
         /// <summary>
         /// The width of the token in characters, not including its leading and trailing trivia.
