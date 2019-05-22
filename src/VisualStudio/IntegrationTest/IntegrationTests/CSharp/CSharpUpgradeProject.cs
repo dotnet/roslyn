@@ -30,9 +30,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.Verify.CodeAction("Upgrade this project to C# language version 'latest'", applyFix: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
-        public void CPSProject_GeneralPropertyGroupUpdated()
+        [WpfTheory, IterationData(25), Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public void CPSProject_GeneralPropertyGroupUpdated(int iteration)
         {
+            _ = iteration;
+
             var project = new ProjectUtils.Project(ProjectName);
 
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
