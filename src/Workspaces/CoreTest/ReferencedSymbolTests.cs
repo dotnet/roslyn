@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 throw new NotImplementedException();
             }
 
-            public string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+            public string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
             {
                 throw new NotImplementedException();
             }
