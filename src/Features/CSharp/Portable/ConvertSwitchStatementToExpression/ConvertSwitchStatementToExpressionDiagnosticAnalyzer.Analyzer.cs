@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                     // case var _:
                     // case var x:
-                    if (@case.Pattern.IsKind(SyntaxKind.VarPattern, out VarPatternSyntax varPattern) && 
+                    if (@case.Pattern.IsKind(SyntaxKind.VarPattern, out VarPatternSyntax varPattern) &&
                         varPattern.Designation.IsKind(SyntaxKind.DiscardDesignation, SyntaxKind.SingleVariableDesignation))
                     {
                         return true;
@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             private SyntaxKind AnalyzeNextStatement(StatementSyntax nextStatement)
             {
                 // Only the following "throw" and "return" can be moved into the switch expression.
-                return nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement) 
-                    ? Visit(nextStatement) 
+                return nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement)
+                    ? Visit(nextStatement)
                     : default;
             }
 

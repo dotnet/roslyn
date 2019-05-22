@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var generateDeclaration = isSimpleAssignment && rewriter.TryRemoveVariableDeclarators(switchStatement, semanticModel, editor);
 
                 // Generate the final statement to wrap the switch expression, e.g. a "return" or an assignment.
-                return rewriter.GetFinalStatement(switchExpression, 
+                return rewriter.GetFinalStatement(switchExpression,
                     switchStatement.SwitchKeyword.LeadingTrivia, nodeToGenerate, generateDeclaration);
             }
 
