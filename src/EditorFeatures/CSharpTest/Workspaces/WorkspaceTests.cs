@@ -860,7 +860,7 @@ class D { }
             using (var workspace = CreateWorkspace())
             {
                 var document = new TestHostDocument("public class C { }");
-                var analyzerConfigDoc = new TestHostDocument("some text");
+                var analyzerConfigDoc = new TestHostDocument("root = true");
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
 
                 workspace.AddTestProject(project1);
@@ -876,7 +876,7 @@ class D { }
 
                 var analyzerConfigDocument = project.GetAnalyzerConfigDocument(analyzerConfigDoc.Id);
 
-                Assert.Equal("some text", (await analyzerConfigDocument.GetTextAsync()).ToString());
+                Assert.Equal("root = true", (await analyzerConfigDocument.GetTextAsync()).ToString());
             }
         }
 
@@ -919,8 +919,8 @@ class D { }
         {
             using (var workspace = CreateWorkspace())
             {
-                var startText = @"<setting value = ""goo""";
-                var newText = @"<setting value = ""goo1""";
+                var startText = @"root = true";
+                var newText = @"root = false";
                 var document = new TestHostDocument("public class C { }");
                 var analyzerConfigPath = PathUtilities.CombineAbsoluteAndRelativePaths(Temp.CreateDirectory().Path, ".editorconfig");
                 var analyzerConfigDoc = new TestHostDocument(startText, filePath: analyzerConfigPath);
@@ -989,7 +989,7 @@ class D { }
         {
             using (var workspace = CreateWorkspace())
             {
-                var startText = @"<setting value = ""goo""";
+                var startText = @"root = true";
                 var document = new TestHostDocument("public class C { }");
                 var analyzerConfigDoc = new TestHostDocument(startText);
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
@@ -1062,7 +1062,7 @@ class D { }
         {
             using (var workspace = CreateWorkspace())
             {
-                var startText = @"<setting value = ""goo""";
+                var startText = @"root = true";
                 var document = new TestHostDocument("public class C { }");
                 var analyzerConfigDoc = new TestHostDocument(startText, "original.config");
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
@@ -1130,7 +1130,7 @@ class D { }
         {
             using (var workspace = CreateWorkspace())
             {
-                var startText = @"<setting value = ""goo""";
+                var startText = @"root = true";
                 var document = new TestHostDocument("public class C { }");
                 var analyzerConfigDoc = new TestHostDocument(startText, "original.config");
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
@@ -1184,7 +1184,7 @@ class D { }
                 const string docFilePath = "filePath1";
                 var document = new TestHostDocument("public class C { }", filePath: docFilePath);
                 var analyzerConfigDocFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(Temp.CreateDirectory().Path, ".editorconfig");
-                var analyzerConfigDoc = new TestHostDocument(@"<setting value = ""goo""", filePath: analyzerConfigDocFilePath);
+                var analyzerConfigDoc = new TestHostDocument(@"root = true", filePath: analyzerConfigDocFilePath);
                 var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
                 workspace.AddTestProject(project1);
 

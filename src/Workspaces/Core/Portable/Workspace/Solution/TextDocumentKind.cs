@@ -5,8 +5,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Indicates kind of a <see cref="TextDocument"/>
     /// </summary>
-    /// <remarks>CONSIDER: Make this type public</remarks>
-    internal enum TextDocumentKind
+    public enum TextDocumentKind
     {
         /// <summary>
         /// Indicates a regular source <see cref="CodeAnalysis.Document"/>

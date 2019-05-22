@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis
             return _projectState.GetAdditionalDocumentState(documentId);
         }
 
-        internal TextDocumentState GetAnalyzerConfigDocumentState(DocumentId documentId)
+        internal AnalyzerConfigDocumentState GetAnalyzerConfigDocumentState(DocumentId documentId)
         {
             return _projectState.GetAnalyzerConfigDocumentState(documentId);
         }

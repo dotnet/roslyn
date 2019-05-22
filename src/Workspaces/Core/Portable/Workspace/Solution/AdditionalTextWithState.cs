@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// Represents a non source additional text.
+    /// An implementation of <see cref="AdditionalText"/> for the compiler that wraps a <see cref="TextDocumentState"/>.
     /// </summary>
     internal sealed class AdditionalTextWithState : AdditionalText
     {
