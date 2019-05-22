@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private static readonly CodeStyleOption<UnusedValuePreference> s_preferNoneUnusedValuePreference =
-            new CodeStyleOption<UnusedValuePreference>(default(UnusedValuePreference), NotificationOption.None);
+            new CodeStyleOption<UnusedValuePreference>(default, NotificationOption.None);
 
         private static readonly BidirectionalMap<string, UnusedValuePreference> s_unusedExpressionAssignmentPreferenceMap =
             new BidirectionalMap<string, UnusedValuePreference>(new[]

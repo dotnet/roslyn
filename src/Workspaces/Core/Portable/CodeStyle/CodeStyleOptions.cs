@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCompoundAssignment") });
 
         private static readonly CodeStyleOption<UnusedParametersPreference> s_preferNoneUnusedParametersPreference =
-            new CodeStyleOption<UnusedParametersPreference>(default(UnusedParametersPreference), NotificationOption.None);
+            new CodeStyleOption<UnusedParametersPreference>(default, NotificationOption.None);
         private static readonly CodeStyleOption<UnusedParametersPreference> s_preferAllMethodsUnusedParametersPreference =
             new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.AllMethods, NotificationOption.Suggestion);
 
