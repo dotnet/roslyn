@@ -2960,19 +2960,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 case SyntaxKind.EnumMemberDeclaration:
                     var enumMemberDeclaration = (EnumMemberDeclarationSyntax)node;
-                    return enumMemberDeclaration.EqualsValue != null
-                        ? enumMemberDeclaration.EqualsValue.Value.ToString()
-                        : null;
+                    return enumMemberDeclaration.EqualsValue?.Value.ToString();
                 case SyntaxKind.VariableDeclarator:
                     var variableDeclarator = (VariableDeclaratorSyntax)node;
-                    return variableDeclarator.Initializer != null
-                        ? variableDeclarator.Initializer.Value.ToString()
-                        : null;
+                    return variableDeclarator.Initializer?.Value.ToString();
                 case SyntaxKind.Parameter:
                     var parameter = (ParameterSyntax)node;
-                    return parameter.Default != null
-                        ? parameter.Default.Value.ToString()
-                        : null;
+                    return parameter.Default?.Value.ToString();
                 default:
                     throw Exceptions.ThrowEFail();
             }
