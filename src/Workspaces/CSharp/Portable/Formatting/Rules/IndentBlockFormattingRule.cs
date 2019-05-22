@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
         {
-            var section = node as SwitchSectionSyntax;
-            if (section == null)
+            if (!(node is SwitchSectionSyntax section))
             {
                 return;
             }

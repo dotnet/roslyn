@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 
         protected override bool IsAttributeListWithAssemblyAttributes(SyntaxNode node)
         {
-            var attributeList = node as AttributeListSyntax;
-            return attributeList != null &&
+            return node is AttributeListSyntax attributeList &&
                 attributeList.Target != null &&
                 attributeList.Target.Identifier.Kind() == SyntaxKind.AssemblyKeyword;
         }
@@ -185,8 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         {
             if (attribute is AttributeSyntax attributeSyntax)
             {
-                var attributeList = attributeSyntax.Parent as AttributeListSyntax;
-                return attributeList != null && attributeList.Attributes.Count == 1;
+                return attributeSyntax.Parent is AttributeListSyntax attributeList && attributeList.Attributes.Count == 1;
             }
 
             return false;

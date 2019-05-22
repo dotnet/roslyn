@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            var argumentList = argument.Parent as AttributeArgumentListSyntax;
-            if (argumentList == null)
+            if (!(argument.Parent is AttributeArgumentListSyntax argumentList))
             {
                 return null;
             }
