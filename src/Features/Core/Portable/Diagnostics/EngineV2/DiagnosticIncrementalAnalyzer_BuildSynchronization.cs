@@ -85,23 +85,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> CreateAnalysisResults(
             Project project, ImmutableArray<StateSet> stateSets, ProjectAnalysisData oldAnalysisData, ImmutableArray<DiagnosticData> diagnostics)
         {
-            using (var poolObject = SharedPools.Default<HashSet<string>>().GetPooledObject())
+            using var poolObject = SharedPools.Default<HashSet<string>>().GetPooledObject();
+
+            var lookup = diagnostics.ToLookup(d => d.Id);
+
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
+            foreach (var stateSet in stateSets)
             {
-                var lookup = diagnostics.ToLookup(d => d.Id);
+                var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
+                var liveDiagnostics = MergeDiagnostics(ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object), GetDiagnostics(oldAnalysisData.GetResult(stateSet.Analyzer)));
 
-                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
-                foreach (var stateSet in stateSets)
-                {
-                    var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
-                    var liveDiagnostics = MergeDiagnostics(ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object), GetDiagnostics(oldAnalysisData.GetResult(stateSet.Analyzer)));
+                var result = DiagnosticAnalysisResult.CreateFromBuild(project, liveDiagnostics);
 
-                    var result = DiagnosticAnalysisResult.CreateFromBuild(project, liveDiagnostics);
-
-                    builder.Add(stateSet.Analyzer, result);
-                }
-
-                return builder.ToImmutable();
+                builder.Add(stateSet.Analyzer, result);
             }
+
+            return builder.ToImmutable();
         }
 
         private ImmutableArray<DiagnosticData> GetDiagnostics(DiagnosticAnalysisResult result)

@@ -69,27 +69,24 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public void GenerateReport(List<ExpensiveAnalyzerInfo> badAnalyzers)
         {
-            using (var pooledRaw = SharedPools.Default<Dictionary<string, (double average, double stddev)>>().GetPooledObject())
+            using var pooledRaw = SharedPools.Default<Dictionary<string, (double average, double stddev)>>().GetPooledObject();
+
+            var rawPerformanceData = pooledRaw.Object;
+
+            lock (_gate)
             {
-                var rawPerformanceData = pooledRaw.Object;
-
-                lock (_gate)
-                {
-                    // first get raw aggregated peformance data from the queue
-                    _queue.GetPerformanceData(rawPerformanceData);
-                }
-
-                // make sure there are some data
-                if (rawPerformanceData.Count == 0)
-                {
-                    return;
-                }
-
-                using (var generator = new ReportGenerator(this, _minLOFValue, _averageThreshold, _stddevThreshold, badAnalyzers))
-                {
-                    generator.Report(rawPerformanceData);
-                }
+                // first get raw aggregated peformance data from the queue
+                _queue.GetPerformanceData(rawPerformanceData);
             }
+
+            // make sure there are some data
+            if (rawPerformanceData.Count == 0)
+            {
+                return;
+            }
+
+            using var generator = new ReportGenerator(this, _minLOFValue, _averageThreshold, _stddevThreshold, badAnalyzers);
+            generator.Report(rawPerformanceData);
         }
 
         private void RecordBuiltInAnalyzers(IEnumerable<AnalyzerPerformanceInfo> snapshot)

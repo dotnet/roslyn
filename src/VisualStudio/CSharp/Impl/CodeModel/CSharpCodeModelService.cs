@@ -1408,10 +1408,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             XDocument xmlDocument;
             try
             {
-                using (var reader = new StringReader(value))
-                {
-                    xmlDocument = XDocument.Load(reader);
-                }
+                using var reader = new StringReader(value);
+                xmlDocument = XDocument.Load(reader);
             }
             catch
             {

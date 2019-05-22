@@ -339,11 +339,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             try
             {
-                using (var stream = new FileStream(document.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                {
-                    var onDiskText = EncodedStringText.Create(stream);
-                    return onDiskText.Encoding;
-                }
+                using var stream = new FileStream(document.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                var onDiskText = EncodedStringText.Create(stream);
+                return onDiskText.Encoding;
             }
             catch (IOException)
             {
@@ -400,10 +398,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
 
                 Debug.Assert(encoding != null);
-                using (var writer = new StreamWriter(fullPath, append: false, encoding: encoding))
-                {
-                    newText.Write(writer);
-                }
+                using var writer = new StreamWriter(fullPath, append: false, encoding: encoding);
+                newText.Write(writer);
             }
             catch (IOException exception)
             {

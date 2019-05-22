@@ -23,10 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 class C$$
 {
 }";
-            using (var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp))
-            {
-                await state.AssertNoTag();
-            }
+            using var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp);
+            await state.AssertNoTag();
         }
 
         [WpfFact]
