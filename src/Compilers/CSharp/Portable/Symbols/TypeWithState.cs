@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -25,6 +26,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static TypeWithState Create(TypeSymbol type, NullableFlowState defaultState)
         {
             var state = defaultState == NullableFlowState.MaybeNull && type?.CanContainNull() != false ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+            return new TypeWithState(type, state);
+        }
+
+        public static TypeWithState Create(TypeWithAnnotations typeWithAnnotations, FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None)
+        {
+            var type = typeWithAnnotations.Type;
+            if (type is null)
+            {
+                return new TypeWithState(null, NullableFlowState.MaybeNull);
+            }
+
+            NullableFlowState state;
+            if (type.CanContainNull())
+            {
+                if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
+                {
+                    state = NullableFlowState.MaybeNull;
+                }
+                else if ((annotations & FlowAnalysisAnnotations.NotNull) != 0)
+                {
+                    state = NullableFlowState.NotNull;
+                }
+                else
+                {
+                    state = typeWithAnnotations.NullableAnnotation switch
+                    {
+                        NullableAnnotation.Oblivious => NullableFlowState.NotNull,
+                        NullableAnnotation.NotAnnotated => type.IsPossiblyNullableReferenceTypeTypeParameter() || type.IsNullableTypeOrTypeParameter() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull,
+                        NullableAnnotation.Annotated => NullableFlowState.MaybeNull,
+                        var value => throw ExceptionUtilities.UnexpectedValue(value),
+                    };
+                }
+            }
+            else
+            {
+                state = NullableFlowState.NotNull;
+            }
+
             return new TypeWithState(type, state);
         }
 
