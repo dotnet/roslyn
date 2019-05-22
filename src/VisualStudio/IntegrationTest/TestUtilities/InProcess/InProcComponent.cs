@@ -95,9 +95,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => CurrentApplicationDispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle).Wait(timeout);
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
-        protected static void WaitForSystemIdle()
+        protected static void WaitForSystemIdle(TimeSpan timeout)
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
-            => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
+            => CurrentApplicationDispatcher.InvokeAsync(() => { }, DispatcherPriority.SystemIdle).Wait(timeout);
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         // Ensure InProcComponents live forever

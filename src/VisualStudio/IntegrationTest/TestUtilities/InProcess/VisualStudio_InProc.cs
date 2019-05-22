@@ -18,8 +18,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public new void WaitForApplicationIdle(TimeSpan timeout)
             => InProcComponent.WaitForApplicationIdle(timeout);
 
-        new public void WaitForSystemIdle()
-            => InProcComponent.WaitForSystemIdle();
+        new public void WaitForSystemIdle(TimeSpan timeout)
+            => InProcComponent.WaitForSystemIdle(timeout);
 
         new public bool IsCommandAvailable(string commandName)
             => InProcComponent.IsCommandAvailable(commandName);

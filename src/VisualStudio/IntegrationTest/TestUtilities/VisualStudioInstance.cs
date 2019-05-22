@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // There is a lot of VS initialization code that goes on, so we want to wait for that to 'settle' before
             // we start executing any actual code.
-            _inProc.WaitForSystemIdle();
+            _inProc.WaitForSystemIdle(Helper.HangMitigatingTimeout);
 
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
@@ -186,6 +186,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public void WaitForApplicationIdle(CancellationToken cancellationToken)
         {
             var task = Task.Factory.StartNew(() => _inProc.WaitForApplicationIdle(Helper.HangMitigatingTimeout), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            task.Wait(cancellationToken);
+        }
+
+        public void WaitForSystemIdle(CancellationToken cancellationToken)
+        {
+            var task = Task.Factory.StartNew(() => _inProc.WaitForSystemIdle(Helper.HangMitigatingTimeout), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             task.Wait(cancellationToken);
         }
 

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -35,14 +36,16 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             _ = iteration;
 
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+
             var project = new ProjectUtils.Project(ProjectName);
 
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
             VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
 
-            // NuGet changes cascade and can prevent a code action from applying
-            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout);
+            // NuGet file system changes cascade and can prevent a code action from applying
+            VisualStudio.WaitForSystemIdle(cancellationTokenSource.Token);
 
             InvokeFix();
             VerifyPropertyOutsideConfiguration(GetProjectFileElement(project), "LangVersion", "latest");
