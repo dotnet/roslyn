@@ -23,8 +23,6 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
 {
-    // Place this using inside the containing namespace so it takes precedence over
-    // the older Editor version with the same name.
     using Microsoft.CodeAnalysis.Indentation;
 
     internal abstract class AbstractSmartTokenFormatterCommandHandler :
