@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -55,6 +54,7 @@ namespace System.Runtime.CompilerServices
         protected const string AllowNullAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property)]
     public sealed class AllowNullAttribute : Attribute
     {
     }
@@ -63,6 +63,7 @@ namespace System.Runtime.CompilerServices
         protected const string DisallowNullAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property)]
     public sealed class DisallowNullAttribute : Attribute
     {
     }
@@ -71,6 +72,7 @@ namespace System.Runtime.CompilerServices
         protected const string MaybeNullAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue)]
     public sealed class MaybeNullAttribute : Attribute
     {
     }
@@ -91,6 +93,7 @@ namespace System.Runtime.CompilerServices
         protected const string NotNullAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue)]
     public sealed class NotNullAttribute : Attribute
     {
     }

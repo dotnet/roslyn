@@ -712,15 +712,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static bool? DecodeMaybeNullWhenOrNotNullWhenAttribute(AttributeDescription description, CSharpAttributeData attribute, DiagnosticBag diagnostics)
         {
             var arguments = attribute.CommonConstructorArguments;
-            if (arguments.Length == 1)
-            {
-                var arg = arguments[0];
-                if (arg.Type.SpecialType == SpecialType.System_Boolean)
-                {
-                    return arg.DecodeValue<bool>(SpecialType.System_Boolean);
-                }
-            }
-            return null;
+            return arguments.Length == 1 && arguments[0].TryDecodeValue(SpecialType.System_Boolean, out bool value) ?
+                (bool?)value :
+                null;
         }
 
         private void DecodeDefaultParameterValueAttribute(AttributeDescription description, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)

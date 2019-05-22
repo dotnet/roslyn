@@ -19539,7 +19539,7 @@ public class C
 
         [Fact]
         [WorkItem(29858, "https://github.com/dotnet/roslyn/issues/29858")]
-        public void GenericMethod_WithNotNullOnReturnType()
+        public void GenericMethod_WithNotNullOnMethod()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -19550,7 +19550,11 @@ public class C
 }
 " + NotNullAttributeDefinition);
 
-            c.VerifyDiagnostics();
+            c.VerifyDiagnostics(
+                // (5,6): error CS0592: Attribute 'NotNull' is not valid on this declaration type. It is only valid on 'property, indexer, field, parameter, return' declarations.
+                //     [NotNull]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "NotNull").WithArguments("NotNull", "property, indexer, field, parameter, return").WithLocation(5, 6)
+                );
         }
 
         [Fact]
