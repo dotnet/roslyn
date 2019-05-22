@@ -594,7 +594,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             public int Compare(SyntaxToken x, SyntaxToken y)
             {
-                return x.FullSpan.CompareTo(y.FullSpan);
+                int dpos = x.Position.CompareTo(y.Position);
+                return dpos != 0 ? dpos : x.FullSpan.End.CompareTo(y.FullSpan.End);
             }
         }
     }
