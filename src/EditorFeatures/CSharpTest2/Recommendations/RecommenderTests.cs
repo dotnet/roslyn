@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
             var semanticModel = compilation.GetSemanticModel(tree);
             var context = CSharpSyntaxContext.CreateContext_Test(semanticModel, position, CancellationToken.None);
-            return CheckResultAsync(absent, position, context, semanticModel, matchPriority);
+            return CheckResultAsync(absent, position, context, matchPriority);
         }
 
-        private async Task CheckResultAsync(bool absent, int position, CSharpSyntaxContext context, SemanticModel semanticModel, int? matchPriority)
+        private async Task CheckResultAsync(bool absent, int position, CSharpSyntaxContext context, int? matchPriority)
         {
             if (absent)
             {
