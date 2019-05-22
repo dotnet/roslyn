@@ -882,7 +882,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             // In all cases, the resulting syntax for the new name has elastic trivia attached,
             // whether via this call to SyntaxFactory.Identifier or via explicitly added elastic
             // markers.
-            SyntaxToken newIdentifier = SyntaxFactory.Identifier(name);
+            var newIdentifier = SyntaxFactory.Identifier(name);
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
@@ -1234,7 +1234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             var commentList = new List<SyntaxTrivia>();
 
-            for (int i = triviaList.Count - 1; i >= 0; i--)
+            for (var i = triviaList.Count - 1; i >= 0; i--)
             {
                 var trivia = triviaList[i];
                 if (trivia.IsRegularComment())
@@ -1287,7 +1287,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var text = memberDeclaration.SyntaxTree.GetText(CancellationToken.None);
             var newLine = GetNewLineCharacter(text);
 
-            string commentText = string.Empty;
+            var commentText = string.Empty;
 
             if (value != null)
             {
@@ -1373,7 +1373,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var lengthToStrip = lines[0].GetLeadingWhitespace().Length;
             var linesCount = lines.Length;
 
-            for (int i = 1; i < lines.Length; i++)
+            for (var i = 1; i < lines.Length; i++)
             {
                 var line = lines[i].TrimStart();
                 if (line.StartsWith("///", StringComparison.Ordinal))
@@ -1389,7 +1389,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 lines[i] = line;
             }
 
-            for (int i = 0; i < lines.Length; i++)
+            for (var i = 0; i < lines.Length; i++)
             {
                 var line = lines[i];
                 if (line.Length > lengthToStrip)
@@ -1902,7 +1902,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 var kind = EnvDTE80.vsCMParameterKind.vsCMParameterKindNone;
 
-                SyntaxTokenList modifiers = parameter.Modifiers;
+                var modifiers = parameter.Modifiers;
                 if (modifiers.Any(SyntaxKind.RefKeyword))
                 {
                     kind = EnvDTE80.vsCMParameterKind.vsCMParameterKindRef;
@@ -2890,7 +2890,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             var deletionStart = node.SpanStart;
 
-            int contiguousEndOfLines = 0;
+            var contiguousEndOfLines = 0;
             foreach (var trivia in node.GetLeadingTrivia().Reverse())
             {
                 if (trivia.IsDirective)
@@ -3124,7 +3124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             var attributes = GetAttributeNodes(containerNode).ToArray();
 
-            int index = 0;
+            var index = 0;
             while (index < attributes.Length)
             {
                 var attribute = (AttributeSyntax)attributes[index];
@@ -3154,7 +3154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             var attributeArguments = GetAttributeArgumentNodes(containerNode).ToArray();
 
-            for (int index = 0; index < attributeArguments.Length; index++)
+            for (var index = 0; index < attributeArguments.Length; index++)
             {
                 if (predicate(attributeArguments[index]))
                 {
@@ -3169,7 +3169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             var imports = GetImportNodes(containerNode).ToArray();
 
-            for (int index = 0; index < imports.Length; index++)
+            for (var index = 0; index < imports.Length; index++)
             {
                 if (predicate(imports[index]))
                 {
@@ -3184,7 +3184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             var parameters = GetParameterNodes(containerNode).ToArray();
 
-            for (int index = 0; index < parameters.Length; index++)
+            for (var index = 0; index < parameters.Length; index++)
             {
                 if (predicate(parameters[index]))
                 {
@@ -3199,7 +3199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             var members = GetLogicalMemberNodes(containerNode).ToArray();
 
-            int index = 0;
+            var index = 0;
             while (index < members.Length)
             {
                 var member = members[index];

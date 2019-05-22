@@ -79,8 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 // just find the first "word" that intersects with our position
                 var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                int start = span.Start;
-                int end = span.Start;
+                var start = span.Start;
+                var end = span.Start;
 
                 while (start > 0 && syntaxFacts.IsIdentifierPartCharacter(text[start - 1]))
                 {

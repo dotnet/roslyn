@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             private string GetStringOption(CompilerOptions optionID, string defaultValue)
             {
-                string value = (string)_options[(int)optionID];
+                var value = (string)_options[(int)optionID];
 
                 if (string.IsNullOrEmpty(value))
                 {
@@ -220,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
                 // The base implementation of OptionsProcessor already tried this, but it didn't have the real documentation
                 // path so we have to do it a second time
-                DocumentationMode documentationMode = DocumentationMode.Parse;
+                var documentationMode = DocumentationMode.Parse;
                 if (GetStringOption(CompilerOptions.OPTID_XML_DOCFILE, defaultValue: null) != null)
                 {
                     documentationMode = DocumentationMode.Diagnose;

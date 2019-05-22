@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             }
 
             // Can't take an address of this since it might move, so....
-            HACK_VariantStructure localCopy = this;
+            var localCopy = this;
             return Marshal.GetObjectForNativeVariant((IntPtr)(&localCopy));
         }
     }
