@@ -1123,7 +1123,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task BindingTypeNames()
         {
-            string code = @"using System;
+            var code = @"using System;
 using Str = System.String;
 class C
 {

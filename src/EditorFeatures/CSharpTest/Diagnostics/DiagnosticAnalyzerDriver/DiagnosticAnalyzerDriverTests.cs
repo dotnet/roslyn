@@ -141,7 +141,7 @@ class C
                 currentProject = newSln.Projects.Single();
                 var additionalDocument = currentProject.GetAdditionalDocument(additionalDocId);
                 AdditionalText additionalStream = new AdditionalTextDocument(additionalDocument.State);
-                AnalyzerOptions options = new AnalyzerOptions(ImmutableArray.Create(additionalStream));
+                var options = new AnalyzerOptions(ImmutableArray.Create(additionalStream));
                 var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(expectedOptions: options);
 
                 var sourceDocument = currentProject.Documents.Single();

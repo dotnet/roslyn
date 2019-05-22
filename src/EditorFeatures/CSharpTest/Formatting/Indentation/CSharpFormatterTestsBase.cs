@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
         private static async Task TokenFormatWorkerAsync(TestWorkspace workspace, ITextBuffer buffer, int indentationLine, char ch)
         {
-            Document document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().First();
+            var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().First();
             var root = (CompilationUnitSyntax)await document.GetSyntaxRootAsync();
 
             var line = root.GetText().Lines[indentationLine];
