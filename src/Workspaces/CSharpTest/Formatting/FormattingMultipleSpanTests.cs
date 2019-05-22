@@ -125,8 +125,10 @@ class A { }";
     System.Console.WriteLine();
     }
 }";
-            var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.IndentBlock, false);
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.IndentBlock, false }
+            };
             await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
 
@@ -150,8 +152,10 @@ class A { }";
         System.Console.WriteLine();
     }
 }";
-            var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.WrappingPreserveSingleLine, false);
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.WrappingPreserveSingleLine, false }
+            };
             await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
 
