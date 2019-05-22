@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         internal bool ShouldReceiveKeyboardNavigation { get; set; }
 
-        private IEnumerable<string> _renameAccessKeys = new[]
+        private readonly IEnumerable<string> _renameAccessKeys = new[]
             {
                 RenameShortcutKey.RenameOverloads,
                 RenameShortcutKey.SearchInComments,

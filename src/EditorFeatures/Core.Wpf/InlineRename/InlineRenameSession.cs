@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private bool _isApplyingEdit;
         private string _replacementText;
         private OptionSet _optionSet;
-        private Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new Dictionary<ITextBuffer, OpenTextBufferManager>();
+        private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new Dictionary<ITextBuffer, OpenTextBufferManager>();
 
         /// <summary>
         /// If non-null, the current text of the replacement. Linked spans added will automatically be updated with this
