@@ -287,13 +287,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         public static bool AreTwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
-        {
+        {           
             var tree = token1.SyntaxTree;
             if (tree != null && tree.TryGetText(out var text))
             {
                 return text.AreOnSameLine(token1, token2);
             }
 
+            if(token1.Equals(token2))
+            {
+                return token1.ToFullString().ContainsLineBreak();
+            }
+            
             return !CommonFormattingHelpers.GetTextBetween(token1, token2).ContainsLineBreak();
         }
 
