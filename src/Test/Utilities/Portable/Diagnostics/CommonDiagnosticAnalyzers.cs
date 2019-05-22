@@ -525,9 +525,24 @@ namespace Microsoft.CodeAnalysis
                 isEnabledByDefault: true);
 
             public AnalyzerWithInvalidDiagnosticSpan(TextSpan badSpan) => _badSpan = badSpan;
+            public Exception ThrownException { get; set; }
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
             public override void Initialize(AnalysisContext context)
-                => context.RegisterSyntaxTreeAction(c => c.ReportDiagnostic(Diagnostic.Create(Descriptor, SourceLocation.Create(c.Tree, _badSpan))));
+            {
+                context.RegisterSyntaxTreeAction(c =>
+                {
+                    try
+                    {
+                        ThrownException = null;
+                        c.ReportDiagnostic(Diagnostic.Create(Descriptor, SourceLocation.Create(c.Tree, _badSpan)));
+                    }
+                    catch (Exception e)
+                    {
+                        ThrownException = e;
+                        throw;
+                    }
+                });
+            }
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

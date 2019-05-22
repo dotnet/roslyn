@@ -264,8 +264,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 }
             }
 
+            public string AssemblyName { get; private set; }
+
             public override void Initialize(AnalysisContext analysisContext)
             {
+                analysisContext.RegisterCompilationStartAction(context => AssemblyName = context.Compilation.AssemblyName);
+
                 analysisContext.RegisterSymbolAction(
                     (context) =>
                     {

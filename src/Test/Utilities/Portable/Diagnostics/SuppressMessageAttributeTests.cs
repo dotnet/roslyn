@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1262,10 +1263,12 @@ End Class
         [Fact]
         public async Task AnalyzerExceptionDiagnosticsWithDifferentContext()
         {
-            var exceptionDiagnostics = new HashSet<Diagnostic>();
+            var analyzer = new ThrowExceptionForEachNamedTypeAnalyzer();
+            var exceptions = new List<Exception>();
+            var diagnostics = new List<Diagnostic>();
 
             await VerifyCSharpAsync(@"
-public class C
+public class C0
 {
 }
 public class C1
@@ -1275,18 +1278,43 @@ public class C2
 {
 }
 ",
-                new[] { new ThrowExceptionForEachNamedTypeAnalyzer() },
-                onAnalyzerException: (ex, a, d) => exceptionDiagnostics.Add(d));
+                new[] { analyzer },
+                onAnalyzerException: (ex, a, d) =>
+                {
+                    if (diagnostics.Contains(d))
+                    {
+                        return;
+                    }
 
-            var diagnostic = Diagnostic("AD0001", null)
-                    .WithArguments(
-                        "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer",
-                        "System.Exception",
-                        "ThrowExceptionAnalyzer exception")
-                    .WithLocation(1, 1);
+                    exceptions.Add(ex);
+                    diagnostics.Add(d);
+                });
+
+            var orderedDiagnostics = new List<Diagnostic>(diagnostics.OrderBy(d => d.Location.SourceSpan));
+            var expected = new List<DiagnosticDescription>();
+            Assert.Equal(3, diagnostics.Count);
+            for (var i = 0; i < exceptions.Count; i++)
+            {
+                IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, $@"Compilation: {analyzer.AssemblyName}
+ISymbol: C{orderedDiagnostics.IndexOf(diagnostics[i])} (NamedType)")}
+
+{exceptions[i]}
+-----
+
+{string.Format(CodeAnalysisResources.DisableAnalyzerDiagnosticsMessage, "ThrowException")}";
+                var diagnostic = Diagnostic("AD0001", null)
+                        .WithArguments(
+                            "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer",
+                            "System.Exception",
+                            "ThrowExceptionAnalyzer exception",
+                            context)
+                        .WithLocation(1, 1);
+
+                expected.Add(diagnostic);
+            }
 
             // expect 3 different diagnostics with 3 different contexts.
-            exceptionDiagnostics.Verify(diagnostic, diagnostic, diagnostic);
+            diagnostics.Verify(expected.ToArray());
         }
 
         #endregion

@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _startPosition = _location.GetMappedLineSpan().StartLinePosition;
         }
 
-        public DiagnosticDescription WithArguments(params string[] arguments)
+        public DiagnosticDescription WithArguments(params object[] arguments)
         {
             return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, arguments, _startPosition, _syntaxPredicate, false, _errorCodeType, _defaultSeverityOpt, _effectiveSeverityOpt);
         }
