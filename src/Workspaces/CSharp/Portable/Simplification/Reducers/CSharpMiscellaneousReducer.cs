@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     var newSymbol = speculationAnalyzer.SpeculativeSemanticModel.GetDeclaredSymbol(newParameterSyntax, cancellationToken);
                     if (oldSymbol != null &&
                         newSymbol != null &&
-                        oldSymbol.Type == newSymbol.Type)
+                        Equals(oldSymbol.Type, newSymbol.Type))
                     {
                         return !speculationAnalyzer.ReplacementChangesSemantics();
                     }

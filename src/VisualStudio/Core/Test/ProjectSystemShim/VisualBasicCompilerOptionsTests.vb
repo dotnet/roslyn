@@ -1,8 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.VisualBasicHelpers
 Imports Roslyn.Test.Utilities
@@ -207,6 +209,65 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Assert.False(options.SpecificDiagnosticOptions.ContainsKey("BC1234"))
 
                 project.Disconnect()
+            End Using
+        End Sub
+
+        <WpfFact()>
+        <WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")>
+        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        Public Sub ProjectOutputPathAndOutputExeNameChange()
+            Using environment = New TestEnvironment()
+                Dim project = CreateVisualBasicProject(environment, "Test")
+                Dim compilerOptions = CreateMinimalCompilerOptions(project)
+                compilerOptions.wszOutputPath = "C:\"
+                compilerOptions.wszExeName = "test.dll"
+                project.SetCompilerOptions(compilerOptions)
+                Assert.Equal("C:\test.dll", project.GetOutputFileName())
+
+                Dim outputs = CType(environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id), CompilationOutputFilesWithImplicitPdbPath)
+                Assert.Equal("C:\test.dll", outputs.AssemblyFilePath)
+
+                ' Change output folder from command line arguments - verify that objOutputPath changes.
+                Dim newPath = "C:\NewFolder\test.dll"
+                compilerOptions = CreateMinimalCompilerOptions(project)
+                compilerOptions.wszOutputPath = "C:\NewFolder"
+                compilerOptions.wszExeName = "test.dll"
+                project.SetCompilerOptions(compilerOptions)
+                Assert.Equal(newPath, project.GetOutputFileName())
+
+                outputs = CType(environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id), CompilationOutputFilesWithImplicitPdbPath)
+                Assert.Equal("C:\NewFolder\test.dll", outputs.AssemblyFilePath)
+
+                ' Change output file name - verify that outputPath changes.
+                newPath = "C:\NewFolder\test2.dll"
+                compilerOptions = CreateMinimalCompilerOptions(project)
+                compilerOptions.wszOutputPath = "C:\NewFolder"
+                compilerOptions.wszExeName = "test2.dll"
+                project.SetCompilerOptions(compilerOptions)
+                Assert.Equal(newPath, project.GetOutputFileName())
+
+                outputs = CType(environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id), CompilationOutputFilesWithImplicitPdbPath)
+                Assert.Equal("C:\NewFolder\test2.dll", outputs.AssemblyFilePath)
+
+                ' Change output file name and folder - verify that outputPath changes.
+                newPath = "C:\NewFolder3\test3.dll"
+                compilerOptions = CreateMinimalCompilerOptions(project)
+                compilerOptions.wszOutputPath = "C:\NewFolder3"
+                compilerOptions.wszExeName = "test3.dll"
+                project.SetCompilerOptions(compilerOptions)
+                Assert.Equal(newPath, project.GetOutputFileName())
+
+                outputs = CType(environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id), CompilationOutputFilesWithImplicitPdbPath)
+                Assert.Equal("C:\NewFolder3\test3.dll", outputs.AssemblyFilePath)
+
+                ' Relative path - set by VBIntelliProj in VB Web App project
+                compilerOptions = CreateMinimalCompilerOptions(project)
+                compilerOptions.wszOutputPath = "\"
+                compilerOptions.wszExeName = "test3.dll"
+                project.SetCompilerOptions(compilerOptions)
+                Assert.Equal(Nothing, project.GetOutputFileName())
+                outputs = CType(environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id), CompilationOutputFilesWithImplicitPdbPath)
+                Assert.Equal(Nothing, outputs.AssemblyFilePath)
             End Using
         End Sub
     End Class

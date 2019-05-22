@@ -45,6 +45,60 @@ class Class
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestOnRightOfNullCoalescingAssignment_NullableBool()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method(bool? b)
+    {
+        b ??= [|Goo|]();
+    }
+}",
+@"using System;
+
+class Class
+{
+    void Method(bool? b)
+    {
+        b ??= Goo();
+    }
+
+    private bool? Goo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestOnRightOfNullCoalescingAssignment_String()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method(string s)
+    {
+        s ??= [|Goo|]();
+    }
+}",
+@"using System;
+
+class Class
+{
+    void Method(string s)
+    {
+        s ??= Goo();
+    }
+
+    private string Goo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationIntoSameType_CodeStyle1()
         {
             await TestInRegularAndScriptAsync(

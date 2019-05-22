@@ -276,6 +276,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IEventSymbol_NullableAnnotation As NullableAnnotation Implements IEventSymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.NotApplicable
+            End Get
+        End Property
+
         Private ReadOnly Property IEventSymbol_AddMethod As IMethodSymbol Implements IEventSymbol.AddMethod
             Get
                 Return Me.AddMethod
@@ -338,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End If
 
-            Return Me.ContainingType = other.ContainingType AndAlso Me.OriginalDefinition Is other.OriginalDefinition
+            Return TypeSymbol.Equals(Me.ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso Me.OriginalDefinition Is other.OriginalDefinition
         End Function
 
         Public Overrides Function GetHashCode() As Integer

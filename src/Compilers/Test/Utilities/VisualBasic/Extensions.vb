@@ -124,7 +124,7 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetAttribute(this As Symbol, c As NamedTypeSymbol) As VisualBasicAttributeData
-        Return this.GetAttributes().Where(Function(a) a.AttributeClass = c).First()
+        Return this.GetAttributes().Where(Function(a) TypeSymbol.Equals(a.AttributeClass, c, TypeCompareKind.ConsiderEverything)).First()
     End Function
 
     <Extension>
@@ -134,7 +134,7 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetAttributes(this As Symbol, c As NamedTypeSymbol) As IEnumerable(Of VisualBasicAttributeData)
-        Return this.GetAttributes().Where(Function(a) a.AttributeClass = c)
+        Return this.GetAttributes().Where(Function(a) TypeSymbol.Equals(a.AttributeClass, c, TypeCompareKind.ConsiderEverything))
     End Function
 
     <Extension>

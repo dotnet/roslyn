@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public CSharpUseLocalFunctionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseLocalFunctionDiagnosticId,
                    new LocalizableResourceString(
@@ -102,6 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
 
             if (!(localDeclaration.Parent is BlockSyntax block))
+            {
+                return;
+            }
+
+            // If there are compiler error on the declaration we can't reliably
+            // tell that the refactoring will be accurate, so don't provide any
+            // code diagnostics
+            if (localDeclaration.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             {
                 return;
             }

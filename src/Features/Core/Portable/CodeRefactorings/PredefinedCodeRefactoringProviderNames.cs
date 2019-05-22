@@ -25,11 +25,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string InvertConditional = "Invert Conditional Code Action Provider";
         public const string InvertIf = "Invert If Code Action Provider";
         public const string InvertLogical = "Invert Logical Code Action Provider";
+        public const string MergeConsecutiveIfStatements = "Merge Consecutive If Statements Code Action Provider";
+        public const string MergeNestedIfStatements = "Merge Nested If Statements Code Action Provider";
         public const string MoveDeclarationNearReference = "Move Declaration Near Reference Code Action Provider";
+        public const string MoveToNamespace = "Move To Namespace Code Action Provider";
         public const string MoveTypeToFile = "Move Type To File Code Action Provider";
         public const string PullMemberUp = "Pull Member Up Code Action Provider";
         public const string ReplaceDocCommentTextWithTag = "Replace Documentation Comment Text With Tag Code Action Provider";
         public const string SimplifyLambda = "Simplify Lambda Code Action Provider";
+        public const string SplitIntoConsecutiveIfStatements = "Split Into Consecutive If Statements Code Action Provider";
+        public const string SplitIntoNestedIfStatements = "Split Into Nested If Statements Code Action Provider";
         public const string SyncNamespace = "Sync Namespace and Folder Name Code Action Provider";
         public const string UseExplicitType = "Use Explicit Type Code Action Provider";
         public const string UseExpressionBody = "Use Expression Body Code Action Provider";

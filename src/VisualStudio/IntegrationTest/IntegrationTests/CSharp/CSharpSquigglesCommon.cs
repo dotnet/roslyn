@@ -2,13 +2,14 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     public abstract class CSharpSquigglesCommon : AbstractEditorTest
     {
-        public CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
-            : base(instanceFactory, nameof(CSharpSquigglesCommon), projectTemplate)
+        public CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpSquigglesCommon), projectTemplate)
         {
         }
 

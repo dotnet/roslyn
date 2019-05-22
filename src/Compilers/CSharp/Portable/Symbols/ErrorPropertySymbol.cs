@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class ErrorPropertySymbol : PropertySymbol
     {
         private readonly Symbol _containingSymbol;
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _typeWithAnnotations;
         private readonly string _name;
         private readonly bool _isIndexer;
         private readonly bool _isIndexedProperty;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public ErrorPropertySymbol(Symbol containingSymbol, TypeSymbol type, string name, bool isIndexer, bool isIndexedProperty)
         {
             _containingSymbol = containingSymbol;
-            _type = TypeSymbolWithAnnotations.Create(type);
+            _typeWithAnnotations = TypeWithAnnotations.Create(type);
             _name = name;
             _isIndexer = isIndexer;
             _isIndexedProperty = isIndexedProperty;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override RefKind RefKind { get { return RefKind.None; } }
 
-        public override TypeSymbolWithAnnotations Type { get { return _type; } }
+        public override TypeWithAnnotations TypeWithAnnotations { get { return _typeWithAnnotations; } }
 
         public override string Name { get { return _name; } }
 

@@ -3342,10 +3342,10 @@ class C
             var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var @event = @class.GetMember<EventSymbol>("E");
             var field = @event.AssociatedField;
-            var fieldType = (NamedTypeSymbol)field.Type.TypeSymbol;
+            var fieldType = (NamedTypeSymbol)field.Type;
             Assert.Equal(TypeKind.Error, fieldType.TypeKind);
             Assert.Equal("EventRegistrationTokenTable", fieldType.Name);
-            Assert.Equal(@event.Type.TypeSymbol, fieldType.TypeArguments().Single());
+            Assert.Equal(@event.Type, fieldType.TypeArguments().Single());
         }
 
         [Fact]
@@ -3569,28 +3569,28 @@ namespace System.Runtime.InteropServices.WindowsRuntime
         {
             Assert.True(@event.IsWindowsRuntimeEvent);
 
-            var eventType = @event.Type;
+            var eventType = @event.TypeWithAnnotations;
             var tokenType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken);
             Assert.NotNull(tokenType);
             var voidType = compilation.GetSpecialType(SpecialType.System_Void);
             Assert.NotNull(voidType);
 
             var addMethod = @event.AddMethod;
-            Assert.Equal(tokenType, addMethod.ReturnType.TypeSymbol);
+            Assert.Equal(tokenType, addMethod.ReturnType);
             Assert.False(addMethod.ReturnsVoid);
             Assert.Equal(1, addMethod.ParameterCount);
-            Assert.Equal(eventType.TypeSymbol, addMethod.ParameterTypes.Single().TypeSymbol);
+            Assert.Equal(eventType.Type, addMethod.ParameterTypesWithAnnotations.Single().Type);
 
             var removeMethod = @event.RemoveMethod;
-            Assert.Equal(voidType, removeMethod.ReturnType.TypeSymbol);
+            Assert.Equal(voidType, removeMethod.ReturnType);
             Assert.True(removeMethod.ReturnsVoid);
             Assert.Equal(1, removeMethod.ParameterCount);
-            Assert.Equal(tokenType, removeMethod.ParameterTypes.Single().TypeSymbol);
+            Assert.Equal(tokenType, removeMethod.ParameterTypesWithAnnotations.Single().Type);
 
             if (@event.HasAssociatedField)
             {
-                var expectedFieldType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T).Construct(eventType.TypeSymbol);
-                Assert.Equal(expectedFieldType, @event.AssociatedField.Type.TypeSymbol);
+                var expectedFieldType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T).Construct(eventType.Type);
+                Assert.Equal(expectedFieldType, @event.AssociatedField.Type);
             }
             else
             {
@@ -3602,25 +3602,25 @@ namespace System.Runtime.InteropServices.WindowsRuntime
         {
             Assert.False(@event.IsWindowsRuntimeEvent);
 
-            var eventType = @event.Type.TypeSymbol;
+            var eventType = @event.Type;
             var voidType = compilation.GetSpecialType(SpecialType.System_Void);
             Assert.NotNull(voidType);
 
             var addMethod = @event.AddMethod;
-            Assert.Equal(voidType, addMethod.ReturnType.TypeSymbol);
+            Assert.Equal(voidType, addMethod.ReturnType);
             Assert.True(addMethod.ReturnsVoid);
             Assert.Equal(1, addMethod.ParameterCount);
-            Assert.Equal(eventType, addMethod.ParameterTypes.Single().TypeSymbol);
+            Assert.Equal(eventType, addMethod.ParameterTypesWithAnnotations.Single().Type);
 
             var removeMethod = @event.RemoveMethod;
-            Assert.Equal(voidType, removeMethod.ReturnType.TypeSymbol);
+            Assert.Equal(voidType, removeMethod.ReturnType);
             Assert.True(removeMethod.ReturnsVoid);
             Assert.Equal(1, removeMethod.ParameterCount);
-            Assert.Equal(eventType, removeMethod.ParameterTypes.Single().TypeSymbol);
+            Assert.Equal(eventType, removeMethod.ParameterTypesWithAnnotations.Single().Type);
 
             if (@event.HasAssociatedField)
             {
-                Assert.Equal(eventType, @event.AssociatedField.Type.TypeSymbol);
+                Assert.Equal(eventType, @event.AssociatedField.Type);
             }
             else
             {

@@ -413,9 +413,12 @@ struct Struct
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
-                // (3,27): error CS0106: The modifier 'private protected' is not valid for this item
+                // (3,27): error CS8503: The modifier 'private protected' is not valid for this item in C# 7.2. Please use language version 'preview' or greater.
                 //     private protected int M();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("private protected").WithLocation(3, 27)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("private protected", "7.2", "preview").WithLocation(3, 27),
+                // (3,27): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected int M();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "M").WithLocation(3, 27)
                 );
         }
 

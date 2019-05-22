@@ -5598,8 +5598,8 @@ public class TestClass
             MethodSymbol lambdaSym = (MethodSymbol)(semanticInfo.Symbol);
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
-            Assert.Equal("System.String", lambdaSym.Parameters[0].Type.TypeSymbol.ToTestDisplayString());
-            Assert.Equal("System.Int32", lambdaSym.ReturnType.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("System.String", lambdaSym.Parameters[0].Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", lambdaSym.ReturnType.ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -5635,7 +5635,7 @@ public class TestClass
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
             Assert.Equal(TypeKind.Error, lambdaSym.Parameters[0].Type.TypeKind);
-            Assert.Equal("System.Int32", lambdaSym.ReturnType.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32", lambdaSym.ReturnType.ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -6279,7 +6279,7 @@ class Program
 
             // It's type is not equal to the SemanticInfo type, because that is
             // not an error type.
-            Assert.NotEqual(semanticInfo.Type, param.Type.TypeSymbol);
+            Assert.NotEqual(semanticInfo.Type, param.Type);
         }
 
         [Fact]

@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
             OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo),
-                SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
-                SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo));
+                SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
+                SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+                SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
         internal IDictionary<OptionKey, object> OptionSet(OptionKey option, object value)
         {
@@ -2479,10 +2479,10 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x =>
+        Func<int, Func<int, int>> f = x => y =>
         {
             var {|Rename:v|} = x + 1;
-            return y => v;
+            return v;
         };
     }
 }",
@@ -2539,8 +2539,11 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, int> {|Rename:p|} = y => y + 1;
-        Func<int, Func<int, int>> f = x => p;
+        Func<int, Func<int, int>> f = x =>
+        {
+            Func<int, int> {|Rename:p|} = y => y + 1;
+            return p;
+        };
     }
 }");
         }
@@ -3335,6 +3338,41 @@ class T
 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 2);
+        }
+
+        [WorkItem(31012, "https://github.com/dotnet/roslyn/issues/31012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceLocalInArgumentList()
+        {
+            var code =
+                @"using System;
+public interface IResolver { int Resolve(); }
+public class Test
+{
+    private void register(Func<IResolver, object> a) { }
+    private void test(Func<int, object> factory)
+        => register(x => factory(
+            [|x.Resolve()|]
+        ));
+}";
+
+            var expected =
+                @"using System;
+public interface IResolver { int Resolve(); }
+public class Test
+{
+    private void register(Func<IResolver, object> a) { }
+    private void test(Func<int, object> factory)
+        => register(x =>
+        {
+            int {|Rename:arg|} = x.Resolve();
+            return factory(
+     arg
+ );
+        });
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
 
         [WorkItem(24807, "https://github.com/dotnet/roslyn/issues/24807")]
@@ -4342,11 +4380,11 @@ class TestClass
     @"using System;
 class TestClass
 {
-    Func<int, int> Y()
+    Func<int, int> Y() => f =>
     {
         const int {|Rename:V|} = 9;
-        return f => f * V;
-    }
+        return f * V;
+    };
 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 2);
@@ -4396,11 +4434,11 @@ class TestClass
     @"using System;
 class TestClass
 {
-    Func<int, int> Y()
+    Func<int, int> Y() => (f) =>
     {
         const int {|Rename:V|} = 9;
-        return (f) => f * V;
-    }
+        return f * V;
+    };
 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 2);

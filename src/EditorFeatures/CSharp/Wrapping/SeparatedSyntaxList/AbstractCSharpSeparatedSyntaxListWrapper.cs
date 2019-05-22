@@ -11,10 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.Wrapping.SeparatedSyntaxList
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
-        // In our scenario we want to control all formatting ourselves. So tell the indenter to not
-        // depend on a formatter being available so it does all the work to figure out indentation
-        // itself.
-        protected override IBlankLineIndentationService GetIndentationService()
-            => new CSharpIndentationService();
+        protected AbstractCSharpSeparatedSyntaxListWrapper()
+            : base(CSharpIndentationService.Instance)
+        {
+        }
     }
 }

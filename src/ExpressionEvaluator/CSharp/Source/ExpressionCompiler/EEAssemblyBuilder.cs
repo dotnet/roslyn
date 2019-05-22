@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             LocalSlotConstraints constraints;
             if (local.DeclarationKind == LocalDeclarationKind.FixedVariable)
             {
-                type = ((PointerTypeSymbol)local.Type.TypeSymbol).PointedAtType.TypeSymbol;
+                type = ((PointerTypeSymbol)local.Type).PointedAtType;
                 constraints = LocalSlotConstraints.ByRef | LocalSlotConstraints.Pinned;
             }
             else
             {
-                type = local.Type.TypeSymbol;
+                type = local.Type;
                 constraints = (local.IsPinned ? LocalSlotConstraints.Pinned : LocalSlotConstraints.None) |
                     ((local.RefKind == RefKind.None) ? LocalSlotConstraints.None : LocalSlotConstraints.ByRef);
             }

@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class WrappingFormattingRule : BaseFormattingRule
     {
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
             AddBraceSuppressOperations(list, node);
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             for (int i = 0; i < list.Count; i++)
             {
-                if (list[i] != null && list[i].TextSpan.Start >= span.Start && list[i].TextSpan.End <= span.End)
+                if (list[i] != null && list[i].TextSpan.Start >= span.Start && list[i].TextSpan.End <= span.End && list[i].Option.HasFlag(SuppressOption.NoWrappingIfOnSingleLine))
                 {
                     list[i] = null;
                 }

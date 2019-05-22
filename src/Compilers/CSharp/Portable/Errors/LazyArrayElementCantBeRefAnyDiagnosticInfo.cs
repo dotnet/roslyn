@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class LazyArrayElementCantBeRefAnyDiagnosticInfo : LazyDiagnosticInfo
     {
-        private readonly TypeSymbolWithAnnotations _possiblyRestrictedTypeSymbol;
+        private readonly TypeWithAnnotations _possiblyRestrictedTypeSymbol;
 
-        internal LazyArrayElementCantBeRefAnyDiagnosticInfo(TypeSymbolWithAnnotations possiblyRestrictedTypeSymbol)
+        internal LazyArrayElementCantBeRefAnyDiagnosticInfo(TypeWithAnnotations possiblyRestrictedTypeSymbol)
         {
             _possiblyRestrictedTypeSymbol = possiblyRestrictedTypeSymbol;
         }
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_possiblyRestrictedTypeSymbol.IsRestrictedType())
             {
-                return new CSDiagnosticInfo(ErrorCode.ERR_ArrayElementCantBeRefAny, _possiblyRestrictedTypeSymbol.TypeSymbol);
+                return new CSDiagnosticInfo(ErrorCode.ERR_ArrayElementCantBeRefAny, _possiblyRestrictedTypeSymbol.Type);
             }
 
             return null;

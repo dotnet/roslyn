@@ -3452,7 +3452,7 @@ class Program{
             }
         }
 
-        private static Tuple<OptionSet, IEnumerable<IFormattingRule>> GetService(
+        private static Tuple<OptionSet, IEnumerable<AbstractFormattingRule>> GetService(
             TestWorkspace workspace)
         {
             var options = workspace.Options;

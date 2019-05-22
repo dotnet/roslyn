@@ -1,12 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Public Partial Class VisualBasicSyntaxTree
+    Partial Public Class VisualBasicSyntaxTree
         Friend Class DummySyntaxTree
             Inherits VisualBasicSyntaxTree
 
@@ -47,6 +48,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property DiagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)
+                Get
+                    Throw ExceptionUtilities.Unreachable
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property FilePath As String
                 Get
                     Return String.Empty
@@ -82,6 +89,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function WithFilePath(path As String) As SyntaxTree
                 Return SyntaxFactory.SyntaxTree(_node, options:=Me.Options, path:=path, encoding:=Nothing)
+            End Function
+
+            Public Overrides Function WithDiagnosticOptions(options As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
+                Throw ExceptionUtilities.Unreachable
             End Function
         End Class
     End Class

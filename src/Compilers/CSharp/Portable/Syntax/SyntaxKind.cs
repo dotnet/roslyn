@@ -224,7 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         LoadKeyword = 8485,
         NullableKeyword = 8486,
         EnableKeyword = 8487,
-        SafeOnlyKeyword = 8488,
 
         // Other
         VarKeyword = 8490,

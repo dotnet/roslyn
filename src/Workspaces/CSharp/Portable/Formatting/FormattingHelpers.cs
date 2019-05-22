@@ -81,16 +81,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return token.Kind() == SyntaxKind.CloseParenToken && token.Parent.Kind() == SyntaxKind.ParameterList;
         }
 
-        public static bool IsOpenParenInArgumentList(this SyntaxToken token)
+        public static bool IsOpenParenInArgumentListOrPositionalPattern(this SyntaxToken token)
         {
             return token.Kind() == SyntaxKind.OpenParenToken &&
-                (token.Parent.IsKind(SyntaxKind.ArgumentList) || token.Parent.IsKind(SyntaxKind.AttributeArgumentList));
+                IsTokenInArgumentListOrPositionalPattern(token);
         }
 
-        public static bool IsCloseParenInArgumentList(this SyntaxToken token)
+        public static bool IsCloseParenInArgumentListOrPositionalPattern(this SyntaxToken token)
         {
             return token.Kind() == SyntaxKind.CloseParenToken &&
-                (token.Parent.IsKind(SyntaxKind.ArgumentList) || token.Parent.IsKind(SyntaxKind.AttributeArgumentList));
+                IsTokenInArgumentListOrPositionalPattern(token);
+        }
+
+        private static bool IsTokenInArgumentListOrPositionalPattern(SyntaxToken token)
+        {
+            // Argument lists
+            if (token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList))
+            {
+                return true;
+            }
+
+            // Positional patterns
+            if (token.Parent.IsKind(SyntaxKindEx.PositionalPatternClause) && token.Parent.Parent.IsKind(SyntaxKindEx.RecursivePattern))
+            {
+                // Avoid treating tuple expressions as positional patterns for formatting
+                return token.Parent.Parent.GetFirstToken() != token;
+            }
+
+            return false;
         }
 
         public static bool IsColonInTypeBaseList(this SyntaxToken token)

@@ -32,6 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredLeft = VisitIndexerAccess((BoundIndexerAccess)left, isLeftOfAssignment: true);
                     break;
 
+                case BoundKind.IndexOrRangePatternIndexerAccess:
+                    loweredLeft = VisitIndexOrRangePatternIndexerAccess(
+                        (BoundIndexOrRangePatternIndexerAccess)left,
+                        isLeftOfAssignment: true);
+                    break;
+
                 case BoundKind.EventAccess:
                     {
                         BoundEventAccess eventAccess = (BoundEventAccess)left;
@@ -238,6 +244,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return rewrittenRight;
                     }
 
+                case BoundKind.Sequence:
+                    // An Index or Range pattern-based indexer produces a sequence with a nested
+                    // BoundIndexerAccess. We need to lower the final expression and produce an
+                    // update sequence
+                    var sequence = (BoundSequence)rewrittenLeft;
+                    if (sequence.Value.Kind == BoundKind.IndexerAccess)
+                    {
+                        return sequence.Update(
+                            sequence.Locals,
+                            sequence.SideEffects,
+                            MakeStaticAssignmentOperator(
+                                syntax,
+                                sequence.Value,
+                                rewrittenRight,
+                                isRef,
+                                type,
+                                used),
+                            type);
+                    }
+                    goto default;
+
                 default:
                     {
                         Debug.Assert(!isRef);
@@ -340,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argTemps,
                         ImmutableArray<BoundExpression>.Empty,
                         setterCall,
-                        setMethod.ReturnType.TypeSymbol);
+                        setMethod.ReturnType);
                 }
             }
         }

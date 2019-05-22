@@ -1231,7 +1231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function ClassifyTupleConversion(source As BoundTupleLiteral, destination As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ConversionKind
-            If source.Type = destination Then
+            If TypeSymbol.Equals(source.Type, destination, TypeCompareKind.ConsiderEverything) Then
                 Return ConversionKind.Identity
             End If
 

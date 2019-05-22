@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
 
             projectChecksums.Find(project.State, Flatten(projectChecksums), map, cancellationToken);
 
-            foreach (var document in project.Documents.Concat(project.AdditionalDocuments))
+            foreach (var document in project.Documents.Concat(project.AdditionalDocuments).Concat(project.AnalyzerConfigDocuments))
             {
                 await document.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             }
@@ -76,6 +76,13 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
         private static HashSet<Checksum> Flatten(ChecksumWithChildren checksums)
         {
             var set = new HashSet<Checksum>();
+            set.AppendChecksums(checksums);
+
+            return set;
+        }
+
+        public static void AppendChecksums(this HashSet<Checksum> set, ChecksumWithChildren checksums)
+        {
             set.Add(checksums.Checksum);
 
             foreach (var child in checksums.Children)
@@ -87,14 +94,9 @@ namespace Microsoft.CodeAnalysis.Remote.Shared
 
                 if (child is ChecksumCollection collection)
                 {
-                    foreach (var item in collection)
-                    {
-                        set.Add(item);
-                    }
+                    set.AppendChecksums(collection);
                 }
             }
-
-            return set;
         }
     }
 }

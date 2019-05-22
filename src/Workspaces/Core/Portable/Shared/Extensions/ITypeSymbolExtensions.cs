@@ -6,9 +6,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -91,10 +93,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// interfaceMember, or this type doesn't supply a member that successfully implements
         /// interfaceMember).
         /// </summary>
-        public static IEnumerable<SymbolAndProjectId> FindImplementationsForInterfaceMember(
+        public static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsForInterfaceMemberAsync(
             this SymbolAndProjectId<ITypeSymbol> typeSymbolAndProjectId,
             ISymbol interfaceMember,
-            Workspace workspace,
+            Solution solution,
             CancellationToken cancellationToken)
         {
             // This method can return multiple results.  Consider the case of:
@@ -106,19 +108,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // If you're looking for the implementations of IGoo<X>.Goo then you want to find both
             // results in C.
 
+            var arrBuilder = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
             var typeSymbol = typeSymbolAndProjectId.Symbol;
             if (typeSymbol == null || interfaceMember == null)
             {
-                yield break;
+                return arrBuilder.ToImmutableAndFree();
             }
 
             if (interfaceMember.Kind != SymbolKind.Event &&
                 interfaceMember.Kind != SymbolKind.Method &&
                 interfaceMember.Kind != SymbolKind.Property)
             {
-                yield break;
+                return arrBuilder.ToImmutableAndFree();
             }
 
             // WorkItem(4843)
@@ -143,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var interfaceType = interfaceMember.ContainingType;
             if (!typeSymbol.ImplementsIgnoringConstruction(interfaceType))
             {
-                yield break;
+                return arrBuilder.ToImmutableAndFree();
             }
 
             // We've ascertained that the type T implements some constructed type of the form I<X>.
@@ -153,14 +157,31 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // instantiations of that method.
             var originalInterfaceType = interfaceMember.ContainingType.OriginalDefinition;
             var originalInterfaceMember = interfaceMember.OriginalDefinition;
+
             var constructedInterfaces = typeSymbol.AllInterfaces.Where(i =>
                 SymbolEquivalenceComparer.Instance.Equals(i.OriginalDefinition, originalInterfaceType));
+
+            // Try to get the compilation for the symbol we're searching for, 
+            // which can help identify matches with the call to SymbolFinder.OriginalSymbolsMatch.
+            // OriginalSymbolMatch allows types to be matched across different assemblies
+            // if they are considered to be the same type, which provides a more accurate
+            // implementations list for interfaces. 
+            var typeSymbolProject = solution.GetProject(typeSymbolAndProjectId.ProjectId);
+            var typeSymbolCompilation = typeSymbolProject == null ?
+                                        null :
+                                        await typeSymbolProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var constructedInterface in constructedInterfaces)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var constructedInterfaceMember = constructedInterface.GetMembers().FirstOrDefault(m =>
-                    SymbolEquivalenceComparer.Instance.Equals(m.OriginalDefinition, originalInterfaceMember));
+                    SymbolFinder.OriginalSymbolsMatch(
+                        m,
+                        interfaceMember,
+                        solution,
+                        typeSymbolCompilation,
+                        symbolToMatchCompilation: null,
+                        cancellationToken));
 
                 if (constructedInterfaceMember == null)
                 {
@@ -177,29 +198,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                     if (seenTypeDeclaringInterface)
                     {
-                        var result = FindImplementations(workspace, constructedInterfaceMember, currentType);
+                        var result = currentType.FindImplementations(constructedInterfaceMember, solution.Workspace);
 
                         if (result != null)
                         {
-                            yield return typeSymbolAndProjectId.WithSymbol(result);
+                            arrBuilder.Add(typeSymbolAndProjectId.WithSymbol(result));
                             break;
                         }
                     }
                 }
             }
+
+            return arrBuilder.ToImmutableAndFree();
         }
 
-        private static ISymbol FindImplementations(Workspace workspace, ISymbol constructedInterfaceMember, ITypeSymbol currentType)
-        {
-            switch (constructedInterfaceMember)
-            {
-                case IEventSymbol eventSymbol: return FindImplementations(currentType, eventSymbol, workspace, e => e.ExplicitInterfaceImplementations);
-                case IMethodSymbol methodSymbol: return FindImplementations(currentType, methodSymbol, workspace, m => m.ExplicitInterfaceImplementations);
-                case IPropertySymbol propertySymbol: return FindImplementations(currentType, propertySymbol, workspace, p => p.ExplicitInterfaceImplementations);
-            }
-
-            return null;
-        }
 
         private static HashSet<INamedTypeSymbol> GetOriginalInterfacesAndTheirBaseInterfaces(
             this ITypeSymbol type,
@@ -216,19 +228,32 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbols;
         }
 
+        public static ISymbol FindImplementations(
+            this ITypeSymbol typeSymbol,
+            ISymbol constructedInterfaceMember,
+            Workspace workspace)
+        {
+            switch (constructedInterfaceMember)
+            {
+                case IEventSymbol eventSymbol: return typeSymbol.FindImplementations(eventSymbol, workspace);
+                case IMethodSymbol methodSymbol: return typeSymbol.FindImplementations(methodSymbol, workspace);
+                case IPropertySymbol propertySymbol: return typeSymbol.FindImplementations(propertySymbol, workspace);
+            }
+
+            return null;
+        }
+
         private static ISymbol FindImplementations<TSymbol>(
-            ITypeSymbol typeSymbol,
-            TSymbol interfaceSymbol,
-            Workspace workspace,
-            Func<TSymbol, ImmutableArray<TSymbol>> getExplicitInterfaceImplementations) where TSymbol : class, ISymbol
+            this ITypeSymbol typeSymbol,
+            TSymbol constructedInterfaceMember,
+            Workspace workspace) where TSymbol : class, ISymbol
         {
             // Check the current type for explicit interface matches.  Otherwise, check
             // the current type and base types for implicit matches.
             var explicitMatches =
                 from member in typeSymbol.GetMembers().OfType<TSymbol>()
-                where getExplicitInterfaceImplementations(member).Length > 0
-                from explicitInterfaceMethod in getExplicitInterfaceImplementations(member)
-                where SymbolEquivalenceComparer.Instance.Equals(explicitInterfaceMethod, interfaceSymbol)
+                from explicitInterfaceMethod in member.ExplicitInterfaceImplementations()
+                where SymbolEquivalenceComparer.Instance.Equals(explicitInterfaceMethod, constructedInterfaceMember)
                 select member;
 
             var provider = workspace.Services.GetLanguageServices(typeSymbol.Language);
@@ -239,8 +264,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // representing System.Xml.XmlReader will say it implements IDisposable, but
             // the XmlReader.Dispose() method will not be an explicit implementation of
             // IDisposable.Dispose()
-            if (!semanticFacts.SupportsImplicitInterfaceImplementation &&
-                typeSymbol.Locations.Any(location => location.IsInSource))
+            if ((!semanticFacts.SupportsImplicitInterfaceImplementation &&
+                typeSymbol.Locations.Any(location => location.IsInSource)) ||
+                typeSymbol.TypeKind == TypeKind.Interface)
             {
                 return explicitMatches.FirstOrDefault();
             }
@@ -248,10 +274,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var syntaxFacts = provider.GetService<ISyntaxFactsService>();
             var implicitMatches =
                 from baseType in typeSymbol.GetBaseTypesAndThis()
-                from member in baseType.GetMembers(interfaceSymbol.Name).OfType<TSymbol>()
+                from member in baseType.GetMembers(constructedInterfaceMember.Name).OfType<TSymbol>()
                 where member.DeclaredAccessibility == Accessibility.Public &&
                       !member.IsStatic &&
-                      SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(member, interfaceSymbol, syntaxFacts.IsCaseSensitive)
+                      SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(member, constructedInterfaceMember, syntaxFacts.IsCaseSensitive)
                 select member;
 
             return explicitMatches.FirstOrDefault() ?? implicitMatches.FirstOrDefault();
@@ -318,13 +344,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type.GetBaseTypesAndThis().Contains(t => SymbolEquivalenceComparer.Instance.Equals(t, baseType));
         }
 
-        // Determine if "type" inherits from "baseType", ignoring constructed types, and dealing
+        // Determine if "type" inherits from or implements "baseType", ignoring constructed types, and dealing
         // only with original types.
-        public static bool InheritsFromOrEqualsIgnoringConstruction(
+        public static bool InheritsFromOrImplementsOrEqualsIgnoringConstruction(
             this ITypeSymbol type, ITypeSymbol baseType)
         {
             var originalBaseType = baseType.OriginalDefinition;
-            return type.GetBaseTypesAndThis().Contains(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalBaseType));
+            type = type.OriginalDefinition;
+
+            if (SymbolEquivalenceComparer.Instance.Equals(type, originalBaseType))
+            {
+                return true;
+            }
+
+            IEnumerable<ITypeSymbol> baseTypes = (baseType.TypeKind == TypeKind.Interface) ? type.AllInterfaces : type.GetBaseTypes();
+            return baseTypes.Contains(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalBaseType));
         }
 
         // Determine if "type" inherits from "baseType", ignoring constructed types, and dealing
@@ -355,12 +389,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ITypeSymbol type, ITypeSymbol interfaceType)
         {
             var originalInterfaceType = interfaceType.OriginalDefinition;
-            if (type is INamedTypeSymbol && type.TypeKind == TypeKind.Interface)
-            {
-                // Interfaces don't implement other interfaces. They extend them.
-                return false;
-            }
-
             return type.AllInterfaces.Any(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalInterfaceType));
         }
 

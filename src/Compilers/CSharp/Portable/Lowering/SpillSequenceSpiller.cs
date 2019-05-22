@@ -81,6 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
+            protected override BoundExpression ShallowClone()
+                => throw ExceptionUtilities.Unreachable;
+
             public void Free()
             {
                 if (_locals != null) _locals.Free();
@@ -372,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return expression;
 
                     default:
-                        if (expression.Type.SpecialType == SpecialType.System_Void || sideEffectsOnly)
+                        if (expression.Type.IsVoidType() || sideEffectsOnly)
                         {
                             builder.AddStatement(_F.ExpressionStatement(expression));
                             return null;
@@ -627,6 +630,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateExpression(builder, node.Update(initializers));
         }
 
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
+        {
+            BoundSpillSequenceBuilder builder = null;
+            BoundExpression count = VisitExpression(ref builder, node.Count);
+            var initializerOpt = (BoundArrayInitialization)VisitExpression(ref builder, node.InitializerOpt);
+            return UpdateExpression(builder, node.Update(node.ElementType, count, initializerOpt, node.Type));
+        }
+
         public override BoundNode VisitArrayLength(BoundArrayLength node)
         {
             BoundSpillSequenceBuilder builder = null;
@@ -808,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (consequenceBuilder == null) consequenceBuilder = new BoundSpillSequenceBuilder();
             if (alternativeBuilder == null) alternativeBuilder = new BoundSpillSequenceBuilder();
 
-            if (node.Type.SpecialType == SpecialType.System_Void)
+            if (node.Type.IsVoidType())
             {
                 conditionBuilder.AddStatement(
                     _F.If(condition,
@@ -985,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver = _F.ComplexConditionalReceiver(receiver, _F.Local(clone));
             }
 
-            if (node.Type.SpecialType == SpecialType.System_Void)
+            if (node.Type.IsVoidType())
             {
                 var whenNotNullStatement = UpdateStatement(whenNotNullBuilder, _F.ExpressionStatement(whenNotNull));
                 whenNotNullStatement = ConditionalReceiverReplacer.Replace(whenNotNullStatement, receiver, node.Id, RecursionDepth);

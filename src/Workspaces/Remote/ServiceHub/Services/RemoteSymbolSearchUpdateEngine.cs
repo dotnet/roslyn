@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _updateEngine = new SymbolSearchUpdateEngine(
                 logService: this, progressService: this);
 
-            Rpc.StartListening();
+            StartService();
         }
 
         public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
@@ -68,22 +68,22 @@ namespace Microsoft.CodeAnalysis.Remote
         #region Messages to forward from here to VS
 
         public Task LogExceptionAsync(string exception, string text)
-            => this.Rpc.InvokeAsync(nameof(LogExceptionAsync), exception, text);
+            => this.InvokeAsync(nameof(LogExceptionAsync), new object[] { exception, text }, CancellationToken.None);
 
         public Task LogInfoAsync(string text)
-            => this.Rpc.InvokeAsync(nameof(LogInfoAsync), text);
+            => this.InvokeAsync(nameof(LogInfoAsync), new object[] { text }, CancellationToken.None);
 
         public Task OnDownloadFullDatabaseStartedAsync(string title)
-            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), title);
+            => this.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), new object[] { title }, CancellationToken.None);
 
         public Task OnDownloadFullDatabaseSucceededAsync()
-            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync));
+            => this.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync), CancellationToken.None);
 
         public Task OnDownloadFullDatabaseCanceledAsync()
-            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync));
+            => this.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync), CancellationToken.None);
 
         public Task OnDownloadFullDatabaseFailedAsync(string message)
-            => this.Rpc.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), message);
+            => this.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), new object[] { message }, CancellationToken.None);
 
         #endregion
     }

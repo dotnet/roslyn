@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -23,8 +24,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpCodeActions(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpCodeActions))
+        public CSharpCodeActions(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpCodeActions))
         {
         }
 
@@ -140,7 +141,7 @@ class C
             VisualStudio.Editor.Verify.TextContains("Second?.");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30015")]
+        [ConditionalWpfFact(typeof(LegacyEditorConfigCondition))]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
@@ -197,6 +198,12 @@ class C
             MarkupTestFile.GetSpans(markup, out var text, out ImmutableArray<TextSpan> spans);
             SetUpEditor(markup);
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
             VisualStudio.Editor.Verify.CodeActionsNotShowing();
 
             var editorConfig = @"root = true
@@ -205,14 +212,24 @@ class C
 csharp_style_expression_bodied_properties = true:warning
 ";
 
-            VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
+            VisualStudio.SolutionExplorer.BeginWatchForCodingConventionsChange(new ProjectUtils.Project(ProjectName), "Class1.cs");
+            try
+            {
+                VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
+            }
+            finally
+            {
+                VisualStudio.SolutionExplorer.EndWaitForCodingConventionsChange(Helper.HangMitigatingTimeout);
+            }
 
             // Wait for CodingConventions library events to propagate to the workspace
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService);
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction(
                 "Use expression body for properties",
@@ -228,14 +245,24 @@ csharp_style_expression_bodied_properties = true:warning
              * outcome for the modified .editorconfig style.
              */
 
-            VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("true:warning", "false:warning"));
+            VisualStudio.SolutionExplorer.BeginWatchForCodingConventionsChange(new ProjectUtils.Project(ProjectName), "Class1.cs");
+            try
+            {
+                VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("true:warning", "false:warning"));
+            }
+            finally
+            {
+                VisualStudio.SolutionExplorer.EndWaitForCodingConventionsChange(Helper.HangMitigatingTimeout);
+            }
 
             // Wait for CodingConventions library events to propagate to the workspace
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService);
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction(
                 "Use block body for properties",
@@ -281,6 +308,146 @@ class C
             Assert.Equal(expectedText, VisualStudio.Editor.GetText());
         }
 
+        [CriticalWpfTheory]
+        [InlineData(FixAllScope.Project)]
+        [InlineData(FixAllScope.Solution)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [WorkItem(33507, "https://github.com/dotnet/roslyn/issues/33507")]
+        public void FixAllOccurrencesIgnoresGeneratedCode(FixAllScope scope)
+        {
+            var markup = @"
+using System;
+using $$System.Threading;
+
+class C
+{
+    public IntPtr X1 { get; set; }
+}";
+            var expectedText = @"
+using System;
+
+class C
+{
+    public IntPtr X1 { get; set; }
+}";
+            var generatedSourceMarkup = @"// <auto-generated/>
+using System;
+using $$System.Threading;
+
+class D
+{
+    public IntPtr X1 { get; set; }
+}";
+            var expectedGeneratedSource = @"// <auto-generated/>
+using System;
+
+class D
+{
+    public IntPtr X1 { get; set; }
+}";
+
+            MarkupTestFile.GetPosition(generatedSourceMarkup, out var generatedSource, out int generatedSourcePosition);
+
+            VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), "D.cs", generatedSource, open: false);
+
+            // Switch to the main document we'll be editing
+            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.cs");
+
+            // Verify that applying a Fix All operation does not change generated files.
+            // This is a regression test for correctness with respect to the design.
+            SetUpEditor(markup);
+            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction(
+                "Remove Unnecessary Usings",
+                applyFix: true,
+                fixAllScope: scope);
+
+            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
+
+            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "D.cs");
+            Assert.Equal(generatedSource, VisualStudio.Editor.GetText());
+
+            // Verify that a Fix All in Document in the generated file still does nothing.
+            // ⚠ This is a statement of the current behavior, and not a claim regarding correctness of the design.
+            // The current behavior is observable; any change to this behavior should be part of an intentional design
+            // change.
+            VisualStudio.Editor.MoveCaret(generatedSourcePosition);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction(
+                "Remove Unnecessary Usings",
+                applyFix: true,
+                fixAllScope: FixAllScope.Document);
+
+            Assert.Equal(generatedSource, VisualStudio.Editor.GetText());
+
+            // Verify that the code action can still be applied manually from within the generated file.
+            // This is a regression test for correctness with respect to the design.
+            VisualStudio.Editor.MoveCaret(generatedSourcePosition);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction(
+                "Remove Unnecessary Usings",
+                applyFix: true,
+                fixAllScope: null);
+
+            Assert.Equal(expectedGeneratedSource, VisualStudio.Editor.GetText());
+        }
+
+        [CriticalWpfTheory]
+        [InlineData(FixAllScope.Project)]
+        [InlineData(FixAllScope.Solution)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [WorkItem(33507, "https://github.com/dotnet/roslyn/issues/33507")]
+        public void FixAllOccurrencesTriggeredFromGeneratedCode(FixAllScope scope)
+        {
+            var markup = @"// <auto-generated/>
+using System;
+using $$System.Threading;
+
+class C
+{
+    public IntPtr X1 { get; set; }
+}";
+            var secondFile = @"
+using System;
+using System.Threading;
+
+class D
+{
+    public IntPtr X1 { get; set; }
+}";
+            var expectedSecondFile = @"
+using System;
+
+class D
+{
+    public IntPtr X1 { get; set; }
+}";
+
+            VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), "D.cs", secondFile, open: false);
+
+            // Switch to the main document we'll be editing
+            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.cs");
+
+            // Verify that applying a Fix All operation does not change generated file, but does change other files.
+            // ⚠ This is a statement of the current behavior, and not a claim regarding correctness of the design.
+            // The current behavior is observable; any change to this behavior should be part of an intentional design
+            // change.
+            MarkupTestFile.GetPosition(markup, out var expectedText, out int _);
+            SetUpEditor(markup);
+            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction(
+                "Remove Unnecessary Usings",
+                applyFix: true,
+                fixAllScope: scope);
+
+            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
+
+            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "D.cs");
+            Assert.Equal(expectedSecondFile, VisualStudio.Editor.GetText());
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void ClassificationInPreviewPane()
         {
@@ -317,12 +484,13 @@ public class P2 { }");
             var expectedItems = new[]
             {
                 "using System.IO;",
+                "Rename 'P2' to 'Stream'",
                 "System.IO.Stream",
                 "Generate class 'Stream' in new file",
                 "Generate class 'Stream'",
                 "Generate nested class 'Stream'",
                 "Generate new type...",
-                "Rename 'P2' to 'Stream'",
+                "Remove unused variable",
                 "Suppress CS0168",
                 "in Source"
             };

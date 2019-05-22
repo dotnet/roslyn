@@ -14,28 +14,48 @@
       </trans-unit>
       <trans-unit id="CSharp_Coding_Conventions">
         <source>C# Coding Conventions</source>
-        <target state="new">C# Coding Conventions</target>
+        <target state="translated">Conventions de codage C#</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Formatting_Rules">
         <source>C# Formatting Rules</source>
-        <target state="new">C# Formatting Rules</target>
+        <target state="translated">Règles de formatage C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="new">Discard</target>
+        <target state="translated">Annuler</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
-        <target state="translated">Paramètres de mise en forme du document (essai) </target>
+        <target state="translated">Paramètres de mise en forme du document (essai)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">Général</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">Générer un abonnement à des événements</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">Dans les opérateurs relationnels :  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Inside_namespace">
+        <source>Inside namespace</source>
+        <target state="new">Inside namespace</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="new">Outside namespace</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
@@ -44,22 +64,32 @@
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">Préférer 'is nul' pour les contrôles d'égalité de référence</target>
+        <target state="translated">Préférer 'is nul' pour les vérifications d'égalité de référence</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Prefer_switch_expression">
-        <source>Prefer switch expression</source>
-        <target state="new">Prefer switch expression</target>
-        <note />
+      <trans-unit id="Preferred_using_directive_placement">
+        <source>Preferred 'using' directive placement</source>
+        <target state="new">Preferred 'using' directive placement</target>
+        <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="translated">Supprimer les usings inutiles</target>
+        <target state="translated">Supprimer les Usings inutiles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="new">Show items from unimported namespaces (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
-        <target state="translated">Trier les usings</target>
+        <target state="translated">Trier les instructions using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
+        <source>Suggest usings for types in .NET Framework assemblies</source>
+        <target state="new">Suggest usings for types in .NET Framework assemblies</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -299,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Insert_space_after_cast">
         <source>Insert space after cast</source>
-        <target state="translated">Insérer un espace après cast</target>
+        <target state="translated">Insérer un espace après le cast</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_spaces_within_parentheses_of_control_flow_statements">
@@ -379,7 +409,7 @@
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
-        <target state="new">Unused local</target>
+        <target state="translated">Local inutilisé</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
@@ -454,7 +484,7 @@
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="translated">Normale</target>
+        <target state="translated">Normal</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">
@@ -517,11 +547,6 @@
         <target state="translated">Placer une accolade ouvrante sur une nouvelle ligne pour les propriétés, indexeurs et événements</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_reference_assemblies">
-        <source>Suggest usings for types in _reference assemblies</source>
-        <target state="translated">Suggérer des usings pour les types dans les assemblys de _référence</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">Suggérer des usings pour les types dans les packages _NuGet</target>
@@ -544,7 +569,7 @@
       </trans-unit>
       <trans-unit id="When_on_multiple_lines">
         <source>When on multiple lines</source>
-        <target state="new">When on multiple lines</target>
+        <target state="translated">Si plusieurs lignes</target>
         <note />
       </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
@@ -592,6 +617,11 @@
         <target state="translated">'Préférences 'this.' :</target>
         <note />
       </trans-unit>
+      <trans-unit id="using_preferences_colon">
+        <source>'using' preferences:</source>
+        <target state="new">'using' preferences:</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="var_preferences_colon">
         <source>'var' preferences:</source>
         <target state="translated">'Préférences 'var' :</target>
@@ -604,7 +634,7 @@
       </trans-unit>
       <trans-unit id="predefined_type_preferences_colon">
         <source>predefined type preferences:</source>
-        <target state="translated">préférences de types prédéfinies :</target>
+        <target state="translated">Préférences de types prédéfinies :</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string_literals_on_enter">
@@ -739,7 +769,7 @@
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'string.Format' calls</source>
-        <target state="translated">Signaler les espaces réservés non valides dans les appels de 'string.Format'</target>
+        <target state="translated">Signaler les espaces réservés non valides dans les appels de 'String.Format'</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_using_directive_groups">
@@ -752,11 +782,6 @@
         <target state="translated">Afficher les s_uggestions de nom</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">Générer un abonnement à des événements</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
         <target state="translated">Dans les opérateurs arithmétiques :  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
@@ -764,7 +789,7 @@
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">Dans les autres opérateurs binaires :  &amp;&amp;   ||   ??</target>
+        <target state="translated">Dans d'autres opérateurs binaires :  &amp;&amp;   ||   ??</target>
         <note />
       </trans-unit>
     </body>

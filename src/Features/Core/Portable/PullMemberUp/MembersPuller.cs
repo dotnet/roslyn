@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             return new SolutionChangeAction(
-                string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.ToDisplayString(), result.Destination.ToDisplayString()),
+                string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.Name, result.Destination.Name),
                 cancellationToken => PullMembersUpAsync(document, result, cancellationToken));
         }
 
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
             else if (member is IPropertySymbol propertySymbol)
             {
-                return CodeGenerationSymbolFactory.CreatePropertySymbol(propertySymbol, modifiers: modifier);
+                return CodeGenerationSymbolFactory.CreatePropertySymbol(propertySymbol, modifiers: modifier, getMethod: propertySymbol.GetMethod, setMethod: propertySymbol.SetMethod);
             }
             else if (member is IEventSymbol eventSymbol)
             {

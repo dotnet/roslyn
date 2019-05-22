@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private readonly Symbol _containingSymbol;
         private readonly string _name;
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _typeWithAnnotations;
         private readonly ParameterHandle _handle;
         private readonly ParameterAttributes _flags;
         private readonly PEModuleSymbol _moduleSymbol;
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Symbol containingSymbol,
             int ordinal,
             bool isByRef,
-            TypeSymbolWithAnnotations type,
+            TypeWithAnnotations typeWithAnnotations,
             ImmutableArray<byte> extraAnnotations,
             ParameterHandle handle,
             int countOfCustomModifiers,
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert((object)moduleSymbol != null);
             Debug.Assert((object)containingSymbol != null);
             Debug.Assert(ordinal >= 0);
-            Debug.Assert(!type.IsNull);
+            Debug.Assert(typeWithAnnotations.HasType);
 
             isBad = false;
             _moduleSymbol = moduleSymbol;
@@ -214,12 +214,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 refKind = isByRef ? RefKind.Ref : RefKind.None;
 
-                type = TupleTypeSymbol.TryTransformToTuple(type.TypeSymbol, out TupleTypeSymbol tuple) ?
-                    TypeSymbolWithAnnotations.Create(tuple) :
-                    type;
+                typeWithAnnotations = TupleTypeSymbol.TryTransformToTuple(typeWithAnnotations.Type, out TupleTypeSymbol tuple) ?
+                    TypeWithAnnotations.Create(tuple) :
+                    typeWithAnnotations;
                 if (!extraAnnotations.IsDefault)
                 {
-                    type = NullableTypeDecoder.TransformType(type, defaultTransformFlag: 0, extraAnnotations);
+                    typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, defaultTransformFlag: 0, extraAnnotations);
                 }
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
@@ -257,15 +257,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // CONSIDER: Can we make parameter type computation lazy?
-                var typeSymbol = DynamicTypeDecoder.TransformType(type.TypeSymbol, countOfCustomModifiers, handle, moduleSymbol, refKind);
-                type = type.WithTypeAndModifiers(typeSymbol, type.CustomModifiers);
+                var typeSymbol = DynamicTypeDecoder.TransformType(typeWithAnnotations.Type, countOfCustomModifiers, handle, moduleSymbol, refKind);
+                typeWithAnnotations = typeWithAnnotations.WithTypeAndModifiers(typeSymbol, typeWithAnnotations.CustomModifiers);
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol, extraAnnotations);
-                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
+                typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, handle, moduleSymbol, extraAnnotations);
+                typeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithAnnotations, handle, moduleSymbol);
             }
 
-            _type = type;
+            _typeWithAnnotations = typeWithAnnotations;
 
             bool hasNameInMetadata = !string.IsNullOrEmpty(_name);
             if (!hasNameInMetadata)
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             out bool isBad)
         {
             // We start without annotation (they will be decoded below)
-            var typeWithModifiers = TypeSymbolWithAnnotations.Create(type, customModifiers: CSharpCustomModifier.Convert(customModifiers));
+            var typeWithModifiers = TypeWithAnnotations.Create(type, customModifiers: CSharpCustomModifier.Convert(customModifiers));
 
             PEParameterSymbol parameter = customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty
                 ? new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, extraAnnotations, handle, 0, out isBad)
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 int ordinal,
                 bool isByRef,
                 ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers,
-                TypeSymbolWithAnnotations type,
+                TypeWithAnnotations type,
                 ImmutableArray<byte> extraAnnotations,
                 ParameterHandle handle,
                 out bool isBad) :
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool isCallerLineNumber = HasCallerLineNumberAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type.TypeSymbol, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref useSiteDiagnostics);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerLineNumber);
                 }
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool isCallerFilePath = !HasCallerLineNumberAttribute
                         && HasCallerFilePathAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type.TypeSymbol, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerFilePath);
                 }
@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     bool isCallerMemberName = !HasCallerLineNumberAttribute
                         && !HasCallerFilePathAttribute
                         && HasCallerMemberNameAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type.TypeSymbol, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
                 }
@@ -690,11 +690,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
-                return _type;
+                return _typeWithAnnotations;
             }
         }
 

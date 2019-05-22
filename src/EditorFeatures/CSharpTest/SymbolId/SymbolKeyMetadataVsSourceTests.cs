@@ -64,19 +64,19 @@ public class App : C
             var typesym = comp2.SourceModule.GlobalNamespace.GetTypeMembers("App").FirstOrDefault() as NamedTypeSymbol;
 
             // 'D'
-            var member01 = (typesym.GetMembers("myEvent").Single() as EventSymbol).Type.TypeSymbol;
+            var member01 = (typesym.GetMembers("myEvent").Single() as EventSymbol).Type;
 
             // 'I'
-            var member02 = (typesym.GetMembers("Prop").Single() as PropertySymbol).Type.TypeSymbol;
+            var member02 = (typesym.GetMembers("Prop").Single() as PropertySymbol).Type;
 
             // 'C'
             var member03 = typesym.BaseType();
 
             // 'S'
-            var member04 = (typesym.GetMembers("M").Single() as MethodSymbol).Parameters[0].Type.TypeSymbol;
+            var member04 = (typesym.GetMembers("M").Single() as MethodSymbol).Parameters[0].Type;
 
             // 'E'
-            var member05 = (typesym.GetMembers(WellKnownMemberNames.Indexer).Single() as PropertySymbol).Type.TypeSymbol;
+            var member05 = (typesym.GetMembers(WellKnownMemberNames.Indexer).Single() as PropertySymbol).Type;
 
             ResolveAndVerifySymbol(member03, originalSymbols[0], comp1, SymbolKeyComparison.None);
             ResolveAndVerifySymbol(member01, originalSymbols[1], comp1, SymbolKeyComparison.None);
@@ -231,14 +231,14 @@ class Test
             var mem20_2 = typeA.GetMembers("PrintInfo").Single() as MethodSymbol;
 
             // FileInfo
-            var mtsym20_1 = mem20_1.ReturnType.TypeSymbol;
+            var mtsym20_1 = mem20_1.ReturnType;
             Assert.Equal(2, mem20_2.Parameters.Length);
 
             // Array
-            var mtsym20_2 = mem20_2.Parameters[0].Type.TypeSymbol;
+            var mtsym20_2 = mem20_2.Parameters[0].Type;
 
             // ref DateTime
-            var mtsym20_3 = mem20_2.Parameters[1].Type.TypeSymbol;
+            var mtsym20_3 = mem20_2.Parameters[1].Type;
 
             // ====================
             var typeTest = comp40.SourceModule.GlobalNamespace.GetTypeMembers("Test").FirstOrDefault();
@@ -251,7 +251,7 @@ class Test
                 var df = model.AnalyzeDataFlow(body.Statements.First(), body.Statements.Last());
                 foreach (var local in df.VariablesDeclared)
                 {
-                    var localType = ((LocalSymbol)local).Type.TypeSymbol;
+                    var localType = ((LocalSymbol)local).Type;
 
                     if (local.Name == "fi")
                     {
@@ -340,28 +340,28 @@ class Test
             ResolveAndVerifySymbol(list[0], originalSymbols[2], model, comp20);
 
             // delegate ParameterizedThreadStart
-            ResolveAndVerifyTypeSymbol(list[0], (originalSymbols[2] as EventSymbol).Type.TypeSymbol, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[0], (originalSymbols[2] as EventSymbol).Type, model, comp20);
 
             // MethodGroup
-            ResolveAndVerifyTypeSymbol(list[1], (originalSymbols[2] as EventSymbol).Type.TypeSymbol, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[1], (originalSymbols[2] as EventSymbol).Type, model, comp20);
 
             // Indexer
             ResolveAndVerifySymbol(list[2], originalSymbols[4], model, comp20);
 
             // class Exception
-            ResolveAndVerifyTypeSymbol(list[2], (originalSymbols[4] as PropertySymbol).Type.TypeSymbol, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[2], (originalSymbols[4] as PropertySymbol).Type, model, comp20);
 
             // PublicField
             ResolveAndVerifySymbol(list[3], originalSymbols[3], model, comp20);
 
             // enum DayOfWeek
-            ResolveAndVerifyTypeSymbol(list[3], (originalSymbols[3] as FieldSymbol).Type.TypeSymbol, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[3], (originalSymbols[3] as FieldSymbol).Type, model, comp20);
 
             // Prop
             ResolveAndVerifySymbol(list[4], originalSymbols[0], model, comp20);
 
             // interface IDisposable
-            ResolveAndVerifyTypeSymbol(list[4], (originalSymbols[0] as PropertySymbol).Type.TypeSymbol, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[4], (originalSymbols[0] as PropertySymbol).Type, model, comp20);
         }
 
         [Fact, WorkItem(546255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546255")]
@@ -422,13 +422,13 @@ class Test
             ResolveAndVerifySymbol(list[0], originalSymbols[3], model, comp20);
 
             // class Exception
-            ResolveAndVerifyTypeSymbol(list[0], (originalSymbols[3] as PropertySymbol).Type.TypeSymbol, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[0], (originalSymbols[3] as PropertySymbol).Type, model, comp20);
 
             // Prop
             ResolveAndVerifySymbol(list[1], originalSymbols[2], model, comp20);
 
             // interface IDisposable
-            ResolveAndVerifyTypeSymbol(list[1], (originalSymbols[2] as PropertySymbol).Type.TypeSymbol, model, comp20);
+            ResolveAndVerifyTypeSymbol(list[1], (originalSymbols[2] as PropertySymbol).Type, model, comp20);
         }
 
         #endregion

@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             hideModuleNameAttribute = hideModuleNameAttribute ?? compilation.HideModuleNameAttribute();
             foreach (var attribute in attributes)
             {
-                if (attribute.AttributeClass == hideModuleNameAttribute)
+                if (Equals(attribute.AttributeClass, hideModuleNameAttribute))
                 {
                     return true;
                 }
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             foreach (var attribute in attributes)
             {
-                if (attribute.AttributeConstructor == constructor &&
+                if (Equals(attribute.AttributeConstructor, constructor) &&
                     attribute.ConstructorArguments.Length == 1 &&
                     attribute.ConstructorArguments.First().Value is int)
                 {
@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     foreach (var constructor in attributeConstructors)
                     {
-                        if (attribute.AttributeConstructor == constructor)
+                        if (Equals(attribute.AttributeConstructor, constructor))
                         {
                             var actualFlags = 0;
 

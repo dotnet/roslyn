@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             if (result && ((object)t1 != null && (object)t2 != null))
             {
-                var substituted1 = SubstituteAllTypeParameters(substitution, TypeSymbolWithAnnotations.Create(t1));
-                var substituted2 = SubstituteAllTypeParameters(substitution, TypeSymbolWithAnnotations.Create(t2));
+                var substituted1 = SubstituteAllTypeParameters(substitution, TypeWithAnnotations.Create(t1));
+                var substituted2 = SubstituteAllTypeParameters(substitution, TypeWithAnnotations.Create(t2));
 
-                Debug.Assert(substituted1.TypeSymbol.Equals(substituted2.TypeSymbol, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+                Debug.Assert(substituted1.Type.Equals(substituted2.Type, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                 Debug.Assert(substituted1.CustomModifiers.SequenceEqual(substituted2.CustomModifiers));
             }
 #endif
@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #if DEBUG
-        private static TypeSymbolWithAnnotations SubstituteAllTypeParameters(AbstractTypeMap substitution, TypeSymbolWithAnnotations type)
+        private static TypeWithAnnotations SubstituteAllTypeParameters(AbstractTypeMap substitution, TypeWithAnnotations type)
         {
             if (substitution != null)
             {
-                TypeSymbolWithAnnotations previous;
+                TypeWithAnnotations previous;
                 do
                 {
                     previous = type;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool CanUnifyHelper(TypeSymbol t1, TypeSymbol t2, ref MutableTypeMap substitution)
         {
-            return CanUnifyHelper(TypeSymbolWithAnnotations.Create(t1), TypeSymbolWithAnnotations.Create(t2), ref substitution);
+            return CanUnifyHelper(TypeWithAnnotations.Create(t1), TypeWithAnnotations.Create(t2), ref substitution);
         }
 
         /// <summary>
@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Derived from Dev10's BSYMMGR::UnifyTypes.
         /// Two types will not unify if they have different custom modifiers.
         /// </remarks>
-        private static bool CanUnifyHelper(TypeSymbolWithAnnotations t1, TypeSymbolWithAnnotations t2, ref MutableTypeMap substitution)
+        private static bool CanUnifyHelper(TypeWithAnnotations t1, TypeWithAnnotations t2, ref MutableTypeMap substitution)
         {
-            if (t1.IsNull || t2.IsNull)
+            if (!t1.HasType || !t2.HasType)
             {
                 return t1.IsSameAs(t2);
             }
 
-            if (TypeSymbol.Equals(t1.TypeSymbol, t2.TypeSymbol, TypeCompareKind.ConsiderEverything2) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
+            if (TypeSymbol.Equals(t1.Type, t2.Type, TypeCompareKind.ConsiderEverything2) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
             {
                 return true;
             }
@@ -93,24 +93,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If one of the types is a type parameter, then the substitution could make them equal.
-            if (TypeSymbol.Equals(t1.TypeSymbol, t2.TypeSymbol, TypeCompareKind.ConsiderEverything2) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
+            if (TypeSymbol.Equals(t1.Type, t2.Type, TypeCompareKind.ConsiderEverything2) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
             {
                 return true;
             }
 
             // We can avoid a lot of redundant checks if we ensure that we only have to check
             // for type parameters on the LHS
-            if (!t1.TypeSymbol.IsTypeParameter() && t2.TypeSymbol.IsTypeParameter())
+            if (!t1.Type.IsTypeParameter() && t2.Type.IsTypeParameter())
             {
-                TypeSymbolWithAnnotations tmp = t1;
+                TypeWithAnnotations tmp = t1;
                 t1 = t2;
                 t2 = tmp;
             }
 
             // If t1 is not a type parameter, then neither is t2
-            Debug.Assert(t1.TypeSymbol.IsTypeParameter() || !t2.TypeSymbol.IsTypeParameter());
+            Debug.Assert(t1.Type.IsTypeParameter() || !t2.Type.IsTypeParameter());
 
-            switch (t1.Kind)
+            switch (t1.Type.Kind)
             {
                 case SymbolKind.ArrayType:
                     {
@@ -119,15 +119,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                         }
 
-                        ArrayTypeSymbol at1 = (ArrayTypeSymbol)t1.TypeSymbol;
-                        ArrayTypeSymbol at2 = (ArrayTypeSymbol)t2.TypeSymbol;
+                        ArrayTypeSymbol at1 = (ArrayTypeSymbol)t1.Type;
+                        ArrayTypeSymbol at2 = (ArrayTypeSymbol)t2.Type;
 
                         if (!at1.HasSameShapeAs(at2))
                         {
                             return false;
                         }
 
-                        return CanUnifyHelper(at1.ElementType, at2.ElementType, ref substitution);
+                        return CanUnifyHelper(at1.ElementTypeWithAnnotations, at2.ElementTypeWithAnnotations, ref substitution);
                     }
                 case SymbolKind.PointerType:
                     {
@@ -136,10 +136,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                         }
 
-                        PointerTypeSymbol pt1 = (PointerTypeSymbol)t1.TypeSymbol;
-                        PointerTypeSymbol pt2 = (PointerTypeSymbol)t2.TypeSymbol;
+                        PointerTypeSymbol pt1 = (PointerTypeSymbol)t1.Type;
+                        PointerTypeSymbol pt2 = (PointerTypeSymbol)t2.Type;
 
-                        return CanUnifyHelper(pt1.PointedAtType, pt2.PointedAtType, ref substitution);
+                        return CanUnifyHelper(pt1.PointedAtTypeWithAnnotations, pt2.PointedAtTypeWithAnnotations, ref substitution);
                     }
                 case SymbolKind.NamedType:
                 case SymbolKind.ErrorType:
@@ -149,8 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                         }
 
-                        NamedTypeSymbol nt1 = (NamedTypeSymbol)t1.TypeSymbol;
-                        NamedTypeSymbol nt2 = (NamedTypeSymbol)t2.TypeSymbol;
+                        NamedTypeSymbol nt1 = (NamedTypeSymbol)t1.Type;
+                        NamedTypeSymbol nt2 = (NamedTypeSymbol)t2.Type;
 
                         if (nt1.IsTupleType)
                         {
@@ -178,8 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return false;
                         }
 
-                        var nt1Arguments = nt1.TypeArgumentsNoUseSiteDiagnostics;
-                        var nt2Arguments = nt2.TypeArgumentsNoUseSiteDiagnostics;
+                        var nt1Arguments = nt1.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                        var nt2Arguments = nt2.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
                         for (int i = 0; i < arity; i++)
                         {
@@ -198,16 +198,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.TypeParameter:
                     {
                         // These substitutions are not allowed in C#
-                        if (t2.TypeKind == TypeKind.Pointer || t2.SpecialType == SpecialType.System_Void)
+                        if (t2.TypeKind == TypeKind.Pointer || t2.IsVoidType())
                         {
                             return false;
                         }
 
-                        TypeParameterSymbol tp1 = (TypeParameterSymbol)t1.TypeSymbol;
+                        TypeParameterSymbol tp1 = (TypeParameterSymbol)t1.Type;
 
                         // Perform the "occurs check" - i.e. ensure that t2 doesn't contain t1 to avoid recursive types
                         // Note: t2 can't be the same type param - we would have caught that with ReferenceEquals above
-                        if (Contains(t2.TypeSymbol, tp1))
+                        if (Contains(t2.Type, tp1))
                         {
                             return false;
                         }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
                         {
-                            AddSubstitution(ref substitution, tp1, TypeSymbolWithAnnotations.Create(t2.TypeSymbol));
+                            AddSubstitution(ref substitution, tp1, TypeWithAnnotations.Create(t2.Type));
                             return true;
                         }
 
@@ -228,14 +228,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             t1.CustomModifiers.SequenceEqual(t2.CustomModifiers.Take(t1.CustomModifiers.Length)))
                         {
                             AddSubstitution(ref substitution, tp1,
-                                TypeSymbolWithAnnotations.Create(t2.TypeSymbol,
+                                TypeWithAnnotations.Create(t2.Type,
                                     customModifiers: ImmutableArray.Create(t2.CustomModifiers, t1.CustomModifiers.Length, t2.CustomModifiers.Length - t1.CustomModifiers.Length)));
                             return true;
                         }
 
-                        if (t2.TypeSymbol.IsTypeParameter())
+                        if (t2.Type.IsTypeParameter())
                         {
-                            var tp2 = (TypeParameterSymbol)t2.TypeSymbol;
+                            var tp2 = (TypeParameterSymbol)t2.Type;
 
                             if (t2.CustomModifiers.IsDefaultOrEmpty)
                             {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 t2.CustomModifiers.SequenceEqual(t1.CustomModifiers.Take(t2.CustomModifiers.Length)))
                             {
                                 AddSubstitution(ref substitution, tp2,
-                                    TypeSymbolWithAnnotations.Create(t1.TypeSymbol,
+                                    TypeWithAnnotations.Create(t1.Type,
                                         customModifiers: ImmutableArray.Create(t1.CustomModifiers, t2.CustomModifiers.Length, t1.CustomModifiers.Length - t2.CustomModifiers.Length)));
                                 return true;
                             }
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void AddSubstitution(ref MutableTypeMap substitution, TypeParameterSymbol tp1, TypeSymbolWithAnnotations t2)
+        private static void AddSubstitution(ref MutableTypeMap substitution, TypeParameterSymbol tp1, TypeWithAnnotations t2)
         {
             if (substitution == null)
             {
@@ -283,19 +283,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (type.Kind)
             {
                 case SymbolKind.ArrayType:
-                    return Contains(((ArrayTypeSymbol)type).ElementType.TypeSymbol, typeParam);
+                    return Contains(((ArrayTypeSymbol)type).ElementType, typeParam);
                 case SymbolKind.PointerType:
-                    return Contains(((PointerTypeSymbol)type).PointedAtType.TypeSymbol, typeParam);
+                    return Contains(((PointerTypeSymbol)type).PointedAtType, typeParam);
                 case SymbolKind.NamedType:
                 case SymbolKind.ErrorType:
                     {
                         NamedTypeSymbol namedType = (NamedTypeSymbol)type;
                         while ((object)namedType != null)
                         {
-                            var typeParts = namedType.IsTupleType ? namedType.TupleElementTypes : namedType.TypeArgumentsNoUseSiteDiagnostics;
-                            foreach (TypeSymbolWithAnnotations typePart in typeParts)
+                            var typeParts = namedType.IsTupleType ? namedType.TupleElementTypesWithAnnotations : namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                            foreach (TypeWithAnnotations typePart in typeParts)
                             {
-                                if (Contains(typePart.TypeSymbol, typeParam))
+                                if (Contains(typePart.Type, typeParam))
                                 {
                                     return true;
                                 }

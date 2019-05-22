@@ -66,6 +66,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             if (visualStudioWorkspace.Services.GetLanguageServices(visualStudioProject.Language).GetService<ICommandLineParserService>() != null)
             {
                 _visualStudioProjectOptionsProcessor = new VisualStudioProjectOptionsProcessor(_visualStudioProject, visualStudioWorkspace.Services);
+                _visualStudioWorkspace.AddProjectRuleSetFileToInternalMaps(
+                    visualStudioProject,
+                    () => _visualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
             }
 
             // We don't have a SVsShellDebugger service in unit tests, in that case we can't implement ENC. We're OK
@@ -185,6 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void RemoveSourceFile(string filePath)
         {
             _visualStudioProject.RemoveSourceFile(filePath);
+            _projectCodeModel.OnSourceFileRemoved(filePath);
         }
 
         public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
@@ -253,12 +257,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void AddAnalyzerConfigFile(string filePath)
         {
-            // TODO: implement. Right now this exists to provide a stub for the project system work to be implemented against.
+            _visualStudioProject.AddAnalyzerConfigFile(filePath);
         }
 
         public void RemoveAnalyzerConfigFile(string filePath)
         {
-            // TODO: implement. Right now this exists to provide a stub for the project system work to be implemented against.
+            _visualStudioProject.RemoveAnalyzerConfigFile(filePath);
         }
     }
 }

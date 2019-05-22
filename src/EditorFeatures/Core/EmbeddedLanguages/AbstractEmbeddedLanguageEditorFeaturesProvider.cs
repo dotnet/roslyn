@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
             // support any of the IEmbeddedLanguageFeatures or IEmbeddedLanguageEditorFeatures
             // capabilities.
             Languages = ImmutableArray.Create<IEmbeddedLanguageEditorFeatures>(
-                new RegexEmbeddedLanguageEditorFeatures(info));
+                new RegexEmbeddedLanguageEditorFeatures(this, info));
         }
     }
 }

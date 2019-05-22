@@ -359,13 +359,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal class CodeActionWithNestedActions : SimpleCodeAction
         {
             public CodeActionWithNestedActions(
-                string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
+                string title, ImmutableArray<CodeAction> nestedActions,
+                bool isInlinable, CodeActionPriority priority = CodeActionPriority.Medium)
                 : base(title, ComputeEquivalenceKey(nestedActions))
             {
                 Debug.Assert(nestedActions.Length > 0);
                 NestedCodeActions = nestedActions;
                 IsInlinable = isInlinable;
+                Priority = priority;
             }
+
+            internal override CodeActionPriority Priority { get; }
 
             internal sealed override bool IsInlinable { get; }
 

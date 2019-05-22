@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Call this method when the text of a document is changed on disk.
+        /// Call this method when the text of a additional document is changed on disk.
         /// </summary>
         protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
@@ -698,6 +698,25 @@ namespace Microsoft.CodeAnalysis
                 newSolution = this.SetCurrentSolution(newSolution);
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
+
+        /// <summary>
+        /// Call this method when the text of a analyzer config document is changed on disk.
+        /// </summary>
+        protected internal void OnAnalyzerConfigDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
+
+                var oldSolution = this.CurrentSolution;
+
+                var newSolution = oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                newSolution = this.SetCurrentSolution(newSolution);
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId: documentId);
             }
         }
 
@@ -872,7 +891,7 @@ namespace Microsoft.CodeAnalysis
                 var documentId = documentInfo.Id;
 
                 CheckProjectIsInCurrentSolution(documentId.ProjectId);
-                CheckDocumentIsNotInCurrentSolution(documentId);
+                CheckAdditionalDocumentIsNotInCurrentSolution(documentId);
 
                 var oldSolution = this.CurrentSolution;
                 var newSolution = this.SetCurrentSolution(oldSolution.AddAdditionalDocument(documentInfo));
@@ -899,6 +918,46 @@ namespace Microsoft.CodeAnalysis
                 var newSolution = this.SetCurrentSolution(oldSolution.RemoveAdditionalDocument(documentId));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentRemoved, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
+        /// <summary>
+        /// Call this method when an analyzer config document is added to a project in the host environment.
+        /// </summary>
+        protected internal void OnAnalyzerConfigDocumentAdded(DocumentInfo documentInfo)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                var documentId = documentInfo.Id;
+
+                CheckProjectIsInCurrentSolution(documentId.ProjectId);
+                CheckAnalyzerConfigDocumentIsNotInCurrentSolution(documentId);
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo)));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentAdded, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
+        /// <summary>
+        /// Call this method when an analyzer config document is removed from a project in the host environment.
+        /// </summary>
+        protected internal void OnAnalyzerConfigDocumentRemoved(DocumentId documentId)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
+
+                this.CheckDocumentCanBeRemoved(documentId);
+
+                var oldSolution = this.CurrentSolution;
+
+                this.ClearDocumentData(documentId);
+
+                var newSolution = this.SetCurrentSolution(oldSolution.RemoveAdditionalDocument(documentId));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentRemoved, oldSolution, newSolution, documentId: documentId);
             }
         }
 
@@ -1092,7 +1151,9 @@ namespace Microsoft.CodeAnalysis
         private void CheckAllowedProjectChanges(ProjectChanges projectChanges)
         {
             if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions
-                && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions))
+                && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions)
+                && !this.CanApplyCompilationOptionChange(
+                    projectChanges.OldProject.CompilationOptions, projectChanges.NewProject.CompilationOptions, projectChanges.NewProject))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_compilation_options_is_not_supported);
             }
@@ -1181,6 +1242,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+        protected virtual bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
+            => false;
 
         protected virtual bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
             => false;
@@ -1295,15 +1359,6 @@ namespace Microsoft.CodeAnalysis
             var oldDoc = projectChanges.OldProject.GetDocument(documentId);
             var newDoc = projectChanges.NewProject.GetDocument(documentId);
 
-            // update info if changed
-            if (newDoc.HasInfoChanged(oldDoc))
-            {
-                // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
-                ApplyDocumentInfoChanged(
-                    documentId,
-                    new DocumentInfo(newDoc.State.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
-            }
-
             // update text if changed
             if (newDoc.HasTextChanged(oldDoc))
             {
@@ -1331,6 +1386,16 @@ namespace Microsoft.CodeAnalysis
                     // So either the new text already knows the individual changes or we do not have a way to compute them.
                     this.ApplyDocumentTextChanged(documentId, newText);
                 }
+            }
+
+            // Update document info if changed. Updating the info can cause files to move on disk (or have other side effects),
+            // so we do this after any text changes have been applied.
+            if (newDoc.HasInfoChanged(oldDoc))
+            {
+                // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
+                ApplyDocumentInfoChanged(
+                    documentId,
+                    new DocumentInfo(newDoc.State.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
             }
         }
 
@@ -1720,6 +1785,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Throws an exception if an analyzer config is not part of the current solution.
+        /// </summary>
+        protected void CheckAnalyzerConfigDocumentIsInCurrentSolution(DocumentId documentId)
+        {
+            if (!this.CurrentSolution.ContainsAnalyzerConfigDocument(documentId))
+            {
+                throw new ArgumentException(string.Format(
+                    WorkspacesResources._0_is_not_part_of_the_workspace,
+                    this.GetDocumentName(documentId)));
+            }
+        }
+
+        /// <summary>
         /// Throws an exception if a document is already part of the current solution.
         /// </summary>
         protected void CheckDocumentIsNotInCurrentSolution(DocumentId documentId)
@@ -1742,6 +1820,19 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_already_part_of_the_workspace,
                     this.GetAdditionalDocumentName(documentId)));
+            }
+        }
+
+        /// <summary>
+        /// Throws an exception if the analyzer config document is already part of the current solution.
+        /// </summary>
+        protected void CheckAnalyzerConfigDocumentIsNotInCurrentSolution(DocumentId documentId)
+        {
+            if (this.CurrentSolution.ContainsAnalyzerConfigDocument(documentId))
+            {
+                throw new ArgumentException(string.Format(
+                    WorkspacesResources._0_is_already_part_of_the_workspace,
+                    this.GetDocumentName(documentId)));
             }
         }
 

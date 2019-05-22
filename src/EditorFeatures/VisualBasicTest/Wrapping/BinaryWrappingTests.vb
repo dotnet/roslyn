@@ -100,10 +100,18 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestInIf() As Task
-            Await TestEndOfLine(
+            Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
         if ([||]i andalso j)
+        end if
+    end sub
+end class",
+EndOfLine,
+"class C
+    sub Bar()
+        if (i andalso
+                j)
         end if
     end sub
 end class",
@@ -118,10 +126,18 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestInIf_IncludingOp() As Task
-            Await TestBeginningOfLine(
+            Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
         if ([||]i andalso j)
+        end if
+    end sub
+end class",
+BeginningOfLine,
+"class C
+    sub Bar()
+        if (i _
+                andalso j)
         end if
     end sub
 end class",
@@ -136,10 +152,18 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestInIf2() As Task
-            Await TestEndOfLine(
+            Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
         if (i[||] andalso j)
+        end if
+    end sub
+end class",
+EndOfLine,
+"class C
+    sub Bar()
+        if (i andalso
+                j)
         end if
     end sub
 end class",
@@ -154,10 +178,18 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestInIf3() As Task
-            Await TestEndOfLine(
+            Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
         if (i [||]andalso j)
+        end if
+    end sub
+end class",
+EndOfLine,
+"class C
+    sub Bar()
+        if (i andalso
+                j)
         end if
     end sub
 end class",
@@ -172,10 +204,18 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestInIf4() As Task
-            Await TestEndOfLine(
+            Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
         if (i andalso[||] j)
+        end if
+    end sub
+end class",
+EndOfLine,
+"class C
+    sub Bar()
+        if (i andalso
+                j)
         end if
     end sub
 end class",
@@ -190,10 +230,18 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestInIf5() As Task
-            Await TestEndOfLine(
+            Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
         if (i andalso [||]j)
+        end if
+    end sub
+end class",
+EndOfLine,
+"class C
+    sub Bar()
+        if (i andalso
+                j)
         end if
     end sub
 end class",
@@ -219,6 +267,13 @@ EndOfLine,
 "class C
     sub Bar()
         if (i andalso
+                j)
+        end if
+    end sub
+end class",
+"class C
+    sub Bar()
+        if (i andalso
             j)
         end if
     end sub
@@ -235,6 +290,13 @@ end class")
     end sub
 end class",
 BeginningOfLine,
+"class C
+    sub Bar()
+        if (i _
+                andalso j)
+        end if
+    end sub
+end class",
 "class C
     sub Bar()
         if (i _
@@ -257,6 +319,14 @@ EndOfLine,
 "class C
     sub Bar()
         if (i andalso
+                j orelse
+                k)
+        end if
+    end sub
+end class",
+"class C
+    sub Bar()
+        if (i andalso
             j orelse
             k)
         end if
@@ -274,6 +344,14 @@ end class")
     end sub
 end class",
 BeginningOfLine,
+"class C
+    sub Bar()
+        if (i _
+                andalso j _
+                orelse k)
+        end if
+    end sub
+end class",
 "class C
     sub Bar()
         if (i _
@@ -359,6 +437,13 @@ end class",
 "class C
     sub Bar()
         if (a _
+                andalso b)
+        end if
+    end sub
+end class",
+"class C
+    sub Bar()
+        if (a _
             andalso b)
         end if
     end sub
@@ -418,10 +503,18 @@ end class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestInLocalInitializer() As Task
-            Await TestEndOfLine(
+            Await TestAllWrappingCasesAsync(
 "class C
     sub Goo()
         dim v = [||]a andalso b andalso c
+    end sub
+end class",
+EndOfLine,
+"class C
+    sub Goo()
+        dim v = a andalso
+            b andalso
+            c
     end sub
 end class",
 "class C
@@ -434,10 +527,35 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
-        Public Async Function TestInField() As Task
-            Await TestEndOfLine(
+        Public Async Function TestInField_Beginning() As Task
+            Await TestAllWrappingCasesAsync(
 "class C
     dim v = [||]a andalso b andalso c
+end class",
+BeginningOfLine,
+"class C
+    dim v = a _
+        andalso b _
+        andalso c
+end class",
+"class C
+    dim v = a _
+            andalso b _
+            andalso c
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        Public Async Function TestInField_End() As Task
+            Await TestAllWrappingCasesAsync(
+"class C
+    dim v = [||]a andalso b andalso c
+end class",
+EndOfLine,
+"class C
+    dim v = a andalso
+        b andalso
+        c
 end class",
 "class C
     dim v = a andalso
@@ -447,11 +565,20 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
-        Public Async Function TestAdditionEnd() As Task
-            Await TestEndOfLine(
+        Public Async Function TestAddition_End() As Task
+            Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
         dim goo = [||]""now"" & ""is"" & ""the"" & ""time""
+    end sub
+end class",
+EndOfLine,
+"class C
+    sub Bar()
+        dim goo = ""now"" &
+            ""is"" &
+            ""the"" &
+            ""time""
     end sub
 end class",
 "class C
@@ -465,11 +592,19 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
-        Public Async Function TestAdditionBeginning() As Task
-            Await TestBeginningOfLine(
+        Public Async Function TestAddition_Beginning() As Task
+            Await TestAllWrappingCasesAsync(
 "class C
     sub Bar()
         dim goo = [||]""now"" & ""is"" & ""the"" & ""time""
+    end sub
+end class",
+"class C
+    sub Bar()
+        dim goo = ""now"" _
+            & ""is"" _
+            & ""the"" _
+            & ""time""
     end sub
 end class",
 "class C

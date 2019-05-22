@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Host
         public DynamicFileInfo(string filePath, SourceCodeKind sourceCodeKind, TextLoader textLoader, IDocumentServiceProvider documentServiceProvider)
         {
             FilePath = filePath;
-            SourceCodeKind = SourceCodeKind;
+            SourceCodeKind = sourceCodeKind;
             TextLoader = textLoader;
             DocumentServiceProvider = documentServiceProvider;
         }

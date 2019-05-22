@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             // Returns whether we should proceed to the destination after finallies were taken care of.
-            bool stepThroughFinally(ControlFlowRegion region, BasicBlockBuilder destination)
+            static bool stepThroughFinally(ControlFlowRegion region, BasicBlockBuilder destination)
             {
                 int destinationOrdinal = destination.Ordinal;
                 while (!region.ContainsBlock(destinationOrdinal))
@@ -1472,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     // afterif:
 
                     BasicBlockBuilder afterIf = null;
-                    VisitConditionalBranch(operation.Condition, ref afterIf, sense: false);
+                    VisitConditionalBranch(operation.Condition, ref afterIf, jumpIfTrue: false);
                     VisitStatement(operation.WhenTrue);
                     AppendNewBlock(afterIf);
                 }
@@ -1493,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     // afterif:
 
                     BasicBlockBuilder whenFalse = null;
-                    VisitConditionalBranch(operation.Condition, ref whenFalse, sense: false);
+                    VisitConditionalBranch(operation.Condition, ref whenFalse, jumpIfTrue: false);
 
                     VisitStatement(operation.WhenTrue);
 
@@ -1525,7 +1525,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 SpillEvalStack();
 
                 BasicBlockBuilder whenFalse = null;
-                VisitConditionalBranch(operation.Condition, ref whenFalse, sense: false);
+                VisitConditionalBranch(operation.Condition, ref whenFalse, jumpIfTrue: false);
 
                 var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
                 IOperation result;
@@ -2557,13 +2557,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                    ITypeSymbolHelpers.IsBooleanType(binOp.RightOperand.Type);
         }
 
-        private void VisitConditionalBranch(IOperation condition, ref BasicBlockBuilder dest, bool sense)
+        private void VisitConditionalBranch(IOperation condition, ref BasicBlockBuilder dest, bool jumpIfTrue)
         {
             SpillEvalStack();
 #if DEBUG
             RegionBuilder current = _currentRegion;
 #endif
-            VisitConditionalBranchCore(condition, ref dest, sense);
+            VisitConditionalBranchCore(condition, ref dest, jumpIfTrue);
 #if DEBUG
             Debug.Assert(current == _currentRegion);
 #endif
@@ -2572,7 +2572,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// This function does not change the current region. The stack should be spilled before calling it.
         /// </summary>
-        private void VisitConditionalBranchCore(IOperation condition, ref BasicBlockBuilder dest, bool sense)
+        private void VisitConditionalBranchCore(IOperation condition, ref BasicBlockBuilder dest, bool jumpIfTrue)
         {
 oneMoreTime:
             Debug.Assert(_startSpillingAt == _evalStack.Count);
@@ -2589,7 +2589,7 @@ oneMoreTime:
 
                     if (IsBooleanConditionalOperator(binOp))
                     {
-                        if (CalculateAndOrSense(binOp, sense))
+                        if (CalculateAndOrSense(binOp, jumpIfTrue))
                         {
                             // gotoif(LeftOperand != sense) fallThrough
                             // gotoif(RightOperand == sense) dest
@@ -2597,8 +2597,8 @@ oneMoreTime:
 
                             BasicBlockBuilder fallThrough = null;
 
-                            VisitConditionalBranchCore(binOp.LeftOperand, ref fallThrough, !sense);
-                            VisitConditionalBranchCore(binOp.RightOperand, ref dest, sense);
+                            VisitConditionalBranchCore(binOp.LeftOperand, ref fallThrough, !jumpIfTrue);
+                            VisitConditionalBranchCore(binOp.RightOperand, ref dest, jumpIfTrue);
                             AppendNewBlock(fallThrough);
                             return;
                         }
@@ -2607,7 +2607,7 @@ oneMoreTime:
                             // gotoif(LeftOperand == sense) dest
                             // gotoif(RightOperand == sense) dest
 
-                            VisitConditionalBranchCore(binOp.LeftOperand, ref dest, sense);
+                            VisitConditionalBranchCore(binOp.LeftOperand, ref dest, jumpIfTrue);
                             condition = binOp.RightOperand;
                             goto oneMoreTime;
                         }
@@ -2622,7 +2622,7 @@ oneMoreTime:
 
                     if (IsBooleanLogicalNot(unOp))
                     {
-                        sense = !sense;
+                        jumpIfTrue = !jumpIfTrue;
                         condition = unOp.Operand;
                         goto oneMoreTime;
                     }
@@ -2637,14 +2637,14 @@ oneMoreTime:
                             ITypeSymbolHelpers.IsBooleanType(conditional.WhenFalse.Type))
                         {
                             BasicBlockBuilder whenFalse = null;
-                            VisitConditionalBranchCore(conditional.Condition, ref whenFalse, sense: false);
-                            VisitConditionalBranchCore(conditional.WhenTrue, ref dest, sense);
+                            VisitConditionalBranchCore(conditional.Condition, ref whenFalse, jumpIfTrue: false);
+                            VisitConditionalBranchCore(conditional.WhenTrue, ref dest, jumpIfTrue);
 
                             var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
                             UnconditionalBranch(afterIf);
 
                             AppendNewBlock(whenFalse);
-                            VisitConditionalBranchCore(conditional.WhenFalse, ref dest, sense);
+                            VisitConditionalBranchCore(conditional.WhenFalse, ref dest, jumpIfTrue);
                             AppendNewBlock(afterIf);
 
                             return;
@@ -2666,7 +2666,7 @@ oneMoreTime:
                             IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(coalesce, whenNull);
 
                             dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
-                            ConditionalBranch(convertedTestExpression, sense, dest);
+                            ConditionalBranch(convertedTestExpression, jumpIfTrue, dest);
                             _currentBasicBlock = null;
 
                             var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -2675,7 +2675,7 @@ oneMoreTime:
                             PopStackFrameAndLeaveRegion(frame);
 
                             AppendNewBlock(whenNull);
-                            VisitConditionalBranchCore(coalesce.WhenNull, ref dest, sense);
+                            VisitConditionalBranchCore(coalesce.WhenNull, ref dest, jumpIfTrue);
 
                             AppendNewBlock(afterCoalesce);
 
@@ -2703,7 +2703,7 @@ oneMoreTime:
 
                         condition = Visit(condition);
                         dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
-                        ConditionalBranch(condition, sense, dest);
+                        ConditionalBranch(condition, jumpIfTrue, dest);
                         _currentBasicBlock = null;
 
                         PopStackFrameAndLeaveRegion(frame);
@@ -3186,7 +3186,7 @@ oneMoreTime:
                 AppendNewBlock(@continue);
                 EnterRegion(locals);
 
-                VisitConditionalBranch(operation.Condition, ref @break, sense: operation.ConditionIsUntil);
+                VisitConditionalBranch(operation.Condition, ref @break, jumpIfTrue: operation.ConditionIsUntil);
 
                 VisitStatement(operation.Body);
                 UnconditionalBranch(@continue);
@@ -3217,7 +3217,7 @@ oneMoreTime:
 
                 if (operation.Condition != null)
                 {
-                    VisitConditionalBranch(operation.Condition, ref start, sense: !operation.ConditionIsUntil);
+                    VisitConditionalBranch(operation.Condition, ref start, jumpIfTrue: !operation.ConditionIsUntil);
                 }
                 else
                 {
@@ -3291,7 +3291,7 @@ oneMoreTime:
 
                         AddExceptionStore(catchClause.ExceptionType, exceptionDeclarationOrExpression);
 
-                        VisitConditionalBranch(filter, ref catchBlock, sense: true);
+                        VisitConditionalBranch(filter, ref catchBlock, jumpIfTrue: true);
                         var continueDispatchBlock = new BasicBlockBuilder(BasicBlockKind.Block);
                         AppendNewBlock(continueDispatchBlock);
                         continueDispatchBlock.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
@@ -4460,7 +4460,7 @@ oneMoreTime:
                     _forToLoopBinaryOperatorLeftOperand = controlVariableReferenceForCondition;
                     _forToLoopBinaryOperatorRightOperand = GetCaptureReference(limitValueId, operation.LimitValue);
 
-                    VisitConditionalBranch(userDefinedInfo.LessThanOrEqual.Value, ref @break, sense: false);
+                    VisitConditionalBranch(userDefinedInfo.LessThanOrEqual.Value, ref @break, jumpIfTrue: false);
                     UnconditionalBranch(bodyBlock);
 
                     AppendNewBlock(notPositive);
@@ -4468,7 +4468,7 @@ oneMoreTime:
                     _forToLoopBinaryOperatorLeftOperand = OperationCloner.CloneOperation(_forToLoopBinaryOperatorLeftOperand);
                     _forToLoopBinaryOperatorRightOperand = OperationCloner.CloneOperation(_forToLoopBinaryOperatorRightOperand);
 
-                    VisitConditionalBranch(userDefinedInfo.GreaterThanOrEqual.Value, ref @break, sense: false);
+                    VisitConditionalBranch(userDefinedInfo.GreaterThanOrEqual.Value, ref @break, jumpIfTrue: false);
                     UnconditionalBranch(bodyBlock);
 
                     PopStackFrameAndLeaveRegion(frame);
@@ -4917,7 +4917,7 @@ oneMoreTime:
                     Debug.Assert(section.Clauses.All(c => c.Label == null));
                     Debug.Assert(_currentSwitchOperationExpression == null);
                     _currentSwitchOperationExpression = switchValue;
-                    VisitConditionalBranch(condition, ref nextSection, sense: false);
+                    VisitConditionalBranch(condition, ref nextSection, jumpIfTrue: false);
                     _currentSwitchOperationExpression = null;
                 }
                 else
@@ -5017,7 +5017,7 @@ oneMoreTime:
                             if (patternClause.Guard != null)
                             {
                                 AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
-                                VisitConditionalBranch(patternClause.Guard, ref nextCase, sense: false);
+                                VisitConditionalBranch(patternClause.Guard, ref nextCase, jumpIfTrue: false);
                             }
 
                             AppendNewBlock(labeled);
@@ -5155,7 +5155,7 @@ oneMoreTime:
             var @break = GetLabeledOrNewBlock(operation.ExitLabel);
             if (operation.Condition != null)
             {
-                VisitConditionalBranch(operation.Condition, ref @break, sense: false);
+                VisitConditionalBranch(operation.Condition, ref @break, jumpIfTrue: false);
             }
 
             VisitStatement(operation.Body);
@@ -6547,29 +6547,34 @@ oneMoreTime:
                 operation.Syntax, IsImplicit(operation));
         }
 
-        public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, int? argument)
+        internal override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, int? argument)
         {
             return new RecursivePatternOperation(
                 inputType: operation.InputType,
                 matchedType: operation.MatchedType,
                 operation.DeconstructSymbol,
                 operation.DeconstructionSubpatterns.SelectAsArray(p => (IPatternOperation)Visit(p)),
-                operation.PropertySubpatterns.SelectAsArray(p => (p.Item1, (IPatternOperation)Visit(p.Item2))),
+                operation.PropertySubpatterns.SelectAsArray(p => (IPropertySubpatternOperation)Visit(p)),
                 operation.DeclaredSymbol,
                 semanticModel: null,
                 operation.Syntax,
                 IsImplicit(operation));
         }
 
+        internal override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, int? argument)
+        {
+            return new PropertySubpatternOperation(
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation),
+                Visit(operation.Member),
+                (IPatternOperation)Visit(operation.Pattern));
+        }
+
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
         {
             return new DelegateCreationOperation(Visit(operation.Target), semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, int? argument)
-        {
-            return new FromEndIndexOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol, isImplicit: IsImplicit(operation));
         }
 
         public override IOperation VisitRangeOperation(IRangeOperation operation, int? argument)
@@ -6590,16 +6595,8 @@ oneMoreTime:
             return new RangeOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, visitedLeftOperand, visitedRightOperand, operation.Method, isImplicit: IsImplicit(operation));
         }
 
-        public override IOperation VisitSuppressNullableWarningOperation(ISuppressNullableWarningOperation operation, int? argument)
-        {
-            IOperation visitedExpression = Visit(operation.Expression);
-            return new SuppressNullableWarningOperation(semanticModel: null, operation.Syntax, operation.Type, visitedExpression, operation.ConstantValue, isImplicit: IsImplicit(operation));
-        }
-
         public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, int? captureIdForResult)
         {
-            // https://github.com/dotnet/roslyn/issues/32315 This is known not to be correct or working.
-
             // expression switch { pat1 when g1 => e1, pat2 when g2 => e2 }
             //
             // becomes
@@ -6651,8 +6648,7 @@ oneMoreTime:
                 if (arm.Guard != null)
                 {
                     EvalStackFrame frame = PushStackFrame();
-                    IOperation guard = Visit(arm.Guard);
-                    ConditionalBranch(guard, jumpIfTrue: false, afterArm);
+                    VisitConditionalBranch(arm.Guard, ref afterArm, jumpIfTrue: false);
                     _currentBasicBlock = null;
                     PopStackFrameAndLeaveRegion(frame);
                 }

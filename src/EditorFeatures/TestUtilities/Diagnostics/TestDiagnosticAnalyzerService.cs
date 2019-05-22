@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Roslyn.Utilities;
 
@@ -27,8 +28,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string language,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
-            : this(CreateHostAnalyzerManager(language, analyzers, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, onAnalyzerException)
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            IAsynchronousOperationListener listener = null)
+            : this(CreateHostAnalyzerManager(language, analyzers, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, onAnalyzerException, listener: listener)
         {
         }
 
@@ -53,8 +55,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             HostAnalyzerManager hostAnalyzerManager,
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
-            IDiagnosticUpdateSourceRegistrationService registrationService = null)
-            : base(hostAnalyzerManager, hostDiagnosticUpdateSource, registrationService ?? new MockDiagnosticUpdateSourceRegistrationService())
+            IDiagnosticUpdateSourceRegistrationService registrationService = null,
+            IAsynchronousOperationListener listener = null)
+            : base(hostAnalyzerManager, hostDiagnosticUpdateSource, registrationService ?? new MockDiagnosticUpdateSourceRegistrationService(), listener)
         {
             _hostAnalyzerReferenceMap = hostAnalyzerManager.CreateAnalyzerReferencesMap(projectOpt: null);
             _onAnalyzerException = onAnalyzerException;

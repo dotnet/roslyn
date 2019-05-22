@@ -4,57 +4,57 @@
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
-        <target state="new">A language name cannot be specified for this option.</target>
+        <target state="translated">Impossible de spécifier un nom de langage pour cette option.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_must_be_specified_for_this_option">
         <source>A language name must be specified for this option.</source>
-        <target state="new">A language name must be specified for this option.</target>
+        <target state="translated">Un nom de langage doit être spécifié pour cette option.</target>
         <note />
       </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
-        <target state="new">Error</target>
+        <target state="translated">Erreur</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_formatting">
         <source>Fix formatting</source>
-        <target state="new">Fix formatting</target>
+        <target state="translated">Corriger la mise en forme</target>
         <note />
       </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
-        <target state="new">Indentation and spacing</target>
+        <target state="translated">Indentation et espacement</target>
         <note />
       </trans-unit>
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
-        <target state="new">New line preferences</target>
+        <target state="translated">Préférences de nouvelle ligne</target>
         <note />
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="new">None</target>
+        <target state="translated">Aucun(e)</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
-        <target state="new">Refactoring Only</target>
+        <target state="translated">Refactoring Only</target>
         <note />
       </trans-unit>
       <trans-unit id="Style">
         <source>Style</source>
-        <target state="new">Style</target>
+        <target state="translated">Style</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
-        <target state="new">Suggestion</target>
+        <target state="translated">Suggestion</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
-        <target state="new">Warning</target>
+        <target state="translated">Avertissement</target>
         <note />
       </trans-unit>
     </body>

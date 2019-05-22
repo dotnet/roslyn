@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -72,28 +74,69 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         private Solution ApplyFileChanges(Solution solution, IEnumerable<FileChange> fileChanges, bool applyingChanges)
         {
-            foreach (FileChange fileChange in fileChanges)
+            foreach (var fileChange in fileChanges)
             {
-                var oldDocument = fileChange.GetOldDocument();
-                var updatedDocument = fileChange.GetUpdatedDocument();
-                bool isAdditionalDoc = fileChange.IsAdditionalDocumentChange;
+                var oldTextDocument = fileChange.GetOldDocument();
+                var updatedTextDocument = fileChange.GetUpdatedDocument();
+                var updatedDocumentTextOpt = updatedTextDocument?.GetTextAsync().Result;
+
+                // Apply file change to document.
+                ApplyFileChangesCore(oldTextDocument, updatedTextDocument?.Id, updatedDocumentTextOpt,
+                    fileChange.CheckState, fileChange.IsAdditionalDocumentChange);
+
+                // Now apply file change to linked documents.
+                if (oldTextDocument is Document oldDocument)
+                {
+                    foreach (var linkedDocumentId in oldDocument.GetLinkedDocumentIds())
+                    {
+                        var oldLinkedDocument = oldDocument.Project.Solution.GetDocument(linkedDocumentId);
+
+                        // Ensure that we account for document removal, i.e. updatedDocumentTextOpt == null.
+                        var newLinkedDocumentIdOpt = updatedDocumentTextOpt != null ? oldLinkedDocument.Id : null;
+
+                        ApplyFileChangesCore(oldLinkedDocument, newLinkedDocumentIdOpt, updatedDocumentTextOpt,
+                            fileChange.CheckState, fileChange.IsAdditionalDocumentChange);
+                    }
+                }
+                else if (updatedTextDocument is Document updatedDocument)
+                {
+                    foreach (var newLinkedDocumentId in updatedDocument.GetLinkedDocumentIds())
+                    {
+                        ApplyFileChangesCore(oldTextDocument, newLinkedDocumentId, updatedDocumentTextOpt,
+                            fileChange.CheckState, fileChange.IsAdditionalDocumentChange);
+                    }
+                }
+            }
+
+            return solution;
+
+            // Local functions.
+            void ApplyFileChangesCore(
+                TextDocument oldDocument,
+                DocumentId updatedDocumentIdOpt,
+                SourceText updateDocumentTextOpt,
+                __PREVIEWCHANGESITEMCHECKSTATE checkState,
+                bool isAdditionalDoc)
+            {
+                Debug.Assert(oldDocument != null || updatedDocumentIdOpt != null);
+                Debug.Assert((updatedDocumentIdOpt != null) == (updateDocumentTextOpt != null));
 
                 if (oldDocument == null)
                 {
                     // Added document to new solution.
                     // If unchecked, then remove this added document from new solution.
-                    if (applyingChanges && fileChange.CheckState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
+                    if (applyingChanges && checkState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
                     {
                         solution = isAdditionalDoc ?
-                            solution.RemoveAdditionalDocument(updatedDocument.Id) :
-                            solution.RemoveDocument(updatedDocument.Id);
+                            solution.RemoveAdditionalDocument(updatedDocumentIdOpt) :
+                            solution.RemoveDocument(updatedDocumentIdOpt);
                     }
                 }
-                else if (updatedDocument == null)
+                else if (updatedDocumentIdOpt == null)
                 {
                     // Removed document from old solution.
                     // If unchecked, then add back this removed document to new solution.
-                    if (applyingChanges && fileChange.CheckState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
+                    if (applyingChanges && checkState == __PREVIEWCHANGESITEMCHECKSTATE.PCCS_Unchecked)
                     {
                         var oldText = oldDocument.GetTextAsync().Result.ToString();
                         solution = isAdditionalDoc ?
@@ -103,14 +146,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 }
                 else
                 {
+                    Debug.Assert(oldDocument.Id == updatedDocumentIdOpt);
+
                     // Changed document.
                     solution = isAdditionalDoc ?
-                        solution.WithAdditionalDocumentText(updatedDocument.Id, updatedDocument.GetTextAsync().Result) :
-                        solution.WithDocumentText(updatedDocument.Id, updatedDocument.GetTextAsync().Result);
+                        solution.WithAdditionalDocumentText(updatedDocumentIdOpt, updateDocumentTextOpt) :
+                        solution.WithDocumentText(updatedDocumentIdOpt, updateDocumentTextOpt);
                 }
             }
-
-            return solution;
         }
 
         private Solution ApplyReferenceChanges(Solution solution, IEnumerable<ReferenceChange> referenceChanges)

@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
     {
         protected class State
         {
-            private readonly Dictionary<TypeStylePreference, ReportDiagnostic> _styleToSeverityMap;
+            private readonly Dictionary<UseVarPreference, ReportDiagnostic> _styleToSeverityMap;
 
-            public TypeStylePreference TypeStylePreference { get; private set; }
+            public UseVarPreference TypeStylePreference { get; private set; }
             public bool IsInIntrinsicTypeContext { get; private set; }
             public bool IsTypeApparentInContext { get; private set; }
             public bool IsInVariableDeclarationContext { get; }
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             private State(bool isVariableDeclarationContext)
             {
                 this.IsInVariableDeclarationContext = isVariableDeclarationContext;
-                _styleToSeverityMap = new Dictionary<TypeStylePreference, ReportDiagnostic>();
+                _styleToSeverityMap = new Dictionary<UseVarPreference, ReportDiagnostic>();
             }
 
             public static State Generate(
@@ -43,15 +43,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 if (IsInIntrinsicTypeContext)
                 {
-                    return _styleToSeverityMap[TypeStylePreference.ImplicitTypeForIntrinsicTypes];
+                    return _styleToSeverityMap[UseVarPreference.ForBuiltInTypes];
                 }
                 else if (IsTypeApparentInContext)
                 {
-                    return _styleToSeverityMap[TypeStylePreference.ImplicitTypeWhereApparent];
+                    return _styleToSeverityMap[UseVarPreference.WhenTypeIsApparent];
                 }
                 else
                 {
-                    return _styleToSeverityMap[TypeStylePreference.ImplicitTypeWherePossible];
+                    return _styleToSeverityMap[UseVarPreference.Elsewhere];
                 }
             }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             /// Returns true if type information could be gleaned by simply looking at the given statement.
             /// This typically means that the type name occurs in right hand side of an assignment.
             /// </summary>
-            private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, TypeStylePreference stylePreferences, CancellationToken cancellationToken)
+            private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, UseVarPreference stylePreferences, CancellationToken cancellationToken)
             {
                 if (variableDeclaration.Variables.Count != 1)
                 {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 var initializerExpression = CSharpUseImplicitTypeHelper.GetInitializerExpression(initializer.Value);
                 var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type.StripRefIfNeeded(), cancellationToken).Type;
-                return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel, cancellationToken, declaredTypeSymbol);
+                return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel, declaredTypeSymbol, cancellationToken);
             }
 
             /// <summary>
@@ -162,31 +162,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return null;
             }
 
-            private TypeStylePreference GetCurrentTypeStylePreferences(OptionSet optionSet)
+            private UseVarPreference GetCurrentTypeStylePreferences(OptionSet optionSet)
             {
-                var stylePreferences = TypeStylePreference.None;
+                var stylePreferences = UseVarPreference.None;
 
-                var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes);
-                var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
-                var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible);
+                var styleForIntrinsicTypes = optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes);
+                var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent);
+                var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere);
 
-                _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeForIntrinsicTypes, styleForIntrinsicTypes.Notification.Severity);
-                _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeWhereApparent, styleForApparent.Notification.Severity);
-                _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeWherePossible, styleForElsewhere.Notification.Severity);
+                _styleToSeverityMap.Add(UseVarPreference.ForBuiltInTypes, styleForIntrinsicTypes.Notification.Severity);
+                _styleToSeverityMap.Add(UseVarPreference.WhenTypeIsApparent, styleForApparent.Notification.Severity);
+                _styleToSeverityMap.Add(UseVarPreference.Elsewhere, styleForElsewhere.Notification.Severity);
 
                 if (styleForIntrinsicTypes.Value)
                 {
-                    stylePreferences |= TypeStylePreference.ImplicitTypeForIntrinsicTypes;
+                    stylePreferences |= UseVarPreference.ForBuiltInTypes;
                 }
 
                 if (styleForApparent.Value)
                 {
-                    stylePreferences |= TypeStylePreference.ImplicitTypeWhereApparent;
+                    stylePreferences |= UseVarPreference.WhenTypeIsApparent;
                 }
 
                 if (styleForElsewhere.Value)
                 {
-                    stylePreferences |= TypeStylePreference.ImplicitTypeWherePossible;
+                    stylePreferences |= UseVarPreference.Elsewhere;
                 }
 
                 return stylePreferences;

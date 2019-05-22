@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,17 +11,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal sealed class NullableDirectiveMap
     {
-        private static readonly NullableDirectiveMap Empty = new NullableDirectiveMap(ImmutableArray<(int Position, bool? State)>.Empty);
+        private static readonly NullableDirectiveMap EmptyGenerated = new NullableDirectiveMap(ImmutableArray<(int Position, bool? State)>.Empty, isGeneratedCode: true);
+
+        private static readonly NullableDirectiveMap EmptyNonGenerated = new NullableDirectiveMap(ImmutableArray<(int Position, bool? State)>.Empty, isGeneratedCode: false);
+
 
         private readonly ImmutableArray<(int Position, bool? State)> _directives;
 
-        internal static NullableDirectiveMap Create(SyntaxTree tree)
+        private readonly bool _isGeneratedCode;
+
+        internal static NullableDirectiveMap Create(SyntaxTree tree, bool isGeneratedCode)
         {
             var directives = GetDirectives(tree);
-            return directives.IsEmpty ? Empty : new NullableDirectiveMap(directives);
+
+            var empty = isGeneratedCode ? EmptyGenerated : EmptyNonGenerated;
+            return directives.IsEmpty ? empty : new NullableDirectiveMap(directives, isGeneratedCode);
         }
 
-        private NullableDirectiveMap(ImmutableArray<(int Position, bool? State)> directives)
+        private NullableDirectiveMap(ImmutableArray<(int Position, bool? State)> directives, bool isGeneratedCode)
         {
 #if DEBUG
             for (int i = 1; i < directives.Length; i++)
@@ -29,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 #endif
             _directives = directives;
+            _isGeneratedCode = isGeneratedCode;
         }
 
         /// <summary>
@@ -45,13 +54,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 // of the index of the next higher value.
                 index = ~index - 1;
             }
-            if (index < 0)
+
+            // Generated files have an initial nullable context that is "disabled"
+            bool? state = (_isGeneratedCode) ? false : (bool?)null;
+            if (index >= 0)
             {
-                return null;
+                Debug.Assert(_directives[index].Position <= position);
+                Debug.Assert(index == _directives.Length - 1 || position < _directives[index + 1].Position);
+                state = _directives[index].State;
             }
-            Debug.Assert(_directives[index].Position <= position);
-            Debug.Assert(index == _directives.Length - 1 || position < _directives[index + 1].Position);
-            return _directives[index].State;
+
+            return state;
         }
 
         private static ImmutableArray<(int Position, bool? State)> GetDirectives(SyntaxTree tree)
@@ -73,7 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 switch (nn.SettingToken.Kind())
                 {
                     case SyntaxKind.EnableKeyword:
-                    case SyntaxKind.SafeOnlyKeyword:
                         state = true;
                         break;
                     case SyntaxKind.RestoreKeyword:

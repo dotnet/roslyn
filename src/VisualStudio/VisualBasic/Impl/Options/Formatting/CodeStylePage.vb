@@ -13,8 +13,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
     Friend Class CodeStylePage
         Inherits AbstractOptionPage
 
-        Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider) As AbstractOptionPageControl
+        Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider, optionStore As OptionStore) As AbstractOptionPageControl
             Return New GridOptionPreviewControl(serviceProvider,
+                                                optionStore,
                                                 Function(o, s) New StyleViewModel(o, s),
                                                 GetEditorConfigOptions(),
                                                 LanguageNames.VisualBasic)

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // We only report exhaustive warnings when the default label is reachable through some series of
-            // tests that do not include a test in which the value is know to be null.  Handling paths with
+            // tests that do not include a test in which the value is known to be null.  Handling paths with
             // nulls is the job of the nullable walker.
             foreach (var n in TopologicalSort.IterativeSort<BoundDecisionDagNode>(new[] { decisionDag.RootNode }, nonNullSuccessors))
             {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case BoundDagNonNullTest t: // checks that the input is not null
                                 return ImmutableArray.Create(p.WhenTrue);
-                            case BoundDagNullTest t: // checks that the input is null
+                            case BoundDagExplicitNullTest t: // checks that the input is null
                                 return ImmutableArray.Create(p.WhenFalse);
                             default:
                                 return BoundDecisionDag.Successors(n);
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, out _, ref useSiteDiagnostics);
+            var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteDiagnostics);
             diagnostics.Add(SwitchExpressionSyntax, useSiteDiagnostics);
             if (commonType is null)
             {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindSwitchGoverningExpression(DiagnosticBag diagnostics)
         {
             var switchGoverningExpression = BindValue(SwitchExpressionSyntax.GoverningExpression, diagnostics, BindValueKind.RValue);
-            if (switchGoverningExpression.Type == (object)null || switchGoverningExpression.Type.SpecialType == SpecialType.System_Void)
+            if (switchGoverningExpression.Type == (object)null || switchGoverningExpression.Type.IsVoidType())
             {
                 diagnostics.Add(ErrorCode.ERR_BadPatternExpression, SwitchExpressionSyntax.GoverningExpression.Location, switchGoverningExpression.Display);
                 switchGoverningExpression = this.GenerateConversionForAssignment(CreateErrorType(), switchGoverningExpression, diagnostics);

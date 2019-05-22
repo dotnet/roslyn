@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? right
                 : MakeConversionNode(right.Syntax, right, single.RightConversion, single.RightConvertedTypeOpt, @checked: false);
 
-            BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, convertedLeft, convertedRight, single.MethodSymbolOpt?.ReturnType.TypeSymbol ?? boolType, single.MethodSymbolOpt);
+            BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, convertedLeft, convertedRight, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt);
             UnaryOperatorSignature boolOperator = single.BoolOperator;
             Conversion boolConversion = single.ConversionForBool;
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Roslyn.Utilities
 {
@@ -165,12 +166,25 @@ namespace Roslyn.Utilities
 
             public void RaiseEvent(Action<TEventHandler> invoker)
             {
-                if (this.HasHandlers)
+                // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/.
+                // We've realized there's a problem with our eventing, where if an exception is encountered while calling into subscribers to Workspace events,
+                // we won't notify all of the callers. The expectation is such an exception would be thrown to the SafeStartNew in the workspace's event queue that
+                // will raise that as a fatal exception, but OperationCancelledExceptions might be able to propagate through and fault the task we are using in the
+                // chain. I'm choosing to use ReportWithoutCrashAndPropagate, because if our theory here is correct, it seems the first exception isn't actually
+                // causing crashes, and so if it turns out this is a very common situation I don't want to make a often-benign situation fatal.
+                try
                 {
-                    foreach (var registry in _registries)
+                    if (this.HasHandlers)
                     {
-                        registry.Invoke(invoker);
+                        foreach (var registry in _registries)
+                        {
+                            registry.Invoke(invoker);
+                        }
                     }
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrashAndPropagate(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
         }

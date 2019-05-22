@@ -42,6 +42,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
 |</MethodBody>, "Each")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>For _ ' Test
+|</MethodBody>, "Each")
+        End Function
+
         <WorkItem(4946, "http://github.com/dotnet/roslyn/issues/4946")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotInForLoop() As Task

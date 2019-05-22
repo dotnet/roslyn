@@ -6,10 +6,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Scripting.Hosting;
 using System.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -21,13 +20,18 @@ namespace Microsoft.CodeAnalysis.Scripting
     public sealed class ScriptOptions
     {
         public static ScriptOptions Default { get; } = new ScriptOptions(
-            filePath: "",
+            filePath: string.Empty,
             references: GetDefaultMetadataReferences(),
             namespaces: ImmutableArray<string>.Empty,
             metadataResolver: RuntimeMetadataReferenceResolver.Default,
             sourceResolver: SourceFileResolver.Default,
             emitDebugInformation: false,
-            fileEncoding: null);
+            fileEncoding: null,
+            OptimizationLevel.Debug,
+            checkOverflow: false,
+            allowUnsafe: true,
+            warningLevel: 4,
+            parseOptions: null);
 
         private static ImmutableArray<MetadataReference> GetDefaultMetadataReferences()
         {
@@ -111,6 +115,28 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public string FilePath { get; private set; }
 
+        /// <summary>
+        /// Specifies whether or not optimizations should be performed on the output IL.
+        /// </summary>
+        public OptimizationLevel OptimizationLevel { get; private set; }
+
+        /// <summary>
+        /// Whether bounds checking on integer arithmetic is enforced by default or not.
+        /// </summary>
+        public bool CheckOverflow { get; private set; }
+
+        /// <summary>
+        /// Allow unsafe regions (i.e. unsafe modifiers on members and unsafe blocks).
+        /// </summary>
+        public bool AllowUnsafe { get; private set; }
+
+        /// <summary>
+        /// Global warning level (from 0 to 4).
+        /// </summary>
+        public int WarningLevel { get; private set; }
+
+        internal ParseOptions ParseOptions { get; private set; }
+
         internal ScriptOptions(
             string filePath,
             ImmutableArray<MetadataReference> references,
@@ -118,7 +144,12 @@ namespace Microsoft.CodeAnalysis.Scripting
             MetadataReferenceResolver metadataResolver,
             SourceReferenceResolver sourceResolver,
             bool emitDebugInformation,
-            Encoding fileEncoding)
+            Encoding fileEncoding,
+            OptimizationLevel optimizationLevel,
+            bool checkOverflow,
+            bool allowUnsafe,
+            int warningLevel,
+            ParseOptions parseOptions)
         {
             Debug.Assert(filePath != null);
             Debug.Assert(!references.IsDefault);
@@ -133,6 +164,11 @@ namespace Microsoft.CodeAnalysis.Scripting
             SourceResolver = sourceResolver;
             EmitDebugInformation = emitDebugInformation;
             FileEncoding = fileEncoding;
+            OptimizationLevel = optimizationLevel;
+            CheckOverflow = checkOverflow;
+            AllowUnsafe = allowUnsafe;
+            WarningLevel = warningLevel;
+            ParseOptions = parseOptions;
         }
 
         private ScriptOptions(ScriptOptions other)
@@ -142,7 +178,12 @@ namespace Microsoft.CodeAnalysis.Scripting
                    metadataResolver: other.MetadataResolver,
                    sourceResolver: other.SourceResolver,
                    emitDebugInformation: other.EmitDebugInformation,
-                   fileEncoding: other.FileEncoding)
+                   fileEncoding: other.FileEncoding,
+                   optimizationLevel: other.OptimizationLevel,
+                   checkOverflow: other.CheckOverflow,
+                   allowUnsafe: other.AllowUnsafe,
+                   warningLevel: other.WarningLevel,
+                   parseOptions: other.ParseOptions)
         {
         }
 
@@ -315,5 +356,33 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public ScriptOptions WithFileEncoding(Encoding encoding) =>
             encoding == FileEncoding ? this : new ScriptOptions(this) { FileEncoding = encoding };
+
+        /// <summary>
+        /// Create a new <see cref="ScriptOptions"/> with the specified <see cref="OptimizationLevel"/>.
+        /// </summary>
+        /// <returns></returns>
+        public ScriptOptions WithOptimizationLevel(OptimizationLevel optimizationLevel) =>
+            optimizationLevel == OptimizationLevel ? this : new ScriptOptions(this) { OptimizationLevel = optimizationLevel };
+
+        /// <summary>
+        /// Create a new <see cref="ScriptOptions"/> with unsafe code regions allowed.
+        /// </summary>
+        public ScriptOptions WithAllowUnsafe(bool allowUnsafe) =>
+            allowUnsafe == AllowUnsafe ? this : new ScriptOptions(this) { AllowUnsafe = allowUnsafe };
+
+        /// <summary>
+        /// Create a new <see cref="ScriptOptions"/> with bounds checking on integer arithmetic enforced.
+        /// </summary>
+        public ScriptOptions WithCheckOverflow(bool checkOverflow) =>
+            checkOverflow == CheckOverflow ? this : new ScriptOptions(this) { CheckOverflow = checkOverflow };
+
+        /// <summary>
+        /// Create a new <see cref="ScriptOptions"/> with the specific <see cref="WarningLevel"/>.
+        /// </summary>
+        public ScriptOptions WithWarningLevel(int warningLevel) =>
+            warningLevel == WarningLevel ? this : new ScriptOptions(this) { WarningLevel = warningLevel };
+
+        internal ScriptOptions WithParseOptions(ParseOptions parseOptions) =>
+            parseOptions == ParseOptions ? this : new ScriptOptions(this) { ParseOptions = parseOptions };
     }
 }

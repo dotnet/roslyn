@@ -17,22 +17,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
         private sealed partial class DataFlowAnalyzer : DataFlowAnalyzer<BasicBlockAnalysisData>
         {
             private readonly FlowGraphAnalysisData _analysisData;
-            private readonly CancellationToken _cancellationToken;
 
-            private DataFlowAnalyzer(ControlFlowGraph cfg, ISymbol owningSymbol, CancellationToken cancellationToken)
+            private DataFlowAnalyzer(ControlFlowGraph cfg, ISymbol owningSymbol)
             {
                 _analysisData = FlowGraphAnalysisData.Create(cfg, owningSymbol, AnalyzeLocalFunctionOrLambdaInvocation);
-                _cancellationToken = cancellationToken;
             }
 
             private DataFlowAnalyzer(
                 ControlFlowGraph cfg,
                 IMethodSymbol lambdaOrLocalFunction,
-                FlowGraphAnalysisData parentAnalysisData,
-                CancellationToken cancellationToken)
+                FlowGraphAnalysisData parentAnalysisData)
             {
                 _analysisData = FlowGraphAnalysisData.Create(cfg, lambdaOrLocalFunction, parentAnalysisData);
-                _cancellationToken = cancellationToken;
 
                 var entryBlockAnalysisData = GetEmptyAnalysisData();
                 entryBlockAnalysisData.SetAnalysisDataFrom(parentAnalysisData.CurrentBlockAnalysisData);
@@ -42,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             public static SymbolUsageResult RunAnalysis(ControlFlowGraph cfg, ISymbol owningSymbol, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                using (var analyzer = new DataFlowAnalyzer(cfg, owningSymbol, cancellationToken))
+                using (var analyzer = new DataFlowAnalyzer(cfg, owningSymbol))
                 {
                     _ = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg, analyzer, cancellationToken);
                     return analyzer._analysisData.ToResult();
@@ -61,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 Debug.Assert(localFunctionOrLambda.IsLocalFunction() || localFunctionOrLambda.IsAnonymousFunction());
 
                 cancellationToken.ThrowIfCancellationRequested();
-                using (var analyzer = new DataFlowAnalyzer(cfg, localFunctionOrLambda, (FlowGraphAnalysisData)parentAnalysisData, cancellationToken))
+                using (var analyzer = new DataFlowAnalyzer(cfg, localFunctionOrLambda, (FlowGraphAnalysisData)parentAnalysisData))
                 {
                     var resultBlockAnalysisData = CustomDataFlowAnalysis<BasicBlockAnalysisData>.Run(cfg, analyzer, cancellationToken);
                     if (resultBlockAnalysisData == null)
@@ -101,7 +97,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 void BeforeBlockAnalysis()
                 {
                     // Initialize current block analysis data.
-                    _analysisData.SetCurrentBlockAnalysisDataFrom(basicBlock);
+                    _analysisData.SetCurrentBlockAnalysisDataFrom(basicBlock, cancellationToken);
 
                     // At start of entry block, handle parameter definitions from method declaration.
                     if (basicBlock.Kind == BasicBlockKind.Entry)
@@ -155,8 +151,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             public override BasicBlockAnalysisData GetEmptyAnalysisData()
                 => _analysisData.CreateBlockAnalysisData();
 
-            public override void SetCurrentAnalysisData(BasicBlock basicBlock, BasicBlockAnalysisData data)
-                => _analysisData.SetBlockAnalysisDataFrom(basicBlock, data);
+            public override void SetCurrentAnalysisData(BasicBlock basicBlock, BasicBlockAnalysisData data, CancellationToken cancellationToken)
+                => _analysisData.SetBlockAnalysisDataFrom(basicBlock, data, cancellationToken);
 
             public override bool IsEqual(BasicBlockAnalysisData analysisData1, BasicBlockAnalysisData analysisData2)
                 => analysisData1 == null ? analysisData2 == null : analysisData1.Equals(analysisData2);

@@ -18,8 +18,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CSharpResultProvider.cs" />
   </ItemGroup>
   <ItemGroup>
-    <VsdConfigXml Include="$(MSBuildThisFileDirectory)CSharpResultProvider.vsdconfigxml">
+    <VsdConfigXmlFiles Include="$(MSBuildThisFileDirectory)CSharpResultProvider.vsdconfigxml">
       <SubType>Designer</SubType>
-    </VsdConfigXml>
+    </VsdConfigXmlFiles>
   </ItemGroup>
 </Project>

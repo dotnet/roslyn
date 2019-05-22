@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
             base(serviceProvider, stream)
         {
             // this service provide a way for client to make sure remote host is alive
-            Rpc.StartListening();
+            StartService();
         }
 
         public string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken)
@@ -282,14 +282,14 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
+        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, int workspaceVersion, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async token =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, token))
                 {
                     var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, token).ConfigureAwait(false);
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, workspaceVersion, token).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }

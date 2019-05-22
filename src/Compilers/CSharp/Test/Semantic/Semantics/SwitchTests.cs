@@ -2685,6 +2685,72 @@ class SwitchTest
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "goo").WithArguments("goo").WithLocation(40, 27));
         }
 
+        [Fact, WorkItem(32806, "https://github.com/dotnet/roslyn/issues/32806")]
+        public void TraditionalSwitchIsIncomplete_01()
+        {
+            var text = @"
+class SwitchTest
+{
+    static int Main(string[] args)
+    {
+        bool? test = null;
+
+        switch (test)
+        {
+            case true:
+                return 1;
+            case false:
+                return 0;
+            case null:
+                return -1;
+        }
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (4,16): error CS0161: 'SwitchTest.Main(string[])': not all code paths return a value
+                //     static int Main(string[] args)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("SwitchTest.Main(string[])").WithLocation(4, 16)
+                );
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (4,16): error CS0161: 'SwitchTest.Main(string[])': not all code paths return a value
+                //     static int Main(string[] args)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("SwitchTest.Main(string[])").WithLocation(4, 16)
+                );
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(32806, "https://github.com/dotnet/roslyn/issues/32806")]
+        public void TraditionalSwitchIsIncomplete_02()
+        {
+            var text = @"
+class SwitchTest
+{
+    static int Main(string[] args)
+    {
+        bool? test = null;
+
+        switch (test)
+        {
+            case true when true:
+                return 1;
+            case false:
+                return 0;
+            case null:
+                return -1;
+        }
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (10,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                //             case true when true:
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case true when true:").WithArguments("pattern matching", "7.0").WithLocation(10, 13)
+                );
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+        }
+
         #endregion
 
         #region regressions
@@ -2850,6 +2916,35 @@ public class TestClass
                 //                 break; //1
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
                 );
+        }
+
+        [Fact]
+        [WorkItem(33783, "https://github.com/dotnet/roslyn/issues/33783")]
+        public void UnreachableDefaultInBoolSwitch()
+        {
+            var text = @"
+public class TestClass
+{
+    public static void Main()
+    {
+        bool b = false;
+        switch (b)
+        {
+            case true:
+                break;
+            case false:
+                break;
+            default:
+                break; //1
+        }
+    }
+}";
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics(
+                // (14,17): warning CS0162: Unreachable code detected
+                //                 break; //1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(14, 17));
         }
 
         #endregion

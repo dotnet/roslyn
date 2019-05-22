@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             string expectedErrorText = null,
             int? totalParameters = null,
             bool verifyNoDiagnostics = false,
-            ParseOptions parseOptions = null)
+            ParseOptions parseOptions = null,
+            int expectedSelectedIndex = -1)
         {
             using (var testState = ChangeSignatureTestState.Create(markup, languageName, parseOptions))
             {
@@ -102,6 +103,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     {
                         Assert.True(false, CreateDiagnosticsString(diagnostics, updatedSignature, totalParameters, (await testState.InvocationDocument.GetTextAsync()).ToString()));
                     }
+                }
+
+                if (expectedSelectedIndex != -1)
+                {
+                    var parameterConfiguration = await testState.GetParameterConfigurationAsync();
+                    Assert.Equal(expectedSelectedIndex, parameterConfiguration.SelectedIndex);
                 }
             }
         }

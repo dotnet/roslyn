@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -15,8 +15,8 @@ namespace Roslyn.Compilers.Extension
     public class SetGlobalGlobalPropertiesForCPS : StaticGlobalPropertiesProviderBase
     {
         [ImportingConstructor]
-        public SetGlobalGlobalPropertiesForCPS(IProjectService projectService)
-            : base(projectService.Services)
+        public SetGlobalGlobalPropertiesForCPS(IProjectCommonServices commonServices)
+            : base(commonServices)
         {
         }
 

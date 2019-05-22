@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Debug.Assert(Not targetTypeSymbol.IsTupleType)
 
-            If scope IsNot Nothing AndAlso targetTypeSymbol <> scope AndAlso Not targetTypeSymbol.IsBaseTypeOrInterfaceOf(scope, Nothing) Then
+            If scope IsNot Nothing AndAlso Not TypeSymbol.Equals(targetTypeSymbol, scope, TypeCompareKind.ConsiderEverything) AndAlso Not targetTypeSymbol.IsBaseTypeOrInterfaceOf(scope, Nothing) Then
                 Return Nothing
             End If
 

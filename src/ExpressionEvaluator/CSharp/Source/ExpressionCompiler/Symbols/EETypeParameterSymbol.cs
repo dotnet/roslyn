@@ -60,6 +60,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.ReferenceTypeConstraintIsNullable; }
         }
 
+        internal override bool? IsNotNullableIfReferenceType
+        {
+            get
+            {
+                if (_sourceTypeParameter.ConstraintTypesNoUseSiteDiagnostics.IsEmpty)
+                {
+                    return _sourceTypeParameter.IsNotNullableIfReferenceType;
+                }
+
+                return CalculateIsNotNullableIfReferenceType();
+            }
+        }
+
         public override bool HasValueTypeConstraint
         {
             get { return _sourceTypeParameter.HasValueTypeConstraint; }
@@ -95,14 +108,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return true; }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool early)
+        internal override void EnsureAllConstraintsAreResolved()
         {
-            _sourceTypeParameter.EnsureAllConstraintsAreResolved(early);
+            _sourceTypeParameter.EnsureAllConstraintsAreResolved();
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
-            var constraintTypes = _sourceTypeParameter.GetConstraintTypes(inProgress, early);
+            var constraintTypes = _sourceTypeParameter.GetConstraintTypes(inProgress);
 
             if (constraintTypes.IsEmpty)
             {

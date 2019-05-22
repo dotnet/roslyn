@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal bool HasProject(ProjectId id)
         {
-            return Projects.TryGetValue(id, out var reason);
+            return Projects.TryGetValue(id, out _);
         }
 
         private List<(DocumentId, AsyncLazy<DocumentAnalysisResults>)> GetChangedDocumentsAnalyses(Project baseProject, Project project)
@@ -353,7 +353,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             documentBaseActiveStatements = ImmutableArray<ActiveStatement>.Empty;
                         }
 
-                        var result = await analyzer.AnalyzeDocumentAsync(_baseSolution, documentBaseActiveStatements, document, cancellationToken).ConfigureAwait(false);
+                        var trackingService = _baseSolution.Workspace.Services.GetService<IActiveStatementTrackingService>();
+                        var baseProject = _baseSolution.GetProject(document.Project.Id);
+                        var result = await analyzer.AnalyzeDocumentAsync(baseProject, documentBaseActiveStatements, document, trackingService, cancellationToken).ConfigureAwait(false);
 
                         if (!result.RudeEditErrors.IsDefault)
                         {
@@ -553,8 +555,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        // internal for testing
-        internal static void GetActiveStatementAndExceptionRegionSpans(
+        private static void GetActiveStatementAndExceptionRegionSpans(
             Guid moduleId,
             ActiveStatementsMap baseActiveStatements,
             ImmutableArray<ActiveStatementExceptionRegions> baseActiveExceptionRegions,
@@ -720,6 +721,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(_encEditSessionInfo != null);
                 encDebuggingSessionInfo.EndEditSession(_encEditSessionInfo);
                 _encEditSessionInfo = null;
+            }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly EditSession _editSession;
+
+            public TestAccessor(EditSession editSession)
+            {
+                _editSession = editSession;
+            }
+
+            internal static void GetActiveStatementAndExceptionRegionSpans(
+                Guid moduleId,
+                ActiveStatementsMap baseActiveStatements,
+                ImmutableArray<ActiveStatementExceptionRegions> baseActiveExceptionRegions,
+                int[] updatedMethodTokens,
+                ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> previousNonRemappableRegions,
+                ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> newActiveStatementsInChangedDocuments,
+                out ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
+                out ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
+            {
+                EditSession.GetActiveStatementAndExceptionRegionSpans(
+                    moduleId,
+                    baseActiveStatements,
+                    baseActiveExceptionRegions,
+                    updatedMethodTokens,
+                    previousNonRemappableRegions,
+                    newActiveStatementsInChangedDocuments,
+                    out activeStatementsInUpdatedMethods,
+                    out nonRemappableRegions);
             }
         }
     }

@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="Code_block_preferences">
         <source>Code-block preferences</source>
-        <target state="new">Code-block preferences</target>
+        <target state="translated">代码块首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_bodied_members">
         <source>Expression-bodied members</source>
-        <target state="new">Expression-bodied members</target>
+        <target state="translated">Expression-bodied 成员</target>
         <note />
       </trans-unit>
       <trans-unit id="Indentation_preferences">
         <source>Indentation preferences</source>
-        <target state="new">Indentation preferences</target>
+        <target state="translated">缩进首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="No_available_location_found_to_add_statements_to">
@@ -39,22 +39,22 @@
       </trans-unit>
       <trans-unit id="Node_not_in_parent_s_child_list">
         <source>Node not in parent's child list</source>
-        <target state="translated">不在父级的子列表中的节点</target>
+        <target state="translated">节点不在父级的子列表中</target>
         <note />
       </trans-unit>
       <trans-unit id="Null_checking_preferences">
         <source>Null-checking preferences</source>
-        <target state="new">Null-checking preferences</target>
+        <target state="translated">Null 检查首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Pattern_matching_preferences">
         <source>Pattern matching preferences</source>
-        <target state="new">Pattern matching preferences</target>
+        <target state="translated">模式匹配首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Space_preferences">
         <source>Space preferences</source>
-        <target state="new">Space preferences</target>
+        <target state="translated">空格键首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Trivia_is_not_associated_with_token">
@@ -79,12 +79,17 @@
       </trans-unit>
       <trans-unit id="Wrapping_preferences">
         <source>Wrapping preferences</source>
-        <target state="new">Wrapping preferences</target>
+        <target state="translated">包装首选项</target>
         <note />
+      </trans-unit>
+      <trans-unit id="using_directive_preferences">
+        <source>'using' directive preferences</source>
+        <target state="new">'using' directive preferences</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="var_preferences">
         <source>var preferences</source>
-        <target state="new">var preferences</target>
+        <target state="translated">var 首选项</target>
         <note />
       </trans-unit>
     </body>

@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -128,12 +129,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         }
 
         protected override ImmutableArray<ParameterName> GenerateParameterNames(
-            SemanticModel semanticModel, IEnumerable<ArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken);
+            SemanticModel semanticModel, IEnumerable<ArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameterNamingRule, CancellationToken cancellationToken)
+            => semanticModel.GenerateParameterNames(arguments, reservedNames, parameterNamingRule, cancellationToken);
 
         protected override ImmutableArray<ParameterName> GenerateParameterNames(
-            SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames, CancellationToken cancellationToken)
-            => semanticModel.GenerateParameterNames(arguments, reservedNames, cancellationToken);
+            SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames, NamingRule parameterNamingRule, CancellationToken cancellationToken)
+            => semanticModel.GenerateParameterNames(arguments, reservedNames, parameterNamingRule, cancellationToken);
 
         protected override string GenerateNameForArgument(SemanticModel semanticModel, ArgumentSyntax argument, CancellationToken cancellationToken)
             => semanticModel.GenerateNameForArgument(argument, cancellationToken);
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             {
                 SyntaxToken thisOrBaseKeyword;
                 SyntaxKind newCtorInitializerKind;
-                if (tokenKind != SyntaxKind.BaseKeyword && state.TypeToGenerateIn == namedType)
+                if (tokenKind != SyntaxKind.BaseKeyword && Equals(state.TypeToGenerateIn, namedType))
                 {
                     thisOrBaseKeyword = SyntaxFactory.Token(SyntaxKind.ThisKeyword);
                     newCtorInitializerKind = SyntaxKind.ThisConstructorInitializer;
@@ -220,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
                 var typeNameToReplace = (TypeSyntax)oldToken.Parent;
                 TypeSyntax newTypeName;
-                if (namedType != state.TypeToGenerateIn)
+                if (!Equals(namedType, state.TypeToGenerateIn))
                 {
                     while (true)
                     {

@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        public event EventHandler DiagnosticsCleared { add { } remove { } }
 
         public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {
@@ -151,19 +152,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private HostArgsId CreateId(DiagnosticAnalyzer analyzer, Project project) => new HostArgsId(this, analyzer, project?.Id);
 
-        internal ImmutableArray<DiagnosticData> TestOnly_GetReportedDiagnostics()
-        {
-            return _analyzerHostDiagnosticsMap.Values.Flatten().ToImmutableArray();
-        }
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
 
-        internal ImmutableHashSet<DiagnosticData> TestOnly_GetReportedDiagnostics(DiagnosticAnalyzer analyzer)
+        internal readonly struct TestAccessor
         {
-            if (!_analyzerHostDiagnosticsMap.TryGetValue(analyzer, out var diagnostics))
+            private readonly AbstractHostDiagnosticUpdateSource _abstractHostDiagnosticUpdateSource;
+
+            public TestAccessor(AbstractHostDiagnosticUpdateSource abstractHostDiagnosticUpdateSource)
             {
-                diagnostics = ImmutableHashSet<DiagnosticData>.Empty;
+                _abstractHostDiagnosticUpdateSource = abstractHostDiagnosticUpdateSource;
             }
 
-            return diagnostics;
+            internal ImmutableArray<DiagnosticData> GetReportedDiagnostics()
+            {
+                return _abstractHostDiagnosticUpdateSource._analyzerHostDiagnosticsMap.Values.Flatten().ToImmutableArray();
+            }
+
+            internal ImmutableHashSet<DiagnosticData> GetReportedDiagnostics(DiagnosticAnalyzer analyzer)
+            {
+                if (!_abstractHostDiagnosticUpdateSource._analyzerHostDiagnosticsMap.TryGetValue(analyzer, out var diagnostics))
+                {
+                    diagnostics = ImmutableHashSet<DiagnosticData>.Empty;
+                }
+
+                return diagnostics;
+            }
         }
 
         private class HostArgsId : AnalyzerUpdateArgsId

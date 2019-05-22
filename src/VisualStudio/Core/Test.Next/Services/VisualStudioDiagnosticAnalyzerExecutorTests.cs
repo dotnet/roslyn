@@ -53,7 +53,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal(DiagnosticSeverity.Hidden, diagnostics[0].Severity);
 
                 // set option
-                workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
+                workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
                 analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType);
 
                 diagnostics = analyzerResult.SemanticLocals[analyzerResult.DocumentIds.First()];
@@ -179,7 +179,7 @@ End Class";
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync), (object)(new Checksum[] { asset.Checksum }), CancellationToken.None);
 
                 // set option
-                workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
+                workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
 
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First();
@@ -189,8 +189,11 @@ End Class";
                         analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                         new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
 
+                // no result for open file only analyzer unless forced
                 var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
+                Assert.Empty(result.AnalysisResult);
 
+                result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: true, cancellationToken: CancellationToken.None);
                 var analyzerResult = result.AnalysisResult[analyzerDriver.Analyzers[0]];
 
                 // check result

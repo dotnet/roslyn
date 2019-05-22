@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 new SequenceEdit(-1, 1),
                 new SequenceEdit(1, 0),
                 new SequenceEdit(0, -1),
-            }, edits, itemInspector: e => e.GetDebuggerDisplay());
+            }, edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 new SequenceEdit(-1, 1),
                 new SequenceEdit(1, 0),
                 new SequenceEdit(0, -1),
-            }, edits, itemInspector: e => e.GetDebuggerDisplay());
+            }, edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
         }
 
         [Fact]
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 new SequenceEdit(1, -1),
                 new SequenceEdit(0, 1),
                 new SequenceEdit(-1, 0),
-            }, edits, itemInspector: e => e.GetDebuggerDisplay());
+            }, edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
         }
 
         [Fact]
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 new SequenceEdit(1, -1),
                 new SequenceEdit(0, 1),
                 new SequenceEdit(-1, 0),
-            }, edits, itemInspector: e => e.GetDebuggerDisplay());
+            }, edits, itemInspector: e => e.GetTestAccessor().GetDebuggerDisplay());
         }
 
         [Fact]

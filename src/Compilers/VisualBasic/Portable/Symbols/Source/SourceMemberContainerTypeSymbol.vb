@@ -492,7 +492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             directInterface = Nothing
 
             For Each iface In Me.InterfacesNoUseSiteDiagnostics
-                If iface = implementedInterface Then
+                If TypeSymbol.Equals(iface, implementedInterface, TypeCompareKind.ConsiderEverything) Then
                     directInterface = iface
                     Exit For
                 ElseIf directInterface Is Nothing AndAlso iface.ImplementsInterface(implementedInterface, comparer:=Nothing, useSiteDiagnostics:=Nothing) Then
@@ -2990,7 +2990,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If definedTypes.Length > 0 Then
                 Dim type = definedTypes(0)
-                If sym <> type Then
+                If Not Equals(TryCast(sym, TypeSymbol), type, TypeCompareKind.ConsiderEverything) Then
                     Return CheckIfMemberNameIsDuplicate(sym, type, members, diagBag, includeKind:=True)
                 End If
             End If
@@ -3771,7 +3771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         For Each [interface] In keySetPair.Value
                             If other IsNot [interface] Then
                                 Debug.Assert(EqualsIgnoringComparer.InstanceIgnoringTupleNames.Equals([interface], other))
-                                Debug.Assert([interface] <> other)
+                                Debug.Assert(Not TypeSymbol.Equals([interface], other, TypeCompareKind.ConsiderEverything))
 
                                 ReportDuplicateInterfaceWithDifferentTupleNames(diagnostics, [interface], other)
                             End If
@@ -3797,7 +3797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim i2 As Integer = 0
                         For Each interface2 In kvp.Value
                             If i2 > i1 Then
-                                Debug.Assert(interface2.IsGenericType AndAlso interface1.OriginalDefinition = interface2.OriginalDefinition)
+                                Debug.Assert(interface2.IsGenericType AndAlso TypeSymbol.Equals(interface1.OriginalDefinition, interface2.OriginalDefinition, TypeCompareKind.ConsiderEverything))
 
                                 ' Check for interface unification, then variance ambiguity
                                 If TypeUnification.CanUnify(Me, interface1, interface2) Then
@@ -3886,22 +3886,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim isInterface As Boolean = Me.IsInterfaceType()
             Dim diag As DiagnosticInfo
 
-            If (directInterface1 = interface1 AndAlso directInterface2 = interface2) Then
+            If (TypeSymbol.Equals(directInterface1, interface1, TypeCompareKind.ConsiderEverything) AndAlso TypeSymbol.Equals(directInterface2, interface2, TypeCompareKind.ConsiderEverything)) Then
                 diag = ErrorFactory.ErrorInfo(If(isInterface, ERRID.ERR_InterfaceUnifiesWithInterface2, ERRID.ERR_InterfacePossiblyImplTwice2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1))
-            ElseIf (directInterface1 <> interface1 AndAlso directInterface2 = interface2) Then
+            ElseIf (Not TypeSymbol.Equals(directInterface1, interface1, TypeCompareKind.ConsiderEverything) AndAlso TypeSymbol.Equals(directInterface2, interface2, TypeCompareKind.ConsiderEverything)) Then
                 diag = ErrorFactory.ErrorInfo(If(isInterface, ERRID.ERR_InterfaceUnifiesWithBase3, ERRID.ERR_ClassInheritsInterfaceUnifiesWithBase3),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface1))
-            ElseIf (directInterface1 = interface1 AndAlso directInterface2 <> interface2) Then
+            ElseIf (TypeSymbol.Equals(directInterface1, interface1, TypeCompareKind.ConsiderEverything) AndAlso Not TypeSymbol.Equals(directInterface2, interface2, TypeCompareKind.ConsiderEverything)) Then
                 diag = ErrorFactory.ErrorInfo(If(isInterface, ERRID.ERR_BaseUnifiesWithInterfaces3, ERRID.ERR_ClassInheritsBaseUnifiesWithInterfaces3),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1))
             Else
-                Debug.Assert(directInterface1 <> interface1 AndAlso directInterface2 <> interface2)
+                Debug.Assert(Not TypeSymbol.Equals(directInterface1, interface1, TypeCompareKind.ConsiderEverything) AndAlso Not TypeSymbol.Equals(directInterface2, interface2, TypeCompareKind.ConsiderEverything))
                 diag = ErrorFactory.ErrorInfo(If(isInterface, ERRID.ERR_InterfaceBaseUnifiesWithBase4, ERRID.ERR_ClassInheritsInterfaceBaseUnifiesWithBase4),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
@@ -3965,22 +3965,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim diag As DiagnosticInfo
 
-            If (directInterface1 = interface1 AndAlso directInterface2 = interface2) Then
+            If (TypeSymbol.Equals(directInterface1, interface1, TypeCompareKind.ConsiderEverything) AndAlso TypeSymbol.Equals(directInterface2, interface2, TypeCompareKind.ConsiderEverything)) Then
                 diag = ErrorFactory.ErrorInfo(If(IsInterface, ERRID.ERR_InterfaceInheritedTwiceWithDifferentTupleNames2, ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1))
-            ElseIf (directInterface1 <> interface1 AndAlso directInterface2 = interface2) Then
+            ElseIf (Not TypeSymbol.Equals(directInterface1, interface1, TypeCompareKind.ConsiderEverything) AndAlso TypeSymbol.Equals(directInterface2, interface2, TypeCompareKind.ConsiderEverything)) Then
                 diag = ErrorFactory.ErrorInfo(If(IsInterface, ERRID.ERR_InterfaceInheritedTwiceWithDifferentTupleNames3, ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames3),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface1))
-            ElseIf (directInterface1 = interface1 AndAlso directInterface2 <> interface2) Then
+            ElseIf (TypeSymbol.Equals(directInterface1, interface1, TypeCompareKind.ConsiderEverything) AndAlso Not TypeSymbol.Equals(directInterface2, interface2, TypeCompareKind.ConsiderEverything)) Then
                 diag = ErrorFactory.ErrorInfo(If(IsInterface, ERRID.ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3, ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNamesReverse3),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1))
             Else
-                Debug.Assert(directInterface1 <> interface1 AndAlso directInterface2 <> interface2)
+                Debug.Assert(Not TypeSymbol.Equals(directInterface1, interface1, TypeCompareKind.ConsiderEverything) AndAlso Not TypeSymbol.Equals(directInterface2, interface2, TypeCompareKind.ConsiderEverything))
                 diag = ErrorFactory.ErrorInfo(If(IsInterface, ERRID.ERR_InterfaceInheritedTwiceWithDifferentTupleNames4, ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames4),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface2),

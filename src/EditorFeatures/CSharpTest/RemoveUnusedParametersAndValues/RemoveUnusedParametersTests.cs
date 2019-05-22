@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -27,14 +28,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                 new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption.Suggestion));
 
         // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
-        private Task TestDiagnosticMissingAsync(string initialMarkup)
-            => TestDiagnosticMissingAsync(initialMarkup, options: null);
+        private Task TestDiagnosticMissingAsync(string initialMarkup, ParseOptions parseOptions = null)
+            => TestDiagnosticMissingAsync(initialMarkup, options: null, parseOptions);
+        private Task TestDiagnosticsWithAsync(string initialMarkup, ParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
+            => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions, expectedDiagnostics);
         private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
-            => TestDiagnosticsAsync(initialMarkup, options: null, expectedDiagnostics);
-        private Task TestDiagnosticMissingAsync(string initialMarkup, IDictionary<OptionKey, object> options)
-            => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(options: options, retainNonFixableDiagnostics: true));
+            => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions: null, expectedDiagnostics);
+        private Task TestDiagnosticMissingAsync(string initialMarkup, IDictionary<OptionKey, object> options, ParseOptions parseOptions = null)
+            => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true));
         private Task TestDiagnosticsAsync(string initialMarkup, IDictionary<OptionKey, object> options, params DiagnosticDescription[] expectedDiagnostics)
-            => TestDiagnosticsAsync(initialMarkup, new TestParameters(options: options, retainNonFixableDiagnostics: true), expectedDiagnostics);
+            => TestDiagnosticsAsync(initialMarkup, options, parseOptions: null, expectedDiagnostics);
+        private Task TestDiagnosticsAsync(string initialMarkup, IDictionary<OptionKey, object> options, ParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
+            => TestDiagnosticsAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true), expectedDiagnostics);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_Used()
@@ -1066,6 +1071,147 @@ internal sealed class CustomSerializingType : ISerializable
         }
     }
 }");
+        }
+
+        [WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_Unused_SpecialNames()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    [|void M(int _, char _1, C _3)|]
+    {
+    }
+}");
+        }
+
+        [WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_Used_SemanticError()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    void M(int [|x|])
+    {
+        // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
+        Invoke<string>(() => x);
+
+        T Invoke<T>(Func<T> a) { return a(); }
+    }
+}");
+        }
+
+        [WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task Parameter_Unused_SemanticError()
+        {
+            await TestDiagnosticsAsync(
+@"class C
+{
+    void M(int [|x|])
+    {
+        // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
+        Invoke<string>(() => 0);
+
+        T Invoke<T>(Func<T> a) { return a(); }
+    }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task OutParameter_LocalFunction()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    public static bool M(out int x)
+    {
+        return LocalFunction(out x);
+
+        bool LocalFunction(out int [|y|])
+        {
+            y = 0;
+            return true;
+        }
+    }
+}");
+        }
+
+        [WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RefParameter_Unused_LocalFunction()
+        {
+            await TestDiagnosticsAsync(
+@"class C
+{
+    public static bool M(ref int x)
+    {
+        return LocalFunction(ref x);
+
+        bool LocalFunction(ref int [|y|])
+        {
+            return true;
+        }
+    }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+        }
+
+        [WorkItem(32973, "https://github.com/dotnet/roslyn/issues/32973")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RefParameter_Used_LocalFunction()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    public static bool M(ref int x)
+    {
+        return LocalFunction(ref x);
+
+        bool LocalFunction(ref int [|y|])
+        {
+            y = 0;
+            return true;
+        }
+    }
+}");
+        }
+
+        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task NullCoalesceAssignment()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    public static void M(C [|x|])
+    {
+        x ??= new C();
+    }
+}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(34301, "https://github.com/dotnet/roslyn/issues/34301")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task GenericLocalFunction()
+        {
+            await TestDiagnosticsAsync(
+@"class C
+{
+    void M()
+    {
+        LocalFunc(0);
+
+        void LocalFunc<T>(T [|value|])
+        {
+        }
+    }
+}",
+    Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         }
     }
 }

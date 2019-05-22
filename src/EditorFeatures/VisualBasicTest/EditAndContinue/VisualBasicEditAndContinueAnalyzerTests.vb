@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -436,7 +437,8 @@ End Class
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
 
             Using workspace = TestWorkspace.CreateVisualBasic(source1)
-                Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
+                Dim oldProject = workspace.CurrentSolution.Projects.First()
+                Dim documentId = oldProject.Documents.First().Id
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
                 Dim oldDocument = oldSolution.GetDocument(documentId)
@@ -453,7 +455,7 @@ End Class
                 Dim oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan)
 
                 Dim baseActiveStatements = ImmutableArray.Create(ActiveStatementsDescription.CreateActiveStatement(ActiveStatementFlags.IsLeafFrame, oldStatementSpan, DocumentId.CreateNewId(ProjectId.CreateNewId())))
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newDocument, Nothing)
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, trackingServiceOpt:=Nothing, CancellationToken.None)
 
                 Assert.True(result.HasChanges)
                 Assert.True(result.SemanticEdits(0).PreserveLocalVariables)
@@ -480,9 +482,10 @@ End Class
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
             Using workspace = TestWorkspace.CreateVisualBasic(source)
-                Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim oldProject = workspace.CurrentSolution.Projects.First()
+                Dim document = oldProject.Documents.First()
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, Nothing)
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, document, trackingServiceOpt:=Nothing, CancellationToken.None)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -509,12 +512,13 @@ End Class
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
             Using workspace = TestWorkspace.CreateVisualBasic(source1)
-                Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
+                Dim oldProject = workspace.CurrentSolution.Projects.First()
+                Dim documentId = oldProject.Documents.First().Id
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
 
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), Nothing)
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), trackingServiceOpt:=Nothing, CancellationToken.None)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -535,9 +539,10 @@ End Class
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
             Using workspace = TestWorkspace.CreateVisualBasic(source)
-                Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim oldProject = workspace.CurrentSolution.Projects.First()
+                Dim document = oldProject.Documents.First()
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, Nothing)
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, document, trackingServiceOpt:=Nothing, CancellationToken.None)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -566,12 +571,13 @@ End Class
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
             Using workspace = TestWorkspace.CreateVisualBasic(source1)
-                Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
+                Dim oldProject = workspace.CurrentSolution.Projects.First()
+                Dim documentId = oldProject.Documents.First().Id
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
 
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), Nothing)
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), trackingServiceOpt:=Nothing, CancellationToken.None)
 
                 ' no declaration errors (error in method body is only reported when emitting)
                 Assert.False(result.HasChangesAndErrors)
@@ -598,12 +604,13 @@ End Class
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
             Using workspace = TestWorkspace.CreateVisualBasic(source1)
-                Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
+                Dim oldProject = workspace.CurrentSolution.Projects.First()
+                Dim documentId = oldProject.Documents.First().Id
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
 
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), Nothing)
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), trackingServiceOpt:=Nothing, CancellationToken.None)
 
                 Assert.True(result.HasChanges)
                 Assert.True(result.HasChangesAndErrors)
@@ -650,15 +657,15 @@ End Class
 
             Using workspace = TestWorkspace.CreateVisualBasic(source1)
                 ' fork the solution to introduce a change
-                Dim project = workspace.CurrentSolution.Projects.Single()
-                Dim newDocId = Microsoft.CodeAnalysis.DocumentId.CreateNewId(project.Id)
+                Dim oldProject = workspace.CurrentSolution.Projects.Single()
+                Dim newDocId = DocumentId.CreateNewId(oldProject.Id)
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = oldSolution.AddDocument(newDocId, "goo.vb", SourceText.From(source2))
 
                 workspace.TryApplyChanges(newSolution)
 
                 Dim newProject = newSolution.Projects.Single()
-                Dim changes = newProject.GetChanges(project)
+                Dim changes = newProject.GetChanges(oldProject)
 
                 Assert.Equal(2, newProject.Documents.Count())
                 Assert.Equal(0, changes.GetChangedDocuments().Count())
@@ -669,7 +676,7 @@ End Class
                 Dim result = New List(Of DocumentAnalysisResults)()
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatement)()
                 For Each changedDocumentId In changedDocuments
-                    result.Add(Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newProject.GetDocument(changedDocumentId), Nothing))
+                    result.Add(Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newProject.GetDocument(changedDocumentId), trackingServiceOpt:=Nothing, CancellationToken.None))
                 Next
 
                 Assert.True(result.IsSingle())

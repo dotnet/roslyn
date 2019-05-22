@@ -1015,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             => isRef &&
                right is BoundFieldAccess fieldAccess &&
                fieldAccess.FieldSymbol.IsFixedSizeBuffer &&
-               left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
+               left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType, TypeCompareKind.AllIgnoreOptions);
 
         // indirect assignment is assignment to a value referenced indirectly
         // it may only happen if 
@@ -2162,7 +2162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { throw new NotImplementedException(); }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { throw new NotImplementedException(); }
         }
