@@ -173,14 +173,18 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal SyntaxToken FirstTokenOfBaseTokenLine(SyntaxToken token)
         {
             var currentTokenData = this.GetTokenData(token);
-            while (!this.IsFirstTokenOnLine(token))
+            return FirstTokenOfBaseTokenLine(ref currentTokenData);
+        }
+
+        // using ref to avoid copying the entire struct
+        private SyntaxToken FirstTokenOfBaseTokenLine(ref TokenData tokenData)
+        {
+            while (!this.IsFirstTokenOnLine(tokenData))
             {
-                var previousTokenData = this.GetPreviousTokenData(currentTokenData);
-                token = previousTokenData.Token;
-                currentTokenData = previousTokenData;
+                tokenData = this.GetPreviousTokenData(tokenData);
             }
 
-            return token;
+            return tokenData.Token;
         }
 
         public bool TwoTokensOriginallyOnSameLine(SyntaxToken token1, SyntaxToken token2)
@@ -502,8 +506,17 @@ namespace Microsoft.CodeAnalysis.Formatting
             return IsFirstTokenOnLine(previousTokenWithIndex, tokenWithIndex);
         }
 
+        private bool IsFirstTokenOnLine(in TokenData tokenData)
+        {
+            Contract.ThrowIfTrue(tokenData.Token.RawKind == 0);
+
+            var previousTokenWithIndex = tokenData.GetPreviousTokenData();
+
+            return IsFirstTokenOnLine(previousTokenWithIndex, tokenData);
+        }
+
         // this can be called with tokens that are outside of token stream
-        private bool IsFirstTokenOnLine(TokenData tokenData1, TokenData tokenData2)
+        private bool IsFirstTokenOnLine(in TokenData tokenData1, in TokenData tokenData2)
         {
             if (tokenData1.Token.RawKind == 0)
             {
