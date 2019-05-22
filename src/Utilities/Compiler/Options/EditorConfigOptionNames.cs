@@ -32,5 +32,10 @@ namespace Analyzer.Utilities
         /// Boolean option to configure if single letter type parameter names are not flagged for CA1715 (https://docs.microsoft.com/visualstudio/code-quality/ca1715-identifiers-should-have-correct-prefix).
         /// </summary>
         public const string ExcludeSingleLetterTypeParameters = "exclude_single_letter_type_parameters";
+
+        /// <summary>
+        /// Integral option to configure sufficient IterationCount when using Weak KDF algorithm for CA5387.
+        /// </summary>
+        public const string SufficientIterationCountForWeakKDFAlgorithm = "100000";
     }
 }
