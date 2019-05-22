@@ -203,26 +203,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private static string LogSynchronizeWithBuild(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
         {
-            using (var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject())
+            using var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject();
+            var sb = pooledObject.Object;
+            sb.Append($"PreferBuildError:{PreferBuildErrors(workspace)}, PreferLiveOnOpenFiles:{PreferLiveErrorsOnOpenedFiles(workspace)}");
+
+            if (map.Count > 0)
             {
-                var sb = pooledObject.Object;
-                sb.Append($"PreferBuildError:{PreferBuildErrors(workspace)}, PreferLiveOnOpenFiles:{PreferLiveErrorsOnOpenedFiles(workspace)}");
-
-                if (map.Count > 0)
+                foreach (var kv in map)
                 {
-                    foreach (var kv in map)
-                    {
-                        sb.AppendLine($"{kv.Key}, Count: {kv.Value.Length}");
+                    sb.AppendLine($"{kv.Key}, Count: {kv.Value.Length}");
 
-                        foreach (var diagnostic in kv.Value)
-                        {
-                            sb.AppendLine($"    {diagnostic.ToString()}");
-                        }
+                    foreach (var diagnostic in kv.Value)
+                    {
+                        sb.AppendLine($"    {diagnostic.ToString()}");
                     }
                 }
-
-                return sb.ToString();
             }
+
+            return sb.ToString();
         }
     }
 }
