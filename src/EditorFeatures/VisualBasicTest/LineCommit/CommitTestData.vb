@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     Throw New NotImplementedException()
                 End Sub
 
-                Public Sub Commit(Optional previewChanges As Boolean = False) Implements IInlineRenameSession.Commit
+                Public Sub Commit(Optional previewChanges As Boolean = False, Optional changeFileName As Boolean = False) Implements IInlineRenameSession.Commit
                     Throw New NotImplementedException()
                 End Sub
             End Class
