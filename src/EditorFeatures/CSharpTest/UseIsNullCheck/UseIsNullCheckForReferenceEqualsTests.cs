@@ -252,6 +252,35 @@ class C
 ");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsUnconstrainedGenericNegated()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value)
+    {
+        if (![||]ReferenceEquals(value, null))
+        {
+            return;
+        }
+    }
+}
+", @"
+class C
+{
+    public static void NotNull<T>(T value)
+    {
+        if (value is object)
+        {
+            return;
+        }
+    }
+}
+");
+        }
+
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsRefConstraintGeneric()
@@ -283,6 +312,36 @@ class C
 ");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsRefConstraintGenericNegated()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value) where T:class
+    {
+        if (![||]ReferenceEquals(value, null))
+        {
+            return;
+        }
+    }
+}
+",
+@"
+class C
+{
+    public static void NotNull<T>(T value) where T:class
+    {
+        if (value is object)
+        {
+            return;
+        }
+    }
+}
+");
+        }
+
         [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestValueParameterTypeIsValueConstraintGeneric()
@@ -294,6 +353,24 @@ class C
     public static void NotNull<T>(T value) where T:struct
     {
         if ([||]ReferenceEquals(value, null))
+        {
+            return;
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsValueConstraintGenericNegated()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value) where T:struct
+    {
+        if (![||]ReferenceEquals(value, null))
         {
             return;
         }
