@@ -9,6 +9,10 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 {
+    // Place this using inside the containing namespace so it takes precedence over
+    // the older Editor version with the same name.
+    using Microsoft.CodeAnalysis.Indentation;
+
     internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> : AbstractSyntaxWrapper
         where TBinaryExpressionSyntax : SyntaxNode
     {
@@ -16,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
         private readonly IPrecedenceService _precedenceService;
 
         protected AbstractBinaryExpressionWrapper(
-            Indentation.IIndentationService indentationService,
+            IIndentationService indentationService,
             ISyntaxFactsService syntaxFacts,
             IPrecedenceService precedenceService) : base(indentationService)
         {
