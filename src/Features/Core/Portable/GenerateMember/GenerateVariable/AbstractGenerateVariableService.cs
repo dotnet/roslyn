@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         AddPropertyCodeActions(actions, semanticDocument, state);
                     }
                 }
+
                 AddLocalCodeActions(actions, document, state);
                 AddParameterCodeActions(actions, document, state);
 

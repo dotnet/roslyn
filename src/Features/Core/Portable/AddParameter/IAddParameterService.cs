@@ -14,14 +14,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         /// <summary>
         /// Adds a parameter to a method.
         /// </summary>
-        /// <param name="invocationDocument"></param>
-        /// <param name="method"></param>
-        /// <param name="newParamaterType"></param>
-        /// <param name="refKind"></param>
-        /// <param name="parameterName"></param>
         /// <param name="newParameterIndex"><see langword="null"/> to add as the final parameter</param>
-        /// <param name="fixAllReferences"></param>
-        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<Solution> AddParameterAsync(
             Document invocationDocument,
