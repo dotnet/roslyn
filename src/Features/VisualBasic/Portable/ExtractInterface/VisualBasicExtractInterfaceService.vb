@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
     Friend Class VisualBasicExtractInterfaceService
         Inherits AbstractExtractInterfaceService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Async Function GetTypeDeclarationAsync(
             document As Document, position As Integer,
             typeDiscoveryRule As TypeDiscoveryRule,

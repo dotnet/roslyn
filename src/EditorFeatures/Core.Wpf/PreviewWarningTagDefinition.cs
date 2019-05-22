@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.Tags
     [ExcludeFromCodeCoverage]
     internal class PreviewWarningTagDefinition : MarkerFormatDefinition
     {
+        [ImportingConstructor]
         public PreviewWarningTagDefinition()
         {
             this.Border = new Pen(new SolidColorBrush(Color.FromRgb(230, 117, 64)), thickness: 1.5);

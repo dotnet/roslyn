@@ -9,6 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
     Friend NotInheritable Class VisualBasicSyntaxKindsService
         Implements ISyntaxKindsService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public ReadOnly Property IfKeyword As Integer = SyntaxKind.IfKeyword Implements ISyntaxKindsService.IfKeyword
         Public ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression Implements ISyntaxKindsService.LogicalAndExpression
         Public ReadOnly Property LogicalOrExpression As Integer = SyntaxKind.OrElseExpression Implements ISyntaxKindsService.LogicalOrExpression

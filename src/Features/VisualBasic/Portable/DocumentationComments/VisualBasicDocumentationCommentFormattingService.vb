@@ -10,5 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
     Friend Class VisualBasicDocumentationCommentFormattingService
         Inherits AbstractDocumentationCommentFormattingService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

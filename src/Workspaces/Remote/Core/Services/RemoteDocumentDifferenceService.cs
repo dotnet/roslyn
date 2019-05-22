@@ -22,11 +22,19 @@ namespace Microsoft.CodeAnalysis.Remote
         [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.CSharp, layer: WorkspaceKind.Host), Shared]
         internal class CSharpDocumentDifferenceService : RemoteDocumentDifferenceService
         {
+            [ImportingConstructor]
+            public CSharpDocumentDifferenceService()
+            {
+            }
         }
 
         [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.VisualBasic, layer: WorkspaceKind.Host), Shared]
         internal class VisualBasicDocumentDifferenceService : AbstractDocumentDifferenceService
         {
+            [ImportingConstructor]
+            public VisualBasicDocumentDifferenceService()
+            {
+            }
         }
 
         public async Task<DocumentDifferenceResult> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)

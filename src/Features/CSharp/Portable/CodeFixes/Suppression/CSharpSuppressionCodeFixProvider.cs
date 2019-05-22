@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
     [ExportSuppressionFixProvider(PredefinedCodeFixProviderNames.Suppression, LanguageNames.CSharp), Shared]
     internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpSuppressionCodeFixProvider()
+        {
+        }
+
         protected override SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine)
         {
             var restoreKeyword = SyntaxFactory.Token(SyntaxKind.RestoreKeyword);

@@ -9,6 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
     Friend Class VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider
         Inherits AbstractConvertConcatenationToInterpolatedStringRefactoringProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function CreateInterpolatedStringStartToken(isVerbatim As Boolean) As SyntaxToken
             Return SyntaxFactory.Token(SyntaxKind.DollarSignDoubleQuoteToken)
         End Function

@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
     Partial Friend Class VisualBasicOrganizeImportsService
         Implements IOrganizeImportsService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Async Function OrganizeImportsAsync(document As Document,
                                         cancellationToken As CancellationToken) As Task(Of Document) Implements IOrganizeImportsService.OrganizeImportsAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)

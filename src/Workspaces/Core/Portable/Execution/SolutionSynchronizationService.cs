@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private readonly AssetStorages _assetStorages = new AssetStorages();
 
+        [ImportingConstructor]
+        public RemotableDataServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service(workspaceServices, _assetStorages);

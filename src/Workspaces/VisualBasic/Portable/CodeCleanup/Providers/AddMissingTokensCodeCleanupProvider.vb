@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     Friend Class AddMissingTokensCodeCleanupProvider
         Inherits AbstractTokensCodeCleanupProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property Name As String
             Get
                 Return PredefinedCodeCleanupProviderNames.AddMissingTokens

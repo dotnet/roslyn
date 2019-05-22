@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
 
         private MoveToNamespaceOptionsResult _optionsResult = DefaultOptions;
 
+        [ImportingConstructor]
+        public TestMoveToNamespaceOptionsService()
+        {
+        }
+
         public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(string defaultNamespace, ImmutableArray<string> availableNamespaces, ISyntaxFactsService syntaxFactsService)
             => _optionsResult;
 

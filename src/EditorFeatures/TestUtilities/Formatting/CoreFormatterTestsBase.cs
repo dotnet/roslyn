@@ -19,6 +19,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 {
+    using Microsoft.CodeAnalysis.Indentation;
+
     public abstract class CoreFormatterTestsBase
     {
         internal abstract string GetLanguageName();
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var indentationLineFromBuffer = snapshot.GetLineFromLineNumber(indentationLine);
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            var blankLineIndenter = document.GetLanguageService<Indentation.IIndentationService>();
+            var blankLineIndenter = document.GetLanguageService<IIndentationService>();
             var indentStyle = workspace.Options.GetOption(FormattingOptions.SmartIndent, GetLanguageName());
             var blankLineIndentResult = blankLineIndenter.GetBlankLineIndentation(
                 document, indentationLine, indentStyle, CancellationToken.None);

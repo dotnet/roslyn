@@ -16,6 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAnonymousTypeMemberName
 
         Private Const BC36556 As String = NameOf(BC36556) ' Anonymous type member name can be inferred only from a simple or qualified name with no arguments.
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
             ImmutableArray.Create(BC36556)
 

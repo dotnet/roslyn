@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DesignerAttributes
     [ExportLanguageServiceFactory(typeof(IDesignerAttributeService), LanguageNames.CSharp), Shared]
     internal class CSharpDesignerAttributeServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpDesignerAttributeServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             => new CSharpDesignerAttributeService(languageServices.WorkspaceServices.Workspace);
     }
