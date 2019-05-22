@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -42,10 +42,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         // factory that will cache trivia info
         private readonly AbstractTriviaDataFactory _factory;
 
-        // func caches
-        private readonly Func<TokenData, TokenData, TriviaData> _getTriviaData;
-        private readonly Func<TokenData, TokenData, TriviaData> _getOriginalTriviaData;
-
         public TokenStream(TreeData treeData, OptionSet optionSet, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
         {
             using (Logger.LogBlock(FunctionId.Formatting_TokenStreamConstruction, CancellationToken.None))
@@ -64,10 +60,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 // initialize trivia related info
                 _cachedOriginalTriviaInfo = new TriviaData[this.TokenCount - 1];
-
-                // Func Cache
-                _getTriviaData = this.GetTriviaData;
-                _getOriginalTriviaData = this.GetOriginalTriviaData;
             }
 
             DebugCheckTokenOrder();
@@ -193,15 +185,16 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public bool TwoTokensOriginallyOnSameLine(SyntaxToken token1, SyntaxToken token2)
         {
-            return TwoTokensOnSameLineWorker(token1, token2, _getOriginalTriviaData);
+            return TwoTokensOnSameLineWorker(token1, token2, new OriginalTriviaDataGetter(this));
         }
 
         public bool TwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
         {
-            return TwoTokensOnSameLineWorker(token1, token2, _getTriviaData);
+            return TwoTokensOnSameLineWorker(token1, token2, new TriviaDataGetter(this));
         }
 
-        private bool TwoTokensOnSameLineWorker(SyntaxToken token1, SyntaxToken token2, Func<TokenData, TokenData, TriviaData> triviaDataGetter)
+        private bool TwoTokensOnSameLineWorker<TDataGetter>(SyntaxToken token1, SyntaxToken token2, TDataGetter dataGetter)
+            where TDataGetter : ITriviaDataGetter
         {
             // check easy case
             if (token1 == token2)
@@ -222,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var previousToken = tokenData1;
             for (var current = tokenData1.GetNextTokenData(); current < tokenData2; current = current.GetNextTokenData())
             {
-                if (triviaDataGetter(previousToken, current).SecondTokenIsFirstTokenOnLine)
+                if (dataGetter.GetTriviaData(previousToken, current).SecondTokenIsFirstTokenOnLine)
                 {
                     return false;
                 }
@@ -231,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // check last one.
-            return !triviaDataGetter(previousToken, tokenData2).SecondTokenIsFirstTokenOnLine;
+            return !dataGetter.GetTriviaData(previousToken, tokenData2).SecondTokenIsFirstTokenOnLine;
         }
 
         public void ApplyBeginningOfTreeChange(TriviaData data)
@@ -272,20 +265,42 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public int GetCurrentColumn(TokenData tokenData)
         {
-            return GetColumn(tokenData, _getTriviaData);
+            return GetColumn(tokenData, new TriviaDataGetter(this));
         }
 
         public int GetOriginalColumn(SyntaxToken token)
         {
             var tokenWithIndex = this.GetTokenData(token);
-            return GetColumn(tokenWithIndex, _getOriginalTriviaData);
+            return GetColumn(tokenWithIndex, new OriginalTriviaDataGetter(this));
+        }
+
+        interface ITriviaDataGetter
+        {
+            TriviaData GetTriviaData(TokenData token1, TokenData token2);
+        }
+
+        struct TriviaDataGetter : ITriviaDataGetter
+        {
+            readonly TokenStream _tokenStream;
+            public TriviaDataGetter(TokenStream tokenStream) { _tokenStream = tokenStream; }
+
+            public TriviaData GetTriviaData(TokenData token1, TokenData token2) => _tokenStream.GetTriviaData(token1, token2);
+        }
+
+        struct OriginalTriviaDataGetter : ITriviaDataGetter
+        {
+            readonly TokenStream _tokenStream;
+            public OriginalTriviaDataGetter(TokenStream tokenStream) { _tokenStream = tokenStream; }
+
+            public TriviaData GetTriviaData(TokenData token1, TokenData token2) => _tokenStream.GetOriginalTriviaData(token1, token2);
         }
 
         /// <summary>
         /// Get column of the token 
         /// * column means text position on a line where all tabs are converted to spaces that first position on a line becomes 0
         /// </summary>
-        private int GetColumn(TokenData tokenData, Func<TokenData, TokenData, TriviaData> triviaDataGetter)
+        private int GetColumn<TDataGetter>(TokenData tokenData, TDataGetter dataGetter)
+            where TDataGetter : ITriviaDataGetter
         {
             // at the beginning of a file.
             var previousToken = tokenData.GetPreviousTokenData();
@@ -293,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var spaces = 0;
             for (; previousToken.Token.RawKind != 0; previousToken = previousToken.GetPreviousTokenData())
             {
-                var triviaInfo = triviaDataGetter(previousToken, tokenData);
+                var triviaInfo = dataGetter.GetTriviaData(previousToken, tokenData);
                 if (triviaInfo.SecondTokenIsFirstTokenOnLine)
                 {
                     // current token is the first token on line.
@@ -316,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // we reached beginning of the tree, add spaces at the beginning of the tree
-            return spaces + triviaDataGetter(previousToken, tokenData).Spaces;
+            return spaces + dataGetter.GetTriviaData(previousToken, tokenData).Spaces;
         }
 
         public void GetTokenLength(SyntaxToken token, out int length, out bool onMultipleLines)
