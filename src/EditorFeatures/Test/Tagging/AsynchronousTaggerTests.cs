@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
     }
 }"))
             {
-                List<ITagSpan<TestTag>> tagProducer(SnapshotSpan span, CancellationToken cancellationToken)
+                static List<ITagSpan<TestTag>> tagProducer(SnapshotSpan span, CancellationToken cancellationToken)
                 {
                     return new List<ITagSpan<TestTag>>() { new TagSpan<TestTag>(span, new TestTag()) };
                 }

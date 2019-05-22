@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 AssertSingleProjectReference(library2, library1FilePath);
             }
 
-            void AssertSingleProjectReference(Project project, string projectRefFilePath)
+            static void AssertSingleProjectReference(Project project, string projectRefFilePath)
             {
                 var projectReference = Assert.Single(project.ProjectReferences);
 

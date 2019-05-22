@@ -8790,7 +8790,7 @@ class C
 
         private Task AssertFormatBodyAsync(string expected, string input)
         {
-            string transform(string s)
+            static string transform(string s)
             {
                 var lines = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                 for (int i = 0; i < lines.Length; i++)
