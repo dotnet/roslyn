@@ -8793,7 +8793,7 @@ class C
             static string transform(string s)
             {
                 var lines = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-                for (int i = 0; i < lines.Length; i++)
+                for (var i = 0; i < lines.Length; i++)
                 {
                     if (!string.IsNullOrEmpty(lines[i]))
                     {
