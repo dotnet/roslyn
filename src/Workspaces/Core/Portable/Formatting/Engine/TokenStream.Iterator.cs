@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
@@ -10,11 +11,11 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         // gain of having hand written iterator seems about 50-100ms over auto generated one.
         // not sure whether it is worth it. but I already wrote it to test, so going to just keep it.
-        private class Iterator : IEnumerable<ValueTuple<int, SyntaxToken, SyntaxToken>>
+        private struct Iterator : IEnumerable<ValueTuple<int, SyntaxToken, SyntaxToken>>
         {
-            private readonly List<SyntaxToken> _tokensIncludingZeroWidth;
+            private readonly ImmutableArray<SyntaxToken> _tokensIncludingZeroWidth;
 
-            public Iterator(List<SyntaxToken> tokensIncludingZeroWidth)
+            public Iterator(ImmutableArray<SyntaxToken> tokensIncludingZeroWidth)
             {
                 _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
             }
@@ -31,16 +32,16 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             private struct Enumerator : IEnumerator<ValueTuple<int, SyntaxToken, SyntaxToken>>
             {
-                private readonly List<SyntaxToken> _tokensIncludingZeroWidth;
+                private readonly ImmutableArray<SyntaxToken> _tokensIncludingZeroWidth;
                 private readonly int _maxCount;
 
                 private ValueTuple<int, SyntaxToken, SyntaxToken> _current;
                 private int _index;
 
-                public Enumerator(List<SyntaxToken> tokensIncludingZeroWidth)
+                public Enumerator(ImmutableArray<SyntaxToken> tokensIncludingZeroWidth)
                 {
                     _tokensIncludingZeroWidth = tokensIncludingZeroWidth;
-                    _maxCount = _tokensIncludingZeroWidth.Count - 1;
+                    _maxCount = _tokensIncludingZeroWidth.Length - 1;
 
                     _index = 0;
                     _current = new ValueTuple<int, SyntaxToken, SyntaxToken>();

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -24,7 +25,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         private const int MagicTextLengthToTokensRatio = 10;
 
         // caches token information within given formatting span to improve perf
-        private readonly List<SyntaxToken> _tokens;
+        private readonly ImmutableArray<SyntaxToken> _tokens;
+        // caches token index in the stream, based on their Position
+        private readonly Dictionary<int, int> _positionToIndexCache;
 
         // caches original trivia info to improve perf
         private readonly TriviaData[] _cachedOriginalTriviaInfo;
@@ -56,8 +59,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 // use some heuristics to get initial size of list rather than blindly start from default size == 4
                 int sizeOfList = spanToFormat.Length / MagicTextLengthToTokensRatio;
-                _tokens = new List<SyntaxToken>(sizeOfList);
-                _tokens.AddRange(_treeData.GetApplicableTokens(spanToFormat));
+                _tokens = _treeData.GetApplicableTokens(spanToFormat).ToImmutableArrayOrEmpty();
+                _positionToIndexCache = new Dictionary<int, int>(_tokens.Length);
+                for (int i = _tokens.Length - 1; i >= 0; i--)
+                {
+                    _positionToIndexCache[_tokens[i].FullSpan.Start] = i;
+                }
 
                 Debug.Assert(this.TokenCount > 0);
 
@@ -78,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // things should be already in sorted manner, but just to make sure
             // run sort
             var previousToken = _tokens[0];
-            for (int i = 1; i < _tokens.Count; i++)
+            for (int i = 1; i < _tokens.Length; i++)
             {
                 var currentToken = _tokens[i];
                 Debug.Assert(previousToken.FullSpan.End <= currentToken.FullSpan.Start);
@@ -128,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        public int TokenCount => _tokens.Count;
+        public int TokenCount => _tokens.Length;
 
         public SyntaxToken GetToken(int index)
         {
@@ -503,7 +510,22 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private int GetTokenIndexInStream(SyntaxToken token)
         {
-            var tokenIndex = _tokens.BinarySearch(token, TokenOrderComparer.Instance);
+            var span = token.FullSpan;
+            if (_positionToIndexCache.TryGetValue(span.Start, out int tokenIndex))
+            {
+                while (tokenIndex < _tokens.Length)
+                {
+                    var matchSpan = _tokens[tokenIndex].FullSpan;
+                    if (matchSpan.Start != span.Start)
+                        return -1;
+                    if (matchSpan.End == matchSpan.End)
+                        return tokenIndex;
+
+                    tokenIndex++;
+                }
+            }
+
+            tokenIndex = _tokens.BinarySearch(token, TokenOrderComparer.Instance);
             if (tokenIndex < 0)
             {
                 return -1;
@@ -520,7 +542,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // and then backward to locate the desired token within the set of one or more zero-width tokens located at
             // the same position.
             Debug.Assert(token.FullSpan.IsEmpty);
-            for (var i = tokenIndex; i < _tokens.Count; i++)
+            for (var i = tokenIndex; i < _tokens.Length; i++)
             {
                 if (!_tokens[i].FullSpan.IsEmpty)
                 {
@@ -561,11 +583,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private sealed class TokenOrderComparer : IComparer<SyntaxToken>
+        private struct TokenOrderComparer : IComparer<SyntaxToken>
         {
             public static readonly TokenOrderComparer Instance = new TokenOrderComparer();
-
-            private TokenOrderComparer() { }
 
             public int Compare(SyntaxToken x, SyntaxToken y)
             {
