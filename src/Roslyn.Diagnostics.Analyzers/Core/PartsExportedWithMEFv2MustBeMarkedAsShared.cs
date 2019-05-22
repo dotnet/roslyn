@@ -39,7 +39,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var exportAttribute = compilationContext.Compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
+                var exportAttribute = WellKnownTypes.MEFV2ExportAttribute(compilationContext.Compilation);
                 var attributeUsageAttribute = WellKnownTypes.AttributeUsageAttribute(compilationContext.Compilation);
 
                 if (exportAttribute == null)

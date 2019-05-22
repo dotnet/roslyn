@@ -15,7 +15,6 @@ namespace Roslyn.Diagnostics.Analyzers
     public abstract class SpecializedEnumerableCreationAnalyzer : DiagnosticAnalyzer
     {
         internal const string SpecializedCollectionsMetadataName = "Roslyn.Utilities.SpecializedCollections";
-        internal const string IEnumerableMetadataName = "System.Collections.Generic.IEnumerable`1";
         internal const string LinqEnumerableMetadataName = "System.Linq.Enumerable";
         internal const string EmptyMethodName = "Empty";
 
@@ -64,7 +63,7 @@ namespace Roslyn.Diagnostics.Analyzers
                         return;
                     }
 
-                    INamedTypeSymbol genericEnumerableSymbol = context.Compilation.GetTypeByMetadataName(IEnumerableMetadataName);
+                    INamedTypeSymbol genericEnumerableSymbol = WellKnownTypes.GenericIEnumerable(context.Compilation);
                     if (genericEnumerableSymbol == null)
                     {
                         return;

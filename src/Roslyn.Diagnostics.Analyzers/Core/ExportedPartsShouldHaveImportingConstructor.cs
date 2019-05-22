@@ -43,10 +43,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var exportAttributeV1 = compilationContext.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ExportAttribute");
-                var importingConstructorAttributeV1 = compilationContext.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportingConstructorAttribute");
-                var exportAttributeV2 = compilationContext.Compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
-                var importingConstructorAttributeV2 = compilationContext.Compilation.GetTypeByMetadataName("System.Composition.ImportingConstructorAttribute");
+                var exportAttributeV1 = WellKnownTypes.MEFV1ExportAttribute(compilationContext.Compilation);
+                var importingConstructorAttributeV1 = WellKnownTypes.MEFV1ImportingConstructorAttribute(compilationContext.Compilation);
+                var exportAttributeV2 = WellKnownTypes.MEFV2ExportAttribute(compilationContext.Compilation);
+                var importingConstructorAttributeV2 = WellKnownTypes.MEFV2ImportingConstructorAttribute(compilationContext.Compilation);
                 var attributeUsageAttribute = WellKnownTypes.AttributeUsageAttribute(compilationContext.Compilation);
 
                 if (exportAttributeV1 is null && exportAttributeV2 is null)
