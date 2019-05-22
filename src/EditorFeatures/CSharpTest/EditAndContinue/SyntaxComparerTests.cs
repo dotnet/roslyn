@@ -137,13 +137,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public void ComputeDistance_Null()
         {
             double distance = SyntaxComparer.ComputeDistance(
-                default(ImmutableArray<SyntaxToken>),
+                default,
                 ImmutableArray.Create(SyntaxFactory.Token(SyntaxKind.StaticKeyword)));
 
             Assert.Equal(1, Math.Round(distance, 2));
 
             distance = SyntaxComparer.ComputeDistance(
-                default(ImmutableArray<SyntaxNode>),
+                default,
                 ImmutableArray.Create(MakeLiteral(0)));
 
             Assert.Equal(1, Math.Round(distance, 2));

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             int indentationLine,
             char ch,
             int? baseIndentation = null,
-            TextSpan span = default(TextSpan))
+            TextSpan span = default)
         {
             // create tree service
             using (var workspace = TestWorkspace.CreateCSharp(code))

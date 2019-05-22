@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             }
             else
             {
-                leadingTriviaForAttributeList = default(SyntaxTriviaList);
+                leadingTriviaForAttributeList = default;
                 needsLeadingEndOfLine = true;
             }
 
