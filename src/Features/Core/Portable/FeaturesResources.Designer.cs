@@ -1885,6 +1885,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to in Source (attribute).
+        /// </summary>
+        internal static string in_Source_attribute {
+            get {
+                return ResourceManager.GetString("in_Source_attribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to in Suppression File.
         /// </summary>
         internal static string in_Suppression_File {

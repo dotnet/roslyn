@@ -32,6 +32,11 @@
         <target state="translated">ドキュメントのフォーマットの設定 (実験)</target>
         <note />
       </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">全般</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">イベント サブスクリプションの生成</target>
