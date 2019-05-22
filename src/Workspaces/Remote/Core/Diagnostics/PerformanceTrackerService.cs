@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
                 for (var i = 0; i < capacity; i++)
                 {
-                    pooledObject.Object.Add(default(T));
+                    pooledObject.Object.Add(default);
                 }
 
                 return pooledObject.Object;
