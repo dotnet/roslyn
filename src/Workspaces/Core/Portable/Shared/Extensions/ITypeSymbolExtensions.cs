@@ -110,7 +110,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var arrBuilder = ArrayBuilder<SymbolAndProjectId>.GetInstance();
             var interfaceMember = interfaceMemberAndProjectId.Symbol;
-            var interfaceMemberProject = solution.GetProject(interfaceMemberAndProjectId.ProjectId);
 
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
@@ -169,11 +168,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // if they are considered to be the same type, which provides a more accurate
             // implementations list for interfaces. 
             var typeSymbolProject = solution.GetProject(typeSymbolAndProjectId.ProjectId);
-            var typeSymbolCompilation = typeSymbolProject == null ?
-                                        null :
-                                        await typeSymbolProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var interfaceMemberProject = solution.GetProject(interfaceMemberAndProjectId.ProjectId);
 
-            var interfaceMemberCompilation = await interfaceMemberProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var typeSymbolCompilation = await GetCompilationOrNull(typeSymbolProject, cancellationToken).ConfigureAwait(false);
+            var interfaceMemberCompilation = await GetCompilationOrNull(interfaceMemberProject, cancellationToken).ConfigureAwait(false);
 
             foreach (var constructedInterface in constructedInterfaces)
             {
@@ -214,6 +212,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return arrBuilder.ToImmutableAndFree();
+
+            // local functions
+
+            static Task<Compilation> GetCompilationOrNull(Project project, CancellationToken cancellationToken)
+                => project == null ?
+                    Task.FromResult<Compilation>(null) :
+                    project.GetCompilationAsync(cancellationToken);
         }
 
 
