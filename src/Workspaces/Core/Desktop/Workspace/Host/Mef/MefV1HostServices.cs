@@ -125,9 +125,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             public override bool Equals(object obj)
-            {
-                return (obj is ExportKey) && this.Equals((ExportKey)obj);
-            }
+                => obj is ExportKey exportKey && this.Equals(exportKey);
 
             public override int GetHashCode()
             {
