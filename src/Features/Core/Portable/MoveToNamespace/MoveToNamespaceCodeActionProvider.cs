@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.MoveTypeToFile)]
     internal class MoveToNamespaceCodeActionProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public MoveToNamespaceCodeActionProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var service = context.Document.GetLanguageService<IMoveToNamespaceService>();

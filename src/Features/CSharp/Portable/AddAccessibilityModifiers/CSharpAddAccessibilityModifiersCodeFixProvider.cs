@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpAddAccessibilityModifiersCodeFixProvider : AbstractAddAccessibilityModifiersCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpAddAccessibilityModifiersCodeFixProvider()
+        {
+        }
+
         protected override SyntaxNode MapToDeclarator(SyntaxNode node)
         {
             switch (node)

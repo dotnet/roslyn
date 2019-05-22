@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, concurrentBuild: false);
 
+        [ImportingConstructor]
+        public CSharpCompilationFactoryService()
+        {
+        }
+
         Compilation ICompilationFactoryService.CreateCompilation(string assemblyName, CompilationOptions options)
         {
             return CSharpCompilation.Create(

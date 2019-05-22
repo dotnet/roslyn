@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
     Friend Class VisualBasicSuppressionCodeFixProvider
         Inherits AbstractSuppressionCodeFixProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function CreatePragmaRestoreDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As SyntaxTriviaList
             Dim errorCodes = GetErrorCodes(diagnostic)
             Dim pragmaDirective = SyntaxFactory.EnableWarningDirectiveTrivia(errorCodes)

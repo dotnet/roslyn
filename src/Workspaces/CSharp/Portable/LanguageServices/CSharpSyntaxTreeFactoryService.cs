@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
 
+        [ImportingConstructor]
+        public CSharpSyntaxTreeFactoryServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
         {
             return new CSharpSyntaxTreeFactoryService(provider);

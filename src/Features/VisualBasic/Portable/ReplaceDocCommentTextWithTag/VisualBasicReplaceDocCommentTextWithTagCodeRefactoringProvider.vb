@@ -24,6 +24,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag
             SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)
             }
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsXmlTextToken(token As SyntaxToken) As Boolean
             Return token.Kind() = SyntaxKind.XmlTextLiteralToken OrElse
                    token.Kind() = SyntaxKind.DocumentationCommentLineBreakToken

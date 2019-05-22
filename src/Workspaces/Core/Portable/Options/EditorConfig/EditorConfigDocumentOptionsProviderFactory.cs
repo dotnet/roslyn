@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
     {
         public static bool ShouldUseNativeEditorConfigSupport = Environment.GetEnvironmentVariable("ROSLYN_EDITORCONFIG_SUPPORT") == "native";
 
+        [ImportingConstructor]
+        public EditorConfigDocumentOptionsProviderFactory()
+        {
+        }
+
         public IDocumentOptionsProvider TryCreate(Workspace workspace)
         {
             if (!ShouldUseNativeEditorConfigSupport)

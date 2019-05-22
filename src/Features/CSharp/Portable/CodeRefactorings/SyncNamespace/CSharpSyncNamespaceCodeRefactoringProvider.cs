@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
     internal sealed class CSharpSyncNamespaceCodeRefactoringProvider
         : AbstractSyncNamespaceCodeRefactoringProvider<NamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public CSharpSyncNamespaceCodeRefactoringProvider()
+        {
+        }
+
         protected override async Task<SyntaxNode> TryGetApplicableInvocationNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             if (!span.IsEmpty)

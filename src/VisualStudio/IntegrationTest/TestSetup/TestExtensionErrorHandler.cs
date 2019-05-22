@@ -11,6 +11,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
     [Shared, Export(typeof(IExtensionErrorHandler)), Export(typeof(TestExtensionErrorHandler))]
     public class TestExtensionErrorHandler : IExtensionErrorHandler
     {
+        [ImportingConstructor]
+        public TestExtensionErrorHandler()
+        {
+        }
+
         public void HandleError(object sender, Exception exception)
         {
             if (exception is ArgumentOutOfRangeException argumentOutOfRangeException

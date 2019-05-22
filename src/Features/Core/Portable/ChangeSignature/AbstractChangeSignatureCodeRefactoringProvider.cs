@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         Name = PredefinedCodeRefactoringProviderNames.ChangeSignature), Shared]
     internal class ChangeSignatureCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public ChangeSignatureCodeRefactoringProvider()
+        {
+        }
+
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             if (context.Span.IsEmpty)

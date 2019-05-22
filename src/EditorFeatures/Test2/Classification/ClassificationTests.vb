@@ -118,6 +118,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         Private Class NoCompilationEditorClassificationService
             Implements IClassificationService
 
+            <ImportingConstructor>
+            Public Sub New()
+            End Sub
+
             Public Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddLexicalClassifications
             End Sub
 
