@@ -119,7 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
             if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
             {
-                source = ((BoundDefaultExpression)source).Update(constantValue, destination);
+                var defaultExpression = (BoundDefaultExpression)source;
+                Debug.Assert(defaultExpression.TargetType == null);
+                source = defaultExpression.Update(targetType: null, constantValue, destination);
             }
 
             return new BoundConversion(
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion: conversion.UserDefinedFromConversion,
                 isCast: false,
                 conversionGroup,
-                wasCompilerGenerated: true,
+                wasCompilerGenerated: false,
                 destination: conversion.BestUserDefinedConversionAnalysis.FromType,
                 diagnostics: diagnostics);
 

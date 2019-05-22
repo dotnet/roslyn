@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             bool hasErrors = IsOperandErrors(node, ref expression, diagnostics);
             TypeSymbol expressionType = expression.Type;
-            if ((object)expressionType == null || expressionType.SpecialType == SpecialType.System_Void)
+            if ((object)expressionType == null || expressionType.IsVoidType())
             {
                 if (!hasErrors)
                 {
@@ -185,11 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If we are pattern-matching against an open type, we do not convert the constant to the type of the input.
             // This permits us to match a value of type `IComparable<T>` with a pattern of type `int`.
-            bool inputContainsTypeParameter = inputType.ContainsTypeParameter();
-            if (inputContainsTypeParameter)
+            if (inputType.ContainsTypeParameter())
             {
                 convertedExpression = expression;
-                if (!hasErrors)
+                // If the expression does not have a constant value, an error will be reported in the caller
+                if (!hasErrors && expression.ConstantValue is object)
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     if (expression.ConstantValue == ConstantValue.Null)
@@ -198,11 +198,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // We do not permit matching null against a struct type.
                             diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, expression.Syntax.Location, inputType);
+                            hasErrors = true;
                         }
                     }
                     else if (ExpressionOfTypeMatchesPatternType(Conversions, inputType, expression.Type, ref useSiteDiagnostics, out _, operandConstantValue: null) == false)
                     {
                         diagnostics.Add(ErrorCode.ERR_PatternWrongType, expression.Syntax.Location, inputType, expression.Display);
+                        hasErrors = true;
+                    }
+
+                    if (!hasErrors)
+                    {
+                        var requiredVersion = MessageID.IDS_FeatureRecursivePatterns.RequiredVersion();
+                        if (Compilation.LanguageVersion < requiredVersion &&
+                            !this.Conversions.ClassifyConversionFromExpression(expression, inputType, ref useSiteDiagnostics).IsImplicit)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ConstantPatternVsOpenType,
+                                expression.Syntax.Location, inputType, expression.Display, new CSharpRequiredLanguageVersion(requiredVersion));
+                        }
                     }
 
                     diagnostics.Add(node, useSiteDiagnostics);
@@ -222,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (inputType.IsNullableType() && (convertedExpression.ConstantValue == null || !convertedExpression.ConstantValue.IsNull))
                     {
                         // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
-                        var discardedDiagnostics = DiagnosticBag.GetInstance(); // We are not intested in the diagnostic that get created here
+                        var discardedDiagnostics = DiagnosticBag.GetInstance(); // We are not interested in the diagnostic that get created here
                         convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), discardedDiagnostics);
                         discardedDiagnostics.Free();
                     }

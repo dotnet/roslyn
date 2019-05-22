@@ -130,6 +130,10 @@ End Class</File>.Value
     Friend Class MockSnippetInfoService
         Implements ISnippetInfoService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function GetSnippetsAsync_NonBlocking() As IEnumerable(Of SnippetInfo) Implements ISnippetInfoService.GetSnippetsIfAvailable
             Return SpecializedCollections.SingletonEnumerable(New SnippetInfo("Shortcut", "Title", "Description", "Path"))
         End Function

@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     internal class GoToDefinitionCommandHandler :
         VSCommanding.ICommandHandler<GoToDefinitionCommandArgs>
     {
+        [ImportingConstructor]
+        public GoToDefinitionCommandHandler()
+        {
+        }
+
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
         private (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)

@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceStatusService), ServiceLayer.Host), Shared]
     internal class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioWorkspaceStatusServiceFactory()
         {

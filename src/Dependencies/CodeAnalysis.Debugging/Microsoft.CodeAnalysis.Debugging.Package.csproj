@@ -3,13 +3,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
-    <RoslynProjectType>SourcePackage</RoslynProjectType>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <DebugType>none</DebugType>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
+    <IsSourcePackage>true</IsSourcePackage>
     <PackageId>Microsoft.CodeAnalysis.Debugging</PackageId>
-    <NuspecFile>$(PackageId).nuspec</NuspecFile>
-    <NuspecBasePath>$(OutputPath)</NuspecBasePath>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <PackageDescription>
       Package containing sources of Microsoft .NET Compiler Platform ("Roslyn") debug information encoders and decoders.
@@ -19,7 +20,6 @@
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
+    <ProjectReference Include="..\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.Package.csproj" />
   </ItemGroup>
-  <Import Project="..\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
-  <Import Project="$(RepositoryEngineeringDir)targets\SourcePackage.targets" />
 </Project>

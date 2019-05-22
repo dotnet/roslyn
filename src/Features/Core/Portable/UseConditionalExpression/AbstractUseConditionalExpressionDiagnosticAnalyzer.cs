@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     {
         private readonly PerLanguageOption<CodeStyleOption<bool>> _option;
 
-        public sealed override bool OpenFileOnly(Workspace workspace) => false;
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 

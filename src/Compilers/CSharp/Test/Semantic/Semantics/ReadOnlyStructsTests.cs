@@ -1445,6 +1445,103 @@ public struct S
         }
 
         [Fact]
+        public void NetModule_ImplicitReadOnlyAutoProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public int P1 { get; private set; }
+}
+";
+            var moduleMetadata = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
+            var moduleComp = CreateCompilation("", new[] { moduleMetadata });
+            var moduleGetter = moduleComp.GetMember<PropertySymbol>("S.P1").GetMethod;
+            Assert.False(moduleGetter.IsDeclaredReadOnly);
+
+            var dllMetadata = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
+            var dllComp = CreateCompilation("", new[] { dllMetadata });
+            var dllGetter = dllComp.GetMember<PropertySymbol>("S.P1").GetMethod;
+            Assert.True(dllGetter.IsDeclaredReadOnly);
+        }
+
+        [Fact]
+        public void NetModule_ImplicitReadOnlyAutoProperty_MalformedAttribute()
+        {
+            var csharp = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute
+    {
+        public IsReadOnlyAttribute(int x) {}
+    }
+}
+
+public struct S
+{
+    public int P1 { get; private set; }
+}
+";
+            var moduleMetadata = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
+            var moduleComp = CreateCompilation("", new[] { moduleMetadata });
+            var moduleGetter = moduleComp.GetMember<PropertySymbol>("S.P1").GetMethod;
+            Assert.False(moduleGetter.IsDeclaredReadOnly);
+
+            var dllMetadata = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
+            var dllComp = CreateCompilation("", new[] { dllMetadata });
+            var dllGetter = dllComp.GetMember<PropertySymbol>("S.P1").GetMethod;
+            Assert.False(dllGetter.IsDeclaredReadOnly);
+        }
+
+        [Fact]
+        public void NetModule_ExplicitReadOnlyAutoProperty_MalformedAttribute()
+        {
+            var csharp = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute
+    {
+        public IsReadOnlyAttribute(int x) {}
+    }
+}
+
+public struct S
+{
+    public int P1 { readonly get; private set; }
+}
+";
+            var moduleComp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45);
+            moduleComp.VerifyDiagnostics(
+                // (12,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public int P1 { readonly get; private set; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "get").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(12, 30));
+
+            var dllComp = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45);
+            dllComp.VerifyDiagnostics(
+                // (12,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public int P1 { readonly get; private set; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "get").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(12, 30));
+        }
+
+        [Fact]
+        public void NetModule_ExplicitReadOnlyAutoProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public int P1 { readonly get; private set; }
+}
+";
+            var moduleComp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45);
+            moduleComp.VerifyDiagnostics(
+                // (4,30): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsReadOnlyAttribute' is not defined or imported
+                //     public int P1 { readonly get; private set; }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "get").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(4, 30));
+
+            var dllComp = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45);
+            dllComp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ReadOnlyProperty_RedundantReadOnlyAccessor()
         {
             var csharp = @"

@@ -68,6 +68,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed class MethodTypeInferrer
     {
+        internal abstract class Extensions
+        {
+            internal static readonly Extensions Default = new DefaultExtensions();
+
+            internal abstract TypeWithAnnotations GetTypeWithAnnotations(BoundExpression expr);
+
+            internal abstract TypeWithAnnotations GetMethodGroupResultType(BoundMethodGroup group, MethodSymbol method);
+
+            private sealed class DefaultExtensions : Extensions
+            {
+                internal override TypeWithAnnotations GetTypeWithAnnotations(BoundExpression expr)
+                {
+                    return TypeWithAnnotations.Create(expr.Type);
+                }
+
+                internal override TypeWithAnnotations GetMethodGroupResultType(BoundMethodGroup group, MethodSymbol method)
+                {
+                    return method.ReturnTypeWithAnnotations;
+                }
+            }
+        }
+
         private enum InferenceResult
         {
             InferenceFailed,
@@ -91,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<TypeWithAnnotations> _formalParameterTypes;
         private readonly ImmutableArray<RefKind> _formalParameterRefKinds;
         private readonly ImmutableArray<BoundExpression> _arguments;
-        private readonly Func<BoundExpression, TypeWithAnnotations> _getTypeWithAnnotationOpt;
+        private readonly Extensions _extensions;
 
         private readonly TypeWithAnnotations[] _fixedResults;
         private readonly HashSet<TypeWithAnnotations>[] _exactBounds;
@@ -215,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
                                                       // no arguments per se we cons up some fake arguments.
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            Func<BoundExpression, TypeWithAnnotations> getTypeWithAnnotationOpt = null)
+            Extensions extensions = null)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
             Debug.Assert(methodTypeParameters.Length > 0);
@@ -240,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 formalParameterTypes,
                 formalParameterRefKinds,
                 arguments,
-                getTypeWithAnnotationOpt);
+                extensions);
             return inferrer.InferTypeArgs(binder, ref useSiteDiagnostics);
         }
 
@@ -260,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> formalParameterTypes,
             ImmutableArray<RefKind> formalParameterRefKinds,
             ImmutableArray<BoundExpression> arguments,
-            Func<BoundExpression, TypeWithAnnotations> getTypeWithAnnotationOpt)
+            Extensions extensions)
         {
             _conversions = conversions;
             _methodTypeParameters = methodTypeParameters;
@@ -268,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _formalParameterTypes = formalParameterTypes;
             _formalParameterRefKinds = formalParameterRefKinds;
             _arguments = arguments;
-            _getTypeWithAnnotationOpt = getTypeWithAnnotationOpt;
+            _extensions = extensions ?? Extensions.Default;
             _fixedResults = new TypeWithAnnotations[methodTypeParameters.Length];
             _exactBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _upperBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
@@ -448,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectedBounds[methodTypeParameterIndex] == null)
             {
-                collectedBounds[methodTypeParameterIndex] = new HashSet<TypeWithAnnotations>(TypeWithAnnotations.EqualsComparer.Instance);
+                collectedBounds[methodTypeParameterIndex] = new HashSet<TypeWithAnnotations>(TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer);
             }
 
             collectedBounds[methodTypeParameterIndex].Add(addedBound);
@@ -549,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let's try to infer from argument type
                 if (IsReallyAType(argument.Type))
                 {
-                    ExactOrBoundsInference(kind, GetTypeWithAnnotations(argument), target, ref useSiteDiagnostics);
+                    ExactOrBoundsInference(kind, _extensions.GetTypeWithAnnotations(argument), target, ref useSiteDiagnostics);
                 }
             }
         }
@@ -1190,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             // SPEC: * Otherwise, if E is an expression with type U then a lower-bound
             // SPEC:   inference is made from U to T.
-            var sourceType = GetTypeWithAnnotations(expression);
+            var sourceType = _extensions.GetTypeWithAnnotations(expression);
             if (sourceType.HasType)
             {
                 LowerBoundInference(sourceType, target, ref useSiteDiagnostics);
@@ -1274,20 +1296,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, delegateInvokeMethod.RefKind, ref useSiteDiagnostics);
-            if ((object)returnType == null || returnType.SpecialType == SpecialType.System_Void)
+            if (returnType.IsDefault || returnType.IsVoidType())
             {
                 return false;
             }
 
-            // https://github.com/dotnet/roslyn/issues/33635 : We should preserve the return nullability from the
-            // selected method of the method group, possibly turning oblivious into non-null.
-            NullableAnnotation returnIsNullable = NullableAnnotation.Oblivious;
-            LowerBoundInference(TypeWithAnnotations.Create(returnType, returnIsNullable), delegateReturnType, ref useSiteDiagnostics);
-
+            LowerBoundInference(returnType, delegateReturnType, ref useSiteDiagnostics);
             return true;
         }
 
-        private static TypeSymbol MethodGroupReturnType(
+        private TypeWithAnnotations MethodGroupReturnType(
             Binder binder, BoundMethodGroup source,
             ImmutableArray<ParameterSymbol> delegateParameters,
             RefKind delegateRefKind,
@@ -1301,7 +1319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Since we are trying to infer the return type, it is not an input to resolving the method group
                 returnType: null);
 
-            TypeSymbol type = null;
+            TypeWithAnnotations type = default;
 
             // The resolution could be empty (e.g. if there are no methods in the BoundMethodGroup).
             if (!resolution.IsEmpty)
@@ -1309,7 +1327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = resolution.OverloadResolutionResult;
                 if (result.Succeeded)
                 {
-                    type = result.BestResult.Member.ReturnType;
+                    type = _extensions.GetMethodGroupResultType(source, result.BestResult.Member);
                 }
             }
 
@@ -2437,15 +2455,6 @@ OuterBreak:
             return best;
         }
 
-        private TypeWithAnnotations GetTypeWithAnnotations(BoundExpression expr)
-        {
-            if (_conversions.IncludeNullability && _getTypeWithAnnotationOpt != null)
-            {
-                return _getTypeWithAnnotationOpt(expr);
-            }
-            return TypeWithAnnotations.Create(expr.Type);
-        }
-
         internal static TypeWithAnnotations Merge(TypeWithAnnotations first, TypeWithAnnotations second, VarianceKind variance, ConversionsBase conversions)
         {
             var merged = MergeTupleNames(MergeDynamic(first, second, conversions.CorLibrary), second);
@@ -2706,7 +2715,7 @@ OuterBreak:
                 constructedFromMethod.GetParameterTypes(),
                 constructedFromMethod.ParameterRefKinds,
                 arguments,
-                getTypeWithAnnotationOpt: null);
+                extensions: null);
 
             if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteDiagnostics))
             {
@@ -2732,7 +2741,7 @@ OuterBreak:
             {
                 return false;
             }
-            LowerBoundInference(GetTypeWithAnnotations(argument), dest, ref useSiteDiagnostics);
+            LowerBoundInference(_extensions.GetTypeWithAnnotations(argument), dest, ref useSiteDiagnostics);
             // Now check to see that every type parameter used by the first
             // formal parameter type was successfully inferred.
             for (int iParam = 0; iParam < _methodTypeParameters.Length; ++iParam)
@@ -2764,7 +2773,7 @@ OuterBreak:
         {
             return (object)type != null &&
                 !type.IsErrorType() &&
-                (type.SpecialType != SpecialType.System_Void);
+                !type.IsVoidType();
         }
 
         private static void GetAllCandidates(Dictionary<TypeWithAnnotations, TypeWithAnnotations> candidates, ArrayBuilder<TypeWithAnnotations> builder)

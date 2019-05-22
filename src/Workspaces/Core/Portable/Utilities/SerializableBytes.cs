@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -242,6 +243,12 @@ namespace Microsoft.CodeAnalysis
                 // read entire array
                 Read(this.chunks, 0, this.length, array, 0, array.Length);
                 return array;
+            }
+
+            public ImmutableArray<byte> ToImmutableArray()
+            {
+                var array = ToArray();
+                return ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref array);
             }
 
             protected int CurrentChunkIndex { get { return GetChunkIndex(this.position); } }

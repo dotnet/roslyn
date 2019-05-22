@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         DynamicCallSiteContainerType = 'o',
         DynamicCallSiteField = 'p',
         AsyncIteratorPromiseOfValueOrEndBackingField = 'v',
-        DisposeModeField = 'w', // last
+        DisposeModeField = 'w',
+        CombinedTokensField = 'x', // last
 
         // Deprecated - emitted by Dev12, but not by Roslyn.
         // Don't reuse the values because the debugger might encounter them when consuming old binaries.

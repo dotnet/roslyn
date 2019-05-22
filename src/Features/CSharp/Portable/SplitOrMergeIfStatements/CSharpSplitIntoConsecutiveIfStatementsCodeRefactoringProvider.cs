@@ -11,5 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
     internal sealed class CSharpSplitIntoConsecutiveIfStatementsCodeRefactoringProvider
         : AbstractSplitIntoConsecutiveIfStatementsCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public CSharpSplitIntoConsecutiveIfStatementsCodeRefactoringProvider()
+        {
+        }
     }
 }

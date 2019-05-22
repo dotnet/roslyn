@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping
                 new CSharpBinaryExpressionWrapper(),
                 new CSharpChainedExpressionWrapper());
 
+        [ImportingConstructor]
         public CSharpWrappingCodeRefactoringProvider()
             : base(s_wrappers)
         {

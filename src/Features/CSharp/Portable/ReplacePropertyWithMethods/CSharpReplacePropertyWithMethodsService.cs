@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
     internal partial class CSharpReplacePropertyWithMethodsService :
         AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax>
     {
+        [ImportingConstructor]
+        public CSharpReplacePropertyWithMethodsService()
+        {
+        }
+
         public override SyntaxNode GetPropertyDeclaration(SyntaxToken token)
         {
             var containingProperty = token.Parent.FirstAncestorOrSelf<PropertyDeclarationSyntax>();

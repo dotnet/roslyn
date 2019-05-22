@@ -20,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping
                 New VisualBasicBinaryExpressionWrapper(),
                 New VisualBasicChainedExpressionWrapper())
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(s_wrappers)
         End Sub

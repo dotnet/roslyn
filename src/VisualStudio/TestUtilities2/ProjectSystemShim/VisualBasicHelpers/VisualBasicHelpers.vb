@@ -12,16 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
             Dim projectBinPath = Path.GetTempPath()
             Return New VisualBasicProject(projectName,
                                           If(compilerHost, MockCompilerHost.FullFrameworkCompilerHost),
-                                          environment.CreateHierarchy(projectName, projectBinPath, "VB"),
-                                          environment.ServiceProvider,
-                                          environment.ThreadingContext,
-                                          commandLineParserServiceOpt:=New VisualBasicCommandLineParserService())
-        End Function
-
-        Public Function CreateVisualBasicProjectWithNullBinPath(environment As TestEnvironment, projectName As String) As VisualBasicProject
-            Return New VisualBasicProject(projectName,
-                                          MockCompilerHost.FullFrameworkCompilerHost,
-                                          environment.CreateHierarchy(projectName, projectBinPath:=Nothing, projectCapabilities:="VB"),
+                                          environment.CreateHierarchy(projectName, projectBinPath, projectRefPath:=Nothing, "VB"),
                                           environment.ServiceProvider,
                                           environment.ThreadingContext,
                                           commandLineParserServiceOpt:=New VisualBasicCommandLineParserService())

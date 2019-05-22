@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         private readonly IPickMembersService _pickMembersService_forTesting;
 
+        [ImportingConstructor]
         public GenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
         {
         }

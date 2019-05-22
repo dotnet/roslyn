@@ -10,6 +10,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Utilities
     Friend NotInheritable Class VisualBasicParseOptionsChangingService
         Implements IParseOptionsChangingService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CanApplyChange(oldOptions As ParseOptions, newOptions As ParseOptions) As Boolean Implements IParseOptionsChangingService.CanApplyChange
             Return False
         End Function

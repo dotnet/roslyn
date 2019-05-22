@@ -7,6 +7,11 @@
         <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
+        <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
+        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="new">comments after line continuation</target>
@@ -17,7 +22,7 @@
         <target state="translated">ikili koşullu ifadelerde kısıtlanmamış tür parametreleri</target>
         <note />
       </trans-unit>
-	  <trans-unit id="IDS_VBCHelp">
+      <trans-unit id="IDS_VBCHelp">
         <source>                  Visual Basic Compiler Options
 
                                   - OUTPUT FILE -
@@ -178,7 +183,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translation">                  Visual Basic Derleyici Seçenekleri
+        <target state="translated">                  Visual Basic Derleyici Seçenekleri
 
                                   - ÇIKIŞ DOSYASI -
 -out:&lt;file&gt;                       Çıkış dosyası adını belirtir.
@@ -326,7 +331,7 @@
                                   veya anycpu (varsayılan) olmalıdır.
 -preferreduilang                  Tercih edilen çıkış dilini belirt.
 -nosdkpath                        Standart kitaplık bütünleştirilmiş kodlarında varsayılan SDK yolunu
-								  aramayı devre dışı bırakın.
+                                  aramayı devre dışı bırakın.
 -sdkpath:&lt;path&gt;                   .NET Framework SDK (mscorlib.dll) dizininin
                                   konumu.
 -subsystemversion:&lt;version&gt;       Çıkış PE'nin alt sistem sürümünü belirt.
@@ -9101,7 +9106,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
         <note />
       </trans-unit>
     </body>

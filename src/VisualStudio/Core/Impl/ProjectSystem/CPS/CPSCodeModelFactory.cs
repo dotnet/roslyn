@@ -8,6 +8,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
     [Export(typeof(ICodeModelFactory))]
     internal partial class CPSCodeModelFactory : ICodeModelFactory
     {
+        [ImportingConstructor]
+        public CPSCodeModelFactory()
+        {
+        }
+
         public EnvDTE.CodeModel GetCodeModel(IWorkspaceProjectContext context, EnvDTE.Project project)
         {
             return ((CPSProject)context).GetCodeModel(project);

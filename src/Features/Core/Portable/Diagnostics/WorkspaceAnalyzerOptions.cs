@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly OptionSet _optionSet;
 
         public WorkspaceAnalyzerOptions(AnalyzerOptions options, OptionSet optionSet, Solution solution)
-            : base(options.AdditionalFiles)
+            : base(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
         {
             _solution = solution;
             _optionSet = optionSet;

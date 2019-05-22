@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
@@ -8,7 +9,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Shared ReadOnly Instance As New VisualBasicSyntaxKindsService()
 
-        Private Sub New()
+        <ImportingConstructor>
+        Public Sub New()
         End Sub
 
         Public Overrides ReadOnly Property DotToken As Integer = SyntaxKind.DotToken

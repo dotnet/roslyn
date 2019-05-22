@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                   out _lazyParameters, alsoCopyParamsModifier: true);
                 }
             }
-            else if (_lazyReturnType.SpecialType != SpecialType.System_Void)
+            else if (!_lazyReturnType.IsVoidType())
             {
                 PropertySymbol associatedProperty = _property;
                 var type = associatedProperty.TypeWithAnnotations;
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return this.ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return this.ReturnType.IsVoidType(); }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         public override RefKind RefKind
@@ -422,9 +422,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.
         /// </summary>
-        internal override bool IsDeclaredReadOnly => LocalDeclaredReadOnly || _property.HasReadOnlyModifier || IsReadOnlyAutoGetter;
+        internal override bool IsDeclaredReadOnly
+        {
+            get
+            {
+                if (LocalDeclaredReadOnly || _property.HasReadOnlyModifier)
+                {
+                    return true;
+                }
 
-        private bool IsReadOnlyAutoGetter => ContainingType.IsStructType() && !_property.IsStatic && _isAutoPropertyAccessor && MethodKind == MethodKind.PropertyGet;
+                // The below checks are used to decide if this accessor is implicitly 'readonly'.
+
+                // Making a member implicitly 'readonly' allows valid C# 7.0 code to break PEVerify.
+                // For instance:
+
+                // struct S {
+                //     int Value { get; set; }
+                //     static readonly S StaticField = new S();
+                //     static void M() {
+                //         System.Console.WriteLine(StaticField.Value);
+                //     }
+                // }
+
+                // The above program will fail PEVerify if the 'S.Value.get' accessor is made implicitly readonly because
+                // we won't emit an implicit copy of 'S.StaticField' to pass to 'S.Value.get'.
+
+                // Code emitted in C# 7.0 and before must be PEVerify compatible, so we will only make
+                // members implicitly readonly in language versions which support the readonly members feature.
+                var options = (CSharpParseOptions)SyntaxTree.Options;
+                if (!options.IsFeatureEnabled(MessageID.IDS_FeatureReadOnlyMembers))
+                {
+                    return false;
+                }
+
+                // If we have IsReadOnly..ctor, we can use the attribute. Otherwise, we need to NOT be a netmodule and the type must not already exist in order to synthesize it.
+                var isReadOnlyAttributeUsable = DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor) != null ||
+                    (DeclaringCompilation.Options.OutputKind != OutputKind.NetModule &&
+                     DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute) is MissingMetadataTypeSymbol);
+
+                if (!isReadOnlyAttributeUsable)
+                {
+                    // if the readonly attribute isn't usable, don't implicitly make auto-getters readonly.
+                    return false;
+                }
+
+                return ContainingType.IsStructType() &&
+                    !_property.IsStatic &&
+                    _isAutoPropertyAccessor &&
+                    MethodKind == MethodKind.PropertyGet;
+            }
+        }
 
         private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
             bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
@@ -596,16 +643,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return parameters.ToImmutableAndFree();
-        }
-
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
-        {
-            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
-
-            if (IsDeclaredReadOnly)
-            {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, locations[0], modifyCompilation: true);
-            }
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)

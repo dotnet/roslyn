@@ -2100,6 +2100,9 @@ partial class E<T> where T : I, B { }
                 // (6,30): error CS0717: 'S': static classes cannot be used as constraints
                 // partial class C<T> where T : S { }
                 Diagnostic(ErrorCode.ERR_ConstraintIsStaticClass, "S").WithArguments("S").WithLocation(6, 30),
+                // (7,15): error CS0265: Partial declarations of 'D<T>' have inconsistent constraints for type parameter 'T'
+                // partial class D<T> where T : A, I { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "D").WithArguments("D<T>", "T").WithLocation(7, 15),
                 // (8,33): error CS0406: The class type constraint 'A' must come before any other constraints
                 // partial class D<T> where T : I, A { }
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(8, 33),
@@ -2137,9 +2140,6 @@ partial class C<T, U> where T : A where U : T { }
                 // (3,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 // partial class B<T, U> where T : A { }
                 Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(3, 33),
-                // (4,15): error CS0265: Partial declarations of 'C<T, U>' have inconsistent constraints for type parameter 'T'
-                // partial class C<T, U> where U : T { }
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T, U>", "T").WithLocation(4, 15),
                 // (5,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 // partial class C<T, U> where T : A where U : T { }
                 Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(5, 33));
@@ -5606,24 +5606,24 @@ class B : A
 } 
 ";
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (4,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public virtual T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(4, 20),
                 // (4,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public virtual T? Goo<T>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 21),
-                // (12,21): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     public override T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(12, 21),
+                // (4,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     public virtual T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(4, 20),
                 // (12,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     public override T? Goo<T>()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 22),
+                // (12,24): error CS0508: 'B.Goo<T>()': return type must be 'T' to match overridden member 'A.Goo<T>()'
+                //     public override T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "Goo").WithArguments("B.Goo<T>()", "A.Goo<T>()", "T").WithLocation(12, 24),
+                // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T").WithLocation(12, 24),
                 // (6,16): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                 //         return null; 
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(6, 16),
-                // (14,16): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
-                //         return null;
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(14, 16));
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(6, 16));
         }
 
         [WorkItem(543710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543710")]

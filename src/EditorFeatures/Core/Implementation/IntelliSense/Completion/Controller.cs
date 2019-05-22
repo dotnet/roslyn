@@ -147,11 +147,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 var selectedItem = modelOpt.SelectedItemOpt;
 
-                // set viewSpan = null if the selectedItem is not from the completion list
-                // All items from the completion list have .Document set to current document 
-                // in CompletionService.GetCompletionsAndSetItemDocumentAsync
+                // set viewSpan = null if the selectedItem is not from the completion list.
                 // https://github.com/dotnet/roslyn/issues/23891
-                var viewSpan = selectedItem == null || selectedItem.Document == null
+                var viewSpan = selectedItem == null || modelOpt.TriggerDocument == null
                     ? (ViewTextSpan?)null
                     : modelOpt.GetViewBufferSpan(selectedItem.Span);
 
@@ -161,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                               .CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
                 sessionOpt.PresenterSession.PresentItems(
-                    triggerSpan, modelOpt.FilteredItems, selectedItem,
+                    modelOpt.TriggerSnapshot, triggerSpan, modelOpt.FilteredItems, selectedItem,
                     modelOpt.SuggestionModeItem, modelOpt.UseSuggestionMode,
                     modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.FilterText);
             }
