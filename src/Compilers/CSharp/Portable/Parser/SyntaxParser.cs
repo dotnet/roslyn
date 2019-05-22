@@ -439,6 +439,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ct;
         }
 
+        /// <summary>
+        /// Returns and consumes the current token if it has the requested <paramref name="kind"/>.
+        /// Otherwise, returns <see langword="null"/>.
+        /// </summary>
+        protected SyntaxToken TryEatToken(SyntaxKind kind)
+            => this.CurrentToken.Kind == kind ? this.EatToken() : null;
+
         private void MoveToNextToken()
         {
             _prevTokenTrailingTrivia = _currentToken.GetTrailingTrivia();

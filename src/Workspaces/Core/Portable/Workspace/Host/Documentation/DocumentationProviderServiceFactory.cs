@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceServiceFactory(typeof(IDocumentationProviderService), ServiceLayer.Default), Shared]
     internal sealed class DocumentationProviderServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public DocumentationProviderServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new DocumentationProviderService();

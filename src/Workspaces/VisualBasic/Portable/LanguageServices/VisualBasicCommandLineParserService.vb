@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class VisualBasicCommandLineParserService
         Implements ICommandLineParserService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function Parse(arguments As IEnumerable(Of String), baseDirectory As String, isInteractive As Boolean, sdkDirectory As String) As CommandLineArguments Implements ICommandLineParserService.Parse
 #If SCRIPTING Then
             Dim parser = If(isInteractive, VisualBasicCommandLineParser.Interactive, VisualBasicCommandLineParser.Default)

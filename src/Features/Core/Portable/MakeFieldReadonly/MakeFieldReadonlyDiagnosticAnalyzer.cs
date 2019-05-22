@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)

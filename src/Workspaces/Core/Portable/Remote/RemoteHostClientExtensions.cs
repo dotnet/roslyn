@@ -217,7 +217,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 await remoteHostClient.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, solution,
-                    nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken).ConfigureAwait(false);
+                    nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+                    new object[] { checksum, solution.WorkspaceVersion },
+                    cancellationToken).ConfigureAwait(false);
             }
         }
 

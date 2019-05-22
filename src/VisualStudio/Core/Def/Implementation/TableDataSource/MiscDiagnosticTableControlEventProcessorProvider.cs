@@ -16,5 +16,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal class MiscDiagnosticTableControlEventProcessorProvider : AbstractTableControlEventProcessorProvider<DiagnosticData>
     {
         internal const string Name = "Misc C#/VB Diagnostic Table Event Processor";
+
+        [ImportingConstructor]
+        public MiscDiagnosticTableControlEventProcessorProvider()
+        {
+        }
     }
 }

@@ -33,8 +33,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private Solution2 _solution;
         private string _fileName;
 
-        private static readonly IDictionary<string, string> _csharpProjectTemplates = InitializeCSharpProjectTemplates();
-        private static readonly IDictionary<string, string> _visualBasicProjectTemplates = InitializeVisualBasicProjectTemplates();
+        private static readonly Lazy<IDictionary<string, string>> _csharpProjectTemplates = new Lazy<IDictionary<string, string>>(InitializeCSharpProjectTemplates);
+        private static readonly Lazy<IDictionary<string, string>> _visualBasicProjectTemplates = new Lazy<IDictionary<string, string>>(InitializeVisualBasicProjectTemplates);
 
         private SolutionExplorer_InProc()
         {
@@ -352,13 +352,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private string GetProjectTemplatePath(string projectTemplate, string languageName)
         {
             if (languageName.Equals("csharp", StringComparison.OrdinalIgnoreCase) &&
-               _csharpProjectTemplates.TryGetValue(projectTemplate, out var csharpProjectTemplate))
+               _csharpProjectTemplates.Value.TryGetValue(projectTemplate, out var csharpProjectTemplate))
             {
                 return _solution.GetProjectTemplate(csharpProjectTemplate, languageName);
             }
 
             if (languageName.Equals("visualbasic", StringComparison.OrdinalIgnoreCase) &&
-               _visualBasicProjectTemplates.TryGetValue(projectTemplate, out var visualBasicProjectTemplate))
+               _visualBasicProjectTemplates.Value.TryGetValue(projectTemplate, out var visualBasicProjectTemplate))
             {
                 return _solution.GetProjectTemplate(visualBasicProjectTemplate, languageName);
             }

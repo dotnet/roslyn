@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AliasAmbiguousType
         'BC30561: '<name1>' is ambiguous, imported from the namespaces or types '<name2>'
         Private Const BC30561 As String = NameOf(BC30561)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30561)
 
         Protected Overrides Function GetTextPreviewOfChange(aliasName As String, typeSymbol As ITypeSymbol) As String

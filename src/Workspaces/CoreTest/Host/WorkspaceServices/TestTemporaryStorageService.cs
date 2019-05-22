@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
     [ExportWorkspaceService(typeof(ITemporaryStorageService), "NotKeptAlive"), Shared]
     internal sealed class TestTemporaryStorageService : ITemporaryStorageService
     {
+        [ImportingConstructor]
+        public TestTemporaryStorageService()
+        {
+        }
+
         public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default(CancellationToken))
         {
             return new StreamStorage();

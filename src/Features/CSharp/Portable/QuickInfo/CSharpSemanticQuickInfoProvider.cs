@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     [ExportQuickInfoProvider(QuickInfoProviderNames.Semantic, LanguageNames.CSharp), Shared]
     internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
     {
+        [ImportingConstructor]
+        public CSharpSemanticQuickInfoProvider()
+        {
+        }
+
         /// <summary>
         /// If the token is the '=>' in a lambda, or the 'delegate' in an anonymous function,
         /// return the syntax for the lambda or anonymous function.

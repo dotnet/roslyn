@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 

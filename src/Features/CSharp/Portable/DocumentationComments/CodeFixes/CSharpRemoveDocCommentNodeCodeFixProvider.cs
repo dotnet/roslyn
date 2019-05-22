@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         /// </summary>
         private const string CS1710 = nameof(CS1710);
 
+        [ImportingConstructor]
+        public CSharpRemoveDocCommentNodeCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CS1571, CS1572, CS1710);
 
         protected override string DocCommentSignifierToken { get; } = "///";

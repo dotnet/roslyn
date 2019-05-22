@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
     {
+        [ImportingConstructor]
+        public CSharpUseCollectionInitializerCodeFixProvider()
+        {
+        }
+
         protected override StatementSyntax GetNewStatement(
             StatementSyntax statement,
             ObjectCreationExpressionSyntax objectCreation,
