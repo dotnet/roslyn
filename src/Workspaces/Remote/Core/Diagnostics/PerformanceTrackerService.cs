@@ -114,26 +114,24 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         private static string SnapshotLogger(IEnumerable<AnalyzerPerformanceInfo> snapshots, int unitCount)
         {
-            using (var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject())
+            using var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject();
+            var sb = pooledObject.Object;
+
+            sb.Append(unitCount);
+
+            foreach (var snapshot in snapshots)
             {
-                var sb = pooledObject.Object;
-
-                sb.Append(unitCount);
-
-                foreach (var snapshot in snapshots)
-                {
-                    sb.Append("|");
-                    sb.Append(snapshot.AnalyzerId);
-                    sb.Append(":");
-                    sb.Append(snapshot.BuiltIn);
-                    sb.Append(":");
-                    sb.Append(snapshot.TimeSpan.TotalMilliseconds);
-                }
-
-                sb.Append("*");
-
-                return sb.ToString();
+                sb.Append("|");
+                sb.Append(snapshot.AnalyzerId);
+                sb.Append(":");
+                sb.Append(snapshot.BuiltIn);
+                sb.Append(":");
+                sb.Append(snapshot.TimeSpan.TotalMilliseconds);
             }
+
+            sb.Append("*");
+
+            return sb.ToString();
         }
 
         private sealed class ReportGenerator : IDisposable, IComparer<ExpensiveAnalyzerInfo>
