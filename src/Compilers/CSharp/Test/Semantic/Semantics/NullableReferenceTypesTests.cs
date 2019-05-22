@@ -34139,17 +34139,21 @@ class C<T>
     static void M()
     {
         (var x, var y) = ((string?)null, string.Empty);
-        x.ToString();
+        x.ToString(); // 1
         y.ToString();
         x = null;
-        y = null;
+        y = null; // 2
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Dereference of a possibly null reference.
-                //         x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 9));
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 9),
+                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 13)
+                );
         }
 
         [Fact]
@@ -34163,17 +34167,21 @@ class C<T>
     static void G()
     {
         (var x, var y) = F();
-        x.ToString();
+        x.ToString(); // 1
         y.ToString();
         x = null;
-        y = null;
+        y = null; // 2
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
-                //         x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9));
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9),
+                // (10,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y = null; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 13)
+                );
         }
 
         [Fact]
@@ -90409,6 +90417,69 @@ class Program
                 // (26,9): warning CS8602: Dereference of a possibly null reference.
                 //         ay0[0][0][0].ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ay0[0][0][0]").WithLocation(26, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_38()
+        {
+            var source =
+@"
+class Program
+{
+    static void F(object? x1, object y1)
+    {
+        var t = (x1, y1);
+        var (x2, y2) = t;
+        if (x1 == null) return;
+        y1 = null; // 1
+        var u = (x1, y1);
+        (x2, y2) = u; // 2
+        x2 = null;
+        y2 = null; // 3
+    }   
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y1 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 14),
+                // (11,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (x2, y2) = u; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "u").WithLocation(11, 20),
+                // (13,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y2 = null; // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33019, "https://github.com/dotnet/roslyn/issues/33019")]
+        public void Deconstruction_39()
+        {
+            var source =
+@"
+class Program
+{
+    static void F(object? x1, object y1)
+    {
+        if (x1 == null) return;
+        y1 = null; // 1
+        var t = (x1, y1);
+        var (x2, y2) = (t.Item1, t.Item2);
+        x2 = null; // 2
+        y2 = null;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         y1 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 14),
+                // (10,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x2 = null; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 14)
                 );
         }
 

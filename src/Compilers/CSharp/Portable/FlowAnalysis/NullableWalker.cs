@@ -4901,17 +4901,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         var targetType = variable.Type;
-                        if (variable.Expression.ExpressionSymbol is SourceLocalSymbol local && local.IsVar && rightPart is BoundFieldAccess rightField)
-                        {
-                            // re-infer the left hand var type from the right hand side
-                            _variableTypes[local] = rightField.FieldSymbol.TypeWithAnnotations;
-                        }
+                        bool leftShouldReInfer = (variable.Expression as BoundLocal)?.DeclarationKind == BoundLocalDeclarationKind.WithInferredType;
+
                         TypeWithState operandType;
                         TypeWithState valueType;
                         int valueSlot;
                         if (underlyingConversion.IsIdentity)
                         {
-                            operandType = default;
+                            operandType = leftShouldReInfer ? VisitRvalueWithState(rightPart) : default;
                             valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
                             valueSlot = MakeSlot(rightPart);
                         }
@@ -4935,6 +4932,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // BoundConversion which is not the case here.
                                 trackMembers: false);
                             valueSlot = -1;
+                        }
+
+                        if (leftShouldReInfer)
+                        {
+                            // re-infer the left hand var type from the right hand side
+                            _variableTypes[variable.Expression.ExpressionSymbol] = operandType.ToTypeWithAnnotations();
                         }
 
                         int targetSlot = MakeSlot(variable.Expression);
@@ -5028,13 +5031,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            if (expr.Type.IsTupleType)
+            if (expr.Type is TupleTypeSymbol tuple)
             {
                 // https://github.com/dotnet/roslyn/issues/33011: Should include conversion.UnderlyingConversions[i].
                 // For instance, Boxing conversions (see Deconstruction_ImplicitBoxingConversion_02) and
                 // ImplicitNullable conversions (see Deconstruction_ImplicitNullableConversion_02).
-                VisitRvalue(expr);
-                var fields = ((TupleTypeSymbol)ResultType.Type).TupleElements;
+                var fields = tuple.TupleElements;
                 return fields.SelectAsArray((f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
             }
 
