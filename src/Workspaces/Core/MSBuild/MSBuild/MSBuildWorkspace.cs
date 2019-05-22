@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
             var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference) as IAssemblySymbol;
-            return symbol != null ? symbol.Identity : null;
+            return symbol?.Identity;
         }
 
         protected override void ApplyProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
