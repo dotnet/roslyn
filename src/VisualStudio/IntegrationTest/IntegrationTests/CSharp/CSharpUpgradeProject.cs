@@ -41,6 +41,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
             VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
 
+            // NuGet changes cascade and can prevent a code action from applying
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout);
+
             InvokeFix();
             VerifyPropertyOutsideConfiguration(GetProjectFileElement(project), "LangVersion", "latest");
         }
