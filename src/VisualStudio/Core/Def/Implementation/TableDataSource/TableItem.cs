@@ -60,6 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 if (first)
                 {
                     Primary = item.Primary;
+                    Workspace = item.Workspace;
 
                     _deduplicationKey = item.DeduplicationKey;
                     _keyGenerator = null;
