@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
     Friend NotInheritable Class VisualBasicInvertMultiLineIfCodeRefactoringProvider
         Inherits VisualBasicInvertIfCodeRefactoringProvider(Of MultiLineIfBlockSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetHeaderSpan(ifNode As MultiLineIfBlockSyntax) As TextSpan
             Return TextSpan.FromBounds(
                     ifNode.IfStatement.IfKeyword.SpanStart,

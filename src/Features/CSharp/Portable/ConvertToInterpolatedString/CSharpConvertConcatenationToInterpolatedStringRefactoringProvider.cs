@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
     {
         private const string InterpolatedVerbatimText = "$@\"";
 
+        [ImportingConstructor]
+        public CSharpConvertConcatenationToInterpolatedStringRefactoringProvider()
+        {
+        }
+
         protected override SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim)
         {
             return isVerbatim

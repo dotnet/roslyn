@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
 
         [ImportingConstructor]
-        private RoslynVisualStudioWorkspace(
+        public RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
-            var document = this.CurrentSolution.GetDocument(documentId) ?? this.CurrentSolution.GetAdditionalDocument(documentId);
+            var document = this.CurrentSolution.GetTextDocument(documentId);
 
             return new InvisibleEditor(ServiceProvider.GlobalProvider, document.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
         }

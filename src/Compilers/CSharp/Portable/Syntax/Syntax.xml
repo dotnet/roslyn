@@ -4403,7 +4403,6 @@
       <Kind Name="DisableKeyword"/>
       <Kind Name="RestoreKeyword"/>
       <Kind Name="EnableKeyword"/>
-      <Kind Name="SafeOnlyKeyword"/>
     </Field>
     <Field Name="NullableKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="NullableKeyword"/>
@@ -4496,7 +4495,6 @@
       <Kind Name="EnableKeyword"/>
       <Kind Name="DisableKeyword"/>
       <Kind Name="RestoreKeyword"/>
-      <Kind Name="SafeOnlyKeyword"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>

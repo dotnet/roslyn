@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider("GenericNamePartiallyWrittenSignatureHelpProvider", LanguageNames.CSharp), Shared]
     internal class GenericNamePartiallyWrittenSignatureHelpProvider : GenericNameSignatureHelpProvider
     {
+        [ImportingConstructor]
+        public GenericNamePartiallyWrittenSignatureHelpProvider()
+        {
+        }
+
         protected override bool TryGetGenericIdentifier(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out SyntaxToken genericIdentifier, out SyntaxToken lessThanToken)
         {
             return root.SyntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out lessThanToken);

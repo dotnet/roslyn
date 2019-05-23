@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseImplicitType), Shared]
     internal partial class UseImplicitTypeCodeRefactoringProvider : AbstractUseTypeCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public UseImplicitTypeCodeRefactoringProvider()
+        {
+        }
+
         protected override string Title
             => CSharpFeaturesResources.Use_implicit_type;
 

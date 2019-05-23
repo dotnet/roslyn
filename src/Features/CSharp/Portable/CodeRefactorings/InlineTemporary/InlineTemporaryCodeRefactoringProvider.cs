@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         internal static readonly SyntaxAnnotation InitializerAnnotation = new SyntaxAnnotation();
         internal static readonly SyntaxAnnotation ExpressionToInlineAnnotation = new SyntaxAnnotation();
 
+        [ImportingConstructor]
+        public InlineTemporaryCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
@@ -104,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             if (local != null)
             {
                 var findReferencesResult = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
-                var locations = findReferencesResult.Single(r => r.Definition == local).Locations;
+                var locations = findReferencesResult.Single(r => Equals(r.Definition, local)).Locations;
                 if (!locations.Any(loc => semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken)))
                 {
                     return locations;
@@ -182,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // Collect the identifier names for each reference.
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
             var symbolRefs = await SymbolFinder.FindReferencesAsync(local, updatedDocument.Project.Solution, cancellationToken).ConfigureAwait(false);
-            var references = symbolRefs.Single(r => r.Definition == local).Locations;
+            var references = symbolRefs.Single(r => Equals(r.Definition, local)).Locations;
             var syntaxRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Collect the topmost parenting expression for each reference.

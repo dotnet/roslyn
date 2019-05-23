@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedMembers), Shared]
     internal class CSharpRemoveUnusedMembersCodeFixProvider : AbstractRemoveUnusedMembersCodeFixProvider<FieldDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public CSharpRemoveUnusedMembersCodeFixProvider()
+        {
+        }
+
         /// <summary>
         /// This method adjusts the <paramref name="declarators"/> to remove based on whether or not all variable declarators
         /// within a field declaration should be removed,
