@@ -2043,11 +2043,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // learn from non-null constant
             BoundExpression operandComparedToNonNull = null;
-            if (isNonNullConstant(binary.Left))
+            if (leftType.IsNotNull && rightType.MayBeNull && binary.Right.ConstantValue?.IsNull != true)
             {
                 operandComparedToNonNull = binary.Right;
             }
-            else if (isNonNullConstant(binary.Right))
+            else if (leftType.MayBeNull && binary.Left.ConstantValue?.IsNull != true && rightType.IsNotNull)
             {
                 operandComparedToNonNull = binary.Left;
             }
@@ -2249,6 +2249,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private int LearnFromNullTest(BoundExpression expression, ref LocalState state)
         {
+            // nothing to learn about a constant
+            if (expression.ConstantValue != null)
+            {
+                return -1;
+            }
+
             var expressionWithoutConversion = RemoveConversion(expression, includeExplicitConversions: true).expression;
             var slot = MakeSlot(expressionWithoutConversion);
             return LearnFromNullTest(slot, expressionWithoutConversion.Type, ref state);

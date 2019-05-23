@@ -21867,7 +21867,7 @@ public class C
     {
         if (s != string.Empty) s.ToString(); // warn
         d.BeginInvoke(s, null, null);
-        s.ToString(); // warn 2
+        s.ToString();
     }
 }
 ", NotNullAttributeDefinition }, options: WithNonNullTypesTrue());
@@ -21875,10 +21875,7 @@ public class C
             c.VerifyDiagnostics(
                 // (8,32): warning CS8602: Dereference of a possibly null reference.
                 //         if (s != string.Empty) s.ToString(); // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 32),
-                // (10,9): warning CS8602: Dereference of a possibly null reference.
-                //         s.ToString(); // warn 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(10, 9)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 32)
                 );
         }
 
@@ -95649,6 +95646,29 @@ class Box<T>
                 // (53,13): error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
                 //         if (x == null) return; // 2
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == null").WithArguments("==", "T", "<null>").WithLocation(53, 13));
+        }
+
+        [Fact, WorkItem(34942, "https://github.com/dotnet/roslyn/issues/34942")]
+        public void ConditionalExpression_InferredNullability()
+        {
+            var source =
+@"#nullable enable
+using System;
+
+public class Program
+{
+    static void Main()
+    {
+        string? value = ""42"";
+        int count = 84;
+        if (value?.Length == count)
+        {
+            Console.WriteLine(value.Length);
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(35075, "https://github.com/dotnet/roslyn/issues/35075")]
