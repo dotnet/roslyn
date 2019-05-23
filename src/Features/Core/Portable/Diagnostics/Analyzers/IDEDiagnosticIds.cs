@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string MoveMisplacedUsingDirectivesDiagnosticId = "IDE0065";
 
+        public const string ConvertSwitchStatementToExpressionDiagnosticId = "IDE0066";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
