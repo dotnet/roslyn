@@ -39,7 +39,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var exportAttribute = compilationContext.Compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
+                var exportAttribute = WellKnownTypes.MEFV2ExportAttribute(compilationContext.Compilation);
                 var attributeUsageAttribute = WellKnownTypes.AttributeUsageAttribute(compilationContext.Compilation);
 
                 if (exportAttribute == null)
@@ -52,8 +52,9 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     var namedType = (INamedTypeSymbol)symbolContext.Symbol;
                     var namedTypeAttributes = namedType.GetApplicableAttributes(attributeUsageAttribute);
+                    var exportAttributes = namedType.GetApplicableExportAttributes(exportAttributeV1: null, exportAttribute, inheritedExportAttribute: null);
 
-                    var exportAttributeApplication = namedTypeAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttribute));
+                    var exportAttributeApplication = exportAttributes.FirstOrDefault();
 
                     if (exportAttributeApplication != null)
                     {
