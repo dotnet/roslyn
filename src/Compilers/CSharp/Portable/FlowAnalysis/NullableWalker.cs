@@ -4901,15 +4901,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         var targetType = variable.Type;
-                        bool leftShouldReInfer = (variable.Expression as BoundLocal)?.DeclarationKind == BoundLocalDeclarationKind.WithInferredType;
-
                         TypeWithState operandType;
                         TypeWithState valueType;
                         int valueSlot;
                         if (underlyingConversion.IsIdentity)
                         {
-                            operandType = leftShouldReInfer ? VisitRvalueWithState(rightPart) : default;
-                            valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
+                            if ((variable.Expression as BoundLocal)?.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
+                            {
+                                // when the LHS is a var declaration, we can just visit the right part to infer it's type
+                                valueType = operandType = VisitRvalueWithState(rightPart);
+                                _variableTypes[variable.Expression.ExpressionSymbol] = operandType.ToTypeWithAnnotations();
+                            }
+                            else
+                            {
+                                operandType = default;
+                                valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
+                            }
                             valueSlot = MakeSlot(rightPart);
                         }
                         else
@@ -4932,12 +4939,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // BoundConversion which is not the case here.
                                 trackMembers: false);
                             valueSlot = -1;
-                        }
-
-                        if (leftShouldReInfer)
-                        {
-                            // re-infer the left hand var type from the right hand side
-                            _variableTypes[variable.Expression.ExpressionSymbol] = operandType.ToTypeWithAnnotations();
                         }
 
                         int targetSlot = MakeSlot(variable.Expression);
