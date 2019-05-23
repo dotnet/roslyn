@@ -34233,6 +34233,50 @@ class C
         }
 
         [Fact]
+        [WorkItem(32563, "https://github.com/dotnet/roslyn/issues/32563")]
+        public void IdentityConversion_DelegateInParameter()
+        {
+            var source =
+@"delegate void D<T>(in T t);
+interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static void F<T>(in T t) {  }
+    static void G()
+    {
+        D<object> a = F<object?>;
+        D<object?> b = F<object>;
+        D<I<object>> c = F<I<object?>>;
+        D<I<object?>> d = F<I<object>>;
+        D<IIn<object>> e = F<IIn<object?>>;
+        D<IIn<object?>> f = F<IIn<object>>;
+        D<IOut<object>> g = F<IOut<object?>>;
+        D<IOut<object?>> h = F<IOut<object>>;
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (11,24): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<object>(in object t)' doesn't match the target delegate 'D<object?>'.
+                    //         D<object?> b = F<object>;
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F<object>").WithArguments("t", "void C.F<object>(in object t)", "D<object?>").WithLocation(11, 24),
+                    // (12,26): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<I<object?>>(in I<object?> t)' doesn't match the target delegate 'D<I<object>>'.
+                    //         D<I<object>> c = F<I<object?>>;
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F<I<object?>>").WithArguments("t", "void C.F<I<object?>>(in I<object?> t)", "D<I<object>>").WithLocation(12, 26),
+                    // (13,27): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<I<object>>(in I<object> t)' doesn't match the target delegate 'D<I<object?>>'.
+                    //         D<I<object?>> d = F<I<object>>;
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F<I<object>>").WithArguments("t", "void C.F<I<object>>(in I<object> t)", "D<I<object?>>").WithLocation(13, 27),
+                    // (14,28): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<IIn<object?>>(in IIn<object?> t)' doesn't match the target delegate 'D<IIn<object>>'.
+                    //         D<IIn<object>> e = F<IIn<object?>>;
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F<IIn<object?>>").WithArguments("t", "void C.F<IIn<object?>>(in IIn<object?> t)", "D<IIn<object>>").WithLocation(14, 28),
+                    // (17,30): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<IOut<object>>(in IOut<object> t)' doesn't match the target delegate 'D<IOut<object?>>'.
+                    //         D<IOut<object?>> h = F<IOut<object>>;
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F<IOut<object>>").WithArguments("t", "void C.F<IOut<object>>(in IOut<object> t)", "D<IOut<object?>>").WithLocation(17, 30)
+                );
+        }
+
+        [Fact]
         public void IdentityConversion_DelegateRefParameter()
         {
             var source =
