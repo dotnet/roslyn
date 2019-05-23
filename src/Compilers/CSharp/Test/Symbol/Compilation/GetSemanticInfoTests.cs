@@ -5919,7 +5919,7 @@ class C
 
         [Fact]
         [WorkItem(34984, "https://github.com/dotnet/roslyn/issues/34984")]
-        public async Task ConversionIsExplicit_UnsetConversionKind()
+        public void ConversionIsExplicit_UnsetConversionKind()
         {
             var source =
 @"class C1
@@ -5928,7 +5928,7 @@ class C
 
 class C2
 {
-    public void Foo() 
+    public void M() 
     {
         var c = new C1();
         foreach (string item in c.Items)
@@ -5939,7 +5939,7 @@ class C2
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var root = await tree.GetRootAsync();
+            var root = tree.GetRoot();
             var foreachSyntaxNode = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var foreachSymbolInfo = model.GetForEachStatementInfo(foreachSyntaxNode);
 
