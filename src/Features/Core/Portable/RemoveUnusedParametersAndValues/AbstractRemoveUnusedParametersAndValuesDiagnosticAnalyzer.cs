@@ -83,17 +83,32 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         private static readonly PropertiesMap s_propertiesMap = CreatePropertiesMap();
 
-        protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_expressionValueIsUnusedRule, s_valueAssignedIsUnusedRule, s_unusedParameterRule))
+        protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption)
+            : base(GetSupportedDescriptorsWithOptions(unusedValueExpressionStatementOption, unusedValueAssignmentOption))
         {
+            UnusedValueExpressionStatementOption = unusedValueExpressionStatementOption;
+            UnusedValueAssignmentOption = unusedValueAssignmentOption;
+        }
+
+        private static ImmutableDictionary<DiagnosticDescriptor, IOption> GetSupportedDescriptorsWithOptions(
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, IOption>();
+            builder.Add(s_expressionValueIsUnusedRule, unusedValueExpressionStatementOption);
+            builder.Add(s_valueAssignedIsUnusedRule, unusedValueAssignmentOption);
+            builder.Add(s_unusedParameterRule, CodeStyleOptions.UnusedParameters);
+            return builder.ToImmutable();
         }
 
         protected abstract Location GetDefinitionLocationToFade(IOperation unusedDefinition);
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
         protected abstract bool IsIfConditionalDirective(SyntaxNode node);
-        protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
-        protected abstract Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
+        private Option<CodeStyleOption<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
+        private Option<CodeStyleOption<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
 
         /// <summary>
         /// Indicates if we should bail from removable assignment analysis for the given

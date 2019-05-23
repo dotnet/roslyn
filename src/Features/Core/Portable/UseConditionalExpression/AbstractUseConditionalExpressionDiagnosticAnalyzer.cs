@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             LocalizableResourceString message,
             PerLanguageOption<CodeStyleOption<bool>> option)
             : base(descriptorId,
+                   option,
                    new LocalizableResourceString(nameof(FeaturesResources.Convert_to_conditional_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    message)
         {

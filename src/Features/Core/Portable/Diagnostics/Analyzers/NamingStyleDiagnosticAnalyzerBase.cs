@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         protected NamingStyleDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.NamingRuleId,
+                   option: null,    // No unique option to configure the diagnosticId
                    s_localizableTitleNamingStyle,
                    s_localizableMessageFormat)
         {

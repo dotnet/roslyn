@@ -160,14 +160,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 // For example, IDE diagnostics which are configurable with following code style option based .editorconfig entry:
                 //      "%option_name% = %option_value%:%severity%
                 // we return '(option_name, option_value)'
-                var diagnosticIdToEditorConfigMappingService = _project.LanguageServices.GetService<IDiagnosticIdToEditorConfigOptionMappingService>();
-                var editorConfigOption = diagnosticIdToEditorConfigMappingService.GetMappedEditorConfigOption(_diagnostic.Id);
-                if (editorConfigOption != null)
+                if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOption(_diagnostic.Id, out var option))
                 {
-                    var editorConfigLocation = editorConfigOption.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
+                    var editorConfigLocation = option.StorageLocations.OfType<IEditorConfigStorageLocation2>().FirstOrDefault();
                     if (editorConfigLocation != null)
                     {
-                        var optionKey = new OptionKey(editorConfigOption, editorConfigOption.IsPerLanguage ? _language : null);
+                        var optionKey = new OptionKey(option, option.IsPerLanguage ? _language : null);
                         var optionSet = _project.Solution.Workspace.Options;
                         var value = optionSet.GetOption(optionKey);
                         var editorConfigString = editorConfigLocation.GetEditorConfigString(value, optionSet);

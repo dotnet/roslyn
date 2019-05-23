@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         public MakeFieldReadonlyDiagnosticAnalyzer()
             : base(
                 IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId,
+                CodeStyleOptions.PreferReadonly,
                 new LocalizableResourceString(nameof(FeaturesResources.Add_readonly_modifier), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

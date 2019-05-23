@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         public RegexDiagnosticAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
+                   RegularExpressionsOptions.ReportInvalidRegexPatterns,
                    new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.Regex_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
         {

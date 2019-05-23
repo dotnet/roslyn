@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
-                  new LocalizableResourceString(nameof(FeaturesResources.Simplify_object_initialization), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   CodeStyleOptions.PreferObjectInitializer,
+                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_object_initialization), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Object_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }

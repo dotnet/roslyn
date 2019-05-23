@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
     {
         protected AbstractQualifyMemberAccessDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddQualificationDiagnosticId,
+                   option: null,    // No unique option for diagnosticId, we have different options per symbol kind.
                    new LocalizableResourceString(nameof(WorkspacesResources.Member_access_should_be_qualified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Add_this_or_Me_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

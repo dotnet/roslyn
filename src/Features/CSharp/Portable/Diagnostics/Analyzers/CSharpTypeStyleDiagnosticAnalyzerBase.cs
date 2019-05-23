@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected CSharpTypeStyleDiagnosticAnalyzerBase(
             string diagnosticId, LocalizableString title, LocalizableString message)
-            : base(diagnosticId, title, message)
+            : base(diagnosticId,
+                   option: null,    // No unique option for diagnosticId
+                   title, message)
         {
         }
 
