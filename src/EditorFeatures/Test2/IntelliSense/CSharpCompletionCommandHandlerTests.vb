@@ -5153,6 +5153,30 @@ class C
             End Using
         End Function
 
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
+        Public Async Function TypingToStringAfterIntInVariableDeclaration(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        int d = 1;
+        var e = d$$;
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars("ToStr(")
+                Assert.Contains("var e = d.ToString(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 

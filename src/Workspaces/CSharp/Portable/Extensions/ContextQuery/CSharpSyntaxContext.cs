@@ -196,7 +196,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                                             targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
                                             targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
 
-            var isSoftSelectionContext = IsLeftSideOfNumericType(leftToken, semanticModel, cancellationToken);
+            // Typing a dot after a numeric expression (numericExpression.) 
+            // - maybe a start of MemberAccessExpression like numericExpression.Member.
+            // - or it maybe a start of a range expression like numericExpression..anotherNumericExpression (starting C# 8.0) 
+            // Therefore, in the scenario, we want the completion to be __soft selected__ until user types the next character after the dot.
+            // If the second dot was typed, we just insert two dots.
+            var isSoftSelectionContext = IsRightSideOfNumericType(leftToken, semanticModel, cancellationToken);
 
             return new CSharpSyntaxContext(
                 workspace: workspace,
@@ -340,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        private static bool IsLeftSideOfNumericType(SyntaxToken leftToken, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool IsRightSideOfNumericType(SyntaxToken leftToken, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (!(leftToken.Parent is MemberAccessExpressionSyntax memberAccessExpression))
             {
