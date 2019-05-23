@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,8 +18,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public class ThrowingDiagnosticAnalyzer<TLanguageKindEnum> : TestDiagnosticAnalyzer<TLanguageKindEnum> where TLanguageKindEnum : struct
     {
+        [Serializable]
         public class DeliberateException : Exception
         {
+            public DeliberateException()
+            {
+            }
+
+            protected DeliberateException(SerializationInfo serializationInfo, StreamingContext streamingContext)
+            {
+                throw new NotImplementedException();
+            }
+
             public override string Message
             {
                 get { return "If this goes unhandled, our diagnostics engine is susceptible to malicious analyzers"; }

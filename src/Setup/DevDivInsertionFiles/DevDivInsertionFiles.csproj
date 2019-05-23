@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
 
@@ -93,6 +93,12 @@
     <!--     
       Exclude dependencies that are not inserted from Roslyn repo.
       Note: can't use globs due to https://github.com/Microsoft/msbuild/issues/3791.
+      
+      these dependency should be removed once StreamJsonRpc adds a build target for
+      net472 - https://github.com/dotnet/roslyn/issues/34558
+      
+      <_Dependency Remove="Nerdbank.Streams"/>
+      <_Dependency Remove="System.IO.Pipelines"/>
     -->
     <ItemGroup>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.VisualStudio.'))"/>
@@ -106,6 +112,8 @@
       <_Dependency Remove="Newtonsoft.Json"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
+      <_Dependency Remove="Nerdbank.Streams"/>
+      <_Dependency Remove="System.IO.Pipelines"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>

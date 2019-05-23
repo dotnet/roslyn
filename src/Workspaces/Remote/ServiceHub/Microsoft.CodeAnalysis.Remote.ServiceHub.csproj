@@ -43,9 +43,6 @@
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs">
       <Link>Telemetry\VSTelemetryLogger.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Remote\JsonRpcMessageHandler.cs">
-      <Link>Shared\JsonRpcMessageHandler.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" WorkItem="https://github.com/dotnet/roslyn/issues/35078" />

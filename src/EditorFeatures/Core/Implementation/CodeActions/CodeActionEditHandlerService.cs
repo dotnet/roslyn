@@ -214,11 +214,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             if (projectChange.GetAddedAdditionalDocuments().Any() ||
                 projectChange.GetAddedAnalyzerReferences().Any() ||
                 projectChange.GetAddedDocuments().Any() ||
+                projectChange.GetAddedAnalyzerConfigDocuments().Any() ||
                 projectChange.GetAddedMetadataReferences().Any() ||
                 projectChange.GetAddedProjectReferences().Any() ||
                 projectChange.GetRemovedAdditionalDocuments().Any() ||
                 projectChange.GetRemovedAnalyzerReferences().Any() ||
                 projectChange.GetRemovedDocuments().Any() ||
+                projectChange.GetRemovedAnalyzerConfigDocuments().Any() ||
                 projectChange.GetRemovedMetadataReferences().Any() ||
                 projectChange.GetRemovedProjectReferences().Any())
             {
@@ -227,21 +229,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
             var changedAdditionalDocuments = projectChange.GetChangedAdditionalDocuments().ToImmutableArray();
             var changedDocuments = projectChange.GetChangedDocuments().ToImmutableArray();
+            var changedAnalyzerConfigDocuments = projectChange.GetChangedAnalyzerConfigDocuments().ToImmutableArray();
 
-            if (changedAdditionalDocuments.Length + changedDocuments.Length != 1)
+            if (changedAdditionalDocuments.Length + changedDocuments.Length + changedAnalyzerConfigDocuments.Length != 1)
             {
                 return null;
             }
 
             if (changedDocuments.Any(id => newSolution.GetDocument(id).HasInfoChanged(oldSolution.GetDocument(id))) ||
-                changedAdditionalDocuments.Any(id => newSolution.GetAdditionalDocument(id).HasInfoChanged(oldSolution.GetAdditionalDocument(id))))
+                changedAdditionalDocuments.Any(id => newSolution.GetAdditionalDocument(id).HasInfoChanged(oldSolution.GetAdditionalDocument(id))) ||
+                changedAnalyzerConfigDocuments.Any(id => newSolution.GetAnalyzerConfigDocument(id).HasInfoChanged(oldSolution.GetAnalyzerConfigDocument(id))))
             {
                 return null;
             }
 
-            return changedDocuments.Length == 1
-                ? oldSolution.GetDocument(changedDocuments[0])
-                : oldSolution.GetAdditionalDocument(changedAdditionalDocuments[0]);
+            if (changedDocuments.Length == 1)
+            {
+                return oldSolution.GetDocument(changedDocuments[0]);
+            }
+            else if (changedAdditionalDocuments.Length == 1)
+            {
+                return oldSolution.GetAdditionalDocument(changedAdditionalDocuments[0]);
+            }
+            else
+            {
+                return oldSolution.GetAnalyzerConfigDocument(changedAnalyzerConfigDocuments[0]);
+            }
         }
 
         private static void ProcessOperations(
