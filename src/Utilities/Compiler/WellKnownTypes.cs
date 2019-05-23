@@ -413,6 +413,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCompositionExportAttribute);
         }
 
+        public static INamedTypeSymbol InheritedExportAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemComponentModelCompositionInheritedExportAttribute);
+        }
+
         public static INamedTypeSymbol MEFV1ImportingConstructorAttribute(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemComponentModelCompositionImportingConstructorAttribute);

@@ -230,6 +230,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeInteropServicesHandleRef = "System.Runtime.InteropServices.HandleRef";
         public const string SystemRuntimeSerializationDataMemberAttribute = "System.Runtime.Serialization.DataMemberAttribute";
         public const string SystemComponentModelCompositionExportAttribute = "System.ComponentModel.Composition.ExportAttribute";
+        public const string SystemComponentModelCompositionInheritedExportAttribute = "System.ComponentModel.Composition.InheritedExportAttribute";
         public const string SystemComponentModelCompositionImportingConstructorAttribute = "System.ComponentModel.Composition.ImportingConstructorAttribute";
         public const string SystemCompositionExportAttribute = "System.Composition.ExportAttribute";
         public const string SystemCompositionImportingConstructorAttribute = "System.Composition.ImportingConstructorAttribute";

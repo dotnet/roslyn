@@ -52,8 +52,9 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     var namedType = (INamedTypeSymbol)symbolContext.Symbol;
                     var namedTypeAttributes = namedType.GetApplicableAttributes(attributeUsageAttribute);
+                    var exportAttributes = namedType.GetApplicableExportAttributes(exportAttributeV1: null, exportAttribute, inheritedExportAttribute: null);
 
-                    var exportAttributeApplication = namedTypeAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttribute));
+                    var exportAttributeApplication = exportAttributes.FirstOrDefault();
 
                     if (exportAttributeApplication != null)
                     {
