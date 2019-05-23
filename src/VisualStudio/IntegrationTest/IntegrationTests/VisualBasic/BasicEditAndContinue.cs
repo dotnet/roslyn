@@ -34,10 +34,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        [WpfFact]
+        [WpfTheory, IterationData(25)]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
-        public void UpdateActiveStatementLeafNode()
+        public void UpdateActiveStatementLeafNode(int iteration)
         {
+            _ = iteration;
+
             VisualStudio.Editor.SetText(@"
 Imports System
 Imports System.Collections.Generic
@@ -66,10 +68,12 @@ End Module
             VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"bar\"");
         }
 
-        [WpfFact]
+        [WpfTheory, IterationData(25)]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
-        public void AddTryCatchAroundActiveStatement()
+        public void AddTryCatchAroundActiveStatement(int iteration)
         {
+            _ = iteration;
+
             VisualStudio.Editor.SetText(@"
 Imports System
 Module Module1
@@ -95,10 +99,12 @@ End Try");
             VisualStudio.Editor.Verify.CurrentLineText("End Try");
         }
 
-        [WpfFact]
+        [WpfTheory, IterationData(25)]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
-        public void EditLambdaExpression()
+        public void EditLambdaExpression(int iteration)
         {
+            _ = iteration;
+
             VisualStudio.Editor.SetText(@"
 Imports System
 Module Module1
@@ -127,10 +133,12 @@ End Module");
             VisualStudio.ErrorList.Verify.NoBuildErrors();
         }
 
-        [WpfFact]
+        [WpfTheory, IterationData(25)]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
-        public void EnCWhileDebuggingFromImmediateWindow()
+        public void EnCWhileDebuggingFromImmediateWindow(int iteration)
         {
+            _ = iteration;
+
             VisualStudio.Editor.SetText(@"
 Imports System
 
@@ -151,10 +159,12 @@ End Module");
             VisualStudio.Debugger.ExecuteStatement("Module1.Main()");
         }
 
-        [WpfFact]
+        [WpfTheory, IterationData(25)]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
-        private void SetupMultiProjectSolution()
+        private void SetupMultiProjectSolution(int iteration)
         {
+            _ = iteration;
+
             var basicLibrary = new ProjectUtils.Project("BasicLibrary1");
             VisualStudio.SolutionExplorer.AddProject(basicLibrary, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
 
@@ -194,11 +204,13 @@ End Module
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        [WpfFact]
+        [WpfTheory, IterationData(25)]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
-        public void MultiProjectDebuggingWhereNotAllModulesAreLoaded()
+        public void MultiProjectDebuggingWhereNotAllModulesAreLoaded(int iteration)
         {
-            SetupMultiProjectSolution();
+            _ = iteration;
+
+            SetupMultiProjectSolution(iteration);
             VisualStudio.Debugger.SetBreakPoint(module1FileName, "PrintX", charsOffset: 1);
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             VisualStudio.Editor.ReplaceText("5", "42");
@@ -206,12 +218,14 @@ End Module
             VisualStudio.ErrorList.Verify.NoErrors();
         }
 
-        [WpfFact]
+        [WpfTheory, IterationData(25)]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         [WorkItem(33829, "https://github.com/dotnet/roslyn/issues/33829")]
-        public void DocumentStateTrackingReadonlyInRunMode()
+        public void DocumentStateTrackingReadonlyInRunMode(int iteration)
         {
-            SetupMultiProjectSolution();
+            _ = iteration;
+
+            SetupMultiProjectSolution(iteration);
             var project = new ProjectUtils.Project(ProjectName);
             var basicLibrary = new ProjectUtils.Project("BasicLibrary1");
             var cSharpLibrary = new ProjectUtils.Project("CSharpLibrary1");
@@ -258,10 +272,12 @@ End Module
             VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
         }
 
-        [WpfFact]
+        [WpfTheory, IterationData(25)]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
-        public void LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
+        public void LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC(int iteration)
         {
+            _ = iteration;
+
             VisualStudio.Editor.SetText(@"
 Imports System
 Module Module1
@@ -282,10 +298,12 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("goo", "Single", "10");
         }
 
-        [WpfFact]
+        [WpfTheory, IterationData(25)]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
-        public void LocalsWindowUpdatesCorrectlyDuringEnC()
+        public void LocalsWindowUpdatesCorrectlyDuringEnC(int iteration)
         {
+            _ = iteration;
+
             VisualStudio.Editor.SetText(@"
 Imports System
 
@@ -316,10 +334,12 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("lLng", "Long", "444");
         }
 
-        [WpfFact]
+        [WpfTheory, IterationData(25)]
         [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
-        public void WatchWindowUpdatesCorrectlyDuringEnC()
+        public void WatchWindowUpdatesCorrectlyDuringEnC(int iteration)
         {
+            _ = iteration;
+
             VisualStudio.Editor.SetText(@"
 Imports System
 
