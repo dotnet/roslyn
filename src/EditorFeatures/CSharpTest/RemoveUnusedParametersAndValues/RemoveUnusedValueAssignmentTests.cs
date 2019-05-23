@@ -6863,5 +6863,69 @@ public static class Program
     }
 }", optionName);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DoesNotUseLocalFunctionName_PreferUnused()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        int [|x|] = M2();
+        x = 2;
+        return x;
+
+        void unused() { }
+    }
+
+    int M2() => 0;
+}",
+@"class C
+{
+    int M()
+    {
+        int unused1 = M2();
+        int x = 2;
+        return x;
+
+        void unused() { }
+    }
+
+    int M2() => 0;
+}", options: PreferUnusedLocal);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task CanUseLocalFunctionParameterName_PreferUnused()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        int [|x|] = M2();
+        x = 2;
+        return x;
+
+        void MLocal(int unused) { }
+    }
+
+    int M2() => 0;
+}",
+@"class C
+{
+    int M()
+    {
+        int unused = M2();
+        int x = 2;
+        return x;
+
+        void MLocal(int unused) { }
+    }
+
+    int M2() => 0;
+}", options: PreferUnusedLocal);
+        }
     }
 }

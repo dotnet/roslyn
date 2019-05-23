@@ -4182,5 +4182,93 @@ class C
         }
 
         #endregion
+
+        #region Local Functions
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task EnumerableFunctionDoesNotUseLocalFunctionName()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        var r = [|from i in c select i+1|];
+
+        void enumerable() { }
+    }
+}";
+            string output = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        IEnumerable<int> enumerable1()
+        {
+            foreach (var i in c)
+            {
+                yield return i + 1;
+            }
+        }
+
+        var r = enumerable1();
+
+        void enumerable() { }
+    }
+}";
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task EnumerableFunctionCanUseLocalFunctionParameterName()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        var r = [|from i in c select i+1|];
+
+        void M(IEnumerable<int> enumerable) { }
+    }
+}";
+            string output = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class Query
+{
+    public static void Main(string[] args)
+    {
+        List<int> c = new List<int>{ 1, 2, 3, 4, 5, 6, 7 };
+        IEnumerable<int> enumerable()
+        {
+            foreach (var i in c)
+            {
+                yield return i + 1;
+            }
+        }
+
+        var r = enumerable();
+
+        void M(IEnumerable<int> enumerable) { }
+    }
+}";
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        #endregion
     }
 }

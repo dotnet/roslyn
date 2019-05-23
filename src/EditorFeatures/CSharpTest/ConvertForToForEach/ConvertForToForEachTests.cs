@@ -1366,5 +1366,77 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestDoesNotUseLocalFunctionName()
+        {
+            await TestInRegularAndScript1Async(
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+
+        void v() { }
+    }
+}",
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v1|} in array)
+        {
+            Console.WriteLine(v1);
+        }
+
+        void v() { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestUsesLocalFunctionParameterName()
+        {
+            await TestInRegularAndScript1Async(
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+
+        void M(string v)
+        {
+        }
+    }
+}",
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
+        }
+
+        void M(string v)
+        {
+        }
+    }
+}");
+        }
     }
 }

@@ -221,6 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var rules = await document.GetNamingRulesAsync(FallbackNamingRules.CompletionOfferingRules, cancellationToken).ConfigureAwait(false);
             var result = new Dictionary<string, SymbolKind>();
             var semanticFactsService = context.GetLanguageService<ISemanticFactsService>();
+            var syntaxFactsService = context.GetLanguageService<ISyntaxFactsService>();
 
             foreach (var kind in declarationInfo.PossibleSymbolKinds)
             {
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                 var targetToken = context.TargetToken;
                                 var uniqueName = semanticFactsService.GenerateUniqueName(
                                     context.SemanticModel,
-                                    context.TargetToken.Parent,
+                                    targetToken.Parent,
                                     containerOpt: null,
                                     baseName: name,
                                     filter: IsRelevantSymbolKind,

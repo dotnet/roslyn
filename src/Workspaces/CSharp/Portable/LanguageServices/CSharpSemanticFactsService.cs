@@ -26,6 +26,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        protected override IEnumerable<ISymbol> GetUsedSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
+        {
+            // Get all the symbols visible to the current location.
+            var visibleSymbols = semanticModel.LookupSymbols(location.SpanStart);
+
+            // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
+            // E.g. symbols inside if statements / try catch statements.
+            // Walk through the enclosing block to find them, but make sure to exclude local functions because
+            //     a) Visible local function symbols would be returned from LookupSymbols (e.g. location is inside a local function).
+            //     b) Local function symbols are only in scope inside the local function.
+            //        Relevant ones (e.g. method name) would be returned by a).
+            var symbolsInBlock = semanticModel.GetExistingSymbols(container, cancellationToken,
+                                    filter: (SyntaxNode n) => !n.IsKind(SyntaxKind.LocalFunctionStatement));
+
+            return symbolsInBlock.Concat(visibleSymbols);
+        }
+
         public bool SupportsImplicitInterfaceImplementation => true;
 
         public bool ExposesAnonymousFunctionParameterNames => false;
