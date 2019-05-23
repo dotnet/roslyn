@@ -5905,6 +5905,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>stackalloc in nested expressions</value>
   </data>
   <data name="ERR_NeedSpaceBetweenExclamationAndEquals" xml:space="preserve">
-    <value>There needs to be a space between the null-checking exclamation and the optional parameter's equals sign.</value>
+    <value>Space required between explanation-point and equals-sign here.</value>
   </data>
 </root>

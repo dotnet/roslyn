@@ -7171,7 +7171,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There needs to be a space between the null-checking exclamation and the optional parameter&apos;s equals sign..
+        ///   Looks up a localized string similar to Space required between explanation-point and equals-sign here..
         /// </summary>
         internal static string ERR_NeedSpaceBetweenExclamationAndEquals {
             get {
