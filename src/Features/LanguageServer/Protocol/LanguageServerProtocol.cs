@@ -184,9 +184,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="solution">the solution containing the request.</param>
         /// <param name="request">the document position of the symbol to go to.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>the location of a given symbol.</returns>
-        public Task<LSP.Location[]> GoToDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
-            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName, solution, request, clientCapabilities, cancellationToken);
+        /// <returns>the location(s) of a given symbol.</returns>
+        public Task<object> GoToDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            => ExecuteRequestAsync<LSP.TextDocumentPositionParams, object>(LSP.Methods.TextDocumentDefinitionName, solution, request, clientCapabilities, cancellationToken);
 
         /// <summary>
         /// Answers a goto type definition request by returning the location of a given type definition.

@@ -41,12 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
                         CommandIdentifier = "Roslyn.RunCodeAction",
                         Arguments = new RunCodeActionParams[]
                         {
-                            new RunCodeActionParams()
-                            {
-                                Range = location.Range,
-                                TextDocument = CreateTextDocumentIdentifier(location.Uri),
-                                Title = "Use implicit type"
-                            }
+                            CreateRunCodeActionParams("Use implicit type", location)
                         }
                     })
                 }

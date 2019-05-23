@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -217,6 +218,17 @@ namespace Roslyn.Test.Utilities
                     CompletionParams = requestParameters
                 },
                 Icon = tags != null ? new ImageElement(tags.ToImmutableArray().GetFirstGlyph().GetImageId()) : null
+            };
+
+        private protected static RunCodeActionParams CreateRunCodeActionParams(string codeActionTitle, LSP.Location location)
+            => new RunCodeActionParams()
+            {
+                CodeActionParams = new LSP.CodeActionParams()
+                {
+                    TextDocument = CreateTextDocumentIdentifier(location.Uri),
+                    Range = location.Range
+                },
+                Title = codeActionTitle
             };
 
         /// <summary>

@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.TextDocumentDefinitionName)]
-    internal class GoToDefinitionHandlerShim : AbstractLiveShareHandlerShim<TextDocumentPositionParams, Location[]>
+    internal class GoToDefinitionHandlerShim : AbstractLiveShareHandlerShim<TextDocumentPositionParams, object>
     {
         [ImportingConstructor]
         public GoToDefinitionHandlerShim([ImportMany] IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers)

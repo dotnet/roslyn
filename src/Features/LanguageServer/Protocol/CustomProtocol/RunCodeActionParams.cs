@@ -6,20 +6,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
     /// <summary>
     /// Params of a RunCodeAction command that is returned by the GetCodeActionsHandler.
-    /// This is an implementation detail of the server that is passed to the clients
-    /// and returned back without the clients parsing it, so no need to make it public.
+    /// Unfortunately, while the client does not use these params, it gets parsed on the client side.
+    /// Therefore this type must match the client's type.
     /// </summary>
     internal class RunCodeActionParams
     {
         /// <summary>
-        /// The original text document.
+        /// Params that were passed to originally get a list of codeactions.
         /// </summary>
-        public TextDocumentIdentifier TextDocument { get; set; }
-
-        /// <summary>
-        /// The range of the actions.
-        /// </summary>
-        public Range Range { get; set; }
+        public CodeActionParams CodeActionParams { get; set; }
 
         /// <summary>
         /// Title of the action to execute.
