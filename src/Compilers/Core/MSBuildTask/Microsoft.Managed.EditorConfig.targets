@@ -9,10 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AllDirectoriesAbove Include="@(Compile->GetPathsOfAllDirectoriesAbove())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    <_AllDirectoriesAbove Include="@(Compile->GetPathsOfAllDirectoriesAbove())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
     <!-- Work around a GetPathsOfAllDirectoriesAbove() bug where it can return multiple equivalent paths when the 
          compilation includes linked files with relative paths - https://github.com/microsoft/msbuild/issues/4392 -->
-    <PotentialEditorConfigFiles Include="@(AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.editorconfig'))" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    <PotentialEditorConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.editorconfig'))" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
     <EditorConfigFiles Include="@(PotentialEditorConfigFiles->Exists())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
   </ItemGroup>
 
