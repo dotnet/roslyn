@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
@@ -33,7 +34,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void UpdateActiveStatementLeafNode()
         {
             VisualStudio.Editor.SetText(@"
@@ -64,7 +66,8 @@ End Module
             VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"bar\"");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void AddTryCatchAroundActiveStatement()
         {
             VisualStudio.Editor.SetText(@"
@@ -92,7 +95,8 @@ End Try");
             VisualStudio.Editor.Verify.CurrentLineText("End Try");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void EditLambdaExpression()
         {
             VisualStudio.Editor.SetText(@"
@@ -123,7 +127,8 @@ End Module");
             VisualStudio.ErrorList.Verify.NoBuildErrors();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void EnCWhileDebuggingFromImmediateWindow()
         {
             VisualStudio.Editor.SetText(@"
@@ -187,7 +192,8 @@ End Module
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void MultiProjectDebuggingWhereNotAllModulesAreLoaded()
         {
             SetupMultiProjectSolution();
@@ -198,7 +204,8 @@ End Module
             VisualStudio.ErrorList.Verify.NoErrors();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         [WorkItem(33829, "https://github.com/dotnet/roslyn/issues/33829")]
         public void DocumentStateTrackingReadonlyInRunMode()
         {
@@ -249,7 +256,8 @@ End Module
             VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -272,7 +280,8 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("goo", "Single", "10");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void LocalsWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -305,7 +314,8 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("lLng", "Long", "444");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/36763")]
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void WatchWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
