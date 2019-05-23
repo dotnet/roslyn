@@ -143,17 +143,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             {
                 // Check if the using statement itself contains variables that will collide
                 // with other variables in the block.
-                if (UsingVariablesCausesCollision(
-                        semanticModel, symbolNameToExistingSymbol,
-                        current, cancellationToken))
+                var usingOperation = (IUsingOperation)semanticModel.GetOperation(current, cancellationToken);
+                if (DeclaredLocalCausesCollision(symbolNameToExistingSymbol, usingOperation.Locals))
                 {
                     return true;
                 }
             }
 
-            var usingOperation = (IUsingOperation)semanticModel.GetOperation(innermostUsing, cancellationToken);
-            var innerUsingBlock = usingOperation.Body as IBlockOperation;
-            if (innerUsingBlock != null)
+            var innerUsingOperation = (IUsingOperation)semanticModel.GetOperation(innermostUsing, cancellationToken);
+            if (innerUsingOperation.Body is IBlockOperation innerUsingBlock)
             {
                 return DeclaredLocalCausesCollision(symbolNameToExistingSymbol, innerUsingBlock.Locals);
             }
@@ -161,33 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             return false;
         }
 
-        private bool UsingVariablesCausesCollision(
-            SemanticModel semanticModel,
-            ILookup<string, ISymbol> symbolNameToExistingSymbol,
-            UsingStatementSyntax usingStatement,
-            CancellationToken cancellationToken)
-        {
-            var usingOperation = (IUsingOperation)semanticModel.GetOperation(usingStatement, cancellationToken);
-            return DeclaredLocalCausesCollision(symbolNameToExistingSymbol, usingOperation.Locals);
-        }
-
-        private static bool DeclaredLocalCausesCollision(
-            ILookup<string, ISymbol> symbolNameToExistingSymbol,
-            ImmutableArray<ILocalSymbol> locals)
-        {
-            foreach (var local in locals)
-            {
-                foreach (var otherLocal in symbolNameToExistingSymbol[local.Name])
-                {
-                    if (!local.Equals(otherLocal))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
+        private static bool DeclaredLocalCausesCollision(ILookup<string, ISymbol> symbolNameToExistingSymbol, ImmutableArray<ILocalSymbol> locals)
+            => locals.Any(local => symbolNameToExistingSymbol[local.Name].Any(otherLocal => !local.Equals(otherLocal)));
 
         private static bool PreservesSemantics(
             BlockSyntax parentBlock,
@@ -222,7 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 }
             }
 
-            var innerStatements = GetStatementsOfUsingStatement(innermostUsing);
+            var innerStatements = innermostUsing.Statement is BlockSyntax block
+                ? block.Statements
+                : new SyntaxList<StatementSyntax>(innermostUsing.Statement);
 
             foreach (var statement in innerStatements)
             {
@@ -234,11 +209,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
 
             return true;
         }
-
-        private static SyntaxList<StatementSyntax> GetStatementsOfUsingStatement(UsingStatementSyntax usingStatement)
-            => usingStatement.Statement is BlockSyntax block
-                ? block.Statements
-                : new SyntaxList<StatementSyntax>(usingStatement.Statement);
 
         private static bool IsGotoOrLabeledStatement(StatementSyntax priorStatement)
             => priorStatement.Kind() == SyntaxKind.GotoStatement ||
