@@ -66,16 +66,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;
             rules = rules.WithMatchPriority(matchPriority);
 
-            if (context.IsSoftSelectionContext)
+            if (context.IsRightSideOfNumericType)
             {
                 rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection);
             }
-            else
+            else if (preselect)
             {
-                if (preselect)
-                {
-                    rules = rules.WithSelectionBehavior(PreselectedItemSelectionBehavior);
-                }
+                rules = rules.WithSelectionBehavior(PreselectedItemSelectionBehavior);
             }
 
             return SymbolCompletionItem.CreateWithNameAndKind(

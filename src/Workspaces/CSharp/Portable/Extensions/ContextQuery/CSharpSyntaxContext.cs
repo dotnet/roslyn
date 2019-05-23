@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isDestructorTypeContext,
             bool isPossibleTupleContext,
             bool isPatternContext,
-            bool isSoftSelectionContext,
+            bool isRightSideOfNumericType,
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
                    isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
-                   isPatternContext, isSoftSelectionContext, cancellationToken)
+                   isPatternContext, isRightSideOfNumericType, cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // - or it maybe a start of a range expression like numericExpression..anotherNumericExpression (starting C# 8.0) 
             // Therefore, in the scenario, we want the completion to be __soft selected__ until user types the next character after the dot.
             // If the second dot was typed, we just insert two dots.
-            var isSoftSelectionContext = IsRightSideOfNumericType(leftToken, semanticModel, cancellationToken);
+            var isRightSideOfNumericType = IsRightSideOfNumericType(leftToken, semanticModel, cancellationToken);
 
             return new CSharpSyntaxContext(
                 workspace: workspace,
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isDestructorTypeContext: isDestructorTypeContext,
                 isPossibleTupleContext: syntaxTree.IsPossibleTupleContext(leftToken, position),
                 isPatternContext: syntaxTree.IsPatternContext(leftToken, position),
-                isSoftSelectionContext: isSoftSelectionContext,
+                isRightSideOfNumericType: isRightSideOfNumericType,
                 cancellationToken: cancellationToken);
         }
 

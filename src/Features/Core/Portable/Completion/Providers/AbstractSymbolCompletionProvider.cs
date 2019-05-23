@@ -267,9 +267,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 contextPosition: context.Position,
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
-                rules: GetCompletionItemRules(symbols).WithMatchPriority(
-                    preselect ? MatchPriority.Preselect : MatchPriority.Default)
-                .WithSelectionBehavior(context.IsSoftSelectionContext ? CompletionItemSelectionBehavior.SoftSelection : CompletionItemSelectionBehavior.Default));
+                rules: GetCompletionItemRules(symbols)
+                        .WithMatchPriority(preselect ? MatchPriority.Preselect : MatchPriority.Default)
+                        .WithSelectionBehavior(context.IsRightSideOfNumericType ? CompletionItemSelectionBehavior.SoftSelection : CompletionItemSelectionBehavior.Default));
         }
 
         protected virtual string GetFilterText(ISymbol symbol, string displayText, SyntaxContext context)
