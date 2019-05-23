@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
@@ -31,31 +30,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             IsCallerFilePath = 0x1 << 5,
             IsCallerLineNumber = 0x1 << 6,
             IsCallerMemberName = 0x1 << 7,
-            NotNullWhenTrue = 0x1 << 8,
-            NotNullWhenFalse = 0x1 << 9,
-            AssertsTrue = 0x1 << 10,
-            AssertsFalse = 0x1 << 11,
         }
 
         private struct PackedFlags
         {
             // Layout:
-            // |.....|n|rr|cccccccccccc|vvvvvvvvvvvv|
+            // |...|fffffffff|n|rr|cccccccc|vvvvvvvv|
             // 
-            // v = decoded well known attribute values. 12 bits.
-            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 12 bits.
+            // v = decoded well known attribute values. 8 bits.
+            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
             // r = RefKind. 2 bits.
             // n = hasNameInMetadata. 1 bit.
+            // f = FlowAnalysisAnnotations. 9 bits (8 value bits + 1 completion bit).
 
             private const int WellKnownAttributeDataOffset = 0;
-            private const int WellKnownAttributeCompletionFlagOffset = 12;
-            private const int RefKindOffset = 24;
+            private const int WellKnownAttributeCompletionFlagOffset = 8;
+            private const int RefKindOffset = 16;
+            private const int FlowAnalysisAnnotationsOffset = 20;
 
             private const int RefKindMask = 0x3;
-            private const int WellKnownAttributeDataMask = 0xFFF;
+            private const int WellKnownAttributeDataMask = 0xFF;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
+            private const int FlowAnalysisAnnotationsMask = 0xFF;
 
-            private const int HasNameInMetadataBit = 0x1 << 26;
+            private const int HasNameInMetadataBit = 0x1 << 18;
+            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 19;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -79,15 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // 1) Verify that the range of well known attributes doesn't fall outside the bounds of
                 // the attribute completion and data mask.
-                var attributeFlags = EnumUtilities.GetValues<WellKnownAttributeFlags>();
-                var maxAttributeFlag = (int)System.Linq.Enumerable.Aggregate(attributeFlags, (f1, f2) => f1 | f2);
-                Debug.Assert((maxAttributeFlag & WellKnownAttributeDataMask) == maxAttributeFlag);
+                Debug.Assert(EnumUtilities.ContainsAllValues<WellKnownAttributeFlags>(WellKnownAttributeDataMask));
 
                 // 2) Verify that the range of ref kinds doesn't fall outside the bounds of
                 // the ref kind mask.
-                var refKinds = EnumUtilities.GetValues<RefKind>();
-                var maxRefKind = (int)System.Linq.Enumerable.Aggregate(refKinds, (r1, r2) => r1 | r2);
-                Debug.Assert((maxRefKind & RefKindMask) == maxRefKind);
+                Debug.Assert(EnumUtilities.ContainsAllValues<RefKind>(RefKindMask));
+
+                Debug.Assert(EnumUtilities.ContainsAllValues<FlowAnalysisAnnotations>(FlowAnalysisAnnotationsMask));
             }
 #endif
 
@@ -119,6 +116,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 int theBits = _bits; // Read this.bits once to ensure the consistency of the value and completion flags.
                 value = (theBits & ((int)flag << WellKnownAttributeDataOffset)) != 0;
                 return (theBits & ((int)flag << WellKnownAttributeCompletionFlagOffset)) != 0;
+            }
+
+            public bool SetFlowAnalysisAnnotations(FlowAnalysisAnnotations value)
+            {
+                int bitsToSet = FlowAnalysisAnnotationsCompletionBit | (((int)value & FlowAnalysisAnnotationsMask) << FlowAnalysisAnnotationsOffset);
+                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public bool TryGetFlowAnalysisAnnotations(out FlowAnalysisAnnotations value)
+            {
+                int theBits = _bits; // Read this.bits once to ensure the consistency of the value and completion flags.
+                value = (FlowAnalysisAnnotations)((theBits >> FlowAnalysisAnnotationsOffset) & FlowAnalysisAnnotationsMask);
+                var result = (theBits & FlowAnalysisAnnotationsCompletionBit) != 0;
+                Debug.Assert(value == 0 || result);
+                return result;
             }
         }
 
@@ -644,50 +656,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                const WellKnownAttributeFlags notNullWhenTrue = WellKnownAttributeFlags.NotNullWhenTrue;
-                const WellKnownAttributeFlags notNullWhenFalse = WellKnownAttributeFlags.NotNullWhenFalse;
-                const WellKnownAttributeFlags assertsTrue = WellKnownAttributeFlags.AssertsTrue;
-                const WellKnownAttributeFlags assertsFalse = WellKnownAttributeFlags.AssertsFalse;
-
-                if (!_packedFlags.TryGetWellKnownAttribute(notNullWhenTrue, out bool hasNotNullWhenTrue) ||
-                    !_packedFlags.TryGetWellKnownAttribute(notNullWhenFalse, out bool hasNotNullWhenFalse) ||
-                    !_packedFlags.TryGetWellKnownAttribute(assertsTrue, out bool hasAssertsTrue) ||
-                    !_packedFlags.TryGetWellKnownAttribute(assertsFalse, out bool hasAssertsFalse))
+                FlowAnalysisAnnotations value;
+                if (!_packedFlags.TryGetFlowAnalysisAnnotations(out value))
                 {
-                    FlowAnalysisAnnotations? annotations = TryGetExtraAttributeAnnotations();
-
-                    if (annotations.HasValue)
-                    {
-                        // External annotations win, if any is present on the member
-                        hasNotNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
-                        hasNotNullWhenFalse = (annotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
-                        hasAssertsTrue = (annotations & FlowAnalysisAnnotations.AssertsTrue) != 0;
-                        hasAssertsFalse = (annotations & FlowAnalysisAnnotations.AssertsFalse) != 0;
-                    }
-                    else
-                    {
-                        bool hasEnsuresNotNull = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.EnsuresNotNullAttribute);
-                        hasNotNullWhenTrue = hasEnsuresNotNull || _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.NotNullWhenTrueAttribute);
-                        hasNotNullWhenFalse = hasEnsuresNotNull || _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.NotNullWhenFalseAttribute);
-                        hasAssertsTrue = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.AssertsTrueAttribute);
-                        hasAssertsFalse = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.AssertsFalseAttribute);
-                    }
-
-                    _packedFlags.SetWellKnownAttribute(notNullWhenTrue, hasNotNullWhenTrue);
-                    _packedFlags.SetWellKnownAttribute(notNullWhenFalse, hasNotNullWhenFalse);
-                    _packedFlags.SetWellKnownAttribute(assertsTrue, hasAssertsTrue);
-                    _packedFlags.SetWellKnownAttribute(assertsFalse, hasAssertsFalse);
-
-                    if (annotations.HasValue)
-                    {
-                        return annotations.Value;
-                    }
+                    // External annotations win, if any is present on the member
+                    value = TryGetExtraAttributeAnnotations() ?? DecodeFlowAnalysisAttributes(_moduleSymbol.Module, _handle);
+                    _packedFlags.SetFlowAnalysisAnnotations(value);
                 }
-
-                return FlowAnalysisAnnotationsFacts.Create(
-                    notNullWhenTrue: hasNotNullWhenTrue, notNullWhenFalse: hasNotNullWhenFalse,
-                    assertsTrue: hasAssertsTrue, assertsFalse: hasAssertsFalse);
+                return value;
             }
+        }
+
+        private static FlowAnalysisAnnotations DecodeFlowAnalysisAttributes(PEModule module, ParameterHandle handle)
+        {
+            FlowAnalysisAnnotations annotations = FlowAnalysisAnnotations.None;
+            if (module.HasAttribute(handle, AttributeDescription.AllowNullAttribute)) annotations |= FlowAnalysisAnnotations.AllowNull;
+            if (module.HasAttribute(handle, AttributeDescription.DisallowNullAttribute)) annotations |= FlowAnalysisAnnotations.DisallowNull;
+            if (module.HasAttribute(handle, AttributeDescription.MaybeNullAttribute))
+            {
+                annotations |= FlowAnalysisAnnotations.MaybeNull;
+            }
+            else if (module.HasMaybeNullWhenOrNotNullWhenAttribute(handle, AttributeDescription.MaybeNullWhenAttribute, out bool when))
+            {
+                annotations |= (when ? FlowAnalysisAnnotations.MaybeNullWhenTrue : FlowAnalysisAnnotations.MaybeNullWhenFalse);
+            }
+            if (module.HasAttribute(handle, AttributeDescription.NotNullAttribute))
+            {
+                annotations |= FlowAnalysisAnnotations.NotNull;
+            }
+            else if (module.HasMaybeNullWhenOrNotNullWhenAttribute(handle, AttributeDescription.NotNullWhenAttribute, out bool when))
+            {
+                annotations |= (when ? FlowAnalysisAnnotations.NotNullWhenTrue : FlowAnalysisAnnotations.NotNullWhenFalse);
+            }
+            if (module.HasAttribute(handle, AttributeDescription.AssertsTrueAttribute)) annotations |= FlowAnalysisAnnotations.AssertsTrue;
+            if (module.HasAttribute(handle, AttributeDescription.AssertsFalseAttribute)) annotations |= FlowAnalysisAnnotations.AssertsFalse;
+            return annotations;
         }
 
         public override TypeWithAnnotations TypeWithAnnotations
