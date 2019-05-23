@@ -328,6 +328,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable background download UI to avoid toasts
                 Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0").WaitForExit();
 
+                // Disable IntelliTrace
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Debugger\" EnableIntelliTrace dword 0").WaitForExit();
+
                 // Enable or disable async completion as necessary for integration testing
                 var usingAsyncCompletion = LegacyCompletionCondition.Instance.ShouldSkip;
                 var useAsyncCompletionSetting = usingAsyncCompletion ? 1 : -1;
