@@ -35,7 +35,7 @@
 * There is now a codefix for making readonly struct fields writable. Place your cursor in the struct name, type (Ctrl+.) to open the quick actions and refactorings menu, and select ‘Make readonly fields writable.’
 * The codefix to add a private field from a constructor and vice versa is easier to discover and will show when any portion of the field name is selected. This refactoring now also offers all possible constructors.
 
-### <a id="prod-16.0-p2"></a> 16.0 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-v16.0))
+### <a id="prod-16-0"></a> 16.0 ([release notes](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes-v16.0))
 
 * .NET refactorings and codefixes:
   * Sync Namespace and Folder Name
