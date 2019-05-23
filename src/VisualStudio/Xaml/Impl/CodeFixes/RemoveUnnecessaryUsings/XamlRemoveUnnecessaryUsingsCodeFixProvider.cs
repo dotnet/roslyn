@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
     internal class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
     {
+        [ImportingConstructor]
+        public RemoveUnnecessaryUsingsCodeFixProvider()
+        {
+        }
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(XamlDiagnosticIds.UnnecessaryNamespacesId); }

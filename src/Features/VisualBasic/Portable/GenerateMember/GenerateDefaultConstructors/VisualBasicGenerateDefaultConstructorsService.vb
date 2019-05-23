@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateDefaultConst
     Partial Friend Class VisualBasicGenerateDefaultConstructorsService
         Inherits AbstractGenerateDefaultConstructorsService(Of VisualBasicGenerateDefaultConstructorsService)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function TryInitializeState(
                 semanticDocument As SemanticDocument, textSpan As TextSpan, cancellationToken As CancellationToken,
                 ByRef classType As INamedTypeSymbol) As Boolean

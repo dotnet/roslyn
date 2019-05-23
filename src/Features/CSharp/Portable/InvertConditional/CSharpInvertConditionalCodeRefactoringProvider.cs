@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertConditional
     internal class CSharpInvertConditionalCodeRefactoringProvider
         : AbstractInvertConditionalCodeRefactoringProvider<ConditionalExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpInvertConditionalCodeRefactoringProvider()
+        {
+        }
+
         // Show the feature in the condition of the conditional up through the ? token.
         // Don't offer if the conditional is missing the colon and the conditional is
         // too incomplete.

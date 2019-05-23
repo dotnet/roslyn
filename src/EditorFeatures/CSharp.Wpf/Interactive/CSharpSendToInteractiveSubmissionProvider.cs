@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
     internal sealed class CSharpSendToInteractiveSubmissionProvider
         : AbstractSendToInteractiveSubmissionProvider
     {
+        [ImportingConstructor]
+        public CSharpSendToInteractiveSubmissionProvider()
+        {
+        }
+
         protected override bool CanParseSubmission(string code)
         {
             ParseOptions options = CSharpParseOptions.Default.WithKind(SourceCodeKind.Script);

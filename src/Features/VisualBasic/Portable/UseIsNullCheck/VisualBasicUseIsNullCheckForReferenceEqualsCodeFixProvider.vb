@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
     Friend Class VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider
         Inherits AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetIsNullTitle() As String
             Return VBFeaturesResources.Use_Is_Nothing_check
         End Function

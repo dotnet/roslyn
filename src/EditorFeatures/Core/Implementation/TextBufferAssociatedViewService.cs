@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor
         private static readonly ConditionalWeakTable<ITextBuffer, HashSet<ITextView>> s_map =
             new ConditionalWeakTable<ITextBuffer, HashSet<ITextView>>();
 
+        [ImportingConstructor]
+        public TextBufferAssociatedViewService()
+        {
+        }
+
         public event EventHandler<SubjectBuffersConnectedEventArgs> SubjectBuffersConnected;
 
         void ITextViewConnectionListener.SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)

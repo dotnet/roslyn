@@ -67,6 +67,11 @@
         <target state="translated">Использовать "is null" вместо проверки ссылок на равенство.</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Prefer_switch_expression">
+        <source>Prefer switch expression</source>
+        <target state="new">Prefer switch expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Preferred_using_directive_placement">
         <source>Preferred 'using' directive placement</source>
         <target state="translated">Предпочтительное размещение директивы using</target>

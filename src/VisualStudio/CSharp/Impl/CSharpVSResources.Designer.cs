@@ -1078,6 +1078,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer switch expression.
+        /// </summary>
+        internal static string Prefer_switch_expression {
+            get {
+                return ResourceManager.GetString("Prefer_switch_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer &apos;this.&apos;.
         /// </summary>
         internal static string Prefer_this {

@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         Name = PredefinedCodeRefactoringProviderNames.IntroduceVariable), Shared]
     internal class IntroduceVariableCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public IntroduceVariableCodeRefactoringProvider()
+        {
+        }
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;

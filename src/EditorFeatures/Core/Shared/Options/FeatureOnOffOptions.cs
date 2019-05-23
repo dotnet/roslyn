@@ -105,6 +105,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     [ExportOptionProvider, Shared]
     internal class FeatureOnOffOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public FeatureOnOffOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             FeatureOnOffOptions.EndConstruct,
             FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers,

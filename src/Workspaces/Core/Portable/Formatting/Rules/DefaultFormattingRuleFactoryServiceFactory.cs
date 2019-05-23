@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     [ExportWorkspaceServiceFactory(typeof(IHostDependentFormattingRuleFactoryService), ServiceLayer.Default), Shared]
     internal sealed class DefaultFormattingRuleFactoryServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
         public DefaultFormattingRuleFactoryServiceFactory()
         {
         }

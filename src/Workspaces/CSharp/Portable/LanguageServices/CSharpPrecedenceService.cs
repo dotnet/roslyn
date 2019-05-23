@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static readonly CSharpPrecedenceService Instance = new CSharpPrecedenceService();
 
+        [ImportingConstructor]
+        public CSharpPrecedenceService()
+        {
+        }
+
         public override OperatorPrecedence GetOperatorPrecedence(ExpressionSyntax expression)
             => expression.GetOperatorPrecedence();
 

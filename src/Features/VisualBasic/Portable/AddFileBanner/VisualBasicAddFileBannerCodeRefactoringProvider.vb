@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddFileBanner
     Friend Class VisualBasicAddFileBannerCodeRefactoringProvider
         Inherits AbstractAddFileBannerCodeRefactoringProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsCommentStartCharacter(ch As Char) As Boolean
             Return ch = "'"c
         End Function

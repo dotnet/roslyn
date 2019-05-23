@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
     [ExportLanguageService(typeof(IDeclaredSymbolInfoFactoryService), LanguageNames.CSharp), Shared]
     internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService
     {
+        [ImportingConstructor]
+        public CSharpDeclaredSymbolInfoFactoryService()
+        {
+        }
+
         private ImmutableArray<string> GetInheritanceNames(StringTable stringTable, BaseListSyntax baseList)
         {
             if (baseList == null)
