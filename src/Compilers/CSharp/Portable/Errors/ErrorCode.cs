@@ -1717,6 +1717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_NotDeclaredInBase = 8710,
 
         ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
+        ERR_NeedSpaceBetweenExclamationAndEquals = 8712,
 
         #endregion diagnostics introduced for C# 8.0
 

@@ -6991,6 +6991,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The attribute [EnumeratorCancellation] cannot be used on multiple parameters.
+        /// </summary>
+        internal static string ERR_MultipleEnumeratorCancellationAttributes {
+            get {
+                return ResourceManager.GetString("ERR_MultipleEnumeratorCancellationAttributes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Asynchronous foreach statement cannot operate on variables of type &apos;{0}&apos; because it implements multiple instantiations of &apos;{1}&apos;; try casting to a specific interface instantiation.
         /// </summary>
         internal static string ERR_MultipleIAsyncEnumOfT {
@@ -7158,6 +7167,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NamespaceUnexpected {
             get {
                 return ResourceManager.GetString("ERR_NamespaceUnexpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There needs to be a space between the null-checking exclamation and the optional parameter&apos;s equals sign..
+        /// </summary>
+        internal static string ERR_NeedSpaceBetweenExclamationAndEquals {
+            get {
+                return ResourceManager.GetString("ERR_NeedSpaceBetweenExclamationAndEquals", resourceCulture);
             }
         }
         

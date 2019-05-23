@@ -262,6 +262,11 @@
         <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NeedSpaceBetweenExclamationAndEquals">
+        <source>There needs to be a space between the null-checking exclamation and the optional parameter's equals sign.</source>
+        <target state="new">There needs to be a space between the null-checking exclamation and the optional parameter's equals sign.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">new()' 제약 조건은 'unmanaged' 제약 조건과 함께 사용할 수 없습니다.</target>

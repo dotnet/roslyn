@@ -3838,11 +3838,29 @@ tryAgain:
                 type = null;
                 name = this.EatToken(SyntaxKind.ArgListKeyword);
             }
-            var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationToken ? this.EatToken(SyntaxKind.ExclamationToken) : null;
+            SyntaxToken exclamation = null;
+            SyntaxToken equals = null;
+            if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+            {
+                exclamation = this.EatToken(SyntaxKind.ExclamationToken);
+            }
+            else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
+            {
+                var notEq = this.EatToken();
+                exclamation = new SyntaxToken(SyntaxKind.ExclamationToken);
+                equals = new SyntaxToken(SyntaxKind.EqualsToken);
+                notEq = AddLeadingSkippedSyntax(notEq, SyntaxFactory.MissingToken(SyntaxKind.WhitespaceTrivia));
+                exclamation = this.AddError(exclamation, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
+
+            }
+            //var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationToken ? this.EatToken(SyntaxKind.ExclamationToken) : null;
             EqualsValueClauseSyntax def = null;
             if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
             {
-                var equals = this.EatToken(SyntaxKind.EqualsToken);
+                equals = this.EatToken(SyntaxKind.EqualsToken);
+            }
+            if (!(equals is null))
+            {
                 var value = this.ParseExpressionCore();
                 def = _syntaxFactory.EqualsValueClause(equals, value: value);
                 def = CheckFeatureAvailability(def, MessageID.IDS_FeatureOptionalParameter);
