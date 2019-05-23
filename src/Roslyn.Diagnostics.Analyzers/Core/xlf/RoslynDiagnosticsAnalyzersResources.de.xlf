@@ -4,92 +4,92 @@
     <body>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
         <source>Explicitly define the importing constructor</source>
-        <target state="new">Explicitly define the importing constructor</target>
+        <target state="translated">Importierenden Konstruktor explizit definieren</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute">
         <source>Add 'ImportingConstructor' attribute</source>
-        <target state="new">Add 'ImportingConstructor' attribute</target>
+        <target state="translated">Attribut "ImportingConstructor" hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor">
         <source>Make constructor public</source>
-        <target state="new">Make constructor public</target>
+        <target state="translated">Konstruktor als öffentlich festlegen</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
         <source>Exported parts should have [ImportingConstructor]</source>
-        <target state="new">Exported parts should have [ImportingConstructor]</target>
+        <target state="translated">Exportierte Teile müssen "[ImportingConstructor]" umfassen</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
         <source>'{0}' is MEF-exported and should have a single importing constructor of the correct form</source>
-        <target state="new">'{0}' is MEF-exported and should have a single importing constructor of the correct form</target>
+        <target state="translated">"{0}" ist MEF-exportiert und muss einen einzelnen importierenden Konstruktor der richtigen Form aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
         <source>Exported parts should have [ImportingConstructor]</source>
-        <target state="new">Exported parts should have [ImportingConstructor]</target>
+        <target state="translated">Exportierte Teile müssen "[ImportingConstructor]" umfassen</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
         <source>Set ObsoleteAttribute.Error to true</source>
-        <target state="new">Set ObsoleteAttribute.Error to true</target>
+        <target state="translated">Legen Sie "ObsoleteAttribute.Error" auf TRUE fest.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
         <source>Use correct ObsoleteAttribute message</source>
-        <target state="new">Use correct ObsoleteAttribute message</target>
+        <target state="translated">Korrekte ObsoleteAttribute-Nachricht verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
         <source>Add ObsoleteAttribute</source>
-        <target state="new">Add ObsoleteAttribute</target>
+        <target state="translated">"ObsoleteAttribute" hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
         <source>Configure ObsoleteAttribute for importing constructor</source>
-        <target state="new">Configure ObsoleteAttribute for importing constructor</target>
+        <target state="translated">"ObsoleteAttribute" für importierenden Konstruktor konfigurieren</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
         <source>Set ObsoleteAttribute.Error to true</source>
-        <target state="new">Set ObsoleteAttribute.Error to true</target>
+        <target state="translated">Legen Sie "ObsoleteAttribute.Error" auf TRUE fest.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
         <source>Importing constructor should be [Obsolete]</source>
-        <target state="new">Importing constructor should be [Obsolete]</target>
+        <target state="translated">Importierender Konstruktor muss "[Obsolete]" lauten</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
         <source>Importing constructor should be [Obsolete]</source>
-        <target state="new">Importing constructor should be [Obsolete]</target>
+        <target state="translated">Importierender Konstruktor muss "[Obsolete]" lauten</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
         <source>Importing constructor should be [Obsolete]</source>
-        <target state="new">Importing constructor should be [Obsolete]</target>
+        <target state="translated">Importierender Konstruktor muss "[Obsolete]" lauten</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply PartNotDiscoverableAttribute</source>
-        <target state="new">Apply PartNotDiscoverableAttribute</target>
+        <target state="translated">"PartNotDiscoverableAttribute" anwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
         <source>Test exports should not be discoverable</source>
-        <target state="new">Test exports should not be discoverable</target>
+        <target state="translated">Testexporte dürfen nicht ermittelbar sein</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
         <source>'{0}' is exported for test purposes and should be marked PartNotDiscoverable</source>
-        <target state="new">'{0}' is exported for test purposes and should be marked PartNotDiscoverable</target>
+        <target state="translated">"{0}" wird zu Testzwecken exportiert und muss als "PartNotDiscoverable" gekennzeichnet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
         <source>Test exports should not be discoverable</source>
-        <target state="new">Test exports should not be discoverable</target>
+        <target state="translated">Testexporte dürfen nicht ermittelbar sein</target>
         <note />
       </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">

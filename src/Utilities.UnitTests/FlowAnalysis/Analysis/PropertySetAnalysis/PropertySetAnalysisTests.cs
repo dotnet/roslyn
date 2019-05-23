@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.Remoting;
 using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
@@ -72,6 +73,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             using (var cancellationSource = new CancellationTokenSource())
 #pragma warning restore CA1508 // Avoid dead conditional code
             {
+                DiagnosticDescriptor dummy = new DiagnosticDescriptor("fakeId", null, null, "fakeagory", DiagnosticSeverity.Info, true);
                 ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =
                     PropertySetAnalysis.GetOrComputeHazardousUsages(
                         operation.GetEnclosingControlFlowGraph(),
@@ -83,10 +85,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         propertySetAnalysisParameters.HazardousUsageEvaluatorCollection,
                         InterproceduralAnalysisConfiguration.Create(
                             new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
-                            ImmutableArray<DiagnosticDescriptor>.Empty,
-                            InterproceduralAnalysisKind.None,
-                            cancellationSource.Token,
-                            defaultMaxInterproceduralMethodCallChain: 1));
+                            dummy,
+                            InterproceduralAnalysisKind.ContextSensitive,
+                            cancellationSource.Token));
                 try
                 {
                     Assert.Equal(expectedResults.Length, actual.Count);
@@ -543,21 +544,7 @@ class TestClass
                         "AnEnum",
                         (ValueContentAbstractValue valueContentAbstractValue) =>
                         {
-                            switch (valueContentAbstractValue.NonLiteralState)
-                            {
-                                case ValueContainsNonLiteralState.No:
-                                    // We know all values, so we can say Flagged or Unflagged.
-                                    return valueContentAbstractValue.LiteralValues.Contains(0)
-                                        ? PropertySetAbstractValueKind.Flagged
-                                        : PropertySetAbstractValueKind.Unflagged;
-                                case ValueContainsNonLiteralState.Maybe:
-                                    // We don't know all values, so we can say Flagged, or who knows.
-                                    return valueContentAbstractValue.LiteralValues.Contains(0)
-                                        ? PropertySetAbstractValueKind.Flagged
-                                        : PropertySetAbstractValueKind.Unknown;
-                                default:
-                                    return PropertySetAbstractValueKind.Unknown;
-                            }
+                            return PropertySetAnalysis.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(0));
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
@@ -622,27 +609,9 @@ class TestClass
                     {
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
-                        PropertySetAbstractValueKind kind = PropertySetAbstractValueKind.Unknown;
-                        ValueContentAbstractValue enuAbstractValue = argumentValueContentAbstractValues[0];
-                        switch (enuAbstractValue.NonLiteralState)
-                        {
-                            case ValueContainsNonLiteralState.No:
-                                // We know all values, so we can say Flagged or Unflagged.
-                                kind = enuAbstractValue.LiteralValues.Contains(0)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unflagged;
-                                break;
-                            case ValueContainsNonLiteralState.Maybe:
-                                // We don't know all values, so we can say Flagged, or who knows.
-                                kind = enuAbstractValue.LiteralValues.Contains(0)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unknown;
-                                break;
-                            default:
-                                kind = PropertySetAbstractValueKind.Unknown;
-                                break;
-                        }
-
+                        PropertySetAbstractValueKind kind = PropertySetAnalysis.EvaluateLiteralValues(
+                            argumentValueContentAbstractValues[0],
+                            v => v.Equals(0));
                         return PropertySetAbstractValue.GetInstance(kind);
                     }),
                 new PropertyMapperCollection(
@@ -650,21 +619,7 @@ class TestClass
                         "AnEnum",
                         (ValueContentAbstractValue valueContentAbstractValue) =>
                         {
-                            switch (valueContentAbstractValue.NonLiteralState)
-                            {
-                                case ValueContainsNonLiteralState.No:
-                                    // We know all values, so we can say Flagged or Unflagged.
-                                    return valueContentAbstractValue.LiteralValues.Contains(0)
-                                        ? PropertySetAbstractValueKind.Flagged
-                                        : PropertySetAbstractValueKind.Unflagged;
-                                case ValueContainsNonLiteralState.Maybe:
-                                    // We don't know all values, so we can say Flagged, or who knows.
-                                    return valueContentAbstractValue.LiteralValues.Contains(0)
-                                        ? PropertySetAbstractValueKind.Flagged
-                                        : PropertySetAbstractValueKind.Unknown;
-                                default:
-                                    return PropertySetAbstractValueKind.Unknown;
-                            }
+                            return PropertySetAnalysis.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(0));
                         })),
                 new HazardousUsageEvaluatorCollection(
                     new HazardousUsageEvaluator(    // When TypeToTrack.Method() is invoked, need to evaluate its state.
@@ -731,39 +686,15 @@ class TestClass
                     "AString",
                     (ValueContentAbstractValue valueContentAbstractValue) =>
                     {
-                        switch (valueContentAbstractValue.NonLiteralState)
-                        {
-                            case ValueContainsNonLiteralState.No:
-                                return valueContentAbstractValue.LiteralValues.Any(
-                                    o => (o as string)?.StartsWith("T", StringComparison.Ordinal) == true)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unflagged;
-                            case ValueContainsNonLiteralState.Maybe:
-                                return valueContentAbstractValue.LiteralValues.Any(
-                                    o => (o as string)?.StartsWith("T", StringComparison.Ordinal) == true)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unknown;
-                            default:
-                                return PropertySetAbstractValueKind.Unknown;
-                        }
+                        return PropertySetAnalysis.EvaluateLiteralValues(
+                            valueContentAbstractValue,
+                            v => (v as string)?.StartsWith("T", StringComparison.Ordinal) == true);
                     }),
                 new PropertyMapper(
                     "AnEnum",
                     (ValueContentAbstractValue valueContentAbstractValue) =>
                     {
-                        switch (valueContentAbstractValue.NonLiteralState)
-                        {
-                            case ValueContainsNonLiteralState.No:
-                                return valueContentAbstractValue.LiteralValues.Contains(2)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unflagged;
-                            case ValueContainsNonLiteralState.Maybe:
-                                return valueContentAbstractValue.LiteralValues.Contains(2)
-                                    ? PropertySetAbstractValueKind.Flagged
-                                    : PropertySetAbstractValueKind.Unknown;
-                            default:
-                                return PropertySetAbstractValueKind.Unknown;
-                        }
+                        return PropertySetAnalysis.EvaluateLiteralValues(valueContentAbstractValue, v => v.Equals(2));
                     })),
             new HazardousUsageEvaluatorCollection(
                 new HazardousUsageEvaluator(
@@ -1032,6 +963,95 @@ class TestClass
         }
 
         /// <summary>
+        /// Parameters for PropertySetAnalysis to flag hazardous usage when both TestTypeToTrackWithConstructor.AString starts with 'A'.
+        /// </summary>
+        private readonly PropertySetAnalysisParameters TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA =
+            new PropertySetAnalysisParameters(
+                "TestTypeToTrackWithConstructor",
+                new ConstructorMapper(
+                    (IMethodSymbol constructorMethodSymbol,
+                        IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues,
+                        IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
+                    {
+                        // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
+
+                        PropertySetAbstractValueKind kind = PropertySetAnalysis.EvaluateLiteralValues(
+                            argumentValueContentAbstractValues[2],
+                            v => (v as string)?.StartsWith("A", StringComparison.Ordinal) == true);
+                        return PropertySetAbstractValue.GetInstance(kind);
+                    }),
+            new PropertyMapperCollection(
+                new PropertyMapper(
+                    "AString",
+                    (ValueContentAbstractValue valueContentAbstractValue) =>
+                    {
+                        return PropertySetAnalysis.EvaluateLiteralValues(
+                            valueContentAbstractValue,
+                            v => (v as string)?.StartsWith("A", StringComparison.Ordinal) == true);
+                    })),
+            new HazardousUsageEvaluatorCollection(
+                new HazardousUsageEvaluator(    // When TypeToTrackWithConstructor.Method() is invoked, need to evaluate its state.
+                    "Method",
+                    (IMethodSymbol methodSymbol, PropertySetAbstractValue abstractValue) =>
+                    {
+                        // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
+
+                        // With only one property being tracked, this is straightforward.
+                        switch (abstractValue[0])
+                        {
+                            case PropertySetAbstractValueKind.Flagged:
+                                return HazardousUsageEvaluationResult.Flagged;
+                            case PropertySetAbstractValueKind.MaybeFlagged:
+                                return HazardousUsageEvaluationResult.MaybeFlagged;
+                            default:
+                                return HazardousUsageEvaluationResult.Unflagged;
+                        }
+                    })));
+
+        [Fact]
+        public void TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA_Flagged()
+        {
+            VerifyCSharp(@"
+using System;
+using System.Collections;
+
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = new TestTypeToTrackWithConstructor(default(TestEnum), null, ""A string"");
+        t.Method();
+    }/*</bind>*/
+}",
+                TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA,
+                (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
+        }
+
+        [Fact]
+        public void TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA_Interprocedural_Flagged()
+        {
+            VerifyCSharp(@"
+using System;
+using System.Collections;
+
+class TestClass
+{
+    void TestMethod()
+    /*<bind>*/{
+        TestTypeToTrackWithConstructor t = GetTestType();
+        t.Method();
+    }/*</bind>*/
+
+    TestTypeToTrackWithConstructor GetTestType()
+    {
+        return new TestTypeToTrackWithConstructor(default(TestEnum), null, ""A string"");
+    }
+}",
+                TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA,
+                (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.Flagged));
+        }
+
+        /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrack.AString property is not null when returning a TestTypeToTrack.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfStringIsNonNullOnReturn =
@@ -1096,7 +1116,6 @@ class TestClass
         {
             VerifyCSharp(@"
 using System;
-
 class TestClass
 {
     TestTypeToTrack TestMethod()
@@ -1107,7 +1126,7 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringIsNonNullOnReturn,
-                (10, 16, null, HazardousUsageEvaluationResult.MaybeFlagged));
+                (9, 16, null, HazardousUsageEvaluationResult.MaybeFlagged));
         }
 
         [Fact]
@@ -1244,7 +1263,6 @@ class TestClass
         {
             VerifyCSharp(@"
 using System;
-
 class TestClass
 {
     void TestMethod()
@@ -1255,7 +1273,7 @@ class TestClass
     }/*</bind>*/
 }",
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull,
-                (10, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
+                (9, 9, "void TestTypeToTrack.Method()", HazardousUsageEvaluationResult.MaybeFlagged));
         }
 
         [Fact]

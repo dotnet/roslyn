@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
@@ -555,15 +556,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 IMethodSymbol invokedMethod,
                 (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
                 (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCallerOpt,
-                ImmutableArray<ArgumentInfo<PointsToAbstractValue>> argumentValues,
+                ImmutableDictionary<IParameterSymbol, ArgumentInfo<PointsToAbstractValue>> argumentValuesMap,
                 IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
                 IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
+                IDictionary<AnalysisEntity, ValueContentAbstractValue> valueContentValuesOpt,
                 bool isLambdaOrLocalFunction,
                 bool hasParameterWithDelegateType)
             {
                 pointsToValuesOpt = CurrentAnalysisData.CoreAnalysisData;
-                var initialAnalysisData = base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt, thisOrMeInstanceForCallerOpt,
-                    argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
+                var initialAnalysisData = base.GetInitialInterproceduralAnalysisData(invokedMethod,
+                    invocationInstanceOpt, thisOrMeInstanceForCallerOpt, argumentValuesMap, pointsToValuesOpt,
+                    copyValuesOpt, valueContentValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
                 AssertValidPointsToAnalysisData(initialAnalysisData);
                 return initialAnalysisData;
             }
@@ -794,8 +797,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 _ = base.VisitArrayInitializer(operation, argument);
 
-                // We should have created a new PointsTo value for the associated array creation operation.
-                return GetCachedAbstractValue(operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation));
+                // We should have created a new PointsTo value for the associated array creation operation in non-error code.
+                // Bail out otherwise.
+                var arrayCreation = operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation);
+                return arrayCreation != null ? GetCachedAbstractValue(arrayCreation) : ValueDomain.UnknownOrMayBeValue;
             }
 
             public override PointsToAbstractValue VisitArrayCreation(IArrayCreationOperation operation, object argument)

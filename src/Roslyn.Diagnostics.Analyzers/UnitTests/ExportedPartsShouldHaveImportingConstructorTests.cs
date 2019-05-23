@@ -66,6 +66,175 @@ End Class
         }
 
         [Theory]
+        [InlineData("System.Composition", true)]
+        [InlineData("System.Composition", false)]
+        [InlineData("System.ComponentModel.Composition", true)]
+        [InlineData("System.ComponentModel.Composition", false)]
+        public async Task NotInheritedAttribute_CSharp(string mefNamespace, bool reflectionInherited)
+        {
+            var source = $@"
+using {mefNamespace};
+
+[System.AttributeUsage(System.AttributeTargets.All, Inherited = {(reflectionInherited ? "true" : "false")})]
+class NotInheritedExportAttribute : System.Attribute {{ }}
+
+[NotInheritedExport]
+class C {{
+    [ImportingConstructor]
+    public C() {{ }}
+}}
+
+class D : C {{
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition", true)]
+        [InlineData("System.Composition", false)]
+        [InlineData("System.ComponentModel.Composition", true)]
+        [InlineData("System.ComponentModel.Composition", false)]
+        public async Task NotInheritedAttribute_VisualBasic(string mefNamespace, bool reflectionInherited)
+        {
+            var source = $@"
+Imports {mefNamespace}
+
+<System.AttributeUsage(System.AttributeTargets.All, Inherited:={reflectionInherited})>
+Class NotInheritedExportAttribute
+    Inherits System.Attribute
+End Class
+
+<NotInheritedExport>
+Class C
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+
+Class D
+    Inherits C
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                },
+            }.RunAsync();
+        }
+
+        [Theory(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/2490")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task InheritedExportAttribute_CSharp(string mefNamespace)
+        {
+            var source = $@"
+using {mefNamespace};
+
+[InheritedExport]
+class C {{
+    [ImportingConstructor]
+    public C() {{ }}
+}}
+
+class D : C {{
+}}
+";
+            var fixedSource = $@"
+using {mefNamespace};
+
+[InheritedExport]
+class C {{
+    [ImportingConstructor]
+    public C() {{ }}
+}}
+
+class D : C {{
+    [ImportingConstructor]
+    public D()
+    {{
+    }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(4, 2, 4, 17).WithArguments("D") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/2490")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task InheritedExportAttribute_VisualBasic(string mefNamespace)
+        {
+            var source = $@"
+Imports {mefNamespace}
+
+<InheritedExport>
+Class C
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+
+Class D
+    Inherits C
+End Class
+";
+            var fixedSource = $@"
+Imports {mefNamespace}
+
+<InheritedExport>
+Class C
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+
+Class D
+    Inherits C
+    <ImportingConstructor>
+    Public Sub New()
+    End Sub
+End Class
+";
+
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemCompositionReference, AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                    ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(4, 2, 4, 17).WithArguments("D") },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+            }.RunAsync();
+        }
+
+        [Theory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task ExportAttributeNotInherited_CSharp(string mefNamespace)
