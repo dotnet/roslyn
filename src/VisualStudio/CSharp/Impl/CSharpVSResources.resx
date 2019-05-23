@@ -600,4 +600,7 @@
     <value>General</value>
     <comment>Title of the control group on the General Formatting options page</comment>
   </data>
+  <data name="Prefer_switch_expression" xml:space="preserve">
+    <value>Prefer switch expression</value>
+  </data>
 </root>
