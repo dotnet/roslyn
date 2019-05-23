@@ -11587,15 +11587,9 @@ class B2 : IB
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
-                 // (34,37): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                 // (34,38): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                  //     event System.Action<string?>? IB.E3; // 2
-                 Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(34, 37),
-                 // (34,40): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-                 //     event System.Action<string?>? IB.E3; // 2
-                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(34, 40),
-                 // (34,38): error CS0065: 'B2.IB.E3': event property must have both add and remove accessors
-                 //     event System.Action<string?>? IB.E3; // 2
-                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E3").WithArguments("B2.IB.E3").WithLocation(34, 38),
+                 Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "E3").WithLocation(34, 38),
                  // (30,12): error CS0535: 'B2' does not implement interface member 'IB.E3.remove'
                  // class B2 : IB
                  Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IB").WithArguments("B2", "IB.E3.remove").WithLocation(30, 12),
