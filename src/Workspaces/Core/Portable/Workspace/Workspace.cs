@@ -1077,7 +1077,6 @@ namespace Microsoft.CodeAnalysis
                 // If solution did not originate from this workspace then fail
                 if (newSolution.Workspace != this)
                 {
-                    Contract.Fail("Solution did not originate from this workspace");
                     return false;
                 }
 
@@ -1086,7 +1085,6 @@ namespace Microsoft.CodeAnalysis
                 // If the workspace has already accepted an update, then fail
                 if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
                 {
-                    Contract.Fail("Workspace has already accepted an update");
                     return false;
                 }
 

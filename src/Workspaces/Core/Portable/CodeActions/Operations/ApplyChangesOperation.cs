@@ -36,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
-            var applied = TryApply(workspace, new ProgressTracker(), cancellationToken);
-            Contract.ThrowIfFalse(applied, "Failed to apply a code action.");
+            TryApply(workspace, new ProgressTracker(), cancellationToken);
         }
 
         internal override bool TryApply(

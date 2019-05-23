@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Xunit;
@@ -30,12 +31,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 FixAllScope? fixAllScope = null,
                 bool blockUntilComplete = true)
             {
+                using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+
                 var expectedItems = new[] { expectedItem };
-                CodeActions(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
-                    ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete);
+
+                bool applied;
+                do
+                {
+                    cancellationTokenSource.Token.ThrowIfCancellationRequested();
+
+                    applied = CodeActions(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
+                        ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete) ?? true;
+                } while (!applied && applyFix);
             }
 
-            public void CodeActions(
+            public bool? CodeActions(
                 IEnumerable<string> expectedItems,
                 string applyFix = null,
                 bool verifyNotShowing = false,
@@ -49,7 +59,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 if (verifyNotShowing)
                 {
                     CodeActionsNotShowing();
-                    return;
+                    return null;
                 }
 
                 var actions = _textViewWindow.GetLightBulbActions();
@@ -72,14 +82,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
                 if (!string.IsNullOrEmpty(applyFix) || fixAllScope.HasValue)
                 {
-                    _textViewWindow.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
+                    var result = _textViewWindow.ApplyLightBulbAction(applyFix, fixAllScope, blockUntilComplete);
 
                     if (blockUntilComplete)
                     {
                         // wait for action to complete
                         _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
                     }
+
+                    return result;
                 }
+
+                return null;
             }
 
             public void CodeActionsNotShowing()
