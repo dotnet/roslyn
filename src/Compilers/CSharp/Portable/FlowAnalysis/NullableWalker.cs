@@ -4908,7 +4908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if ((variable.Expression as BoundLocal)?.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                             {
-                                // when the LHS is a var declaration, we can just visit the right part to infer it's type
+                                // when the LHS is a var declaration, we can just visit the right part to infer the type
                                 valueType = operandType = VisitRvalueWithState(rightPart);
                                 _variableTypes[variable.Expression.ExpressionSymbol] = operandType.ToTypeWithAnnotations();
                             }
