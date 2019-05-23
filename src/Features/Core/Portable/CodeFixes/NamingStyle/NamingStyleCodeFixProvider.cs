@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
         Name = PredefinedCodeFixProviderNames.ApplyNamingStyle), Shared]
     internal class NamingStyleCodeFixProvider : CodeFixProvider
     {
+        [ImportingConstructor]
+        public NamingStyleCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId);
 

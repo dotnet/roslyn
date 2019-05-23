@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     {
         private const int ImplicitCacheTimeoutInMS = 10000;
 
+        [ImportingConstructor]
+        public ProjectCacheHostServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             if (workspaceServices.Workspace.Kind != WorkspaceKind.Host)

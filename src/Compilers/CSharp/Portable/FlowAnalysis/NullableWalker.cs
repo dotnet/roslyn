@@ -1668,8 +1668,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var members = ((NamedTypeSymbol)type).GetMembersUnordered();
 
-            // EmptyStructTypeCache.IsEmptyStructType() returned true. If there
-            // are fields, those must be cyclic, so treat the type as empty.
+            // EmptyStructTypeCache.IsEmptyStructType() returned true. If there are fields,
+            // at least one of those fields must be cyclic, so treat the type as empty.
             if (members.Any(m => m.Kind == SymbolKind.Field))
             {
                 return true;
@@ -2764,7 +2764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// For each argument, figure out if its corresponding parameter is annotated with NotNullWhenFalse or
-        /// EnsuresNotNull.
+        /// NotNull.
         /// </summary>
         private static ImmutableArray<FlowAnalysisAnnotations> GetAnnotations(int numArguments,
             bool expanded, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt)

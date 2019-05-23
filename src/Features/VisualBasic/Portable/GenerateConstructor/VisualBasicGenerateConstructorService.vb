@@ -15,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     Partial Friend Class VisualBasicGenerateConstructorService
         Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, ArgumentSyntax, AttributeSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GenerateNameForArgument(semanticModel As SemanticModel, argument As ArgumentSyntax, cancellationToken As CancellationToken) As String
             Return semanticModel.GenerateNameForArgument(argument, cancellationToken)
         End Function

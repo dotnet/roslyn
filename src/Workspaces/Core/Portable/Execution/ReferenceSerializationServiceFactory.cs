@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private static readonly IAnalyzerAssemblyLoader s_loader = new NullLoader();
 
+        [ImportingConstructor]
+        public ReferenceSerializationServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service(

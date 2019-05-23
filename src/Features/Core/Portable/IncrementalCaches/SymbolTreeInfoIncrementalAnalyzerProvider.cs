@@ -37,6 +37,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public SymbolTreeInfoIncrementalAnalyzerProvider()
+        {
+        }
+
         private readonly struct MetadataInfo
         {
             /// <summary>

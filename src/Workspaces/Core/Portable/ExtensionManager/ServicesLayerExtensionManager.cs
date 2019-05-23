@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.Extensions
     [ExportWorkspaceServiceFactory(typeof(IExtensionManager), ServiceLayer.Default), Shared]
     internal class ServicesLayerExtensionManager : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public ServicesLayerExtensionManager()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new ExtensionManager();

@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertTupleToStruct = "CodeActions.ConvertTupleToStruct";
             public const string CodeActionsConvertQueryToForEach = "CodeActions.ConvertQueryToForEach";
             public const string CodeActionsConvertForEachToQuery = "CodeActions.ConvertForEachToQuery";
+            public const string CodeActionsConvertSwitchStatementToExpression = "CodeActions.ConvertSwitchStatementToExpression";
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";

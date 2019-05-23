@@ -18,7 +18,6 @@ using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -62,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         public Task<bool> CanCreateDataPointAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
-            if (descriptorContext.ApplicableSpan.HasValue)
+            if (descriptorContext != null && descriptorContext.ApplicableSpan.HasValue)
             {
                 // we allow all reference points. 
                 // engine will call this for all points our roslyn code lens (reference) tagger tagged.
@@ -132,8 +131,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
                 Descriptor = descriptor;
 
-                _roslynRpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: new RoslynCallbackTarget(Invalidate));
-                _roslynRpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+                _roslynRpc = stream.CreateStreamJsonRpc(
+                    target: new RoslynCallbackTarget(Invalidate),
+                    owner._client.Logger,
+                    SpecializedCollections.SingletonEnumerable(AggregateJsonConverter.Instance));
 
                 _roslynRpc.StartListening();
             }

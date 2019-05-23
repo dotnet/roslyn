@@ -15,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Partial Friend Class GenericNameSignatureHelpProvider
         Inherits AbstractVisualBasicSignatureHelpProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Function IsTriggerCharacter(ch As Char) As Boolean
             Return ch = " "c OrElse ch = ","c
         End Function

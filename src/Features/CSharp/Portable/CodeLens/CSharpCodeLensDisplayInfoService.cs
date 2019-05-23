@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
             SymbolDisplayFormat.CSharpErrorMessageFormat.RemoveMemberOptions(
                 SymbolDisplayMemberOptions.IncludeExplicitInterface);
 
+        [ImportingConstructor]
+        public CSharpCodeLensDisplayInfoService()
+        {
+        }
+
         /// <summary>
         /// Returns the node that should be displayed
         /// </summary>

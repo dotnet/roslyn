@@ -254,19 +254,25 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options);
 
             // Remove some original members since we are pulling members into class.
-            // Note: If user chooses to make the member abstract, then the original member won't be touched,
-            // It will just pull a abstract declaration up to destination.
+            // Note: If the user chooses to make the member abstract, then the original member will be changed to an override,
+            // and it will pull an abstract declaration up to the destination.
             // But if the member is abstract itself, it will still be removed.
             foreach (var analysisResult in result.MemberAnalysisResults)
             {
-                if (!analysisResult.MakeMemberDeclarationAbstract)
+                foreach (var syntax in symbolToDeclarations[analysisResult.Member])
                 {
-                    foreach (var syntax in symbolToDeclarations[analysisResult.Member])
+                    var originalMemberEditor = await solutionEditor.GetDocumentEditorAsync(
+                        solution.GetDocumentId(syntax.SyntaxTree),
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
-                        var originalMemberEditor = await solutionEditor.GetDocumentEditorAsync(
-                            solution.GetDocumentId(syntax.SyntaxTree),
-                            cancellationToken).ConfigureAwait(false);
                         originalMemberEditor.RemoveNode(originalMemberEditor.Generator.GetDeclaration(syntax));
+                    }
+                    else
+                    {
+                        var declarationSyntax = originalMemberEditor.Generator.GetDeclaration(syntax);
+                        originalMemberEditor.ReplaceNode(declarationSyntax, (node, generator) => generator.WithModifiers(node, DeclarationModifiers.Override));
                     }
                 }
             }

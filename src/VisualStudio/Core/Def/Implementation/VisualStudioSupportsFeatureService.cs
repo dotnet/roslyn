@@ -19,6 +19,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
         [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), ServiceLayer.Host), Shared]
         private class VisualStudioTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
         {
+            [ImportingConstructor]
+            public VisualStudioTextBufferSupportsFeatureService()
+            {
+            }
+
             public bool SupportsCodeFixes(ITextBuffer textBuffer)
             {
                 return SupportsCodeFixesWorker(GetContainedDocumentId(textBuffer));
@@ -61,6 +66,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
         [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), ServiceLayer.Host), Shared]
         private class VisualStudioDocumentSupportsFeatureService : IDocumentSupportsFeatureService
         {
+            [ImportingConstructor]
+            public VisualStudioDocumentSupportsFeatureService()
+            {
+            }
+
             public bool SupportsCodeFixes(Document document)
             {
                 return SupportsCodeFixesWorker(document.Id);
