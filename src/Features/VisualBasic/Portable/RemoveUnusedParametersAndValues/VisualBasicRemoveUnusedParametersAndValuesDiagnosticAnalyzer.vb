@@ -14,7 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
         Public Sub New()
             MyBase.New(unusedValueExpressionStatementOption:=VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
-                       unusedValueAssignmentOption:=VisualBasicCodeStyleOptions.UnusedValueAssignment)
+                       unusedValueAssignmentOption:=VisualBasicCodeStyleOptions.UnusedValueAssignment,
+                       LanguageNames.VisualBasic)
         End Sub
 
         Protected Overrides Function SupportsDiscard(tree As SyntaxTree) As Boolean

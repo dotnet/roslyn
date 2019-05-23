@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                             continue;
                         }
 
-                        if (!IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOption(diagnosticId, out var option))
+                        if (!IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOption(diagnosticId, languageName, out var option))
                         {
                             option = null;
                         }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                 string editorConfigString;
                 if (editorConfigLocation != null)
                 {
-                    var optionKey = new OptionKey(option, option.IsPerLanguage ? LanguageNames.CSharp : null);
+                    var optionKey = new OptionKey(option, option.IsPerLanguage ? languageName : null);
                     var value = optionSet.GetOption(optionKey);
                     editorConfigString = editorConfigLocation.GetEditorConfigString(value, optionSet);
                 }

@@ -85,8 +85,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer(
             Option<CodeStyleOption<UnusedValuePreference>> unusedValueExpressionStatementOption,
-            Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption)
-            : base(GetSupportedDescriptorsWithOptions(unusedValueExpressionStatementOption, unusedValueAssignmentOption))
+            Option<CodeStyleOption<UnusedValuePreference>> unusedValueAssignmentOption,
+            string language)
+            : base(GetSupportedDescriptorsWithOptions(unusedValueExpressionStatementOption, unusedValueAssignmentOption), language)
         {
             UnusedValueExpressionStatementOption = unusedValueExpressionStatementOption;
             UnusedValueAssignmentOption = unusedValueAssignmentOption;

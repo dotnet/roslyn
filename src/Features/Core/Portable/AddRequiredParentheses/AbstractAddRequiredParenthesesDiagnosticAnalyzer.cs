@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
         protected AbstractAddRequiredParenthesesDiagnosticAnalyzer(IPrecedenceService precedenceService)
             : base(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId,
-           new LocalizableResourceString(nameof(FeaturesResources.Add_parentheses_for_clarity), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-           new LocalizableResourceString(nameof(FeaturesResources.Parentheses_should_be_added_for_clarity), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Add_parentheses_for_clarity), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Parentheses_should_be_added_for_clarity), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
             _precedenceService = precedenceService;
         }

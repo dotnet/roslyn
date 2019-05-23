@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
     {
         public CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer()
             : base(unusedValueExpressionStatementOption: CSharpCodeStyleOptions.UnusedValueExpressionStatement,
-                   unusedValueAssignmentOption: CSharpCodeStyleOptions.UnusedValueAssignment)
+                   unusedValueAssignmentOption: CSharpCodeStyleOptions.UnusedValueAssignment,
+                   LanguageNames.CSharp)
         {
         }
 

@@ -46,6 +46,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         /// <summary>
+        /// Constructor for a code style analyzer with a multiple diagnostic descriptors with language specific options that can be used to configure the diagnostic severity of each descriptor Id.
+        /// Use this constructor when you define an analyzer with same diagnostic ID in more than one language, such that language specific analyzers use different language specific option.
+        /// </summary>
+        protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, IOption> supportedDiagnosticsWithOptions, string language)
+            : base(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
+        {
+            foreach (var kvp in supportedDiagnosticsWithOptions)
+            {
+                AddDiagnosticIdToOptionMapping(kvp.Key.Id, kvp.Value, language);
+            }
+        }
+
+        /// <summary>
         /// Constructor for a code style analyzer with a multiple diagnostic descriptors such that all the descriptors have no unique code style option to configure the descriptor Id.
         /// </summary>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnosticsWithoutOptions)
@@ -53,11 +66,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
         }
 
-        private static void AddDiagnosticIdToOptionMapping(string diagnosticId, IOption option)
+        private static void AddDiagnosticIdToOptionMapping(string diagnosticId, IOption option, string languageOpt = null)
         {
             if (option != null)
             {
-                IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, option);
+                IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, option, languageOpt);
             }
         }
 

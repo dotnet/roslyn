@@ -15,17 +15,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal static class IDEDiagnosticIdToOptionMappingHelper
     {
         private static readonly ConcurrentDictionary<string, IOption> s_diagnosticIdToOptionMap = new ConcurrentDictionary<string, IOption>();
+        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, IOption>> s_diagnosticIdToLanguageSpecificOptionsMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, IOption>>();
 
-        public static bool TryGetMappedOption(string diagnosticId, out IOption option)
-            => s_diagnosticIdToOptionMap.TryGetValue(diagnosticId, out option);
+        public static bool TryGetMappedOption(string diagnosticId, string language, out IOption option)
+            => s_diagnosticIdToOptionMap.TryGetValue(diagnosticId, out option) ||
+               (s_diagnosticIdToLanguageSpecificOptionsMap.TryGetValue(language, out var map) &&
+                map.TryGetValue(diagnosticId, out option));
 
-        public static void AddOptionMapping(string diagnosticId, IOption option)
+        public static void AddOptionMapping(string diagnosticId, IOption option, string languageOpt)
         {
             diagnosticId = diagnosticId ?? throw new ArgumentNullException(nameof(diagnosticId));
             option = option ?? throw new ArgumentNullException(nameof(option));
 
-            Debug.Assert(!s_diagnosticIdToOptionMap.TryGetValue(diagnosticId, out var existingOption) || option == existingOption);
-            s_diagnosticIdToOptionMap.TryAdd(diagnosticId, option);
+            var map = languageOpt != null
+                ? s_diagnosticIdToLanguageSpecificOptionsMap.GetOrAdd(languageOpt, _ => new ConcurrentDictionary<string, IOption>())
+                : s_diagnosticIdToOptionMap;
+
+            Debug.Assert(!map.TryGetValue(diagnosticId, out var existingOption) || option == existingOption);
+            map.TryAdd(diagnosticId, option);
         }
     }
 }
