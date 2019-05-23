@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using System.Windows.Documents;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (_workspace.Kind == WorkspaceKind.Interactive)
             {
                 Debug.Assert(buffer.GetRelatedDocuments().Count() == 1);
-                Debug.Assert(buffer.IsReadOnly(0) == buffer.IsReadOnly(Span.FromBounds(0, buffer.CurrentSnapshot.Length))); // All or nothing.
+                Debug.Assert(buffer.IsReadOnly(0) == buffer.IsReadOnly(VisualStudio.Text.Span.FromBounds(0, buffer.CurrentSnapshot.Length))); // All or nothing.
                 if (buffer.IsReadOnly(0))
                 {
                     return false;
@@ -626,7 +627,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             EndRenameSession();
         }
 
-        public void Commit(bool previewChanges = false, bool changeFileName = false)
+        public void Commit(bool previewChanges = false)
         {
             AssertIsForeground();
             VerifyNotDismissed();
@@ -637,14 +638,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return;
             }
 
-            changeFileName = changeFileName || OptionSet.GetOption(RenameOptions.RenameFile);
             previewChanges = previewChanges || OptionSet.GetOption(RenameOptions.PreviewChanges);
 
             var result = _waitIndicator.Wait(
                 title: EditorFeaturesResources.Rename,
                 message: EditorFeaturesResources.Computing_Rename_information,
                 allowCancel: true,
-                action: waitContext => CommitCore(waitContext, previewChanges, changeFileName));
+                action: waitContext => CommitCore(waitContext, previewChanges));
 
             if (result == WaitIndicatorResult.Canceled)
             {
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _conflictResolutionTaskCancellationSource.Cancel();
         }
 
-        private void CommitCore(IWaitContext waitContext, bool previewChanges, bool changeFileName)
+        private void CommitCore(IWaitContext waitContext, bool previewChanges)
         {
             var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
             using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), waitContext.CancellationToken))
@@ -704,23 +704,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 Dismiss(rollbackTemporaryEdits: true);
                 CancelAllOpenDocumentTrackingTasks();
 
-                bool changeFileNameCanSucceed = changeFileName ? false : true;
-                if (changeFileName)
-                {
-                    var numberOfDocumentsToUpdate = _conflictResolutionTask.Result.DocumentIds.Count();
-
-                    if (numberOfDocumentsToUpdate > 1)
-                    {
-                        waitContext.Message = "Update failed, cannot update multiple files when renaming the file";
-                        Cancel(rollbackTemporaryEdits: true);
-                        return;
-                    }
-                }
-
-                if (changeFileNameCanSucceed)
-                {
-                    ApplyRename(newSolution, waitContext, changeFileName);
-                }
+                ApplyRename(newSolution, waitContext);
 
                 LogRenameSession(RenameLogMessage.UserActionOutcome.Committed, previewChanges);
 
@@ -728,7 +712,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void ApplyRename(Solution newSolution, IWaitContext waitContext, bool changeFileName)
+        private void ApplyRename(Solution newSolution, IWaitContext waitContext)
         {
             var changes = _baseSolution.GetChanges(newSolution);
             var changedDocumentIDs = changes.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()).ToList();
@@ -765,16 +749,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         var newText = newDocument.GetTextAsync(waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
                         finalSolution = finalSolution.WithDocumentText(id, newText);
                     }
-
-                    if (changeFileName)
-                    {
-                        finalSolution = finalSolution.WithDocumentName(id, GetNewFileName(newDocument, _renameInfo.DisplayName));
-                    }
                 }
 
                 if (_workspace.TryApplyChanges(finalSolution))
                 {
-                    if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
+                    // Since rename can apply file changes as well, if the final solution
+                    // has 
+                    var finalChanges = _workspace.CurrentSolution.GetChanges(_baseSolution);
+                    var finalChangedIds =
+                        finalChanges
+                            .GetProjectChanges()
+                            .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
+                            .ToList();
+
+                    if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
                     {
                         var notificationService = _workspace.Services.GetService<INotificationService>();
                         notificationService.SendNotification(
@@ -789,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private static string GetNewFileName(Document document, string displayName)
-            => displayName + document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb";
+            => displayName + (document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb");
 
         internal bool TryGetContainingEditableSpan(SnapshotPoint point, out SnapshotSpan editableSpan)
         {

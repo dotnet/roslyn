@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public SymbolKind SymbolKind => default;
 
+            public DocumentId InvocationDocumentId => null;
+
             public string GetFinalSymbolName(string replacementText) { return null; }
 
             public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken) { return default; }

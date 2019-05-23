@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
+
+            // Set the flag to true by default if we're showing the option. Use
+            // The property so we correctly update the session as well
+            DefaultRenameFileFlag = AllowFileRename && ShowFileRename;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

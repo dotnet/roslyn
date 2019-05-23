@@ -172,6 +172,11 @@ namespace Microsoft.CodeAnalysis.Editor
         SymbolKind SymbolKind { get; }
 
         /// <summary>
+        /// The document that the inline rename was invoked from
+        /// </summary>
+        DocumentId InvocationDocumentId { get; }
+
+        /// <summary>
         /// Gets the final name of the symbol if the user has typed the provided replacement text
         /// in the editor.  Normally, the final name will be same as the replacement text.  However,
         /// that may not always be the same.  For example, when renaming an attribute the replacement

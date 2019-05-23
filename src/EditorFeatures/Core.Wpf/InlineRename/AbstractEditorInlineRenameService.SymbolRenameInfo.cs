@@ -174,29 +174,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return false;
             }
 
-            public string DisplayName
-            {
-                get
-                {
-                    return this.RenameSymbol.Name;
-                }
-            }
-
-            public string FullDisplayName
-            {
-                get
-                {
-                    return this.RenameSymbol.ToDisplayString();
-                }
-            }
-
-            public Glyph Glyph
-            {
-                get
-                {
-                    return this.RenameSymbol.GetGlyph();
-                }
-            }
+            public string DisplayName => RenameSymbol.Name;
+            public string FullDisplayName => RenameSymbol.ToDisplayString();
+            public Glyph Glyph => RenameSymbol.GetGlyph();
+            public DocumentId InvocationDocumentId => _document.Id;
 
             public string GetFinalSymbolName(string replacementText)
             {

@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 
             public SymbolKind SymbolKind => _renameInfo.Kind;
 
+            public DocumentId InvocationDocumentId => _document.Id;
+
             public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             {
                 var references = new List<InlineRenameLocation>();
