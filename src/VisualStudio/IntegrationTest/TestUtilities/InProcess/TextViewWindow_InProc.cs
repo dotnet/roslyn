@@ -342,7 +342,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (blockUntilComplete)
             {
-                return task.Join();
+                var result = task.Join();
+                DismissLightBulbSession();
+                return result;
             }
 
             return true;
