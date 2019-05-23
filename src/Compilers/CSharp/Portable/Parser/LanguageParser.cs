@@ -3851,9 +3851,7 @@ tryAgain:
                 equals = new SyntaxToken(SyntaxKind.EqualsToken);
                 notEq = AddLeadingSkippedSyntax(notEq, SyntaxFactory.MissingToken(SyntaxKind.WhitespaceTrivia));
                 exclamation = this.AddError(exclamation, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
-
             }
-            //var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationToken ? this.EatToken(SyntaxKind.ExclamationToken) : null;
             EqualsValueClauseSyntax def = null;
             if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
             {
@@ -3865,7 +3863,6 @@ tryAgain:
                 def = _syntaxFactory.EqualsValueClause(equals, value: value);
                 def = CheckFeatureAvailability(def, MessageID.IDS_FeatureOptionalParameter);
             }
-
             return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, name, exclamation, def);
         }
 
@@ -9569,8 +9566,9 @@ tryAgain:
                 {
                     return true;
                 }
-                SyntaxKind token3 = this.PeekToken(3).Kind;
-                if (token1 == SyntaxKind.ExclamationToken && token2 == SyntaxKind.CloseParenToken && token3 == SyntaxKind.EqualsGreaterThanToken)
+                if (token1 == SyntaxKind.ExclamationToken 
+                    && token2 == SyntaxKind.CloseParenToken
+                    && this.PeekToken(3).Kind == SyntaxKind.EqualsGreaterThanToken)
                 {
                     return true;
                 }
