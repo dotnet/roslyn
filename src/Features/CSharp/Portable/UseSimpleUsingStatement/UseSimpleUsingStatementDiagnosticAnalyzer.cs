@@ -152,9 +152,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             }
 
             var usingOperation = (IUsingOperation)semanticModel.GetOperation(innermostUsing, cancellationToken);
-            var innerUsingBlock = (IBlockOperation)usingOperation.Body;
+            var innerUsingBlock = usingOperation.Body as IBlockOperation;
+            if (innerUsingBlock != null)
+            {
+                return DeclaredLocalCausesCollision(symbolNameToExistingSymbol, innerUsingBlock.Locals);
+            }
 
-            return DeclaredLocalCausesCollision(symbolNameToExistingSymbol, innerUsingBlock.Locals);
+            return false;
         }
 
         private bool UsingVariablesCausesCollision(
