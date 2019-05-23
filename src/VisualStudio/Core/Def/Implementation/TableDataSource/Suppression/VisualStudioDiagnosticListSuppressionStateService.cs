@@ -310,7 +310,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             location: location,
                             customTags: SuppressionHelpers.SynthesizedExternalSourceDiagnosticCustomTags,
                             properties: ImmutableDictionary<string, string>.Empty,
-                            workspace: _workspace,
                             projectId: project.Id);
                     }
                 }

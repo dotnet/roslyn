@@ -13,21 +13,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal partial class VisualStudioDiagnosticListTable : VisualStudioBaseDiagnosticListTable
     {
         private class BuildTableDataSource : AbstractTableDataSource<DiagnosticData>
         {
             private readonly object _key = new object();
 
-            private readonly Workspace _workspace;
             private readonly ExternalErrorDiagnosticUpdateSource _buildErrorSource;
 
-            public BuildTableDataSource(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource) :
-                base(workspace)
+            public BuildTableDataSource(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource)
+                : base(workspace)
             {
-                _workspace = workspace;
                 _buildErrorSource = errorSource;
 
                 ConnectToBuildUpdateSource(errorSource);
@@ -117,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                     var groupedItems = _source._buildErrorSource
                                                .GetBuildErrors()
-                                               .Select(d => new TableItem<DiagnosticData>(d, GenerateDeduplicationKey))
+                                               .Select(d => new TableItem<DiagnosticData>(_source.Workspace, d, GenerateDeduplicationKey))
                                                .GroupBy(d => d.DeduplicationKey)
                                                .Select(g => (IList<TableItem<DiagnosticData>>)g)
                                                .ToImmutableArray();
@@ -165,14 +161,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
                     //         also, what is cancellation mechanism?
                     var item = GetItem(index);
-
-                    var data = item?.Primary;
-                    if (data == null)
+                    if (item == null)
                     {
                         content = null;
                         return false;
                     }
 
+                    var data = item.Primary;
                     switch (columnName)
                     {
                         case StandardTableKeyNames.ErrorRank:
@@ -186,13 +181,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.ErrorCodeToolTip:
-                            content = GetHelpLinkToolTipText(data);
+                            content = GetHelpLinkToolTipText(item.Workspace, data);
                             return content != null;
                         case StandardTableKeyNames.HelpKeyword:
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.HelpLink:
-                            content = GetHelpLink(data);
+                            content = GetHelpLink(item.Workspace, data);
                             return content != null;
                         case StandardTableKeyNames.ErrorCategory:
                             content = data.Category;
@@ -240,26 +235,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override bool TryNavigateTo(int index, bool previewTab)
                 {
-                    var item = GetItem(index)?.Primary;
+                    var item = GetItem(index);
                     if (item == null)
                     {
                         return false;
                     }
 
-                    // this item is not navigatable
-                    if (item.DocumentId == null)
+                    var primary = item.Primary;
+
+                    // this item is not navigable
+                    if (primary.DocumentId == null)
                     {
                         return false;
                     }
 
-                    return TryNavigateTo(item.Workspace, GetProperDocumentId(item),
-                                         item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
+                    var documentId = GetProperDocumentId(item);
+                    var solution = item.Workspace.CurrentSolution;
+
+                    return solution.ContainsDocument(documentId) &&
+                        TryNavigateTo(item.Workspace, documentId, primary.DataLocation?.OriginalStartLine ?? 0, primary.DataLocation?.OriginalStartColumn ?? 0, previewTab);
                 }
 
-                private DocumentId GetProperDocumentId(DiagnosticData data)
+                private DocumentId GetProperDocumentId(TableItem<DiagnosticData> item)
                 {
+                    var data = item.Primary;
+
                     // check whether documentId still exist. it might have changed if project it belong to has reloaded.
-                    var solution = data.Workspace.CurrentSolution;
+                    var solution = item.Workspace.CurrentSolution;
                     if (solution.GetDocument(data.DocumentId) != null)
                     {
                         return data.DocumentId;

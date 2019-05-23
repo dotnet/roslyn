@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var provider = _source._todoListProvider;
 
                     return provider.GetTodoItems(_workspace, _documentId, CancellationToken.None)
-                                   .Select(i => new TableItem<TodoItem>(i, GenerateDeduplicationKey))
+                                   .Select(i => new TableItem<TodoItem>(_workspace, i, GenerateDeduplicationKey))
                                    .ToImmutableArray();
                 }
 
@@ -303,19 +303,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override bool TryNavigateTo(int index, bool previewTab)
                 {
-                    var item = GetItem(index)?.Primary;
+                    var item = GetItem(index);
                     if (item == null)
                     {
                         return false;
                     }
 
-                    var trackingLinePosition = GetTrackingLineColumn(item.Workspace, item.DocumentId, index);
-                    if (trackingLinePosition != LinePosition.Zero)
+                    var primary = item.Primary;
+
+                    var workspace = item.Workspace;
+                    var solution = workspace.CurrentSolution;
+                    var document = solution.GetDocument(primary.DocumentId);
+                    if (document == null)
                     {
-                        return TryNavigateTo(item.Workspace, item.DocumentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
+                        return false;
                     }
 
-                    return TryNavigateTo(item.Workspace, item.DocumentId, item.OriginalLine, item.OriginalColumn, previewTab);
+                    int line, column;
+                    LinePosition trackingLinePosition;
+
+                    if (workspace.IsDocumentOpen(document.Id) &&
+                        (trackingLinePosition = GetTrackingLineColumn(document, index)) != LinePosition.Zero)
+                    {
+                        line = trackingLinePosition.Line;
+                        column = trackingLinePosition.Character;
+                    }
+                    else
+                    {
+                        line = primary.OriginalLine;
+                        column = primary.OriginalColumn;
+                    }
+
+                    return TryNavigateTo(workspace, primary.DocumentId, line, column, previewTab);
                 }
 
                 protected override bool IsEquivalent(TodoItem item1, TodoItem item2)

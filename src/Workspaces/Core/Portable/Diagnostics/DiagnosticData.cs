@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public readonly string ENUMessageForBingSearch;
 
-        public readonly Workspace Workspace;
         public readonly ProjectId ProjectId;
         public DocumentId DocumentId => DataLocation?.DocumentId;
 
@@ -54,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticSeverity severity,
             bool isEnabledByDefault,
             int warningLevel,
-            Workspace workspace,
             ProjectId projectId,
             DiagnosticDataLocation location = null,
             IReadOnlyCollection<DiagnosticDataLocation> additionalLocations = null,
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     id, category, message, enuMessageForBingSearch,
                     severity, severity, isEnabledByDefault, warningLevel,
                     customTags ?? ImmutableArray<string>.Empty, properties ?? ImmutableDictionary<string, string>.Empty,
-                    workspace, projectId, location, additionalLocations, title, description, helpLink, isSuppressed)
+                    projectId, location, additionalLocations, title, description, helpLink, isSuppressed)
         {
         }
 
@@ -83,7 +81,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             int warningLevel,
             IReadOnlyList<string> customTags,
             ImmutableDictionary<string, string> properties,
-            Workspace workspace,
             ProjectId projectId,
             DiagnosticDataLocation location = null,
             IReadOnlyCollection<DiagnosticDataLocation> additionalLocations = null,
@@ -104,7 +101,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CustomTags = customTags;
             Properties = properties;
 
-            Workspace = workspace;
             ProjectId = projectId;
             DataLocation = location;
             AdditionalLocations = additionalLocations;
@@ -191,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var newLocation = DataLocation.WithCalculatedSpan(span);
             return new DiagnosticData(Id, Category, Message, ENUMessageForBingSearch,
                 Severity, DefaultSeverity, IsEnabledByDefault, WarningLevel,
-                CustomTags, Properties, Workspace, ProjectId,
+                CustomTags, Properties, ProjectId,
                 newLocation, AdditionalLocations, Title, Description, HelpLink, IsSuppressed);
         }
 
@@ -270,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic)
+        public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic, ProjectId projectId = null)
         {
             Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
 
@@ -285,31 +281,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
                 diagnostic.Properties,
-                workspace,
-                projectId: null,
-                title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
-                description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
-                helpLink: diagnostic.Descriptor.HelpLinkUri,
-                isSuppressed: diagnostic.IsSuppressed);
-        }
-
-        public static DiagnosticData Create(Project project, Diagnostic diagnostic)
-        {
-            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
-
-            return new DiagnosticData(
-                diagnostic.Id,
-                diagnostic.Descriptor.Category,
-                diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(project.Solution.Workspace),
-                diagnostic.Severity,
-                diagnostic.DefaultSeverity,
-                diagnostic.Descriptor.IsEnabledByDefault,
-                diagnostic.WarningLevel,
-                diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
-                diagnostic.Properties,
-                project.Solution.Workspace,
-                project.Id,
+                projectId,
                 title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 helpLink: diagnostic.Descriptor.HelpLinkUri,
@@ -364,7 +336,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
                 properties,
-                document.Project.Solution.Workspace,
                 document.Project.Id,
                 location,
                 additionalLocations,

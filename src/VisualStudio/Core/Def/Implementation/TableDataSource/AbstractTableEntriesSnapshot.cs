@@ -129,16 +129,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return _items[index];
         }
 
-        protected LinePosition GetTrackingLineColumn(Workspace workspace, DocumentId documentId, int index)
+        protected LinePosition GetTrackingLineColumn(Document document, int index)
         {
-            if (documentId == null || _trackingPoints.IsDefaultOrEmpty)
-            {
-                return LinePosition.Zero;
-            }
-
-            var solution = workspace.CurrentSolution;
-            var document = solution.GetDocument(documentId);
-            if (document == null || !document.IsOpen())
+            if (_trackingPoints.IsDefaultOrEmpty)
             {
                 return LinePosition.Zero;
             }
@@ -165,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return GetLinePosition(currentSnapshot, trackingPoint);
         }
 
-        private LinePosition GetLinePosition(ITextSnapshot snapshot, ITrackingPoint trackingPoint)
+        private static LinePosition GetLinePosition(ITextSnapshot snapshot, ITrackingPoint trackingPoint)
         {
             var point = trackingPoint.GetPoint(snapshot);
             var line = point.GetContainingLine();
@@ -173,15 +166,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return new LinePosition(line.LineNumber, point.Position - line.Start);
         }
 
-        protected bool TryNavigateTo(Workspace workspace, DocumentId documentId, int line, int column, bool previewTab)
+        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, int line, int column, bool previewTab)
         {
-            var document = workspace.CurrentSolution.GetDocument(documentId);
-            if (document == null)
-            {
-                // document could be already removed from the solution
-                return false;
-            }
-
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
             {
@@ -197,12 +183,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return false;
         }
 
-        protected string GetFileName(string original, string mapped)
+        protected static string GetFileName(string original, string mapped)
         {
             return mapped == null ? original : original == null ? mapped : Combine(original, mapped);
         }
 
-        private string Combine(string path1, string path2)
+        private static string Combine(string path1, string path2)
         {
             if (TryCombine(path1, path2, out var result))
             {

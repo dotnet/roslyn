@@ -51,7 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 warningLevel: 0,
-                workspace: Workspace,
                 projectId: VisualStudioProject.Id,
                 title: ServicesVSResources.Project_loading_failed,
                 description: GetDescription(reason),

@@ -246,7 +246,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                     var provider = _source._diagnosticService;
                     var items = provider.GetDiagnostics(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, cancellationToken: CancellationToken.None)
-                                        .Where(ShouldInclude).Select(d => new TableItem<DiagnosticData>(d, GenerateDeduplicationKey));
+                                        .Where(ShouldInclude).Select(d => new TableItem<DiagnosticData>(_workspace, d, GenerateDeduplicationKey));
 
                     return items.ToImmutableArrayOrEmpty();
                 }
@@ -289,14 +289,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
                     //         also, what is cancellation mechanism?
                     var item = GetItem(index);
-
-                    var data = item?.Primary;
-                    if (data == null)
+                    if (item == null)
                     {
                         content = null;
                         return false;
                     }
 
+                    var data = item.Primary;
                     switch (columnName)
                     {
                         case StandardTableKeyNames.ErrorRank:
@@ -309,13 +308,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.ErrorCodeToolTip:
-                            content = GetHelpLinkToolTipText(data);
+                            content = GetHelpLinkToolTipText(item.Workspace, data);
                             return content != null;
                         case StandardTableKeyNames.HelpKeyword:
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.HelpLink:
-                            content = GetHelpLink(data);
+                            content = GetHelpLink(item.Workspace, data);
                             return content != null;
                         case StandardTableKeyNames.ErrorCategory:
                             content = data.Category;
@@ -427,26 +426,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override bool TryNavigateTo(int index, bool previewTab)
                 {
-                    var item = GetItem(index)?.Primary;
+                    var item = GetItem(index);
                     if (item == null)
                     {
                         return false;
                     }
 
+                    var primary = item.Primary;
+
                     // this item is not navigatable
-                    if (item.DocumentId == null)
+                    if (primary.DocumentId == null)
                     {
                         return false;
                     }
 
-                    var trackingLinePosition = GetTrackingLineColumn(item.Workspace, item.DocumentId, index);
-                    if (trackingLinePosition != LinePosition.Zero)
+                    var workspace = item.Workspace;
+                    var solution = workspace.CurrentSolution;
+                    var document = solution.GetDocument(primary.DocumentId);
+                    if (document == null)
                     {
-                        return TryNavigateTo(item.Workspace, item.DocumentId, trackingLinePosition.Line, trackingLinePosition.Character, previewTab);
+                        return false;
                     }
 
-                    return TryNavigateTo(item.Workspace, item.DocumentId,
-                            item.DataLocation?.OriginalStartLine ?? 0, item.DataLocation?.OriginalStartColumn ?? 0, previewTab);
+                    int line, column;
+                    LinePosition trackingLinePosition;
+
+                    if (workspace.IsDocumentOpen(document.Id) &&
+                        (trackingLinePosition = GetTrackingLineColumn(document, index)) != LinePosition.Zero)
+                    {
+                        line = trackingLinePosition.Line;
+                        column = trackingLinePosition.Character;
+                    }
+                    else
+                    {
+                        line = primary.DataLocation?.OriginalStartLine ?? 0;
+                        column = primary.DataLocation?.OriginalStartColumn ?? 0;
+                    }
+
+                    return TryNavigateTo(workspace, primary.DocumentId, line, column, previewTab);
                 }
 
                 protected override bool IsEquivalent(DiagnosticData item1, DiagnosticData item2)
