@@ -228,7 +228,6 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Designer.Interfaces" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Editor" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.GraphModel" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.InteractiveWindow" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.ImageCatalog" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Imaging" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.CallHierarchy" />
