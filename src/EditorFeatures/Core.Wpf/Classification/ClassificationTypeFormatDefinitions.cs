@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class PreprocessorTextFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private PreprocessorTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Preprocessor_Text;
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class PunctuationFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private PunctuationFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Punctuation;
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class StringVerbatimFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private StringVerbatimFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.String_Verbatim;
@@ -81,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class StringEscapeCharacterFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private StringEscapeCharacterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.String_Escape_Character;
@@ -100,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class ControlKeywordFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private ControlKeywordFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Keyword_Control;
@@ -117,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class OperatorOverloadedFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private OperatorOverloadedFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Operator_Overloaded;
@@ -141,6 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserTypeClassesFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserTypeClassesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Classes;
@@ -158,6 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserTypeDelegatesFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserTypeDelegatesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Delegates;
@@ -175,6 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserTypeEnumsFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserTypeEnumsFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Enums;
@@ -192,6 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserTypeInterfacesFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserTypeInterfacesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Interfaces;
@@ -208,6 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class UserTypeModulesFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserTypeModulesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Modules;
@@ -225,6 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserTypeStructuresFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserTypeStructuresFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Structures;
@@ -242,6 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserTypeTypeParametersFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserTypeTypeParametersFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Type_Parameters;
@@ -260,6 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersFieldNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserMembersFieldNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Fields;
@@ -276,6 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersEnumMemberNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserMembersEnumMemberNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Enum_Members;
@@ -292,6 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersConstantNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserMembersConstantNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Constants;
@@ -308,6 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersLocalNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserMembersLocalNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Locals;
@@ -324,6 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersParameterNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserMembersParameterNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Parameters;
@@ -340,6 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersMethodNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserMembersMethodNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Methods;
@@ -356,6 +375,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersExtensionMethodNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserMembersExtensionMethodNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Extension_Methods;
@@ -372,6 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersPropertyNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserMembersPropertyNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Properties;
@@ -388,6 +409,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersEventNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserMembersEventNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Events;
@@ -404,6 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersNamespaceNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserMembersNamespaceNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Namespaces;
@@ -420,6 +443,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersLabelNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private UserMembersLabelNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Labels;
@@ -534,6 +558,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentAttributeNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlDocCommentAttributeNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Attribute_Name;
@@ -550,6 +575,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentAttributeQuotesFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlDocCommentAttributeQuotesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Attribute_Quotes;
@@ -568,6 +594,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentAttributeValueFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlDocCommentAttributeValueFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Attribute_Value;
@@ -584,6 +611,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentCDataSectionFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlDocCommentCDataSectionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_CData_Section;
@@ -600,6 +628,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentCommentFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlDocCommentCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Comment;
@@ -616,6 +645,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentDelimiterFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlDocCommentDelimiterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Delimiter;
@@ -632,6 +662,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentEntityReferenceFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlDocCommentEntityReferenceFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Entity_Reference;
@@ -648,6 +679,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlDocCommentNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Name;
@@ -664,6 +696,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentProcessingInstructionFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlDocCommentProcessingInstructionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Processing_Instruction;
@@ -680,6 +713,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentTextFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlDocCommentTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Text;
@@ -718,6 +752,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexCommentFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private RegexCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Comment;
@@ -734,6 +769,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexCharacterClassFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private RegexCharacterClassFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Character_Class;
@@ -750,6 +786,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexAnchorFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private RegexAnchorFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
@@ -766,6 +803,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexQuantifierFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private RegexQuantifierFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Quantifier;
@@ -782,6 +820,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexGroupingFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private RegexGroupingFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
@@ -798,6 +837,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexAlternationFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private RegexAlternationFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
@@ -814,6 +854,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexTextFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private RegexTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
@@ -830,6 +871,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexSelfEscapedCharacterFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private RegexSelfEscapedCharacterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_SelfEscapedCharacter;
@@ -850,6 +892,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexOtherEscapeFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private RegexOtherEscapeFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_OtherEscape;
@@ -866,6 +909,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralAttributeNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlLiteralAttributeNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Name;
@@ -881,6 +925,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralAttributeQuotesFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlLiteralAttributeQuotesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Quotes;
@@ -896,6 +941,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralAttributeValueFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlLiteralAttributeValueFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Value;
@@ -911,6 +957,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralCDataSectionFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlLiteralCDataSectionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_CData_Section;
@@ -926,6 +973,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralCommentFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlLiteralCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Comment;
@@ -941,6 +989,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralDelimiterFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlLiteralDelimiterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Delimiter;
@@ -956,6 +1005,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralEmbeddedExpressionFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlLiteralEmbeddedExpressionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Embedded_Expression;
@@ -972,6 +1022,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralEntityReferenceFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlLiteralEntityReferenceFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Entity_Reference;
@@ -987,6 +1038,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralNameFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlLiteralNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Name;
@@ -1002,6 +1054,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralProcessingInstructionFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlLiteralProcessingInstructionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Processing_Instruction;
@@ -1017,6 +1070,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralTextFormatDefinition : ClassificationFormatDefinition
         {
+            [ImportingConstructor]
             private XmlLiteralTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Text;

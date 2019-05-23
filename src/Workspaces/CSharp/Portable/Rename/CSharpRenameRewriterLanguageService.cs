@@ -33,6 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
     [ExportLanguageService(typeof(IRenameRewriterLanguageService), LanguageNames.CSharp), Shared]
     internal class CSharpRenameConflictLanguageService : IRenameRewriterLanguageService
     {
+        [ImportingConstructor]
+        public CSharpRenameConflictLanguageService()
+        {
+        }
         #region "Annotation"
 
         public SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters)

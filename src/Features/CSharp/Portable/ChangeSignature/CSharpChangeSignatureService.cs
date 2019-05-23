@@ -72,6 +72,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.ParenthesizedLambdaExpression,
             SyntaxKind.SimpleLambdaExpression);
 
+        [ImportingConstructor]
+        public CSharpChangeSignatureService()
+        {
+        }
+
         public override async Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {

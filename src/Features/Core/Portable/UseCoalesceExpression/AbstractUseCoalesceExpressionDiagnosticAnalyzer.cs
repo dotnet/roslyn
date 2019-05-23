@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 

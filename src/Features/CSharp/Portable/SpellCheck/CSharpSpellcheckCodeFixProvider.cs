@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
         private const string CS0426 = nameof(CS0426); // The type name '0' does not exist in the type '1'
         private const string CS1520 = nameof(CS1520); // Method must have a return type
 
+        [ImportingConstructor]
+        public CSharpSpellCheckCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             AddImportDiagnosticIds.FixableDiagnosticIds.Concat(
             GenerateMethodDiagnosticIds.FixableDiagnosticIds).Concat(

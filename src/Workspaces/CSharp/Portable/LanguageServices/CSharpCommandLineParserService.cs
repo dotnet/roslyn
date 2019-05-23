@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageService(typeof(ICommandLineParserService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpCommandLineParserService : ICommandLineParserService
     {
+        [ImportingConstructor]
+        public CSharpCommandLineParserService()
+        {
+        }
+
         public CommandLineArguments Parse(IEnumerable<string> arguments, string baseDirectory, bool isInteractive, string sdkDirectory)
         {
 #if SCRIPTING

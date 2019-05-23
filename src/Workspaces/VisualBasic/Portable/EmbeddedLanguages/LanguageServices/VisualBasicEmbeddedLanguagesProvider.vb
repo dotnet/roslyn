@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
         Public Shared Instance As New VisualBasicEmbeddedLanguagesProvider()
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(Info)
         End Sub

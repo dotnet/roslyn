@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     [ExportLanguageServiceFactory(typeof(CompletionService), LanguageNames.CSharp), Shared]
     internal class CSharpCompletionServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpCompletionServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
             return new CSharpCompletionService(languageServices.WorkspaceServices.Workspace);

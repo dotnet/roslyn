@@ -46,9 +46,6 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         protected abstract TSyntaxKind GetAnalysisKind();
         protected abstract bool IsSupported(TSyntaxKind assignmentKind, ParseOptions options);
 
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 

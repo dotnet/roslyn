@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     [ExportWorkspaceServiceFactory(typeof(ICodeRefactoringHelpersService), ServiceLayer.Default), Shared]
     internal class ServicesLayerCodeActionHelpersService : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public ServicesLayerCodeActionHelpersService()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new CodeActionHelpersService();

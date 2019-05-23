@@ -21,6 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct
             TypeBlockSyntax,
             NamespaceBlockSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function CreateObjectCreationExpression(
                 nameNode As NameSyntax, openParen As SyntaxToken, arguments As SeparatedSyntaxList(Of ArgumentSyntax), closeParen As SyntaxToken) As ObjectCreationExpressionSyntax
 

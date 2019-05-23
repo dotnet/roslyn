@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
             SyntaxFacts.GetText(SyntaxKind.AsyncKeyword),
             SyntaxFacts.GetText(SyntaxKind.AwaitKeyword));
 
+        [ImportingConstructor]
+        public CSharpReplaceDocCommentTextWithTagCodeRefactoringProvider()
+        {
+        }
+
         protected override bool IsXmlTextToken(SyntaxToken token)
             => token.Kind() == SyntaxKind.XmlTextLiteralToken ||
                token.Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
