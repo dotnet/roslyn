@@ -7,13 +7,18 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
+
+    [UseExportProvider]
     public partial class SymbolCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         public SymbolCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
@@ -23,6 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         internal override CompletionProvider CreateCompletionProvider()
         {
             return new SymbolCompletionProvider();
+        }
+
+        protected override ExportProvider GetExportProvider()
+        {
+            return ExportProviderCache
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)))
+                .CreateExportProvider();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -10139,6 +10151,8 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilterWithExperimentEnabled()
         {
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+
             var markup =
 @"public class C
 {
@@ -10150,13 +10164,14 @@ class Program
 }";
             await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter },
-                targetTypedFilterExperimentEnabled: true);
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestNoTargetTypeFilterWithExperimentDisabled()
         {
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, false);
+
             var markup =
 @"public class C
 {
@@ -10168,14 +10183,15 @@ class Program
 }";
             await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter },
-                targetTypedFilterExperimentEnabled: false);
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter });
         }
 
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotOnObjectMembers()
         {
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+
             var markup =
 @"public class C
 {
@@ -10186,13 +10202,14 @@ class Program
 }";
             await VerifyItemExistsAsync(
                 markup, "GetHashCode",
-                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.MethodFilter },
-                targetTypedFilterExperimentEnabled: true);
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.MethodFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotNamedTypes()
         {
+            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+
             var markup =
 @"public class C
 {
@@ -10203,13 +10220,11 @@ class Program
 }";
             await VerifyItemExistsAsync(
                 markup, "c",
-                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.LocalAndParameterFilter, CompletionItemFilter.TargetTypedFilter },
-                targetTypedFilterExperimentEnabled: true);
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.LocalAndParameterFilter, CompletionItemFilter.TargetTypedFilter });
 
             await VerifyItemExistsAsync(
                 markup, "C",
-                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.ClassFilter },
-                targetTypedFilterExperimentEnabled: true);
+                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.ClassFilter });
         }
     }
 }

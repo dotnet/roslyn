@@ -63,8 +63,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
-        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'safeonly', 'warnings' or 'safeonlywarnings'</source>
-        <target state="translated">/nullable 的选项“{0}”无效；必须为 "disable"、"enable"、"safeonly"、"warnings" 或 "safeonlywarnings"</target>
+        <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable' or 'warnings'</source>
+        <target state="needs-review-translation">/nullable 的选项“{0}”无效；必须为 "disable"、"enable"、"safeonly"、"warnings" 或 "safeonlywarnings"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadNullableTypeof">
+        <source>The typeof operator cannot be used on a nullable reference type</source>
+        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
@@ -277,6 +282,11 @@
         <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
+        <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
+        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">"new()" 约束不能与 "unmanaged" 约束一起使用</target>
@@ -292,24 +302,9 @@
         <target state="translated">“{0}”: using 语句中使用的类型必须可隐式转换为 "System.IDisposable" 或实现适用的 "Dispose" 方法。是否希望使用 "await using" 而非 "using"?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotBaseOrImplementedInterface">
-        <source>'{0}' is not base type or interface of {1}.</source>
-        <target state="translated">“{0}”不是 {1} 的基类型或基接口。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotDeclaredInBase">
-        <source>'{0}' is not an immediate member of {1}.</source>
-        <target state="translated">“{0}”不是 {1}.的直接成员。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotImplementedInBase">
-        <source>'{0}' is not implemented in base interface {1}.</source>
-        <target state="translated">“{0}”不是在基接口 {1} 中实现的。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
-        <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
-        <target state="translated">预期 "enable"、"safeonly"、"disable"或 "restore"</target>
+        <source>Expected 'enable', 'disable', or 'restore'</source>
+        <target state="needs-review-translation">预期 "enable"、"safeonly"、"disable"或 "restore"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -573,8 +568,8 @@
                               `latest` (latest version, including minor versions),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+-nullable:{enable|disable|warnings}
+                              Specify nullable context option enable|disable|warnings.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -629,7 +624,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Visual C# 编译器选项
 
                         - 输出文件 -
@@ -778,11 +773,6 @@
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
-      <trans-unit id="IDS_BaseTypeInBaseExpression">
-        <source>specifying base type in base expression</source>
-        <target state="translated">正在基表达式中指定基类型</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
         <target state="translated">默认接口实现</target>
@@ -838,6 +828,11 @@
         <target state="translated">在嵌套函数中的名称映射</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNestedStackalloc">
+        <source>stackalloc in nested expressions</source>
+        <target state="new">stackalloc in nested expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
         <source>nullable reference types</source>
         <target state="translated">可为 null 的引用类型</target>
@@ -853,9 +848,9 @@
         <target state="new">obsolete on property accessor</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">
-        <source>warning action enable or safeonly</source>
-        <target state="translated">警告操作 enable 或 safeonly</target>
+      <trans-unit id="IDS_FeaturePragmaWarningEnable">
+        <source>warning action enable</source>
+        <target state="new">warning action enable</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -1403,16 +1398,6 @@
         <target state="translated">给定的表达式永远不会与提供的模式匹配。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_IllegalPPWarningSafeOnly">
-        <source>Expected nullable</source>
-        <target state="translated">应是可为 null</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_IllegalPPWarningSafeOnly_Title">
-        <source>Expected nullable after #pragma warning safeonly</source>
-        <target state="translated">在 #pragma warning safeonly 之后应是可为 null</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
         <source>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</source>
         <target state="new">Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</target>
@@ -1553,6 +1538,16 @@
         <target state="translated">类型参数的约束中的为 Null 性与隐式实现接口方法中的类型参数的约束不匹配。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
+        <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
+        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
+        <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
+        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
         <source>Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.</source>
         <target state="translated">显式接口说明符中引用类型的 Null 性与该类型实现的接口不匹配。</target>
@@ -1683,16 +1678,6 @@
         <target state="translated">类型中引用类型的为 Null 性与隐式实现的成员不匹配。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">类型中引用类型的为 Null 性与重写成员不匹配。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
-        <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="translated">类型中引用类型的为 Null 性与重写成员不匹配。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
         <source>The type '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. Nullability of type argument '{3}' doesn't match constraint type '{1}'.</source>
         <target state="translated">类型“{3}”不能用作泛型类型或方法“{0}”中的类型参数“{2}”。类型参数“{3}”的为 Null 性与约束类型“{1}”不匹配。</target>
@@ -1791,6 +1776,16 @@
       <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title">
         <source>The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
         <target state="new">The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
+        <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
+        <target state="new">Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
+        <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
+        <target state="new">Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -4713,8 +4708,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
-        <source>Partial method declarations of '{0}' have inconsistent type parameter constraints</source>
-        <target state="translated">“{0}”的分部方法声明具有不一致的类型参数约束</target>
+        <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
+        <target state="needs-review-translation">“{0}”的分部方法声明具有不一致的类型参数约束</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -5822,13 +5817,13 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable, restore, enable or safeonly</source>
-        <target state="translated">应为 disable、restore、enable 或 safeonly</target>
+        <source>Expected disable, restore or enable</source>
+        <target state="needs-review-translation">应为 disable、restore、enable 或 safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable, restore, enable or safeonly after #pragma warning</source>
-        <target state="translated">应在 #pragma warning 之后为 disable、restore、enable 或 safeonly</target>
+        <source>Expected disable, restore or enable after #pragma warning</source>
+        <target state="needs-review-translation">应在 #pragma warning 之后为 disable、restore、enable 或 safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">

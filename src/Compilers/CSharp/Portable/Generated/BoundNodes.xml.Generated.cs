@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         AsOperator,
         SizeOfOperator,
         Conversion,
+        ReadOnlySpanFromArray,
         ArgList,
         ArgListOperator,
         FixedLocalCollectionInitializer,
@@ -2219,27 +2220,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDefaultExpression : BoundExpression
     {
-        public BoundDefaultExpression(SyntaxNode syntax, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.DefaultExpression, syntax, type, hasErrors)
+        public BoundDefaultExpression(SyntaxNode syntax, BoundTypeExpression targetType, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DefaultExpression, syntax, type, hasErrors || targetType.HasErrors())
         {
+            this.TargetType = targetType;
             this.ConstantValueOpt = constantValueOpt;
         }
 
-        public BoundDefaultExpression(SyntaxNode syntax, ConstantValue constantValueOpt, TypeSymbol type)
-            : base(BoundKind.DefaultExpression, syntax, type)
-        {
-            this.ConstantValueOpt = constantValueOpt;
-        }
 
+        public BoundTypeExpression TargetType { get; }
 
         public ConstantValue ConstantValueOpt { get; }
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitDefaultExpression(this);
 
-        public BoundDefaultExpression Update(ConstantValue constantValueOpt, TypeSymbol type)
+        public BoundDefaultExpression Update(BoundTypeExpression targetType, ConstantValue constantValueOpt, TypeSymbol type)
         {
-            if (constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (targetType != this.TargetType || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDefaultExpression(this.Syntax, constantValueOpt, type, this.HasErrors);
+                var result = new BoundDefaultExpression(this.Syntax, targetType, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2248,7 +2246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundDefaultExpression(this.Syntax, this.ConstantValueOpt, this.Type, this.HasErrors);
+            var result = new BoundDefaultExpression(this.Syntax, this.TargetType, this.ConstantValueOpt, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -2424,6 +2422,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override BoundExpression ShallowClone()
         {
             var result = new BoundConversion(this.Syntax, this.Operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.Type, this.HasErrors);
+            result.CopyAttributes(this);
+            return result;
+        }
+    }
+
+    internal sealed partial class BoundReadOnlySpanFromArray : BoundExpression
+    {
+        public BoundReadOnlySpanFromArray(SyntaxNode syntax, BoundExpression operand, MethodSymbol conversionMethod, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ReadOnlySpanFromArray, syntax, type, hasErrors || operand.HasErrors())
+        {
+
+            Debug.Assert((object)operand != null, "Field 'operand' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert((object)conversionMethod != null, "Field 'conversionMethod' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Operand = operand;
+            this.ConversionMethod = conversionMethod;
+        }
+
+
+        public BoundExpression Operand { get; }
+
+        public MethodSymbol ConversionMethod { get; }
+        public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitReadOnlySpanFromArray(this);
+
+        public BoundReadOnlySpanFromArray Update(BoundExpression operand, MethodSymbol conversionMethod, TypeSymbol type)
+        {
+            if (operand != this.Operand || conversionMethod != this.ConversionMethod || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundReadOnlySpanFromArray(this.Syntax, operand, conversionMethod, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+
+        protected override BoundExpression ShallowClone()
+        {
+            var result = new BoundReadOnlySpanFromArray(this.Syntax, this.Operand, this.ConversionMethod, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -3789,21 +3826,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBaseReference : BoundExpression
     {
-        public BoundBaseReference(SyntaxNode syntax, BoundTypeExpression explicitBaseReferenceOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.BaseReference, syntax, type, hasErrors || explicitBaseReferenceOpt.HasErrors())
+        public BoundBaseReference(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.BaseReference, syntax, type, hasErrors)
         {
-            this.ExplicitBaseReferenceOpt = explicitBaseReferenceOpt;
         }
 
+        public BoundBaseReference(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.BaseReference, syntax, type)
+        {
+        }
 
-        public BoundTypeExpression ExplicitBaseReferenceOpt { get; }
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitBaseReference(this);
 
-        public BoundBaseReference Update(BoundTypeExpression explicitBaseReferenceOpt, TypeSymbol type)
+        public BoundBaseReference Update(TypeSymbol type)
         {
-            if (explicitBaseReferenceOpt != this.ExplicitBaseReferenceOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundBaseReference(this.Syntax, explicitBaseReferenceOpt, type, this.HasErrors);
+                var result = new BoundBaseReference(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3812,7 +3851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundBaseReference(this.Syntax, this.ExplicitBaseReferenceOpt, this.Type, this.HasErrors);
+            var result = new BoundBaseReference(this.Syntax, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -7691,6 +7730,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitSizeOfOperator(node as BoundSizeOfOperator, arg);
                 case BoundKind.Conversion: 
                     return VisitConversion(node as BoundConversion, arg);
+                case BoundKind.ReadOnlySpanFromArray: 
+                    return VisitReadOnlySpanFromArray(node as BoundReadOnlySpanFromArray, arg);
                 case BoundKind.ArgList: 
                     return VisitArgList(node as BoundArgList, arg);
                 case BoundKind.ArgListOperator: 
@@ -8011,6 +8052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitAsOperator(BoundAsOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSizeOfOperator(BoundSizeOfOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConversion(BoundConversion node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitArgList(BoundArgList node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitArgListOperator(BoundArgListOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node, A arg) => this.DefaultVisit(node, arg);
@@ -8197,6 +8239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode VisitAsOperator(BoundAsOperator node) => this.DefaultVisit(node);
         public virtual BoundNode VisitSizeOfOperator(BoundSizeOfOperator node) => this.DefaultVisit(node);
         public virtual BoundNode VisitConversion(BoundConversion node) => this.DefaultVisit(node);
+        public virtual BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node) => this.DefaultVisit(node);
         public virtual BoundNode VisitArgList(BoundArgList node) => this.DefaultVisit(node);
         public virtual BoundNode VisitArgListOperator(BoundArgListOperator node) => this.DefaultVisit(node);
         public virtual BoundNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node) => this.DefaultVisit(node);
@@ -8543,6 +8586,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Operand);
             return null;
         }
+        public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
+        {
+            this.Visit(node.Operand);
+            return null;
+        }
         public override BoundNode VisitArgList(BoundArgList node) => null;
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
         {
@@ -8717,11 +8765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitThisReference(BoundThisReference node) => null;
         public override BoundNode VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node) => null;
         public override BoundNode VisitHostObjectMemberReference(BoundHostObjectMemberReference node) => null;
-        public override BoundNode VisitBaseReference(BoundBaseReference node)
-        {
-            this.Visit(node.ExplicitBaseReferenceOpt);
-            return null;
-        }
+        public override BoundNode VisitBaseReference(BoundBaseReference node) => null;
         public override BoundNode VisitLocal(BoundLocal node) => null;
         public override BoundNode VisitPseudoVariable(BoundPseudoVariable node) => null;
         public override BoundNode VisitRangeVariable(BoundRangeVariable node)
@@ -9443,8 +9487,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
+            BoundTypeExpression targetType = node.TargetType;
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.ConstantValueOpt, type);
+            return node.Update(targetType, node.ConstantValueOpt, type);
         }
         public override BoundNode VisitIsOperator(BoundIsOperator node)
         {
@@ -9471,6 +9516,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, type);
+        }
+        public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(operand, node.ConversionMethod, type);
         }
         public override BoundNode VisitArgList(BoundArgList node)
         {
@@ -9673,9 +9724,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
-            BoundTypeExpression explicitBaseReferenceOpt = (BoundTypeExpression)this.Visit(node.ExplicitBaseReferenceOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(explicitBaseReferenceOpt, type);
+            return node.Update(type);
         }
         public override BoundNode VisitLocal(BoundLocal node)
         {
@@ -10845,13 +10895,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
-            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
-            {
-                return node;
-            }
+            BoundTypeExpression targetType = node.TargetType;
+            BoundDefaultExpression updatedNode;
 
-            BoundDefaultExpression updatedNode = node.Update(node.ConstantValueOpt, infoAndType.Type);
-            updatedNode.TopLevelNullability = infoAndType.Info;
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(targetType, node.ConstantValueOpt, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(targetType, node.ConstantValueOpt, node.Type);
+            }
             return updatedNode;
         }
 
@@ -10921,6 +10976,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 updatedNode = node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
+        {
+            BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
+            BoundReadOnlySpanFromArray updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(operand, node.ConversionMethod, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(operand, node.ConversionMethod, node.Type);
             }
             return updatedNode;
         }
@@ -11021,18 +11093,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {
-            BoundTypeExpression explicitBaseReferenceOpt = (BoundTypeExpression)this.Visit(node.ExplicitBaseReferenceOpt);
-            BoundBaseReference updatedNode;
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                return node;
+            }
 
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
-            {
-                updatedNode = node.Update(explicitBaseReferenceOpt, infoAndType.Type);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(explicitBaseReferenceOpt, node.Type);
-            }
+            BoundBaseReference updatedNode = node.Update(infoAndType.Type);
+            updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
 
@@ -12411,6 +12478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitDefaultExpression(BoundDefaultExpression node, object arg) => new TreeDumperNode("defaultExpression", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("targetType", null, new TreeDumperNode[] { Visit(node.TargetType, null) }),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
@@ -12451,6 +12519,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("explicitCastInCode", node.ExplicitCastInCode, null),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("conversionGroupOpt", node.ConversionGroupOpt, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
+        }
+        );
+        public override TreeDumperNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node, object arg) => new TreeDumperNode("readOnlySpanFromArray", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
+            new TreeDumperNode("conversionMethod", node.ConversionMethod, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
         }
@@ -12724,7 +12800,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitBaseReference(BoundBaseReference node, object arg) => new TreeDumperNode("baseReference", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("explicitBaseReferenceOpt", null, new TreeDumperNode[] { Visit(node.ExplicitBaseReferenceOpt, null) }),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
         }

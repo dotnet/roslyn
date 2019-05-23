@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     await CollectChecksumChildrenAsync(checksums, projectChecksumObject.Documents, cancellationToken).ConfigureAwait(false);
                     await CollectChecksumChildrenAsync(checksums, projectChecksumObject.AdditionalDocuments, cancellationToken).ConfigureAwait(false);
+                    await CollectChecksumChildrenAsync(checksums, projectChecksumObject.AnalyzerConfigDocuments, cancellationToken).ConfigureAwait(false);
                 }
 
                 await _assetService.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);

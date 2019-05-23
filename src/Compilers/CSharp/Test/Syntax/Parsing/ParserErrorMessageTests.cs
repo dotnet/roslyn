@@ -4820,9 +4820,12 @@ unsafe public class Test
 }
 ";
             CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-                // (4,14): error CS1525: Invalid expression term 'stackalloc'
+                // (4,14): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 14)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(4, 14),
+                // (4,14): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                //     int* p = stackalloc int[1];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(4, 14)
                 );
         }
 
@@ -4840,9 +4843,12 @@ unsafe public class Test
 }
 ";
             CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-                // (6,33): error CS1525: Invalid expression term 'stackalloc'
+                // (6,33): error CS0518: Predefined type 'System.Span`1' is not defined or imported
                 //         int*[] p = new int*[] { stackalloc int[1] };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "stackalloc int[1]").WithArguments("System.Span`1").WithLocation(6, 33),
+                // (6,33): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
+                //         int*[] p = new int*[] { stackalloc int[1] };
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[1]").WithArguments("int", "int*").WithLocation(6, 33)
                 );
         }
 
@@ -4881,10 +4887,10 @@ public class Test
     }
 }
 ";
-            CreateCompilation(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,16): error CS1674: 'int*': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+            CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (6,16): error CS1674: 'Span<int>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 //         using (var v = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("int*").WithLocation(6, 16));
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(6, 16));
         }
 
         [Fact]

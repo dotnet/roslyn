@@ -14,17 +14,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void VerifyOpen(string dialogName)
         {
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+
             // FindDialog will wait until the dialog is open, so the return value is unused.
-            DialogHelpers.FindDialogByName(GetMainWindowHWnd(), dialogName, isOpen: true, CancellationToken.None);
+            DialogHelpers.FindDialogByName(GetMainWindowHWnd(), dialogName, isOpen: true, cancellationTokenSource.Token);
 
             // Wait for application idle to ensure the dialog is fully initialized
-            VisualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
+            VisualStudioInstance.WaitForApplicationIdle(cancellationTokenSource.Token);
         }
 
         public void VerifyClosed(string dialogName)
         {
+            using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+
             // FindDialog will wait until the dialog is closed, so the return value is unused.
-            DialogHelpers.FindDialogByName(GetMainWindowHWnd(), dialogName, isOpen: false, CancellationToken.None);
+            DialogHelpers.FindDialogByName(GetMainWindowHWnd(), dialogName, isOpen: false, cancellationTokenSource.Token);
         }
 
         public void Click(string dialogName, string buttonName)

@@ -21837,15 +21837,21 @@ static class C
     }
     static void E(this object o) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (20,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'object' is null
+                //         default(object).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(object).GetHashCode").WithArguments("object").WithLocation(20, 9),
                 // (24,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
+                //         default(T4).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T4).GetHashCode").WithArguments("T4").WithLocation(24, 9),
                 // (26,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
+                //         default(T6).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).GetHashCode").WithArguments("T6").WithLocation(26, 9),
                 // (28,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
+                //         default(T6).P = null;
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).P").WithArguments("T6").WithLocation(28, 9));
+            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
+                );
         }
 
         [Fact]
@@ -21892,7 +21898,7 @@ class C
         default(T4)[1] = o;
     }
 }";
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (23,13): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'A' is null
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(A)[0]").WithArguments("A").WithLocation(23, 13),
                 // (25,13): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'I' is null
@@ -21913,8 +21919,12 @@ class C
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T1)[1]").WithArguments("T1").WithLocation(35, 9),
                 // (37,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T3)[1]").WithLocation(37, 9), // Incorrect? See CS0131ERR_AssgLvalueExpected03 unit test.
-                                                                                                    // (38,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
+                // (38,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T4)[1]").WithArguments("T4").WithLocation(38, 9));
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (37,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         default(T3)[1] = o;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T3)[1]").WithLocation(37, 9));
         }
 
         [Fact]
@@ -21934,12 +21944,13 @@ class C
     }
 }
 ";
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // Do not report the following warning:
                 // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
                 //         System.Console.WriteLine(default(string).IsNull());
                 // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }).VerifyDiagnostics();
         }
 
         [Fact]

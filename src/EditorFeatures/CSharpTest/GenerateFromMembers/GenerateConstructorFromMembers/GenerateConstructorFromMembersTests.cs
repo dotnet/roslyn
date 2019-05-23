@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
@@ -955,7 +956,7 @@ class Z
 
     public Z(int a, string b{|Navigation:)|}
     {
-        if (b == null)
+        if (b is null)
         {
             throw new ArgumentNullException(nameof(b));
         }
@@ -968,6 +969,82 @@ chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
     Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecks3()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    int? b;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    int? b;
+
+    public Z(int a, int? b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}",
+chosenSymbols: new string[] { "a", "b" },
+optionsCallback: options => options[0].Value = true,
+parameters: new TestParameters(options:
+    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestAddNullChecks_CSharp6()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+    [||]
+}",
+@"
+using System;
+using System.Collections.Generic;
+
+class Z
+{
+    int a;
+    string b;
+
+    public Z(int a, string b{|Navigation:)|}
+    {
+        if (b == null)
+        {
+            throw new ArgumentNullException(nameof(b));
+        }
+
+        this.a = a;
+        this.b = b;
+    }
+}",
+chosenSymbols: new string[] { "a", "b" },
+optionsCallback: options => options[0].Value = true,
+parameters: new TestParameters(
+    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
+    options: Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]

@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var attributeType = (INamedTypeSymbol)GetTypeSymbol(attributeClass)(context.SemanticModel);
                 var taggedNode = context.GetDestinationNode();
                 ISymbol attributeTarget = context.SemanticModel.GetDeclaredSymbol(taggedNode);
-                var attribute = attributeTarget.GetAttributes().Single(attr => attr.AttributeClass == attributeType);
+                var attribute = attributeTarget.GetAttributes().Single(attr => Equals(attr.AttributeClass, attributeType));
                 var declarationNode = taggedNode.FirstAncestorOrSelf<T>();
                 var newNode = CodeGenerator.RemoveAttribute(declarationNode, context.Document.Project.Solution.Workspace, attribute)
                                            .WithAdditionalAnnotations(Formatter.Annotation);

@@ -358,7 +358,8 @@ public class C
                 PublicNullableAnnotation.Annotated);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/35034")]
+        [Fact]
+        [WorkItem(35034, "https://github.com/dotnet/roslyn/issues/35034")]
         public void MethodDeclarationReceiver()
         {
             var source = @"
@@ -400,24 +401,24 @@ public static class CExt
 
             var comp3 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             comp3.VerifyDiagnostics(
-                // (4,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable enable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(4, 2),
-                // (8,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(4, 2),
+                // (8,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable disable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(8, 2),
-                // (14,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(8, 2),
+                // (14,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable enable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(14, 2),
-                // (16,33): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(14, 2),
+                // (16,33): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static void M6(this C? c) {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(16, 33),
-                // (18,2): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(16, 33),
+                // (18,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable disable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(18, 2),
-                // (20,33): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(18, 2),
+                // (20,33): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static void M8(this C? c) {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(20, 33));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(20, 33));
             verifyCompilation(comp3);
 
             var comp1Emit = comp1.EmitToImageReference();
@@ -725,6 +726,98 @@ class C
                     syntaxContext.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor, syntaxContext.Node.GetLocation(), syntaxContext.Node, info.Nullability.FlowState, info.Nullability.Annotation));
                 }, SyntaxKind.IdentifierName);
             }
+        }
+
+        [Fact]
+        public void MultipleConversions()
+        {
+            var source = @"
+class A { public static explicit operator C(A a) => new D(); }
+class B : A { }
+class C { }
+class D : C { }
+class E
+{
+    void M()
+    {
+        var d = (D)(C?)new B();
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            comp.VerifyDiagnostics(
+                // (10,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var d = (D)(C?)new B();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)(C?)new B()").WithLocation(10, 17));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var aType = comp.GetTypeByMetadataName("A");
+            var bType = comp.GetTypeByMetadataName("B");
+            var cType = comp.GetTypeByMetadataName("C");
+            var dType = comp.GetTypeByMetadataName("D");
+
+            var nullable = new NullabilityInfo(PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
+            var notNullable = new NullabilityInfo(PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.NotNull);
+
+            var dCast = (CastExpressionSyntax)root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value;
+            var dInfo = model.GetTypeInfo(dCast);
+            Assert.Equal(dType, dInfo.Type);
+            Assert.Equal(dType, dInfo.ConvertedType);
+            Assert.Equal(nullable, dInfo.Nullability);
+            Assert.Equal(nullable, dInfo.ConvertedNullability);
+
+            var cCast = (CastExpressionSyntax)dCast.Expression;
+            var cInfo = model.GetTypeInfo(cCast);
+            Assert.Equal(cType, cInfo.Type);
+            Assert.Equal(cType, cInfo.ConvertedType);
+            Assert.Equal(nullable, cInfo.Nullability);
+            Assert.Equal(nullable, cInfo.ConvertedNullability);
+
+            var objectCreation = cCast.Expression;
+            var creationInfo = model.GetTypeInfo(objectCreation);
+            Assert.Equal(bType, creationInfo.Type);
+            Assert.Equal(aType, creationInfo.ConvertedType);
+            Assert.Equal(notNullable, creationInfo.Nullability);
+            Assert.Equal(nullable, creationInfo.ConvertedNullability);
+        }
+
+        [Fact]
+        public void ConditionalOperator_InvalidType()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var x = new Undefined() ? new object() : null;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8WithNullableAnalysis);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS0246: The type or namespace name 'Undefined' could not be found (are you missing a using directive or an assembly reference?)
+                //         var x = new Undefined() ? new object() : null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Undefined").WithArguments("Undefined").WithLocation(6, 21));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var conditional = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+
+            var notNull = new NullabilityInfo(PublicNullableAnnotation.NotAnnotated, PublicNullableFlowState.NotNull);
+            var @null = new NullabilityInfo(PublicNullableAnnotation.Annotated, PublicNullableFlowState.MaybeNull);
+
+            var leftInfo = model.GetTypeInfo(conditional.WhenTrue);
+            var rightInfo = model.GetTypeInfo(conditional.WhenFalse);
+
+            Assert.Equal(notNull, leftInfo.Nullability);
+            Assert.Equal(notNull, leftInfo.ConvertedNullability);
+            Assert.Equal(@null, rightInfo.Nullability);
+            Assert.Equal(notNull, rightInfo.ConvertedNullability);
         }
     }
 }

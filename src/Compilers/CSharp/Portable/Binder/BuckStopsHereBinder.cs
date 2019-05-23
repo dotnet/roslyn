@@ -162,12 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (Compilation.Options.NullableContextOptions)
             {
                 case NullableContextOptions.Enable:
-                case NullableContextOptions.SafeOnly:
                     return true;
 
                 case NullableContextOptions.Disable:
                 case NullableContextOptions.Warnings:
-                case NullableContextOptions.SafeOnlyWarnings:
                     return false;
 
                 default:

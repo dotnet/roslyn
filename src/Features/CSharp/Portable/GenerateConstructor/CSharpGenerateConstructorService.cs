@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             {
                 SyntaxToken thisOrBaseKeyword;
                 SyntaxKind newCtorInitializerKind;
-                if (tokenKind != SyntaxKind.BaseKeyword && state.TypeToGenerateIn == namedType)
+                if (tokenKind != SyntaxKind.BaseKeyword && Equals(state.TypeToGenerateIn, namedType))
                 {
                     thisOrBaseKeyword = SyntaxFactory.Token(SyntaxKind.ThisKeyword);
                     newCtorInitializerKind = SyntaxKind.ThisConstructorInitializer;
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
                 var typeNameToReplace = (TypeSyntax)oldToken.Parent;
                 TypeSyntax newTypeName;
-                if (namedType != state.TypeToGenerateIn)
+                if (!Equals(namedType, state.TypeToGenerateIn))
                 {
                     while (true)
                     {

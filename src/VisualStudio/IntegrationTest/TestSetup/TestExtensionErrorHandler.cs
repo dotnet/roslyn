@@ -21,6 +21,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 return;
             }
 
+            if (exception is ArgumentException argumentException
+                && argumentException.Message.Contains("SnapshotPoint")
+                && argumentException.StackTrace.Contains("Microsoft.VisualStudio.Text.Editor.Implementation.WpfTextView.ValidateBufferPosition"))
+            {
+                // Known issue https://github.com/dotnet/roslyn/issues/35123
+                return;
+            }
+
             FatalError.Report(exception);
         }
     }

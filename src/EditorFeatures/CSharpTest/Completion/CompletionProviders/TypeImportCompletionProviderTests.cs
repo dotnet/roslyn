@@ -6,13 +6,17 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [UseExportProvider]
     public class TypeImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         public TypeImportCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
@@ -32,10 +36,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue);
         }
 
+        protected override ExportProvider GetExportProvider()
+        {
+            return ExportProviderCache
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(TestExperimentationService)))
+                .CreateExportProvider();
+        }
+
         #region "Option tests"
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToNull()
+        public async Task OptionSetToNull_ExpEnabled()
+        {
+            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, true);
+
+            ShowImportCompletionItemsOptionValue = null;
+
+            var markup = @"
+class Bar
+{
+     $$
+}";
+
+            await VerifyAnyItemExistsAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task OptionSetToNull_ExpDisabled()
         {
             ShowImportCompletionItemsOptionValue = null;
             var markup = @"
@@ -47,10 +74,15 @@ class Bar
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToFalse()
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task OptionSetToFalse(bool isExperimentEnabled)
         {
+            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
+
             ShowImportCompletionItemsOptionValue = false;
+
             var markup = @"
 class Bar
 {
@@ -60,10 +92,15 @@ class Bar
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OptionSetToTrue()
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task OptionSetToTrue(bool isExperimentEnabled)
         {
+            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
+
             ShowImportCompletionItemsOptionValue = true;
+
             var markup = @"
 class Bar
 {

@@ -1074,65 +1074,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(member.Kind != SymbolKind.Property);
             Debug.Assert(member.Kind != SymbolKind.Event);
 
-            if (receiverOpt?.Kind == BoundKind.BaseReference)
+            if (receiverOpt?.Kind == BoundKind.BaseReference && member.IsAbstract)
             {
-                var baseReference = (BoundBaseReference)receiverOpt;
-
-                if (baseReference.ExplicitBaseReferenceOpt != null)
-                {
-                    if (baseReference.HasErrors)
-                    {
-                        return true;
-                    }
-
-                    TypeSymbol baseType = baseReference.ExplicitBaseReferenceOpt.Type;
-
-                    if (baseType.IsInterfaceType() && (member as MethodSymbol)?.IsImplementable() == true)
-                    {
-                        MultiDictionary<Symbol, Symbol>.ValueSet set = TypeSymbol.FindImplementationInInterface(member, (NamedTypeSymbol)baseType);
-
-                        if (set.Count == 1)
-                        {
-                            member = set.Single();
-
-                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                            if (!IsAccessible(member, ref useSiteDiagnostics, accessThroughType: null))
-                            {
-                                diagnostics.Add(node, useSiteDiagnostics);
-                                Error(diagnostics, ErrorCode.ERR_BadAccess, node, member);
-                                return true;
-                            }
-                            else if (member.IsAbstract)
-                            {
-                                Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, member);
-                                return true;
-                            }
-                        }
-                        else if (!member.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
-                        {
-                            Error(diagnostics, ErrorCode.ERR_NotImplementedInBase, node, member, baseType);
-                            return true;
-                        }
-                        else
-                        {
-                            Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, member);
-                            return true;
-                        }
-
-                        return false;
-                    }
-                    else if (!member.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_NotDeclaredInBase, node, member, baseType);
-                        return true;
-                    }
-                }
-
-                if (member.IsAbstract)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertyOrEventSymbolOpt ?? member);
-                    return true;
-                }
+                Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertyOrEventSymbolOpt ?? member);
+                return true;
             }
 
             return false;
@@ -2584,7 +2529,7 @@ moreArguments:
 
         /// <summary>
         /// A counterpart to the GetValEscape, which validates if given escape demand can be met by the expression.
-        /// The result indicates whether the escape is possible. 
+        /// The result indicates whether the escape is possible.
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// </summary>
         internal static bool CheckValEscape(SyntaxNode node, BoundExpression expr, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
@@ -2884,10 +2829,20 @@ moreArguments:
                     // only possible in error cases (if possible at all)
                     return false;
 
+                case BoundKind.SwitchExpression:
+                    foreach (var arm in ((BoundSwitchExpression)expr).SwitchArms)
+                    {
+                        var result = arm.Value;
+                        if (!CheckValEscape(result.Syntax, result, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                            return false;
+                    }
+
+                    return true;
+
                 default:
                     // in error situations some unexpected nodes could make here
                     // returning "false" seems safer than throwing.
-                    // we will still assert to make sure that all nodes are accounted for. 
+                    // we will still assert to make sure that all nodes are accounted for.
                     Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
                     return false;
 

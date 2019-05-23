@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                         Return True
                     ElseIf expressionToCastTypeIsWideningRefOrDefault OrElse expressionToOuterTypeIsWideningRefOrDefault Then
-                        Return castType Is speculatedExpressionOuterType
+                        Return Equals(castType, speculatedExpressionOuterType)
                     End If
 
                     If expressionToCastType.IsWidening AndAlso expressionToCastType.IsLambda AndAlso
