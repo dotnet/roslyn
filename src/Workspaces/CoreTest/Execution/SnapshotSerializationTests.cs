@@ -732,23 +732,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     continue;
                 }
 
-                var documents = new List<DocumentInfo>();
-                foreach (var documentObject in projectObject.Documents.ToDocumentObjects(service))
+                async Task<List<DocumentInfo>> CreateDocumentInfosAsync(ChecksumObjectCollection<DocumentStateChecksums> checksums)
                 {
-                    var documentInfo = await service.GetValueAsync<DocumentInfo.DocumentAttributes>(documentObject.Info).ConfigureAwait(false);
-                    var text = await service.GetValueAsync<SourceText>(documentObject.Text).ConfigureAwait(false);
+                    List<DocumentInfo> infos = new List<DocumentInfo>();
 
-                    // TODO: do we need version?
-                    documents.Add(
-                        DocumentInfo.Create(
-                            documentInfo.Id,
-                            documentInfo.Name,
-                            documentInfo.Folders,
-                            documentInfo.SourceCodeKind,
-                            TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())),
-                            documentInfo.FilePath,
-                            documentInfo.IsGenerated));
+                    foreach (var documentStateChecksums in checksums)
+                    {
+                        var documentInfo = await service.GetValueAsync<DocumentInfo.DocumentAttributes>(documentStateChecksums.Info).ConfigureAwait(false);
+                        var text = await service.GetValueAsync<SourceText>(documentStateChecksums.Text).ConfigureAwait(false);
+
+                        // TODO: do we need version?
+                        infos.Add(
+                            DocumentInfo.Create(
+                                documentInfo.Id,
+                                documentInfo.Name,
+                                documentInfo.Folders,
+                                documentInfo.SourceCodeKind,
+                                TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())),
+                                documentInfo.FilePath,
+                                documentInfo.IsGenerated));
+                    }
+
+                    return infos;
                 }
+
+                var documents = await CreateDocumentInfosAsync(projectObject.Documents.ToDocumentObjects(service));
 
                 var p2p = new List<ProjectReference>();
                 foreach (var checksum in projectObject.ProjectReferences)
@@ -771,23 +779,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     analyzers.Add(reference);
                 }
 
-                var additionals = new List<DocumentInfo>();
-                foreach (var documentObject in projectObject.AdditionalDocuments.ToDocumentObjects(service))
-                {
-                    var documentInfo = await service.GetValueAsync<DocumentInfo.DocumentAttributes>(documentObject.Info).ConfigureAwait(false);
-                    var text = await service.GetValueAsync<SourceText>(documentObject.Text).ConfigureAwait(false);
-
-                    // TODO: do we need version?
-                    additionals.Add(
-                        DocumentInfo.Create(
-                            documentInfo.Id,
-                            documentInfo.Name,
-                            documentInfo.Folders,
-                            documentInfo.SourceCodeKind,
-                            TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())),
-                            documentInfo.FilePath,
-                            documentInfo.IsGenerated));
-                }
+                var additionalDocuments = await CreateDocumentInfosAsync(projectObject.AdditionalDocuments.ToDocumentObjects(service));
+                var analyzerConfigDocuments = await CreateDocumentInfosAsync(projectObject.AnalyzerConfigDocuments.ToDocumentObjects(service));
 
                 var compilationOptions = await service.GetValueAsync<CompilationOptions>(projectObject.CompilationOptions).ConfigureAwait(false);
                 var parseOptions = await service.GetValueAsync<ParseOptions>(projectObject.ParseOptions).ConfigureAwait(false);
@@ -797,7 +790,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                         projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
                         projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
                         compilationOptions, parseOptions,
-                        documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission));
+                        documents, p2p, metadata, analyzers, additionalDocuments, projectInfo.IsSubmission)
+                    .WithAnalyzerConfigDocuments(analyzerConfigDocuments));
             }
 
             return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));

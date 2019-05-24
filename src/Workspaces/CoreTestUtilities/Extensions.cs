@@ -50,6 +50,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Execution
         {
             return new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
         }
+
+        public static ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(this AnalyzerConfigDocumentChecksumCollection collection, IRemotableDataService service)
+        {
+            return new ChecksumObjectCollection<DocumentStateChecksums>(service, collection);
+        }
     }
 
     /// <summary>

@@ -95,8 +95,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             _synchronizedOutput = new SynchronizedStringWriter();
             _synchronizedErrorOutput = new SynchronizedStringWriter();
             ClearOutput();
-            _host.SetOutput(_synchronizedOutput);
-            _host.SetErrorOutput(_synchronizedErrorOutput);
+            _host.SetOutputs(_synchronizedOutput, _synchronizedErrorOutput);
         }
 
         private static ImmutableArray<string> SplitLines(string text)

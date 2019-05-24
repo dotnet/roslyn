@@ -2902,6 +2902,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
+        {
+            VisitRvalue(node.Operand);
+            return null;
+        }
+
         /// <summary>
         /// This visitor represents just the assignment part of the null coalescing assignment
         /// operator.

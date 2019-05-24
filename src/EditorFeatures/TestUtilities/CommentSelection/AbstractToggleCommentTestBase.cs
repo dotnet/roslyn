@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -11,8 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -70,8 +67,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
         }
 
         private static ExportProvider GetExportProvider()
-            => ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                .WithPart(typeof(MockToggleCommentExperimentationService)))
+            => ExportProviderCache
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic)
                 .CreateExportProvider();
 
         private static ITextBuffer GetBufferForContentType(string contentTypeName, ITextView textView)
@@ -103,17 +100,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
                 textView.Selection.Select(new VirtualSnapshotPoint(snapshot, spans.First().Start),
                                           new VirtualSnapshotPoint(snapshot, spans.Last().End));
                 textView.Caret.MoveTo(new SnapshotPoint(snapshot, spans.Last().End));
-            }
-        }
-
-        [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test), Shared]
-        [PartNotDiscoverable]
-        private class MockToggleCommentExperimentationService : IExperimentationService
-        {
-            public bool IsExperimentEnabled(string experimentName)
-            {
-                return WellKnownExperimentNames.RoslynToggleBlockComment.Equals(experimentName)
-                    || WellKnownExperimentNames.RoslynToggleLineComment.Equals(experimentName);
             }
         }
     }
