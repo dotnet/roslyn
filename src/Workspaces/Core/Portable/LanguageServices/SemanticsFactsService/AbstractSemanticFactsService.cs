@@ -60,13 +60,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             var container = containerOpt ?? location.AncestorsAndSelf().FirstOrDefault(
                 a => syntaxFacts.IsExecutableBlock(a) || syntaxFacts.IsMethodBody(a));
 
-            var candidates = GetUsedSymbols(semanticModel, location, container, cancellationToken);
+            var candidates = GetCollidableSymbols(semanticModel, location, container, cancellationToken);
             var filteredCandidates = filter != null ? candidates.Where(filter) : candidates;
 
             return GenerateUniqueName(baseName, filteredCandidates.Select(s => s.Name).Concat(usedNames));
         }
 
-        protected virtual IEnumerable<ISymbol> GetUsedSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
+        /// <summary>
+        /// Retrieves all symbols that could collide with a symbol at the specified location.
+        /// A symbol can possibly collide with the location if it is available to that location and/or
+        /// could cause a compiler error if its name is re-used at that location.
+        /// </summary>
+        protected virtual IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
             => semanticModel.LookupSymbols(location.SpanStart).Concat(semanticModel.GetExistingSymbols(container, cancellationToken));
 
         private SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames)
