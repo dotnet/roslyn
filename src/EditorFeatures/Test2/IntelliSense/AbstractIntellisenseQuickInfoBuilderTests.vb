@@ -3,16 +3,46 @@
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
+Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Adornments
+Imports Moq
+
+Imports VSQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <UseExportProvider>
     Public MustInherit Class AbstractIntellisenseQuickInfoBuilderTests
-        Protected Async Function GetQuickInfoItemAsync(workspaceDefinition As XElement, language As String) As Task(Of QuickInfoItem)
+        Protected Async Function GetQuickInfoItemAsync(quickInfoItem As QuickInfoItem) As Task(Of VSQuickInfoItem)
+            Dim workspaceDefinition =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            $$
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Using workspace = TestWorkspace.Create(workspaceDefinition)
+                Dim solution = workspace.CurrentSolution
+                Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
+                Dim cursorBuffer = cursorDocument.TextBuffer
+
+                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+
+                Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                    .DefaultValue = DefaultValue.Mock
+                }
+
+                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, quickInfoItem, cursorBuffer.CurrentSnapshot, document, CancellationToken.None)
+            End Using
+        End Function
+
+        Protected Async Function GetQuickInfoItemAsync(workspaceDefinition As XElement, language As String) As Task(Of VSQuickInfoItem)
             Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
@@ -24,7 +54,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim languageServiceProvider = workspace.Services.GetLanguageServices(language)
                 Dim quickInfoService = languageServiceProvider.GetRequiredService(Of QuickInfoService)
 
-                Return Await quickInfoService.GetQuickInfoAsync(document, cursorPosition, CancellationToken.None).ConfigureAwait(False)
+                Dim codeAnalysisQuickInfoItem = Await quickInfoService.GetQuickInfoAsync(document, cursorPosition, CancellationToken.None).ConfigureAwait(False)
+
+                Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                    .DefaultValue = DefaultValue.Mock
+                }
+
+                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, cursorBuffer.CurrentSnapshot, document, CancellationToken.None)
             End Using
         End Function
 

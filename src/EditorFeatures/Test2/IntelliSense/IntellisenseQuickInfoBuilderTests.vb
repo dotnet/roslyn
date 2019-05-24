@@ -1,17 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
-Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Adornments
-Imports Moq
 Imports QuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -63,11 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                 New TaggedText(TextTags.Punctuation, "."),
                                 New TaggedText(TextTags.Class, "IOException")))))
 
-            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
-                .DefaultValue = DefaultValue.Mock
-            }
-
-            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, Threading.CancellationToken.None)
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(codeAnalysisQuickInfoItem)
             Assert.NotNull(intellisenseQuickInfo)
 
             Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
@@ -157,11 +149,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                 New TaggedText(TextTags.Punctuation, "."),
                                 New TaggedText(TextTags.Class, "IOException")))))
 
-            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
-                .DefaultValue = DefaultValue.Mock
-            }
-
-            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, Threading.CancellationToken.None)
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(codeAnalysisQuickInfoItem)
             Assert.NotNull(intellisenseQuickInfo)
 
             Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
@@ -261,11 +249,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                 New TaggedText(TextTags.Punctuation, "."),
                                 New TaggedText(TextTags.Class, "IOException")))))
 
-            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
-                .DefaultValue = DefaultValue.Mock
-            }
-
-            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, Threading.CancellationToken.None)
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(codeAnalysisQuickInfoItem)
             Assert.NotNull(intellisenseQuickInfo)
 
             Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
@@ -352,13 +336,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>
 
-            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
-
-            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
-                .DefaultValue = DefaultValue.Mock
-            }
-
-            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
             Assert.NotNull(intellisenseQuickInfo)
 
             Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
@@ -442,13 +420,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>
 
-            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
-
-            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
-                .DefaultValue = DefaultValue.Mock
-            }
-
-            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
             Assert.NotNull(intellisenseQuickInfo)
 
             Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
@@ -496,13 +468,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>
 
-            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
-
-            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
-                .DefaultValue = DefaultValue.Mock
-            }
-
-            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
             Assert.NotNull(intellisenseQuickInfo)
 
             Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
@@ -550,13 +516,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>
 
-            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
-
-            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
-                .DefaultValue = DefaultValue.Mock
-            }
-
-            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
             Assert.NotNull(intellisenseQuickInfo)
 
             Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
@@ -594,13 +554,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>
 
-            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
-
-            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
-                .DefaultValue = DefaultValue.Mock
-            }
-
-            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
             Assert.NotNull(intellisenseQuickInfo)
 
             Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
@@ -643,13 +597,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>
 
-            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
-
-            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
-                .DefaultValue = DefaultValue.Mock
-            }
-
-            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
             Assert.NotNull(intellisenseQuickInfo)
 
             Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
@@ -693,13 +641,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>
 
-            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
-
-            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
-                .DefaultValue = DefaultValue.Mock
-            }
-
-            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
             Assert.NotNull(intellisenseQuickInfo)
 
             Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
