@@ -204,7 +204,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return;
             }
 
-            if (name == DocumentationCommentXmlNames.ParaElementName)
+            if (name == DocumentationCommentXmlNames.ParaElementName
+                || name == DocumentationCommentXmlNames.CodeElementName)
             {
                 state.MarkBeginOrEndPara();
             }
@@ -218,7 +219,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 AppendTextFromNode(state, childNode, compilation);
             }
 
-            if (name == DocumentationCommentXmlNames.ParaElementName)
+            if (name == DocumentationCommentXmlNames.ParaElementName
+                || name == DocumentationCommentXmlNames.CodeElementName)
             {
                 state.MarkBeginOrEndPara();
             }

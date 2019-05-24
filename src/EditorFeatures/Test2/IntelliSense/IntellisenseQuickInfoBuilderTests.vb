@@ -449,6 +449,105 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Sub InlineCodeElement()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.IO;
+                            using System.Threading;
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// This method returns &lt;c&gt;true&lt;/c&gt;.
+                                /// &lt;/summary&gt;
+                                bool MyMethod() {
+                                    return MyM$$ethod();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "bool"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "This method returns"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "true"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Sub BlockLevelCodeElement()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.IO;
+                            using System.Threading;
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// This method returns &lt;code&gt;true&lt;/code&gt;.
+                                /// &lt;/summary&gt;
+                                bool MyMethod() {
+                                    return MyM$$ethod();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "bool"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "This method returns"))),
+                New ClassifiedTextElement(
+                    New ClassifiedTextRun(ClassificationTypeNames.Text, "true")),
+                New ClassifiedTextElement(
+                    New ClassifiedTextRun(ClassificationTypeNames.Text, ".")))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
         Public Async Sub QuickInfoForParameterReference()
             Dim workspace =
