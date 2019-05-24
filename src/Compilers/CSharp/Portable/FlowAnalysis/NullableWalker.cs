@@ -2122,9 +2122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 slotBuilder.Free();
             }
-
-            static bool isNonNullConstant(BoundExpression expr)
-                => skipImplicitNullableConversions(expr).ConstantValue?.IsNull == false;
         }
 
         /// <summary>
