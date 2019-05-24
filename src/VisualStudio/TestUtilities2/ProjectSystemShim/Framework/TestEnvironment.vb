@@ -54,7 +54,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private ReadOnly _projectFilePaths As New List(Of String)
 
         Public ReadOnly Property ThreadingContext As IThreadingContext
-        Public ReadOnly Property ServiceProvider As MockServiceProvider
+        Public ReadOnly Property ServiceProvider As IServiceProvider
         Public ReadOnly Property ExportProvider As Composition.ExportProvider
 
         Public Sub New(Optional solutionIsFullyLoaded As Boolean = True)
@@ -104,11 +104,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Throw New NotImplementedException()
             End Function
         End Class
-
-        Public ReadOnly Property ThreadingContext As IThreadingContext
-        Public ReadOnly Property ServiceProvider As IServiceProvider
-        Public ReadOnly Property ExportProvider As Composition.ExportProvider
-
         Public ReadOnly Property Workspace As VisualStudioWorkspaceImpl
             Get
                 Return _workspace
