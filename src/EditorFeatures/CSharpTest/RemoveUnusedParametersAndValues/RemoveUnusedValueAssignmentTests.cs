@@ -6927,5 +6927,77 @@ public static class Program
     int M2() => 0;
 }", options: PreferUnusedLocal);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DoesNotUseLambdaFunctionParameterNameWithCSharpLessThan8_PreferUnused()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+class C
+{
+    int M()
+    {
+        int [|x|] = M2();
+        x = 2;
+        Action<int> myLambda = unused => { };
+
+        return x;
+    }
+
+    int M2() => 0;
+}",
+@"
+using System;
+class C
+{
+    int M()
+    {
+        int unused1 = M2();
+        int x = 2;
+        Action<int> myLambda = unused => { };
+
+        return x;
+    }
+
+    int M2() => 0;
+}", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task CanUseLambdaFunctionParameterNameWithCSharp8_PreferUnused()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+class C
+{
+    int M()
+    {
+        int [|x|] = M2();
+        x = 2;
+        Action<int> myLambda = unused => { };
+
+        return x;
+    }
+
+    int M2() => 0;
+}",
+@"
+using System;
+class C
+{
+    int M()
+    {
+        int unused = M2();
+        int x = 2;
+        Action<int> myLambda = unused => { };
+
+        return x;
+    }
+
+    int M2() => 0;
+}", options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
     }
 }

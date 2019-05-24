@@ -33,14 +33,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
             // E.g. symbols inside if statements / try catch statements.
-            // Walk through the enclosing block to find them, but avoid exploring local functions because
-            //     a) Visible local function symbols would be returned from LookupSymbols
-            //        (e.g. location is inside a local function or the local function method name).
-            //     b) Symbols declared inside a local function do not cause collisions with symbols declared outside the local function, so avoid considering them.
             var symbolsInBlock = semanticModel.GetExistingSymbols(container, cancellationToken,
-                descendInto: n => !n.IsKind(SyntaxKind.LocalFunctionStatement));
+                descendInto: n => ShouldDescendInto(n));
 
             return symbolsInBlock.Concat(visibleSymbols);
+
+            // Walk through the enclosing block symbols, but avoid exploring local functions
+            //     a) Visible symbols from the local function would be returned by LookupSymbols
+            //        (e.g. location is inside a local function, the local function method name).
+            //     b) Symbols declared inside the local function do not cause collisions with symbols declared outside them, so avoid considering those symbols.
+            // Exclude lambdas as well when the language version is C# 8 or higher because symbols declared inside no longer collide with outer variables.
+            bool ShouldDescendInto(SyntaxNode node)
+            {
+                var isLanguageVersionGreaterOrEqualToCSharp8 = (semanticModel.Compilation as CSharpCompilation)?.LanguageVersion >= LanguageVersion.CSharp8;
+                return isLanguageVersionGreaterOrEqualToCSharp8 ? !SyntaxFactsService.IsAnonymousOrLocalFunction(node) : !SyntaxFactsService.IsLocalFunctionStatement(node);
+            }
         }
 
         public bool SupportsImplicitInterfaceImplementation => true;

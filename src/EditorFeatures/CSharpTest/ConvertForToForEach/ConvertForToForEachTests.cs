@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertForToForEach;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
@@ -1437,6 +1438,74 @@ class C
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestDoesNotUseLambdaParameterWithCSharpLessThan8()
+        {
+            await TestInRegularAndScript1Async(
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+
+        Action<int> myLambda = v => { };
+    }
+}",
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v1|} in array)
+        {
+            Console.WriteLine(v1);
+        }
+
+        Action<int> myLambda = v => { };
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_3)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestUsesLambdaParameterNameInCSharp8()
+        {
+            await TestInRegularAndScript1Async(
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+
+        Action<int> myLambda = v => { };
+    }
+}",
+    @"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
+        }
+
+        Action<int> myLambda = v => { };
+    }
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp8)));
         }
     }
 }
