@@ -10085,7 +10085,7 @@ tryAgain:
 
             return false;
 
-            static bool isParenVarCommaSyntax()
+            bool isParenVarCommaSyntax()
             {
                 var next = this.PeekToken(1);
 
@@ -10181,7 +10181,7 @@ tryAgain:
                     }
                     if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
                     {
-                        this.EatToken();
+                        this.EatToken(); 
                     }
                     switch (this.CurrentToken.Kind)
                     {
