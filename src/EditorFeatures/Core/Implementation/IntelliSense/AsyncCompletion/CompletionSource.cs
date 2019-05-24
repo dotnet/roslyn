@@ -393,6 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 insertText: itemData.InsertionText,
                 sortText: roslynItem.SortText,
                 filterText: roslynItem.FilterText,
+                automationText: roslynItem.AutomationText ?? roslynItem.DisplayText,
                 attributeIcons: itemData.AttributeIcons);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
