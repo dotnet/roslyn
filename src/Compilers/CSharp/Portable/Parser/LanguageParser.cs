@@ -3838,27 +3838,18 @@ tryAgain:
                 type = null;
                 name = this.EatToken(SyntaxKind.ArgListKeyword);
             }
-            SyntaxToken exclamation;
-            SyntaxToken equals;
+            SyntaxToken exclamation = null;
+            SyntaxToken equals = null;
             if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
             {
                 exclamation = this.EatToken(SyntaxKind.ExclamationToken);
-                equals = null;
             }
             else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
             {
                 var notEq = this.EatToken(SyntaxKind.ExclamationEqualsToken);
                 equals = ConvertToMissingWithTrailingTrivia(notEq, SyntaxKind.EqualsToken);
                 equals = AddError(equals, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
-                //var notEq = this.EatToken();
                 exclamation = SyntaxFactory.MissingToken(SyntaxKind.ExclamationToken);
-                //notEq = AddLeadingSkippedSyntax(notEq, SyntaxFactory.MissingToken(SyntaxKind.WhitespaceTrivia));
-                //exclamation = this.AddError(exclamation, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
-            }
-            else
-            {
-                exclamation = null;
-                equals = null;
             }
             EqualsValueClauseSyntax def = null;
             if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
@@ -11291,7 +11282,7 @@ tryAgain:
                 if (peek1.Kind != SyntaxKind.CommaToken &&
                     peek1.Kind != SyntaxKind.CloseParenToken &&
                     peek1.Kind != SyntaxKind.EqualsGreaterThanToken &&
-                    peek1.Kind != SyntaxKind.OpenBraceToken && 
+                    peek1.Kind != SyntaxKind.OpenBraceToken &&
                     peek1.Kind != SyntaxKind.ExclamationToken)
                 {
                     return true;
