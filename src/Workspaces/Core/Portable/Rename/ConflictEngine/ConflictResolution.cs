@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -81,6 +82,16 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             _newSolution = _intermediateSolutionContainingOnlyModifiedDocuments;
+        }
+
+        internal void RenameDocumentToMatchSymbol(Document document, ISymbol symbol)
+        {
+            Debug.Assert(symbol.CanBeReferencedByName);
+            var extension = document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vs";
+
+            var documentName = $"{symbol.Name}{extension}";
+
+            _newSolution = _newSolution.WithDocumentName(document.Id, documentName);
         }
 
         /// <summary>

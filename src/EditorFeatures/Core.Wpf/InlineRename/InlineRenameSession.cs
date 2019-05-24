@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
@@ -26,7 +25,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using System.Windows.Documents;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -753,11 +751,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 if (_workspace.TryApplyChanges(finalSolution))
                 {
-                    // Since rename can apply file changes as well, if the final solution
-                    // has 
+                    // Since rename can apply file changes as well, and those file 
+                    // changes can generate new document ids, included added documents
+                    // as well as changed documents. This also ensures that any document
+                    // that was removed is not included
                     var finalChanges = _workspace.CurrentSolution.GetChanges(_baseSolution);
-                    var finalChangedIds =
-                        finalChanges
+
+                    var finalChangedIds = finalChanges
                             .GetProjectChanges()
                             .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
                             .ToList();
@@ -775,9 +775,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
         }
-
-        private static string GetNewFileName(Document document, string displayName)
-            => displayName + (document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb");
 
         internal bool TryGetContainingEditableSpan(SnapshotPoint point, out SnapshotSpan editableSpan)
         {
