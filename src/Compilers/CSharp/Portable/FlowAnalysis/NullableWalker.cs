@@ -2100,16 +2100,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            static BoundExpression skipImplicitNullableConversions(BoundExpression possiblyConversion)
-            {
-                while (possiblyConversion.Kind == BoundKind.Conversion &&
-                    possiblyConversion is BoundConversion { ConversionKind: ConversionKind.ImplicitNullable, Operand: var operand })
-                {
-                    possiblyConversion = operand;
-                }
-                return possiblyConversion;
-            }
-
             void splitAndLearnFromNonNullTest(BoundExpression operandComparedToNull, bool whenTrue)
             {
                 var slotBuilder = ArrayBuilder<int>.GetInstance();
