@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
-                    AdjustMethodForBaseInterfaceCall(rewrittenReceiver, getMethod),
+                    getMethod,
                     rewrittenArguments);
             }
         }

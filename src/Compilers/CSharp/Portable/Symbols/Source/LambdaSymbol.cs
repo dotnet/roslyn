@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return this.ReturnTypeWithAnnotations.HasType && this.ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return this.ReturnTypeWithAnnotations.HasType && this.ReturnType.IsVoidType(); }
         }
 
         public override RefKind RefKind
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDeclaredReadOnly => false;
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early) => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses() => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

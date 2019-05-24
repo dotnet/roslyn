@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private readonly SimpleTaskQueue _eventQueue;
             private readonly EventMap _eventMap;
 
+            // this is to reduce number of times we report progress on same file. this is purely for perf
+            private string _lastReportedFilePath;
+
             private int _count;
 
             public SolutionCrawlerProgressReporter(IAsynchronousOperationListener listener)
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            public event EventHandler<bool> ProgressChanged
+            public event EventHandler<ProgressData> ProgressChanged
             {
                 add
                 {
@@ -62,8 +65,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 if (Interlocked.Increment(ref _count) == 1)
                 {
+                    _lastReportedFilePath = null;
+
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportStart");
-                    return RaiseStarted().CompletesAsyncOperation(asyncToken);
+                    var progressData = new ProgressData(ProgressStatus.Started, filePathOpt: null);
+                    return RaiseEvent(nameof(ProgressChanged), progressData).CompletesAsyncOperation(asyncToken);
                 }
 
                 return Task.CompletedTask;
@@ -73,32 +79,45 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 if (Interlocked.Decrement(ref _count) == 0)
                 {
+                    _lastReportedFilePath = null;
+
                     var asyncToken = _listener.BeginAsyncOperation("ProgressReportStop");
-                    return RaiseStopped().CompletesAsyncOperation(asyncToken);
+                    var progressData = new ProgressData(ProgressStatus.Stoped, filePathOpt: null);
+                    return RaiseEvent(nameof(ProgressChanged), progressData).CompletesAsyncOperation(asyncToken);
                 }
 
                 return Task.CompletedTask;
             }
 
-            private Task RaiseStarted()
+            public Task Update(string filePath)
             {
-                return RaiseEvent(nameof(ProgressChanged), running: true);
+                if (_count > 0)
+                {
+                    if (_lastReportedFilePath == filePath)
+                    {
+                        // don't report same file multiple times
+                        return Task.CompletedTask;
+                    }
+
+                    _lastReportedFilePath = filePath;
+
+                    var asyncToken = _listener.BeginAsyncOperation("ProgressReportUpdate");
+                    var progressData = new ProgressData(ProgressStatus.Updated, filePath);
+                    return RaiseEvent(nameof(ProgressChanged), progressData).CompletesAsyncOperation(asyncToken);
+                }
+
+                return Task.CompletedTask;
             }
 
-            private Task RaiseStopped()
-            {
-                return RaiseEvent(nameof(ProgressChanged), running: false);
-            }
-
-            private Task RaiseEvent(string eventName, bool running)
+            private Task RaiseEvent(string eventName, ProgressData progressData)
             {
                 // this method name doesn't have Async since it should work as async void.
-                var ev = _eventMap.GetEventHandlers<EventHandler<bool>>(eventName);
+                var ev = _eventMap.GetEventHandlers<EventHandler<ProgressData>>(eventName);
                 if (ev.HasHandlers)
                 {
                     return _eventQueue.ScheduleTask(() =>
                     {
-                        ev.RaiseEvent(handler => handler(this, running));
+                        ev.RaiseEvent(handler => handler(this, progressData));
                     });
                 }
 
@@ -115,7 +134,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public bool InProgress => false;
 
-            public event EventHandler<bool> ProgressChanged
+            public event EventHandler<ProgressData> ProgressChanged
             {
                 add { }
                 remove { }

@@ -170,11 +170,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         return null;
                     }
 
-                    lock (_outputGuard)
-                    {
-                        _output.WriteLine(InteractiveHostResources.Attempt_to_connect_to_process_Sharp_0_failed_retrying, newProcessId);
-                    }
-
+                    WriteOutputInBackground(isError: false, string.Format(InteractiveHostResources.Attempt_to_connect_to_process_Sharp_0_failed_retrying, newProcessId));
                     cancellationToken.ThrowIfCancellationRequested();
                 }
 
@@ -221,11 +217,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             if (!alive)
             {
                 string errorString = process.StandardError.ReadToEnd();
-                lock (_errorOutputGuard)
-                {
-                    _errorOutput.WriteLine(InteractiveHostResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, hostPath, process.ExitCode);
-                    _errorOutput.WriteLine(errorString);
-                }
+
+                WriteOutputInBackground(
+                    isError: true,
+                    string.Format(InteractiveHostResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, hostPath, process.ExitCode),
+                    errorString);
             }
 
             return alive;
@@ -240,55 +236,50 @@ namespace Microsoft.CodeAnalysis.Interactive
         public void Dispose()
         {
             DisposeChannel();
-            SetOutput(TextWriter.Null);
-            SetErrorOutput(TextWriter.Null);
+
+            // Run this in background to avoid deadlocking with UIThread operations performing with active outputs.
+            Task.Run(() => SetOutputs(TextWriter.Null, TextWriter.Null));
+
             DisposeRemoteService(disposing: true);
             GC.SuppressFinalize(this);
         }
 
         private void DisposeRemoteService(bool disposing)
         {
-            if (_lazyRemoteService != null)
-            {
-                _lazyRemoteService.Dispose(disposing);
-                _lazyRemoteService = null;
-            }
+            Interlocked.Exchange(ref _lazyRemoteService, null)?.Dispose(disposing);
         }
 
         private void DisposeChannel()
         {
-            if (_serverChannel != null)
+            var serverChannel = Interlocked.Exchange(ref _serverChannel, null);
+            if (serverChannel != null)
             {
-                ChannelServices.UnregisterChannel(_serverChannel);
-                _serverChannel = null;
+                ChannelServices.UnregisterChannel(serverChannel);
             }
         }
 
-        public void SetOutput(TextWriter value)
+        public void SetOutputs(TextWriter output, TextWriter errorOutput)
         {
-            if (value == null)
+            if (output == null)
             {
-                throw new ArgumentNullException(nameof(value));
+                throw new ArgumentNullException(nameof(output));
+            }
+
+            if (errorOutput == null)
+            {
+                throw new ArgumentNullException(nameof(errorOutput));
             }
 
             lock (_outputGuard)
             {
                 _output.Flush();
-                _output = value;
-            }
-        }
-
-        public void SetErrorOutput(TextWriter value)
-        {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
+                _output = output;
             }
 
             lock (_errorOutputGuard)
             {
                 _errorOutput.Flush();
-                _errorOutput = value;
+                _errorOutput = errorOutput;
             }
         }
 
@@ -298,10 +289,33 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             var writer = error ? _errorOutput : _output;
             var guard = error ? _errorOutputGuard : _outputGuard;
+
             lock (guard)
             {
                 writer.Write(buffer, 0, count);
             }
+        }
+
+        private void WriteOutputInBackground(bool isError, string firstLine, string secondLine = null)
+        {
+            var writer = isError ? _errorOutput : _output;
+            var guard = isError ? _errorOutputGuard : _outputGuard;
+
+            // We cannot guarantee that writers can perform writing synchronously 
+            // without deadlocks with other operations.
+            // This could happen, for example, for writers provided by the Interactive Window,
+            // and in the case where the window is being disposed.
+            Task.Run(() =>
+            {
+                lock (guard)
+                {
+                    writer.WriteLine(firstLine);
+                    if (secondLine != null)
+                    {
+                        writer.WriteLine(secondLine);
+                    }
+                }
+            });
         }
 
         private LazyRemoteService CreateRemoteService(InteractiveHostOptions options, bool skipInitialization)
@@ -329,10 +343,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             if (exitCode.HasValue)
             {
-                lock (_errorOutputGuard)
-                {
-                    _errorOutput.WriteLine(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, exitCode.Value);
-                }
+                WriteOutputInBackground(isError: true, string.Format(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, exitCode.Value));
             }
         }
 
@@ -374,10 +385,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
                 }
 
-                lock (_errorOutputGuard)
-                {
-                    _errorOutput.WriteLine(InteractiveHostResources.Unable_to_create_hosting_process);
-                }
+                WriteOutputInBackground(isError: true, InteractiveHostResources.Unable_to_create_hosting_process);
             }
             catch (OperationCanceledException)
             {
