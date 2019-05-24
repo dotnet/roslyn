@@ -2041,7 +2041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorKind op = binary.OperatorKind.Operator();
 
-            // learn from non-null constant
+            // learn from non-null expression
             BoundExpression operandComparedToNonNull = null;
             if (leftType.IsNotNull && rightType.MayBeNull && binary.Right.ConstantValue?.IsNull != true)
             {
