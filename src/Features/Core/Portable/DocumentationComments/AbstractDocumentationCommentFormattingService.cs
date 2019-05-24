@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             internal readonly List<TaggedText> Builder = new List<TaggedText>();
             private readonly List<(DocumentationCommentListType type, int index, bool renderedItem)> _listStack = new List<(DocumentationCommentListType type, int index, bool renderedItem)>();
+            private readonly Stack<TaggedTextStyle> _styleStack = new Stack<TaggedTextStyle>();
+
+            public FormatterState()
+            {
+                _styleStack.Push(TaggedTextStyle.None);
+            }
 
             internal SemanticModel SemanticModel { get; set; }
             internal int Position { get; set; }
@@ -45,6 +51,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             public SymbolDisplayFormat Format { get; internal set; }
 
+            internal TaggedTextStyle Style => _styleStack.Peek();
+
             public void AppendSingleSpace()
             {
                 _pendingSingleSpace = true;
@@ -54,7 +62,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             {
                 EmitPendingChars();
 
-                Builder.Add(new TaggedText(TextTags.Text, s));
+                Builder.Add(new TaggedText(TextTags.Text, s, Style));
 
                 _anyNonWhitespaceSinceLastPara = true;
             }
@@ -105,6 +113,16 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
                 _listStack.RemoveAt(_listStack.Count - 1);
                 MarkBeginOrEndPara();
+            }
+
+            public void PushStyle(TaggedTextStyle style)
+            {
+                _styleStack.Push(_styleStack.Peek() | style);
+            }
+
+            public void PopStyle()
+            {
+                _styleStack.Pop();
             }
 
             public void MarkBeginOrEndPara()
@@ -253,6 +271,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var element = (XElement)node;
 
             var name = element.Name.LocalName;
+            var needPopStyle = false;
 
             if (name == DocumentationCommentXmlNames.SeeElementName ||
                 name == DocumentationCommentXmlNames.SeeAlsoElementName)
@@ -277,6 +296,28 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 }
 
                 return;
+            }
+            else if (name == DocumentationCommentXmlNames.CElementName
+                || name == DocumentationCommentXmlNames.CodeElementName
+                || name == "tt")
+            {
+                needPopStyle = true;
+                state.PushStyle(TaggedTextStyle.Code);
+            }
+            else if (name == "em" || name == "i")
+            {
+                needPopStyle = true;
+                state.PushStyle(TaggedTextStyle.Emphasis);
+            }
+            else if (name == "strong" || name == "b" || name == DocumentationCommentXmlNames.TermElementName)
+            {
+                needPopStyle = true;
+                state.PushStyle(TaggedTextStyle.Strong);
+            }
+            else if (name == "u")
+            {
+                needPopStyle = true;
+                state.PushStyle(TaggedTextStyle.Underline);
             }
 
             if (name == DocumentationCommentXmlNames.ListElementName)
@@ -335,6 +376,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 state.PopList();
             }
 
+            if (needPopStyle)
+            {
+                state.PopStyle();
+            }
+
             if (name == DocumentationCommentXmlNames.TermElementName)
             {
                 state.AppendSingleSpace();
@@ -348,14 +394,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             if (attributeNameToParse == attributeName)
             {
                 state.AppendParts(
-                    CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format, kind).ToTaggedText());
+                    CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format, kind).ToTaggedText(state.Style));
             }
             else
             {
                 var displayKind = attributeName == DocumentationCommentXmlNames.LangwordAttributeName
                     ? TextTags.Keyword
                     : TextTags.Text;
-                state.AppendParts(SpecializedCollections.SingletonEnumerable(new TaggedText(displayKind, attribute.Value)));
+                state.AppendParts(SpecializedCollections.SingletonEnumerable(new TaggedText(displayKind, attribute.Value, state.Style)));
             }
         }
 

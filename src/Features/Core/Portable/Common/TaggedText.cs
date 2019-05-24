@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,14 +27,31 @@ namespace Microsoft.CodeAnalysis
         public string Text { get; }
 
         /// <summary>
+        /// Gets the style(s) to apply to the text.
+        /// </summary>
+        internal TaggedTextStyle Style { get; }
+
+        /// <summary>
         /// Creates a new instance of <see cref="TaggedText"/>
         /// </summary>
         /// <param name="tag">A descriptive tag from <see cref="TextTags"/>.</param>
         /// <param name="text">The actual text to be displayed.</param>
         public TaggedText(string tag, string text)
+            : this(tag, text, TaggedTextStyle.None)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="TaggedText"/>
+        /// </summary>
+        /// <param name="tag">A descriptive tag from <see cref="TextTags"/>.</param>
+        /// <param name="text">The actual text to be displayed.</param>
+        /// <param name="style">The style(s) to apply to the text.</param>
+        internal TaggedText(string tag, string text, TaggedTextStyle style)
         {
             Tag = tag ?? throw new ArgumentNullException(nameof(tag));
             Text = text ?? throw new ArgumentNullException(nameof(text));
+            Style = style;
         }
 
         public override string ToString()
@@ -47,14 +63,17 @@ namespace Microsoft.CodeAnalysis
     internal static class TaggedTextExtensions
     {
         public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts)
+            => displayParts.ToTaggedText(TaggedTextStyle.None);
+
+        public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts, TaggedTextStyle style)
         {
             if (displayParts == null)
             {
                 return ImmutableArray<TaggedText>.Empty;
             }
 
-            return displayParts.Select(d =>
-                new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString())).ToImmutableArray();
+            return displayParts.SelectAsArray(d =>
+                new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString(), style));
         }
 
         public static string JoinText(this ImmutableArray<TaggedText> values)

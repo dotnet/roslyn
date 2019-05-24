@@ -188,7 +188,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim classifiedTextRun = TryCast(element, ClassifiedTextRun)
             If classifiedTextRun IsNot Nothing Then
                 Dim classification = GetKnownClassification(classifiedTextRun.ClassificationTypeName)
-                result.Append($"{classification}, ""{classifiedTextRun.Text.Replace("""", """""")}"")")
+                result.Append($"{classification}, ""{classifiedTextRun.Text.Replace("""", """""")}""")
+                If classifiedTextRun.Style <> ClassifiedTextRunStyle.Plain Then
+                    result.Append($", {TextRunStyleToString(classifiedTextRun.Style)}")
+                End If
+
+                result.Append(")")
                 Return
             End If
 

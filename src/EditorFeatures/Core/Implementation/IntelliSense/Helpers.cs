@@ -107,7 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 else
                 {
                     // This is tagged text getting added to the current line we are building.
-                    currentRuns.Add(new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text));
+                    var style = GetClassifiedTextRunStyle(part.Style);
+                    currentRuns.Add(new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text, style));
                 }
             }
 
@@ -124,6 +125,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             }
 
             return paragraphs;
+        }
+
+        private static ClassifiedTextRunStyle GetClassifiedTextRunStyle(TaggedTextStyle style)
+        {
+            var result = ClassifiedTextRunStyle.Plain;
+            if ((style & TaggedTextStyle.Emphasis) == TaggedTextStyle.Emphasis)
+            {
+                result |= ClassifiedTextRunStyle.Italic;
+            }
+
+            if ((style & TaggedTextStyle.Strong) == TaggedTextStyle.Strong)
+            {
+                result |= ClassifiedTextRunStyle.Bold;
+            }
+
+            if ((style & TaggedTextStyle.Underline) == TaggedTextStyle.Underline)
+            {
+                result |= ClassifiedTextRunStyle.Underline;
+            }
+
+            if ((style & TaggedTextStyle.Code) == TaggedTextStyle.Code)
+            {
+                result |= ClassifiedTextRunStyle.UseClassificationFont;
+            }
+
+            return result;
         }
 
         internal static object CreateParagraphFromLines(IReadOnlyList<object> lines)

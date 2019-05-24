@@ -29,7 +29,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+                testState.AssertShowing("C_MyEvent");
             }
         }
 
@@ -55,7 +55,7 @@ class D
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("Local_MyEvent;");
+                testState.AssertShowing("Local_MyEvent");
             }
         }
 
@@ -86,7 +86,7 @@ class E
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("Cfield_MyEvent;");
+                testState.AssertShowing("Cfield_MyEvent");
             }
         }
 
@@ -147,7 +147,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent1;");
+                testState.AssertShowing("C_MyEvent1");
             }
         }
 
@@ -173,7 +173,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent1;");
+                testState.AssertShowing("C_MyEvent1");
             }
         }
 
@@ -195,7 +195,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent1;");
+                testState.AssertShowing("C_MyEvent1");
             }
         }
 
@@ -217,7 +217,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+                testState.AssertShowing("C_MyEvent");
             }
         }
 
@@ -237,11 +237,11 @@ class C
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+                testState.AssertShowing("C_MyEvent");
 
                 testState.SendTypeChar(' ');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+                testState.AssertShowing("C_MyEvent");
             }
         }
 
@@ -261,7 +261,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+                testState.AssertShowing("C_MyEvent");
 
                 testState.SendTypeChar('d');
                 await testState.WaitForAsynchronousOperationsAsync();
@@ -285,7 +285,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+                testState.AssertShowing("C_MyEvent");
 
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
@@ -309,15 +309,15 @@ class C
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+                testState.AssertShowing("C_MyEvent");
 
                 testState.SendTypeChar(' ');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+                testState.AssertShowing("C_MyEvent");
 
                 testState.SendLeftKey();
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+                testState.AssertShowing("C_MyEvent");
 
                 testState.SendLeftKey();
                 await testState.WaitForAsynchronousOperationsAsync();
@@ -341,11 +341,11 @@ class C
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+                testState.AssertShowing("C_MyEvent");
 
                 testState.SendTypeChar(' ');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent;");
+                testState.AssertShowing("C_MyEvent");
 
                 testState.SendBackspace();
                 await testState.WaitForAsynchronousOperationsAsync();
@@ -764,7 +764,7 @@ public partial class C
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent1;");
+                testState.AssertShowing("C_MyEvent1");
             }
         }
 
@@ -788,7 +788,7 @@ class Program : Base
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("Console_CancelKeyPress1;");
+                testState.AssertShowing("Console_CancelKeyPress1");
             }
         }
 
@@ -809,7 +809,7 @@ class C
             {
                 testState.SendTypeChar('=');
                 await testState.WaitForAsynchronousOperationsAsync();
-                testState.AssertShowing("C_MyEvent1;");
+                testState.AssertShowing("C_MyEvent1");
             }
         }
 

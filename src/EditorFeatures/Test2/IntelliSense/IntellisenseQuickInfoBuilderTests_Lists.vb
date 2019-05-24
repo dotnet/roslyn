@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ContainerElement(
                             ContainerElementStyle.Stacked,
                             New ClassifiedTextElement(
-                                New ClassifiedTextRun(ClassificationTypeNames.Text, "word1"),
+                                New ClassifiedTextRun(ClassificationTypeNames.Text, "word1", ClassifiedTextRunStyle.Bold),
                                 New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                                 New ClassifiedTextRun(ClassificationTypeNames.Text, "–"),
                                 New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 1"))))),
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ContainerElement(
                         ContainerElementStyle.Stacked,
                         New ClassifiedTextElement(
-                            New ClassifiedTextRun(ClassificationTypeNames.Text, "word2"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "word2", ClassifiedTextRunStyle.Bold),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "–"),
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2")))))
@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ContainerElement(
                             ContainerElementStyle.Stacked,
                             New ClassifiedTextElement(
-                                New ClassifiedTextRun(ClassificationTypeNames.Text, "word1"),
+                                New ClassifiedTextRun(ClassificationTypeNames.Text, "word1", ClassifiedTextRunStyle.Bold),
                                 New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                                 New ClassifiedTextRun(ClassificationTypeNames.Text, "–"),
                                 New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 1"))))),
@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ContainerElement(
                         ContainerElementStyle.Stacked,
                         New ClassifiedTextElement(
-                            New ClassifiedTextRun(ClassificationTypeNames.Text, "word2"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Text, "word2", ClassifiedTextRunStyle.Bold),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "–"),
                             New ClassifiedTextRun(ClassificationTypeNames.Text, "Item 2")))))

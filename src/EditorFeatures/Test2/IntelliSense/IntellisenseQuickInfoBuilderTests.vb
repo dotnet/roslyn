@@ -491,7 +491,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "This method returns"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "true"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "true", ClassifiedTextRunStyle.UseClassificationFont),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
             AssertEqualAdornments(expected, container)
@@ -540,7 +540,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "This method returns"))),
                 New ClassifiedTextElement(
-                    New ClassifiedTextRun(ClassificationTypeNames.Text, "true")),
+                    New ClassifiedTextRun(ClassificationTypeNames.Text, "true", ClassifiedTextRunStyle.UseClassificationFont)),
                 New ClassifiedTextElement(
                     New ClassifiedTextRun(ClassificationTypeNames.Text, ".")))
 
