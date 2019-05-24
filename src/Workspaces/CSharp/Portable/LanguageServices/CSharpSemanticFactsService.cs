@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
             // E.g. symbols inside if statements / try catch statements.
-            // Walk through the enclosing block to find them, but make sure to exclude local functions because
-            //     a) Visible local function symbols would be returned from LookupSymbols (e.g. location is inside a local function).
-            //     b) Local function symbols are only in scope inside the local function.
-            //        Relevant ones (e.g. method name) would be returned by a).
+            // Walk through the enclosing block to find them, but avoid exploring local functions because
+            //     a) Visible local function symbols would be returned from LookupSymbols
+            //        (e.g. location is inside a local function or the local function method name).
+            //     b) Local function symbols are not affected by outer variables and do not contribute to the outer scope.
             var symbolsInBlock = semanticModel.GetExistingSymbols(container, cancellationToken,
-                                    filter: (SyntaxNode n) => !n.IsKind(SyntaxKind.LocalFunctionStatement));
+                descendInto: n => !n.IsKind(SyntaxKind.LocalFunctionStatement));
 
             return symbolsInBlock.Concat(visibleSymbols);
         }

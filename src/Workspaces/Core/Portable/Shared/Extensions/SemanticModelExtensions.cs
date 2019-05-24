@@ -234,17 +234,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IEnumerable<ISymbol> GetExistingSymbols(
-            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken, Func<SyntaxNode, bool> filter = null)
+            this SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken, Func<SyntaxNode, bool> descendInto = null)
         {
             // Ignore an anonymous type property or tuple field.  It's ok if they have a name that
             // matches the name of the local we're introducing.
-            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken, filter)
+            return semanticModel.GetAllDeclaredSymbols(container, cancellationToken, descendInto)
                 .Where(s => !s.IsAnonymousTypeProperty() && !s.IsTupleField());
         }
 
         private static void GetAllDeclaredSymbols(
             SemanticModel semanticModel, SyntaxNode node,
-            HashSet<ISymbol> symbols, CancellationToken cancellationToken, Func<SyntaxNode, bool> filter = null)
+            HashSet<ISymbol> symbols, CancellationToken cancellationToken, Func<SyntaxNode, bool> descendInto = null)
         {
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
 
@@ -258,14 +258,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 if (child.IsNode)
                 {
                     var childNode = child.AsNode();
-                    if (ApplyFilter(childNode, filter))
+                    if (ShouldDescendInto(childNode, descendInto))
                     {
-                        GetAllDeclaredSymbols(semanticModel, child.AsNode(), symbols, cancellationToken, filter);
+                        GetAllDeclaredSymbols(semanticModel, child.AsNode(), symbols, cancellationToken, descendInto);
                     }
                 }
             }
 
-            static bool ApplyFilter(SyntaxNode node, Func<SyntaxNode, bool> filter)
+            static bool ShouldDescendInto(SyntaxNode node, Func<SyntaxNode, bool> filter)
                 => filter != null ? filter(node) : true;
         }
     }
