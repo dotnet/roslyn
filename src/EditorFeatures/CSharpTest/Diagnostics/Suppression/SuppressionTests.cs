@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
             public class CompilerDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
             {
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return Tuple.Create<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
+                    return Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -199,7 +199,7 @@ class Class
                         var diagnosticService = new TestDiagnosticAnalyzerService(LanguageNames.CSharp, new CSharpCompilerDiagnosticAnalyzer());
                         var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);
                         var suppressionProvider = CreateDiagnosticProviderAndFixer(workspace).Item2;
-                        var suppressionProviderFactory = new Lazy<ISuppressionOrConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
+                        var suppressionProviderFactory = new Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
                             new CodeChangeProviderMetadata("SuppressionProvider", languages: new[] { LanguageNames.CSharp }));
                         var fixService = new CodeFixService(
                             workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
@@ -211,7 +211,7 @@ class Class
                         var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span);
                         Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
-                        var allFixes = (await fixService.GetFixesAsync(document, span, includeSuppressionAndConfigurationFixes: true, cancellationToken: CancellationToken.None))
+                        var allFixes = (await fixService.GetFixesAsync(document, span, includeConfigurationFixes: true, cancellationToken: CancellationToken.None))
                             .SelectMany(fixCollection => fixCollection.Fixes);
 
                         var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219");
@@ -422,9 +422,9 @@ C3 {{ }} // comment
 
             public class UserHiddenDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
             {
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -473,9 +473,9 @@ int Method()
                     }
                 }
 
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -535,9 +535,9 @@ class Class
                     }
                 }
 
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -600,9 +600,9 @@ class Class
                     }
                 }
 
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -652,9 +652,9 @@ using System;
                 }
             }
 
-            internal override Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+            internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             {
-                return new Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider>(
+                return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 
@@ -690,9 +690,9 @@ class Class
 
             public class CompilerDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
             {
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return Tuple.Create<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
+                    return Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -713,9 +713,9 @@ class Class
 
             public class UserHiddenDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
             {
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -800,9 +800,9 @@ class Class
                     }
                 }
 
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -1595,9 +1595,9 @@ class Class { }
                     }
                 }
 
-                internal override Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
                 {
-                    return new Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider>(
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                         new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
                 }
 
@@ -1874,9 +1874,9 @@ namespace N
                 }
             }
 
-            internal override Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+            internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             {
-                return new Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider>(
+                return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 

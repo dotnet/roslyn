@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return CreateWithCodeFixer(codeFixProvider);
             }
 
-            return CreateWithSuppressionFixer((ISuppressionOrConfigurationFixProvider)provider);
+            return CreateWithSuppressionFixer((IConfigurationFixProvider)provider);
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets an optional <see cref="FixAllProviderInfo"/> for the given suppression fix provider.
         /// </summary>
-        private static FixAllProviderInfo CreateWithSuppressionFixer(ISuppressionOrConfigurationFixProvider provider)
+        private static FixAllProviderInfo CreateWithSuppressionFixer(IConfigurationFixProvider provider)
         {
             var fixAllProvider = provider.GetFixAllProvider();
             if (fixAllProvider == null)
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             public SuppressionFixerFixAllProviderInfo(
                 FixAllProvider fixAllProvider,
-                ISuppressionOrConfigurationFixProvider suppressionFixer,
+                IConfigurationFixProvider suppressionFixer,
                 ImmutableArray<FixAllScope> supportedScopes)
                 : base(fixAllProvider, supportedScopes)
             {

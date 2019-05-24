@@ -9,7 +9,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal interface ISuppressionOrConfigurationFixProvider
+    /// <summary>
+    /// Provides suppression or configuration code fixes.
+    /// </summary>
+    internal interface IConfigurationFixProvider
     {
         /// <summary>
         /// Returns true if the given diagnostic can be configured, suppressed or unsuppressed by this provider.

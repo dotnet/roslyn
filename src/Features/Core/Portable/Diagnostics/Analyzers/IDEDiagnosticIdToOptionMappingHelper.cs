@@ -31,7 +31,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ? s_diagnosticIdToLanguageSpecificOptionsMap.GetOrAdd(languageOpt, _ => new ConcurrentDictionary<string, IOption>())
                 : s_diagnosticIdToOptionMap;
 
+            // Verify that the option is either being added for the first time, or the existing option is already the same.
+            // Latter can happen in tests as we re-instantiate the analyzer for every test, which attempts to add the mapping every time.
             Debug.Assert(!map.TryGetValue(diagnosticId, out var existingOption) || option == existingOption);
+
             map.TryAdd(diagnosticId, option);
         }
     }

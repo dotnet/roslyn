@@ -9,15 +9,24 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 {
-    [ExportSuppressionFixProvider(PredefinedCodeFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     [ExtensionOrder(Before = PredefinedCodeFixProviderNames.Suppression)]
-    internal sealed partial class ConfigureSeverityLevelCodeFixProvider : ISuppressionOrConfigurationFixProvider
+    internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
+        private static readonly ImmutableArray<(string name, string value)> s_editorConfigSeverityStrings =
+            ImmutableArray.Create(
+                (nameof(EditorConfigSeverityStrings.None), EditorConfigSeverityStrings.None),
+                (nameof(EditorConfigSeverityStrings.Silent), EditorConfigSeverityStrings.Silent),
+                (nameof(EditorConfigSeverityStrings.Suggestion), EditorConfigSeverityStrings.Suggestion),
+                (nameof(EditorConfigSeverityStrings.Warning), EditorConfigSeverityStrings.Warning),
+                (nameof(EditorConfigSeverityStrings.Error), EditorConfigSeverityStrings.Error));
+
+        // We only offer fix for configurable diagnostics.
+        // Also skip suppressed diagnostics defensively, though the code fix engine should ideally never call us for suppressed diagnostics.
         public bool IsFixableDiagnostic(Diagnostic diagnostic)
             => !diagnostic.IsSuppressed && !SuppressionHelpers.IsNotConfigurableDiagnostic(diagnostic);
 
@@ -32,38 +41,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 
         private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
-            var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
-                nestedActions.Add(
-                    new SolutionChangeAction(
-                        "None",
-                        solution => ConfigurationUpdater.ConfigureEditorConfig(EditorConfigSeverityStrings.None, diagnostic, project, cancellationToken)));
-                nestedActions.Add(
-                    new SolutionChangeAction(
-                        "Silent",
-                        solution => ConfigurationUpdater.ConfigureEditorConfig(EditorConfigSeverityStrings.Silent, diagnostic, project, cancellationToken)));
-                nestedActions.Add(
-                    new SolutionChangeAction(
-                        "Suggestion",
-                        solution => ConfigurationUpdater.ConfigureEditorConfig(EditorConfigSeverityStrings.Suggestion, diagnostic, project, cancellationToken)));
-                nestedActions.Add(
-                    new SolutionChangeAction(
-                        "Warning",
-                        solution => ConfigurationUpdater.ConfigureEditorConfig(EditorConfigSeverityStrings.Warning, diagnostic, project, cancellationToken)));
-                nestedActions.Add(
-                    new SolutionChangeAction(
-                        "Error",
-                        solution => ConfigurationUpdater.ConfigureEditorConfig(EditorConfigSeverityStrings.Error, diagnostic, project, cancellationToken)));
+                var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
+                foreach (var (name, value) in s_editorConfigSeverityStrings)
+                {
+                    nestedActions.Add(
+                        new SolutionChangeAction(name, solution => ConfigurationUpdater.ConfigureEditorConfig(value, diagnostic, project, cancellationToken)));
+                }
 
-                var codeAction = new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutable());
+                var codeAction = new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
                 result.Add(new CodeFix(project, codeAction, diagnostic));
-
-                nestedActions.Clear();
             }
 
-            nestedActions.Free();
             return result.ToImmutableAndFree();
         }
     }

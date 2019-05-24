@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         protected abstract TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions);
 
-        internal abstract Tuple<Analyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
+        internal abstract Tuple<Analyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
         protected Task TestPragmaAsync(string code, ParseOptions options, Func<string, bool> verifier)
         {

@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return TestAsync(initial, expected, parseOptions: null, index: CodeActionIndex);
         }
 
-        internal abstract Tuple<DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
+        internal abstract Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         {
-            return actions.SelectMany(a => a is AbstractTopLevelConfigurationOrSuppressionCodeAction
+            return actions.SelectMany(a => a is AbstractConfigurationActionWithNestedActions
                 ? a.NestedCodeActions
                 : ImmutableArray.Create(a)).ToImmutableArray();
         }

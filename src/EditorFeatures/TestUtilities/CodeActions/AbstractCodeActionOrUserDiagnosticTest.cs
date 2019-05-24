@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return;
 
             // Local functions.
-            void VerifyExpectedDocumentText(string expected, string actual)
+            static void VerifyExpectedDocumentText(string expected, string actual)
             {
                 if (expected == "")
                 {

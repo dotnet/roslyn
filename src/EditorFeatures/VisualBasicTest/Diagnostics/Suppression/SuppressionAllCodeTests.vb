@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Return TestWorkspace.CreateVisualBasic(definition, DirectCast(parseOptions, VisualBasicParseOptions))
         End Function
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of Analyzer, ISuppressionOrConfigurationFixProvider)
-            Return New Tuple(Of Analyzer, ISuppressionOrConfigurationFixProvider)(New Analyzer(), New VisualBasicSuppressionCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of Analyzer, IConfigurationFixProvider)
+            Return New Tuple(Of Analyzer, IConfigurationFixProvider)(New Analyzer(), New VisualBasicSuppressionCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>

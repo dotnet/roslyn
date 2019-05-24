@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 {
-    internal sealed partial class ConfigureSeverityLevelCodeFixProvider : ISuppressionOrConfigurationFixProvider
+    internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
         private sealed partial class ConfigurationUpdater
         {
@@ -57,14 +57,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             /// so that the severity of the given <paramref name="diagnostic"/> is configured to be the given
             /// <paramref name="severity"/>.
             /// </summary>
-            public static async Task<Solution> ConfigureEditorConfig(
+            public static Task<Solution> ConfigureEditorConfig(
                 string severity,
                 Diagnostic diagnostic,
                 Project project,
                 CancellationToken cancellationToken)
             {
                 var updater = new ConfigurationUpdater(severity, diagnostic, project, cancellationToken);
-                return await updater.Configure().ConfigureAwait(false);
+                return updater.Configure();
             }
 
             private async Task<Solution> Configure()
@@ -72,40 +72,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 var solution = _project.Solution;
 
                 // Find existing .editorconfig or generate a new one if none exists.
-                var editorConfigDocument = FindOrGenerateEditorConfig(ref solution);
+                var editorConfigDocument = FindOrGenerateEditorConfig(solution);
                 if (editorConfigDocument == null)
                 {
                     return solution;
                 }
 
-                var result = await editorConfigDocument.GetTextAsync(_cancellationToken).ConfigureAwait(false);
-                var headers = new Dictionary<string, TextLine>();
+                solution = editorConfigDocument.Project.Solution;
 
                 // For option based code style diagnostic, try to find the .editorconfig key-value pair for the
                 // option setting.
                 var (optionNameOpt, optionValueOpt) = FindEditorConfigOptionKeyValueForRule();
 
-                // Check if an entry to configure the rule severity already exists in the .editorconfig file.
-                // If it does, we update the existing entry with the new severity.
-                var configureExistingRuleText = CheckIfRuleExistsAndReplaceInFile(optionNameOpt, result, headers);
-                if (configureExistingRuleText != null)
-                {
-                    return solution.WithAnalyzerConfigDocumentText(editorConfigDocument.Id, configureExistingRuleText);
-                }
+                var headers = new Dictionary<string, TextLine>();
+                var originalText = await editorConfigDocument.GetTextAsync(_cancellationToken).ConfigureAwait(false);
 
-                // We did not find any existing entry in the in the .editorconfig file to configure rule severity.
-                // So we add a new configuration entry to the .editorconfig file.
-                var addMissingRuleText = AddMissingRule(optionNameOpt, optionValueOpt, result, headers);
-                if (addMissingRuleText != null)
-                {
-                    return solution.WithAnalyzerConfigDocumentText(editorConfigDocument.Id, addMissingRuleText);
-                }
+                // Compute the updated text for analyzer config document.
+                var newText = GetNewAnalyzerConfigDocumentText(originalText, headers, optionNameOpt, optionValueOpt);
 
-                // Bail out and return the old solution for error cases.
-                return solution;
+                return newText != null
+                    ? solution.WithAnalyzerConfigDocumentText(editorConfigDocument.Id, newText)
+                    : solution;
             }
 
-            private AnalyzerConfigDocument FindOrGenerateEditorConfig(ref Solution solution)
+            private AnalyzerConfigDocument FindOrGenerateEditorConfig(Solution solution)
             {
                 if (_project.AnalyzerConfigDocuments.Any())
                 {
@@ -149,8 +139,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 var newEditorConfigPath = PathUtilities.CombineAbsoluteAndRelativePaths(projectFilePath, ".editorconfig");
                 var id = DocumentId.CreateNewId(_project.Id);
                 var documentInfo = DocumentInfo.Create(id, ".editorconfig", filePath: newEditorConfigPath);
-                solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
-                return solution.GetProject(_project.Id).GetAnalyzerConfigDocument(id);
+                var newSolution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
+                return newSolution.GetProject(_project.Id).GetAnalyzerConfigDocument(id);
             }
 
             private (string optionName, string optionValue) FindEditorConfigOptionKeyValueForRule()
@@ -181,6 +171,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 }
 
                 return (null, null);
+            }
+
+            private SourceText GetNewAnalyzerConfigDocumentText(
+                SourceText originalText,
+                Dictionary<string, TextLine> headers,
+                string optionNameOpt,
+                string optionValueOpt)
+            {
+                // Check if an entry to configure the rule severity already exists in the .editorconfig file.
+                // If it does, we update the existing entry with the new severity.
+                var configureExistingRuleText = CheckIfRuleExistsAndReplaceInFile(optionNameOpt, originalText, headers);
+                if (configureExistingRuleText != null)
+                {
+                    return configureExistingRuleText;
+                }
+
+                // We did not find any existing entry in the in the .editorconfig file to configure rule severity.
+                // So we add a new configuration entry to the .editorconfig file.
+                return AddMissingRule(optionNameOpt, optionValueOpt, originalText, headers);
             }
 
             private SourceText CheckIfRuleExistsAndReplaceInFile(

@@ -48,8 +48,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
 
             Public Class CompilerDiagnosticSuppressionTests
                 Inherits VisualBasicPragmaWarningDisableSuppressionTests
-                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)
-                    Return Tuple.Create(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)(Nothing, New VisualBasicSuppressionCodeFixProvider())
+                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
+                    Return Tuple.Create(Of DiagnosticAnalyzer, IConfigurationFixProvider)(Nothing, New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
                 <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
@@ -595,8 +595,8 @@ Class C3 : End Class"
 
             Public Class UserHiddenDiagnosticSuppressionTests
                 Inherits VisualBasicPragmaWarningDisableSuppressionTests
-                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)
-                    Return New Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)(New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
+                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
+                    Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -638,8 +638,8 @@ End Class]]>
                     End Sub
                 End Class
 
-                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)
-                    Return New Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
+                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
+                    Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
 
@@ -712,8 +712,8 @@ End Class]]>
                     End Sub
                 End Class
 
-                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)
-                    Return New Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
+                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
+                    Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
                 <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
@@ -756,8 +756,8 @@ End Class]]>
                     End Sub
                 End Class
 
-                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)
-                    Return New Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
+                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
+                    Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
                 <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
@@ -820,8 +820,8 @@ End Class]]>
                     End Sub
                 End Class
 
-                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)
-                    Return New Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
+                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
+                    Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -875,8 +875,8 @@ End Class]]>
 
             Public Class CompilerDiagnosticSuppressionTests
                 Inherits VisualBasicGlobalSuppressMessageSuppressionTests
-                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)
-                    Return Tuple.Create(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)(Nothing, New VisualBasicSuppressionCodeFixProvider())
+                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
+                    Return Tuple.Create(Of DiagnosticAnalyzer, IConfigurationFixProvider)(Nothing, New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
 
@@ -897,8 +897,8 @@ End Class]]>
 
             Public Class UserHiddenDiagnosticSuppressionTests
                 Inherits VisualBasicGlobalSuppressMessageSuppressionTests
-                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)
-                    Return New Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)(New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
+                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
+                    Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -967,8 +967,8 @@ End Class]]>
                     End Sub
                 End Class
 
-                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)
-                    Return New Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
+                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
+                    Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1625,8 +1625,8 @@ End Class
                     End Sub
                 End Class
 
-                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)
-                    Return New Tuple(Of DiagnosticAnalyzer, ISuppressionOrConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
+                Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
+                    Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>

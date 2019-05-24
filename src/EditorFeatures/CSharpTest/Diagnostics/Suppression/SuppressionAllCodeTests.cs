@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
         protected override TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions)
             => TestWorkspace.CreateCSharp(definition, (CSharpParseOptions)parseOptions);
 
-        internal override Tuple<Analyzer, ISuppressionOrConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override Tuple<Analyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
-            return new Tuple<Analyzer, ISuppressionOrConfigurationFixProvider>(new Analyzer(), new CSharpSuppressionCodeFixProvider());
+            return new Tuple<Analyzer, IConfigurationFixProvider>(new Analyzer(), new CSharpSuppressionCodeFixProvider());
         }
 
         [WorkItem(956453, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]

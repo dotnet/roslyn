@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private static bool IsTopLevelSuppressionAction(CodeAction action)
-                => action is AbstractTopLevelConfigurationOrSuppressionCodeAction;
+                => action is AbstractConfigurationActionWithNestedActions;
 
             private void AddCodeActions(
                 Workspace workspace, IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map,
@@ -619,6 +619,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         codeAction: new SolutionChangeAction(EditorFeaturesWpfResources.Configure_or_Suppress_issues, createChangedSolution: _ => null),
                         nestedActionSets: suppressionSets.ToImmutable());
 
+                    // Combine the spans and the category of each of the nested suggested actions
+                    // to get the span and category for the new top level suggested action.
                     var (span, category) = CombineSpansAndCategory(suppressionSets);
                     var wrappingSet = new SuggestedActionSet(
                         category,
@@ -631,6 +633,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 suppressionSets.Free();
                 return sets;
+
+                // Local functions
+                static (Span? span, string category) CombineSpansAndCategory(IEnumerable<SuggestedActionSet> sets)
+                {
+                    // We are combining the spans and categories of the given set of suggested action sets
+                    // to generate a result span containing the spans of individual suggested action sets and
+                    // a result category which is the maximum severity category amongst the set
+                    int minStart = -1;
+                    int maxEnd = -1;
+                    string category = PredefinedSuggestedActionCategoryNames.CodeFix;
+
+                    foreach (var set in sets)
+                    {
+                        if (set.ApplicableToSpan.HasValue)
+                        {
+                            var currentStart = set.ApplicableToSpan.Value.Start;
+                            var currentEnd = set.ApplicableToSpan.Value.End;
+
+                            if (minStart == -1 || currentStart < minStart)
+                            {
+                                minStart = currentStart;
+                            }
+
+                            if (maxEnd == -1 || currentEnd > maxEnd)
+                            {
+                                maxEnd = currentEnd;
+                            }
+                        }
+
+                        Debug.Assert(set.CategoryName == PredefinedSuggestedActionCategoryNames.CodeFix ||
+                                     set.CategoryName == PredefinedSuggestedActionCategoryNames.ErrorFix);
+
+                        // If this set contains an error fix, then change the result category to ErrorFix
+                        if (set.CategoryName == PredefinedSuggestedActionCategoryNames.ErrorFix)
+                        {
+                            category = PredefinedSuggestedActionCategoryNames.ErrorFix;
+                        }
+                    }
+
+                    var combinedSpan = minStart >= 0 ? new Span(minStart, maxEnd) : (Span?)null;
+                    return (combinedSpan, category);
+                }
             }
 
             private static void AddSuggestedActionsSet(
@@ -647,42 +691,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var category = GetFixCategory(diag.Item1.Severity);
                     sets.Add(new SuggestedActionSet(category, group, priority: priority, applicableToSpan: diag.Item1.TextSpan.ToSpan()));
                 }
-            }
-
-            private static (Span? span, string category) CombineSpansAndCategory(IEnumerable<SuggestedActionSet> sets)
-            {
-                int minStart = -1;
-                int maxEnd = -1;
-                string category = PredefinedSuggestedActionCategoryNames.CodeFix;
-
-                foreach (var set in sets)
-                {
-                    if (set.ApplicableToSpan.HasValue)
-                    {
-                        var currentStart = set.ApplicableToSpan.Value.Start;
-                        var currentEnd = set.ApplicableToSpan.Value.End;
-
-                        if (minStart == -1 || currentStart < minStart)
-                        {
-                            minStart = currentStart;
-                        }
-
-                        if (maxEnd == -1 || currentEnd > maxEnd)
-                        {
-                            maxEnd = currentEnd;
-                        }
-                    }
-
-                    Debug.Assert(set.CategoryName == PredefinedSuggestedActionCategoryNames.CodeFix ||
-                                 set.CategoryName == PredefinedSuggestedActionCategoryNames.ErrorFix);
-                    if (set.CategoryName == PredefinedSuggestedActionCategoryNames.ErrorFix)
-                    {
-                        category = PredefinedSuggestedActionCategoryNames.ErrorFix;
-                    }
-                }
-
-                var combinedSpan = minStart >= 0 ? new Span(minStart, maxEnd) : (Span?)null;
-                return (combinedSpan, category);
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)

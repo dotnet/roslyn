@@ -5,9 +5,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 {
-    internal sealed partial class ConfigureSeverityLevelCodeFixProvider : ISuppressionOrConfigurationFixProvider
+    internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
-        private sealed class TopLevelConfigureSeverityCodeAction : AbstractTopLevelConfigurationOrSuppressionCodeAction
+        private sealed class TopLevelConfigureSeverityCodeAction : AbstractConfigurationActionWithNestedActions
         {
             public TopLevelConfigureSeverityCodeAction(Diagnostic diagnostic, ImmutableArray<CodeAction> nestedActions)
                 : base(nestedActions, string.Format(FeaturesResources.Configure_0_severity, diagnostic.Id))
