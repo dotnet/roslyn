@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CSharpEditorResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../CSharpEditorResources.resx">
     <body>
       <trans-unit id="Complete_statement_on_semicolon">
         <source>Complete statement on ;</source>
-        <target state="new">Complete statement on ;</target>
+        <target state="translated">完成陳述式於 ;</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_interpolated_verbatim_string">
@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
-        <target state="new">Misplaced using directive</target>
+        <target state="translated">using 指示詞位置錯誤</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Move_misplaced_using_directives">
         <source>Move misplaced using directives</source>
-        <target state="new">Move misplaced using directives</target>
+        <target state="translated">移動位置錯誤的 using 指示詞</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
@@ -39,17 +39,17 @@
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
         <source>Using directives must be placed inside of a namespace declaration</source>
-        <target state="new">Using directives must be placed inside of a namespace declaration</target>
+        <target state="translated">using 指示詞必須放在 namespace 宣告內</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
         <source>Using directives must be placed outside of a namespace declaration</source>
-        <target state="new">Using directives must be placed outside of a namespace declaration</target>
+        <target state="translated">using 指示詞必須放在 namespace 宣告外</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
         <source>Warning: Moving using directives may change code meaning.</source>
-        <target state="new">Warning: Moving using directives may change code meaning.</target>
+        <target state="translated">警告: 移動 using 指示詞可能會變更程式碼意義。</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>
