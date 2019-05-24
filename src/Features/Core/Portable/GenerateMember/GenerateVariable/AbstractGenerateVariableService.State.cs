@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         {
             public INamedTypeSymbol ContainingType { get; private set; }
             public INamedTypeSymbol TypeToGenerateIn { get; private set; }
+            public IMethodSymbol ContainingMethod { get; private set; }
             public bool IsStatic { get; private set; }
             public bool IsConstant { get; private set; }
             public bool IsIndexer { get; private set; }
@@ -133,7 +134,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
             internal bool CanGenerateLocal()
             {
+                // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
                 return !this.IsInMemberContext && this.IsInExecutableBlock;
+            }
+
+            internal bool CanGenerateParameter()
+            {
+                // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
+                return this.ContainingMethod != null && !this.IsInMemberContext && !this.IsConstant;
             }
 
             private bool TryInitializeExplicitInterface(
@@ -260,6 +268,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 this.IsInConstructor = DetermineIsInConstructor(semanticDocument);
                 this.IsInMemberContext = this.SimpleNameOpt != this.SimpleNameOrMemberAccessExpressionOpt ||
                                          syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(this.SimpleNameOrMemberAccessExpressionOpt);
+
+                this.ContainingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(this.IdentifierToken.SpanStart, cancellationToken);
 
                 CheckSurroundingContext(semanticDocument, SymbolKind.Field, cancellationToken);
                 CheckSurroundingContext(semanticDocument, SymbolKind.Property, cancellationToken);

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         [ImportingConstructor]
-        internal CommentUncommentSelectionCommandHandler(
+        public CommentUncommentSelectionCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {

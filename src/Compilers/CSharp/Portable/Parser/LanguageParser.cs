@@ -3443,12 +3443,6 @@ parse_member_name:;
                 else if (currentTokenIsSemicolon)
                 {
                     semicolon = EatAccessorSemicolon();
-
-                    if (accessorKind == SyntaxKind.AddAccessorDeclaration ||
-                        accessorKind == SyntaxKind.RemoveAccessorDeclaration)
-                    {
-                        semicolon = this.AddError(semicolon, ErrorCode.ERR_AddRemoveMustHaveBody);
-                    }
                 }
                 else
                 {
@@ -3958,7 +3952,7 @@ tryAgain:
 
             // If we got an explicitInterfaceOpt but not an identifier, then we're in the special
             // case for ERR_ExplicitEventFieldImpl (see ParseMemberName for details).
-            if (explicitInterfaceOpt != null && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken)
+            if (explicitInterfaceOpt != null && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
             {
                 Debug.Assert(typeParameterList == null, "Exit condition of ParseMemberName in this scenario");
 
@@ -3978,7 +3972,8 @@ tryAgain:
                     type,
                     explicitInterfaceOpt, //already has an appropriate error attached
                     missingIdentifier,
-                    missingAccessorList);
+                    missingAccessorList,
+                    semicolonToken: null);
             }
 
             SyntaxToken identifier;
@@ -4011,7 +4006,17 @@ tryAgain:
                 identifier = this.AddError(identifier, ErrorCode.ERR_UnexpectedGenericName);
             }
 
-            var accessorList = this.ParseAccessorList(isEvent: true);
+            AccessorListSyntax accessorList = null;
+            SyntaxToken semicolon = null;
+
+            if (explicitInterfaceOpt != null && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+            {
+                semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+            }
+            else
+            {
+                accessorList = this.ParseAccessorList(isEvent: true);
+            }
 
             var decl = _syntaxFactory.EventDeclaration(
                 attributes,
@@ -4020,7 +4025,8 @@ tryAgain:
                 type,
                 explicitInterfaceOpt,
                 identifier,
-                accessorList);
+                accessorList,
+                semicolon);
 
             decl = EatUnexpectedTrailingSemicolon(decl);
 
@@ -5642,7 +5648,7 @@ tryAgain:
                         separator = ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
                     }
 
-                    if (isEvent && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken)
+                    if (isEvent && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
                     {
                         // CS0071: If you're explicitly implementing an event field, you have to use the accessor form
                         //
@@ -5675,7 +5681,7 @@ tryAgain:
                             explicitInterfaceName,
                             AddError(separator, ErrorCode.ERR_ExplicitEventFieldImpl));
 
-                        if (separator.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia) && this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
+                        if (separator.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia))
                         {
                             Debug.Assert(beforeIdentifierPointSet);
                             Reset(ref beforeIdentifierPoint);
