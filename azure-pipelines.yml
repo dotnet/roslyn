@@ -170,8 +170,7 @@ jobs:
 
 - job: Linux_Test
   pool:
-   name: NetCorePublic-Pool
-   queue: BuildPool.Ubuntu.1604.amd64.Open
+    vmImage: 'Ubuntu-16.04'
   strategy:
     maxParallel: 2
     matrix:
