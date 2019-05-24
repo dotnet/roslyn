@@ -8663,11 +8663,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">自动实现的属性必须覆盖被覆盖属性的所有访问器。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">实例自动实现的属性内部接口不能具有初始值设定项。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
         <source>Structs without explicit constructors cannot contain members with initializers.</source>
         <target state="translated">没有显式构造函数的结构不能包含具有初始值设定项的成员。</target>

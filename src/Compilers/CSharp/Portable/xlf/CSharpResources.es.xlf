@@ -8658,11 +8658,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="translated">Las propiedades implementadas automáticamente deben invalidar todos los descriptores de acceso de la propiedad invalidada.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">Las propiedades implementadas automáticamente de la instancia dentro de las interfaces no pueden tener inicializadores.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
         <source>Structs without explicit constructors cannot contain members with initializers.</source>
         <target state="translated">Las estructuras sin constructores explícitos no pueden contener miembros con inicializadores.</target>

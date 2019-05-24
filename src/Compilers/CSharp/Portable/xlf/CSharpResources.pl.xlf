@@ -8658,11 +8658,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Automatycznie implementowane właściwości muszą przesłaniać wszystkie metody dostępu przesłanianej właściwości.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">Właściwości wystąpienia implementowane automatycznie w interfejsach nie mogą mieć inicjatorów.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
         <source>Structs without explicit constructors cannot contain members with initializers.</source>
         <target state="translated">Struktury bez jawnych konstruktorów nie mogą zawierać składowych z inicjatorami.</target>

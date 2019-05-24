@@ -8658,11 +8658,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">Propriedades autoimplementadas devem substituir todos os acessadores de propriedade substituída.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">As propriedades autoimplementadas de instâncias em interfaces não podem ter inicializadores.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
         <source>Structs without explicit constructors cannot contain members with initializers.</source>
         <target state="translated">Estruturas sem construtores explícitos não podem conter membros com inicializadores.</target>

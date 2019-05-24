@@ -8658,11 +8658,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">Otomatik uygulanan özellikler geçersiz kılınan özelliğin tüm erişicilerini geçersiz kılmalıdır.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">Arabirimlerin içinde örneğin otomatik olarak uygulanan özelliklerinin başlatıcıları olamaz.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
         <source>Structs without explicit constructors cannot contain members with initializers.</source>
         <target state="translated">Açık oluşturucuları olmayan yapı birimleri başlatıcıları olan üyeler içeremez.</target>
