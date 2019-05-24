@@ -7271,10 +7271,10 @@ class C<T> where T : struct? {}
         {
             UsingStatement(@"void M(string name!=null) { }", expectedErrors: new DiagnosticDescription[]
             { 
-                    // (1,19): error CS8712: There needs to be a space between the null-checking exclamation and the optional parameter's equals sign.
+                    // (1,19): error CS8712: Space required between explanation-point and equals-sign here.
                     // void M(string name!=null) { }
-                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!").WithLocation(1, 19) }
-            );
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 19)
+            });
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);

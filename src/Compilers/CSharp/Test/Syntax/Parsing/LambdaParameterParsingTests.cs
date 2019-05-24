@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -770,7 +771,15 @@ class C {
         [Fact]
         public void TestNullCheckedSingleParamNoSpaces()
         {
-            UsingDeclaration("Func<int, int> func1 = x!=>x;");
+            UsingDeclaration("Func<int, int> func1 = x!=>x;", expectedErrors: new DiagnosticDescription[] 
+            {
+                    // (1,25): error CS8712: Space required between explanation-point and equals-sign here.
+                    // Func<int, int> func1 = x!=>x;
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 25),
+                    // (1,27): error CS1525: Invalid expression term '>'
+                    // Func<int, int> func1 = x!=>x;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 27)
+            });
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -804,12 +813,19 @@ class C {
                         N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierToken, "x");
-                            N(SyntaxKind.ExclamationToken);
                         }
                         N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.GreaterThanExpression);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
                         }
                     }
                 }
@@ -1026,10 +1042,15 @@ class C {
         [Fact]
         public void TestNullCheckedNoParams()
         {
-            UsingDeclaration("Func<int> func1 = (!) => 42;", expectedErrors:
-                // (1,20): error CS1001: Identifier expected
-                // Func<int> func1 = (!) => 42;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 20));
+            UsingDeclaration("Func<int> func1 = (!) => 42;", expectedErrors: new DiagnosticDescription[]
+            {
+                    // (1,21): error CS1525: Invalid expression term ')'
+                    // Func<int> func1 = (!) => 42;
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 21),
+                    // (1,23): error CS1003: Syntax error, ',' expected
+                    // Func<int> func1 = (!) => 42;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 23)
+            });
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1053,18 +1074,18 @@ class C {
                 N(SyntaxKind.EqualsValueClause);
                 {
                     N(SyntaxKind.EqualsToken);
-                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    N(SyntaxKind.ParenthesizedExpression);
                     {
-                        N(SyntaxKind.ParameterList);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.LogicalNotExpression);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.ExclamationToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.NumericLiteralExpression);
-                        {
-                            N(SyntaxKind.NumericLiteralToken);
-                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
