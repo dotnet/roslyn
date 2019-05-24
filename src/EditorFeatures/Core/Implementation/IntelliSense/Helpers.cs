@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
     internal static class Helpers
     {
-        internal static IEnumerable<object> BuildClassifiedTextElements(ImmutableArray<TaggedText> taggedTexts, Document document, Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+        internal static IReadOnlyCollection<object> BuildInteractiveTextElements(ImmutableArray<TaggedText> taggedTexts, Document document, Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
             var index = 0;
-            return BuildClassifiedTextElements(taggedTexts, ref index, document, streamingPresenter);
+            return BuildInteractiveTextElements(taggedTexts, ref index, document, streamingPresenter);
         }
 
-        private static IReadOnlyCollection<object> BuildClassifiedTextElements(ImmutableArray<TaggedText> taggedTexts, ref int index, Document document, Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+        private static IReadOnlyCollection<object> BuildInteractiveTextElements(ImmutableArray<TaggedText> taggedTexts, ref int index, Document document, Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
             // This method produces a sequence of zero or more paragraphs
             var paragraphs = new List<object>();
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             // Each line is constructed from one or more inline elements
             var currentRuns = new List<ClassifiedTextRun>();
 
-            for (; index < taggedTexts.Length; index++)
+            while (index < taggedTexts.Length)
             {
                 var part = taggedTexts[index];
                 if (part.Tag == TextTags.ContainerStart)
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                     }
 
                     index++;
-                    var nestedElements = BuildClassifiedTextElements(taggedTexts, ref index, document, streamingPresenter);
+                    var nestedElements = BuildInteractiveTextElements(taggedTexts, ref index, document, streamingPresenter);
                     if (nestedElements.Count <= 1)
                     {
                         currentParagraph.Add(new ContainerElement(
@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                                     nestedElements.Skip(1)))));
                     }
 
+                    index++;
                     continue;
                 }
                 else if (part.Tag == TextTags.ContainerEnd)
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 if (part.Tag == TextTags.ContainerStart
                     || part.Tag == TextTags.ContainerEnd)
                 {
+                    index++;
                     continue;
                 }
 
@@ -123,6 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                         currentRuns.Add(new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text, style));
                     }
                 }
+
+                index++;
             }
 
             if (currentRuns.Count > 0)

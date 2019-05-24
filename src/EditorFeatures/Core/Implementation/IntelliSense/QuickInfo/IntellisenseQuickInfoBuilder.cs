@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (descSection != null)
             {
                 var isFirstElement = true;
-                foreach (var element in Helpers.BuildClassifiedTextElements(descSection.TaggedParts, document, streamingPresenter))
+                foreach (var element in Helpers.BuildInteractiveTextElements(descSection.TaggedParts, document, streamingPresenter))
                 {
                     if (isFirstElement)
                     {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (documentationCommentSection != null)
             {
                 var isFirstElement = true;
-                foreach (var element in Helpers.BuildClassifiedTextElements(documentationCommentSection.TaggedParts, document, streamingPresenter))
+                foreach (var element in Helpers.BuildInteractiveTextElements(documentationCommentSection.TaggedParts, document, streamingPresenter))
                 {
                     if (isFirstElement)
                     {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // Add the remaining sections as Stacked style
             elements.AddRange(
                 quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description && s.Kind != QuickInfoSectionKinds.DocumentationComments)
-                                      .SelectMany(s => Helpers.BuildClassifiedTextElements(s.TaggedParts, document, streamingPresenter)));
+                                      .SelectMany(s => Helpers.BuildInteractiveTextElements(s.TaggedParts, document, streamingPresenter)));
 
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any())

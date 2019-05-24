@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
-            var elements = IntelliSense.Helpers.BuildClassifiedTextElements(description.TaggedParts, document, _streamingPresenter).ToArray();
+            var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, document, _streamingPresenter).ToArray();
             if (elements.Length == 0)
             {
                 return new ClassifiedTextElement();

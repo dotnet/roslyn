@@ -30,8 +30,41 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             private static TaggedText s_newlinePart = new TaggedText(TextTags.LineBreak, "\r\n");
 
             internal readonly List<TaggedText> Builder = new List<TaggedText>();
+
+            /// <summary>
+            /// Defines the containing lists for the current formatting state. The last item in the list is the
+            /// innermost list.
+            ///
+            /// <list type="bullet">
+            /// <item>
+            /// <term><c>type</c></term>
+            /// <description>The type of list.</description>
+            /// </item>
+            /// <item>
+            /// <term><c>index</c></term>
+            /// <description>The index of the current item in the list.</description>
+            /// </item>
+            /// <item>
+            /// <term><c>renderedItem</c></term>
+            /// <description><see langword="true"/> if the label (a bullet or number) for the current list item has already been rendered; otherwise <see langword="false"/>.</description>
+            /// </item>
+            /// </list>
+            /// </summary>
             private readonly List<(DocumentationCommentListType type, int index, bool renderedItem)> _listStack = new List<(DocumentationCommentListType type, int index, bool renderedItem)>();
+
+            /// <summary>
+            /// The top item of the stack indicates the hyperlink to apply to text rendered at the current location. It
+            /// consists of a navigation <c>target</c> (the destination to navigate to when clicked) and a <c>hint</c>
+            /// (typically shown as a tooltip for the link). This stack is never empty; when no hyperlink applies to the
+            /// current scope, the top item of the stack will be a default tuple instance.
+            /// </summary>
             private readonly Stack<(string target, string hint)> _navigationTargetStack = new Stack<(string target, string hint)>();
+
+            /// <summary>
+            /// Tracks the style for text. The top item of the stack is the current style to apply (the merged result of
+            /// all containing styles). This stack is never empty; when no style applies to the current scope, the top
+            /// item of the stack will be <see cref="TaggedTextStyle.None"/>.
+            /// </summary>
             private readonly Stack<TaggedTextStyle> _styleStack = new Stack<TaggedTextStyle>();
 
             public FormatterState()
@@ -81,10 +114,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             public void PushList(DocumentationCommentListType listType)
             {
-                _listStack.Add((listType, 0, false));
+                _listStack.Add((listType, index: 0, renderedItem: false));
                 MarkBeginOrEndPara();
             }
 
+            /// <summary>
+            /// Marks the start of an item in a list; called before each item.
+            /// </summary>
             public void NextListItem()
             {
                 if (_listStack.Count == 0)
@@ -95,10 +131,12 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 var (type, index, renderedItem) = _listStack[_listStack.Count - 1];
                 if (renderedItem)
                 {
+                    // Mark the end of the previous list item
                     Builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
                 }
 
-                _listStack[_listStack.Count - 1] = (type, index + 1, false);
+                // The next list item has an incremented index, and has not yet been rendered to Builder.
+                _listStack[_listStack.Count - 1] = (type, index + 1, renderedItem: false);
                 MarkLineBreak();
             }
 

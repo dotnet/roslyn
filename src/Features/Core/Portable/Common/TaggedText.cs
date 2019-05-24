@@ -108,14 +108,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             static string GetNavigationHint(ISymbol symbol)
-            {
-                if (symbol is null)
-                {
-                    return null;
-                }
-
-                return symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-            }
+                => symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         }
 
         public static string JoinText(this ImmutableArray<TaggedText> values)
