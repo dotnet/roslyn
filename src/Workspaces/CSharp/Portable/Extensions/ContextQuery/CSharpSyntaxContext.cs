@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // - or it maybe a start of a range expression like numericExpression..anotherNumericExpression (starting C# 8.0) 
             // Therefore, in the scenario, we want the completion to be __soft selected__ until user types the next character after the dot.
             // If the second dot was typed, we just insert two dots.
-            var isRightSideOfNumericType = IsRightSideOfNumericType(leftToken, semanticModel, cancellationToken);
+            var isRightSideOfNumericType = leftToken.IsNumericTypeContext(semanticModel, cancellationToken);
 
             return new CSharpSyntaxContext(
                 workspace: workspace,
@@ -343,17 +343,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
-        }
-
-        private static bool IsRightSideOfNumericType(SyntaxToken leftToken, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            if (!(leftToken.Parent is MemberAccessExpressionSyntax memberAccessExpression))
-            {
-                return false;
-            }
-
-            var typeInfo = semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken);
-            return typeInfo.Type.IsNumericType();
         }
 
         internal override ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace()
