@@ -294,15 +294,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             var service = document.GetLanguageService<CompletionService>();
-
             if (service == null)
             {
                 return null;
             }
 
+            var navigateToLinkService = document.Project.Solution.Workspace.Services.GetRequiredService<INavigateToLinkService>();
+
             var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
-            var elements = IntelliSense.Helpers.BuildClassifiedTextElements(description.TaggedParts).ToArray();
+            var elements = IntelliSense.Helpers.BuildClassifiedTextElements(description.TaggedParts, navigateToLinkService).ToArray();
             if (elements.Length == 0)
             {
                 return new ClassifiedTextElement();

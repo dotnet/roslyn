@@ -32,12 +32,18 @@ namespace Microsoft.CodeAnalysis
         internal TaggedTextStyle Style { get; }
 
         /// <summary>
+        /// Gets the navigation target for the text, or <see langword="null"/> if the text does not have a navigation
+        /// target.
+        /// </summary>
+        internal string NavigationTarget { get; }
+
+        /// <summary>
         /// Creates a new instance of <see cref="TaggedText"/>
         /// </summary>
         /// <param name="tag">A descriptive tag from <see cref="TextTags"/>.</param>
         /// <param name="text">The actual text to be displayed.</param>
         public TaggedText(string tag, string text)
-            : this(tag, text, TaggedTextStyle.None)
+            : this(tag, text, TaggedTextStyle.None, navigationTarget: null)
         {
         }
 
@@ -47,11 +53,13 @@ namespace Microsoft.CodeAnalysis
         /// <param name="tag">A descriptive tag from <see cref="TextTags"/>.</param>
         /// <param name="text">The actual text to be displayed.</param>
         /// <param name="style">The style(s) to apply to the text.</param>
-        internal TaggedText(string tag, string text, TaggedTextStyle style)
+        /// <param name="navigationTarget">The navigation target for the text, or <see langword="null"/> if the text does not have a navigation target.</param>
+        internal TaggedText(string tag, string text, TaggedTextStyle style, string navigationTarget)
         {
             Tag = tag ?? throw new ArgumentNullException(nameof(tag));
             Text = text ?? throw new ArgumentNullException(nameof(text));
             Style = style;
+            NavigationTarget = navigationTarget;
         }
 
         public override string ToString()
@@ -73,7 +81,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return displayParts.SelectAsArray(d =>
-                new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString(), style));
+                new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString(), style, navigationTarget: null));
         }
 
         public static string JoinText(this ImmutableArray<TaggedText> values)

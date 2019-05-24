@@ -189,6 +189,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If classifiedTextRun IsNot Nothing Then
                 Dim classification = GetKnownClassification(classifiedTextRun.ClassificationTypeName)
                 result.Append($"{classification}, ""{classifiedTextRun.Text.Replace("""", """""")}""")
+                If classifiedTextRun.NavigationAction IsNot Nothing OrElse Not String.IsNullOrEmpty(classifiedTextRun.Tooltip) Then
+                    Dim tooltip = If(classifiedTextRun.Tooltip IsNot Nothing, $"""{classifiedTextRun.Tooltip.Replace("""", """""")}""", "Nothing")
+                    result.Append($", navigationAction:=Sub() Return, {tooltip}")
+                End If
+
                 If classifiedTextRun.Style <> ClassifiedTextRunStyle.Plain Then
                     result.Append($", {TextRunStyleToString(classifiedTextRun.Style)}")
                 End If

@@ -43,10 +43,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             var elements = new List<object>();
             var descSection = quickInfoItem.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.Description);
+            var navigateToLinkService = document.Project.Solution.Workspace.Services.GetRequiredService<INavigateToLinkService>();
             if (descSection != null)
             {
                 var isFirstElement = true;
-                foreach (var element in Helpers.BuildClassifiedTextElements(descSection.TaggedParts))
+                foreach (var element in Helpers.BuildClassifiedTextElements(descSection.TaggedParts, navigateToLinkService))
                 {
                     if (isFirstElement)
                     {
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (documentationCommentSection != null)
             {
                 var isFirstElement = true;
-                foreach (var element in Helpers.BuildClassifiedTextElements(documentationCommentSection.TaggedParts))
+                foreach (var element in Helpers.BuildClassifiedTextElements(documentationCommentSection.TaggedParts, navigateToLinkService))
                 {
                     if (isFirstElement)
                     {
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // Add the remaining sections as Stacked style
             elements.AddRange(
                 quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description && s.Kind != QuickInfoSectionKinds.DocumentationComments)
-                                      .SelectMany(s => Helpers.BuildClassifiedTextElements(s.TaggedParts)));
+                                      .SelectMany(s => Helpers.BuildClassifiedTextElements(s.TaggedParts, navigateToLinkService)));
 
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any())
