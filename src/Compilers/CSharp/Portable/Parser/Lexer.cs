@@ -2851,11 +2851,6 @@ top:
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.EqualsEqualsToken;
                     }
-                    if (TextWindow.PeekChar() == '>')
-                    {
-                        TextWindow.AdvanceChar();
-                        info.Kind = SyntaxKind.EqualsGreaterThanToken;
-                    }
                     else
                     {
                         info.Kind = SyntaxKind.EqualsToken;
