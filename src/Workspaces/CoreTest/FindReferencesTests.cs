@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Markup;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -30,6 +31,25 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     .AddProject(pid, "goo", "goo", LanguageNames.CSharp)
                     .AddMetadataReference(pid, MscorlibRef)
                     .AddDocument(did, "goo.cs", SourceText.From(sourceText));
+        }
+
+        private Solution GetMultipleDocumentSolution(string[] sourceTexts)
+        {
+            var pid = ProjectId.CreateNewId();
+
+            var solution = CreateSolution()
+                    .AddProject(pid, "goo", "goo", LanguageNames.CSharp)
+                    .AddMetadataReference(pid, MscorlibRef);
+
+            int docCounter = 1;
+
+            foreach (var sourceText in sourceTexts)
+            {
+                var did = DocumentId.CreateNewId(pid);
+                solution = solution.AddDocument(did, $"goo{docCounter++}.cs", SourceText.From(sourceText));
+            }
+
+            return solution;
         }
 
         [Fact]
@@ -308,6 +328,44 @@ namespace N2
             var references = (await SymbolFinder.FindReferencesAsync(interfaceMethod, solution)).ToList();
             Assert.Equal(2, references.Count);
             Assert.True(references.Any(r => r.DefinitionAndProjectId.ProjectId == desktopProject.Id));
+        }
+
+        [Fact, WorkItem(35786, "https://github.com/dotnet/roslyn/issues/35786")]
+        public async Task FindReferences_MultipleInterfaceInheritence()
+        {
+            var implText = @"namespace A
+{
+    class C : ITest
+    {
+        public string Name { get; }
+        public int Id { get; }
+    }
+}";
+
+            var interface1Text = @"namespace A
+{
+    interface ITest : ITestBase
+    {
+        string Name { get; }
+    }
+}";
+
+            var interface2Text = @"namespace A
+{
+    interface ITestBase
+    {
+        int Id { get; }
+    }
+}";
+
+            var solution = GetMultipleDocumentSolution(new[] { implText, interface1Text, interface2Text });
+
+            var project = solution.Projects.Single();
+            var compilation = await project.GetCompilationAsync();
+            var nameProperty = compilation.GetTypeByMetadataName("A.C").GetMembers("Name").Single();
+
+            var references = await SymbolFinder.FindReferencesAsync(nameProperty, solution);
+            Assert.Equal(1, references.Count());
         }
 
         [WorkItem(4936, "https://github.com/dotnet/roslyn/issues/4936")]
