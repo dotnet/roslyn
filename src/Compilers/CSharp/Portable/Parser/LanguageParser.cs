@@ -10055,14 +10055,16 @@ tryAgain:
             //  case 2:  ( x ) =>
             if (IsTrueIdentifier(this.PeekToken(1)))
             {
-                if (this.PeekToken(2).Kind == SyntaxKind.CloseParenToken
-                   && this.PeekToken(3).Kind == SyntaxKind.EqualsGreaterThanToken)
+                // allow for       a) =>      or     a!) =>
+                var skipIndex = 2;
+                if (PeekToken(skipIndex).Kind == SyntaxKind.ExclamationToken)
                 {
-                    return true;
+                    skipIndex++;
                 }
-                if (this.PeekToken(2).Kind == SyntaxKind.ExclamationToken
-                    && this.PeekToken(3).Kind == SyntaxKind.CloseParenToken
-                    && this.PeekToken(4).Kind == SyntaxKind.EqualsGreaterThanToken)
+
+                // Must have:     ) => 
+                if (this.PeekToken(skipIndex + 1).Kind == SyntaxKind.CloseParenToken
+                    && this.PeekToken(skipIndex + 2).Kind == SyntaxKind.EqualsGreaterThanToken)
                 {
                     return true;
                 }
@@ -10181,7 +10183,7 @@ tryAgain:
                     }
                     if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
                     {
-                        this.EatToken(); 
+                        this.EatToken();
                     }
                     switch (this.CurrentToken.Kind)
                     {
