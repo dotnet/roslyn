@@ -47,9 +47,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod()"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
                     New ContainerElement(
@@ -110,9 +110,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod()"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
                     New ContainerElement(
@@ -169,9 +169,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod()"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
                     New ContainerElement(
@@ -234,9 +234,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod()"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
                     New ContainerElement(
@@ -313,9 +313,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextElement(
                             New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass", navigationAction:=Sub() Return, "MyClass"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod", navigationAction:=Sub() Return, "void MyClass.MyMethod()"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
                     New ContainerElement(

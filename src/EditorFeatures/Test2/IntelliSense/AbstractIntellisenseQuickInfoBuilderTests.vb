@@ -3,6 +3,7 @@
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.QuickInfo
@@ -38,7 +39,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     .DefaultValue = DefaultValue.Mock
                 }
 
-                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, quickInfoItem, cursorBuffer.CurrentSnapshot, document, CancellationToken.None)
+                Dim streamingPresenter = workspace.ExportProvider.GetExport(Of IStreamingFindUsagesPresenter)()
+                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, quickInfoItem, cursorBuffer.CurrentSnapshot, document, streamingPresenter, CancellationToken.None)
             End Using
         End Function
 
@@ -60,7 +62,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     .DefaultValue = DefaultValue.Mock
                 }
 
-                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, cursorBuffer.CurrentSnapshot, document, CancellationToken.None)
+                Dim streamingPresenter = workspace.ExportProvider.GetExport(Of IStreamingFindUsagesPresenter)()
+                Return Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, cursorBuffer.CurrentSnapshot, document, streamingPresenter, CancellationToken.None)
             End Using
         End Function
 

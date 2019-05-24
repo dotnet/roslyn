@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             internal readonly List<TaggedText> Builder = new List<TaggedText>();
             private readonly List<(DocumentationCommentListType type, int index, bool renderedItem)> _listStack = new List<(DocumentationCommentListType type, int index, bool renderedItem)>();
-            private readonly Stack<string> _navigationTargetStack = new Stack<string>();
+            private readonly Stack<(string target, string hint)> _navigationTargetStack = new Stack<(string target, string hint)>();
             private readonly Stack<TaggedTextStyle> _styleStack = new Stack<TaggedTextStyle>();
 
             public FormatterState()
             {
-                _navigationTargetStack.Push(null);
+                _navigationTargetStack.Push(default);
                 _styleStack.Push(TaggedTextStyle.None);
             }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             public SymbolDisplayFormat Format { get; internal set; }
 
-            internal string NavigationTarget => _navigationTargetStack.Peek();
+            internal (string target, string hint) NavigationTarget => _navigationTargetStack.Peek();
             internal TaggedTextStyle Style => _styleStack.Peek();
 
             public void AppendSingleSpace()
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             {
                 EmitPendingChars();
 
-                Builder.Add(new TaggedText(TextTags.Text, s, Style, NavigationTarget));
+                Builder.Add(new TaggedText(TextTags.Text, s, Style, NavigationTarget.target, NavigationTarget.hint));
 
                 _anyNonWhitespaceSinceLastPara = true;
             }
@@ -118,9 +118,9 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 MarkBeginOrEndPara();
             }
 
-            public void PushNavigationTarget(string navigationTarget)
+            public void PushNavigationTarget(string target, string hint)
             {
-                _navigationTargetStack.Push(navigationTarget);
+                _navigationTargetStack.Push((target, hint));
             }
 
             public void PopNavigationTarget()
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             var name = element.Name.LocalName;
             var needPopStyle = false;
-            string navigationTarget = null;
+            (string target, string hint)? navigationTarget = null;
 
             if (name == DocumentationCommentXmlNames.SeeElementName ||
                 name == DocumentationCommentXmlNames.SeeAlsoElementName ||
@@ -302,10 +302,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 }
                 else
                 {
-                    navigationTarget = GetNavigationTarget(element);
+                    navigationTarget = GetNavigationTarget(element, state.SemanticModel, state.Position, state.Format);
                     if (navigationTarget is object)
                     {
-                        state.PushNavigationTarget(navigationTarget);
+                        state.PushNavigationTarget(navigationTarget.Value.target, navigationTarget.Value.hint);
                     }
                 }
             }
@@ -416,12 +416,25 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
         }
 
-        private static string GetNavigationTarget(XElement element)
+        private static (string target, string hint)? GetNavigationTarget(XElement element, SemanticModel semanticModel, int position, SymbolDisplayFormat format)
         {
+            var crefAttribute = element.Attribute(DocumentationCommentXmlNames.CrefAttributeName);
+            if (crefAttribute is object)
+            {
+                if (semanticModel is object)
+                {
+                    var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(crefAttribute.Value, semanticModel.Compilation);
+                    if (symbol is object)
+                    {
+                        return (target: SymbolKey.ToString(symbol), hint: symbol.ToMinimalDisplayString(semanticModel, position, format ?? SymbolDisplayFormat.MinimallyQualifiedFormat));
+                    }
+                }
+            }
+
             var hrefAttribute = element.Attribute(DocumentationCommentXmlNames.HrefAttributeName);
             if (hrefAttribute is object)
             {
-                return hrefAttribute.Value;
+                return (target: hrefAttribute.Value, hint: hrefAttribute.Value);
             }
 
             return null;
@@ -445,7 +458,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 var navigationTarget = attributeName == DocumentationCommentXmlNames.HrefAttributeName
                     ? attribute.Value
                     : null;
-                state.AppendParts(SpecializedCollections.SingletonEnumerable(new TaggedText(displayKind, text, style, navigationTarget)));
+                var navigationHint = navigationTarget;
+                state.AppendParts(SpecializedCollections.SingletonEnumerable(new TaggedText(displayKind, text, style, navigationTarget, navigationHint)));
             }
         }
 

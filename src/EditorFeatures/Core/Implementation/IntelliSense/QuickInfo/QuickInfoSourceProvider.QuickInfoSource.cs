@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -21,10 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         private class QuickInfoSource : IAsyncQuickInfoSource
         {
             private readonly ITextBuffer _subjectBuffer;
+            private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
-            public QuickInfoSource(ITextBuffer subjectBuffer)
+            public QuickInfoSource(ITextBuffer subjectBuffer, Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
             {
                 _subjectBuffer = subjectBuffer;
+                _streamingPresenter = streamingPresenter;
             }
 
             public async Task<IntellisenseQuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                         {
                             var textVersion = snapshot.Version;
                             var trackingSpan = textVersion.CreateTrackingSpan(item.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-                            return await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan, item, snapshot, document, cancellationToken).ConfigureAwait(false);
+                            return await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan, item, snapshot, document, _streamingPresenter, cancellationToken).ConfigureAwait(false);
                         }
 
                         return null;

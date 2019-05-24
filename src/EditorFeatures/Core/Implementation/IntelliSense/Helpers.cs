@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.GoToDefinition;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 
@@ -13,13 +15,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
     internal static class Helpers
     {
-        internal static IEnumerable<object> BuildClassifiedTextElements(ImmutableArray<TaggedText> taggedTexts, INavigateToLinkService navigateToLinkService)
+        internal static IEnumerable<object> BuildClassifiedTextElements(ImmutableArray<TaggedText> taggedTexts, Document document, Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
             var index = 0;
-            return BuildClassifiedTextElements(taggedTexts, ref index, navigateToLinkService);
+            return BuildClassifiedTextElements(taggedTexts, ref index, document, streamingPresenter);
         }
 
-        private static IReadOnlyCollection<object> BuildClassifiedTextElements(ImmutableArray<TaggedText> taggedTexts, ref int index, INavigateToLinkService navigateToLinkService)
+        private static IReadOnlyCollection<object> BuildClassifiedTextElements(ImmutableArray<TaggedText> taggedTexts, ref int index, Document document, Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
             // This method produces a sequence of zero or more paragraphs
             var paragraphs = new List<object>();
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                     }
 
                     index++;
-                    var nestedElements = BuildClassifiedTextElements(taggedTexts, ref index, navigateToLinkService);
+                    var nestedElements = BuildClassifiedTextElements(taggedTexts, ref index, document, streamingPresenter);
                     if (nestedElements.Count <= 1)
                     {
                         currentParagraph.Add(new ContainerElement(
@@ -112,8 +114,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                     var style = GetClassifiedTextRunStyle(part.Style);
                     if (part.NavigationTarget is object)
                     {
-                        var tooltip = part.NavigationTarget;
-                        currentRuns.Add(new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text, () => NavigateToQuickInfoTarget(tooltip, navigateToLinkService), tooltip, style));
+                        var target = part.NavigationTarget;
+                        var tooltip = part.NavigationHint;
+                        currentRuns.Add(new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text, () => NavigateToQuickInfoTarget(target, document, streamingPresenter.Value), tooltip, style));
                     }
                     else
                     {
@@ -137,11 +140,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             return paragraphs;
         }
 
-        private static void NavigateToQuickInfoTarget(string navigationTarget, INavigateToLinkService navigateToLinkService)
+        private static void NavigateToQuickInfoTarget(string navigationTarget, Document document, IStreamingFindUsagesPresenter streamingPresenter)
         {
+            var navigateToLinkService = document.Project.Solution.Workspace.Services.GetRequiredService<INavigateToLinkService>();
             if (Uri.TryCreate(navigationTarget, UriKind.Absolute, out var absoluteUri))
             {
                 navigateToLinkService.TryNavigateToLinkAsync(absoluteUri, CancellationToken.None);
+                return;
+            }
+
+            SymbolKeyResolution resolvedSymbolKey;
+            try
+            {
+                resolvedSymbolKey = SymbolKey.Resolve(navigationTarget, document.Project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None);
+            }
+            catch
+            {
+                // Ignore symbol resolution failures. It likely is just a badly formed URI.
+                return;
+            }
+
+            if (resolvedSymbolKey.GetAnySymbol() is { } symbol)
+            {
+                GoToDefinitionHelpers.TryGoToDefinition(symbol, document.Project, streamingPresenter, CancellationToken.None);
                 return;
             }
         }
