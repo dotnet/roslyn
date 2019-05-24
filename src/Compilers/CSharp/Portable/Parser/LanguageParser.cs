@@ -3838,11 +3838,12 @@ tryAgain:
                 type = null;
                 name = this.EatToken(SyntaxKind.ArgListKeyword);
             }
-            SyntaxToken exclamation = null;
-            SyntaxToken equals = null;
+            SyntaxToken exclamation;
+            SyntaxToken equals;
             if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
             {
                 exclamation = this.EatToken(SyntaxKind.ExclamationToken);
+                equals = null;
             }
             else if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken)
             {
@@ -3851,6 +3852,11 @@ tryAgain:
                 equals = new SyntaxToken(SyntaxKind.EqualsToken);
                 notEq = AddLeadingSkippedSyntax(notEq, SyntaxFactory.MissingToken(SyntaxKind.WhitespaceTrivia));
                 exclamation = this.AddError(exclamation, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
+            }
+            else
+            {
+                exclamation = null;
+                equals = null;
             }
             EqualsValueClauseSyntax def = null;
             if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
@@ -9561,13 +9567,12 @@ tryAgain:
                 {
                     return true;
                 }
-                SyntaxKind token2 = this.PeekToken(2).Kind;
-                if (token1 == SyntaxKind.ExclamationToken && token2 == SyntaxKind.EqualsGreaterThanToken)
+                if (token1 == SyntaxKind.ExclamationToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
                 {
                     return true;
                 }
                 if (token1 == SyntaxKind.ExclamationToken 
-                    && token2 == SyntaxKind.CloseParenToken
+                    && this.PeekToken(2).Kind == SyntaxKind.CloseParenToken
                     && this.PeekToken(3).Kind == SyntaxKind.EqualsGreaterThanToken)
                 {
                     return true;
@@ -10081,15 +10086,6 @@ tryAgain:
             // This case is interesting in that it is not legal; this error could be caught at parse time but we would rather
             // recover from the error and let the semantic analyzer deal with it.
             if (this.PeekToken(1).Kind == SyntaxKind.ParamsKeyword)
-            {
-                return true;
-            }
-
-            // Case 5: ( ! ) 
-            // As with case four, this is not legal but will be caught later, as it is a variation on case 3 and should be treated
-            // similarly.
-            if (this.PeekToken(1).Kind == SyntaxKind.ExclamationToken
-                && this.PeekToken(2).Kind == SyntaxKind.CloseParenToken)
             {
                 return true;
             }
