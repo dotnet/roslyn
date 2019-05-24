@@ -11,6 +11,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal abstract class AbstractDocumentationCommentFormattingService : IDocumentationCommentFormattingService
     {
+        private enum DocumentationCommentListType
+        {
+            None,
+            Bullet,
+            Number,
+            Table,
+        }
+
         private class FormatterState
         {
             private bool _anyNonWhitespaceSinceLastPara;
@@ -22,6 +30,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             private static TaggedText s_newlinePart = new TaggedText(TextTags.LineBreak, "\r\n");
 
             internal readonly List<TaggedText> Builder = new List<TaggedText>();
+            private readonly List<(DocumentationCommentListType type, int index, bool renderedItem)> _listStack = new List<(DocumentationCommentListType type, int index, bool renderedItem)>();
 
             internal SemanticModel SemanticModel { get; set; }
             internal int Position { get; set; }
@@ -57,6 +66,45 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 Builder.AddRange(parts);
 
                 _anyNonWhitespaceSinceLastPara = true;
+            }
+
+            public void PushList(DocumentationCommentListType listType)
+            {
+                _listStack.Add((listType, 0, false));
+                MarkBeginOrEndPara();
+            }
+
+            public void NextListItem()
+            {
+                if (_listStack.Count == 0)
+                {
+                    return;
+                }
+
+                var (type, index, renderedItem) = _listStack[_listStack.Count - 1];
+                if (renderedItem)
+                {
+                    Builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+                }
+
+                _listStack[_listStack.Count - 1] = (type, index + 1, false);
+                MarkLineBreak();
+            }
+
+            public void PopList()
+            {
+                if (_listStack.Count == 0)
+                {
+                    return;
+                }
+
+                if (_listStack[_listStack.Count - 1].renderedItem)
+                {
+                    Builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+                }
+
+                _listStack.RemoveAt(_listStack.Count - 1);
+                MarkBeginOrEndPara();
             }
 
             public void MarkBeginOrEndPara()
@@ -120,6 +168,33 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 _pendingParagraphBreak = false;
                 _pendingLineBreak = false;
                 _pendingSingleSpace = false;
+
+                for (var i = 0; i < _listStack.Count; i++)
+                {
+                    if (_listStack[i].renderedItem)
+                    {
+                        continue;
+                    }
+
+                    switch (_listStack[i].type)
+                    {
+                        case DocumentationCommentListType.Bullet:
+                            Builder.Add(new TaggedText(TextTags.ContainerStart, "• "));
+                            break;
+
+                        case DocumentationCommentListType.Number:
+                            Builder.Add(new TaggedText(TextTags.ContainerStart, $"{_listStack[i].index}. "));
+                            break;
+
+                        case DocumentationCommentListType.Table:
+                        case DocumentationCommentListType.None:
+                        default:
+                            Builder.Add(new TaggedText(TextTags.ContainerStart, string.Empty));
+                            break;
+                    }
+
+                    _listStack[i] = (_listStack[i].type, _listStack[i].index, renderedItem: true);
+                }
             }
         }
 
@@ -204,6 +279,36 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return;
             }
 
+            if (name == DocumentationCommentXmlNames.ListElementName)
+            {
+                var rawListType = element.Attribute(DocumentationCommentXmlNames.TypeAttributeName)?.Value;
+                DocumentationCommentListType listType;
+                switch (rawListType)
+                {
+                    case "table":
+                        listType = DocumentationCommentListType.Table;
+                        break;
+
+                    case "number":
+                        listType = DocumentationCommentListType.Number;
+                        break;
+
+                    case "bullet":
+                        listType = DocumentationCommentListType.Bullet;
+                        break;
+
+                    default:
+                        listType = DocumentationCommentListType.None;
+                        break;
+                }
+
+                state.PushList(listType);
+            }
+            else if (name == DocumentationCommentXmlNames.ItemElementName)
+            {
+                state.NextListItem();
+            }
+
             if (name == DocumentationCommentXmlNames.ParaElementName
                 || name == DocumentationCommentXmlNames.CodeElementName)
             {
@@ -223,6 +328,17 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 || name == DocumentationCommentXmlNames.CodeElementName)
             {
                 state.MarkBeginOrEndPara();
+            }
+
+            if (name == DocumentationCommentXmlNames.ListElementName)
+            {
+                state.PopList();
+            }
+
+            if (name == DocumentationCommentXmlNames.TermElementName)
+            {
+                state.AppendSingleSpace();
+                state.AppendString("–");
             }
         }
 

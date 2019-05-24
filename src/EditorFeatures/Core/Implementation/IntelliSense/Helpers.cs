@@ -2,6 +2,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 
@@ -11,17 +13,69 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
     {
         internal static IEnumerable<object> BuildClassifiedTextElements(ImmutableArray<TaggedText> taggedTexts)
         {
+            var index = 0;
+            return BuildClassifiedTextElements(taggedTexts, ref index);
+        }
+
+        private static IReadOnlyCollection<object> BuildClassifiedTextElements(ImmutableArray<TaggedText> taggedTexts, ref int index)
+        {
             // This method produces a sequence of zero or more paragraphs
             var paragraphs = new List<object>();
 
             // Each paragraph is constructed from one or more lines
-            var currentParagraph = new List<ClassifiedTextElement>();
+            var currentParagraph = new List<object>();
 
             // Each line is constructed from one or more inline elements
             var currentRuns = new List<ClassifiedTextRun>();
 
-            foreach (var part in taggedTexts)
+            for (; index < taggedTexts.Length; index++)
             {
+                var part = taggedTexts[index];
+                if (part.Tag == TextTags.ContainerStart)
+                {
+                    if (currentRuns.Count > 0)
+                    {
+                        // This line break means the end of a line within a paragraph.
+                        currentParagraph.Add(new ClassifiedTextElement(currentRuns));
+                        currentRuns.Clear();
+                    }
+
+                    index++;
+                    var nestedElements = BuildClassifiedTextElements(taggedTexts, ref index);
+                    if (nestedElements.Count <= 1)
+                    {
+                        currentParagraph.Add(new ContainerElement(
+                            ContainerElementStyle.Wrapped,
+                            new ClassifiedTextElement(new ClassifiedTextRun(ClassificationTypeNames.Text, part.Text)),
+                            new ContainerElement(ContainerElementStyle.Stacked, nestedElements)));
+                    }
+                    else
+                    {
+                        currentParagraph.Add(new ContainerElement(
+                            ContainerElementStyle.Wrapped,
+                            new ClassifiedTextElement(new ClassifiedTextRun(ClassificationTypeNames.Text, part.Text)),
+                            new ContainerElement(
+                                ContainerElementStyle.Stacked,
+                                nestedElements.First(),
+                                new ContainerElement(
+                                    ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
+                                    nestedElements.Skip(1)))));
+                    }
+
+                    continue;
+                }
+                else if (part.Tag == TextTags.ContainerEnd)
+                {
+                    // Return the current result and let the caller continue
+                    break;
+                }
+
+                if (part.Tag == TextTags.ContainerStart
+                    || part.Tag == TextTags.ContainerEnd)
+                {
+                    continue;
+                }
+
                 if (part.Tag == TextTags.LineBreak)
                 {
                     if (currentRuns.Count > 0)
@@ -72,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             return paragraphs;
         }
 
-        internal static object CreateParagraphFromLines(IReadOnlyList<ClassifiedTextElement> lines)
+        internal static object CreateParagraphFromLines(IReadOnlyList<object> lines)
         {
             Contract.ThrowIfFalse(lines.Count > 0);
 

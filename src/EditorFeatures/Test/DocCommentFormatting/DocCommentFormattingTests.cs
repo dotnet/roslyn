@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
         </item>
         </list>";
 
-            var expected = @"Here is an example of a bulleted list: Item 1. Item 2.";
+            var expected = "Here is an example of a bulleted list:\r\n\r\n• Item 1.\r\n• Item 2.";
 
             TestFormat(comment, expected);
         }

@@ -39,5 +39,7 @@ namespace Microsoft.CodeAnalysis
         public const string EnumMember = nameof(EnumMember);
         public const string ExtensionMethod = nameof(ExtensionMethod);
         public const string Constant = nameof(Constant);
+        internal const string ContainerStart = nameof(ContainerStart);
+        internal const string ContainerEnd = nameof(ContainerEnd);
     }
 }
