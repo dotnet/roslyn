@@ -9574,6 +9574,7 @@ tryAgain:
             {
                 return true;
             }
+
             return false;
         }
 
@@ -10055,7 +10056,7 @@ tryAgain:
             if (IsTrueIdentifier(this.PeekToken(1)))
             {
                 if (this.PeekToken(2).Kind == SyntaxKind.CloseParenToken
-                && this.PeekToken(3).Kind == SyntaxKind.EqualsGreaterThanToken)
+                   && this.PeekToken(3).Kind == SyntaxKind.EqualsGreaterThanToken)
                 {
                     return true;
                 }
@@ -10084,7 +10085,7 @@ tryAgain:
 
             return false;
 
-            bool isParenVarCommaSyntax()
+            static bool isParenVarCommaSyntax()
             {
                 var next = this.PeekToken(1);
 
@@ -10178,7 +10179,10 @@ tryAgain:
                         // eat the identifier
                         this.EatToken();
                     }
-
+                    if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+                    {
+                        this.EatToken();
+                    }
                     switch (this.CurrentToken.Kind)
                     {
                         case SyntaxKind.EndOfFileToken:
@@ -10189,15 +10193,7 @@ tryAgain:
                             {
                                 return true;
                             }
-
                             continue;
-                        case SyntaxKind.ExclamationToken:
-                            SyntaxKind t1k = this.PeekToken(1).Kind;
-                            if (t1k == SyntaxKind.CommaToken)
-                                return true;
-                            if (t1k == SyntaxKind.CloseParenToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
-                                return true;
-                            return false;
                         case SyntaxKind.CloseParenToken:
                             return this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken;
 

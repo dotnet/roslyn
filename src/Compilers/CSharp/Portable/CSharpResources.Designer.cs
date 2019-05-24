@@ -7171,7 +7171,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Space required between explanation-point and equals-sign here..
+        ///   Looks up a localized string similar to Space required between &apos;!&apos; and &apos;=&apos; here..
         /// </summary>
         internal static string ERR_NeedSpaceBetweenExclamationAndEquals {
             get {

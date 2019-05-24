@@ -263,8 +263,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NeedSpaceBetweenExclamationAndEquals">
-        <source>Space required between explanation-point and equals-sign here.</source>
-        <target state="new">Space required between explanation-point and equals-sign here.</target>
+        <source>Space required between '!' and '=' here.</source>
+        <target state="new">Space required between '!' and '=' here.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
