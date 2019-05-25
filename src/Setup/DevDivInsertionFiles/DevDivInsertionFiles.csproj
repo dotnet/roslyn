@@ -201,7 +201,7 @@
     Write a list of assembly names and versions that the insertion tool uses to update assembly versions in DevDiv.
   -->
   <Target Name="_GenerateDependentAssemblyVersions" 
-          AfterTargets="Build" 
+          BeforeTargets="AfterBuild"
           DependsOnTargets="_CalculateDependenciesToInsert"
           Inputs="$(MSBuildAllProjects)"
           Outputs="$(_DependentAssemblyVersionsFile)">
@@ -225,7 +225,7 @@
     Copy NuGet packages to be inserted into VS by the insertion tool.
   -->
   <Target Name="_CopyPackagesToInsert"
-          AfterTargets="Build"
+          BeforeTargets="AfterBuild"
           Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true'"
           DependsOnTargets="_CalculateDependenciesToInsert;_UnpackDependencies;ApplyOptimizations">
 
