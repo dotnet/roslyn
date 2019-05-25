@@ -145,6 +145,11 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;VsdConfigOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
+    <ProjectReference Include="..\CodeLens\Microsoft.VisualStudio.LanguageServices.CodeLens.csproj" >
+      <Name>CodeAnalysisCodeLensVisualStudio</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj">
       <Name>ServicesVisualStudioImpl</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>

@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="expressionIfNothing">
         <source>&lt;expressionIfNothing&gt;</source>
-        <target state="translated">&lt;espressioneIfNothing&gt;</target>
+        <target state="translated">&lt;expressionIfNothing&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type">
@@ -134,12 +134,12 @@
       </trans-unit>
       <trans-unit id="stringName">
         <source>&lt;stringName&gt;</source>
-        <target state="translated">&lt;nomeStringa&gt;</target>
+        <target state="translated">&lt;stringName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="startIndex">
         <source>&lt;startIndex&gt;</source>
-        <target state="translated">&lt;indiceIniziale&gt;</target>
+        <target state="translated">&lt;startIndex&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="length">
@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse">
         <source>If &lt;condition&gt; returns True, the function calculates and returns &lt;expressionIfTrue&gt;. Otherwise, it returns &lt;expressionIfFalse&gt;.</source>
-        <target state="translated">Se &lt;condizione&gt; restituisce True, la funzione calcola e restituisce &lt;espressioneIfTrue&gt;. In caso contrario, restituisce &lt;espressioneIfFalse&gt;.</target>
+        <target state="translated">Se &lt;condition&gt; restituisce True, la funzione calcola e restituisce &lt;expressionIfTrue&gt;. In caso contrario, restituisce &lt;expressionIfFalse&gt;.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_expression_to_evaluate">
@@ -199,12 +199,12 @@
       </trans-unit>
       <trans-unit id="expressionIfTrue">
         <source>&lt;expressionIfTrue&gt;</source>
-        <target state="translated">&lt;espressioneIfTrue&gt;</target>
+        <target state="translated">&lt;expressionIfTrue&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="expressionIfFalse">
         <source>&lt;expressionIfFalse&gt;</source>
-        <target state="translated">&lt;espressioneIfFalse&gt;</target>
+        <target state="translated">&lt;expressionIfFalse&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for">
@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="typeOrMember">
         <source>&lt;typeOrMember&gt;</source>
-        <target state="translated">&lt;tipoOMembro&gt;</target>
+        <target state="translated">&lt;typeOrMember&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="The_type_of_member_to_return_the_name_of">

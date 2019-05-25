@@ -58,6 +58,7 @@
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.VisualBasic.Features.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
+    <Asset Type="Microsoft.VisualStudio.CodeLensComponent" d:Source="File" Path="Microsoft.VisualStudio.LanguageServices.CodeLens.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.Debugger.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.dll" />
   </Assets>
