@@ -2805,8 +2805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numArguments; i++)
             {
-                (ParameterSymbol parameter, _, _) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
-                FlowAnalysisAnnotations annotations = parameter is null ? FlowAnalysisAnnotations.None : GetAnnotations(parameter);
+                (ParameterSymbol parameter, _, FlowAnalysisAnnotations annotations) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
 
                 annotations = removeInapplicableAnnotations(parameter, annotations);
 
