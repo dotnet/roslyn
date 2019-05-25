@@ -6,7 +6,7 @@
   -->
   <PropertyGroup>
     <VersionPrefix>3.2.0</VersionPrefix>
-    <PreReleaseVersionLabel>beta2</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
     <SemanticVersioningV1>true</SemanticVersioningV1>
     <!-- 
       By default the assembly version in official builds is "$(VersionPrefix).0".
