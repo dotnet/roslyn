@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         [ImportingConstructor]
-        private PeekableItemFactory(IMetadataAsSourceFileService metadataAsSourceFileService)
+        public PeekableItemFactory(IMetadataAsSourceFileService metadataAsSourceFileService)
         {
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }

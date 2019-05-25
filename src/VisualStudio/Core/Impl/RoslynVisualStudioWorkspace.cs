@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        private RoslynVisualStudioWorkspace(
+        public RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
