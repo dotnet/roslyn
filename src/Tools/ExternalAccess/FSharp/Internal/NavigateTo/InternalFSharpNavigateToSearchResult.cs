@@ -20,15 +20,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
             NavigableItem = new InternalFSharpNavigableItem(result.NavigableItem);
         }
 
-        public string AdditionalInformation { get; private set; }
+        public string AdditionalInformation { get; }
 
-        public string Kind { get; private set; }
+        public string Kind { get; }
 
-        public NavigateToMatchKind MatchKind { get; private set; }
+        public NavigateToMatchKind MatchKind { get; }
 
         public bool IsCaseSensitive => false;
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
         public ImmutableArray<TextSpan> NameMatchSpans => ImmutableArray<TextSpan>.Empty;
 
@@ -36,6 +36,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 
         public string Summary => null;
 
-        public INavigableItem NavigableItem { get; private set; }
+        public INavigableItem NavigableItem { get; }
     }
 }

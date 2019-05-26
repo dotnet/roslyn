@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
             SourceSpan = sourceSpan;
         }
 
-        public FSharpGlyph Glyph { get; private set; }
+        public FSharpGlyph Glyph { get; }
 
-        public ImmutableArray<TaggedText> DisplayTaggedParts { get; private set; }
+        public ImmutableArray<TaggedText> DisplayTaggedParts { get; }
 
-        public Document Document { get; private set; }
+        public Document Document { get; }
 
-        public TextSpan SourceSpan { get; private set; }
+        public TextSpan SourceSpan { get; }
     }
 }

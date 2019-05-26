@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.CommentSelection
 {
     [Shared]
-    [ExportLanguageService(typeof(ICommentSelectionService, LanguageNames.FSharp)]
+    [ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.FSharp)]
     internal class FSharpCommentSelectionService : ICommentSelectionService
     {
         public Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken)

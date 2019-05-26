@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo
             NavigableItem = navigateItem;
         }
 
-        public string AdditionalInformation { get; private set; }
+        public string AdditionalInformation { get; }
 
-        public string Kind { get; private set; }
+        public string Kind { get; }
 
-        public FSharpNavigateToMatchKind MatchKind { get; private set; }
+        public FSharpNavigateToMatchKind MatchKind { get; }
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
-        public FSharpNavigableItem NavigableItem { get; private set; }
+        public FSharpNavigableItem NavigableItem { get; }
     }
 }

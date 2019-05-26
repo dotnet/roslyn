@@ -17,17 +17,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation
             SourceSpan = item.SourceSpan;
         }
 
-        public Glyph Glyph { get; private set; }
+        public Glyph Glyph { get; }
 
-        public ImmutableArray<TaggedText> DisplayTaggedParts { get; private set; }
+        public ImmutableArray<TaggedText> DisplayTaggedParts { get; }
 
         public bool DisplayFileLocation => true;
 
         public bool IsImplicitlyDeclared => false;
 
-        public Document Document { get; private set; }
+        public Document Document { get; }
 
-        public TextSpan SourceSpan { get; private set; }
+        public TextSpan SourceSpan { get; }
 
         public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
     }
