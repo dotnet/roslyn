@@ -10,7 +10,9 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
-using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
@@ -36,6 +38,29 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
         {
             return _service.TryGoToDefinition(document, position, cancellationToken);
+        }
+
+        private class InternalFSharpNavigableItem : INavigableItem
+        {
+            public InternalFSharpNavigableItem(FSharpNavigableItem item)
+            {
+                Document = item.Document;
+                SourceSpan = item.SourceSpan;
+            }
+
+            public Glyph Glyph => Glyph.BasicFile;
+
+            public ImmutableArray<TaggedText> DisplayTaggedParts => ImmutableArray<TaggedText>.Empty;
+
+            public bool DisplayFileLocation => true;
+
+            public bool IsImplicitlyDeclared => false;
+
+            public Document Document { get; private set; }
+
+            public TextSpan SourceSpan { get; private set; }
+
+            public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
         }
     }
 }
