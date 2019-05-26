@@ -310,6 +310,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal
                     {
                         return FSharpGlyph.NuGet;
                     }
+                case Microsoft.CodeAnalysis.Glyph.TargetTypeMatch:
+                    {
+                        return FSharpGlyph.TargetTypeMatch;
+                    }
                 default:
                     {
                         throw new ArgumentException("Enum case not handled.", nameof(glyph));
@@ -620,6 +624,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal
                 case FSharpGlyph.NuGet:
                     {
                         return Microsoft.CodeAnalysis.Glyph.NuGet;
+                    }
+                case FSharpGlyph.TargetTypeMatch:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.TargetTypeMatch;
                     }
                 default:
                     {
