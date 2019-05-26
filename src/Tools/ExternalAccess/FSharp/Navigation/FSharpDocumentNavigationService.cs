@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
 {
     [ExportWorkspaceService(typeof(IFSharpDocumentNavigationService)), Shared]
-    internal sealed class FSharpDocumentNavigationService : IFSharpDocumentNavigationService
+    internal class FSharpDocumentNavigationService : IFSharpDocumentNavigationService
     {
         /// <summary>
         /// Determines whether it is possible to navigate to the given position in the specified document.
