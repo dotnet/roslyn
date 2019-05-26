@@ -2817,11 +2817,6 @@ public class Foo<T>
     readonly T t;
     
     public void Print() => Console.WriteLine(t?.ToString());
-
-    public static void Main()
-    {
-
-    } 
 }
 ";
             var verify = CompileAndVerify(source);
@@ -2885,6 +2880,43 @@ public class Foo<T>
   IL_001a:  callvirt   ""string object.ToString()""
   IL_001f:  call       ""void System.Console.WriteLine(string)""
   IL_0024:  ret
+}");
+
+        }
+
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessUnconstrainedTTemp()
+        {
+            var source = @"using System;
+public class Foo<T>
+{
+    T M() => default;
+    
+    public void Print() => Console.WriteLine(M()?.ToString());
+}
+";
+            var verify = CompileAndVerify(source);
+
+            verify.VerifyIL("Foo<T>.Print()", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T Foo<T>.M()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0015
+  IL_0011:  pop
+  IL_0012:  ldnull
+  IL_0013:  br.s       IL_0020
+  IL_0015:  constrained. ""T""
+  IL_001b:  callvirt   ""string object.ToString()""
+  IL_0020:  call       ""void System.Console.WriteLine(string)""
+  IL_0025:  ret
 }");
 
         }
