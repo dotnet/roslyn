@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
+        [ImportingConstructor]
         public UseExpressionBodyCodeFixProvider()
         {
             FixableDiagnosticIds = _helpers.SelectAsArray(h => h.DiagnosticId);

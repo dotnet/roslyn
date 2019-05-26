@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -61,9 +62,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             _topLevelName = topLevelItemName;
             _topLevelGlyph = topLevelGlyph;
-            _title = title;
-            _helpString = helpString;
-            _description = description;
+            _title = title ?? throw new ArgumentNullException(nameof(title));
+            _helpString = helpString ?? throw new ArgumentNullException(nameof(helpString));
+            _description = description ?? throw new ArgumentNullException(nameof(description));
             _newSolution = newSolution.WithMergedLinkedFileChangesAsync(oldSolution, cancellationToken: CancellationToken.None).Result;
             _oldSolution = oldSolution;
             _diffSelector = componentModel.GetService<ITextDifferencingSelectorService>();
@@ -132,6 +133,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             allDocumentsWithChanges.AddRange(changedAdditionalDocuments);
             allDocumentsWithChanges.AddRange(addedAdditionalDocuments);
             allDocumentsWithChanges.AddRange(removedAdditionalDocuments);
+
+            // AnalyzerConfig Documents
+            var changedAnalyzerConfigDocuments = projectChanges.SelectMany(p => p.GetChangedAnalyzerConfigDocuments());
+            var addedAnalyzerConfigDocuments = projectChanges.SelectMany(p => p.GetAddedAnalyzerConfigDocuments());
+            var removedAnalyzerConfigDocuments = projectChanges.SelectMany(p => p.GetRemovedAnalyzerConfigDocuments());
+
+            allDocumentsWithChanges.AddRange(changedAnalyzerConfigDocuments);
+            allDocumentsWithChanges.AddRange(addedAnalyzerConfigDocuments);
+            allDocumentsWithChanges.AddRange(removedAnalyzerConfigDocuments);
 
             AppendFileChanges(allDocumentsWithChanges, builder);
 

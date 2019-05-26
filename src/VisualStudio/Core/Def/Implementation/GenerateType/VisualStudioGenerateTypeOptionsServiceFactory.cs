@@ -17,6 +17,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
     [ExportWorkspaceServiceFactory(typeof(IGenerateTypeOptionsService), ServiceLayer.Host), Shared]
     internal class VisualStudioGenerateTypeOptionsServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public VisualStudioGenerateTypeOptionsServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new VisualStudioGenerateTypeOptionsService();

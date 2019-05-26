@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -85,15 +84,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
                 // method kind mask.
-                var methodKinds = EnumUtilities.GetValues<MethodKind>();
-                var maxMethodKind = (int)methodKinds.Aggregate((m1, m2) => m1 | m2);
-                Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
+                Debug.Assert(EnumUtilities.ContainsAllValues<MethodKind>(MethodKindMask));
 
                 // 2) Verify that the range of declaration modifiers doesn't fall outside the bounds of
                 // the declaration modifier mask.
-                var declarationModifiers = EnumUtilities.GetValues<DeclarationModifiers>();
-                var maxDeclarationModifier = (int)declarationModifiers.Aggregate((d1, d2) => d1 | d2);
-                Debug.Assert((maxDeclarationModifier & DeclarationModifiersMask) == maxDeclarationModifier);
+                Debug.Assert(EnumUtilities.ContainsAllValues<DeclarationModifiers>(DeclarationModifiersMask));
             }
 #endif
 
@@ -1630,7 +1625,7 @@ done:
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            if (IsDeclaredReadOnly)
+            if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
             {
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, locations[0], modifyCompilation: true);
             }
@@ -1640,7 +1635,7 @@ done:
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            if (IsDeclaredReadOnly)
+            if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
@@ -1719,7 +1714,7 @@ done:
                     Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
                 }
 
-                if ((hasBody || IsExtern) && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                if ((hasBody || IsExplicitInterfaceImplementation || IsExtern) && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
                 }

@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         public static readonly CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer();
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
                    new LocalizableResourceString(

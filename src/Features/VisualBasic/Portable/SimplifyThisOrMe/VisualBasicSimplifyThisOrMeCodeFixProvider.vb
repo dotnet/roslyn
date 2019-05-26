@@ -12,6 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
     Partial Friend Class VisualBasicSimplifyThisOrMeCodeFixProvider
         Inherits AbstractSimplifyThisOrMeCodeFixProvider(Of MemberAccessExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetTitle() As String
             Return VBFeaturesResources.Remove_Me_qualification
         End Function

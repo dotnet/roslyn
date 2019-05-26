@@ -119,6 +119,11 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<DocumentInfo> AdditionalDocuments { get; }
 
         /// <summary>
+        /// The list of analyzerconfig documents associated with this project.
+        /// </summary>
+        public IReadOnlyList<DocumentInfo> AnalyzerConfigDocuments { get; }
+
+        /// <summary>
         /// Type of the host object.
         /// </summary>
         public Type HostObjectType { get; }
@@ -132,6 +137,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<MetadataReference> metadataReferences,
             IEnumerable<AnalyzerReference> analyzerReferences,
             IEnumerable<DocumentInfo> additionalDocuments,
+            IEnumerable<DocumentInfo> analyzerConfigDocuments,
             Type hostObjectType)
         {
             Attributes = attributes;
@@ -142,6 +148,7 @@ namespace Microsoft.CodeAnalysis
             MetadataReferences = metadataReferences.ToImmutableReadOnlyListOrEmpty();
             AnalyzerReferences = analyzerReferences.ToImmutableReadOnlyListOrEmpty();
             AdditionalDocuments = additionalDocuments.ToImmutableReadOnlyListOrEmpty();
+            AnalyzerConfigDocuments = analyzerConfigDocuments.ToImmutableReadOnlyListOrEmpty();
             HostObjectType = hostObjectType;
         }
 
@@ -165,6 +172,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<MetadataReference> metadataReferences,
             IEnumerable<AnalyzerReference> analyzerReferences,
             IEnumerable<DocumentInfo> additionalDocuments,
+            IEnumerable<DocumentInfo> analyzerConfigDocuments,
             bool isSubmission,
             Type hostObjectType,
             bool hasAllInformation)
@@ -189,6 +197,7 @@ namespace Microsoft.CodeAnalysis
                 metadataReferences,
                 analyzerReferences,
                 additionalDocuments,
+                analyzerConfigDocuments,
                 hostObjectType);
         }
 
@@ -217,7 +226,7 @@ namespace Microsoft.CodeAnalysis
             return Create(
                 id, version, name, assemblyName, language,
                 filePath, outputFilePath, outputRefFilePath: null, defaultNamespace: null, compilationOptions, parseOptions,
-                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments, analyzerConfigDocuments: null,
                 isSubmission, hostObjectType, hasAllInformation: true);
         }
 
@@ -246,7 +255,7 @@ namespace Microsoft.CodeAnalysis
             return Create(
                 id, version, name, assemblyName, language,
                 filePath, outputFilePath, outputRefFilePath, defaultNamespace: null, compilationOptions, parseOptions,
-                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments, analyzerConfigDocuments: null,
                 isSubmission, hostObjectType, hasAllInformation: true);
         }
 
@@ -259,6 +268,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<MetadataReference> metadataReferences = null,
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             IEnumerable<DocumentInfo> additionalDocuments = null,
+            IEnumerable<DocumentInfo> analyzerConfigDocuments = null,
             Optional<Type> hostObjectType = default)
         {
             var newAttributes = attributes ?? Attributes;
@@ -269,6 +279,7 @@ namespace Microsoft.CodeAnalysis
             var newMetadataReferences = metadataReferences ?? MetadataReferences;
             var newAnalyzerReferences = analyzerReferences ?? AnalyzerReferences;
             var newAdditionalDocuments = additionalDocuments ?? AdditionalDocuments;
+            var newAnalyzerConfigDocuments = analyzerConfigDocuments ?? AnalyzerConfigDocuments;
             var newHostObjectType = hostObjectType.HasValue ? hostObjectType.Value : HostObjectType;
 
             if (newAttributes == Attributes &&
@@ -279,6 +290,7 @@ namespace Microsoft.CodeAnalysis
                 newMetadataReferences == MetadataReferences &&
                 newAnalyzerReferences == AnalyzerReferences &&
                 newAdditionalDocuments == AdditionalDocuments &&
+                newAnalyzerConfigDocuments == AnalyzerConfigDocuments &&
                 newHostObjectType == HostObjectType)
             {
                 return this;
@@ -293,6 +305,7 @@ namespace Microsoft.CodeAnalysis
                 newMetadataReferences,
                 newAnalyzerReferences,
                 newAdditionalDocuments,
+                newAnalyzerConfigDocuments,
                 newHostObjectType);
         }
 
@@ -304,6 +317,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithAdditionalDocuments(IEnumerable<DocumentInfo> additionalDocuments)
         {
             return With(additionalDocuments: additionalDocuments.ToImmutableReadOnlyListOrEmpty());
+        }
+
+        public ProjectInfo WithAnalyzerConfigDocuments(IEnumerable<DocumentInfo> analyzerConfigDocuments)
+        {
+            return With(analyzerConfigDocuments: analyzerConfigDocuments.ToImmutableReadOnlyListOrEmpty());
         }
 
         public ProjectInfo WithVersion(VersionStamp version)

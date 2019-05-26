@@ -1480,19 +1480,19 @@ public readonly struct S
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Signature.ReturnParam.Handle));
-                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p1).Handle));
-                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p2).Handle));
-                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p3).Handle));
-                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Signature.ReturnParam.Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.SetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.SetMethod).Signature.ReturnParam.Handle));
@@ -1500,7 +1500,7 @@ public readonly struct S
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p4).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Signature.ReturnParam.Handle));
-                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p5).Handle));
@@ -1556,44 +1556,43 @@ public readonly struct S2
             {
                 var s1 = comp.GetMember<NamedTypeSymbol>("S1");
 
-                verifyReadOnly(s1.GetMethod("M1"), false, false, RefKind.Ref);
-                verifyReadOnly(s1.GetMethod("M2"), true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetMethod("M1"), false, RefKind.Ref);
+                verifyReadOnly(s1.GetMethod("M2"), true, RefKind.RefReadOnly);
 
-                verifyReadOnly(s1.GetProperty("P1").GetMethod, true, true, RefKind.RefReadOnly);
-                verifyReadOnly(s1.GetProperty("P1").SetMethod, false, false, RefKind.Ref);
+                verifyReadOnly(s1.GetProperty("P1").GetMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P1").SetMethod, false, RefKind.Ref);
 
-                verifyReadOnly(s1.GetProperty("P2").GetMethod, true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P2").GetMethod, true, RefKind.RefReadOnly);
 
-                verifyReadOnly(s1.GetProperty("P3").GetMethod, true, true, RefKind.RefReadOnly);
-                verifyReadOnly(s1.GetProperty("P3").SetMethod, false, false, RefKind.Ref);
+                verifyReadOnly(s1.GetProperty("P3").GetMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P3").SetMethod, false, RefKind.Ref);
 
-                verifyReadOnly(s1.GetProperty("P4").GetMethod, false, false, RefKind.Ref);
-                verifyReadOnly(s1.GetProperty("P4").SetMethod, true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P4").GetMethod, false, RefKind.Ref);
+                verifyReadOnly(s1.GetProperty("P4").SetMethod, true, RefKind.RefReadOnly);
 
-                verifyReadOnly(s1.GetProperty("P5").GetMethod, false, false, null);
-                verifyReadOnly(s1.GetProperty("P5").SetMethod, false, false, null);
+                verifyReadOnly(s1.GetProperty("P5").GetMethod, false, null);
+                verifyReadOnly(s1.GetProperty("P5").SetMethod, false, null);
 
-                verifyReadOnly(s1.GetEvent("E").AddMethod, true, true, RefKind.RefReadOnly);
-                verifyReadOnly(s1.GetEvent("E").RemoveMethod, true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetEvent("E").AddMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetEvent("E").RemoveMethod, true, RefKind.RefReadOnly);
 
                 var s2 = comp.GetMember<NamedTypeSymbol>("S2");
 
-                verifyReadOnly(s2.GetMethod("M1"), false, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetMethod("M1"), true, RefKind.RefReadOnly);
 
-                verifyReadOnly(s2.GetProperty("P1").GetMethod, true, true, RefKind.RefReadOnly);
-                verifyReadOnly(s2.GetProperty("P2").GetMethod, false, true, RefKind.RefReadOnly);
-                verifyReadOnly(s2.GetProperty("P3").SetMethod, false, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetProperty("P1").GetMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetProperty("P2").GetMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetProperty("P3").SetMethod, true, RefKind.RefReadOnly);
 
-                verifyReadOnly(s2.GetProperty("P4").GetMethod, false, false, null);
-                verifyReadOnly(s2.GetProperty("P4").SetMethod, false, false, null);
+                verifyReadOnly(s2.GetProperty("P4").GetMethod, false, null);
+                verifyReadOnly(s2.GetProperty("P4").SetMethod, false, null);
 
-                verifyReadOnly(s2.GetEvent("E").AddMethod, false, true, RefKind.RefReadOnly);
-                verifyReadOnly(s2.GetEvent("E").RemoveMethod, false, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetEvent("E").AddMethod, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetEvent("E").RemoveMethod, true, RefKind.RefReadOnly);
 
-                void verifyReadOnly(MethodSymbol method, bool declared, bool effective, RefKind? refKind)
+                void verifyReadOnly(MethodSymbol method, bool isReadOnly, RefKind? refKind)
                 {
-                    Assert.Equal(declared, method.IsDeclaredReadOnly);
-                    Assert.Equal(effective, method.IsEffectivelyReadOnly);
+                    Assert.Equal(isReadOnly, method.IsEffectivelyReadOnly);
                     Assert.Equal(refKind, method.ThisParameter?.RefKind);
                 }
             }

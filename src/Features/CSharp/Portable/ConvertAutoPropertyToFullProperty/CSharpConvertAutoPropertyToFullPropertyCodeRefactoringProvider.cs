@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider)), Shared]
     internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider()
+        {
+        }
+
         internal override SyntaxNode GetProperty(SyntaxToken token)
         {
             var containingProperty = token.Parent.FirstAncestorOrSelf<PropertyDeclarationSyntax>();

@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Editing
     [ExportOptionProvider, Shared]
     internal class GenerationOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public GenerationOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             GenerationOptions.PlaceSystemNamespaceFirst);
     }

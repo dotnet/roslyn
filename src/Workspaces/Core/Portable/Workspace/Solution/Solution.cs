@@ -189,6 +189,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets the additional document in this solution with the specified document ID.
+        /// </summary>
+        public AnalyzerConfigDocument GetAnalyzerConfigDocument(DocumentId documentId)
+        {
+            if (documentId != null && this.ContainsAnalyzerConfigDocument(documentId))
+            {
+                return this.GetProject(documentId.ProjectId).GetAnalyzerConfigDocument(documentId);
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Gets the document in this solution with the specified syntax tree.
         /// </summary>
         public Document GetDocument(SyntaxTree syntaxTree)
@@ -758,31 +771,65 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(text));
             }
 
-            var project = _state.GetProjectState(documentId.ProjectId);
-
-            var version = VersionStamp.Create();
-            var loader = TextLoader.From(TextAndVersion.Create(text, version, name));
-
-            var info = DocumentInfo.Create(
-                documentId,
-                name: name,
-                folders: folders,
-                sourceCodeKind: GetSourceCodeKind(project),
-                loader: loader,
-                filePath: filePath);
-
+            var info = CreateDocumentInfo(documentId, name, text, folders, filePath);
             return this.AddAdditionalDocument(info);
         }
 
         public Solution AddAdditionalDocument(DocumentInfo documentInfo)
         {
-            var newState = _state.AddAdditionalDocument(documentInfo);
+            return AddAdditionalDocuments(ImmutableArray.Create(documentInfo));
+        }
+
+        public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
+        {
+            var newState = _state.AddAdditionalDocuments(documentInfos);
             if (newState == _state)
             {
                 return this;
             }
 
             return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the corresponding project updated to include a new
+        /// analyzer config document instance defined by its name and text.
+        /// </summary>
+        public Solution AddAnalyzerConfigDocument(DocumentId documentId, string name, SourceText text, IEnumerable<string> folders = null, string filePath = null)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            var info = CreateDocumentInfo(documentId, name, text, folders, filePath);
+            return this.AddAnalyzerConfigDocuments(ImmutableArray.Create(info));
+        }
+
+        private DocumentInfo CreateDocumentInfo(DocumentId documentId, string name, SourceText text, IEnumerable<string> folders, string filePath)
+        {
+            var project = _state.GetProjectState(documentId.ProjectId);
+
+            var version = VersionStamp.Create();
+            var loader = TextLoader.From(TextAndVersion.Create(text, version, name));
+
+            return DocumentInfo.Create(
+                documentId,
+                name: name,
+                folders: folders,
+                sourceCodeKind: GetSourceCodeKind(project),
+                loader: loader,
+                filePath: filePath);
         }
 
         /// <summary>
@@ -911,6 +958,23 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text
+        /// supplied by the text loader.
+        /// </summary>
+        public Solution WithAnalyzerConfigDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            var newState = _state.WithAnalyzerConfigDocumentText(documentId, text, mode);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
         /// <summary>
         /// Creates a new solution instance with the document specified updated to have the text
         /// and version specified.
@@ -933,6 +997,23 @@ namespace Microsoft.CodeAnalysis
         public Solution WithAdditionalDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
         {
             var newState = _state.WithAdditionalDocumentText(documentId, textAndVersion, mode);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text
+        /// and version specified.
+        /// </summary>
+        public Solution WithAnalyzerConfigDocumentText(DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode = PreservationMode.PreserveValue)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            var newState = _state.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode);
             if (newState == _state)
             {
                 return this;

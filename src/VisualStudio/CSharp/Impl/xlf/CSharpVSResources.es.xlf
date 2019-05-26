@@ -32,6 +32,11 @@
         <target state="translated">Configuración de “Dar formato al documento” (experimento)</target>
         <note />
       </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">General</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">Generar suscripción de eventos</target>
@@ -61,6 +66,11 @@
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Preferir “is null” para comprobaciones de igualdad de referencias</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_switch_expression">
+        <source>Prefer switch expression</source>
+        <target state="new">Prefer switch expression</target>
+        <note />
       </trans-unit>
       <trans-unit id="Preferred_using_directive_placement">
         <source>Preferred 'using' directive placement</source>

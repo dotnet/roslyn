@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 
         Private ReadOnly _specializedIndentationRule As AbstractFormattingRule
 
+        <ImportingConstructor>
         Public Sub New()
             Me.New(New SpecialFormattingRule())
         End Sub

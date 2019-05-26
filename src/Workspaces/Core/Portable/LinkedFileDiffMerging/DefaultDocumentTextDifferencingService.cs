@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis
     [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Default), Shared]
     internal class DefaultDocumentTextDifferencingService : IDocumentTextDifferencingService
     {
+        [ImportingConstructor]
+        public DefaultDocumentTextDifferencingService()
+        {
+        }
+
         public Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
             return GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);

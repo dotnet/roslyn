@@ -268,6 +268,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to General.
+        /// </summary>
+        internal static string General {
+            get {
+                return ResourceManager.GetString("General", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate Event Subscription.
         /// </summary>
         internal static string Generate_Event_Subscription {
@@ -1065,6 +1074,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Prefer_pattern_matching_over_is_with_cast_check {
             get {
                 return ResourceManager.GetString("Prefer_pattern_matching_over_is_with_cast_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer switch expression.
+        /// </summary>
+        internal static string Prefer_switch_expression {
+            get {
+                return ResourceManager.GetString("Prefer_switch_expression", resourceCulture);
             }
         }
         

@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)]
     internal partial class SimplifyTypeNamesCodeFixProvider : AbstractSimplifyTypeNamesCodeFixProvider<SyntaxKind>
     {
+        [ImportingConstructor]
         public SimplifyTypeNamesCodeFixProvider()
             : base(new CSharpSimplifyTypeNamesDiagnosticAnalyzer())
         {

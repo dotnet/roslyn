@@ -99,7 +99,9 @@ namespace Microsoft.CodeAnalysis
             var projectInfoFixed = FixProjectInfo(projectInfo);
 
             // We need to compute our AnalyerConfigDocumentStates first, since we use those to produce our DocumentStates
-            _analyzerConfigDocumentStates = ImmutableSortedDictionary.Create<DocumentId, AnalyzerConfigDocumentState>(DocumentIdComparer.Instance);
+            _analyzerConfigDocumentStates = ImmutableSortedDictionary.CreateRange(DocumentIdComparer.Instance,
+                projectInfoFixed.AnalyzerConfigDocuments.Select(d =>
+                    KeyValuePairUtil.Create(d.Id, new AnalyzerConfigDocumentState(d, solutionServices))));
             _lazyAnalyzerConfigSet = ComputeAnalyzerConfigSetValueSource(_analyzerConfigDocumentStates.Values);
 
             _documentIds = projectInfoFixed.Documents.Select(d => d.Id).ToImmutableList();
@@ -132,7 +134,10 @@ namespace Microsoft.CodeAnalysis
 
         private static ProjectInfo ClearAllDocumentsFromProjectInfo(ProjectInfo projectInfo)
         {
-            return projectInfo.WithDocuments(ImmutableArray<DocumentInfo>.Empty).WithAdditionalDocuments(ImmutableArray<DocumentInfo>.Empty);
+            return projectInfo
+                .WithDocuments(ImmutableArray<DocumentInfo>.Empty)
+                .WithAdditionalDocuments(ImmutableArray<DocumentInfo>.Empty)
+                .WithAnalyzerConfigDocuments(ImmutableArray<DocumentInfo>.Empty);
         }
 
         private ProjectInfo FixProjectInfo(ProjectInfo projectInfo)
@@ -247,7 +252,7 @@ namespace Microsoft.CodeAnalysis
                 if (_analyzerOptionsDoNotAccessDirectly == null)
                 {
                     _analyzerOptionsDoNotAccessDirectly = new AnalyzerOptions(
-                        _additionalDocumentStates.Values.Select(d => new AdditionalTextDocument(d)).ToImmutableArray<AdditionalText>(),
+                        _additionalDocumentStates.Values.Select(d => new AdditionalTextWithState(d)).ToImmutableArray<AdditionalText>(),
                         new WorkspaceAnalyzerConfigOptionsProvider(this));
                 }
 
@@ -398,10 +403,18 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlyList<DocumentId> AdditionalDocumentIds => _additionalDocumentIds;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        // Regular documents and additionald documents have an ordering, and so we maintain lists of the IDs in order; in the case of analyzerconfig documents,
+        // we don't define a workspace ordering because they are ordered via fancier algorithms in the compiler based on directory depth.
+        public IEnumerable<DocumentId> AnalyzerConfigDocumentIds => _analyzerConfigDocumentStates.Keys;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public IImmutableDictionary<DocumentId, DocumentState> DocumentStates => _documentStates;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public IImmutableDictionary<DocumentId, TextDocumentState> AdditionalDocumentStates => _additionalDocumentStates;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public IImmutableDictionary<DocumentId, AnalyzerConfigDocumentState> AnalyzerConfigDocumentStates => _analyzerConfigDocumentStates;
 
         public bool ContainsDocument(DocumentId documentId)
         {
@@ -675,14 +688,14 @@ namespace Microsoft.CodeAnalysis
                 documentStates: _documentStates.AddRange(documents.Select(d => KeyValuePairUtil.Create(d.Id, d))));
         }
 
-        public ProjectState AddAdditionalDocument(TextDocumentState document)
+        public ProjectState AddAdditionalDocuments(ImmutableArray<TextDocumentState> documents)
         {
-            Debug.Assert(!this.AdditionalDocumentStates.ContainsKey(document.Id));
+            Debug.Assert(!documents.Any(d => this.AdditionalDocumentStates.ContainsKey(d.Id)));
 
             return this.With(
                 projectInfo: this.ProjectInfo.WithVersion(this.Version.GetNewerVersion()),
-                additionalDocumentIds: _additionalDocumentIds.Add(document.Id),
-                additionalDocumentStates: _additionalDocumentStates.Add(document.Id, document));
+                additionalDocumentIds: _additionalDocumentIds.AddRange(documents.Select(d => d.Id)),
+                additionalDocumentStates: _additionalDocumentStates.AddRange(documents.Select(d => KeyValuePairUtil.Create(d.Id, d))));
         }
 
         public ProjectState AddAnalyzerConfigDocuments(ImmutableArray<AnalyzerConfigDocumentState> documents)

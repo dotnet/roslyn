@@ -20,11 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 
         internal override Type Type => typeof(CSharpInteractiveCompiler);
 
-        internal override string GetAssemblyFileVersion()
-        {
-            return Type.GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-        }
-
         internal override MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger loggerOpt)
         {
             return CommandLineRunner.GetMetadataReferenceResolver(Arguments, loggerOpt);
@@ -32,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 
         public override void PrintLogo(TextWriter consoleOutput)
         {
-            consoleOutput.WriteLine(CSharpScriptingResources.LogoLine1, GetAssemblyFileVersion());
+            consoleOutput.WriteLine(CSharpScriptingResources.LogoLine1, GetCompilerVersion());
             consoleOutput.WriteLine(CSharpScriptingResources.LogoLine2);
             consoleOutput.WriteLine();
         }

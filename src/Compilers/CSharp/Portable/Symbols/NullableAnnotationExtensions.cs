@@ -18,67 +18,54 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Join nullable annotations from the set of lower bounds for fixing a type parameter.
-        /// This uses the covariant merging rules.
+        /// This uses the covariant merging rules. (Annotated wins over Oblivious which wins over NotAnnotated)
         /// </summary>
-        public static NullableAnnotation Join(this NullableAnnotation a, NullableAnnotation b)
-        {
-            if (a.IsAnnotated() || b.IsAnnotated())
-                return NullableAnnotation.Annotated;
-            return (a < b) ? a : b;
-        }
+        public static NullableAnnotation Join(this NullableAnnotation a, NullableAnnotation b) => (a < b) ? b : a;
 
         /// <summary>
         /// Meet two nullable annotations for computing the nullable annotation of a type parameter from upper bounds.
-        /// This uses the contravariant merging rules.
+        /// This uses the contravariant merging rules. (NotAnnotated wins over Oblivious which wins over Annotated)
         /// </summary>
-        public static NullableAnnotation Meet(this NullableAnnotation a, NullableAnnotation b)
-        {
-            if (a.IsNotAnnotated() || b.IsNotAnnotated())
-                return NullableAnnotation.NotAnnotated;
-            return (a < b) ? a : b;
-        }
+        public static NullableAnnotation Meet(this NullableAnnotation a, NullableAnnotation b) => (a < b) ? a : b;
 
         /// <summary>
-        /// Check that two nullable annotations are "compatible", which means they could be the same. Return the
-        /// nullable annotation to be used as a result.  This uses the invariant merging rules.
+        /// Return the nullable annotation to use when two annotations are expected to be "compatible", which means
+        /// they could be the same. These are the "invariant" merging rules. (NotAnnotated wins over Annotated which wins over Oblivious)
         /// </summary>
-        public static NullableAnnotation EnsureCompatible(this NullableAnnotation a, NullableAnnotation b)
-        {
-            if (a.IsOblivious())
-                return b;
-            if (b.IsOblivious())
-                return a;
-            return (a < b) ? a : b;
-        }
+        public static NullableAnnotation EnsureCompatible(this NullableAnnotation a, NullableAnnotation b) =>
+            (a, b) switch
+            {
+                (NullableAnnotation.Oblivious, _) => b,
+                (_, NullableAnnotation.Oblivious) => a,
+                _ => a < b ? a : b,
+            };
 
         /// <summary>
         /// Merges nullability.
         /// </summary>
-        public static NullableAnnotation MergeNullableAnnotation(this NullableAnnotation a, NullableAnnotation b, VarianceKind variance)
-        {
-            return variance switch
+        public static NullableAnnotation MergeNullableAnnotation(this NullableAnnotation a, NullableAnnotation b, VarianceKind variance) =>
+            variance switch
             {
                 VarianceKind.In => a.Meet(b),
                 VarianceKind.Out => a.Join(b),
                 VarianceKind.None => a.EnsureCompatible(b),
                 _ => throw ExceptionUtilities.UnexpectedValue(variance)
             };
-        }
 
         /// <summary>
         /// The attribute (metadata) representation of <see cref="NullableAnnotation.NotAnnotated"/>.
         /// </summary>
-        public const byte NotAnnotatedAttributeValue = (byte)NullableAnnotation.NotAnnotated;
+        public const byte NotAnnotatedAttributeValue = 1;
 
         /// <summary>
         /// The attribute (metadata) representation of <see cref="NullableAnnotation.Annotated"/>.
         /// </summary>
-        public const byte AnnotatedAttributeValue = (byte)NullableAnnotation.Annotated;
+        public const byte AnnotatedAttributeValue = 2;
 
         /// <summary>
         /// The attribute (metadata) representation of <see cref="NullableAnnotation.Oblivious"/>.
         /// </summary>
-        public const byte ObliviousAttributeValue = (byte)NullableAnnotation.Oblivious;
+        public const byte ObliviousAttributeValue = 0;
 
         internal static NullabilityInfo ToNullabilityInfo(this CodeAnalysis.NullableAnnotation annotation, TypeSymbol type)
         {

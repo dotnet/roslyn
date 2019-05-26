@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
     Friend NotInheritable Class VisualBasicCodeStyleOptionsProvider
         Implements IOptionProvider
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public ReadOnly Property Options As ImmutableArray(Of IOption) Implements IOptionProvider.Options
             Get
                 Return VisualBasicCodeStyleOptions.AllOptions
