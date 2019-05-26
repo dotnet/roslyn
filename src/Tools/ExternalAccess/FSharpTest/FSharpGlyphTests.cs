@@ -1,12 +1,31 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
+using Xunit;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
 {
-    internal static class FSharpGlyphHelpers
+    public class FSharpGlyphTests
     {
-        public static FSharpGlyph ConvertFrom(Microsoft.CodeAnalysis.Glyph glyph)
+        public static IEnumerable<object[]> enumValues()
+        {
+            foreach (var number in Enum.GetValues(typeof(FSharpGlyph)))
+            {
+                yield return new object[] { number };
+            }
+        }
+
+        public static IEnumerable<object[]> enumValuesOpposite()
+        {
+            foreach (var number in Enum.GetValues(typeof(Glyph)))
+            {
+                yield return new object[] { number };
+            }
+        }
+
+        internal static FSharpGlyph GetExpectedFSharpGlyph(Microsoft.CodeAnalysis.Glyph glyph)
         {
             switch (glyph)
             {
@@ -317,7 +336,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal
             }
         }
 
-        public static Microsoft.CodeAnalysis.Glyph ConvertTo(FSharpGlyph glyph)
+        internal static Microsoft.CodeAnalysis.Glyph GetExpectedGlyph(FSharpGlyph glyph)
         {
             switch (glyph)
             {
@@ -626,6 +645,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal
                         throw new ArgumentException("Enum case not handled.", nameof(glyph));
                     }
             }
+        }
+
+        [Theory]
+        [MemberData(nameof(enumValues))]
+        internal void MapsCorrectly(FSharpGlyph glyph)
+        {
+            var actual = FSharpGlyphHelpers.ConvertTo(glyph);
+            var expected = GetExpectedGlyph(glyph);
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [MemberData(nameof(enumValuesOpposite))]
+        internal void MapsCorrectlyOpposite(Glyph glyph)
+        {
+            var actual = FSharpGlyphHelpers.ConvertFrom(glyph);
+            var expected = GetExpectedFSharpGlyph(glyph);
+            Assert.Equal(expected, actual);
         }
     }
 }

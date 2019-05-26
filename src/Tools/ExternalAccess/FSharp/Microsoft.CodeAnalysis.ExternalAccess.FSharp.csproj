@@ -96,4 +96,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="NavigateTo\" />
+  </ItemGroup>
+
 </Project>

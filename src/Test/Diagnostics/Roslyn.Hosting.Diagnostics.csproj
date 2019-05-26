@@ -30,9 +30,7 @@
     <Compile Update="PerfMargin\StatusIndicator.xaml.cs">
       <DependentUpon>StatusIndicator.xaml</DependentUpon>
     </Compile>
-    <Compile Update="RemoteHost\RemoteHostPanel.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Update="RemoteHost\RemoteHostPanel.xaml.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
