@@ -23,8 +23,8 @@
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToMessage">
-        <source>External access to internal symbol '{0}' is prohibited. Access is only allowed to symbols in these restricted namespace(s): '{1}'</source>
-        <target state="new">External access to internal symbol '{0}' is prohibited. Access is only allowed to symbols in these restricted namespace(s): '{1}'</target>
+        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in following namespace(s): '{2}'</source>
+        <target state="new">External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in following namespace(s): '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToTitle">

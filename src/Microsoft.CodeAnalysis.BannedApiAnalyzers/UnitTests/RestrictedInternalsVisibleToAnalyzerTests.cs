@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         {
             return new DiagnosticResult(CSharpRestrictedInternalsVisibleToAnalyzer.Rule)
                 .WithLocation(line, column)
-                .WithArguments(bannedSymbolName, restrictedNamespaces);
+                .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
         }
 
         private static new DiagnosticResult GetBasicResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces)
         {
             return new DiagnosticResult(BasicRestrictedInternalsVisibleToAnalyzer.Rule)
                 .WithLocation(line, column)
-                .WithArguments(bannedSymbolName, restrictedNamespaces);
+                .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
         }
 
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer() => new BasicRestrictedInternalsVisibleToAnalyzer();

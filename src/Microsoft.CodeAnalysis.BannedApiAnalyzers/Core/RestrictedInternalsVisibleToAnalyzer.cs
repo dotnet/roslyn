@@ -181,8 +181,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     IsBannedSymbol(symbol))
                 {
                     var bannedSymbolDisplayString = symbol.ToDisplayString(SymbolDisplayFormats.QualifiedTypeAndNamespaceSymbolDisplayFormat);
+                    var assemblyName = symbol.ContainingAssembly.Name;
                     var restrictedNamespaces = string.Join(", ", restrictedInternalsVisibleToMap[symbol.ContainingAssembly]);
-                    var diagnostic = node.CreateDiagnostic(Rule, bannedSymbolDisplayString, restrictedNamespaces);
+                    var diagnostic = node.CreateDiagnostic(Rule, bannedSymbolDisplayString, assemblyName, restrictedNamespaces);
                     reportDiagnostic(diagnostic);
                 }
             }
