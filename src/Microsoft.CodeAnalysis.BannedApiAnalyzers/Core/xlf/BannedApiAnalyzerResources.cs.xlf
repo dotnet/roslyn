@@ -17,6 +17,21 @@
         <target state="translated">Seznam zakázaných symbolů obsahuje duplicitu</target>
         <note />
       </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToDescription">
+        <source>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute to limit access to internal symbols only within specified namespaces. Each referencing assembly is only allowed to access internal symbols within the restricted namespaces that the referenced assembly allows.</source>
+        <target state="new">RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute to limit access to internal symbols only within specified namespaces. Each referencing assembly is only allowed to access internal symbols within the restricted namespaces that the referenced assembly allows.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToMessage">
+        <source>External access to internal symbol '{0}' is prohibited. Access is only allowed to symbols in these restricted namespace(s): '{1}'</source>
+        <target state="new">External access to internal symbol '{0}' is prohibited. Access is only allowed to symbols in these restricted namespace(s): '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToTitle">
+        <source>External access is prohibited to internal symbols outside the restricted namespace(s)</source>
+        <target state="new">External access is prohibited to internal symbols outside the restricted namespace(s)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">
         <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
         <target state="translated">Symbol se v tomto projektu označil jako zakázaný, měla by se místo něj použít nějaká alternativa.</target>
