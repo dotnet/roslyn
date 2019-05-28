@@ -59,6 +59,12 @@ namespace Microsoft.CodeAnalysis.Indentation
                     tokenStream: null);
             }
 
+            /// <summary>
+            /// Returns <see langword="true"/> if the language specific <see
+            /// cref="ISmartTokenFormatter"/> should be deferred to figure out indentatation.  If
+            /// so, it will be asked to <see cref="ISmartTokenFormatter.FormatTokenAsync"/> the
+            /// resultant <paramref name="token"/> provided by this method.
+            /// </summary>
             protected abstract bool ShouldUseTokenIndenter(out SyntaxToken token);
             protected abstract ISmartTokenFormatter CreateSmartTokenFormatter();
 
