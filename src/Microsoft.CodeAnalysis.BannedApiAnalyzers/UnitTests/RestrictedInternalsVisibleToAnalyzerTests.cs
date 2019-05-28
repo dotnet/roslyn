@@ -1,57 +1,50 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers;
-using Test.Utilities;
 using Xunit;
+
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.CSharpRestrictedInternalsVisibleToAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.BasicRestrictedInternalsVisibleToAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 {
-    public class RestrictedInternalsVisibleToAnalyzerTests : DiagnosticAnalyzerTestBase
+    public class RestrictedInternalsVisibleToAnalyzerTests
     {
-        private static new DiagnosticResult GetCSharpResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces)
+        private static DiagnosticResult GetCSharpResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces)
         {
             return new DiagnosticResult(CSharpRestrictedInternalsVisibleToAnalyzer.Rule)
                 .WithLocation(line, column)
                 .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
         }
 
-        private static new DiagnosticResult GetBasicResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces)
+        private static DiagnosticResult GetBasicResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces)
         {
             return new DiagnosticResult(BasicRestrictedInternalsVisibleToAnalyzer.Rule)
                 .WithLocation(line, column)
                 .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
         }
 
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer() => new BasicRestrictedInternalsVisibleToAnalyzer();
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer() => new CSharpRestrictedInternalsVisibleToAnalyzer();
-
         private const string ApiProviderProjectName = nameof(ApiProviderProjectName);
         private const string ApiConsumerProjectName = nameof(ApiConsumerProjectName);
 
-        private void Verify(string apiProviderSource, string apiConsumerSource, string restrictedInternalsVisibleToAttribute, string language, TestValidationMode validationMode, params DiagnosticResult[] expected)
-        {
-            var apiProviderProject = CreateProject(new[] { apiProviderSource + restrictedInternalsVisibleToAttribute }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, projectName: ApiProviderProjectName);
-            var apiConsumerProject = CreateProject(new[] { apiConsumerSource }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, addToSolution: apiProviderProject.Solution, projectName: ApiConsumerProjectName)
-                           .AddProjectReference(new ProjectReference(apiProviderProject.Id));
+        private const string CSharpApiProviderFileName = "ApiProviderFileName.cs";
+        private const string VisualBasicApiProviderFileName = "ApiProviderFileName.vb";
 
-            var analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();
-            var diagnostics = GetSortedDiagnostics(analyzer, apiConsumerProject.Documents.ToArray(), validationMode: validationMode);
-            diagnostics.Verify(analyzer, GetDefaultPath(language), expected);
-        }
+        private static readonly CompilationOptions s_csharpCompilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        private static readonly CompilationOptions s_visualBasicCompilationOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
-        private void VerifyCSharp(string apiProviderSource, string apiConsumerSource, params DiagnosticResult[] expected)
-            => VerifyCSharp(apiProviderSource, apiConsumerSource, validationMode: default, expected);
-
-        private void VerifyCSharp(string apiProviderSource, string apiConsumerSource, TestValidationMode validationMode, params DiagnosticResult[] expected)
-        {
-            const string restrictedInternalsVisibleToAttribute = @"
+        private const string CSharpRestrictedInternalsVisibleToAttribute = @"
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(System.AttributeTargets.Assembly, AllowMultiple = true)]
@@ -62,16 +55,7 @@ namespace System.Runtime.CompilerServices
         }
     }
 }";
-
-            Verify(apiProviderSource, apiConsumerSource, restrictedInternalsVisibleToAttribute, LanguageNames.CSharp, validationMode, expected);
-        }
-
-        private void VerifyBasic(string apiProviderSource, string apiConsumerSource, params DiagnosticResult[] expected)
-            => VerifyBasic(apiProviderSource, apiConsumerSource, validationMode: default, expected);
-
-        private void VerifyBasic(string apiProviderSource, string apiConsumerSource, TestValidationMode validationMode, params DiagnosticResult[] expected)
-        {
-            const string restrictedInternalsVisibleToAttribute = @"
+        private const string VisualBasicRestrictedInternalsVisibleToAttribute = @"
 Namespace System.Runtime.CompilerServices
     <System.AttributeUsage(System.AttributeTargets.Assembly, AllowMultiple:=True)>
     Friend Class RestrictedInternalsVisibleToAttribute
@@ -82,11 +66,73 @@ Namespace System.Runtime.CompilerServices
     End Class
 End Namespace";
 
-            Verify(apiProviderSource, apiConsumerSource, restrictedInternalsVisibleToAttribute, LanguageNames.VisualBasic, validationMode, expected);
+        private async Task VerifyCSharpAsync(string apiProviderSource, string apiConsumerSource, params DiagnosticResult[] expected)
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { apiConsumerSource },
+                },
+                SolutionTransforms =
+                {
+                    (solution, projectId) => ApplySolutionTransforms(solution, projectId, apiProviderSource, LanguageNames.CSharp),
+                },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
+            };
+
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
+        }
+
+        private async Task VerifyBasicAsync(string apiProviderSource, string apiConsumerSource, params DiagnosticResult[] expected)
+        {
+            var test = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { apiConsumerSource },
+                },
+                SolutionTransforms =
+                {
+                    (solution, projectId) => ApplySolutionTransforms(solution, projectId, apiProviderSource, LanguageNames.VisualBasic),
+                },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
+            };
+
+            test.ExpectedDiagnostics.AddRange(expected);
+            await test.RunAsync();
+        }
+
+        private static Solution ApplySolutionTransforms(
+            Solution solution,
+            ProjectId apiConsumerProjectId,
+            string apiProviderSource,
+            string language)
+        {
+            var restrictedInternalsVisibleToAttribute = language == LanguageNames.CSharp
+                ? CSharpRestrictedInternalsVisibleToAttribute
+                : VisualBasicRestrictedInternalsVisibleToAttribute;
+            var compilationOptions = language == LanguageNames.CSharp
+                ? s_csharpCompilationOptions
+                : s_visualBasicCompilationOptions;
+            var fileName = language == LanguageNames.CSharp
+                ? CSharpApiProviderFileName
+                : VisualBasicApiProviderFileName;
+
+            var metadataReferences = solution.Projects.Single().MetadataReferences;
+            solution = solution.WithProjectAssemblyName(apiConsumerProjectId, ApiConsumerProjectName);
+            var apiProducerProject = solution
+                .AddProject(ApiProviderProjectName, ApiProviderProjectName, language)
+                .WithCompilationOptions(compilationOptions)
+                .WithMetadataReferences(metadataReferences)
+                .AddDocument(fileName, apiProviderSource + restrictedInternalsVisibleToAttribute)
+                .Project;
+            return apiProducerProject.Solution.AddProjectReference(apiConsumerProjectId, new ProjectReference(apiProducerProject.Id));
         }
 
         [Fact]
-        public void CSharp_NoIVT_NoRestrictedIVT_NoDiagnostic()
+        public async Task CSharp_NoIVT_NoRestrictedIVT_NoDiagnostic()
         {
             var apiProviderSource = @"
 namespace N1
@@ -102,11 +148,14 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource, TestValidationMode.AllowCompileErrors);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
+                DiagnosticResult.CompilerError("CS0122")
+                    .WithLocation(4, 15)
+                    .WithMessage("'C1' is inaccessible due to its protection level"));
         }
 
         [Fact]
-        public void Basic_NoIVT_NoRestrictedIVT_NoDiagnostic()
+        public async Task Basic_NoIVT_NoRestrictedIVT_NoDiagnostic()
         {
             var apiProviderSource = @"
 Namespace N1
@@ -120,11 +169,14 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource, TestValidationMode.AllowCompileErrors);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
+                DiagnosticResult.CompilerError("BC30389")
+                    .WithLocation(3, 24)
+                    .WithMessage("'N1.C1' is not accessible in this context because it is 'Friend'."));
         }
 
         [Fact]
-        public void CSharp_IVT_NoRestrictedIVT_NoDiagnostic()
+        public async Task CSharp_IVT_NoRestrictedIVT_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -142,11 +194,11 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_NoRestrictedIVT_NoDiagnostic()
+        public async Task Basic_IVT_NoRestrictedIVT_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -162,11 +214,11 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_NoIVT_RestrictedIVT_NoDiagnostic()
+        public async Task CSharp_NoIVT_RestrictedIVT_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""NonExistentNamespace"")]
@@ -184,11 +236,14 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource, TestValidationMode.AllowCompileErrors);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
+                DiagnosticResult.CompilerError("CS0122")
+                    .WithLocation(4, 15)
+                    .WithMessage("'C1' is inaccessible due to its protection level"));
         }
 
         [Fact]
-        public void Basic_NoIVT_RestrictedIVT_NoDiagnostic()
+        public async Task Basic_NoIVT_RestrictedIVT_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""NonExistentNamespace"")>
@@ -204,11 +259,14 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource, TestValidationMode.AllowCompileErrors);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
+                new DiagnosticResult("BC30389", DiagnosticSeverity.Error)
+                    .WithLocation(3, 24)
+                    .WithMessage("'N1.C1' is not accessible in this context because it is 'Friend'."));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_BasicScenario_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_BasicScenario_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -227,11 +285,11 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_BasicScenario_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_BasicScenario_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -248,11 +306,11 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_BasicScenario_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_BasicScenario_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -271,12 +329,12 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(4, 12, "N1.C1", "N2"));
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_BasicScenario_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_BasicScenario_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -293,12 +351,12 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetBasicResultAt(3, 24, "N1.C1", "N2"));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_MultipleAttributes_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_MultipleAttributes_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -323,11 +381,11 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_MultipleAttributes_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_MultipleAttributes_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -350,11 +408,11 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_MultipleAttributes_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_MultipleAttributes_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -384,12 +442,12 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(4, 32, "N3.C3", "N1, N2"));
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_MultipleAttributes_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_MultipleAttributes_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -417,12 +475,12 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(3, 51, "N3.C3", "N1, N2"));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -441,11 +499,11 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -462,11 +520,11 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_ProjectNameMismatch_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_ProjectNameMismatch_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -486,12 +544,12 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(4, 12, "N1.C1", "N2"));
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_ProjectNameMismatch_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_ProjectNameMismatch_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -509,12 +567,12 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetBasicResultAt(3, 24, "N1.C1", "N2"));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -533,11 +591,11 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -554,11 +612,11 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -580,11 +638,11 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -603,11 +661,11 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_QualifiedNamespace_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_QualifiedNamespace_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -631,12 +689,12 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(4, 25, "N1.C3", "N1.N2"));
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_QualifiedNamespace_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_QualifiedNamespace_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -658,12 +716,12 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetBasicResultAt(3, 41, "N1.C3", "N1.N2"));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_AncestorNamespace_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_AncestorNamespace_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -685,11 +743,11 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_AncestorNamespace_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_AncestorNamespace_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -708,11 +766,11 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_AncestorNamespace_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_AncestorNamespace_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -736,12 +794,12 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(4, 25, "N1.C2", "N1.N2"));
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_AncestorNamespace_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_AncestorNamespace_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -763,12 +821,12 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetBasicResultAt(3, 41, "N1.C2", "N1.N2"));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -790,11 +848,11 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -813,11 +871,11 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_NestedType_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_NestedType_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -836,11 +894,11 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_NestedType_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_NestedType_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -859,11 +917,11 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_NestedType_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_NestedType_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -882,12 +940,12 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(4, 21, "N1.C1.Nested", "N2"));
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_NestedType_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_NestedType_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -906,12 +964,12 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetBasicResultAt(3, 41, "N1.C1.Nested", "N2"));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_UsageInAttributes_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInAttributes_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -946,11 +1004,11 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_UsageInAttributes_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInAttributes_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -982,11 +1040,11 @@ Class C2
     End Function
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_UsageInAttributes_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInAttributes_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1021,7 +1079,7 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(2, 2, "N1.C1", "N2"),     // 1,
                 GetCSharpResultAt(2, 15, "N1.C1", "N2"),    // 2,
                 GetCSharpResultAt(5, 6, "N1.C1", "N2"),     // 3,
@@ -1042,7 +1100,7 @@ class C2
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_UsageInAttributes_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInAttributes_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1074,7 +1132,7 @@ Class C2
     End Function
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetBasicResultAt(2, 2, "N1.C1", "N2"),     // 1,
                 GetBasicResultAt(2, 16, "N1.C1", "N2"),    // 2,
                 GetBasicResultAt(4, 6, "N1.C1", "N2"),     // 3,
@@ -1093,7 +1151,7 @@ End Class";
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1116,11 +1174,11 @@ class C2 : N1.C1
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1149,11 +1207,11 @@ Class C2
     End Function
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_UsageInDeclaration_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInDeclaration_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1182,7 +1240,7 @@ class B : N1.C1
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(2, 11, "N1.C1", "N2"),
                 GetCSharpResultAt(4, 22, "N1.C2", "N2"),
                 GetCSharpResultAt(5, 13, "N1.C3", "N2"),
@@ -1193,7 +1251,7 @@ class B : N1.C1
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_UsageInDeclaration_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInDeclaration_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1234,7 +1292,7 @@ Class B
     End Function
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetBasicResultAt(3, 14, "N1.C1", "N2"),
                 GetBasicResultAt(5, 31, "N1.C2", "N2"),
                 GetBasicResultAt(6, 45, "N1.C3", "N2"),
@@ -1245,7 +1303,7 @@ End Class";
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1284,11 +1342,11 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1333,11 +1391,11 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1360,11 +1418,11 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1383,11 +1441,11 @@ Class C2
     End Function
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_PublicTypeInternalField_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalField_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1410,12 +1468,12 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(6, 16, "N1.C1.Field", "N2"));
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_PublicTypeInternalField_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalField_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1434,12 +1492,12 @@ Class C2
     End Function
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetBasicResultAt(4, 16, "N1.C1.Field", "N2"));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_PublicTypeInternalMethod_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalMethod_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1462,12 +1520,12 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(6, 16, "N1.C1.Method", "N2"));
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_PublicTypeInternalMethod_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalMethod_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1488,12 +1546,12 @@ Class C2
     End Function
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetBasicResultAt(4, 16, "N1.C1.Method", "N2"));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_PublicTypeInternalProperty_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalProperty_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1516,12 +1574,12 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(6, 16, "N1.C1.Property", "N2"));
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_PublicTypeInternalProperty_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalProperty_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1540,14 +1598,15 @@ Class C2
     End Function
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetBasicResultAt(4, 16, "N1.C1.Property", "N2"));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_PublicTypeInternalEvent_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalEvent_Diagnostic()
         {
-            var apiProviderSource = @"
+            var apiProviderSource = @"using System;
+
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -1568,14 +1627,18 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(6, 13, "N1.C1.Event", "N2"));
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
+                GetCSharpResultAt(6, 13, "N1.C1.Event", "N2"),
+                DiagnosticResult.CompilerError("CS0070")
+                    .WithLocation(6, 15)
+                    .WithMessage("The event 'C1.Event' can only appear on the left hand side of += or -= (except when used from within the type 'C1')"));
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_PublicTypeInternalEvent_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalEvent_Diagnostic()
         {
-            var apiProviderSource = @"
+            var apiProviderSource = @"Imports System
+
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -1592,12 +1655,15 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource, TestValidationMode.AllowCompileErrors,
-                GetBasicResultAt(4, 22, "N1.C1.Event", "N2"));
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
+                GetBasicResultAt(4, 22, "N1.C1.Event", "N2"),
+                DiagnosticResult.CompilerError("BC32022")
+                    .WithLocation(4, 22)
+                    .WithMessage("'Friend Event [Event] As EventHandler' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event."));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_PublicTypeInternalConstructor_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalConstructor_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1620,12 +1686,12 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(6, 17, "N1.C1.C1", "N2"));
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_PublicTypeInternalConstructor_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalConstructor_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1645,12 +1711,12 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetBasicResultAt(4, 17, "N1.C1.New", "N2"));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_Conversions_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_Conversions_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1672,13 +1738,13 @@ class C2
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(6, 14, "N1.I1", "N2"),
                 GetCSharpResultAt(7, 9, "N1.I1", "N2"));
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_Conversions_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_Conversions_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1701,13 +1767,13 @@ Class C2
     End Function
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(4, 26, "N1.I1", "N2"),
                 GetCSharpResultAt(5, 18, "N1.I1", "N2"));
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1734,11 +1800,11 @@ class C2 : C1<C3>
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource);
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1767,11 +1833,11 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource);
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
-        public void CSharp_IVT_RestrictedIVT_UsageInTypeArgument_Diagnostic()
+        public async Task CSharp_IVT_RestrictedIVT_UsageInTypeArgument_Diagnostic()
         {
             var apiProviderSource = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
@@ -1808,7 +1874,7 @@ class C2 : C1<C3>
     }
 }";
 
-            VerifyCSharp(apiProviderSource, apiConsumerSource,
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(5, 15, "N1.C3", "N2"),
                 GetCSharpResultAt(7, 15, "N1.C4", "N2"),
                 GetCSharpResultAt(9, 22, "N1.C5", "N2"),
@@ -1816,7 +1882,7 @@ class C2 : C1<C3>
         }
 
         [Fact]
-        public void Basic_IVT_RestrictedIVT_UsageInTypeArgument_Diagnostic()
+        public async Task Basic_IVT_RestrictedIVT_UsageInTypeArgument_Diagnostic()
         {
             var apiProviderSource = @"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
@@ -1854,7 +1920,7 @@ Class C2
     End Sub
 End Class";
 
-            VerifyBasic(apiProviderSource, apiConsumerSource,
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 GetCSharpResultAt(6, 20, "N1.C3", "N2"),
                 GetCSharpResultAt(8, 37, "N1.C4", "N2"),
                 GetCSharpResultAt(9, 35, "N1.C5", "N2"),
