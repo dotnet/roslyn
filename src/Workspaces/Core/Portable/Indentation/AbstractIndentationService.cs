@@ -5,9 +5,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -57,19 +55,17 @@ namespace Microsoft.CodeAnalysis.Indentation
         private AbstractIndenter GetIndenter(Document document, int lineNumber, CancellationToken cancellationToken)
         {
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var syntacticDoc = SyntacticDocument.CreateAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
-            var sourceText = root.SyntaxTree.GetText(cancellationToken);
+            var sourceText = syntacticDoc.Root.SyntaxTree.GetText(cancellationToken);
             var lineToBeIndented = sourceText.Lines[lineNumber];
 
             var formattingRules = GetFormattingRules(document, lineToBeIndented.Start);
 
-            return GetIndenter(
-                document, root.SyntaxTree, lineToBeIndented,
-                formattingRules, documentOptions, cancellationToken);
+            return GetIndenter(syntacticDoc, lineToBeIndented, formattingRules, documentOptions, cancellationToken);
         }
 
         protected abstract AbstractIndenter GetIndenter(
-            Document document, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
+            SyntacticDocument document, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
     }
 }

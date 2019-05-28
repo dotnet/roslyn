@@ -23,13 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         internal class Indenter : AbstractIndenter
         {
             public Indenter(
-                Document document,
-                SyntaxTree syntaxTree,
+                SyntacticDocument document,
                 IEnumerable<AbstractFormattingRule> rules,
                 OptionSet optionSet,
                 TextLine line,
-                CancellationToken cancellationToken) :
-                base(document, syntaxTree, rules, optionSet, line, cancellationToken)
+                CancellationToken cancellationToken)
+                : base(document, rules, optionSet, line, cancellationToken)
             {
             }
 
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             {
                 var workspace = Document.Project.Solution.Workspace;
                 var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-                var rules = formattingRuleFactory.CreateRule(Document, LineToBeIndented.Start).Concat(Formatter.GetDefaultFormattingRules(Document));
+                var rules = formattingRuleFactory.CreateRule(Document.Document, LineToBeIndented.Start).Concat(Formatter.GetDefaultFormattingRules(Document.Document));
 
                 return new CSharpSmartTokenFormatter(OptionSet, rules, Root);
             }
