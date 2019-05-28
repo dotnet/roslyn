@@ -121,33 +121,32 @@ namespace Microsoft.CodeAnalysis.Indentation
 
             public bool TryGetSmartTokenIndentation(out IndentationResult indentationResult)
             {
-                indentationResult = default;
-                if (!ShouldUseTokenIndenter(out var token))
+                if (ShouldUseTokenIndenter(out var token))
                 {
-                    return false;
-                }
+                    // var root = document.GetSyntaxRootSynchronously(cancellationToken);
+                    var sourceText = Tree.GetText(CancellationToken);
 
-                // var root = document.GetSyntaxRootSynchronously(cancellationToken);
-                var sourceText = Tree.GetText(CancellationToken);
+                    var formatter = CreateSmartTokenFormatter();
+                    var changes = formatter.FormatTokenAsync(Document.Project.Solution.Workspace, token, CancellationToken)
+                                           .WaitAndGetResult(CancellationToken);
 
-                var formatter = CreateSmartTokenFormatter();
-                var changes = formatter.FormatTokenAsync(Document.Project.Solution.Workspace, token, CancellationToken)
-                                       .WaitAndGetResult(CancellationToken);
-
-                var updatedSourceText = sourceText.WithChanges(changes);
-                if (LineToBeIndented.LineNumber < updatedSourceText.Lines.Count)
-                {
-                    var updatedLine = updatedSourceText.Lines[LineToBeIndented.LineNumber];
-                    var offset = updatedLine.GetFirstNonWhitespaceOffset();
-                    if (offset != null)
+                    var updatedSourceText = sourceText.WithChanges(changes);
+                    if (LineToBeIndented.LineNumber < updatedSourceText.Lines.Count)
                     {
-                        indentationResult = new IndentationResult(
-                            basePosition: LineToBeIndented.Start,
-                            offset: offset.Value);
+                        var updatedLine = updatedSourceText.Lines[LineToBeIndented.LineNumber];
+                        var offset = updatedLine.GetFirstNonWhitespaceOffset();
+                        if (offset != null)
+                        {
+                            indentationResult = new IndentationResult(
+                                basePosition: LineToBeIndented.Start,
+                                offset: offset.Value);
+                            return true;
+                        }
                     }
                 }
 
-                return true;
+                indentationResult = default;
+                return false;
             }
 
             protected IndentationResult IndentFromStartOfLine(int addedSpaces)
