@@ -1696,6 +1696,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generate parameter &apos;{0}&apos;.
+        /// </summary>
+        internal static string Generate_parameter_0 {
+            get {
+                return ResourceManager.GetString("Generate_parameter_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate parameter &apos;{0}&apos; (and overrides/implementations).
+        /// </summary>
+        internal static string Generate_parameter_0_and_overrides_implementations {
+            get {
+                return ResourceManager.GetString("Generate_parameter_0_and_overrides_implementations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Generate property &apos;{1}.{0}&apos;.
         /// </summary>
         internal static string Generate_property_1_0 {

@@ -1668,8 +1668,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var members = ((NamedTypeSymbol)type).GetMembersUnordered();
 
-            // EmptyStructTypeCache.IsEmptyStructType() returned true. If there
-            // are fields, those must be cyclic, so treat the type as empty.
+            // EmptyStructTypeCache.IsEmptyStructType() returned true. If there are fields,
+            // at least one of those fields must be cyclic, so treat the type as empty.
             if (members.Any(m => m.Kind == SymbolKind.Field))
             {
                 return true;
@@ -2764,7 +2764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// For each argument, figure out if its corresponding parameter is annotated with NotNullWhenFalse or
-        /// EnsuresNotNull.
+        /// NotNull.
         /// </summary>
         private static ImmutableArray<FlowAnalysisAnnotations> GetAnnotations(int numArguments,
             bool expanded, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt)
@@ -4125,7 +4125,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var invokeParameter = invoke.Parameters[i];
                 var methodParameter = method.Parameters[i + methodOffset];
-                if (IsNullabilityMismatch(invokeParameter.TypeWithAnnotations, methodParameter.TypeWithAnnotations, requireIdentity: invokeParameter.RefKind != RefKind.None))
+
+                var sourceParameter = invokeParameter;
+                var destinationParameter = methodParameter;
+
+                var invokeRefKind = invokeParameter.RefKind;
+                if (invokeRefKind == RefKind.Out)
+                {
+                    // out parameters have inverted variance
+                    (sourceParameter, destinationParameter) = (destinationParameter, sourceParameter);
+                }
+
+                if (IsNullabilityMismatch(sourceParameter.TypeWithAnnotations, destinationParameter.TypeWithAnnotations, requireIdentity: invokeRefKind == RefKind.Ref))
                 {
                     ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
                         new FormattedSymbol(methodParameter, SymbolDisplayFormat.ShortFormat),
@@ -5143,8 +5154,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int valueSlot;
                         if (underlyingConversion.IsIdentity)
                         {
-                            operandType = default;
-                            valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
+                            if ((variable.Expression as BoundLocal)?.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
+                            {
+                                // when the LHS is a var declaration, we can just visit the right part to infer the type
+                                valueType = operandType = VisitRvalueWithState(rightPart);
+                                _variableTypes[variable.Expression.ExpressionSymbol] = operandType.ToTypeWithAnnotations();
+                            }
+                            else
+                            {
+                                operandType = default;
+                                valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
+                            }
                             valueSlot = MakeSlot(rightPart);
                         }
                         else
@@ -5260,7 +5280,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/33011: Should include conversion.UnderlyingConversions[i].
                 // For instance, Boxing conversions (see Deconstruction_ImplicitBoxingConversion_02) and
                 // ImplicitNullable conversions (see Deconstruction_ImplicitNullableConversion_02).
-                VisitRvalue(expr);
                 var fields = tupleType.TupleElements;
                 return fields.SelectAsArray((f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
             }

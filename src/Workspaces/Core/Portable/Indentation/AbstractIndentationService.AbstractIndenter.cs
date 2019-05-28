@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Indentation
             protected readonly int TabSize;
             protected readonly CancellationToken CancellationToken;
 
-            protected readonly Document Document;
+            protected readonly SyntacticDocument Document;
             protected readonly TSyntaxRoot Root;
-            protected readonly SyntaxTree Tree;
+            protected SyntaxTree Tree => Document.SyntaxTree;
             protected readonly IEnumerable<AbstractFormattingRule> Rules;
             protected readonly BottomUpBaseIndentationFinder Finder;
 
@@ -36,19 +36,17 @@ namespace Microsoft.CodeAnalysis.Indentation
             private readonly ISyntaxFactsService _syntaxFacts;
 
             public AbstractIndenter(
-                Document document,
-                SyntaxTree syntaxTree,
+                SyntacticDocument document,
                 IEnumerable<AbstractFormattingRule> rules,
                 OptionSet optionSet,
                 TextLine lineToBeIndented,
                 CancellationToken cancellationToken)
             {
-                this.Root = (TSyntaxRoot)syntaxTree.GetRoot(cancellationToken);
-
                 Document = document;
-                this._syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+
+                this._syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
                 this.OptionSet = optionSet;
-                this.Tree = syntaxTree;
+                this.Root = (TSyntaxRoot)document.Root;
                 this.LineToBeIndented = lineToBeIndented;
                 this.TabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, Root.Language);
                 this.CancellationToken = cancellationToken;

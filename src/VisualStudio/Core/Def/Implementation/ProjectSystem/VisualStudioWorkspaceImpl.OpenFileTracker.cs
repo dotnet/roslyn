@@ -191,10 +191,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                     }
                                     else
                                     {
-                                        // TODO: implement the ability for analyze config documents to be opened against
-                                        // a live text editor. This is tracked by
-                                        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/750120
                                         Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
+                                        w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
                                     }
                                 }
                             }
@@ -366,10 +364,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             }
                             else
                             {
-                                // TODO: implement the ability for analyze config documents to be opened against
-                                // a live text editor. This is tracked by
-                                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/750120
                                 Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
+                                w.OnAnalyzerConfigDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
                             }
                         }
                     }

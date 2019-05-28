@@ -30,20 +30,20 @@ namespace Microsoft.CodeAnalysis.Remote
                 _owner = owner;
             }
 
-            public override async Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken callerCancellation)
+            public override async Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
             {
-                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, callerCancellation))
+                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, cancellationToken))
                 {
                     try
                     {
-                        return await _owner.RunServiceAsync(cancellationToken =>
+                        return await _owner.RunServiceAsync(() =>
                         {
                             return _owner.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                                 new object[] { scopeId, checksums.ToArray() },
                                 (s, c) => ReadAssets(s, scopeId, checksums, serializerService, c), cancellationToken);
-                        }, callerCancellation).ConfigureAwait(false);
+                        }, cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception ex) when (ReportUnlessCanceled(ex, callerCancellation))
+                    catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }

@@ -35,13 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return s_instance;
         }
 
-        protected override AbstractIndenter GetIndenter(
-            Document document, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
-        {
-            return new Indenter(
-                document, syntaxTree, formattingRules,
-                optionSet, lineToBeIndented, cancellationToken);
-        }
+        protected override AbstractIndenter GetIndenter(SyntacticDocument document, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
+            => new Indenter(document, formattingRules, optionSet, lineToBeIndented, cancellationToken);
 
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
             IEnumerable<AbstractFormattingRule> formattingRules,

@@ -62,6 +62,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public static ContainedDocument TryGetContainedDocument(DocumentId id)
         {
+            if (id == null)
+            {
+                return null;
+            }
+
             ContainedDocument document;
             s_containedDocuments.TryGetValue(id, out document);
 

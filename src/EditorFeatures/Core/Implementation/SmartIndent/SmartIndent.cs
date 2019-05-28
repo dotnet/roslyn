@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 }
 #pragma warning restore CS0618 // Type or member is obsolete
 
-
                 return null;
             }
         }

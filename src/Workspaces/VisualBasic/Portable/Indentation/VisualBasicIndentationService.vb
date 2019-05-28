@@ -2,11 +2,9 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Indentation
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -34,13 +32,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return _specializedIndentationRule
         End Function
 
-        Protected Overrides Function GetIndenter(document As Document,
-                                                 syntaxTree As SyntaxTree,
+        Protected Overrides Function GetIndenter(document As SyntacticDocument,
                                                  lineToBeIndented As TextLine,
                                                  formattingRules As IEnumerable(Of AbstractFormattingRule),
                                                  optionSet As OptionSet,
                                                  cancellationToken As CancellationToken) As AbstractIndenter
-            Return New Indenter(document, syntaxTree, formattingRules, optionSet, lineToBeIndented, cancellationToken)
+            Return New Indenter(document, formattingRules, optionSet, lineToBeIndented, cancellationToken)
         End Function
 
         Public Overloads Shared Function ShouldUseSmartTokenFormatterInsteadOfIndenter(

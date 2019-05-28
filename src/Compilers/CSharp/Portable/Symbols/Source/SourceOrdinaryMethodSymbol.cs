@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            CheckModifiers(_hasAnyBody, location, diagnostics);
+            CheckModifiers(syntax.ExplicitInterfaceSpecifier != null, _hasAnyBody, location, diagnostics);
 
             return;
 
@@ -866,6 +866,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                DeclarationModifiers.AccessibilityMask;
                 }
             }
+            else if (isInterface)
+            {
+                Debug.Assert(isExplicitInterfaceImplementation);
+                allowedModifiers |= DeclarationModifiers.Abstract;
+            }
 
             allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
 
@@ -971,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        private void CheckModifiers(bool hasBody, Location location, DiagnosticBag diagnostics)
+        private void CheckModifiers(bool isExplicitInterfaceImplementation, bool hasBody, Location location, DiagnosticBag diagnostics)
         {
             const DeclarationModifiers partialMethodInvalidModifierMask = (DeclarationModifiers.AccessibilityMask & ~DeclarationModifiers.Private) |
                      DeclarationModifiers.Virtual |
@@ -981,6 +986,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                      DeclarationModifiers.Sealed |
                      DeclarationModifiers.Extern;
 
+            bool isExplicitInterfaceImplementationInInterface = isExplicitInterfaceImplementation && ContainingType.IsInterface;
+
             if (IsPartial && !ReturnsVoid)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodMustReturnVoid, location);
@@ -989,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, location);
             }
-            else if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || IsAbstract || IsOverride))
+            else if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || (IsAbstract && !isExplicitInterfaceImplementationInInterface) || IsOverride))
             {
                 diagnostics.Add(ErrorCode.ERR_VirtualPrivate, location, this);
             }
@@ -1003,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // A member '{0}' marked as override cannot be marked as new or virtual
                 diagnostics.Add(ErrorCode.ERR_OverrideNotNew, location, this);
             }
-            else if (IsSealed && !IsOverride)
+            else if (IsSealed && !IsOverride && !(isExplicitInterfaceImplementationInInterface && IsAbstract))
             {
                 // '{0}' cannot be sealed because it is not an override
                 diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
@@ -1022,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractAndExtern, location, this);
             }
-            else if (IsAbstract && IsSealed)
+            else if (IsAbstract && IsSealed && !isExplicitInterfaceImplementationInInterface)
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractAndSealed, location, this);
             }

@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.ArrowExpressionClause(InternalSyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), GenerateIdentifierName());
         
         private static Syntax.InternalSyntax.EventDeclarationSyntax GenerateEventDeclaration()
-            => InternalSyntaxFactory.EventDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.EventKeyword), GenerateIdentifierName(), null, InternalSyntaxFactory.Identifier("Identifier"), GenerateAccessorList());
+            => InternalSyntaxFactory.EventDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.EventKeyword), GenerateIdentifierName(), null, InternalSyntaxFactory.Identifier("Identifier"), null, null);
         
         private static Syntax.InternalSyntax.IndexerDeclarationSyntax GenerateIndexerDeclaration()
             => InternalSyntaxFactory.IndexerDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName(), null, InternalSyntaxFactory.Token(SyntaxKind.ThisKeyword), GenerateBracketedParameterList(), null, null, null);
@@ -2745,7 +2745,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Type);
             Assert.Null(node.ExplicitInterfaceSpecifier);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
-            Assert.NotNull(node.AccessorList);
+            Assert.Null(node.AccessorList);
+            Assert.Null(node.SemicolonToken);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -9480,7 +9481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), GenerateIdentifierName());
         
         private static EventDeclarationSyntax GenerateEventDeclaration()
-            => SyntaxFactory.EventDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.EventKeyword), GenerateIdentifierName(), default(ExplicitInterfaceSpecifierSyntax), SyntaxFactory.Identifier("Identifier"), GenerateAccessorList());
+            => SyntaxFactory.EventDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.EventKeyword), GenerateIdentifierName(), default(ExplicitInterfaceSpecifierSyntax), SyntaxFactory.Identifier("Identifier"), default(AccessorListSyntax), default(SyntaxToken));
         
         private static IndexerDeclarationSyntax GenerateIndexerDeclaration()
             => SyntaxFactory.IndexerDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateIdentifierName(), default(ExplicitInterfaceSpecifierSyntax), SyntaxFactory.Token(SyntaxKind.ThisKeyword), GenerateBracketedParameterList(), default(AccessorListSyntax), default(ArrowExpressionClauseSyntax), default(SyntaxToken));
@@ -11718,8 +11719,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Type);
             Assert.Null(node.ExplicitInterfaceSpecifier);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
-            Assert.NotNull(node.AccessorList);
-            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithEventKeyword(node.EventKeyword).WithType(node.Type).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithIdentifier(node.Identifier).WithAccessorList(node.AccessorList);
+            Assert.Null(node.AccessorList);
+            Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithEventKeyword(node.EventKeyword).WithType(node.Type).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithIdentifier(node.Identifier).WithAccessorList(node.AccessorList).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
         }
         
