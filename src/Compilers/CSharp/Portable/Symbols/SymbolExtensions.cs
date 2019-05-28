@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsImplementableInterfaceMember(this Symbol symbol)
         {
-            return !symbol.IsStatic && (symbol.IsAbstract || symbol.IsVirtual) && (symbol.ContainingType?.IsInterface ?? false);
+            return !symbol.IsStatic && !symbol.IsSealed && (symbol.IsAbstract || symbol.IsVirtual) && (symbol.ContainingType?.IsInterface ?? false);
         }
     }
 }

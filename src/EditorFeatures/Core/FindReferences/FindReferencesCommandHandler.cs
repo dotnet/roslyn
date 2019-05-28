@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         public string DisplayName => EditorFeaturesResources.Find_References;
 
         [ImportingConstructor]
-        internal FindReferencesCommandHandler(
+        public FindReferencesCommandHandler(
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             IAsynchronousOperationListenerProvider listenerProvider)
         {

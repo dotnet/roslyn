@@ -248,6 +248,7 @@ div(10, 0)
 ");
             Assert.Equal(0, runner.RunInteractive());
 
+            var exception = new DivideByZeroException();
             Assert.Equal(
 $@"{LogoAndHelpPrompt}
 > int div(int a, int b) => a/b;
@@ -255,13 +256,13 @@ $@"{LogoAndHelpPrompt}
 5
 > div(10, 0)
 «Red»
-{new System.DivideByZeroException().Message}
+{exception.GetType()}: {exception.Message}
   + Submission#0.div(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
 
             Assert.Equal(
-$@"{new System.DivideByZeroException().Message}
+$@"{exception.GetType()}: {exception.Message}
   + Submission#0.div(int, int)
 ", runner.Console.Error.ToString());
         }
@@ -276,6 +277,7 @@ C<string>.div<bool>(10, 0)
 ");
             Assert.Equal(0, runner.RunInteractive());
 
+            var exception = new DivideByZeroException();
             Assert.Equal(
 $@"{LogoAndHelpPrompt}
 > static class C<T> {{ public static int div<U>(int a, int b) => a/b; }}
@@ -283,13 +285,13 @@ $@"{LogoAndHelpPrompt}
 5
 > C<string>.div<bool>(10, 0)
 «Red»
-{new System.DivideByZeroException().Message}
+{exception.GetType()}: {exception.Message}
   + Submission#0.C<T>.div<U>(int, int)
 «Gray»
 > ", runner.Console.Out.ToString());
 
             Assert.Equal(
-$@"{new System.DivideByZeroException().Message}
+$@"{exception.GetType()}: {exception.Message}
   + Submission#0.C<T>.div<U>(int, int)
 ", runner.Console.Error.ToString());
         }
@@ -889,7 +891,7 @@ $@"{LogoAndHelpPrompt}
 «Yellow»
 (1,58): warning CS0162: { CSharpResources.WRN_UnreachableCode }
 «Red»
-Bang!
+System.Exception: Bang!
 «Gray»
 > i + j + k
 120
@@ -897,7 +899,7 @@ Bang!
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"(1,58): warning CS0162: { CSharpResources.WRN_UnreachableCode }
-Bang!",
+System.Exception: Bang!",
                 runner.Console.Error.ToString());
         }
 

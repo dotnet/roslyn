@@ -62,6 +62,11 @@
         <target state="translated">Применять предпочтения для квалификации this.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_switch_statement_to_expression">
+        <source>Convert switch statement to expression</source>
+        <target state="new">Convert switch statement to expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Преобразовать в метод</target>
@@ -135,6 +140,11 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="new">Unseal class '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_switch_expression">
+        <source>Use 'switch' expression</source>
+        <target state="new">Use 'switch' expression</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
