@@ -44,6 +44,13 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public List<Func<IEnumerable<(string filename, SourceText content)>>> AdditionalFilesFactories { get; } = new List<Func<IEnumerable<(string filename, SourceText content)>>>();
 
+        /// <summary>
+        /// Gets a list of additional projects to include in the solution. A <see cref="ProjectReference"/> will be
+        /// added from the primary project to each of the additional projects provided here. Markup, additional files,
+        /// and diagnostics in additional projects are not yet supported.
+        /// </summary>
+        public List<ProjectState> AdditionalProjects { get; } = new List<ProjectState>();
+
         public MetadataReferenceCollection AdditionalReferences { get; } = new MetadataReferenceCollection();
 
         /// <summary>
@@ -142,6 +149,11 @@ namespace Microsoft.CodeAnalysis.Testing
                     result.AdditionalFiles.AddRange(baseState.AdditionalFiles);
                 }
 
+                if (AdditionalProjects.Count == 0)
+                {
+                    result.AdditionalProjects.AddRange(baseState.AdditionalProjects);
+                }
+
                 if (AdditionalReferences.Count == 0)
                 {
                     result.AdditionalReferences.AddRange(baseState.AdditionalReferences);
@@ -164,6 +176,7 @@ namespace Microsoft.CodeAnalysis.Testing
             result.InheritanceMode = StateInheritanceMode.Explicit;
             result.Sources.AddRange(Sources);
             result.AdditionalFiles.AddRange(AdditionalFiles);
+            result.AdditionalProjects.AddRange(AdditionalProjects);
             result.AdditionalReferences.AddRange(AdditionalReferences);
             result.ExpectedDiagnostics.AddRange(ExpectedDiagnostics);
             result.AdditionalFiles.AddRange(AdditionalFilesFactories.SelectMany(factory => factory()));
@@ -260,6 +273,7 @@ namespace Microsoft.CodeAnalysis.Testing
             result.InheritanceMode = StateInheritanceMode.Explicit;
             result.Sources.AddRange(testSources);
             result.AdditionalFiles.AddRange(additionalFiles);
+            result.AdditionalProjects.AddRange(AdditionalProjects);
             result.AdditionalReferences.AddRange(AdditionalReferences);
             result.ExpectedDiagnostics.AddRange(additionalExpected);
             return result;

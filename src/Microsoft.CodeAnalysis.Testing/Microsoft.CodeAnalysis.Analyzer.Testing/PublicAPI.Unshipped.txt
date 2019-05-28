@@ -2,7 +2,7 @@ Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.AnalyzerTest() -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CompilerDiagnostics.get -> Microsoft.CodeAnalysis.Testing.CompilerDiagnostics
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CompilerDiagnostics.set -> void
-Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProject((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, (string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] additionalFiles, Microsoft.CodeAnalysis.MetadataReference[] additionalMetadataReferences, string language) -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProject((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, (string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] additionalFiles, Microsoft.CodeAnalysis.Testing.ProjectState[] additionalProjects, Microsoft.CodeAnalysis.MetadataReference[] additionalMetadataReferences, string language) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DisabledDiagnostics.get -> System.Collections.Generic.List<string>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ExpectedDiagnostics.get -> System.Collections.Generic.List<Microsoft.CodeAnalysis.Testing.DiagnosticResult>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.GetSortedDiagnosticsAsync(Microsoft.CodeAnalysis.Solution solution, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, Microsoft.CodeAnalysis.Testing.CompilerDiagnostics compilerDiagnostics, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
@@ -14,7 +14,7 @@ Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestBehaviors.get -> Micr
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestBehaviors.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestCode.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestState.get -> Microsoft.CodeAnalysis.Testing.SolutionState
-Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.VerifyDiagnosticsAsync((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, (string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] additionalFiles, Microsoft.CodeAnalysis.MetadataReference[] additionalMetadataReferences, Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected, Microsoft.CodeAnalysis.Testing.IVerifier verifier, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.VerifyDiagnosticsAsync((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, (string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] additionalFiles, Microsoft.CodeAnalysis.Testing.ProjectState[] additionalProjects, Microsoft.CodeAnalysis.MetadataReference[] additionalMetadataReferences, Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected, Microsoft.CodeAnalysis.Testing.IVerifier verifier, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.XmlReferences.get -> System.Collections.Generic.Dictionary<string, string>
 Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>
 Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.AnalyzerVerifier() -> void
@@ -88,9 +88,16 @@ Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection.Add(System.Reflection
 Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection.Add(string path) -> void
 Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection.MetadataReferenceCollection() -> void
 Microsoft.CodeAnalysis.Testing.MetadataReferences
+Microsoft.CodeAnalysis.Testing.ProjectState
+Microsoft.CodeAnalysis.Testing.ProjectState.AdditionalReferences.get -> Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection
+Microsoft.CodeAnalysis.Testing.ProjectState.AssemblyName.get -> string
+Microsoft.CodeAnalysis.Testing.ProjectState.Name.get -> string
+Microsoft.CodeAnalysis.Testing.ProjectState.ProjectState(string name, string defaultPrefix, string defaultExtension) -> void
+Microsoft.CodeAnalysis.Testing.ProjectState.Sources.get -> Microsoft.CodeAnalysis.Testing.SourceFileList
 Microsoft.CodeAnalysis.Testing.SolutionState
 Microsoft.CodeAnalysis.Testing.SolutionState.AdditionalFiles.get -> Microsoft.CodeAnalysis.Testing.SourceFileCollection
 Microsoft.CodeAnalysis.Testing.SolutionState.AdditionalFilesFactories.get -> System.Collections.Generic.List<System.Func<System.Collections.Generic.IEnumerable<(string filename, Microsoft.CodeAnalysis.Text.SourceText content)>>>
+Microsoft.CodeAnalysis.Testing.SolutionState.AdditionalProjects.get -> System.Collections.Generic.List<Microsoft.CodeAnalysis.Testing.ProjectState>
 Microsoft.CodeAnalysis.Testing.SolutionState.AdditionalReferences.get -> Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection
 Microsoft.CodeAnalysis.Testing.SolutionState.ExpectedDiagnostics.get -> System.Collections.Generic.List<Microsoft.CodeAnalysis.Testing.DiagnosticResult>
 Microsoft.CodeAnalysis.Testing.SolutionState.InheritanceMode.get -> Microsoft.CodeAnalysis.Testing.StateInheritanceMode?
@@ -121,6 +128,7 @@ abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateCompilatio
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFileExt.get -> string
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.Language.get -> string
+abstract Microsoft.CodeAnalysis.Testing.ProjectState.Language.get -> string
 override Microsoft.CodeAnalysis.Testing.DiagnosticResult.ToString() -> string
 override Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext context) -> void
 override Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor>
@@ -155,7 +163,7 @@ static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.SystemCollecti
 static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.SystemCoreReference -> Microsoft.CodeAnalysis.MetadataReference
 static readonly Microsoft.CodeAnalysis.Testing.MetadataReferences.SystemReference -> Microsoft.CodeAnalysis.MetadataReference
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ApplyCompilationOptions(Microsoft.CodeAnalysis.Project project) -> Microsoft.CodeAnalysis.Project
-virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProjectImpl((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, (string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] additionalFiles, Microsoft.CodeAnalysis.MetadataReference[] additionalMetadataReferences, string language) -> Microsoft.CodeAnalysis.Project
+virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProjectImpl((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, (string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] additionalFiles, Microsoft.CodeAnalysis.Testing.ProjectState[] additionalProjects, Microsoft.CodeAnalysis.MetadataReference[] additionalMetadataReferences, string language) -> Microsoft.CodeAnalysis.Project
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateSolution(Microsoft.CodeAnalysis.ProjectId projectId, string language) -> Microsoft.CodeAnalysis.Solution
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateWorkspace() -> Microsoft.CodeAnalysis.AdhocWorkspace
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFilePath.get -> string
