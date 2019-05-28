@@ -212,8 +212,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     // Check if this namespace is explicitly marked as allowed through restricted IVT.
                     if (allowedNamespaces.Contains(currentNamespace.ToDisplayString()))
                     {
-                        var banned = namespaceToIsBannedMap.GetOrAdd(currentNamespace, false);
-                        Debug.Assert(!banned);
+                        MarkIsBanned(symbol.ContainingNamespace, currentNamespace, banned: false);
                         return false;
                     }
 
@@ -222,16 +221,28 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
                 // Otherwise, mark all the containing namespace names of the given symbol as banned
                 // and consider the given symbol as banned.
-                currentNamespace = symbol.ContainingNamespace;
+                MarkIsBanned(symbol.ContainingNamespace, currentNamespace, banned: true);
+                return true;
+            }
+
+            void MarkIsBanned(INamespaceSymbol startNamespace, INamespaceSymbol uptoNamespace, bool banned)
+            {
+                var currentNamespace = startNamespace;
                 while (currentNamespace != null)
                 {
-                    var isBanned = namespaceToIsBannedMap.GetOrAdd(currentNamespace, true);
-                    Debug.Assert(isBanned);
+                    var saved = namespaceToIsBannedMap.GetOrAdd(currentNamespace, banned);
+                    Debug.Assert(saved == banned);
+
+                    if (Equals(currentNamespace, uptoNamespace))
+                    {
+                        break;
+                    }
+
                     currentNamespace = currentNamespace.ContainingNamespace;
                 }
-
-                return true;
             }
         }
     }
 }
+
+

@@ -1552,6 +1552,128 @@ End Class";
         }
 
         [Fact]
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_NoDiagnostic()
+        {
+            var apiProviderSource = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
+[assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
+
+namespace N1
+{
+    public class C1
+    {
+    }
+
+    public static class C1Extensions
+    {
+        internal static int Method(this C1 c1) => 0;
+    }
+}";
+
+            var apiConsumerSource = @"using static N1.C1Extensions;
+class C2
+{
+    int M(N1.C1 c)
+    {
+        return c.Method();
+    }
+}";
+
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
+        }
+
+        [Fact]
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_NoDiagnostic()
+        {
+            var apiProviderSource = @"
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
+<Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
+
+Namespace N1
+    Public Class C1
+    End Class
+
+    Public Module C1Extensions
+        <System.Runtime.CompilerServices.ExtensionAttribute>
+        Friend Function Method(c As C1) As Integer
+            Return 0
+        End Function
+    End Module
+End Namespace";
+
+            var apiConsumerSource = @"Imports N1.C1Extensions
+Class C2
+    Private Function M(c As N1.C1) As Integer
+        Return c.Method()
+    End Function
+End Class";
+
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
+        }
+
+        [Fact]
+        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_Diagnostic()
+        {
+            var apiProviderSource = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
+[assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
+
+namespace N1
+{
+    public class C1
+    {
+    }
+
+    public static class C1Extensions
+    {
+        internal static int Method(this C1 c1) => 0;
+    }
+}";
+
+            var apiConsumerSource = @"using static N1.C1Extensions;
+class C2
+{
+    int M(N1.C1 c)
+    {
+        return c.Method();
+    }
+}";
+
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
+                GetCSharpResultAt(6, 16, "N1.C1.Method", "N2"));
+        }
+
+        [Fact]
+        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_Diagnostic()
+        {
+            var apiProviderSource = @"
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
+<Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
+
+Namespace N1
+    Public Class C1
+    End Class
+
+    Public Module C1Extensions
+        <System.Runtime.CompilerServices.ExtensionAttribute>
+        Friend Function Method(c As C1) As Integer
+            Return 0
+        End Function
+    End Module
+End Namespace";
+
+            var apiConsumerSource = @"Imports N1.C1Extensions
+Class C2
+    Private Function M(c As N1.C1) As Integer
+        Return c.Method()
+    End Function
+End Class";
+
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
+                GetBasicResultAt(4, 16, "N1.C1.Method", "N2"));
+        }
+
+        [Fact]
         public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalProperty_Diagnostic()
         {
             var apiProviderSource = @"
@@ -1926,6 +2048,96 @@ End Class";
                 GetCSharpResultAt(8, 37, "N1.C4", "N2"),
                 GetCSharpResultAt(9, 35, "N1.C5", "N2"),
                 GetCSharpResultAt(10, 41, "N1.C6", "N2"));
+        }
+
+        [Fact]
+        public async Task CSharp_IVT_RestrictedIVT_UsingAlias_NoDiagnostic()
+        {
+            var apiProviderSource = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
+[assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
+
+namespace N1
+{
+    internal class C1 { }
+}";
+
+            var apiConsumerSource = @"using ImportedC1 = N1.C1;
+class C2
+{
+    void M(ImportedC1 c)
+    {
+    }
+}";
+
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
+        }
+
+        [Fact]
+        public async Task Basic_IVT_RestrictedIVT_UsingAlias_NoDiagnostic()
+        {
+            var apiProviderSource = @"
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
+<Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
+
+Namespace N1
+    Friend Class C1
+    End Class
+End Namespace";
+
+            var apiConsumerSource = @"Imports ImportedC1 = N1.C1
+Class C2
+    Private Sub M(c As ImportedC1)
+    End Sub
+End Class";
+
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
+        }
+
+        [Fact]
+        public async Task CSharp_IVT_RestrictedIVT_UsingAlias_Diagnostic()
+        {
+            var apiProviderSource = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
+[assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
+
+namespace N1
+{
+    internal class C1 { }
+}";
+
+            var apiConsumerSource = @"using ImportedC1 = N1.C1;
+class C2
+{
+    void M(ImportedC1 c)
+    {
+    }
+}";
+
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
+                GetCSharpResultAt(4, 12, "N1.C1", "N2"));
+        }
+
+        [Fact]
+        public async Task Basic_IVT_RestrictedIVT_UsingAlias_Diagnostic()
+        {
+            var apiProviderSource = @"
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
+<Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
+
+Namespace N1
+    Friend Class C1
+    End Class
+End Namespace";
+
+            var apiConsumerSource = @"Imports ImportedC1 = N1.C1
+Class C2
+    Private Sub M(c As ImportedC1)
+    End Sub
+End Class";
+
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
+                GetBasicResultAt(3, 24, "N1.C1", "N2"));
         }
     }
 }
