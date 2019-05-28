@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal EventHookupSessionManager(IThreadingContext threadingContext, IToolTipService toolTipService)
+        public EventHookupSessionManager(IThreadingContext threadingContext, IToolTipService toolTipService)
             : base(threadingContext)
         {
             _toolTipService = toolTipService;
