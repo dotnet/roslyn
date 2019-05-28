@@ -771,7 +771,7 @@ class C {
         [Fact]
         public void TestNullCheckedSingleParamNoSpaces()
         {
-            UsingDeclaration("Func<int, int> func1 = x!=>x;", expectedErrors: new DiagnosticDescription[] 
+            UsingDeclaration("Func<int, int> func1 = x!=>x;", expectedErrors: new DiagnosticDescription[]
             {
                     // (1,25): error CS8712: Space required between explanation-point and equals-sign here.
                     // Func<int, int> func1 = x!=>x;
@@ -1136,6 +1136,81 @@ class C {
                         {
                             N(SyntaxKind.NumericLiteralToken);
                         }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+
+        [Fact]
+        public void TestAnonymousDelegateNullChecking()
+        {
+            UsingTree(@"
+delegate void Del(int x!);
+Del d = delegate(int k!) { /* ... */ };");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.DelegateDeclaration);
+                {
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.ExclamationToken);
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.AnonymousMethodExpression);
+                        {
+                            N(SyntaxKind.DelegateKeyword);
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.ExclamationToken);
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
