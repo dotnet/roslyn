@@ -323,8 +323,6 @@
       https://myget.org/F/vs-devcore/api/v3/index.json;
       https://myget.org/F/vs-editor/api/v3/index.json;
       https://myget.org/F/roslyn_concord/api/v3/index.json;
-      https://vside.myget.org/F/vssdk/api/v3/index.json;
-      https://vside.myget.org/F/vs-impl/api/v3/index.json;
       https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
       https://dotnet.myget.org/F/system-commandline/api/v3/index.json;
       https://dotnetfeed.blob.core.windows.net/dotnet-coreclr/index.json;
