@@ -11240,6 +11240,7 @@ tryAgain:
             }
 
             SyntaxToken paramName = this.ParseIdentifierToken();
+            // PROTOTYPE : null checking; lang version check needed
             var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationToken ? this.EatToken(SyntaxKind.ExclamationToken) : null;
             var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, exclamation, null);
             _pool.Free(modifiers);
