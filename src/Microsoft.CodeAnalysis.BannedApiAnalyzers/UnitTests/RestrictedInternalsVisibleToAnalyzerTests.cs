@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers;
 using Xunit;
@@ -171,7 +172,7 @@ End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 DiagnosticResult.CompilerError("BC30389")
-                    .WithLocation(3, 24)
+                    .WithLocation("Test0.vb", new LinePosition(2, 23), DiagnosticLocationOptions.IgnoreAdditionalLocations)
                     .WithMessage("'N1.C1' is not accessible in this context because it is 'Friend'."));
         }
 
@@ -261,7 +262,7 @@ End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
                 new DiagnosticResult("BC30389", DiagnosticSeverity.Error)
-                    .WithLocation(3, 24)
+                    .WithLocation("Test0.vb", new LinePosition(2, 23), DiagnosticLocationOptions.IgnoreAdditionalLocations)
                     .WithMessage("'N1.C1' is not accessible in this context because it is 'Friend'."));
         }
 
