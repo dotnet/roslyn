@@ -462,6 +462,11 @@
         <target state="translated">ここで割り当てた値は一度も使用されません</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_colon">
+        <source>Value:</source>
+        <target state="new">Value:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
         <source>Value returned by invocation is implicitly ignored</source>
         <target state="translated">呼び出しによって返された値が暗黙的に無視されます</target>

@@ -3463,6 +3463,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value:.
+        /// </summary>
+        internal static string Value_colon {
+            get {
+                return ResourceManager.GetString("Value_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value returned by invocation is implicitly ignored.
         /// </summary>
         internal static string Value_returned_by_invocation_is_implicitly_ignored {
