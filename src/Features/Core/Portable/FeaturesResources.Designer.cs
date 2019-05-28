@@ -4570,6 +4570,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value:.
+        /// </summary>
+        internal static string Value_colon {
+            get {
+                return ResourceManager.GetString("Value_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Variable declaration can be deconstructed.
         /// </summary>
         internal static string Variable_declaration_can_be_deconstructed {
