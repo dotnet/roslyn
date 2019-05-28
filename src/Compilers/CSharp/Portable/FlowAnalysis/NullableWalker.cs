@@ -1317,12 +1317,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !type.IsNullableTypeOrTypeParameter();
         }
 
-        private static bool RequiresSafetyWarningWhenNullIntroduced(LvalueType type)
-        {
-            return type.Annotation != LvalueAnnotation.AllowNull &&
-                RequiresSafetyWarningWhenNullIntroduced(type.ToTypeWithAnnotations());
-        }
-
         private static bool RequiresSafetyWarningWhenNullIntroduced(TypeSymbol type)
         {
             return
@@ -2880,6 +2874,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public TypeWithAnnotations ApplyLValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations = FlowAnalysisAnnotations.None)
+        {
+            if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0)
+            {
+                var typeSymbol = declaredType.Type;
+                if (declaredType.NullableAnnotation.IsNotAnnotated() || (typeSymbol.IsValueType && !typeSymbol.IsNullableType()))
+                {
+                    return declaredType;
+                }
+
+                return TypeWithAnnotations.Create(typeSymbol, NullableAnnotation.NotAnnotated, declaredType.CustomModifiers);
+            }
+            else if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
+            {
+                var typeSymbol = declaredType.Type;
+                if (declaredType.NullableAnnotation.IsAnnotated() || (typeSymbol.IsValueType && typeSymbol.IsNullableType()))
+                {
+                    return declaredType;
+                }
+
+                return TypeWithAnnotations.Create(typeSymbol, NullableAnnotation.Annotated, declaredType.CustomModifiers);
+            }
+
+            return declaredType;
+        }
+
         // https://github.com/dotnet/roslyn/issues/29863 Record in the node whether type
         // arguments were implicit, to allow for cases where the syntax is not an
         // invocation (such as a synthesized call from a query interpretation).
@@ -3224,7 +3244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 conversionOpt: conversionOpt,
                                 conversionOperand: argumentNoConversion,
                                 conversion: conversion,
-                                targetTypeWithNullability: LvalueType.Create(parameterType, parameterAnnotations),
+                                targetTypeWithNullability: ApplyLValueAnnotations(parameterType, parameterAnnotations),
                                 operandType: resultType,
                                 checkConversion: true,
                                 fromExplicitCast: false,
@@ -4247,67 +4267,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversionOpt == convertedNode ? null : (BoundConversion)conversionOpt;
         }
 
-        // Is this different from NullableAnnotation?
-        private enum LvalueAnnotation
-        {
-            None,
-            AllowNull,
-            DisallowNull,
-        }
-
-        private readonly struct LvalueType
-        {
-            internal readonly TypeSymbol Type;
-            internal readonly LvalueAnnotation Annotation;
-
-            internal static LvalueType Create(TypeWithAnnotations type, FlowAnalysisAnnotations flowAnalysisAnnotations = FlowAnalysisAnnotations.None)
-            {
-                LvalueAnnotation annotation;
-                if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0)
-                {
-                    annotation = LvalueAnnotation.DisallowNull;
-                }
-                else if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
-                {
-                    annotation = LvalueAnnotation.AllowNull;
-                }
-                else
-                {
-                    annotation = type.NullableAnnotation switch
-                    {
-                        NullableAnnotation.Oblivious => LvalueAnnotation.None,
-                        NullableAnnotation.NotAnnotated => LvalueAnnotation.DisallowNull,
-                        NullableAnnotation.Annotated => LvalueAnnotation.AllowNull,
-                        var value => throw ExceptionUtilities.UnexpectedValue(value),
-                    };
-                }
-                return new LvalueType(type.Type, annotation);
-            }
-
-            internal LvalueType(TypeSymbol type, LvalueAnnotation annotation)
-            {
-                Type = type;
-                Annotation = annotation;
-            }
-
-            internal TypeWithState ToTypeWithState()
-            {
-                return TypeWithState.Create(Type, Annotation == LvalueAnnotation.DisallowNull ? NullableFlowState.NotNull : NullableFlowState.MaybeNull);
-            }
-
-            internal TypeWithAnnotations ToTypeWithAnnotations()
-            {
-                var annotation = Annotation switch
-                {
-                    LvalueAnnotation.None => NullableAnnotation.Oblivious,
-                    LvalueAnnotation.DisallowNull => NullableAnnotation.NotAnnotated,
-                    LvalueAnnotation.AllowNull => NullableAnnotation.Annotated,
-                    var value => throw ExceptionUtilities.UnexpectedValue(value),
-                };
-                return TypeWithAnnotations.Create(Type, annotation);
-            }
-        }
-
         /// <summary>
         /// Apply the conversion to the type of the operand and return the resulting type. (If the
         /// operand does not have an explicit type, the operand expression is used for the type.)
@@ -4322,34 +4281,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression conversionOperand,
             Conversion conversion,
             TypeWithAnnotations targetTypeWithNullability,
-            TypeWithState operandType,
-            bool checkConversion,
-            bool fromExplicitCast,
-            bool useLegacyWarnings,
-            AssignmentKind assignmentKind,
-            ParameterSymbol target = null,
-            bool reportTopLevelWarnings = true,
-            bool reportRemainingWarnings = true,
-            bool extensionMethodThisArgument = false,
-            Optional<LocalState> stateForLambda = default,
-            bool trackMembers = false,
-            Location diagnosticLocationOpt = null)
-        {
-            Debug.Assert(targetTypeWithNullability.HasType);
-
-            return VisitConversion(conversionOpt, conversionOperand, conversion,
-                LvalueType.Create(targetTypeWithNullability), operandType,
-                checkConversion, fromExplicitCast, useLegacyWarnings,
-                assignmentKind, target,
-                reportTopLevelWarnings, reportRemainingWarnings, extensionMethodThisArgument,
-                stateForLambda, trackMembers, diagnosticLocationOpt);
-        }
-
-        private TypeWithState VisitConversion(
-            BoundConversion conversionOpt,
-            BoundExpression conversionOperand,
-            Conversion conversion,
-            LvalueType targetTypeWithNullability,
             TypeWithState operandType,
             bool checkConversion,
             bool fromExplicitCast,
@@ -4422,7 +4353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
-                    return VisitUserDefinedConversion(conversionOpt, conversionOperand, conversion, targetTypeWithNullability.ToTypeWithAnnotations(), operandType, useLegacyWarnings, assignmentKind, target, reportTopLevelWarnings, reportRemainingWarnings, diagnosticLocationOpt);
+                    return VisitUserDefinedConversion(conversionOpt, conversionOperand, conversion, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target, reportTopLevelWarnings, reportRemainingWarnings, diagnosticLocationOpt);
 
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
@@ -4472,10 +4403,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (useLegacyWarnings && conversionOperand is BoundConversion operandConversion && !operandConversion.ConversionKind.IsUserDefinedConversion())
                     {
                         var explicitType = operandConversion.ConversionGroupOpt.ExplicitType;
-                        if (explicitType.Equals(targetTypeWithNullability.ToTypeWithAnnotations(), TypeCompareKind.ConsiderEverything))
+                        if (explicitType.Equals(targetTypeWithNullability, TypeCompareKind.ConsiderEverything))
                         {
                             TrackAnalyzedNullabilityThroughConversionGroup(
-                                calculateResultType(targetTypeWithNullability.ToTypeWithAnnotations(), fromExplicitCast, operandType.State, isSuppressed, targetType),
+                                calculateResultType(targetTypeWithNullability, fromExplicitCast, operandType.State, isSuppressed, targetType),
                                 conversionOpt,
                                 conversionOperand);
                             return operandType;
@@ -4607,7 +4538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            TypeWithState resultType = calculateResultType(targetTypeWithNullability.ToTypeWithAnnotations(), fromExplicitCast, resultState, isSuppressed, targetType);
+            TypeWithState resultType = calculateResultType(targetTypeWithNullability, fromExplicitCast, resultState, isSuppressed, targetType);
 
             if (operandType.Type?.IsErrorType() != true && !targetType.IsErrorType())
             {
@@ -4622,7 +4553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        ReportNullableAssignmentIfNecessary(conversionOperand, targetTypeWithNullability.ToTypeWithAnnotations(), operandType, useLegacyWarnings, assignmentKind, target, conversion, diagnosticLocationOpt);
+                        ReportNullableAssignmentIfNecessary(conversionOperand, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target, conversion, diagnosticLocationOpt);
                     }
                 }
                 if (reportRemainingWarnings && !canConvertNestedNullability)

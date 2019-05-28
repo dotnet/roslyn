@@ -50,13 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    state = typeWithAnnotations.NullableAnnotation switch
-                    {
-                        NullableAnnotation.Oblivious => NullableFlowState.NotNull,
-                        NullableAnnotation.NotAnnotated => type.IsPossiblyNullableReferenceTypeTypeParameter() || type.IsNullableTypeOrTypeParameter() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull,
-                        NullableAnnotation.Annotated => NullableFlowState.MaybeNull,
-                        var value => throw ExceptionUtilities.UnexpectedValue(value),
-                    };
+                    return typeWithAnnotations.ToTypeWithState();
                 }
             }
             else
