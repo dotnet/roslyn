@@ -99,6 +99,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal static Option<bool> AllowDisjointSpanMerging { get; } = CreateOption(OptionGroup.Default, nameof(AllowDisjointSpanMerging), defaultValue: false);
 
+        internal static readonly PerLanguageOption<bool> AutoFormattingOnReturn = CreatePerLanguageOption(OptionGroup.Default, nameof(AutoFormattingOnReturn), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return"));
+
         static FormattingOptions()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,
