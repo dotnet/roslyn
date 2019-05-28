@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Assert.NotNull(result.LocalizedErrorMessage)
         End Sub
 
-        Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace, newIdentifierName As String, Optional renamedDocuments As IEnumerable(Of DocumentId) = Nothing) As Task
+        Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace, newIdentifierName As String, Optional expectFileRename As Boolean = False) As Task
             Await WaitForRename(workspace)
             For Each document In workspace.Documents
                 For Each selectedSpan In document.SelectedSpans
@@ -95,7 +95,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Next
             Next
 
-            If renamedDocuments IsNot Nothing Then
+            If expectFileRename Then
+                Dim renamedDocuments = workspace.Documents.Select(Function(d) d.Id)
+
                 For Each documentId In renamedDocuments
                     Dim document = workspace.CurrentSolution.GetDocument(documentId)
                     Dim expectedName = newIdentifierName + document.Project.GetLanguageSourceFileExtension()
