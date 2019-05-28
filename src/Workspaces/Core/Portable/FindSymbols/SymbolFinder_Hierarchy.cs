@@ -515,8 +515,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            // Now check forwarded types in symbolToMatchCompilation.
-            verifiedCount += VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies, symbolToMatchCompilation, verifiedKeys, isSearchSymbolCompilation: false);
+            if (symbolToMatchCompilation != null || TryGetCompilation(symbolToMatch, solution, out symbolToMatchCompilation, cancellationToken))
+            {
+                // Now check forwarded types in symbolToMatchCompilation.
+                verifiedCount += VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies, symbolToMatchCompilation, verifiedKeys, isSearchSymbolCompilation: false);
+            }
+
             return verifiedCount == count;
         }
 

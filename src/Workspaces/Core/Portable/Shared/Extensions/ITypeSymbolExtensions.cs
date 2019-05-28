@@ -176,9 +176,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             foreach (var constructedInterface in constructedInterfaces)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var constructedInterfaceMember = constructedInterface.GetMembers().FirstOrDefault(m =>
+                var constructedInterfaceMember = constructedInterface.GetMembers().FirstOrDefault(typeSymbol =>
                     SymbolFinder.OriginalSymbolsMatch(
-                        m,
+                        typeSymbol,
                         interfaceMember,
                         solution,
                         typeSymbolCompilation,
