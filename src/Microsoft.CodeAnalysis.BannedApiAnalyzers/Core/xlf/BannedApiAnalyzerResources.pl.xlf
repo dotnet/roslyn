@@ -18,18 +18,18 @@
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToDescription">
-        <source>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute to limit access to internal symbols only within specified namespaces. Each referencing assembly is only allowed to access internal symbols within the restricted namespaces that the referenced assembly allows.</source>
-        <target state="new">RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute to limit access to internal symbols only within specified namespaces. Each referencing assembly is only allowed to access internal symbols within the restricted namespaces that the referenced assembly allows.</target>
+        <source>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</source>
+        <target state="new">RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToMessage">
-        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in following namespace(s): '{2}'</source>
-        <target state="new">External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in following namespace(s): '{2}'</target>
+        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</source>
+        <target state="new">External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToTitle">
-        <source>External access is prohibited to internal symbols outside the restricted namespace(s)</source>
-        <target state="new">External access is prohibited to internal symbols outside the restricted namespace(s)</target>
+        <source>External access to internal symbols outside the restricted namespace(s) is prohibited</source>
+        <target state="new">External access to internal symbols outside the restricted namespace(s) is prohibited</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">
