@@ -1587,18 +1587,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxNode SetModifierTokens(SyntaxNode declaration, SyntaxTokenList modifiers)
-        {
-            switch (declaration)
+            => declaration switch
             {
-                case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
-                case ParameterSyntax parameter: return parameter.WithModifiers(modifiers);
-                case LocalDeclarationStatementSyntax localDecl: return localDecl.WithModifiers(modifiers);
-                case LocalFunctionStatementSyntax localFunc: return localFunc.WithModifiers(modifiers);
-                case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
-            }
-
-            return declaration;
-        }
+                MemberDeclarationSyntax memberDecl => memberDecl.WithModifiers(modifiers),
+                ParameterSyntax parameter => parameter.WithModifiers(modifiers),
+                LocalDeclarationStatementSyntax localDecl => localDecl.WithModifiers(modifiers),
+                LocalFunctionStatementSyntax localFunc => localFunc.WithModifiers(modifiers),
+                AccessorDeclarationSyntax accessor => accessor.WithModifiers(modifiers),
+                _ => declaration,
+            };
 
         private static SyntaxTokenList AsModifierList(Accessibility accessibility, DeclarationModifiers modifiers, SyntaxKind kind)
         {
