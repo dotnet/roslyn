@@ -207,6 +207,42 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
+        public static IEnumerable<AttributeData> GetApplicableExportAttributes(this INamedTypeSymbol type, INamedTypeSymbol exportAttributeV1, INamedTypeSymbol exportAttributeV2, INamedTypeSymbol inheritedExportAttribute)
+        {
+            var attributes = new List<AttributeData>();
+            var onlyIncludeInherited = false;
+
+            while (type != null)
+            {
+                var current = type.GetAttributes();
+                foreach (var attribute in current)
+                {
+                    if (attribute.AttributeClass.Inherits(inheritedExportAttribute))
+                    {
+                        attributes.Add(attribute);
+                    }
+                    else if (!onlyIncludeInherited)
+                    {
+                        if (attribute.AttributeClass.Inherits(exportAttributeV1)
+                            || attribute.AttributeClass.Inherits(exportAttributeV2))
+                        {
+                            attributes.Add(attribute);
+                        }
+                    }
+                }
+
+                if (inheritedExportAttribute is null)
+                {
+                    break;
+                }
+
+                type = type.BaseType;
+                onlyIncludeInherited = true;
+            }
+
+            return attributes;
+        }
+
         public static bool IsAttribute(this ITypeSymbol symbol)
         {
             for (INamedTypeSymbol b = symbol.BaseType; b != null; b = b.BaseType)
