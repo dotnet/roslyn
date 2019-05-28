@@ -3851,11 +3851,11 @@ tryAgain:
                 equals = AddError(equals, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
                 exclamation = SyntaxFactory.MissingToken(SyntaxKind.ExclamationToken);
             }
-            EqualsValueClauseSyntax def = null;
             if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
             {
                 equals = this.EatToken(SyntaxKind.EqualsToken);
             }
+            EqualsValueClauseSyntax def = null;
             if (!(equals is null))
             {
                 var value = this.ParseExpressionCore();
