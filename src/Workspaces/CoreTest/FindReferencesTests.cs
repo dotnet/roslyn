@@ -338,7 +338,7 @@ namespace N2
     class C : ITest
     {
         public string Name { get; }
-        public int Id { get; }
+        public System.Uri Uri { get; }
     }
 }";
 
@@ -354,18 +354,26 @@ namespace N2
 {
     interface ITestBase
     {
-        int Id { get; }
+        System.Uri Uri { get; }
     }
 }";
 
             var solution = GetMultipleDocumentSolution(new[] { implText, interface1Text, interface2Text });
+            solution = solution.AddMetadataReferences(solution.ProjectIds.Single(), new[] { MscorlibRef_v46, Net46StandardFacade, SystemRef_v46, NetStandard20Ref });
 
             var project = solution.Projects.Single();
             var compilation = await project.GetCompilationAsync();
-            var nameProperty = compilation.GetTypeByMetadataName("A.C").GetMembers("Name").Single();
+            var nameProperty = compilation.GetTypeByMetadataName("A.C").GetMembers("Uri").Single();
 
             var references = await SymbolFinder.FindReferencesAsync(nameProperty, solution);
-            Assert.Equal(1, references.Count());
+
+            // References are: 
+            // A.C.Uri
+            // A.ITestBase.Uri
+            // k__backingField
+            // A.C.get_Uri
+            // A.ITestBase.get_Uri
+            Assert.Equal(5, references.Count());
         }
 
         [WorkItem(4936, "https://github.com/dotnet/roslyn/issues/4936")]
