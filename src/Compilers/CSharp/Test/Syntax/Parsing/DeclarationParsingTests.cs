@@ -7340,5 +7340,192 @@ class C<T> where T : struct? {}
                 }
             }
         }
+
+
+        [Fact]
+        public void TestNullCheckedArgWithLeadingSpace()
+        {
+            UsingStatement(@"void M(string name !=null) { }", expectedErrors: new DiagnosticDescription[]
+            { 
+                    // (1,20): error CS8712: Space required between explanation-point and equals-sign here.
+                    // void M(string name !=null) { }
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 20)
+            });
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithLeadingNewLine()
+        {
+            UsingStatement(@"void M(string name
+!=null) { }", expectedErrors: new DiagnosticDescription[]
+            { 
+                // (2,1): error CS8712: Space required between '!' and '=' here.
+                // !=null) { }
+                Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(2, 1)
+            });
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithTrailingSpace()
+        {
+            UsingStatement(@"void M(string name!= null) { }", expectedErrors: new DiagnosticDescription[]
+            { 
+                    // (1,19): error CS8712: Space required between explanation-point and equals-sign here.
+                    // void M(string name!= null) { }
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 19)
+            });
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestNullCheckedArgWithTrailingNewLine()
+        {
+            UsingStatement(@"void M(string name!=
+null) { }", expectedErrors: new DiagnosticDescription[]
+            { 
+                // (1,19): error CS8712: Space required between '!' and '=' here.
+                    // void M(string name!=
+                Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 19)
+            });
+            N(SyntaxKind.LocalFunctionStatement);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "name");
+                        N(SyntaxKind.ExclamationToken);
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
     }
 }
