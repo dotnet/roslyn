@@ -235,12 +235,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     if (_optionSet.GetOption(RenameOptions.RenameFile))
                     {
                         var definitionLocations = _renameLocationSet.Symbol.Locations;
-                        var definitionDocuments = definitionLocations.Select(l => conflictResolution.NewSolution.GetDocument(l.SourceTree));
+                        var definitionDocuments = definitionLocations
+                            .Select(l => conflictResolution.OldSolution.GetDocument(l.SourceTree))
+                            .Distinct()
+                            .WhereNotNull();
 
                         if (definitionDocuments.Count() == 1)
                         {
                             // At the moment, only single document renaming is allowed
-                            conflictResolution.RenameDocumentToMatchSymbol(definitionDocuments.Single(), _renameLocationSet.Symbol);
+                            conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());
                         }
                     }
 

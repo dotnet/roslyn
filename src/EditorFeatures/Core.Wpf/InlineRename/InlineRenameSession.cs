@@ -747,6 +747,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         var newText = newDocument.GetTextAsync(waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
                         finalSolution = finalSolution.WithDocumentText(id, newText);
                     }
+
+                    // Make sure to include any document rename as well
+                    finalSolution = finalSolution.WithDocumentName(id, newDocument.Name);
                 }
 
                 if (_workspace.TryApplyChanges(finalSolution))

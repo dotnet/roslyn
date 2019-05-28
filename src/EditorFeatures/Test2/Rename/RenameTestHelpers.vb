@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -74,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Assert.NotNull(result.LocalizedErrorMessage)
         End Sub
 
-        Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace, newIdentifierName As String) As Task
+        Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace, newIdentifierName As String, Optional renamedDocuments As IEnumerable(Of DocumentId) = Nothing) As Task
             Await WaitForRename(workspace)
             For Each document In workspace.Documents
                 For Each selectedSpan In document.SelectedSpans
@@ -95,6 +94,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     End If
                 Next
             Next
+
+            If renamedDocuments IsNot Nothing Then
+                For Each documentId In renamedDocuments
+                    Dim document = workspace.CurrentSolution.GetDocument(documentId)
+                    Dim expectedName = newIdentifierName + document.Project.GetLanguageSourceFileExtension()
+                    Assert.Equal(expectedName, document.Name)
+                Next
+            End If
         End Function
 
         Public Function CreateWorkspaceWithWaiter(element As XElement) As TestWorkspace

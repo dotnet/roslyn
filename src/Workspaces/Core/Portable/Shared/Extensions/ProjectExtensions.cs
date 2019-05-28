@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -38,5 +39,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return version.GetNewerVersion(latestVersion);
         }
+
+        public static string GetLanguageSourceFileExtension(this Project project)
+            => project.Language switch
+            {
+                LanguageNames.CSharp => ".cs",
+                LanguageNames.VisualBasic => ".vb",
+                LanguageNames.FSharp => ".fs",
+                _ => throw ExceptionUtilities.UnexpectedValue(project.Language)
+            };
     }
 }

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
@@ -84,13 +85,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             _newSolution = _intermediateSolutionContainingOnlyModifiedDocuments;
         }
 
-        internal void RenameDocumentToMatchSymbol(Document document, ISymbol symbol)
+        internal void RenameDocumentToMatchNewSymbol(Document document)
         {
-            Debug.Assert(symbol.CanBeReferencedByName);
-            var extension = document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vs";
-
-            var documentName = $"{symbol.Name}{extension}";
-
+            var documentName = $"{ReplacementText}{document.Project.GetLanguageSourceFileExtension()}";
             _newSolution = _newSolution.WithDocumentName(document.Id, documentName);
         }
 
