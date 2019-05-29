@@ -50,7 +50,6 @@
     <ExpectedDependency Include="Humanizer.Core"/>
     <ExpectedDependency Include="ICSharpCode.Decompiler"/>
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
-    <ExpectedDependency Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
     <ExpectedDependency Include="System.Buffers" />
     <ExpectedDependency Include="System.Collections.Immutable" OptimizeAssemblies="lib/netstandard2.0/System.Collections.Immutable.dll" UnsignAssemblies="lib/netstandard1.0/System.Collections.Immutable.dll" />
