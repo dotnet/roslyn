@@ -598,6 +598,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
-            => typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
+        {
+            // TODO: pass along nullability once https://github.com/dotnet/roslyn/issues/36046 is fixed
+            return typeArguments.Length > 0 ? type.Construct(typeArguments.Select(t => t.UnwrapNullabilitySymbol()).ToArray()) : type;
+        }
     }
 }
