@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 for (var i = 0; i < projectState.Sources.Count; i++)
                 {
-                    (var newFileName, var source) = sources[i];
+                    (var newFileName, var source) = projectState.Sources[i];
                     var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
                     solution = solution.AddDocument(documentId, newFileName, source);
                 }
