@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NullableFlowState state;
             if (type.CanContainNull())
             {
-                if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
+                if ((annotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
                 {
                     state = NullableFlowState.MaybeNull;
                 }
-                else if ((annotations & FlowAnalysisAnnotations.NotNull) != 0)
+                else if ((annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
                 {
                     state = NullableFlowState.NotNull;
                 }
