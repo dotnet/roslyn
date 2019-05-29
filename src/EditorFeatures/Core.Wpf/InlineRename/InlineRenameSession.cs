@@ -68,7 +68,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public bool OriginalNameMatchesFile { get; }
+        /// <summary>
+        /// True if all of the following conditions are met: 
+        /// 
+        /// 1. KindSupportsFileRename is true
+        /// 2. Type is not partial OR partial type only has single declaration location
+        /// 3. Type is the only type in the file OR type already matches the file name
+        /// </summary>
+        public bool AllowFileRename { get; }
         public bool KindSupportsFileRename { get; }
 
         /// <summary>
@@ -151,10 +158,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _debuggingWorkspaceService = workspace.Services.GetService<IDebuggingWorkspaceService>();
             _debuggingWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
 
-            OriginalNameMatchesFile = _triggerDocument.Name.Substring(0, _triggerDocument.Name.Length - 3) == _renameInfo.DisplayName;
             KindSupportsFileRename = _renameInfo.SymbolKind == SymbolKind.NamedType;
 
+            AllowFileRename = KindSupportsFileRename
+                && (_renameInfo.OriginalDefinitionLocations.Length == 1)
+                && (OriginalNameMatches(_triggerDocument, _renameInfo.DisplayName) || ContainsOnlyOneType(_triggerDocument));
+
             InitializeOpenBuffers(triggerSpan);
+        }
+
+        private static bool OriginalNameMatches(Document document, string name)
+        {
+            return document.Name.Substring(0, document.Name.Length - 3) == name;
+        }
+
+        private static bool ContainsOnlyOneType(Document document)
+        {
+            var syntaxRoot = document.GetSyntaxRootSynchronously(CancellationToken.None);
+            return syntaxRoot.DescendantNodesAndSelf().OfType<INamedTypeSymbol>().Count() == 1;
         }
 
         private void OnBeforeDebuggingStateChanged(object sender, DebuggingStateChangedEventArgs args)

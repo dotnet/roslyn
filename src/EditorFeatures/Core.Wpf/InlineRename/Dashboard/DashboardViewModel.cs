@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             // Set the flag to true by default if we're showing the option. Use
             // The property so we correctly update the session as well
-            DefaultRenameFileFlag = AllowFileRename && ShowFileRename;
+            DefaultRenameFileFlag = AllowFileRename;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public bool AllowFileRename => _session.KindSupportsFileRename && _session.OriginalNameMatchesFile;
+        public bool AllowFileRename => _session.AllowFileRename;
         public InlineRenameSession Session => _session;
 
         public DashboardSeverity Severity => _severity;

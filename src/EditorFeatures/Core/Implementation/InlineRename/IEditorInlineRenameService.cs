@@ -171,6 +171,8 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         SymbolKind SymbolKind { get; }
 
+        ImmutableArray<Location> OriginalDefinitionLocations { get; }
+
         /// <summary>
         /// The document that the inline rename was invoked from
         /// </summary>
