@@ -1513,6 +1513,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node);
         }
 
+        public bool IsTypeDeclaration(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.EnumDeclaration:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
         public void AddFirstMissingCloseBrace(

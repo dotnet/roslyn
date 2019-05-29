@@ -25,6 +25,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -175,7 +177,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private static bool ContainsOnlyOneType(Document document)
         {
             var syntaxRoot = document.GetSyntaxRootSynchronously(CancellationToken.None);
-            return syntaxRoot.DescendantNodesAndSelf().OfType<INamedTypeSymbol>().Count() == 1;
+            var syntaxService = document.GetLanguageService<ISyntaxFactsService>();
+            return syntaxRoot.DescendantNodesAndSelf().Where(n => syntaxService.IsTypeDeclaration(n)).Count() == 1;
         }
 
         private void OnBeforeDebuggingStateChanged(object sender, DebuggingStateChangedEventArgs args)

@@ -154,7 +154,7 @@ class Deconstructable
                                                            Optional renameOverloads As Boolean = False,
                                                            Optional renameInStrings As Boolean = False,
                                                            Optional renameInComments As Boolean = False,
-                                                           Optional renameFile As Boolean = True) As Task
+                                                           Optional renameFile As Boolean = False) As Task
             Dim optionSet = workspace.Options
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, renameOverloads)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInStrings, renameInStrings)
@@ -290,7 +290,7 @@ End Class
                         </Project>
                     </Workspace>)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True, renameFile:=True)
             End Using
         End Function
 
@@ -644,7 +644,7 @@ End Class
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "goodynamic", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "goodynamic")
             End Using
         End Function
 
@@ -1041,7 +1041,7 @@ End Class
                 Await VerifyTagsAreCorrect(workspace, "Mow")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Mow", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "Mow")
             End Using
         End Function
 
@@ -1086,7 +1086,7 @@ End Class
                 Await VerifyTagsAreCorrect(workspace, "maw")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "maw", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "maw")
             End Using
         End Function
 
@@ -1198,7 +1198,7 @@ class C
                 Await VerifyTagsAreCorrect(workspace, "Ma")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Ma", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "Ma")
             End Using
         End Function
 
@@ -1230,7 +1230,7 @@ class C
                 Await VerifyTagsAreCorrect(workspace, "Ma")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Ma", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "Ma")
             End Using
         End Function
 
@@ -1264,7 +1264,7 @@ class C
                 Await VerifyTagsAreCorrect(workspace, "Ma")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Ma", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "Ma")
             End Using
         End Function
 
@@ -1298,7 +1298,7 @@ class C
                 Await VerifyTagsAreCorrect(workspace, "Ma")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Ma", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "Ma")
             End Using
         End Function
 
@@ -1365,7 +1365,7 @@ class C
 
                 ' Ensure the rename was committed
                 Assert.Null(renameService.ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
             End Using
         End Function
 
@@ -1408,7 +1408,7 @@ class C
 
                 ' Ensure the rename was committed
                 Assert.Null(renameService.ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
             End Using
         End Function
 
@@ -1443,7 +1443,7 @@ End Module
                 textBuffer.Insert(caretPosition, "q")
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "qp", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "qp")
             End Using
         End Function
 
@@ -1473,7 +1473,7 @@ End Module
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "x", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "x")
             End Using
         End Function
 
@@ -1517,7 +1517,7 @@ End Class
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "xield1", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "xield1")
             End Using
         End Function
 
