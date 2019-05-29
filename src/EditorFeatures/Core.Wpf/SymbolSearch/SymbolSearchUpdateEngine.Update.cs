@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         internal const string ChecksumAttributeName = "checksum";
         internal const string UpToDateAttributeName = "upToDate";
         internal const string TooOldAttributeName = "tooOld";
-        internal const string NugetOrgSource = "nuget.org";
+        internal const string NugetOrgSourceName = "nuget.org";
+        internal const string NugetOrgSourceUri = "https://api.nuget.org/v3/index.json";
 
         public const string HostId = "RoslynNuGetSearch";
         private const string MicrosoftAssemblyReferencesName = "MicrosoftAssemblyReferences";
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             internal async Task UpdateInBackgroundAsync()
             {
                 // We only support this single source currently.
-                if (_source != NugetOrgSource)
+                if (_source != NugetOrgSourceUri)
                 {
                     return;
                 }
