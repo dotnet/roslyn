@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                                                  formattingRules As IEnumerable(Of AbstractFormattingRule),
                                                  optionSet As OptionSet,
                                                  cancellationToken As CancellationToken) As AbstractIndenter
-            Return New Indenter(document, formattingRules, optionSet, lineToBeIndented, cancellationToken)
+            Return New Indenter(me, document, formattingRules, optionSet, lineToBeIndented, cancellationToken)
         End Function
 
         Public Overloads Shared Function ShouldUseSmartTokenFormatterInsteadOfIndenter(

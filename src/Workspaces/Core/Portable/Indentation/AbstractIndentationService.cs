@@ -62,5 +62,19 @@ namespace Microsoft.CodeAnalysis.Indentation
 
         protected abstract AbstractIndenter GetIndenter(
             SyntacticDocument document, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
+
+
+
+        /// <summary>
+        /// Returns <see langword="true"/> if the language specific <see
+        /// cref="ISmartTokenFormatter"/> should be deferred to figure out indentation.  If so, it
+        /// will be asked to <see cref="ISmartTokenFormatter.FormatTokenAsync"/> the resultant
+        /// <paramref name="token"/> provided by this method.
+        /// </summary>
+        protected abstract bool ShouldUseTokenIndenter(AbstractIndenter indenter, out SyntaxToken token);
+        protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(AbstractIndenter indenter);
+
+        protected abstract IndentationResult GetDesiredIndentationWorker(
+            AbstractIndenter indenter, SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition);
     }
 }
