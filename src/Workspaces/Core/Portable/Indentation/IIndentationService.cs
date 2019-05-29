@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Indentation
 {
     /// <summary>
     /// An indentation result represents where the indent should be placed.  It conveys this through
@@ -19,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor
     /// current line.  With this tuple, both forms can be expressed, and the implementor does not
     /// have to convert from one to the other.
     /// </summary>
-    [Obsolete("Use Microsoft.CodeAnalysis.Indentation.IndentationResult instead.")]
     internal struct IndentationResult
     {
         /// <summary>
@@ -38,21 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor
             this.BasePosition = basePosition;
             this.Offset = offset;
         }
-
-        public static implicit operator Indentation.IndentationResult(IndentationResult result)
-            => new Indentation.IndentationResult(result.BasePosition, result.Offset);
     }
 
-    // Removal of this interface tracked with https://github.com/dotnet/roslyn/issues/35872
-    [Obsolete("Use Microsoft.CodeAnalysis.Indentation.IIndentationService instead.")]
     internal interface IIndentationService : ILanguageService
-    {
-        Task<IndentationResult?> GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
-    }
-
-    // Removal of this interface tracked with https://github.com/dotnet/roslyn/issues/35872
-    [Obsolete("Use Microsoft.CodeAnalysis.Indentation.IIndentationService instead.")]
-    internal interface ISynchronousIndentationService : ILanguageService
     {
         /// <summary>
         /// Determines the desired indentation of a given line.  May return <see langword="null"/> if the
@@ -61,5 +47,23 @@ namespace Microsoft.CodeAnalysis.Editor
         /// be deferred to the formatting command handler to handle.
         /// </summary>
         IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Determines indentation for a blank line (i.e. after hitting enter at the end of a line,
+        /// or after moving to a blank line).
+        /// 
+        /// Specifically, this function operates as if the line specified by <paramref name="lineNumber"/>
+        /// is blank.  The actual contents of the line do not matter.  All indentation information is
+        /// determined from the previous lines in the document.
+        /// 
+        /// This is often useful for features which want to insert new code at a certain
+        /// location, indented to the appropriate amount.  This allows those features to
+        /// figure out that position, without having to care about what might already be
+        /// at that line (or further on in the document).
+        /// 
+        /// This function will always succeed.
+        /// </summary>
+        IndentationResult GetBlankLineIndentation(
+            Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken);
     }
 }

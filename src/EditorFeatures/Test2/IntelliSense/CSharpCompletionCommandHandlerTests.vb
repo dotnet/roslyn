@@ -249,7 +249,7 @@ class c { void M() { 3.$$ } }
         End Function
 
         <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function TestTypingDotBeforeExistingDot(completionImplementation As CompletionImplementation) As Task
             ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
             ' However, typing dot before a single dot (and adding the second one) should lead to a completion
@@ -283,7 +283,7 @@ class c { void M() { this.$$ToString() } }
         End Function
 
         <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
         Public Async Function TestInvokingCompletionBetweenTwoDots(completionImplementation As CompletionImplementation) As Task
             ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
             ' However, we may want to have a completion when invoking it aqfter the first dot.
@@ -5029,6 +5029,231 @@ namespace NS2
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", isHardSelected:=True, inlineDescription:="NS2")
                 state.SendTab()
                 Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
+        Public Async Function TypingDotsAfterInt(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        int first = 3;
+        int[] array = new int[100];
+        var range = array[first$$];
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var range = array[first..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
+        Public Async Function TypingDotsAfterClassAndAfterIntProperty(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        var d = new D();
+        int[] array = new int[100];
+        var range = array[d$$];
+    }
+}
+
+class D
+{
+    public int A;
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem("A", isHardSelected:=True)
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var range = array[d.A..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
+        Public Async Function TypingDotsAfterClassAndAfterIntMethod(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        var d = new D();
+        int[] array = new int[100];
+        var range = array[d$$];
+    }
+}
+
+class D
+{
+    public int A() => 0;
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem("A", isHardSelected:=True)
+                state.SendTypeChars("().")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var range = array[d.A()..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
+        Public Async Function TypingDotsAfterClassAndAfterDecimalProperty(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        var d = new D();
+        int[] array = new int[100];
+        var range = array[d$$];
+    }
+}
+
+class D
+{
+    public decimal A;
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem("GetHashCode", isHardSelected:=True)
+                state.SendTypeChars("A.")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var range = array[d.A..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
+        Public Async Function TypingDotsAfterClassAndAfterDoubleMethod(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        var d = new D();
+        int[] array = new int[100];
+        var range = array[d$$];
+    }
+}
+
+class D
+{
+    public double A() => 0;
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem("GetHashCode", isHardSelected:=True)
+                state.SendTypeChars("A().")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var range = array[d.A()..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
+        Public Async Function TypingDotsAfterIntWithinArrayDeclaration(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        int d = 1;
+        var array = new int[d$$];
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var array = new int[d..];", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
+        Public Async Function TypingDotsAfterIntInVariableDeclaration(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        int d = 1;
+        var e = d$$;
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars(".")
+                Assert.Contains("var e = d..;", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WorkItem(34943, "https://github.com/dotnet/roslyn/issues/34943")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion), Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)>
+        Public Async Function TypingToStringAfterIntInVariableDeclaration(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                  <Document><![CDATA[
+class C 
+{
+    void M()
+    {
+        int d = 1;
+        var e = d$$;
+    }
+}
+]]></Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.IsSoftSelected())
+                state.SendTypeChars("ToStr(")
+                Assert.Contains("var e = d.ToString(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 

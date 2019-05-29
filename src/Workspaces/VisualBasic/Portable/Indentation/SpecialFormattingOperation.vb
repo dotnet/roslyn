@@ -7,8 +7,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
-
+Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Friend Class SpecialFormattingRule
         Inherits CompatAbstractFormattingRule
 
