@@ -1568,5 +1568,163 @@ End Class
                 session.Commit()
             End Using
         End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyNoRenameAllowedForPartialType()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                partial class [|$$Goo|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+                            </Document>
+                            <Document>
+                                partial class Goo
+                                {
+                                    void BlahBlah()
+                                    {
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.True(session.KindSupportsFileRename)
+                Assert.False(session.AllowFileRename)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyRenameAllowedForPartialTypeWithSingleLocation()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                partial class [|$$Goo|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.True(session.KindSupportsFileRename)
+                Assert.True(session.AllowFileRename)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyRenameAllowedWithMultipleTypesOnMatchingName()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                class [|$$Test1|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+
+                                class Test2
+                                {
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.True(session.KindSupportsFileRename)
+                Assert.True(session.AllowFileRename)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyNoRenameAllowedWithMultipleTypes()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                class [|$$Goo|]
+                                {
+                                    void Blah()
+                                    {
+                                    }
+                                }
+
+                                class Test1
+                                {
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.True(session.KindSupportsFileRename)
+                Assert.False(session.AllowFileRename)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyEnumKindSupportsRename()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                enum [|$$Goo|]]
+                                {
+                                    One,
+                                    Two,
+                                    Three
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.True(session.KindSupportsFileRename)
+                Assert.True(session.AllowFileRename)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyInterfaceKindSupportsRename()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                interface [|$$Goo|]]
+                                {
+                                    void Blah();
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                Assert.True(session.KindSupportsFileRename)
+                Assert.True(session.AllowFileRename)
+            End Using
+        End Sub
     End Class
 End Namespace
