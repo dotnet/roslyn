@@ -17,13 +17,12 @@ namespace Microsoft.CodeAnalysis.Indentation
 {
     internal abstract partial class AbstractIndentationService<TSyntaxRoot>
     {
-        internal abstract class AbstractIndenter
+        protected struct Indenter
         {
             private readonly AbstractIndentationService<TSyntaxRoot> _service;
 
             public readonly OptionSet OptionSet;
             public readonly TextLine LineToBeIndented;
-            protected readonly int TabSize;
             public readonly CancellationToken CancellationToken;
 
             public readonly SyntacticDocument Document;
@@ -36,8 +35,9 @@ namespace Microsoft.CodeAnalysis.Indentation
                                                   (tk.LeadingTrivia.Any(tr => tr.IsDirective) || tk.TrailingTrivia.Any(tr => tr.IsDirective));
 
             private readonly ISyntaxFactsService _syntaxFacts;
+            private readonly int TabSize;
 
-            public AbstractIndenter(
+            public Indenter(
                 AbstractIndentationService<TSyntaxRoot> service,
                 SyntacticDocument document,
                 IEnumerable<AbstractFormattingRule> rules,
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 return GetIndentationOfPosition(firstNonWhitespace.Value, addedSpaces);
             }
 
-            protected IndentationResult GetIndentationOfPosition(int position, int addedSpaces)
+            private IndentationResult GetIndentationOfPosition(int position, int addedSpaces)
             {
                 if (this.Tree.OverlapsHiddenPosition(GetNormalizedSpan(position), CancellationToken))
                 {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 return TextSpan.FromBounds(position, LineToBeIndented.Start);
             }
 
-            protected TextLine? GetPreviousNonBlankOrPreprocessorLine()
+            private TextLine? GetPreviousNonBlankOrPreprocessorLine()
             {
                 if (LineToBeIndented.LineNumber <= 0)
                 {
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             public int GetCurrentPositionNotBelongToEndOfFileToken(int position)
                 => Math.Min(Root.EndOfFileToken.FullSpan.Start, position);
 
-            protected bool HasPreprocessorCharacter(TextLine currentLine)
+            private bool HasPreprocessorCharacter(TextLine currentLine)
             {
                 var text = currentLine.ToString();
                 Debug.Assert(!string.IsNullOrWhiteSpace(text));

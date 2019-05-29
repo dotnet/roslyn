@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             return indenter.GetDesiredIndentation(indentStyle);
         }
 
-        private AbstractIndenter GetIndenter(Document document, int lineNumber, CancellationToken cancellationToken)
+        private Indenter GetIndenter(Document document, int lineNumber, CancellationToken cancellationToken)
         {
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             var syntacticDoc = SyntacticDocument.CreateAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
@@ -57,13 +57,8 @@ namespace Microsoft.CodeAnalysis.Indentation
 
             var formattingRules = GetFormattingRules(document, lineToBeIndented.Start);
 
-            return GetIndenter(syntacticDoc, lineToBeIndented, formattingRules, documentOptions, cancellationToken);
+            return new Indenter(this, syntacticDoc, formattingRules, documentOptions, lineToBeIndented, cancellationToken);
         }
-
-        protected abstract AbstractIndenter GetIndenter(
-            SyntacticDocument document, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
-
-
 
         /// <summary>
         /// Returns <see langword="true"/> if the language specific <see
@@ -71,10 +66,10 @@ namespace Microsoft.CodeAnalysis.Indentation
         /// will be asked to <see cref="ISmartTokenFormatter.FormatTokenAsync"/> the resultant
         /// <paramref name="token"/> provided by this method.
         /// </summary>
-        protected abstract bool ShouldUseTokenIndenter(AbstractIndenter indenter, out SyntaxToken token);
-        protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(AbstractIndenter indenter);
+        protected abstract bool ShouldUseTokenIndenter(Indenter indenter, out SyntaxToken token);
+        protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(Indenter indenter);
 
         protected abstract IndentationResult GetDesiredIndentationWorker(
-            AbstractIndenter indenter, SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition);
+            Indenter indenter, SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition);
     }
 }

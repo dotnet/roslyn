@@ -12,25 +12,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Partial Friend Class VisualBasicIndentationService
-        Private Class Indenter
-            Inherits AbstractIndenter
-
-            Public Sub New(indenter As AbstractIndentationService(Of CompilationUnitSyntax),
-                           document As SyntacticDocument,
-                           rules As IEnumerable(Of AbstractFormattingRule),
-                           optionSet As OptionSet,
-                           line As TextLine,
-                           cancellationToken As CancellationToken)
-                MyBase.New(indenter, document, rules, optionSet, line, cancellationToken)
-            End Sub
-        End Class
-
-        Protected Overrides Function ShouldUseTokenIndenter(indenter As AbstractIndenter, ByRef token As SyntaxToken) As Boolean
+        Protected Overrides Function ShouldUseTokenIndenter(indenter As Indenter, ByRef token As SyntaxToken) As Boolean
             Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
                 indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.OptionSet, token)
         End Function
 
-        Protected Overrides Function CreateSmartTokenFormatter(indenter As AbstractIndenter) As ISmartTokenFormatter
+        Protected Overrides Function CreateSmartTokenFormatter(indenter As Indenter) As ISmartTokenFormatter
             Dim workspace = indenter.Document.Project.Solution.Workspace
             Dim formattingRuleFactory = workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
             Dim rules = {New SpecialFormattingRule(), formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document))
@@ -39,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         End Function
 
         Protected Overrides Function GetDesiredIndentationWorker(
-                indenter As AbstractIndenter,
+                indenter As Indenter,
                 token As SyntaxToken,
                 previousLine As TextLine,
                 lastNonWhitespacePosition As Integer) As IndentationResult
@@ -102,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return token.GetPreviousToken()
         End Function
 
-        Private Function GetIndentationBasedOnToken(indenter As AbstractIndenter, token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult
+        Private Function GetIndentationBasedOnToken(indenter As Indenter, token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult
             Dim sourceText = indenter.LineToBeIndented.Text
 
             Dim position = indenter.GetCurrentPositionNotBelongToEndOfFileToken(indenter.LineToBeIndented.Start)
@@ -142,11 +129,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return GetIndentationOfCurrentPosition(indenter, token, position)
         End Function
 
-        Private Function GetIndentationOfCurrentPosition(indenter As AbstractIndenter, token As SyntaxToken, position As Integer) As IndentationResult
+        Private Function GetIndentationOfCurrentPosition(indenter As Indenter, token As SyntaxToken, position As Integer) As IndentationResult
             Return GetIndentationOfCurrentPosition(indenter, token, position, extraSpaces:=0)
         End Function
 
-        Private Function GetIndentationOfCurrentPosition(indenter As AbstractIndenter, token As SyntaxToken, position As Integer, extraSpaces As Integer) As IndentationResult
+        Private Function GetIndentationOfCurrentPosition(indenter As Indenter, token As SyntaxToken, position As Integer, extraSpaces As Integer) As IndentationResult
             ' special case for multi-line string
             Dim containingToken = indenter.Tree.FindTokenOnLeftOfPosition(position, indenter.CancellationToken)
             If containingToken.IsKind(SyntaxKind.InterpolatedStringTextToken) OrElse
@@ -223,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return containingStatement.ContainsDiagnostics()
         End Function
 
-        Private Function GetIndentationFromOperationService(indenter As AbstractIndenter, token As SyntaxToken, position As Integer) As IndentationResult?
+        Private Function GetIndentationFromOperationService(indenter As Indenter, token As SyntaxToken, position As Integer) As IndentationResult?
             ' check operation service to see whether we can determine indentation from it
             If token.Kind = SyntaxKind.None Then
                 Return Nothing
@@ -252,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return Nothing
         End Function
 
-        Private Function GetIndentationFromTokenLineAfterLineContinuation(indenter As AbstractIndenter, token As SyntaxToken, trivia As SyntaxTrivia) As IndentationResult
+        Private Function GetIndentationFromTokenLineAfterLineContinuation(indenter As Indenter, token As SyntaxToken, trivia As SyntaxTrivia) As IndentationResult
             Dim sourceText = indenter.LineToBeIndented.Text
             Dim position = indenter.LineToBeIndented.Start
 
@@ -309,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                     TypeOf token.Parent Is TypeParameterListSyntax)
         End Function
 
-        Private Function GetIndentationFromTwoLines(indenter As AbstractIndenter,firstLine As TextLine, secondLine As TextLine, token As SyntaxToken, position As Integer) As IndentationResult
+        Private Function GetIndentationFromTwoLines(indenter As Indenter, firstLine As TextLine, secondLine As TextLine, token As SyntaxToken, position As Integer) As IndentationResult
             If firstLine.LineNumber = secondLine.LineNumber Then
                 ' things are on same line, put the indentation size
                 Return GetIndentationOfCurrentPosition(indenter, token, position, indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language))
