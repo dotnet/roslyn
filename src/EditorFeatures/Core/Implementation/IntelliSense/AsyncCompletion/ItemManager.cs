@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     filterText.Length > 0)
                 {
                     var uniqueItemIndex = itemsInList.IndexOf(i => Equals(i.FilterResult.CompletionItem, deduplicatedList.First()));
-                    uniqueItem = highlightedList[uniqueItemIndex].CompletionItem;
+                    uniqueItem = itemsInList[uniqueItemIndex].CompletionItemWithHighlight.CompletionItem;
                 }
             }
 
