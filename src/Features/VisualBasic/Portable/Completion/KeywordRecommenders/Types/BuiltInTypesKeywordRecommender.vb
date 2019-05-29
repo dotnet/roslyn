@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
 
         Private Function GetDocumentationCommentText(context As VisualBasicSyntaxContext, type As SpecialType, cancellationToken As CancellationToken) As String
             Dim symbol = context.SemanticModel.Compilation.GetSpecialType(type)
-            Return symbol.GetDocumentationComment(Globalization.CultureInfo.CurrentUICulture, cancellationToken:=cancellationToken).SummaryText
+            Return symbol.GetDocumentationComment(context.SemanticModel.Compilation, Globalization.CultureInfo.CurrentUICulture, expandIncludes:=True, expandInheritdoc:=True, cancellationToken:=cancellationToken).SummaryText
         End Function
     End Class
 End Namespace
