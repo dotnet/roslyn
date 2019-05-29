@@ -11108,6 +11108,8 @@ tryAgain:
                     var notEq = this.EatToken(SyntaxKind.ExclamationEqualsToken);
                     arrow = ConvertToMissingWithTrailingTrivia(notEq, SyntaxKind.EqualsGreaterThanToken);
                     arrow = AddError(arrow, ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals);
+                    var gt = this.EatToken(SyntaxKind.GreaterThanToken);
+                    arrow = AddTrailingSkippedSyntax(arrow, gt);
                 }
                 else
                 {

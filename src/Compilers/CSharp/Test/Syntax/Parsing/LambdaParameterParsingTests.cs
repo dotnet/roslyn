@@ -775,10 +775,7 @@ class C {
             {
                     // (1,25): error CS8712: Space required between explanation-point and equals-sign here.
                     // Func<int, int> func1 = x!=>x;
-                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 25),
-                    // (1,27): error CS1525: Invalid expression term '>'
-                    // Func<int, int> func1 = x!=>x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 27)
+                    Diagnostic(ErrorCode.ERR_NeedSpaceBetweenExclamationAndEquals, "!=").WithLocation(1, 25)
             });
             N(SyntaxKind.FieldDeclaration);
             {
@@ -815,17 +812,9 @@ class C {
                             N(SyntaxKind.IdentifierToken, "x");
                         }
                         N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.GreaterThanExpression);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.GreaterThanToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken);
-                            }
+                            N(SyntaxKind.IdentifierToken);
                         }
                     }
                 }
