@@ -11101,6 +11101,7 @@ tryAgain:
             else
             {
                 var name = this.ParseIdentifierToken();
+                // PROTOTYPE: TryEatToken
                 var exclamation = this.CurrentToken.Kind == SyntaxKind.ExclamationToken ? this.EatToken(SyntaxKind.ExclamationToken) : null;
                 SyntaxToken arrow;
                 if (this.CurrentToken.Kind == SyntaxKind.ExclamationEqualsToken && this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken)
