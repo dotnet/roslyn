@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     }
 
                     var typeInfo = context.SemanticModel.GetTypeInfo(name, context.CancellationToken);
-                    VerifySymbol(typeInfo.Type as INamedTypeSymbol, name, context.ReportDiagnostic);
+                    VerifySymbol(typeInfo.Type as INamedTypeSymbol, name,
+                        context.ReportDiagnostic, restrictedInternalsVisibleToMap, namespaceToIsBannedMap);
                 },
                 NameSyntaxKinds);
 
@@ -93,7 +94,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                             throw new NotImplementedException($"Unhandled OperationKind: {context.Operation.Kind}");
                     }
 
-                    VerifySymbol(symbol, context.Operation.Syntax, context.ReportDiagnostic);
+                    VerifySymbol(symbol, context.Operation.Syntax,
+                        context.ReportDiagnostic, restrictedInternalsVisibleToMap, namespaceToIsBannedMap);
                 },
                 OperationKind.ObjectCreation,
                 OperationKind.Invocation,
@@ -101,145 +103,154 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 OperationKind.FieldReference,
                 OperationKind.MethodReference,
                 OperationKind.PropertyReference);
+        }
 
-            return;
-
-            // Local functions.
-            static ImmutableDictionary<IAssemblySymbol, ImmutableSortedSet<string>> GetRestrictedInternalsVisibleToMap(Compilation compilation)
+        private static ImmutableDictionary<IAssemblySymbol, ImmutableSortedSet<string>> GetRestrictedInternalsVisibleToMap(Compilation compilation)
+        {
+            var restrictedInternalsVisibleToAttribute = compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute");
+            if (restrictedInternalsVisibleToAttribute == null)
             {
-                var restrictedInternalsVisibleToAttribute = compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute");
-                if (restrictedInternalsVisibleToAttribute == null)
+                return ImmutableDictionary<IAssemblySymbol, ImmutableSortedSet<string>>.Empty;
+            }
+
+            var builder = ImmutableDictionary.CreateBuilder<IAssemblySymbol, ImmutableSortedSet<string>>();
+            foreach (var referencedAssemblySymbol in compilation.References.Select(compilation.GetAssemblyOrModuleSymbol).OfType<IAssemblySymbol>())
+            {
+                // Check IVT
+                if (!referencedAssemblySymbol.GivesAccessTo(compilation.Assembly))
                 {
-                    return ImmutableDictionary<IAssemblySymbol, ImmutableSortedSet<string>>.Empty;
+                    continue;
                 }
 
-                var builder = ImmutableDictionary.CreateBuilder<IAssemblySymbol, ImmutableSortedSet<string>>();
-                foreach (var referencedAssemblySymbol in compilation.References.Select(compilation.GetAssemblyOrModuleSymbol).OfType<IAssemblySymbol>())
+                var namespaceNameComparer = compilation.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+                var namespaceBuilder = ImmutableSortedSet.CreateBuilder(namespaceNameComparer);
+                foreach (var assemblyAttribute in referencedAssemblySymbol.GetAttributes())
                 {
-                    // Check IVT
-                    if (!referencedAssemblySymbol.GivesAccessTo(compilation.Assembly))
+                    // Look for ctor: "RestrictedInternalsVisibleToAttribute(string assemblyName, params string[] namespaces)"
+                    if (!Equals(assemblyAttribute.AttributeClass, restrictedInternalsVisibleToAttribute) ||
+                        assemblyAttribute.AttributeConstructor.Parameters.Length != 2 ||
+                        assemblyAttribute.AttributeConstructor.Parameters[0].Type.SpecialType != SpecialType.System_String ||
+                        !(assemblyAttribute.AttributeConstructor.Parameters[1].Type is IArrayTypeSymbol arrayType) ||
+                        arrayType.Rank != 1 ||
+                        arrayType.ElementType.SpecialType != SpecialType.System_String ||
+                        !assemblyAttribute.AttributeConstructor.Parameters[1].IsParams)
                     {
                         continue;
                     }
 
-                    var namespaceNameComparer = compilation.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
-                    var namespaceBuilder = ImmutableSortedSet.CreateBuilder(namespaceNameComparer);
-                    foreach (var assemblyAttribute in referencedAssemblySymbol.GetAttributes())
+                    // Ensure the Restricted IVT is for the current compilation's assembly.
+                    if (assemblyAttribute.ConstructorArguments.Length != 2 ||
+                        assemblyAttribute.ConstructorArguments[0].Kind != TypedConstantKind.Primitive ||
+                        !(assemblyAttribute.ConstructorArguments[0].Value is string assemblyName) ||
+                        !AssemblyIdentity.TryParseDisplayName(assemblyName, out var assemblyIdentity) ||
+                        AssemblyIdentityComparer.Default.Compare(assemblyIdentity, compilation.Assembly.Identity) == AssemblyIdentityComparer.ComparisonResult.NotEquivalent)
                     {
-                        // Look for ctor: "RestrictedInternalsVisibleToAttribute(string assemblyName, params string[] namespaces)"
-                        if (!Equals(assemblyAttribute.AttributeClass, restrictedInternalsVisibleToAttribute) ||
-                            assemblyAttribute.AttributeConstructor.Parameters.Length != 2 ||
-                            assemblyAttribute.AttributeConstructor.Parameters[0].Type.SpecialType != SpecialType.System_String ||
-                            !(assemblyAttribute.AttributeConstructor.Parameters[1].Type is IArrayTypeSymbol arrayType) ||
-                            arrayType.Rank != 1 ||
-                            arrayType.ElementType.SpecialType != SpecialType.System_String ||
-                            !assemblyAttribute.AttributeConstructor.Parameters[1].IsParams)
-                        {
-                            continue;
-                        }
-
-                        // Ensure the Restricted IVT is for the current compilation's assembly.
-                        if (assemblyAttribute.ConstructorArguments.Length != 2 ||
-                            assemblyAttribute.ConstructorArguments[0].Kind != TypedConstantKind.Primitive ||
-                            !(assemblyAttribute.ConstructorArguments[0].Value is string assemblyName) ||
-                            !AssemblyIdentity.TryParseDisplayName(assemblyName, out var assemblyIdentity) ||
-                            AssemblyIdentityComparer.Default.Compare(assemblyIdentity, compilation.Assembly.Identity) == AssemblyIdentityComparer.ComparisonResult.NotEquivalent)
-                        {
-                            continue;
-                        }
-
-                        // Ensure second constructor argument is string array.
-                        if (assemblyAttribute.ConstructorArguments[1].Kind != TypedConstantKind.Array ||
-                            !(assemblyAttribute.ConstructorArguments[1].Values is var namespaceConstants))
-                        {
-                            continue;
-                        }
-
-                        // Add namespaces specified in the second constructor argument.
-                        foreach (TypedConstant namespaceConstant in namespaceConstants)
-                        {
-                            if (namespaceConstant.Kind == TypedConstantKind.Primitive &&
-                                namespaceConstant.Value is string namespaceName)
-                            {
-                                namespaceBuilder.Add(namespaceName);
-                            }
-                        }
+                        continue;
                     }
 
-                    if (namespaceBuilder.Count > 0)
+                    // Ensure second constructor argument is string array.
+                    if (assemblyAttribute.ConstructorArguments[1].Kind != TypedConstantKind.Array ||
+                        !(assemblyAttribute.ConstructorArguments[1].Values is var namespaceConstants))
                     {
-                        builder.Add(referencedAssemblySymbol, namespaceBuilder.ToImmutable());
+                        continue;
+                    }
+
+                    // Add namespaces specified in the second constructor argument.
+                    foreach (TypedConstant namespaceConstant in namespaceConstants)
+                    {
+                        if (namespaceConstant.Kind == TypedConstantKind.Primitive &&
+                            namespaceConstant.Value is string namespaceName)
+                        {
+                            namespaceBuilder.Add(namespaceName);
+                        }
                     }
                 }
 
-                return builder.ToImmutable();
-            }
-
-            void VerifySymbol(ISymbol symbol, SyntaxNode node, Action<Diagnostic> reportDiagnostic)
-            {
-                if (symbol != null &&
-                    IsBannedSymbol(symbol))
+                if (namespaceBuilder.Count > 0)
                 {
-                    var bannedSymbolDisplayString = symbol.ToDisplayString(SymbolDisplayFormats.QualifiedTypeAndNamespaceSymbolDisplayFormat);
-                    var assemblyName = symbol.ContainingAssembly.Name;
-                    var restrictedNamespaces = string.Join(", ", restrictedInternalsVisibleToMap[symbol.ContainingAssembly]);
-                    var diagnostic = node.CreateDiagnostic(Rule, bannedSymbolDisplayString, assemblyName, restrictedNamespaces);
-                    reportDiagnostic(diagnostic);
+                    builder.Add(referencedAssemblySymbol, namespaceBuilder.ToImmutable());
                 }
             }
 
-            bool IsBannedSymbol(ISymbol symbol)
+            return builder.ToImmutable();
+        }
+
+        private static void VerifySymbol(
+            ISymbol symbol,
+            SyntaxNode node,
+            Action<Diagnostic> reportDiagnostic,
+            ImmutableDictionary<IAssemblySymbol, ImmutableSortedSet<string>> restrictedInternalsVisibleToMap,
+            ConcurrentDictionary<INamespaceSymbol, bool> namespaceToIsBannedMap)
+        {
+            if (symbol != null &&
+                IsBannedSymbol(symbol, restrictedInternalsVisibleToMap, namespaceToIsBannedMap))
             {
-                // Check if the symbol belongs to an assembly to which this compilation has restricted internals access
-                // and it is an internal symbol.
-                if (!restrictedInternalsVisibleToMap.TryGetValue(symbol.ContainingAssembly, out var allowedNamespaces) ||
-                    symbol.GetResultantVisibility() != SymbolVisibility.Internal)
+                var bannedSymbolDisplayString = symbol.ToDisplayString(SymbolDisplayFormats.QualifiedTypeAndNamespaceSymbolDisplayFormat);
+                var assemblyName = symbol.ContainingAssembly.Name;
+                var restrictedNamespaces = string.Join(", ", restrictedInternalsVisibleToMap[symbol.ContainingAssembly]);
+                var diagnostic = node.CreateDiagnostic(Rule, bannedSymbolDisplayString, assemblyName, restrictedNamespaces);
+                reportDiagnostic(diagnostic);
+            }
+        }
+
+        private static bool IsBannedSymbol(
+            ISymbol symbol,
+            ImmutableDictionary<IAssemblySymbol, ImmutableSortedSet<string>> restrictedInternalsVisibleToMap,
+            ConcurrentDictionary<INamespaceSymbol, bool> namespaceToIsBannedMap)
+        {
+            // Check if the symbol belongs to an assembly to which this compilation has restricted internals access
+            // and it is an internal symbol.
+            if (!restrictedInternalsVisibleToMap.TryGetValue(symbol.ContainingAssembly, out var allowedNamespaces) ||
+                symbol.GetResultantVisibility() != SymbolVisibility.Internal)
+            {
+                return false;
+            }
+
+            // Walk up containing namespace chain to explicitly look for an allowed namespace
+            // with restricted internals access.
+            var currentNamespace = symbol.ContainingNamespace;
+            while (currentNamespace != null && !currentNamespace.IsGlobalNamespace)
+            {
+                // Check if we have already computed whether this namespace is banned or not.
+                if (namespaceToIsBannedMap.TryGetValue(currentNamespace, out var isBanned))
                 {
+                    return isBanned;
+                }
+
+                // Check if this namespace is explicitly marked as allowed through restricted IVT.
+                if (allowedNamespaces.Contains(currentNamespace.ToDisplayString()))
+                {
+                    MarkIsBanned(symbol.ContainingNamespace, currentNamespace, namespaceToIsBannedMap, banned: false);
                     return false;
                 }
 
-                // Walk up containing namespace chain to explicitly look for an allowed namespace
-                // with restricted internals access.
-                var currentNamespace = symbol.ContainingNamespace;
-                while (currentNamespace != null && !currentNamespace.IsGlobalNamespace)
-                {
-                    // Check if we have already computed whether this namespace is banned or not.
-                    if (namespaceToIsBannedMap.TryGetValue(currentNamespace, out var isBanned))
-                    {
-                        return isBanned;
-                    }
-
-                    // Check if this namespace is explicitly marked as allowed through restricted IVT.
-                    if (allowedNamespaces.Contains(currentNamespace.ToDisplayString()))
-                    {
-                        MarkIsBanned(symbol.ContainingNamespace, currentNamespace, banned: false);
-                        return false;
-                    }
-
-                    currentNamespace = currentNamespace.ContainingNamespace;
-                }
-
-                // Otherwise, mark all the containing namespace names of the given symbol as banned
-                // and consider the given symbol as banned.
-                MarkIsBanned(symbol.ContainingNamespace, currentNamespace, banned: true);
-                return true;
+                currentNamespace = currentNamespace.ContainingNamespace;
             }
 
-            void MarkIsBanned(INamespaceSymbol startNamespace, INamespaceSymbol uptoNamespace, bool banned)
+            // Otherwise, mark all the containing namespace names of the given symbol as banned
+            // and consider the given symbol as banned.
+            MarkIsBanned(symbol.ContainingNamespace, currentNamespace, namespaceToIsBannedMap, banned: true);
+            return true;
+        }
+
+        private static void MarkIsBanned(
+            INamespaceSymbol startNamespace,
+            INamespaceSymbol uptoNamespace,
+            ConcurrentDictionary<INamespaceSymbol, bool> namespaceToIsBannedMap,
+            bool banned)
+        {
+            var currentNamespace = startNamespace;
+            while (currentNamespace != null)
             {
-                var currentNamespace = startNamespace;
-                while (currentNamespace != null)
+                var saved = namespaceToIsBannedMap.GetOrAdd(currentNamespace, banned);
+                Debug.Assert(saved == banned);
+
+                if (Equals(currentNamespace, uptoNamespace))
                 {
-                    var saved = namespaceToIsBannedMap.GetOrAdd(currentNamespace, banned);
-                    Debug.Assert(saved == banned);
-
-                    if (Equals(currentNamespace, uptoNamespace))
-                    {
-                        break;
-                    }
-
-                    currentNamespace = currentNamespace.ContainingNamespace;
+                    break;
                 }
+
+                currentNamespace = currentNamespace.ContainingNamespace;
             }
         }
     }
