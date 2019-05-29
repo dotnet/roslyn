@@ -152,6 +152,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return null;
             }
 
+            protected Compilation GetCompilation()
+                => _semanticModel.Compilation;
+
             private async Task AddPartsAsync(ImmutableArray<ISymbol> symbols)
             {
                 await AddDescriptionPartAsync(symbols[0]).ConfigureAwait(false);
@@ -164,7 +167,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private void AddExceptions(ISymbol symbol)
             {
-                var exceptionTypes = symbol.GetDocumentationComment().ExceptionTypes;
+                var exceptionTypes = symbol.GetDocumentationComment(GetCompilation(), expandIncludes: true, expandInheritdoc: true).ExceptionTypes;
                 if (exceptionTypes.Any())
                 {
                     var parts = new List<SymbolDisplayPart>();

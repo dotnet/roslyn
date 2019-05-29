@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim within = context.SemanticModel.GetEnclosingNamedType(position, cancellationToken)
-            Dim completionListType = GetCompletionListType(inferredType, within, context.SemanticModel.Compilation)
+            Dim completionListType = GetCompletionListType(inferredType, within, context.SemanticModel.Compilation, cancellationToken)
 
             If completionListType Is Nothing Then
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
@@ -49,8 +49,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
         End Function
 
-        Private Function GetCompletionListType(inferredType As ITypeSymbol, within As INamedTypeSymbol, compilation As Compilation) As ITypeSymbol
-            Dim documentation = inferredType.GetDocumentationComment()
+        Private Function GetCompletionListType(inferredType As ITypeSymbol, within As INamedTypeSymbol, compilation As Compilation, cancellationToken As CancellationToken) As ITypeSymbol
+            Dim documentation = inferredType.GetDocumentationComment(compilation, expandIncludes:=True, expandInheritdoc:=True, cancellationToken:=cancellationToken)
             If documentation.CompletionListCref IsNot Nothing Then
                 Dim crefType = DocumentationCommentId.GetSymbolsForDeclarationId(documentation.CompletionListCref, compilation) _
                                     .OfType(Of INamedTypeSymbol) _

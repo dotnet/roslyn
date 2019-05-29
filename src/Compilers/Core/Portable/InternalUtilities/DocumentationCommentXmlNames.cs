@@ -16,6 +16,7 @@ namespace Roslyn.Utilities
         public const string ExampleElementName = "example";
         public const string ExceptionElementName = "exception";
         public const string IncludeElementName = "include";
+        public const string InheritdocElementName = "inheritdoc";
         public const string ItemElementName = "item";
         public const string ListElementName = "list";
         public const string ListHeaderElementName = "listheader";

@@ -174,26 +174,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static IEnumerable<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
         {
-            string documentation = GetDocumentation(symbol, cancellationToken);
+            string documentation = GetDocumentation(symbol, semanticModel.Compilation, cancellationToken);
 
             return documentation != null
                 ? formatter.Format(documentation, semanticModel, position, CrefFormat)
                 : SpecializedCollections.EmptyEnumerable<TaggedText>();
         }
 
-        private static string GetDocumentation(ISymbol symbol, CancellationToken cancellationToken)
+        private static string GetDocumentation(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
         {
             switch (symbol)
             {
-                case IParameterSymbol parameter: return GetParameterDocumentation(parameter, cancellationToken);
-                case ITypeParameterSymbol typeParam: return typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name);
-                case IMethodSymbol method: return GetMethodDocumentation(method);
-                case IAliasSymbol alias: return alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText;
-                default: return symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText;
+                case IParameterSymbol parameter: return GetParameterDocumentation(parameter, compilation, cancellationToken);
+                case ITypeParameterSymbol typeParam: return typeParam.ContainingSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name);
+                case IMethodSymbol method: return GetMethodDocumentation(method, compilation, cancellationToken);
+                case IAliasSymbol alias: return alias.Target.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText;
+                default: return symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText;
             }
         }
 
-        private static string GetParameterDocumentation(IParameterSymbol parameter, CancellationToken cancellationToken)
+        private static string GetParameterDocumentation(IParameterSymbol parameter, Compilation compilation, CancellationToken cancellationToken)
         {
             var containingSymbol = parameter.ContainingSymbol;
             if (containingSymbol.ContainingSymbol.IsDelegateType() && containingSymbol is IMethodSymbol methodSymbol)
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // Get the comments from the original definition of the containing symbol.
-            return containingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(parameter.Name);
+            return containingSymbol.OriginalDefinition.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).GetParameterText(parameter.Name);
         }
 
         public static Func<CancellationToken, IEnumerable<TaggedText>> GetDocumentationPartsFactory(
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static string GetMethodDocumentation(IMethodSymbol method)
+        private static string GetMethodDocumentation(IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken)
         {
             switch (method.MethodKind)
             {
@@ -249,9 +249,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 case MethodKind.EventRemove:
                 case MethodKind.PropertyGet:
                 case MethodKind.PropertySet:
-                    return method.AssociatedSymbol.GetDocumentationComment().SummaryText;
+                    return method.AssociatedSymbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText;
                 default:
-                    return method.GetDocumentationComment().SummaryText;
+                    return method.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: cancellationToken).SummaryText;
             }
         }
 
