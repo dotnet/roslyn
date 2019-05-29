@@ -4948,5 +4948,80 @@ class C
 }",
             Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId, "GetStream()").WithLocation(11, 22));
         }
+
+        [Fact, WorkItem(2497, "https://github.com/dotnet/roslyn-analyzers/issues/2497")]
+        public async Task UsingStatementInCatch()
+        {
+            await TestDiagnosticsAsync(@"
+using System;
+class C : IDisposable
+{
+    public void Dispose() { }
+    void M1()
+    {
+        try
+        {
+        }
+        catch (Exception)
+        {
+            [|using (var c = new C())|]
+            {
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(2497, "https://github.com/dotnet/roslyn-analyzers/issues/2497")]
+        public async Task TryFinallyStatementInCatch()
+        {
+            await TestDiagnosticsAsync(@"
+using System;
+class C : IDisposable
+{
+    public void Dispose() { }
+    void M1()
+    {
+        try
+        {
+        }
+        catch (Exception)
+        {
+            C c = null;
+            try
+            {
+                [|c = new C();|]
+            }
+            finally
+            {
+                c.Dispose();
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, WorkItem(2497, "https://github.com/dotnet/roslyn-analyzers/issues/2497")]
+        public async Task UsingStatementInFinally()
+        {
+            await TestDiagnosticsAsync(@"
+using System;
+class C : IDisposable
+{
+    public void Dispose() { }
+    void M1()
+    {
+        try
+        {
+        }
+        finally
+        {
+            [|using (var c = new C())|]
+            {
+            }
+        }
+    }
+}");
+        }
     }
 }

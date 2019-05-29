@@ -213,12 +213,7 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
   if ($env:VSINSTALLDIR -ne $null) {
     $msbuildCmd = Get-Command "msbuild.exe" -ErrorAction SilentlyContinue
     if ($msbuildCmd -ne $null) {
-      if ($msbuildCmd.Version -ge $vsMinVersion) {
-        return $global:_MSBuildExe = $msbuildCmd.Path
-      }
-
-      # Report error - the developer environment is initialized with incompatible VS version.
-      throw "Developer Command Prompt for VS $($env:VisualStudioVersion) is not recent enough. Please upgrade to $vsMinVersionStr or build from a plain CMD window"
+      return $global:_MSBuildExe = $msbuildCmd.Path
     }
   }
 
