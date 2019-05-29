@@ -99,43 +99,54 @@ namespace Microsoft.CodeAnalysis.Recommendations
             {
                 if (candidateSymbol is IMethodSymbol method)
                 {
-                    if (method.Parameters.Length > ordinalInInvocation)
+                    ITypeSymbol type;
+                    if (method.IsParams() && (ordinalInInvocation >= method.Parameters.Length - 1))
                     {
-                        var type = method.Parameters[ordinalInInvocation].Type;
-                        // If type is <see cref="Expression{TDelegate}"/>, ignore <see cref="Expression"/> and use TDelegate.
-                        // Ignore this check if expressionSymbol is null, e.g. semantic model is broken or incomplete or if the framework does not contain <see cref="Expression"/>.
-                        if (expressionSymbol != null &&
-                            type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
-                            expressionSymbolNamedTypeCandidate.OriginalDefinition.Equals(expressionSymbol))
-                        {
-                            var allTypeArguments = type.GetAllTypeArguments();
-                            if (allTypeArguments.Length != 1)
-                            {
-                                continue;
-                            }
-
-                            type = allTypeArguments[0];
-                        }
-
-                        if (type.IsDelegateType())
-                        {
-                            var methods = type.GetMembers(WellKnownMemberNames.DelegateInvokeName);
-                            if (methods.Length != 1)
-                            {
-                                continue;
-                            }
-
-                            var parameters = methods[0].GetParameters();
-                            if (parameters.Length <= ordinalInLambda)
-                            {
-                                continue;
-                            }
-
-                            type = parameters[ordinalInLambda].Type;
-                        }
-
-                        builder.Add(type);
+                        var arrayType = method.Parameters.LastOrDefault().Type;
+                        type = ((IArrayTypeSymbol)arrayType).ElementType;
                     }
+                    else if (method.Parameters.Length > ordinalInInvocation)
+                    {
+                        type = method.Parameters[ordinalInInvocation].Type;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    // If type is <see cref="Expression{TDelegate}"/>, ignore <see cref="Expression"/> and use TDelegate.
+                    // Ignore this check if expressionSymbol is null, e.g. semantic model is broken or incomplete or if the framework does not contain <see cref="Expression"/>.
+                    if (expressionSymbol != null &&
+                        type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
+                        expressionSymbolNamedTypeCandidate.OriginalDefinition.Equals(expressionSymbol))
+                    {
+                        var allTypeArguments = type.GetAllTypeArguments();
+                        if (allTypeArguments.Length != 1)
+                        {
+                            continue;
+                        }
+
+                        type = allTypeArguments[0];
+                    }
+
+                    if (type.IsDelegateType())
+                    {
+                        var methods = type.GetMembers(WellKnownMemberNames.DelegateInvokeName);
+                        if (methods.Length != 1)
+                        {
+                            continue;
+                        }
+
+                        var parameters = methods[0].GetParameters();
+                        if (parameters.Length <= ordinalInLambda)
+                        {
+                            continue;
+                        }
+
+                        type = parameters[ordinalInLambda].Type;
+                    }
+
+                    builder.Add(type);
                 }
             }
 
