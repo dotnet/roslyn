@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
             public SymbolKind SymbolKind => _renameInfo.Kind;
 
             public DocumentId InvocationDocumentId => _document.Id;
+            public ImmutableArray<Location> OriginalDefinitionLocations => ImmutableArray.Create<Location>();
 
             public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             {

@@ -159,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public DashboardSeverity Severity => _severity;
 
         public bool ShowFileRename => _session.KindSupportsFileRename;
+        public string FileRenameString => AllowFileRename ? EditorFeaturesResources.Rename_file : EditorFeaturesResources.Rename_file_incompatible_type;
 
         public string HeaderText
         {

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public static string SearchInComments { get; }
         public static string PreviewChanges { get; }
         public static string Apply { get; }
-
+        public static string RenameFile { get; }
         static RenameShortcutKey()
         {
             RenameOverloads = ExtractAccessKey(EditorFeaturesResources.Include_overload_s, "O");
@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             SearchInComments = ExtractAccessKey(EditorFeaturesResources.Include_comments, "C");
             PreviewChanges = ExtractAccessKey(EditorFeaturesResources.Preview_changes1, "P");
             Apply = ExtractAccessKey(EditorFeaturesResources.Apply1, "A");
+            RenameFile = ExtractAccessKey(EditorFeaturesResources.Rename_file, "R");
         }
 
         /// <summary>

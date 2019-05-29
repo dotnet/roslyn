@@ -1611,6 +1611,24 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to _Rename file..
+        /// </summary>
+        internal static string Rename_file {
+            get {
+                return ResourceManager.GetString("Rename_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Rename file (incompatible type)..
+        /// </summary>
+        internal static string Rename_file_incompatible_type {
+            get {
+                return ResourceManager.GetString("Rename_file_incompatible_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Rename operation was cancelled or is not valid.
         /// </summary>
         internal static string Rename_operation_was_cancelled_or_is_not_valid {
