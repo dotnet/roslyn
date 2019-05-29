@@ -1653,7 +1653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // also run the nullable walker, and issue duplicate warnings. We should try to only run the pass
                         // once.
                         // https://github.com/dotnet/roslyn/issues/35041
-                        methodBody = NullableWalker.AnalyzeAndRewrite(bodyBinder.Compilation, method, methodBody, bodyBinder, new DiagnosticBag(), checkpointMapOpt: null);
+                        methodBody = NullableWalker.AnalyzeAndRewrite(bodyBinder.Compilation, method, methodBody, bodyBinder, new DiagnosticBag(), createSnapshots: false, out _);
                     }
                     forSemanticModel = (syntaxNode, methodBody, bodyBinder);
 

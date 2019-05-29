@@ -25,38 +25,59 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class NullableWalker : LocalDataFlowPass<NullableWalker.LocalState>
     {
         /// <summary>
-        /// Used to copy variable slots and types from the NullableWalker for the containing method
-        /// or lambda to the NullableWalker created for a nested lambda or local function.
+        /// Represents the result of visiting an expression.
+        /// Contains a result type which tells us whether the expression may be null,
+        /// and an l-value type which tells us whether we can assign null to the expression.
         /// </summary>
-        internal sealed class VariableState
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+        private readonly struct VisitResult
         {
-            // Consider referencing the collections directly from the original NullableWalker
-            // rather than copying the collections. (Items are added to the collections
-            // but never replaced so the collections are lazily populated but otherwise immutable.)
-            internal readonly ImmutableDictionary<VariableIdentifier, int> VariableSlot;
-            internal readonly ImmutableArray<VariableIdentifier> VariableBySlot;
-            internal readonly ImmutableDictionary<Symbol, TypeWithAnnotations> VariableTypes;
+            public readonly TypeWithState RValueType;
+            public readonly TypeWithAnnotations LValueType;
 
-            // The nullable state of all variables captured at the point where the function or lambda appeared.
-            internal readonly LocalState VariableNullableStates;
-
-            internal VariableState(
-                ImmutableDictionary<VariableIdentifier, int> variableSlot,
-                ImmutableArray<VariableIdentifier> variableBySlot,
-                ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes,
-                LocalState variableNullableStates)
+            public VisitResult(TypeWithState rValueType, TypeWithAnnotations lValueType)
             {
-                VariableSlot = variableSlot;
-                VariableBySlot = variableBySlot;
-                VariableTypes = variableTypes;
-                VariableNullableStates = variableNullableStates;
+                RValueType = rValueType;
+                LValueType = lValueType;
+                // https://github.com/dotnet/roslyn/issues/34993: Doesn't hold true for Tuple_Assignment_10. See if we can make it hold true
+                //Debug.Assert((RValueType.Type is null && LValueType.TypeSymbol is null) ||
+                //             RValueType.Type.Equals(LValueType.TypeSymbol, TypeCompareKind.ConsiderEverything | TypeCompareKind.AllIgnoreOptions));
+            }
+
+            public VisitResult(TypeSymbol type, NullableAnnotation annotation, NullableFlowState state)
+            {
+                RValueType = TypeWithState.Create(type, state);
+                LValueType = TypeWithAnnotations.Create(type, annotation);
+                Debug.Assert(RValueType.Type.Equals(LValueType.Type, TypeCompareKind.ConsiderEverything));
+            }
+
+            internal string GetDebuggerDisplay() => $"{{LValue: {LValueType.GetDebuggerDisplay()}, RValue: {RValueType.GetDebuggerDisplay()}}}";
+        }
+
+        /// <summary>
+        /// Represents the result of visiting an argument expression.
+        /// In addition to storing the <see cref="VisitResult"/>, also stores the <see cref="LocalState"/>
+        /// for reanalyzing a lambda.
+        /// </summary>
+        [DebuggerDisplay("{VisitResult.GetDebuggerDisplay(), nq}")]
+        private readonly struct VisitArgumentResult
+        {
+            public readonly VisitResult VisitResult;
+            public readonly Optional<LocalState> StateForLambda;
+            public TypeWithState RValueType => VisitResult.RValueType;
+            public TypeWithAnnotations LValueType => VisitResult.LValueType;
+
+            public VisitArgumentResult(VisitResult visitResult, Optional<LocalState> stateForLambda)
+            {
+                VisitResult = visitResult;
+                StateForLambda = stateForLambda;
             }
         }
 
         /// <summary>
         /// The inferred type at the point of declaration of var locals and parameters.
         /// </summary>
-        private readonly PooledDictionary<Symbol, TypeWithAnnotations> _variableTypes = PooledDictionary<Symbol, TypeWithAnnotations>.GetInstance();
+        private ImmutableDictionary<Symbol, TypeWithAnnotations> _variableTypes = ImmutableDictionary<Symbol, TypeWithAnnotations>.Empty;
 
         /// <summary>
         /// Binder for symbol being analyzed.
@@ -83,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return statements and the result types from analyzing the returned expressions. Used when inferring lambda return type in MethodTypeInferrer.
         /// </summary>
-        private readonly ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> _returnTypesOpt;
+        private ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> _returnTypesOpt;
 
         /// <summary>
         /// Invalid type, used only to catch Visit methods that do not set
@@ -98,11 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Dictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _analyzedNullabilityMapOpt;
 
         /// <summary>
-        /// Contains the map of the NullableWalker's state at every BoundNode that's analyzed, to allow the speculative semantic
-        /// model to restore the final stable state for a specific location in code and then run the walker over a speculative
-        /// expression or statement.
+        /// Manages creating snapshots of the walker as appropriate.
         /// </summary>
-        private readonly Dictionary<BoundNode, Checkpoint> _checkpointMapOpt;
+        private readonly Snapshotter _snapshotter;
 
         // https://github.com/dotnet/roslyn/issues/35043: remove this when all expression are supported
         private bool _disableNullabilityAnalysis;
@@ -111,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// State of method group receivers, used later when analyzing the conversion to a delegate.
         /// (Could be replaced by _analyzedNullabilityMapOpt if that map is always available.)
         /// </summary>
-        private PooledDictionary<BoundExpression, TypeWithState> _methodGroupReceiverMapOpt;
+        private ImmutableDictionary<BoundExpression, TypeWithState> _methodGroupReceiverMapOpt;
 
 #if DEBUG
         /// <summary>
@@ -239,19 +258,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void CheckpointWalker(BoundNode node)
-        {
-            Debug.Assert(!IsConditionalState);
-            if (_checkpointMapOpt != null && node != null)
-            {
-                _checkpointMapOpt[node] = Checkpoint.CheckpointWalker(this);
-            }
-        }
-
         /// <summary>
         /// Placeholder locals, e.g. for objects being constructed.
         /// </summary>
-        private PooledDictionary<object, PlaceholderLocal> _placeholderLocalsOpt;
+        private ImmutableDictionary<object, PlaceholderLocal> _placeholderLocalsOpt;
 
         /// <summary>
         /// For methods with annotations, we'll need to visit the arguments twice.
@@ -265,14 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private int _lastConditionalAccessSlot = -1;
 
-        protected override void Free()
-        {
-            _methodGroupReceiverMapOpt?.Free();
-            _variableTypes.Free();
-            _placeholderLocalsOpt?.Free();
-            base.Free();
-        }
-
         private NullableWalker(
             CSharpCompilation compilation,
             Symbol symbol,
@@ -281,10 +283,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             Binder binder,
             Conversions conversions,
-            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
             VariableState initialState,
+            ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
             Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt,
-            Dictionary<BoundNode, Checkpoint> checkpointMapOpt)
+            bool takeIncrementalSnapshots,
+            Snapshotter snapshotter = null)
             // Members of variables are tracked up to a fixed depth, to avoid cycles. The
             // maxSlotDepth value is arbitrary but large enough to allow most scenarios.
             : base(compilation, symbol, node, EmptyStructTypeCache.CreatePrecise(), trackUnassignments: true, maxSlotDepth: 5)
@@ -293,9 +296,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _conversions = (Conversions)conversions.WithNullability(true);
             _useMethodSignatureParameterTypes = (object)methodSignatureOpt != null && useMethodSignatureParameterTypes;
             _methodSignatureOpt = methodSignatureOpt;
-            _returnTypesOpt = returnTypesOpt;
             _analyzedNullabilityMapOpt = analyzedNullabilityMapOpt;
-            _checkpointMapOpt = checkpointMapOpt;
+            _returnTypesOpt = returnTypesOpt;
 
             if (initialState != null)
             {
@@ -307,11 +309,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _variableSlot.Add(variable, slot);
                 }
                 this.variableBySlot = variableBySlot.ToArray();
-                foreach (var pair in initialState.VariableTypes)
+
+                var variableTypesBuilder = PooledDictionary<Symbol, TypeWithAnnotations>.GetInstance();
+                foreach (var (key, value) in initialState.VariableTypes)
                 {
-                    _variableTypes.Add(pair.Key, pair.Value);
+                    variableTypesBuilder.Add(key, value);
                 }
+                _variableTypes = variableTypesBuilder.ToImmutableDictionaryAndFree();
                 this.State = initialState.VariableNullableStates.Clone();
+            }
+
+            if (snapshotter != null)
+            {
+                _snapshotter = snapshotter.CreateForChildWalker(this);
+            }
+            else
+            {
+                _snapshotter = new Snapshotter(this, takeIncrementalSnapshot: takeIncrementalSnapshots);
             }
         }
 
@@ -337,21 +351,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
         {
-            if (_returnTypesOpt != null)
+            if (!_returnTypesOpt.IsDefault)
             {
-                _returnTypesOpt.Clear();
+                _returnTypesOpt = _returnTypesOpt.Clear();
             }
             this.Diagnostics.Clear();
             ParameterSymbol methodThisParameter = MethodThisParameter;
             this.regionPlace = RegionPlace.Before;
-            EnterParameters(); // assign parameters
+            var parametersBuilder = PooledDictionary<Symbol, TypeWithAnnotations>.GetInstance();
+            foreach (var (key, value) in _variableTypes)
+            {
+                parametersBuilder.Add(key, value);
+            }
+            EnterParameters(parametersBuilder); // assign parameters
             if (!(methodThisParameter is null))
             {
-                EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
+                EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations, parametersBuilder);
             }
+            _variableTypes = parametersBuilder.ToImmutableDictionaryAndFree();
 
             // We need to do a checkpoint even of the first node, because we want to have the state of the initial parameters.
-            CheckpointWalker(methodMainNode);
+            _snapshotter.SnapshotWalker(methodMainNode);
 
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
             return pendingReturns;
@@ -369,6 +389,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             var binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             var conversions = binder.Conversions;
+            Snapshotter ignored = null;
+            ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> ignoredReturnTypes = default;
             Analyze(compilation,
                 method,
                 node,
@@ -377,10 +399,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 useMethodSignatureParameterTypes: false,
                 methodSignatureOpt: method,
-                returnTypes: null,
                 initialState: null,
                 analyzedNullabilityMapOpt: null,
-                checkpointMapOpt: null);
+                takeIncrementalSnapshots: false,
+                snapshotManagerOpt: ref ignored,
+                ref ignoredReturnTypes);
         }
 
         internal static BoundNode AnalyzeAndRewrite(
@@ -389,10 +412,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             Binder binder,
             DiagnosticBag diagnostics,
-            Dictionary<BoundNode, Checkpoint> checkpointMapOpt)
+            bool createSnapshots,
+            out ImmutableDictionary<BoundNode, Snapshot> snapshots)
         {
             var analyzedNullabilities = PooledDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.GetInstance();
             var methodSymbol = symbol as MethodSymbol;
+            Snapshotter snapshotManager = null;
+            ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> ignoredReturnTypes = default;
             Analyze(
                 compilation,
                 symbol,
@@ -402,20 +428,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 useMethodSignatureParameterTypes: !(methodSymbol is null),
                 methodSignatureOpt: methodSymbol,
-                returnTypes: null,
                 initialState: null,
                 analyzedNullabilityMapOpt: analyzedNullabilities,
-                checkpointMapOpt);
+                takeIncrementalSnapshots: createSnapshots,
+                ref snapshotManager,
+                ref ignoredReturnTypes);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutableDictionaryAndFree();
+
+            snapshots = createSnapshots ? snapshotManager.Snapshots : null;
+            Debug.Assert((!createSnapshots && snapshots == null)
+                         || snapshots != null);
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
             if (compilation.NullableAnalysisEnabled)
             {
-                DebugVerifier.Verify(analyzedNullabilitiesMap, checkpointMapOpt, node);
+                DebugVerifier.Verify(analyzedNullabilitiesMap, snapshots, node);
             }
 #endif
+
+            snapshotManager.Free();
             return new NullabilityRewriter(analyzedNullabilitiesMap).Visit(node);
         }
 
@@ -430,6 +463,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            Snapshotter ignored = null;
+            ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> ignoredReturnTypes = default;
             Analyze(
                 compilation,
                 symbol: null,
@@ -439,22 +474,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 useMethodSignatureParameterTypes: false,
                 methodSignatureOpt: null,
-                returnTypes: null,
                 initialState: null,
                 analyzedNullabilityMapOpt: null,
-                checkpointMapOpt: null);
+                takeIncrementalSnapshots: false,
+                snapshotManagerOpt: ref ignored,
+                ref ignoredReturnTypes);
         }
 
-        internal static void Analyze(
+        internal static ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> Analyze(
             CSharpCompilation compilation,
             BoundLambda lambda,
             Conversions conversions,
             DiagnosticBag diagnostics,
             MethodSymbol delegateInvokeMethod,
-            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
+            VariableState initialState,
+            Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt)
+        {
+            var returnTypes = ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)>.Empty;
+            Analyze(
+                compilation,
+                lambda,
+                conversions,
+                diagnostics,
+                delegateInvokeMethod,
+                initialState,
+                analyzedNullabilityMapOpt,
+                snapshotManager: null,
+                ref returnTypes);
+            Debug.Assert(!returnTypes.IsDefault);
+            return returnTypes;
+        }
+
+
+        private static void Analyze(
+            CSharpCompilation compilation,
+            BoundLambda lambda,
+            Conversions conversions,
+            DiagnosticBag diagnostics,
+            MethodSymbol delegateInvokeMethod,
             VariableState initialState,
             Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt,
-            Dictionary<BoundNode, Checkpoint> checkpointMapOpt)
+            Snapshotter snapshotManager,
+            ref ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> returnTypes)
         {
             Analyze(
                 compilation,
@@ -465,10 +526,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 useMethodSignatureParameterTypes: !lambda.UnboundLambda.HasExplicitlyTypedParameterList,
                 methodSignatureOpt: delegateInvokeMethod,
-                returnTypes,
                 initialState,
                 analyzedNullabilityMapOpt,
-                checkpointMapOpt);
+                takeIncrementalSnapshots: snapshotManager?.IncrementalSnapshotter ?? false,
+                ref snapshotManager,
+                ref returnTypes);
         }
 
         private static void Analyze(
@@ -480,12 +542,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
-            ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
             VariableState initialState,
             Dictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt,
-            Dictionary<BoundNode, Checkpoint> checkpointMapOpt)
+            bool takeIncrementalSnapshots,
+            ref Snapshotter snapshotManagerOpt,
+            ref ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
         {
             Debug.Assert(diagnostics != null);
+            Debug.Assert(snapshotManagerOpt == null || snapshotManagerOpt.IncrementalSnapshotter == takeIncrementalSnapshots);
             var walker = new NullableWalker(
                 compilation,
                 symbol,
@@ -494,10 +558,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 binder,
                 conversions,
-                returnTypes,
                 initialState,
+                returnTypesOpt,
                 analyzedNullabilityMapOpt,
-                checkpointMapOpt);
+                takeIncrementalSnapshots,
+                snapshotManagerOpt);
 
             try
             {
@@ -505,10 +570,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Optional<LocalState> initialLocalState = initialState is null ? default : new Optional<LocalState>(initialState.VariableNullableStates);
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialLocalState);
                 diagnostics.AddRange(walker.Diagnostics);
+                returnTypesOpt = walker._returnTypesOpt;
+                snapshotManagerOpt = walker._snapshotter;
                 Debug.Assert(!badRegion);
             }
             catch (CancelledByStackGuardException ex) when (diagnostics != null)
             {
+                returnTypesOpt = default;
                 ex.AddAnError(diagnostics);
             }
             finally
@@ -731,6 +799,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return null;
             }
+        }
+
+        private void AddDeclaredVariable(Symbol symbol, TypeWithAnnotations declaredType) =>
+            AddElementToDictionary(ref _variableTypes, symbol, declaredType, overwriteExisting: true);
+
+        private static void AddElementToDictionary<TKey, TValue>(ref ImmutableDictionary<TKey, TValue> toUpdate, TKey newKey, TValue newValue, bool overwriteExisting = false)
+        {
+            var builder = PooledDictionary<TKey, TValue>.GetInstance();
+            if (toUpdate != null)
+            {
+                foreach (var (key, value) in toUpdate)
+                {
+                    builder.Add(key, value);
+                }
+            }
+
+            if (overwriteExisting)
+            {
+                builder[newKey] = newValue;
+            }
+            else
+            {
+                builder.Add(newKey, newValue);
+            }
+            toUpdate = builder.ToImmutableDictionaryAndFree();
         }
 
         private void VisitAll<T>(ImmutableArray<T> nodes) where T : BoundNode
@@ -1167,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LocalState.ReachableState(capacity: nextVariableSlot);
         }
 
-        private void EnterParameters()
+        private void EnterParameters(Dictionary<Symbol, TypeWithAnnotations> variableTypesBuilder)
         {
             var methodSymbol = _symbol as MethodSymbol;
             if (methodSymbol is null)
@@ -1183,13 +1276,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In error scenarios, the method can potentially have more parameters than the signature. If so, use the parameter type for those
                 // errored parameters
                 var parameterType = i >= signatureParameters.Length ? parameter.TypeWithAnnotations : signatureParameters[i].TypeWithAnnotations;
-                EnterParameter(parameter, parameterType);
+                EnterParameter(parameter, parameterType, variableTypesBuilder);
             }
         }
 
-        private void EnterParameter(ParameterSymbol parameter, TypeWithAnnotations parameterType)
+        private void EnterParameter(ParameterSymbol parameter, TypeWithAnnotations parameterType, Dictionary<Symbol, TypeWithAnnotations> variableTypesBuilder)
         {
-            _variableTypes[parameter] = parameterType;
+            variableTypesBuilder[parameter] = parameterType;
             int slot = GetOrCreateSlot(parameter);
 
             Debug.Assert(!IsConditionalState);
@@ -1225,7 +1318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Should not convert to method return type when inferring return type (when _returnTypesOpt != null).
-            if (_returnTypesOpt == null &&
+            if (_returnTypesOpt.IsDefault &&
                 TryGetReturnType(out TypeWithAnnotations returnType))
             {
                 if (node.RefKind == RefKind.None)
@@ -1241,9 +1334,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var result = VisitRvalueWithState(expr);
-                if (_returnTypesOpt != null)
+                if (!_returnTypesOpt.IsDefault)
                 {
-                    _returnTypesOpt.Add((node, result.ToTypeWithAnnotations()));
+                    _returnTypesOpt = _returnTypesOpt.Add((node, result.ToTypeWithAnnotations()));
                 }
             }
 
@@ -1387,7 +1480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     type = valueType.ToTypeWithAnnotations();
-                    _variableTypes[local] = type;
+                    AddDeclaredVariable(local, type);
                 }
             }
 
@@ -1451,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode Visit(BoundNode node)
         {
-            CheckpointWalker(node);
+            _snapshotter.SnapshotWalker(node);
             return base.Visit(node);
         }
 
@@ -1547,7 +1640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
         {
-            CheckpointWalker(node);
+            _snapshotter.SnapshotWalker(node);
             switch (node.Kind)
             {
                 case BoundKind.ObjectInitializerExpression:
@@ -1602,14 +1695,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitObjectElementInitializer(int containingSlot, BoundAssignmentOperator node)
         {
-            CheckpointWalker(node);
+            _snapshotter.SnapshotWalker(node);
             var left = node.Left;
             switch (left.Kind)
             {
                 case BoundKind.ObjectInitializerMember:
                     {
                         var objectInitializer = (BoundObjectInitializerMember)left;
-                        CheckpointWalker(left);
+                        _snapshotter.SnapshotWalker(left);
                         var symbol = objectInitializer.MemberSymbol;
                         if (!objectInitializer.Arguments.IsDefaultOrEmpty)
                         {
@@ -1704,12 +1797,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private int GetOrCreatePlaceholderSlot(object identifier, TypeWithAnnotations type)
         {
-            _placeholderLocalsOpt ??= PooledDictionary<object, PlaceholderLocal>.GetInstance();
-
-            if (!_placeholderLocalsOpt.TryGetValue(identifier, out PlaceholderLocal placeholder))
+            PlaceholderLocal placeholder = null;
+            if (_placeholderLocalsOpt?.TryGetValue(identifier, out placeholder) != true)
             {
                 placeholder = new PlaceholderLocal(_symbol, identifier, type);
-                _placeholderLocalsOpt.Add(identifier, placeholder);
+                AddElementToDictionary(ref _placeholderLocalsOpt, identifier, placeholder);
             }
 
             Debug.Assert((object)placeholder != null);
@@ -1743,7 +1835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var currentDeclaration = getDeclaration(node, property, ref currentDeclarationIndex);
                     if (!(currentDeclaration is null))
                     {
-                        CheckpointWalker(currentDeclaration);
+                        _snapshotter.SnapshotWalker(currentDeclaration);
                         SetAnalyzedNullability(currentDeclaration, new VisitResult(argumentType, property.TypeWithAnnotations));
                     }
                 }
@@ -1787,7 +1879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ArrayTypeSymbol VisitArrayInitializer(BoundArrayCreation node)
         {
-            CheckpointWalker(node.InitializerOpt);
+            _snapshotter.SnapshotWalker(node.InitializerOpt);
             BoundArrayInitialization initialization = node.InitializerOpt;
             var expressions = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
             GetArrayElements(initialization, expressions);
@@ -1889,10 +1981,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             node,
                                             binder: null,
                                             conversions: conversions,
-                                            returnTypesOpt: null,
                                             initialState: null,
+                                            returnTypesOpt: default,
                                             analyzedNullabilityMapOpt: null,
-                                            checkpointMapOpt: null);
+                                            takeIncrementalSnapshots: false,
+                                            snapshotter: null);
 
             int n = returns.Count;
             var resultTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
@@ -3255,7 +3348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameterWithState = parameterType.ToTypeWithState();
                         if (argumentNoConversion is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
-                            _variableTypes[local.LocalSymbol] = parameterType;
+                            AddDeclaredVariable(local.LocalSymbol, parameterType);
                         }
 
                         var lValueType = result.LValueType;
@@ -3326,15 +3419,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversionsBuilder.Free();
             }
             return (arguments, conversions);
-        }
-
-        private VariableState GetVariableState(Optional<LocalState> localState)
-        {
-            return new VariableState(
-                _variableSlot.ToImmutableDictionary(),
-                ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
-                _variableTypes.ToImmutableDictionary(),
-                localState.HasValue ? localState.Value : this.State.Clone());
         }
 
         private static (ParameterSymbol Parameter, TypeWithAnnotations Type) GetCorrespondingParameter(
@@ -3513,7 +3597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // MethodTypeInferrer must infer nullability for lambdas based on the nullability
                     // from flow analysis rather than the declared nullability. To allow that, we need
                     // to re-bind lambdas in MethodTypeInferrer.
-                    return getUnboundLambda((BoundLambda)argument, GetVariableState(lambdaState));
+                    return getUnboundLambda((BoundLambda)argument, _snapshotter.GetVariableState(lambdaState));
                 }
                 if (!argumentType.HasType)
                 {
@@ -4289,7 +4373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (conversionOperand is BoundLambda lambda)
                     {
                         var delegateType = targetType.GetDelegateType();
-                        var variableState = GetVariableState(stateForLambda);
+                        var variableState = _snapshotter.GetVariableState(stateForLambda);
                         VisitLambda(lambda, delegateType, Diagnostics, variableState);
                         if (reportRemainingWarnings)
                         {
@@ -4684,7 +4768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (conversionOpt != null && conversionOpt != convertedNode)
             {
                 Debug.Assert(conversionOpt.ConversionGroupOpt == conversionGroup);
-                CheckpointWalker(conversionOpt);
+                _snapshotter.SnapshotWalker(conversionOpt);
                 conversionOpt = conversionOpt.Operand as BoundConversion;
             }
         }
@@ -4824,7 +4908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Receiver nullability is checked when applying the method group conversion,
                 // when we have a specific method, to avoid reporting null receiver warnings
                 // for extension method delegates. Here, store the receiver state for that check.
-                SetMethodGroupReceiverNullability(receiverOpt, ResultType);
+                AddElementToDictionary(ref _methodGroupReceiverMapOpt, receiverOpt, ResultType);
             }
 
             SetNotNullResult(node);
@@ -4844,12 +4928,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = default;
                 return false;
             }
-        }
-
-        private void SetMethodGroupReceiverNullability(BoundExpression receiver, TypeWithState type)
-        {
-            _methodGroupReceiverMapOpt ??= PooledDictionary<BoundExpression, TypeWithState>.GetInstance();
-            _methodGroupReceiverMapOpt[receiver] = type;
         }
 
         private MethodSymbol CheckMethodGroupReceiverNullability(BoundMethodGroup group, NamedTypeSymbol delegateType, MethodSymbol method, bool invokedAsExtensionMethod)
@@ -4917,16 +4995,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitLambda(BoundLambda node, NamedTypeSymbol delegateTypeOpt, DiagnosticBag diagnostics, VariableState initialState = null)
         {
             Debug.Assert(delegateTypeOpt?.IsDelegateType() != false);
+            ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> ignoredReturnTypes = default;
             Analyze(
                 compilation,
                 node,
                 _conversions,
                 diagnostics,
                 delegateTypeOpt?.DelegateInvokeMethod,
-                returnTypes: null,
-                initialState: initialState ?? GetVariableState(State.Clone()),
+                initialState: initialState ?? _snapshotter.GetVariableState(State.Clone()),
                 _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt,
-                _checkpointMapOpt);
+                _snapshotter,
+                ref ignoredReturnTypes);
         }
 
         public override BoundNode VisitUnboundLambda(UnboundLambda node)
@@ -4944,6 +5023,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var body = node.Body;
             if (body != null)
             {
+                var snapshotManager = _snapshotter;
+                ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> ignoredReturnTypes = default;
                 Analyze(compilation,
                         node.Symbol,
                         body,
@@ -4952,10 +5033,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Diagnostics,
                         useMethodSignatureParameterTypes: false,
                         methodSignatureOpt: null,
-                        returnTypes: null,
-                        initialState: GetVariableState(this.TopState()),
+                        initialState: _snapshotter.GetVariableState(this.TopState()),
                         analyzedNullabilityMapOpt: _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt,
-                        _checkpointMapOpt);
+                        takeIncrementalSnapshots: _snapshotter.IncrementalSnapshotter,
+                        ref snapshotManager,
+                        ref ignoredReturnTypes);
             }
             SetInvalidResult();
             return null;
@@ -6647,7 +6729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitCatchBlock(BoundCatchBlock node, ref LocalState finallyState)
         {
-            CheckpointWalker(node);
+            _snapshotter.SnapshotWalker(node);
             if (node.Locals.Length > 0)
             {
                 LocalSymbol local = node.Locals[0];

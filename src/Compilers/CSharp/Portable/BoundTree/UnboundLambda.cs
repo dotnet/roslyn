@@ -108,7 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(conversions != null);
-                var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
                 // Diagnostics from NullableWalker.Analyze can be dropped here since Analyze
                 // will be called again from NullableWalker.ApplyConversion when the
                 // BoundLambda is converted to an anonymous function.
@@ -117,18 +116,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnostics = DiagnosticBag.GetInstance();
                 var delegateType = Type.GetDelegateType();
                 var compilation = Binder.Compilation;
-                NullableWalker.Analyze(compilation,
-                                       lambda: this,
-                                       (Conversions)conversions,
-                                       diagnostics,
-                                       delegateInvokeMethod: delegateType?.DelegateInvokeMethod,
-                                       returnTypes: returnTypes,
-                                       initialState: nullableState,
-                                       analyzedNullabilityMapOpt: null,
-                                       checkpointMapOpt: null);
+                ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> returnTypes =
+                    NullableWalker.Analyze(compilation,
+                                           lambda: this,
+                                           (Conversions)conversions,
+                                           diagnostics,
+                                           delegateInvokeMethod: delegateType?.DelegateInvokeMethod,
+                                           initialState: nullableState,
+                                           analyzedNullabilityMapOpt: null);
                 diagnostics.Free();
                 var inferredReturnType = InferReturnType(returnTypes, node: this, compilation, conversions, delegateType, Symbol.IsAsync);
-                returnTypes.Free();
                 return inferredReturnType.TypeWithAnnotations;
             }
         }
@@ -141,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Behavior of this function should be kept aligned with <see cref="UnboundLambdaState.ReturnInferenceCacheKey"/>.
         /// </summary>
-        internal static InferredLambdaReturnType InferReturnType(ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
+        internal static InferredLambdaReturnType InferReturnType(ImmutableArray<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
             BoundNode node, CSharpCompilation compilation, ConversionsBase conversions, TypeSymbol delegateType, bool isAsync)
         {
             var types = ArrayBuilder<(BoundExpression, TypeWithAnnotations)>.GetInstance();
@@ -632,8 +629,7 @@ haveLambdaBodyAndBinders:
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
             BoundLambda.BlockReturns.GetReturnTypes(returnTypes, block);
-            var inferredReturnType = BoundLambda.InferReturnType(returnTypes, _unboundLambda, lambdaBodyBinder.Compilation, lambdaBodyBinder.Conversions, delegateType, lambdaSymbol.IsAsync);
-            returnTypes.Free();
+            var inferredReturnType = BoundLambda.InferReturnType(returnTypes.ToImmutableAndFree(), _unboundLambda, lambdaBodyBinder.Compilation, lambdaBodyBinder.Conversions, delegateType, lambdaSymbol.IsAsync);
             var result = new BoundLambda(_unboundLambda.Syntax, _unboundLambda, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferredReturnType)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 

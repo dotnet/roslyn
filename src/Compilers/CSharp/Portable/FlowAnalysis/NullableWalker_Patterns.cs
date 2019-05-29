@@ -178,11 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
         {
-            CheckpointWalker(node);
+            _snapshotter.SnapshotWalker(node);
             SetState(UnreachableState());
             foreach (var label in node.SwitchLabels)
             {
-                CheckpointWalker(label);
+                _snapshotter.SnapshotWalker(label);
                 VisitLabel(label.Label, node);
             }
 
@@ -392,11 +392,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (_variableTypes.TryGetValue(local, out var existingType))
                                 {
                                     // merge inferred nullable annotation from different branches of the decision tree
-                                    _variableTypes[local] = TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation));
+                                    AddDeclaredVariable(local, TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation)));
                                 }
                                 else
                                 {
-                                    _variableTypes[local] = inferredType;
+                                    AddDeclaredVariable(local, inferredType);
                                 }
 
                                 int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SetState(!arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState());
                 // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the checkpoint?
-                CheckpointWalker(arm);
+                _snapshotter.SnapshotWalker(arm);
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
                 CheckpointWalkerThroughConversionGroup(arm.Value as BoundConversion, expression);
                 expressions.Add(expression);
