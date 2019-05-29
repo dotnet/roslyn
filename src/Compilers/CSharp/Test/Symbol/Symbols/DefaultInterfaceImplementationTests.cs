@@ -29713,7 +29713,7 @@ class Test1 : I1
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest,
-                                                 references: new[] { TestReferences.NetStandard30.SystemThreadingTasksRef });
+                                                 references: new[] { TestReferences.NetCoreApp30.SystemThreadingTasksRef });
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -42795,7 +42795,7 @@ I2.-
         public void RuntimeFeature_02()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { TestReferences.NetStandard30.SystemRuntimeRef },
+                                                 references: new[] { TestReferences.NetCoreApp30.SystemRuntimeRef },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
