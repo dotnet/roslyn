@@ -5023,5 +5023,23 @@ class C : IDisposable
     }
 }");
         }
+
+        [Fact]
+        public async Task MissingDisposeInMethodWithAttributes()
+        {
+            await TestDiagnosticsAsync(@"
+using System;
+class C : IDisposable
+{
+    public void Dispose() { }
+
+    [Obsolete()]
+    void M1()
+    {
+        var c = [|new C()|];
+    }
+}",
+            Diagnostic(IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId));
+        }
     }
 }

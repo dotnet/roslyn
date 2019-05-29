@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
@@ -188,12 +189,21 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                         }
 
                         var rule = isNotDisposed ? s_disposeObjectsBeforeLosingScopeRule : s_useRecommendedDisposePatternRule;
+
+                        // Ensure that we do not include multiple lines for the object creation expression in the diagnostic message.
+                        var objectCreationText = syntax.ToString();
+                        var indexOfNewLine = objectCreationText.IndexOf(Environment.NewLine);
+                        if (indexOfNewLine > 0)
+                        {
+                            objectCreationText = objectCreationText.Substring(0, indexOfNewLine);
+                        }
+
                         var diagnostic = Diagnostic.Create(
                             rule,
                             syntax.GetLocation(),
                             additionalLocations: null,
                             properties: null,
-                            syntax.ToString());
+                            objectCreationText);
 
                         if (isNotDisposed)
                         {
