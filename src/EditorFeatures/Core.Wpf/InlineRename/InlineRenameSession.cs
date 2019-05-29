@@ -78,6 +78,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// 3. Type is the only type in the file OR type already matches the file name
         /// </summary>
         public bool AllowFileRename { get; }
+
+        /// <summary>
+        /// True if the selected node kind supports renaming at all. This allows the UI to hint
+        /// that the type could support renaming, whether or not the current conditions allow it. 
+        /// </summary>
         public bool KindSupportsFileRename { get; }
 
         /// <summary>
