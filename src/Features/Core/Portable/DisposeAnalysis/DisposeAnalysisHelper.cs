@@ -102,7 +102,8 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             out PointsToAnalysisResult pointsToAnalysisResult,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null)
         {
-            foreach (var operationBlock in context.OperationBlocks)
+            // Compute the dispose analysis result - skip Attribute blocks (OperationKind.None)
+            foreach (var operationBlock in context.OperationBlocks.Where(o => o.Kind != OperationKind.None))
             {
                 var cfg = context.GetControlFlowGraph(operationBlock);
                 if (cfg != null)
@@ -132,7 +133,8 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             out PointsToAnalysisResult pointsToAnalysisResult,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null)
         {
-            foreach (var operationBlock in context.OperationBlocks)
+            // Compute the dispose analysis result - skip Attribute blocks (OperationKind.None)
+            foreach (var operationBlock in context.OperationBlocks.Where(o => o.Kind != OperationKind.None))
             {
                 var cfg = context.GetControlFlowGraph(operationBlock);
                 if (cfg != null)
