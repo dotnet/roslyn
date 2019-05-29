@@ -768,8 +768,11 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo", expectFileRename:=True)
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+
+                session.Commit()
+                Await VerifyTagsAreCorrect(workspace, "BarGoo", expectFileRename:=True)
             End Using
         End Function
 
@@ -797,8 +800,12 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
                 Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo", expectFileRename:=True)
+
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+
+                session.Commit()
+                Await VerifyTagsAreCorrect(workspace, "BarGoo", expectFileRename:=True)
             End Using
         End Function
 
