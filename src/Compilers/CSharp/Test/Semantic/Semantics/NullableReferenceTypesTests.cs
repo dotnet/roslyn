@@ -22347,7 +22347,7 @@ public class A
         }
 
         [Fact]
-        public void DisallowNull_01()
+        public void DisallowNull_Parameter_01()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -22428,7 +22428,88 @@ class Program
         }
 
         [Fact]
-        public void DisallowNull_02()
+        public void DisallowNull_Parameter_01_WithAllowNull()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+class Program
+{
+    static void F1<T>([DisallowNull, AllowNull]T t) { }
+    static void F2<T>([DisallowNull, AllowNull]T t) where T : class { }
+    static void F3<T>([DisallowNull, AllowNull]T? t) where T : class { }
+    static void F4<T>([DisallowNull, AllowNull]T t) where T : struct { }
+    static void F5<T>([DisallowNull, AllowNull]T? t) where T : struct { }
+    static void M1<T>(T t1)
+    {
+        F1(t1);
+    }
+    static void M2<T>(T t2) where T : class
+    {
+        F1(t2);
+        F2(t2);
+        F3(t2);
+        t2 = null; // 1
+        F1(t2); // 2
+        F2(t2); // 3
+        F3(t2); // 4
+    }
+    static void M3<T>(T? t3) where T : class
+    {
+        F1(t3); // 5
+        F2(t3); // 6
+        F3(t3); // 7
+        if (t3 == null) return;
+        F1(t3);
+        F2(t3);
+        F3(t3);
+    }
+    static void M4<T>(T t4) where T : struct
+    {
+        F1(t4);
+        F4(t4);
+    }
+    static void M5<T>(T? t5) where T : struct
+    {
+        F1(t5);
+        F5(t5);
+        if (t5 == null) return;
+        F1(t5);
+        F5(t5);
+    }
+}";
+            var comp = CreateCompilation(new[] { DisallowNullAttributeDefinition, AllowNullAttributeDefinition, source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (18,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         t2 = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(18, 14),
+                // (19,12): warning CS8604: Possible null reference argument for parameter 't' in 'void Program.F1<T?>(T? t)'.
+                //         F1(t2); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t2").WithArguments("t", "void Program.F1<T?>(T? t)").WithLocation(19, 12),
+                // (20,9): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'Program.F2<T>(T)'. Nullability of type argument 'T?' doesn't match 'class' constraint.
+                //         F2(t2); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("Program.F2<T>(T)", "T", "T?").WithLocation(20, 9),
+                // (20,12): warning CS8604: Possible null reference argument for parameter 't' in 'void Program.F2<T?>(T? t)'.
+                //         F2(t2); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t2").WithArguments("t", "void Program.F2<T?>(T? t)").WithLocation(20, 12),
+                // (21,12): warning CS8604: Possible null reference argument for parameter 't' in 'void Program.F3<T>(T? t)'.
+                //         F3(t2); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t2").WithArguments("t", "void Program.F3<T>(T? t)").WithLocation(21, 12),
+                // (25,12): warning CS8604: Possible null reference argument for parameter 't' in 'void Program.F1<T?>(T? t)'.
+                //         F1(t3); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t3").WithArguments("t", "void Program.F1<T?>(T? t)").WithLocation(25, 12),
+                // (26,9): warning CS8634: The type 'T?' cannot be used as type parameter 'T' in the generic type or method 'Program.F2<T>(T)'. Nullability of type argument 'T?' doesn't match 'class' constraint.
+                //         F2(t3); // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "F2").WithArguments("Program.F2<T>(T)", "T", "T?").WithLocation(26, 9),
+                // (26,12): warning CS8604: Possible null reference argument for parameter 't' in 'void Program.F2<T?>(T? t)'.
+                //         F2(t3); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t3").WithArguments("t", "void Program.F2<T?>(T? t)").WithLocation(26, 12),
+                // (27,12): warning CS8604: Possible null reference argument for parameter 't' in 'void Program.F3<T>(T? t)'.
+                //         F3(t3); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t3").WithArguments("t", "void Program.F3<T>(T? t)").WithLocation(27, 12));
+        }
+
+        [Fact]
+        public void DisallowNull_Parameter_02()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -22503,7 +22584,7 @@ class Program
         }
 
         [Fact]
-        public void DisallowNull_03()
+        public void DisallowNull_Parameter_03()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -22548,7 +22629,7 @@ class Program
         }
 
         [Fact]
-        public void DisallowNull_04()
+        public void DisallowNull_Parameter_04()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -22573,7 +22654,7 @@ class Program
         }
 
         [Fact]
-        public void DisallowNull_05()
+        public void DisallowNull_Parameter_05()
         {
             var source0 =
 @"using System.Runtime.CompilerServices;
@@ -22616,7 +22697,7 @@ public class A
         }
 
         [Fact]
-        public void MaybeNull_01()
+        public void MaybeNull_ReturnValue_01()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -22736,7 +22817,7 @@ class Program
         }
 
         [Fact]
-        public void MaybeNull_02()
+        public void MaybeNull_ReturnValue_02()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -22862,7 +22943,133 @@ class Program
         }
 
         [Fact]
-        public void MaybeNull_03()
+        public void MaybeNull_ReturnValue_02_WithNotNull()
+        {
+            var source =
+@"using System.Runtime.CompilerServices;
+class Program
+{
+    [return: MaybeNull, NotNull] static T F1<T>(T t) => t;
+    [return: MaybeNull, NotNull] static T F2<T>(T t) where T : class => t;
+    [return: MaybeNull, NotNull] static T? F3<T>(T t) where T : class => t;
+    [return: MaybeNull, NotNull] static T F4<T>(T t) where T : struct => t;
+    [return: MaybeNull, NotNull] static T? F5<T>(T? t) where T : struct => t;
+    static void M1<T>(T t1)
+    {
+        F1<T>(t1).ToString(); // 1
+    }
+    static void M2<T>(T t2) where T : class
+    {
+        F1<T>(t2).ToString(); // 2
+        F2<T>(t2).ToString(); // 3
+        F3<T>(t2).ToString(); // 4
+        t2 = null; // 5
+        F1<T>(t2).ToString(); // 6
+        F2<T>(t2).ToString(); // 7
+        F3<T>(t2).ToString(); // 8
+    }
+    static void M3<T>(T? t3) where T : class
+    {
+        F1<T>(t3).ToString(); // 9
+        F2<T>(t3).ToString(); // 10
+        F3<T>(t3).ToString(); // 11
+        if (t3 == null) return;
+        F1<T>(t3).ToString(); // 12
+        F2<T>(t3).ToString(); // 13
+        F3<T>(t3).ToString(); // 14
+    }
+    static void M4<T>(T t4) where T : struct
+    {
+        F1<T>(t4).ToString();
+        F4<T>(t4).ToString();
+    }
+    static void M5<T>(T? t5) where T : struct
+    {
+        _ = F1<T?>(t5).Value; // 15
+        _ = F5<T>(t5).Value; // 16
+        if (t5 == null) return;
+        _ = F1<T?>(t5).Value; // 17
+        _ = F5<T>(t5).Value; // 18
+    }
+}";
+            var comp = CreateCompilation(new[] { MaybeNullAttributeDefinition, NotNullAttributeDefinition, source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1<T>(t1).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1<T>(t1)").WithLocation(11, 9),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1<T>(t2).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1<T>(t2)").WithLocation(15, 9),
+                // (16,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2<T>(t2).ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2<T>(t2)").WithLocation(16, 9),
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                //         F3<T>(t2).ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F3<T>(t2)").WithLocation(17, 9),
+                // (18,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         t2 = null; // 5
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(18, 14),
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1<T>(t2).ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1<T>(t2)").WithLocation(19, 9),
+                // (19,15): warning CS8604: Possible null reference argument for parameter 't' in 'T Program.F1<T>(T t)'.
+                //         F1<T>(t2).ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t2").WithArguments("t", "T Program.F1<T>(T t)").WithLocation(19, 15),
+                // (20,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2<T>(t2).ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2<T>(t2)").WithLocation(20, 9),
+                // (20,15): warning CS8604: Possible null reference argument for parameter 't' in 'T Program.F2<T>(T t)'.
+                //         F2<T>(t2).ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t2").WithArguments("t", "T Program.F2<T>(T t)").WithLocation(20, 15),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         F3<T>(t2).ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F3<T>(t2)").WithLocation(21, 9),
+                // (21,15): warning CS8604: Possible null reference argument for parameter 't' in 'T? Program.F3<T>(T t)'.
+                //         F3<T>(t2).ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t2").WithArguments("t", "T? Program.F3<T>(T t)").WithLocation(21, 15),
+                // (25,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1<T>(t3).ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1<T>(t3)").WithLocation(25, 9),
+                // (25,15): warning CS8604: Possible null reference argument for parameter 't' in 'T Program.F1<T>(T t)'.
+                //         F1<T>(t3).ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t3").WithArguments("t", "T Program.F1<T>(T t)").WithLocation(25, 15),
+                // (26,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2<T>(t3).ToString(); // 10
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2<T>(t3)").WithLocation(26, 9),
+                // (26,15): warning CS8604: Possible null reference argument for parameter 't' in 'T Program.F2<T>(T t)'.
+                //         F2<T>(t3).ToString(); // 10
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t3").WithArguments("t", "T Program.F2<T>(T t)").WithLocation(26, 15),
+                // (27,9): warning CS8602: Dereference of a possibly null reference.
+                //         F3<T>(t3).ToString(); // 11
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F3<T>(t3)").WithLocation(27, 9),
+                // (27,15): warning CS8604: Possible null reference argument for parameter 't' in 'T? Program.F3<T>(T t)'.
+                //         F3<T>(t3).ToString(); // 11
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t3").WithArguments("t", "T? Program.F3<T>(T t)").WithLocation(27, 15),
+                // (29,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1<T>(t3).ToString(); // 12
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1<T>(t3)").WithLocation(29, 9),
+                // (30,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2<T>(t3).ToString(); // 13
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2<T>(t3)").WithLocation(30, 9),
+                // (31,9): warning CS8602: Dereference of a possibly null reference.
+                //         F3<T>(t3).ToString(); // 14
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F3<T>(t3)").WithLocation(31, 9),
+                // (40,13): warning CS8629: Nullable value type may be null.
+                //         _ = F1<T?>(t5).Value; // 15
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "F1<T?>(t5)").WithLocation(40, 13),
+                // (41,13): warning CS8629: Nullable value type may be null.
+                //         _ = F5<T>(t5).Value; // 16
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "F5<T>(t5)").WithLocation(41, 13),
+                // (43,13): warning CS8629: Nullable value type may be null.
+                //         _ = F1<T?>(t5).Value; // 17
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "F1<T?>(t5)").WithLocation(43, 13),
+                // (44,13): warning CS8629: Nullable value type may be null.
+                //         _ = F5<T>(t5).Value; // 18
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "F5<T>(t5)").WithLocation(44, 13));
+        }
+
+        [Fact]
+        public void MaybeNull_ReturnValue_03()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -22887,7 +23094,7 @@ class Program
         }
 
         [Fact]
-        public void MaybeNull_04()
+        public void MaybeNull_ReturnValue_04()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -22909,7 +23116,7 @@ class Program
         }
 
         [Fact]
-        public void MaybeNull_05()
+        public void MaybeNull_ReturnValue_05()
         {
             var source0 =
 @"using System.Runtime.CompilerServices;
@@ -22955,7 +23162,7 @@ public class A
         }
 
         [Fact]
-        public void MaybeNull_06()
+        public void MaybeNull_ReturnValue_06()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -23006,7 +23213,7 @@ class Program
         }
 
         [Fact]
-        public void NotNull_01()
+        public void NotNull_ReturnValue_01()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -23075,7 +23282,7 @@ class Program
         }
 
         [Fact]
-        public void NotNull_02()
+        public void NotNull_ReturnValue_02()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -23150,7 +23357,7 @@ class Program
         }
 
         [Fact]
-        public void NotNull_03()
+        public void NotNull_ReturnValue_03()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -23169,7 +23376,7 @@ class Program
         }
 
         [Fact]
-        public void NotNull_04()
+        public void NotNull_ReturnValue_04()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -23188,7 +23395,7 @@ class Program
         }
 
         [Fact]
-        public void NotNull_05()
+        public void NotNull_ReturnValue_05()
         {
             var source0 =
 @"using System.Runtime.CompilerServices;
@@ -23234,7 +23441,7 @@ public class A
         }
 
         [Fact]
-        public void NotNull_06()
+        public void NotNull_ReturnValue_06()
         {
             var source =
 @"using System.Runtime.CompilerServices;

@@ -2874,7 +2874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public TypeWithAnnotations ApplyLValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations = FlowAnalysisAnnotations.None)
+        private static TypeWithAnnotations ApplyLValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations = FlowAnalysisAnnotations.None)
         {
             if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0)
             {
