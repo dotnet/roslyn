@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
             TypeSyntax,
             VariableDeclaratorSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GetTitle() As String
             Return VBFeaturesResources.Convert_to_For_Each
         End Function

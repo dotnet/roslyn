@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
     [ExportSyntaxNodeOrganizer(LanguageNames.CSharp), Shared]
     internal class EnumDeclarationOrganizer : AbstractSyntaxNodeOrganizer<EnumDeclarationSyntax>
     {
+        [ImportingConstructor]
+        public EnumDeclarationOrganizer()
+        {
+        }
+
         protected override EnumDeclarationSyntax Organize(
             EnumDeclarationSyntax syntax,
             CancellationToken cancellationToken)

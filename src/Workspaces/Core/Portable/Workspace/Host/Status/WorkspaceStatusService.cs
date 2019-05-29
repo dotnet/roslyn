@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.Host
     {
         public readonly static WorkspaceStatusService Default = new WorkspaceStatusService();
 
+        [ImportingConstructor]
+        public WorkspaceStatusService()
+        {
+        }
+
         event EventHandler<bool> IWorkspaceStatusService.StatusChanged
         {
             add { }

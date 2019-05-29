@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [PartNotDiscoverable]
         internal class TestDynamicFileInfoProvider : IDynamicFileInfoProvider
         {
+            [ImportingConstructor]
+            public TestDynamicFileInfoProvider()
+            {
+            }
+
             public event EventHandler<string> Updated;
 
             public Task<DynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)

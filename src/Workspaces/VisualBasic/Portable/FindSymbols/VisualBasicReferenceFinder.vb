@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
     Friend Class VisualBasicReferenceFinder
         Implements ILanguageServiceReferenceFinder
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function DetermineCascadedSymbolsAsync(symbolAndProjectId As SymbolAndProjectId,
                                                       project As Project,
                                                       cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndProjectId)) Implements ILanguageServiceReferenceFinder.DetermineCascadedSymbolsAsync

@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.Diagnostics
     [UserVisible(false)]
     internal sealed class UnnecessaryCodeFormatDefinition : ClassificationFormatDefinition
     {
-        private UnnecessaryCodeFormatDefinition()
+        [ImportingConstructor]
+        public UnnecessaryCodeFormatDefinition()
         {
             this.DisplayName = EditorFeaturesResources.Unnecessary_Code;
             this.ForegroundOpacity = 0.6;

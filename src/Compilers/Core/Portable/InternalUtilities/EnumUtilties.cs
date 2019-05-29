@@ -52,5 +52,20 @@ namespace Roslyn.Utilities
         {
             return (T[])Enum.GetValues(typeof(T));
         }
+
+#if DEBUG
+        internal static bool ContainsAllValues<T>(int mask) where T : struct, Enum, IConvertible
+        {
+            foreach (T value in GetValues<T>())
+            {
+                int val = value.ToInt32(null);
+                if ((val & mask) != val)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+#endif
     }
 }

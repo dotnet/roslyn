@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
     Partial Friend Class VisualBasicReplacePropertyWithMethods
         Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, CrefReferenceSyntax, StatementSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Function GetPropertyDeclaration(token As SyntaxToken) As SyntaxNode
             Dim containingProperty = token.Parent.FirstAncestorOrSelf(Of PropertyStatementSyntax)
             If containingProperty Is Nothing Then

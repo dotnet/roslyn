@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class PreprocessorTextFormatDefinition : ClassificationFormatDefinition
         {
-            private PreprocessorTextFormatDefinition()
+            [ImportingConstructor]
+            public PreprocessorTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Preprocessor_Text;
                 this.ForegroundColor = Colors.Black;
@@ -39,7 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class PunctuationFormatDefinition : ClassificationFormatDefinition
         {
-            private PunctuationFormatDefinition()
+            [ImportingConstructor]
+            public PunctuationFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Punctuation;
                 this.ForegroundColor = Colors.Black;
@@ -56,7 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class StringVerbatimFormatDefinition : ClassificationFormatDefinition
         {
-            private StringVerbatimFormatDefinition()
+            [ImportingConstructor]
+            public StringVerbatimFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.String_Verbatim;
                 this.ForegroundColor = Colors.Maroon;
@@ -81,7 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class StringEscapeCharacterFormatDefinition : ClassificationFormatDefinition
         {
-            private StringEscapeCharacterFormatDefinition()
+            [ImportingConstructor]
+            public StringEscapeCharacterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.String_Escape_Character;
                 this.ForegroundColor = s_stringEscapeColor;
@@ -100,7 +104,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class ControlKeywordFormatDefinition : ClassificationFormatDefinition
         {
-            private ControlKeywordFormatDefinition()
+            [ImportingConstructor]
+            public ControlKeywordFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Keyword_Control;
             }
@@ -117,7 +122,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class OperatorOverloadedFormatDefinition : ClassificationFormatDefinition
         {
-            private OperatorOverloadedFormatDefinition()
+            [ImportingConstructor]
+            public OperatorOverloadedFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Operator_Overloaded;
             }
@@ -133,7 +139,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class SymbolStaticFormatDefinition : ClassificationFormatDefinition
         {
-            private SymbolStaticFormatDefinition()
+            [ImportingConstructor]
+            public SymbolStaticFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.Symbol_Static;
                 // The static classification is intended to be an additive classification
@@ -171,7 +178,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserTypeClassesFormatDefinition : ClassificationFormatDefinition
         {
-            private UserTypeClassesFormatDefinition()
+            [ImportingConstructor]
+            public UserTypeClassesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Classes;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
@@ -189,7 +197,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserTypeDelegatesFormatDefinition : ClassificationFormatDefinition
         {
-            private UserTypeDelegatesFormatDefinition()
+            [ImportingConstructor]
+            public UserTypeDelegatesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Delegates;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
@@ -207,7 +216,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserTypeEnumsFormatDefinition : ClassificationFormatDefinition
         {
-            private UserTypeEnumsFormatDefinition()
+            [ImportingConstructor]
+            public UserTypeEnumsFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Enums;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
@@ -225,7 +235,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserTypeInterfacesFormatDefinition : ClassificationFormatDefinition
         {
-            private UserTypeInterfacesFormatDefinition()
+            [ImportingConstructor]
+            public UserTypeInterfacesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Interfaces;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
@@ -242,7 +253,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class UserTypeModulesFormatDefinition : ClassificationFormatDefinition
         {
-            private UserTypeModulesFormatDefinition()
+            [ImportingConstructor]
+            public UserTypeModulesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Modules;
                 this.ForegroundColor = Color.FromRgb(43, 145, 175);
@@ -260,7 +272,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserTypeStructuresFormatDefinition : ClassificationFormatDefinition
         {
-            private UserTypeStructuresFormatDefinition()
+            [ImportingConstructor]
+            public UserTypeStructuresFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Structures;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
@@ -278,7 +291,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserTypeTypeParametersFormatDefinition : ClassificationFormatDefinition
         {
-            private UserTypeTypeParametersFormatDefinition()
+            [ImportingConstructor]
+            public UserTypeTypeParametersFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Type_Parameters;
                 this.ForegroundColor = Color.FromRgb(0x2B, 0x91, 0xAF);
@@ -297,7 +311,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersFieldNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserMembersFieldNameFormatDefinition()
+            [ImportingConstructor]
+            public UserMembersFieldNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Fields;
             }
@@ -314,7 +329,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersEnumMemberNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserMembersEnumMemberNameFormatDefinition()
+            [ImportingConstructor]
+            public UserMembersEnumMemberNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Enum_Members;
             }
@@ -331,7 +347,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersConstantNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserMembersConstantNameFormatDefinition()
+            [ImportingConstructor]
+            public UserMembersConstantNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Constants;
             }
@@ -348,7 +365,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersLocalNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserMembersLocalNameFormatDefinition()
+            [ImportingConstructor]
+            public UserMembersLocalNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Locals;
             }
@@ -365,7 +383,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersParameterNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserMembersParameterNameFormatDefinition()
+            [ImportingConstructor]
+            public UserMembersParameterNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Parameters;
             }
@@ -382,7 +401,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersMethodNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserMembersMethodNameFormatDefinition()
+            [ImportingConstructor]
+            public UserMembersMethodNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Methods;
             }
@@ -399,7 +419,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersExtensionMethodNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserMembersExtensionMethodNameFormatDefinition()
+            [ImportingConstructor]
+            public UserMembersExtensionMethodNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Extension_Methods;
             }
@@ -416,7 +437,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersPropertyNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserMembersPropertyNameFormatDefinition()
+            [ImportingConstructor]
+            public UserMembersPropertyNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Properties;
             }
@@ -432,7 +454,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersEventNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserMembersEventNameFormatDefinition()
+            [ImportingConstructor]
+            public UserMembersEventNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Events;
             }
@@ -448,7 +471,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersNamespaceNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserMembersNamespaceNameFormatDefinition()
+            [ImportingConstructor]
+            public UserMembersNamespaceNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Namespaces;
             }
@@ -465,7 +489,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class UserMembersLabelNameFormatDefinition : ClassificationFormatDefinition
         {
-            private UserMembersLabelNameFormatDefinition()
+            [ImportingConstructor]
+            public UserMembersLabelNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Members_Labels;
             }
@@ -481,7 +506,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentAttributeNameFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlDocCommentAttributeNameFormatDefinition()
+            [ImportingConstructor]
+            public XmlDocCommentAttributeNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Attribute_Name;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80); // CIDARKGRAY
@@ -497,7 +523,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentAttributeQuotesFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlDocCommentAttributeQuotesFormatDefinition()
+            [ImportingConstructor]
+            public XmlDocCommentAttributeQuotesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Attribute_Quotes;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80); // CIDARKGRAY
@@ -515,7 +542,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentAttributeValueFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlDocCommentAttributeValueFormatDefinition()
+            [ImportingConstructor]
+            public XmlDocCommentAttributeValueFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Attribute_Value;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80); // CIDARKGRAY
@@ -531,7 +559,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentCDataSectionFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlDocCommentCDataSectionFormatDefinition()
+            [ImportingConstructor]
+            public XmlDocCommentCDataSectionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_CData_Section;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80);    // CIDARKGRAY    
@@ -547,7 +576,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentCommentFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlDocCommentCommentFormatDefinition()
+            [ImportingConstructor]
+            public XmlDocCommentCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Comment;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80);    // CIDARKGRAY
@@ -563,7 +593,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentDelimiterFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlDocCommentDelimiterFormatDefinition()
+            [ImportingConstructor]
+            public XmlDocCommentDelimiterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Delimiter;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80); // CIDARKGRAY
@@ -579,7 +610,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentEntityReferenceFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlDocCommentEntityReferenceFormatDefinition()
+            [ImportingConstructor]
+            public XmlDocCommentEntityReferenceFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Entity_Reference;
                 this.ForegroundColor = Colors.Green;
@@ -595,7 +627,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentNameFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlDocCommentNameFormatDefinition()
+            [ImportingConstructor]
+            public XmlDocCommentNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Name;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80); // CIDARKGRAY
@@ -611,7 +644,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentProcessingInstructionFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlDocCommentProcessingInstructionFormatDefinition()
+            [ImportingConstructor]
+            public XmlDocCommentProcessingInstructionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Processing_Instruction;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x80, 0x80); // CIDARKGRAY
@@ -627,7 +661,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class XmlDocCommentTextFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlDocCommentTextFormatDefinition()
+            [ImportingConstructor]
+            public XmlDocCommentTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.XML_Doc_Comments_Text;
                 this.ForegroundColor = Colors.Green;
@@ -665,7 +700,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexCommentFormatDefinition : ClassificationFormatDefinition
         {
-            private RegexCommentFormatDefinition()
+            [ImportingConstructor]
+            public RegexCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Comment;
                 this.ForegroundColor = s_regexCommentColor;
@@ -681,7 +717,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexCharacterClassFormatDefinition : ClassificationFormatDefinition
         {
-            private RegexCharacterClassFormatDefinition()
+            [ImportingConstructor]
+            public RegexCharacterClassFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Character_Class;
                 this.ForegroundColor = s_characterClassColor;
@@ -697,7 +734,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexAnchorFormatDefinition : ClassificationFormatDefinition
         {
-            private RegexAnchorFormatDefinition()
+            [ImportingConstructor]
+            public RegexAnchorFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
                 this.ForegroundColor = s_regexAnchorAndQuantifierColor;
@@ -713,7 +751,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexQuantifierFormatDefinition : ClassificationFormatDefinition
         {
-            private RegexQuantifierFormatDefinition()
+            [ImportingConstructor]
+            public RegexQuantifierFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Quantifier;
                 this.ForegroundColor = s_regexAnchorAndQuantifierColor;
@@ -729,7 +768,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexGroupingFormatDefinition : ClassificationFormatDefinition
         {
-            private RegexGroupingFormatDefinition()
+            [ImportingConstructor]
+            public RegexGroupingFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
                 this.ForegroundColor = s_regexGroupingAndAlternationColor;
@@ -745,7 +785,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexAlternationFormatDefinition : ClassificationFormatDefinition
         {
-            private RegexAlternationFormatDefinition()
+            [ImportingConstructor]
+            public RegexAlternationFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
                 this.ForegroundColor = s_regexGroupingAndAlternationColor;
@@ -761,7 +802,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexTextFormatDefinition : ClassificationFormatDefinition
         {
-            private RegexTextFormatDefinition()
+            [ImportingConstructor]
+            public RegexTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
                 this.ForegroundColor = s_regexTextColor;
@@ -777,7 +819,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexSelfEscapedCharacterFormatDefinition : ClassificationFormatDefinition
         {
-            private RegexSelfEscapedCharacterFormatDefinition()
+            [ImportingConstructor]
+            public RegexSelfEscapedCharacterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_SelfEscapedCharacter;
 
@@ -797,7 +840,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ExcludeFromCodeCoverage]
         private class RegexOtherEscapeFormatDefinition : ClassificationFormatDefinition
         {
-            private RegexOtherEscapeFormatDefinition()
+            [ImportingConstructor]
+            public RegexOtherEscapeFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesWpfResources.Regex_OtherEscape;
                 this.ForegroundColor = s_regexOtherEscapeColor;
@@ -813,7 +857,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralAttributeNameFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlLiteralAttributeNameFormatDefinition()
+            [ImportingConstructor]
+            public XmlLiteralAttributeNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Name;
                 this.ForegroundColor = Color.FromRgb(185, 100, 100); // HC_LIGHTRED
@@ -828,7 +873,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralAttributeQuotesFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlLiteralAttributeQuotesFormatDefinition()
+            [ImportingConstructor]
+            public XmlLiteralAttributeQuotesFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Quotes;
                 this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
@@ -843,7 +889,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralAttributeValueFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlLiteralAttributeValueFormatDefinition()
+            [ImportingConstructor]
+            public XmlLiteralAttributeValueFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Attribute_Value;
                 this.ForegroundColor = Color.FromRgb(100, 100, 185); // HC_LIGHTBLUE
@@ -858,7 +905,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralCDataSectionFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlLiteralCDataSectionFormatDefinition()
+            [ImportingConstructor]
+            public XmlLiteralCDataSectionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_CData_Section;
                 this.ForegroundColor = Color.FromRgb(192, 192, 192); // HC_LIGHTGRAY
@@ -873,7 +921,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralCommentFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlLiteralCommentFormatDefinition()
+            [ImportingConstructor]
+            public XmlLiteralCommentFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Comment;
                 this.ForegroundColor = Color.FromRgb(98, 151, 85); // HC_LIGHTGREEN
@@ -888,7 +937,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralDelimiterFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlLiteralDelimiterFormatDefinition()
+            [ImportingConstructor]
+            public XmlLiteralDelimiterFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Delimiter;
                 this.ForegroundColor = Color.FromRgb(100, 100, 185); // HC_LIGHTBLUE
@@ -903,7 +953,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralEmbeddedExpressionFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlLiteralEmbeddedExpressionFormatDefinition()
+            [ImportingConstructor]
+            public XmlLiteralEmbeddedExpressionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Embedded_Expression;
                 this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK
@@ -919,7 +970,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralEntityReferenceFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlLiteralEntityReferenceFormatDefinition()
+            [ImportingConstructor]
+            public XmlLiteralEntityReferenceFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Entity_Reference;
                 this.ForegroundColor = Color.FromRgb(185, 100, 100); // HC_LIGHTRED
@@ -934,7 +986,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralNameFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlLiteralNameFormatDefinition()
+            [ImportingConstructor]
+            public XmlLiteralNameFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Name;
                 this.ForegroundColor = Color.FromRgb(132, 70, 70); // HC_LIGHTMAROON
@@ -949,7 +1002,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralProcessingInstructionFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlLiteralProcessingInstructionFormatDefinition()
+            [ImportingConstructor]
+            public XmlLiteralProcessingInstructionFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Processing_Instruction;
                 this.ForegroundColor = Color.FromRgb(192, 192, 192); // HC_LIGHTGRAY
@@ -964,7 +1018,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [UserVisible(true)]
         private class XmlLiteralTextFormatDefinition : ClassificationFormatDefinition
         {
-            private XmlLiteralTextFormatDefinition()
+            [ImportingConstructor]
+            public XmlLiteralTextFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.VB_XML_Literals_Text;
                 this.ForegroundColor = Color.FromRgb(85, 85, 85); // HC_LIGHTBLACK

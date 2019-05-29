@@ -15,6 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
         private Lazy<INavigateToPreviewService> _singleton =
             new Lazy<INavigateToPreviewService>(() => new VisualStudioNavigateToPreviewService());
 
+        [ImportingConstructor]
+        public VisualStudioNavigateToPreviewServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return _singleton.Value;

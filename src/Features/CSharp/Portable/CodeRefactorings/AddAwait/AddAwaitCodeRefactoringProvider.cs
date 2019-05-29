@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddAwait), Shared]
     internal partial class CSharpAddAwaitCodeRefactoringProvider : AbstractAddAwaitCodeRefactoringProvider<ExpressionSyntax, InvocationExpressionSyntax>
     {
+        [ImportingConstructor]
+        public CSharpAddAwaitCodeRefactoringProvider()
+        {
+        }
+
         protected override string GetTitle()
             => CSharpFeaturesResources.Add_await;
 

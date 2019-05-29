@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddAwait)]
     internal sealed class CSharpAddBracesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpAddBracesCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId);
 

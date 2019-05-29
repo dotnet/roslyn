@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
     [ExportOptionProvider, Shared]
     internal class PerformanceFunctionIdOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public PerformanceFunctionIdOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options
         {
             get

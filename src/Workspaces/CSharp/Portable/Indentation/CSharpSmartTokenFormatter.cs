@@ -4,28 +4,27 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
+namespace Microsoft.CodeAnalysis.CSharp.Indentation
 {
-    internal class SmartTokenFormatter : ISmartTokenFormatter
+    internal class CSharpSmartTokenFormatter : ISmartTokenFormatter
     {
         private readonly OptionSet _optionSet;
         private readonly IEnumerable<AbstractFormattingRule> _formattingRules;
 
         private readonly CompilationUnitSyntax _root;
 
-        public SmartTokenFormatter(
+        public CSharpSmartTokenFormatter(
             OptionSet optionSet,
             IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root)

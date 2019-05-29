@@ -9,6 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNumericLiteral
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertNumericLiteralCodeRefactoringProvider)), Shared]
     internal sealed class CSharpConvertNumericLiteralCodeRefactoringProvider : AbstractConvertNumericLiteralCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public CSharpConvertNumericLiteralCodeRefactoringProvider()
+        {
+        }
+
         protected override (string hexPrefix, string binaryPrefix) GetNumericLiteralPrefixes() => (hexPrefix: "0x", binaryPrefix: "0b");
     }
 }

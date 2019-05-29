@@ -7,31 +7,31 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// Represents a non source code file.
+    /// An implementation of <see cref="AdditionalText"/> for the compiler that wraps a <see cref="TextDocumentState"/>.
     /// </summary>
-    internal sealed class AdditionalTextDocument : AdditionalText
+    internal sealed class AdditionalTextWithState : AdditionalText
     {
-        private readonly TextDocumentState _document;
+        private readonly TextDocumentState _documentState;
 
         /// <summary>
-        /// Create a <see cref="SourceText"/> from a <see cref="TextDocumentState"/>. <paramref name="document"/> should be non-null.
+        /// Create a <see cref="SourceText"/> from a <see cref="TextDocumentState"/>. <paramref name="documentState"/> should be non-null.
         /// </summary>
-        public AdditionalTextDocument(TextDocumentState document)
+        public AdditionalTextWithState(TextDocumentState documentState)
         {
-            _document = document ?? throw new ArgumentNullException(nameof(document));
+            _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));
         }
 
         /// <summary>
         /// Resolved path of the document.
         /// </summary>
-        public override string Path => _document.FilePath ?? _document.Name;
+        public override string Path => _documentState.FilePath ?? _documentState.Name;
 
         /// <summary>
         /// Retrieves a <see cref="SourceText"/> with the contents of this file.
         /// </summary>
         public override SourceText GetText(CancellationToken cancellationToken = default)
         {
-            var text = _document.GetTextSynchronously(cancellationToken);
+            var text = _documentState.GetTextSynchronously(cancellationToken);
             return text;
         }
     }

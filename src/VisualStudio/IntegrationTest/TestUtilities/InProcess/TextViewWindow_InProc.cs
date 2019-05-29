@@ -329,7 +329,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return await SelectActionsAsync(actionSets);
         }
 
-        public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
+        public bool ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
         {
             var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope, blockUntilComplete);
             var task = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
@@ -337,16 +337,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var activeTextView = GetActiveTextView();
-                await lightBulbAction(activeTextView);
+                return await lightBulbAction(activeTextView);
             });
 
             if (blockUntilComplete)
             {
-                task.Join();
+                var result = task.Join();
+                DismissLightBulbSession();
+                return result;
             }
+
+            return true;
         }
 
-        private Func<IWpfTextView, Task> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
+        private Func<IWpfTextView, Task<bool>> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope, bool willBlockUntilComplete)
         {
             return async view =>
             {
@@ -396,7 +400,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     if (string.IsNullOrEmpty(actionName))
                     {
-                        return;
+                        return false;
                     }
 
                     // Dismiss the lightbulb session as we not invoking the original code fix.
@@ -404,6 +408,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
 
                 action.Invoke(CancellationToken.None);
+                return !(action is SuggestedAction suggestedAction)
+                    || suggestedAction.GetTestAccessor().IsApplied;
             };
         }
 

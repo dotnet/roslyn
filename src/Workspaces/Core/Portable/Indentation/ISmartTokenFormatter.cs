@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
+namespace Microsoft.CodeAnalysis.Indentation
 {
     internal interface ISmartTokenFormatter
     {

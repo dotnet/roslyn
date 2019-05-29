@@ -5,8 +5,10 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Indentation
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
@@ -19,8 +21,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
     <Order(After:=PredefinedCommandHandlerNames.Rename)>
     Friend Class SmartTokenFormatterCommandHandler
         Inherits AbstractSmartTokenFormatterCommandHandler
-
-        Private ReadOnly _formattingRules As IEnumerable(Of AbstractFormattingRule)
 
         <ImportingConstructor()>
         Public Sub New(undoHistoryRegistry As ITextUndoHistoryRegistry,
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
         End Function
 
         Protected Overrides Function CreateSmartTokenFormatter(optionSet As OptionSet, formattingRules As IEnumerable(Of AbstractFormattingRule), root As SyntaxNode) As ISmartTokenFormatter
-            Return New SmartTokenFormatter(optionSet, formattingRules, DirectCast(root, CompilationUnitSyntax))
+            Return New VisualBasicSmartTokenFormatter(optionSet, formattingRules, DirectCast(root, CompilationUnitSyntax))
         End Function
 
         Protected Overrides Function UseSmartTokenFormatter(root As SyntaxNode,

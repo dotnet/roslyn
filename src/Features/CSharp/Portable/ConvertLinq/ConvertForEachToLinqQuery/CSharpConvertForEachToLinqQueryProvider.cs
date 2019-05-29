@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
     internal sealed class CSharpConvertForEachToLinqQueryProvider
         : AbstractConvertForEachToLinqQueryProvider<ForEachStatementSyntax, StatementSyntax>
     {
+        [ImportingConstructor]
+        public CSharpConvertForEachToLinqQueryProvider()
+        {
+        }
+
         protected override IConverter<ForEachStatementSyntax, StatementSyntax> CreateDefaultConverter(
             ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo)
             => new DefaultConverter(forEachInfo);

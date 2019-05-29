@@ -368,18 +368,22 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var sourceText = await _assetService.GetAssetAsync<SourceText>(newDocumentChecksums.Text, _cancellationToken).ConfigureAwait(false);
 
-                if (document is Document)
+                switch (document.Kind)
                 {
-                    document = document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id);
-                }
-                else if (document is AnalyzerConfigDocument)
-                {
-                    document = document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, sourceText).GetAnalyzerConfigDocument(document.Id);
-                }
-                else
-                {
-                    Debug.Assert(document.Project.ContainsAdditionalDocument(document.Id));
-                    document = document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id);
+                    case TextDocumentKind.Document:
+                        document = document.Project.Solution.WithDocumentText(document.Id, sourceText).GetDocument(document.Id);
+                        break;
+
+                    case TextDocumentKind.AnalyzerConfigDocument:
+                        document = document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, sourceText).GetAnalyzerConfigDocument(document.Id);
+                        break;
+
+                    case TextDocumentKind.AdditionalDocument:
+                        document = document.Project.Solution.WithAdditionalDocumentText(document.Id, sourceText).GetAdditionalDocument(document.Id);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(document.Kind);
                 }
             }
 
