@@ -47,13 +47,6 @@ namespace Microsoft.CodeAnalysis.Indentation
             return indenter.GetDesiredIndentation(indentStyle);
         }
 
-        public IndentationResult GetBlankLineIndentation(
-            Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
-        {
-            var indenter = GetIndenter(document, lineNumber, cancellationToken);
-            return indenter.GetDesiredIndentation(indentStyle);
-        }
-
         private AbstractIndenter GetIndenter(Document document, int lineNumber, CancellationToken cancellationToken)
         {
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
