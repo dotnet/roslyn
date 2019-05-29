@@ -9,5 +9,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToBase
     [ExportLanguageService(typeof(IGoToBaseService), LanguageNames.CSharp), Shared]
     internal class CSharpGoToBaseService : AbstractGoToBaseService
     {
+        [ImportingConstructor]
+        public CSharpGoToBaseService()
+        {
+        }
     }
 }

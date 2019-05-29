@@ -17,6 +17,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
     Partial Friend Class VisualBasicHelpContextService
         Inherits AbstractHelpContextService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides ReadOnly Property Language As String
             Get
                 Return "VB"

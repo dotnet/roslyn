@@ -107,6 +107,9 @@
       <_Dependency Remove="Newtonsoft.Json"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
+      <_Dependency Remove="Nerdbank.Streams"/>
+      <_Dependency Remove="System.IO.Pipelines"/>
+      <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
@@ -192,7 +195,7 @@
     Write a list of assembly names and versions that the insertion tool uses to update assembly versions in DevDiv.
   -->
   <Target Name="_GenerateDependentAssemblyVersions" 
-          AfterTargets="Build" 
+          BeforeTargets="AfterBuild"
           DependsOnTargets="_CalculateDependenciesToInsert"
           Inputs="$(MSBuildAllProjects)"
           Outputs="$(_DependentAssemblyVersionsFile)">
@@ -216,7 +219,7 @@
     Copy NuGet packages to be inserted into VS by the insertion tool.
   -->
   <Target Name="_CopyPackagesToInsert"
-          AfterTargets="Build"
+          BeforeTargets="AfterBuild"
           Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true'"
           DependsOnTargets="_CalculateDependenciesToInsert;_UnpackDependencies;ApplyOptimizations">
 

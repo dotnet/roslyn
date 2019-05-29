@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseDefaultLiteralCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        [ImportingConstructor]
+        public CSharpUseDefaultLiteralCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId);
 

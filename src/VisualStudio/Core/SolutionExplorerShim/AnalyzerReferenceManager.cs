@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private AnalyzerItemsTracker _tracker = null;
 
         [ImportingConstructor]
-        internal AnalyzerReferenceManager(
+        public AnalyzerReferenceManager(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;

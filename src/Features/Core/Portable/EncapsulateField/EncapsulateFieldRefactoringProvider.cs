@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         Name = PredefinedCodeRefactoringProviderNames.EncapsulateField), Shared]
     internal class EncapsulateFieldRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public EncapsulateFieldRefactoringProvider()
+        {
+        }
+
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var service = context.Document.GetLanguageService<AbstractEncapsulateFieldService>();

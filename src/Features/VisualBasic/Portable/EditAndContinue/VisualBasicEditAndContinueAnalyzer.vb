@@ -15,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     Friend NotInheritable Class VisualBasicEditAndContinueAnalyzer
         Inherits AbstractEditAndContinueAnalyzer
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
 #Region "Syntax Analysis"
 
         ''' <returns>

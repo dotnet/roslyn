@@ -28,6 +28,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
             kindOptions:=SymbolDisplayKindOptions.IncludeNamespaceKeyword Or SymbolDisplayKindOptions.IncludeTypeKeyword Or SymbolDisplayKindOptions.IncludeMemberKeyword)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Function GetAnonymousTypeParts(anonymousType As INamedTypeSymbol, semanticModel As SemanticModel, position As Integer, displayService As ISymbolDisplayService) As IEnumerable(Of SymbolDisplayPart)
             If anonymousType.IsAnonymousDelegateType() Then
                 Return GetDelegateAnonymousType(anonymousType, semanticModel, position, displayService)

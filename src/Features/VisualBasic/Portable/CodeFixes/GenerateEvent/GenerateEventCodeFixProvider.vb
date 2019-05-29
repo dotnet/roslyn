@@ -21,6 +21,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
         Friend Const BC30456 As String = "BC30456" ' error BC30456: 'x' is not a member of 'y'.
         Friend Const BC30451 As String = "BC30451" ' error BC30451: 'x' is not declared, it may be inaccessible due to its protection level.
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC30401, BC30590, BC30456, BC30451)

@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     [ExportOptionProvider, Shared]
     internal sealed class CSharpFormattingOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public CSharpFormattingOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = CSharpFormattingOptions.AllOptions;
     }
 }

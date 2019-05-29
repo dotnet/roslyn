@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         public event EventHandler SnapshotAdded;
 
+        [ImportingConstructor]
         public PerformanceTrackerService() :
             this(DefaultMinLOFValue, DefaultAverageThreshold, DefaultStddevThreshold)
         {

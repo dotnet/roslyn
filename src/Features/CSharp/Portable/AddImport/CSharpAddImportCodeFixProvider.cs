@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
     {
         public override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
 
+        [ImportingConstructor]
         public CSharpAddImportCodeFixProvider()
         {
         }

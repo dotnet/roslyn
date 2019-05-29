@@ -22,6 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
     [ExportOptionProvider, Shared]
     internal class ExperimentationOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public ExperimentationOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             ExperimentationOptions.SolutionStatusService_ForceDelay,
             ExperimentationOptions.SolutionStatusService_DelayInMS);
