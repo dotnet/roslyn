@@ -10196,6 +10196,7 @@ tryAgain:
                                 return true;
                             }
                             continue;
+
                         case SyntaxKind.CloseParenToken:
                             return this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken;
 
